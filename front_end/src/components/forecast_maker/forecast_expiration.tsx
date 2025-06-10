@@ -464,7 +464,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
               </span>
             </span>
 
-            <div className="flex flex-1 flex-col gap-1">
+            <div className="flex flex-1 flex-col gap-2">
               <p className="my-0 text-base md:mt-0 md:leading-none">
                 {t("useAccountSetting")}
                 <span className="ml-1 font-medium">
