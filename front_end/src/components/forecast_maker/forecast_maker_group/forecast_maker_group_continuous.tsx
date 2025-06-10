@@ -637,14 +637,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       <div className="mt-2 flex flex-col items-center text-xs text-salmon-800 dark:text-salmon-800-dark">
         {soonToExpireForecastsCount > 0 && (
           <div>
-            {t("predictionsSoonToExpireText", {
+            {t("predictionsSoonToBeWidthdrawnText", {
               count: soonToExpireForecastsCount,
             })}
           </div>
         )}
         {expiredForecastsCount > 0 && (
           <div>
-            {t("predictionsExpiredText", { count: expiredForecastsCount })}
+            {t("predictionsWithdrawnText", { count: expiredForecastsCount })}
           </div>
         )}
       </div>

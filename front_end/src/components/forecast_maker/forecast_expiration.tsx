@@ -76,7 +76,7 @@ const modalPresets: Preset[] = [
   { id: "3m", duration: { months: 3 } },
   { id: "1y", duration: { years: 1 } },
   { id: "customDate" },
-  { id: "neverExpires" },
+  { id: "neverWithdraw" },
 ] as const;
 
 export const getTimeToExpireDays = (
@@ -202,7 +202,7 @@ const getPresetLabel = (
     { id: "3m", label: t("3months") },
     { id: "1y", label: t("1year") },
     { id: "customDate", label: t("customDate") },
-    { id: "neverExpires", label: t("neverExpires") },
+    { id: "neverWithdraw", label: t("neverWithdraw") },
   ] as const;
 
   return presets.find((preset) => preset.id === presetID)?.label;
@@ -415,7 +415,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const onNeverExpiresSelected = () => {
     setCurrentState({
       ...currentState,
-      selectedPreset: "neverExpires",
+      selectedPreset: "neverWithdraw",
       option: "custom",
       forecastExpiration: {
         kind: "infinity",
@@ -446,7 +446,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     >
       <div className="flex flex-col gap-4 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
         <h2 className="text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
-          {t("predictionExpiration")}
+          {t("predictionAutoWithdrawalTitle")}
         </h2>
 
         <div
@@ -509,7 +509,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
               </span>
             </span>
             <p className="my-0 text-base leading-normal">
-              {t("useCustomExpiration")}
+              {t("useCustomDuration")}
             </p>
           </div>
 
@@ -587,10 +587,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
               </Button>
 
               <Button
-                key="neverExpires"
+                key="neverWithdraw"
                 type="button"
                 variant={
-                  currentState.selectedPreset === "neverExpires" &&
+                  currentState.selectedPreset === "neverWithdraw" &&
                   currentState.option === "custom"
                     ? "primary"
                     : "secondary"
@@ -602,7 +602,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                   setShowDatePicker(false);
                 }}
               >
-                {t("neverExpires")}
+                {t("neverWithdraw")}
               </Button>
             </div>
           )}
@@ -610,7 +610,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
 
         {/* Helper text */}
         <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-700-dark">
-          {t("expirationHelpText")}
+          {t("predictionWithdrawalReminderHelpText")}
         </p>
 
         {/* Footer */}
