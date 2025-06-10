@@ -619,6 +619,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 "Check if you are forecasting with the Post Id accidentally instead."
             )
 
+        if data.get("end_time") and data["end_time"] <= timezone.now():
+            raise serializers.ValidationError("Forecast end_time mut be in the future")
+
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
         continuous_cdf = data.get("continuous_cdf")
