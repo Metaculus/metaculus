@@ -1278,5 +1278,10 @@
   "stepError1": "步驟至少必須是範圍的1/200: ({rangePortion})",
   "minMaxError0": "提供正確的最小值和最大值",
   "minMaxError1": "最小值應小於最大值",
-  "rangeWarning0": "警告：步驟無法均等地劃分範圍。最大值減至 {newMax}"
+  "rangeWarning0": "警告：步驟無法均等地劃分範圍。最大值減至 {newMax}",
+  "emailMeMyData": "發送資料到我的電子郵件",
+  "emailMeMyDataStatement": "點擊此按鈕會將您的資料發送到電子郵箱。這包括您創建或共同創建的問題、您所做的預測、您撰寫的評論以及您收到的任何評分。",
+  "emailMe": "發送到我的電子郵件",
+  "emailScheduled": "電子郵件已安排發送。",
+  "emailMeError": "發生錯誤。請聯繫客服尋求幫助。"
 }
