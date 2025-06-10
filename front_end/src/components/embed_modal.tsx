@@ -11,6 +11,7 @@ import {
   EMBED_QUESTION_TITLE,
   CHART_TYPE_PARAM,
 } from "@/constants/global_search_params";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import useAppTheme from "@/hooks/use_app_theme";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { QuestionType } from "@/types/question";
@@ -66,7 +67,8 @@ const EmbedModal: FC<Props> = ({
     [chartZoom, embedTheme, embedTitle, url, withChartZoom, chartType]
   );
   const isContinuousQuestion =
-    questionType === QuestionType.Date || questionType === QuestionType.Numeric;
+    questionType &&
+    ContinuousQuestionTypes.some((type) => type === questionType);
 
   return (
     <BaseModal label={t("embedThisPage")} isOpen={isOpen} onClose={onClose}>

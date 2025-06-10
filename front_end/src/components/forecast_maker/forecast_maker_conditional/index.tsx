@@ -1,5 +1,6 @@
 import { FC, ReactNode } from "react";
 
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostConditional, PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
@@ -48,9 +49,7 @@ const ForecastMakerConditional: FC<Props> = ({
           onPredictionSubmit={onPredictionSubmit}
         />
       )}
-      {(question_yes.type === QuestionType.Numeric ||
-        question_yes.type === QuestionType.Discrete ||
-        question_yes.type === QuestionType.Date) && (
+      {ContinuousQuestionTypes.some((type) => type === question_yes.type) && (
         <ForecastMakerConditionalContinuous
           postId={postId}
           postTitle={postTitle}

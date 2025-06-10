@@ -186,6 +186,7 @@ const ForecastCard: FC<Props> = ({
                   }
                   openTime={getPostDrivenTime(question.open_time)}
                   unit={question.unit}
+                  inboundOutcomeCount={question.inbound_outcome_count}
                 />
                 <ForecastAvailabilityChartOverflow
                   forecastAvailability={forecastAvailability}

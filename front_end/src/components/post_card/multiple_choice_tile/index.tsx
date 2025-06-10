@@ -9,6 +9,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import useContainerSize from "@/hooks/use_container_size";
 import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -291,11 +292,7 @@ function generateReaffirmData({
     }
 
     // continuous group
-    if (
-      groupType === QuestionType.Numeric ||
-      groupType === QuestionType.Discrete ||
-      groupType === QuestionType.Date
-    ) {
+    if (ContinuousQuestionTypes.some((type) => type === groupType)) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
         let forecastValues: number[] | undefined = undefined;
