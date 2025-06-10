@@ -86,7 +86,6 @@ const AccountPreferences: FC<Props> = ({ user }) => {
                   debouncedUpdateExpirationPercent(null);
                 }
               }}
-              className=""
               readOnly={isPendingUpdateExpirationPercent}
               label=""
             />
