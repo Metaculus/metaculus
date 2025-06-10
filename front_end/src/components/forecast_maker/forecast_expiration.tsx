@@ -562,11 +562,22 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                       ref={dateInputRef}
                       type="datetime-local"
                       className="absolute left-0 top-0 opacity-0"
+                      min={new Date(
+                        Date.now() - new Date().getTimezoneOffset() * 60000
+                      )
+                        .toISOString()
+                        .slice(0, 16)}
                       onChange={(e) => {
-                        setCurrentState({
-                          ...currentState,
-                          datePickerDate: new Date(e.target.value),
-                        });
+                        const selectedDate = new Date(e.target.value);
+                        const now = new Date();
+
+                        // Only update if the selected date is not in the past
+                        if (selectedDate >= now) {
+                          setCurrentState({
+                            ...currentState,
+                            datePickerDate: selectedDate,
+                          });
+                        }
                       }}
                     />
                     {currentState.datePickerDate && (
