@@ -74,6 +74,8 @@ const PredictButton: FC<Props> = ({
     onSubmit();
   };
 
+  const showPredictionExpirationChip = !!predictionExpirationChip && !!user;
+
   return (
     <div className="flex">
       <Button
@@ -82,13 +84,13 @@ const PredictButton: FC<Props> = ({
         disabled={disabled}
         onClick={handleClick}
         className={cn("", {
-          "rounded-r-none": !!predictionExpirationChip,
+          "rounded-r-none": showPredictionExpirationChip,
         })}
       >
         {buttonLabel}
       </Button>
 
-      {predictionExpirationChip && (
+      {showPredictionExpirationChip && (
         <Button
           variant="secondary"
           onClick={() => onPredictionExpirationClick?.()}
