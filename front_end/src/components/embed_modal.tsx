@@ -9,9 +9,12 @@ import {
   ENFORCED_THEME_PARAM,
   GRAPH_ZOOM_PARAM,
   EMBED_QUESTION_TITLE,
+  CHART_TYPE_PARAM,
 } from "@/constants/global_search_params";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import useAppTheme from "@/hooks/use_app_theme";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
+import { QuestionType } from "@/types/question";
 import { AppTheme } from "@/types/theme";
 import { getChartZoomOptions } from "@/utils/charts/helpers";
 import { addUrlParams } from "@/utils/navigation";
@@ -24,6 +27,7 @@ type Props = {
   embedWidth: number;
   withChartZoom?: boolean;
   postTitle?: string;
+  questionType?: QuestionType;
 };
 
 const EmbedModal: FC<Props> = ({
@@ -34,6 +38,7 @@ const EmbedModal: FC<Props> = ({
   embedHeight,
   withChartZoom,
   postTitle,
+  questionType,
 }) => {
   const t = useTranslations();
   const { theme: appTheme } = useAppTheme();
@@ -42,7 +47,9 @@ const EmbedModal: FC<Props> = ({
   const [embedTitle, setEmbedTitle] = useState(postTitle);
   const zoomOptions = getChartZoomOptions();
   const [chartZoom, setChartZoom] = useState(TimelineChartZoomOption.All);
-
+  const [chartType, setChartType] = useState<EmbedChartType>(
+    EmbedChartType.Timeline
+  );
   const iFrameSrc = useMemo(
     () =>
       addUrlParams(url, [
@@ -53,52 +60,80 @@ const EmbedModal: FC<Props> = ({
         ...(withChartZoom
           ? [{ paramName: GRAPH_ZOOM_PARAM, paramValue: chartZoom }]
           : []),
+        ...(chartType === EmbedChartType.Current
+          ? [{ paramName: CHART_TYPE_PARAM, paramValue: chartType }]
+          : []),
       ]),
-    [chartZoom, embedTheme, embedTitle, url, withChartZoom]
+    [chartZoom, embedTheme, embedTitle, url, withChartZoom, chartType]
   );
+  const isContinuousQuestion =
+    questionType &&
+    ContinuousQuestionTypes.some((type) => type === questionType);
 
   return (
     <BaseModal label={t("embedThisPage")} isOpen={isOpen} onClose={onClose}>
       <div className="max-w-2xl">
         <p className="text-base leading-tight">{t("embedCodeSnippet")}</p>
         <div>
-          <Field className="mr-4 mt-4 inline-block text-base leading-tight">
-            <Label>{t("selectATheme")}</Label>
-            <Select
-              value={embedTheme}
-              onChange={(event) =>
-                setEmbedTheme(event.target.value as AppTheme)
-              }
-              name="chart-theme"
-              className="select-arrow ml-2 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
-            >
-              <option className="capitalize" value="light">
-                {t("light")}
-              </option>
-              <option className="capitalize" value="dark">
-                {t("dark")}
-              </option>
-            </Select>
-          </Field>
-          {withChartZoom && (
-            <Field className="mr-4 mt-4 inline-block text-base leading-tight">
-              <Label>{t("selectAGraphZoom")}</Label>
+          <div className="flex flex-wrap gap-4">
+            <Field className="flex flex-wrap items-center gap-2 text-base leading-tight">
+              <Label>{t("selectATheme")}</Label>
               <Select
-                value={chartZoom}
+                value={embedTheme}
                 onChange={(event) =>
-                  setChartZoom(event.target.value as TimelineChartZoomOption)
+                  setEmbedTheme(event.target.value as AppTheme)
                 }
                 name="chart-theme"
-                className="select-arrow ml-2 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
+                className="select-arrow h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
               >
-                {zoomOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.label)}
-                  </option>
-                ))}
+                <option className="capitalize" value="light">
+                  {t("light")}
+                </option>
+                <option className="capitalize" value="dark">
+                  {t("dark")}
+                </option>
               </Select>
             </Field>
-          )}
+            {withChartZoom && (
+              <Field className="flex flex-wrap items-center gap-2 text-base leading-tight">
+                <Label>{t("selectAGraphZoom")}</Label>
+                <Select
+                  value={chartZoom}
+                  onChange={(event) =>
+                    setChartZoom(event.target.value as TimelineChartZoomOption)
+                  }
+                  name="chart-theme"
+                  className="select-arrow h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
+                >
+                  {zoomOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {t(option.label)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+            {isContinuousQuestion && (
+              <Field className="flex flex-wrap items-center gap-2 text-base leading-tight">
+                <Label>{t("selectAGraphType")}</Label>
+                <Select
+                  value={chartType}
+                  onChange={(event) =>
+                    setChartType(event.target.value as EmbedChartType)
+                  }
+                  name="chart-theme"
+                  className="select-arrow h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
+                >
+                  <option value={EmbedChartType.Timeline}>
+                    {t("forecastTimelineHeading")}
+                  </option>
+                  <option value={EmbedChartType.Current}>
+                    {t("currentForecast")}
+                  </option>
+                </Select>
+              </Field>
+            )}
+          </div>
           <div className="mt-4">
             <label>
               Embeded question title
