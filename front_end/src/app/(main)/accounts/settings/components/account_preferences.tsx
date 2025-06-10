@@ -91,7 +91,7 @@ const AccountPreferences: FC<Props> = ({ user }) => {
             />
             <div className=" ">
               <span className="leading-none">
-                {t("defaultExpirationSettingText")}
+                {t("defaultWithdrawalSettingText")}
                 <span className="ml-1 inline-block translate-y-0.5">
                   <LoadingSpinner
                     size="1x"
@@ -108,8 +108,8 @@ const AccountPreferences: FC<Props> = ({ user }) => {
           {isExpirationEnabled && (
             <div className="ml-7 flex flex-col gap-2 bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
               <div>
-                Expire after{" "}
-                <div className="inline-flex min-w-10 items-center justify-center gap-0.5 rounded bg-gray-100 px-1.5 py-1 outline outline-1 outline-offset-[-1px] outline-blue-500 dark:bg-gray-0-dark dark:outline-blue-500-dark">
+                {t("withdrawAfterPercentSetting1")}
+                <div className="inline-flex min-w-10 items-center justify-center gap-0.5 rounded bg-gray-100 px-1.5 py-1 outline outline-1 outline-offset-[-1px] outline-blue-500 dark:bg-gray-0-dark dark:outline-blue-500-dark mx-1">
                   <Input
                     type="number"
                     value={localExpirationPercent}
@@ -142,7 +142,7 @@ const AccountPreferences: FC<Props> = ({ user }) => {
                     %
                   </div>
                 </div>
-                of total question lifetime
+                {t("withdrawAfterPercentSetting2")}
               </div>
             </div>
           )}

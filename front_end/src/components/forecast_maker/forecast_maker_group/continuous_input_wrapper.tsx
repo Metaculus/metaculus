@@ -336,10 +336,10 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             )}
           >
             {previousForecastExpiration.isExpired
-              ? t("predictionExpiredText", {
+              ? t("predictionWithdrawnText", {
                   time: previousForecastExpiration.string,
                 })
-              : t("predictionWillExpireInText", {
+              : t("predictionWillBeWithdrawInText", {
                   time: previousForecastExpiration.string,
                 })}
           </span>
