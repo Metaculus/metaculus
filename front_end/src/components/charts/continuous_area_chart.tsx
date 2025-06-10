@@ -465,6 +465,9 @@ const ContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (extraTheme?.area?.style?.data?.fill) {
+                            return extraTheme.area.style.data.fill;
+                          }
                           switch (chart.color) {
                             case "orange":
                               return getThemeColor(
@@ -523,6 +526,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (extraTheme?.line?.style?.data?.stroke) {
+                          return extraTheme?.line?.style?.data?.stroke;
+                        }
                         switch (chart.color) {
                           case "orange":
                             return getThemeColor(

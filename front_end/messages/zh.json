@@ -1289,5 +1289,6 @@
   "emailMe": "邮件发送给我",
   "emailScheduled": "邮件已安排发送。",
   "emailMeError": "遇到错误。请联系支持人员寻求帮助。",
-  "currentForecast": "当前预报"
+  "currentForecast": "当前预报",
+  "selectAGraphType": "选择图类型"
 }

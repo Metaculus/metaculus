@@ -113,7 +113,7 @@ const EmbedModal: FC<Props> = ({
             )}
             {isContinuousQuestion && (
               <Field className="flex flex-wrap items-center gap-2 text-base leading-tight">
-                <Label>{t("selectAGraphZoom")}</Label>
+                <Label>{t("selectAGraphType")}</Label>
                 <Select
                   value={chartType}
                   onChange={(event) =>

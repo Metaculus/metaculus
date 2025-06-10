@@ -1284,5 +1284,6 @@
   "emailMe": "Envie-me por e-mail",
   "emailScheduled": "E-mail agendado para ser enviado.",
   "emailMeError": "Erro encontrado. Por favor, entre em contato com o suporte para obter ajuda.",
-  "currentForecast": "Previsão atual"
+  "currentForecast": "Previsão atual",
+  "selectAGraphType": "Selecione um tipo de gráfico"
 }
