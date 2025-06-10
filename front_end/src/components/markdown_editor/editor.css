@@ -28,6 +28,9 @@
   .ͼ16 {
     @apply dark:text-white;
   }
+  .cm-activeLine {
+    @apply dark:!caret-white;
+  }
 }
 
 /* user mentions menu */
