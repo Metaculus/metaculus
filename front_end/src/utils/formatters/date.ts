@@ -96,7 +96,7 @@ export function formatDurationToShortStr(duration: Duration): string {
     str += duration.years + "y";
   }
   if (duration.months) {
-    str += duration.months + "m";
+    str += duration.months + "mo";
   }
   if (duration.weeks) {
     str += duration.weeks + "w";
