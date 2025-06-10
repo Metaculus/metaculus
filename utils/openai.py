@@ -1,11 +1,11 @@
-from itertools import islice
 import textwrap
-import tiktoken
-from django.conf import settings
-from openai import OpenAI, AsyncOpenAI
+from itertools import islice
 from typing import Iterable, Iterator
 
 import instructor
+import tiktoken
+from django.conf import settings
+from openai import OpenAI, AsyncOpenAI
 from pydantic import BaseModel
 
 EMBEDDING_MODEL = "text-embedding-3-large"
@@ -62,7 +62,11 @@ def generate_text_embed_vector(text: str) -> list[float]:
 
 async def generate_text_embed_vector_async(text: str) -> list[float]:
     async with get_openai_client_async() as client:
-        response = await client.embeddings.create(input=text, model=EMBEDDING_MODEL)
+        response = await client.embeddings.create(
+            input=text, model=EMBEDDING_MODEL,
+            # Set a timeout not to block worker
+            timeout=5
+        )
     vector = response.data[0].embedding
 
     return vector
@@ -133,7 +137,6 @@ def generate_keyfactors(
     comment: str,
     existing_keyfactors: list[str],
 ) -> list[str]:
-
     MAX_LENGTH = 50
 
     system_prompt = textwrap.dedent(

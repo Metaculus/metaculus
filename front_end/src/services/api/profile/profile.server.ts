@@ -60,6 +60,10 @@ class ServerProfileApiClass extends ProfileApi {
     });
   }
 
+  async emailMeMyData() {
+    return this.post("/users/me/email_me_my_data/", {});
+  }
+
   async changeEmailConfirm(token: string) {
     return this.post("/users/me/email/confirm/", {
       token,

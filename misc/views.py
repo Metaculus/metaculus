@@ -53,6 +53,7 @@ def contact_service_api_view(request: Request):
             f"Email address: {serializer.data['email']}\n"
             f"Organization: {serializer.data.get('organization')}\n"
             f"Interested in: {serializer.data.get('service')}\n"
+            f"Message: {serializer.data.get('message')}\n"
         ),
         from_email=settings.EMAIL_SENDER_NO_REPLY,
         to=[settings.EMAIL_SUPPORT],
