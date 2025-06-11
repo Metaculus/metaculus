@@ -466,7 +466,7 @@ def serialize_post_many(
 
     if with_cp:
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
-            flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
+            flatten([p.get_questions() for p in posts])
         )
 
     comment_key_factors_map = {}

@@ -42,7 +42,6 @@ from utils.the_math.aggregations import (
     get_aggregation_history,
     get_aggregations_at_time,
 )
-from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
@@ -850,7 +849,6 @@ def get_recency_weighted_for_questions(
 
 def get_aggregated_forecasts_for_questions(
     questions: Iterable[Question],
-    group_cutoff: int = None,
     aggregated_forecast_qs: QuerySet[AggregateForecast] | None = None,
 ):
     """
@@ -865,66 +863,11 @@ def get_aggregated_forecasts_for_questions(
     questions = list(questions)
     questions_to_fetch = set(questions)
     question_map = {q.pk: q for q in questions}
-    aggregated_forecasts = set()
     if aggregated_forecast_qs is None:
         aggregated_forecast_qs = AggregateForecast.objects.all()
 
-    if group_cutoff is not None:
-        recently_weighted = get_recency_weighted_for_questions(questions)
-        aggregated_forecasts.update([x for x in recently_weighted.values() if x])
-
-        grouped = defaultdict(list)
-        for q in questions:
-            if (
-                q.group_id
-                and q.group.graph_type
-                != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
-            ):
-                grouped[q.group].append(q)
-
-        def rank_sorting_key(q: Question):
-            return q.group_rank or 0
-
-        def cp_sorting_key(q: Question):
-            """
-            Extracts question aggregation forecast value
-            """
-            agg = recently_weighted.get(q)
-            if not agg or len(agg.forecast_values) < 2:
-                return 0
-            if q.type == "binary":
-                return agg.forecast_values[1]
-            if q.type in QUESTION_CONTINUOUS_TYPES:
-                return unscaled_location_to_scaled_location(agg.centers[0], q)
-            if q.type == "multiple_choice":
-                return max(agg.forecast_values)
-            return 0
-
-        cutoff_excluded = {
-            q
-            for group, qs in grouped.items()
-            for q in sorted(
-                qs,
-                key=(
-                    rank_sorting_key
-                    if group.subquestions_order
-                    == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
-                    else cp_sorting_key
-                ),
-                reverse=group.subquestions_order
-                in [
-                    GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
-                    None,  # if sort order is not set, then sort CP descending, hence reverse here
-                ],
-            )[group_cutoff:]
-        }
-        questions_to_fetch = questions_to_fetch - cutoff_excluded
-
-    aggregated_forecasts.update(
-        aggregated_forecast_qs.filter(question__in=questions_to_fetch).exclude(
-            # Exclude previously fetched aggregated_forecasts
-            id__in=[f.id for f in aggregated_forecasts]
-        )
+    aggregated_forecasts = set(
+        aggregated_forecast_qs.filter(question__in=questions_to_fetch)
     )
 
     forecasts_by_question = defaultdict(list)

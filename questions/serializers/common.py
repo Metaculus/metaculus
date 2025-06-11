@@ -3,7 +3,6 @@ from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 import numpy as np
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -19,10 +18,6 @@ from questions.models import (
     AggregationMethod,
 )
 from questions.models import Forecast
-from questions.utils import (
-    get_question_movement_period,
-    get_last_forecast_in_the_past,
-)
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
@@ -695,22 +690,7 @@ def serialize_question(
             AggregationMethod, list[AggregateForecast]
         ] = defaultdict(list)
 
-        movement_period = get_question_movement_period(question)
-        movement_start_date = timezone.now() - movement_period
-        movement_f1 = None
-
         for aggregate in aggregate_forecasts:
-            if (
-                aggregate.method == AggregationMethod.RECENCY_WEIGHTED
-                and aggregate.start_time <= movement_start_date
-                and aggregate.start_time <= timezone.now()
-                and (
-                    aggregate.end_time is None
-                    or aggregate.end_time > movement_start_date
-                )
-            ):
-                movement_f1 = aggregate
-
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
 
         # Debug method for building aggregation history from scratch
@@ -784,19 +764,6 @@ def serialize_question(
                 if forecasts
                 else None
             )
-            movement_f_last = get_last_forecast_in_the_past(forecasts)
-
-            if (
-                method == AggregationMethod.RECENCY_WEIGHTED
-                and movement_f1
-                and movement_f_last
-                and movement_start_date
-            ):
-                serialized_data["aggregations"][method]["movement"] = (
-                    serialize_question_movement(
-                        question, movement_f1, movement_f_last, movement_period
-                    )
-                )
 
     if (
         current_user
