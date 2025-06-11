@@ -62,6 +62,7 @@ import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
   forecastExpirationToDate,
+  ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration";
 import {
@@ -99,17 +100,22 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const questionNoId = question_no.id;
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
+
   const todayTs = new Date().getTime();
-  const prevYesForecastValue =
-    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs)
-      ? extractPrevNumericForecastValue(latestYes.distribution_input)
-      : undefined;
-  const prevNoForecastValue =
-    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs)
-      ? extractPrevNumericForecastValue(latestNo.distribution_input)
-      : undefined;
+  const hasLatestActiveYes =
+    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs);
+  const hasLatestActiveNo =
+    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs);
+
+  const prevYesForecastValue = latestYes
+    ? extractPrevNumericForecastValue(latestYes.distribution_input)
+    : undefined;
+  const prevNoForecastValue = latestNo
+    ? extractPrevNumericForecastValue(latestNo.distribution_input)
+    : undefined;
   const hasUserForecast =
     !!prevYesForecastValue?.components || !!prevNoForecastValue?.components;
+  const hasUserActiveForecast = hasLatestActiveYes || hasLatestActiveNo;
 
   const questionYesDuration =
     new Date(question_yes.scheduled_close_time).getTime() -
@@ -469,7 +475,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     prevYesForecastValue,
   ]);
 
-  const handlePredictSubmit = async () => {
+  const handlePredictSubmit = async (
+    forecastExpiration?: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
     if (!questionsToSubmit.length) {
       return;
@@ -504,10 +512,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           sliderForecast,
           quantileForecast,
           forecastInputMode,
-          forecastExpiration,
+          forecastExpiration: questionForecastExpiration,
         }) => ({
           questionId: question.id,
-          forecastEndTime: forecastExpirationToDate(forecastExpiration),
+          forecastEndTime: forecastExpirationToDate(
+            forecastExpiration ?? questionForecastExpiration
+          ),
           forecastData: {
             continuousCdf:
               forecastInputMode === ContinuousForecastInputType.Quantile
@@ -597,11 +607,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
-    if (!prevYesForecastValue && !prevNoForecastValue) return;
+    if (!hasLatestActiveYes && !hasLatestActiveNo) return;
 
     const response = await withdrawForecasts(postId, [
-      ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
-      ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
+      ...(hasLatestActiveYes ? [{ question: questionYesId }] : []),
+      ...(hasLatestActiveNo ? [{ question: questionNoId }] : []),
     ]);
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
@@ -737,7 +747,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 >
                   {t("discardChangesButton")}
                 </Button>
-              ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
+              ) : hasUserActiveForecast ? (
                 <WithdrawButton
                   type="button"
                   isPromptOpen={isWithdrawModalOpen}
@@ -755,6 +765,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ContinuousForecastInputType.Slider && (
             <PredictButton
               onSubmit={handlePredictSubmit}
+              isUserForecastActive={hasUserActiveForecast}
               isDirty={isPickerDirty}
               hasUserForecast={hasUserForecast}
               isPending={isSubmitting}
@@ -772,6 +783,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             activeQuestion && (
               <PredictButton
                 onSubmit={handlePredictSubmit}
+                isUserForecastActive={hasUserActiveForecast}
                 isDirty={activeOptionData.quantileForecast.some(
                   (q) => q.isDirty
                 )}
@@ -837,6 +849,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
+        onReaffirm={
+          !!hasUserActiveForecast && !isPickerDirty
+            ? handlePredictSubmit
+            : undefined
+        }
         questionDuration={questionDuration}
       />
 
