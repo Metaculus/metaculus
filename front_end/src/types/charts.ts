@@ -75,3 +75,8 @@ export enum ContinuousForecastInputType {
   Slider = "slider",
   Quantile = "quantile",
 }
+
+export enum EmbedChartType {
+  Timeline = "timeline",
+  Current = "current",
+}

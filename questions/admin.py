@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
+from questions.types import AggregationMethod
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -16,6 +17,7 @@ from questions.models import (
 from questions.services import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+from questions.constants import ResolutionType
 
 
 @admin.register(Question)
@@ -42,6 +44,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "export_selected_questions_data_anonymized",
         "rebuild_aggregation_history",
         "trigger_scoring",
+        "trigger_scoring_with_all_aggregations",
     ]
     list_filter = [
         "type",
@@ -133,7 +136,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if question.resolution in ["", None, "ambiguous", "annulled"]:
+            if not question.resolution or question.resolution in (
+                ResolutionType.AMBIGUOUS,
+                ResolutionType.ANNULLED,
+            ):
                 continue
             score_question(
                 question=question,
@@ -141,6 +147,27 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             )
 
     trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"
+
+    def trigger_scoring_with_all_aggregations(
+        self, request, queryset: QuerySet[Question]
+    ):
+        from scoring.utils import score_question
+
+        for question in queryset:
+            if not question.resolution or question.resolution in (
+                ResolutionType.AMBIGUOUS,
+                ResolutionType.ANNULLED,
+            ):
+                continue
+            score_question(
+                question=question,
+                resolution=question.resolution,
+                aggregation_methods=list(AggregationMethod._member_map_.values()),
+            )
+
+    trigger_scoring_with_all_aggregations.short_description = (
+        "Trigger Scoring (Includes ALL Aggregations) (does nothing if not resolved)"
+    )
 
 
 @admin.register(Conditional)
