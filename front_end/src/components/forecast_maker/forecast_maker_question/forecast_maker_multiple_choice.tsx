@@ -26,6 +26,7 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { sendPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
+import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -44,7 +45,6 @@ import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
-import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type ChoiceOption = {
   name: string;
