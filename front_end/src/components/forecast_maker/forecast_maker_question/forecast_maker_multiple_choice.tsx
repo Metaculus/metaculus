@@ -44,6 +44,7 @@ import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
+import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type ChoiceOption = {
   name: string;
@@ -81,6 +82,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     new Date().getTime() / 1000
       ? undefined
       : question.my_forecasts?.latest;
+
+  const userLastForecast = question.my_forecasts?.latest;
 
   // Calculate question duration for expiration modal
   const questionDuration = useMemo(() => {
@@ -132,7 +135,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     generateChoiceOptions(
       question,
       question.aggregations.recency_weighted,
-      activeUserForecast
+      userLastForecast
     )
   );
 
@@ -431,6 +434,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                 onSubmit={submit}
                 isDirty={isDirty}
                 hasUserForecast={forecastHasValues}
+                isUserForecastActive={isOpenQuestionPredicted(question)}
                 isPending={isPending}
                 isDisabled={!isForecastValid}
                 predictionExpirationChip={expirationShortChip}
@@ -486,19 +490,19 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: QuestionWithMultipleChoiceForecasts,
   aggregate: AggregateForecastHistory,
-  activeUserForecast: UserForecast | undefined
+  userLastForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
 
   const choiceItems = question.options.map((option, index) => {
     const communityForecastValue = latest?.forecast_values[index];
-    const userForecastValue = activeUserForecast?.forecast_values[index];
+    const userForecastValue = userLastForecast?.forecast_values[index];
 
     return {
       name: option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast:
-        latest && !latest.end_time && !isNil(communityForecastValue)
+        latest && !isNil(communityForecastValue)
           ? Math.round(communityForecastValue * 1000) / 1000
           : null,
       forecast: !isNil(userForecastValue)
