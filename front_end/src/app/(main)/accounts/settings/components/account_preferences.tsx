@@ -109,7 +109,7 @@ const AccountPreferences: FC<Props> = ({ user }) => {
             <div className="ml-7 flex flex-col gap-2 bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
               <div>
                 {t("withdrawAfterPercentSetting1")}
-                <div className="inline-flex min-w-10 items-center justify-center gap-0.5 rounded bg-gray-100 px-1.5 py-1 outline outline-1 outline-offset-[-1px] outline-blue-500 dark:bg-gray-0-dark dark:outline-blue-500-dark mx-1">
+                <div className="mx-1 inline-flex min-w-10 items-center justify-center gap-0.5 rounded bg-gray-100 px-1.5 py-1 outline outline-1 outline-offset-[-1px] outline-blue-500 dark:bg-gray-0-dark dark:outline-blue-500-dark">
                   <Input
                     type="number"
                     value={localExpirationPercent}

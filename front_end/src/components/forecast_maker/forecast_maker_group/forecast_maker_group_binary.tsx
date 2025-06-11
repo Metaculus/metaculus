@@ -1,7 +1,7 @@
 "use client";
 import { faEllipsis, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isNil, round } from "lodash";
+import { round } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, {
@@ -37,6 +37,7 @@ import {
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/core/cn";
+import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
 
@@ -57,7 +58,6 @@ import {
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
-import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type QuestionOption = {
   id: number;
