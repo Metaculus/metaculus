@@ -144,9 +144,10 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             readOnly={disabled}
             showCP={!user || !hideCP || !!question.resolution}
+            height={50}
           />
 
-          {forecastInputMode === ContinuousForecastInputType.Slider && (
+          {/* {forecastInputMode === ContinuousForecastInputType.Slider && (
             <>
               <ContinuousSlider
                 components={sliderComponents}
@@ -194,7 +195,7 @@ const ContinuousInput: FC<Props> = ({
 
           {forecastInputMode === ContinuousForecastInputType.Quantile && (
             <>{submitControls}</>
-          )}
+          )} */}
         </>
       )}
     </ContinuousInputContainer>
