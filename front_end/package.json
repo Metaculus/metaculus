@@ -57,7 +57,6 @@
     "katex": "^0.16.21",
     "lexical-beautiful-mentions": "^0.1.44",
     "lodash": "^4.17.21",
-    "mathjs": "^12.4.2",
     "mdast-util-math": "^3.0.0",
     "micromark-extension-math": "^3.1.0",
     "negotiator": "^0.6.3",
