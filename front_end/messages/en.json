@@ -1395,5 +1395,6 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# prediction} other {# predictions}} will be withdrawn soon",
   "predictionsWithdrawnText": "{count, plural, =1 {# prediction has} other {# predictions have}} been withdrawn",
   "withdrawAfterPercentSetting1": "Withdraw after",
-  "withdrawAfterPercentSetting2": "of the total question lifetime"
+  "withdrawAfterPercentSetting2": "of the total question lifetime",
+  "beforeAutoWithdrawal": "Before my predictions are auto-withdrawn"
 }
