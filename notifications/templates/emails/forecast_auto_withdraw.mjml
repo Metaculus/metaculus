@@ -1,0 +1,56 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    {% blocktrans with recipient_username=recipient.username %}
+                    Hello {{ recipient_username }},
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    Your predictions on these questions have almost run their duration and will be automatically withdrawn if you do not update them:
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-raw>
+                {% for post in posts_data %}
+                </mj-raw>
+
+                <mj-text>
+                    {% blocktrans with prediction_value=post.prediction_value url=post.url title=post.title expiration_date=post.expiration_date %}
+                    - Your prediction{% if prediction_value %} of <span style="font-weight: bold;">{{ prediction_value }}</span>{% endif %} on <a href="{{ url }}">{{ title }}</a> will be withdrawn on <span style="font-weight: bold;">{{ expiration_date }}</span>.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-raw>
+                {% endfor %}
+                </mj-raw>
+
+                <mj-text>
+                    {% blocktrans %}
+                    Keep your predictions up to date to get good scores!
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    Happy predicting,<br/>
+                    The Metaculus Team
+                </mj-text>
+
+                <mj-text font-size="12px" color="#666666">
+                    {% blocktrans with account_settings_url=account_settings_url %}
+                    If you no longer wish to receive this type of email, you can unsubscribe here. You can also manage your notification settings on your Metaculus <a href="{{ account_settings_url }}">settings</a> page.
+                    {% endblocktrans %}
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>
