@@ -45,7 +45,9 @@ const TableRow: FC<Props> = ({
             <RecencyWeightedAggregationRow />
           ) : (
             <>
-              {!!medal && <MedalIcon type={medal} className="size-5" />}
+              {!!medal && (
+                <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+              )}
               <span className="flex-1 text-center">{rank}</span>
             </>
           )}
