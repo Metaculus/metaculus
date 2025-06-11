@@ -7,7 +7,7 @@ import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
-import RecencyWeightedAggregationRow from "../recency_weighted_aggregation_row";
+import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -42,7 +42,7 @@ const TableRow: FC<Props> = ({
       <tr>
         <Td className="sticky left-0 text-left" highlight={highlight}>
           {!user && aggregation_method === "recency_weighted" ? (
-            <RecencyWeightedAggregationRow />
+            <RecencyWeightedAggregationRankTooltip />
           ) : (
             <>
               {!!medal && (

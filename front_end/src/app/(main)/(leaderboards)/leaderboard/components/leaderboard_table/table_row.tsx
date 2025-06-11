@@ -17,7 +17,7 @@ import {
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../../search_params";
-import RecencyWeightedAggregationRow from "../recency_weighted_aggregation_row";
+import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -66,7 +66,7 @@ const LeaderboardRow: FC<Props> = ({
           prefetch={false}
         >
           {!user && aggregation_method === "recency_weighted" ? (
-            <RecencyWeightedAggregationRow />
+            <RecencyWeightedAggregationRankTooltip />
           ) : (
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
