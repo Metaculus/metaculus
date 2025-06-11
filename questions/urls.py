@@ -29,6 +29,28 @@ urlpatterns = [
         views.legacy_question_api_view,
         name="oldapi-get-question-post",
     ),
+
+    # Question Link MVP Additions
+    path(
+        "question-links/causal/",
+        views.causal_links_list_create_api_view,
+        name="causal-links-list-create",
+    ),
+    path(
+        "question-links/causal/<int:pk>/",
+        views.causal_link_delete_api_view,
+        name="causal-link-delete",
+    ),
+    path(
+        "questions/<int:question_id>/causal-links/",
+        views.question_causal_links_api_view,
+        name="question-causal-links",
+    ),
+    path(
+        "questions/<int:question_id>/linked-questions/",
+        views.question_linked_questions_api_view,
+        name="question-linked-questions",
+    ),
 ]
 old_api = [
     path(

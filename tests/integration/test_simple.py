@@ -9,6 +9,7 @@ frontend_process = None
 def setup_all(cls):
     cls.playwright = sync_playwright().start()
     cls.browser = cls.playwright.chromium.launch(headless=True)
+    # cls.browser = cls.playwright.chromium.launch(headless=False, slow_mo=200)
     cls.context = cls.browser.new_context()
     cls.context.tracing.start(screenshots=True, snapshots=True, sources=True)
 
