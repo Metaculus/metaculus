@@ -8,6 +8,7 @@ import BaseModal from "@/components/base_modal";
 import PostStatus from "@/components/post_status";
 import SearchInput from "@/components/search_input";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { Post, PostWithForecasts } from "@/types/post";
@@ -117,8 +118,7 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
   const withForecastData =
     !!post.question &&
     (post.question.type === QuestionType.Binary ||
-      post.question.type === QuestionType.Date ||
-      post.question.type === QuestionType.Numeric);
+      ContinuousQuestionTypes.some((type) => type === post.question.type));
 
   return (
     <div
