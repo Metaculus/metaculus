@@ -34,6 +34,7 @@ import ConditionalForecastTable, {
 import {
   ForecastExpirationModal,
   forecastExpirationToDate,
+  ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -68,16 +69,21 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
+
   const todayTs = new Date().getTime();
-  const prevYesForecastValue =
-    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs)
-      ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
-      : null;
-  const prevNoForecastValue =
-    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs)
-      ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
-      : null;
+  const hasLatestActiveYes =
+    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs);
+  const hasLatestActiveNo =
+    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs);
+
+  const prevYesForecastValue = latestYes
+    ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
+    : null;
+  const prevNoForecastValue = latestNo
+    ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
+    : null;
   const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
+  const hasUserActiveForecast = hasLatestActiveYes || hasLatestActiveNo;
 
   const latestAggregationYes =
     question_yes.aggregations?.recency_weighted.latest;
@@ -298,7 +304,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     );
   }, []);
 
-  const handlePredictSubmit = async () => {
+  const handlePredictSubmit = async (
+    forecastExpiration?: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
@@ -315,7 +323,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
         return {
           questionId: q.id,
-          forecastEndTime: forecastExpirationToDate(q.forecastExpiration),
+          forecastEndTime: forecastExpirationToDate(
+            forecastExpiration ?? q.forecastExpiration
+          ),
           forecastData: {
             continuousCdf: null,
             probabilityYesPerCategory: null,
@@ -352,7 +362,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
     ]);
     setQuestionOptions((prev) =>
-      prev.map((prevChoice) => ({ ...prevChoice, value: null, isDirty: false }))
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
     );
 
     if (response && "errors" in response && !!response.errors) {
@@ -373,6 +383,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
+        onReaffirm={
+          !!hasUserActiveForecast && !isPickerDirty
+            ? handlePredictSubmit
+            : undefined
+        }
         questionDuration={questionDuration}
       />
 
@@ -441,7 +456,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                   >
                     {t("discardChangesButton")}
                   </Button>
-                ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
+                ) : hasUserActiveForecast ? (
                   <Button
                     variant="secondary"
                     type="submit"
@@ -456,6 +471,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
             <PredictButton
               onSubmit={handlePredictSubmit}
+              isUserForecastActive={hasUserActiveForecast}
               isDirty={isPickerDirty}
               hasUserForecast={hasUserForecast}
               isPending={isSubmitting}
