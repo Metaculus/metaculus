@@ -5,13 +5,13 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import cn from "@/utils/core/cn";
 
-import DevicesImage from "./assets/devices.svg";
+import DevicesImage from "./assets/devices.svg?url";
 import Button from "./components/button";
 import GetInTouchForm from "./components/get_in_touch_form";
 import HeadingBlock from "./components/heading_block";
 import PartnersCarousel from "./components/partners_carousel";
 import TournamentBlock from "./components/tournament_block";
-import ServiceConfig from "./serviceConfig.json";
+import ServiceConfig from "./serviceConfig";
 
 export const metadata = {
   title: "Partner with Metaculus",

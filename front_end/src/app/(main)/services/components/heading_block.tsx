@@ -10,8 +10,8 @@ import { SiteStats } from "@/services/api/misc/misc.shared";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import Button from "./button";
-import * as HeadingDark from "../assets/heading-dark.svg";
-import * as HeadingLight from "../assets/heading-light.svg";
+import HeadingDark from "../assets/heading-dark.svg?url";
+import HeadingLight from "../assets/heading-light.svg?url";
 
 type Props = {
   siteStats: SiteStats;
@@ -86,7 +86,7 @@ const HeadingBlock: FC<Props> = ({ siteStats }) => {
         <Button href="#contact-us">{t("contactUs")}</Button>
       </div>
       <Image
-        src={theme === "light" ? HeadingLight : HeadingDark}
+        src={theme === "dark" ? HeadingDark : HeadingLight}
         alt="heading"
         width={538}
         height={480}
