@@ -57,6 +57,7 @@ import {
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 
 type QuestionOption = {
   id: number;
@@ -101,13 +102,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     () =>
       questions.reduce<Record<number, number | null>>((acc, question) => {
         const latest = question.my_forecasts?.latest;
-        const todayTs = new Date().getTime();
         return {
           ...acc,
-          [question.id]:
-            latest && (!latest.end_time || latest.end_time * 1000 > todayTs)
-              ? extractPrevBinaryForecastValue(latest.forecast_values[1])
-              : null,
+          [question.id]: latest
+            ? extractPrevBinaryForecastValue(latest.forecast_values[1])
+            : null,
         };
       }, {}),
     [questions]
@@ -115,6 +114,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const hasUserForecast = useMemo(
     () => Object.values(prevForecastValuesMap).some((v) => v !== null),
     [prevForecastValuesMap]
+  );
+
+  const hasSomeActiveUserForecasts = useMemo(
+    () => questions.some((q) => isOpenQuestionPredicted(q)),
+    [questions]
   );
 
   // Calculate average duration for the group questions for expiration modal
@@ -284,12 +288,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
   const predictedQuestions = useMemo(() => {
-    return questions.filter(
-      (q) =>
-        q.status === QuestionStatus.OPEN &&
-        q.my_forecasts?.latest &&
-        isNil(q.my_forecasts?.latest.end_time)
-    );
+    return questions.filter((q) => isOpenQuestionPredicted(q));
   }, [questions]);
 
   const handlePredictWithdraw = useCallback(async () => {
@@ -317,7 +316,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           setIsForecastExpirationModalOpen(false);
         }}
         questionDuration={averageQuestionDuration}
-        onReaffirm={isPickerDirty ? undefined : submit}
+        onReaffirm={
+          !isPickerDirty && hasSomeActiveUserForecasts ? submit : undefined
+        }
       />
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
@@ -419,6 +420,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               onSubmit={submit}
               isDirty={isPickerDirty}
               hasUserForecast={hasUserForecast}
+              isUserForecastActive={hasSomeActiveUserForecasts}
               isPending={isPending || isWithdrawing}
               isDisabled={!questionsToSubmit.length}
               predictionExpirationChip={expirationShortChip}
