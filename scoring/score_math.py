@@ -78,7 +78,7 @@ def get_medians(
 @dataclass
 class ForecastScore:
     score: float
-    coverage: float = 0
+    coverage: float = 0.0
 
 
 def evaluate_forecasts_baseline_accuracy(
@@ -195,8 +195,8 @@ def evaluate_forecasts_peer_accuracy(
             else:
                 interval_scores.append(None)
 
-        forecast_score: float = 0
-        forecast_coverage: float = 0
+        forecast_score: float = 0.0
+        forecast_coverage: float = 0.0
         times = [
             gm.timestamp
             for gm in geometric_mean_forecasts
@@ -289,8 +289,8 @@ def evaluate_forecasts_legacy_relative(
             else:
                 interval_scores.append(None)
 
-        forecast_score: float = 0
-        forecast_coverage: float = 0
+        forecast_score: float = 0.0
+        forecast_coverage: float = 0.0
         times = [
             bf.timestamp
             for bf in baseline_forecasts
@@ -464,8 +464,8 @@ def evaluate_question(
 
         user_ids = {forecast.author_id for forecast in scoring_user_forecasts}
         for user_id in user_ids:
-            user_score: float = 0
-            user_coverage: float = 0
+            user_score: float = 0.0
+            user_coverage: float = 0.0
             for forecast, score in zip(scoring_user_forecasts, user_scores):
                 if forecast.author_id == user_id:
                     user_score += score.score
@@ -480,8 +480,8 @@ def evaluate_question(
                     )
                 )
         for method in aggregation_methods:
-            aggregation_score: float = 0
-            aggregation_coverage: float = 0
+            aggregation_score: float = 0.0
+            aggregation_coverage: float = 0.0
             community_scores = aggregation_scores[method]
             for score in community_scores:
                 aggregation_score += score.score

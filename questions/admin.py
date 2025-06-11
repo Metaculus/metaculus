@@ -17,6 +17,7 @@ from questions.models import (
 from questions.services import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+from questions.constants import ResolutionType
 
 
 @admin.register(Question)
@@ -135,7 +136,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if question.resolution in ["", None, "ambiguous", "annulled"]:
+            if not question.resolution or question.resolution in (
+                ResolutionType.AMBIGUOUS,
+                ResolutionType.ANNULLED,
+            ):
                 continue
             score_question(
                 question=question,
@@ -150,7 +154,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if question.resolution in ["", None, "ambiguous", "annulled"]:
+            if not question.resolution or question.resolution in (
+                ResolutionType.AMBIGUOUS,
+                ResolutionType.ANNULLED,
+            ):
                 continue
             score_question(
                 question=question,
