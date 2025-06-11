@@ -1,6 +1,14 @@
 "use client";
 import { isNil, merge } from "lodash";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -248,11 +256,8 @@ const NewNumericChart: FC<Props> = ({
           onTouchStart: () => {
             setIsCursorActive(true);
           },
-          onMouseOverCapture: () => {
+          onMouseEnter: () => {
             setIsCursorActive(true);
-          },
-          onMouseOutCapture: () => {
-            setIsCursorActive(false);
           },
           onMouseLeave: () => {
             setIsCursorActive(false);
@@ -267,7 +272,7 @@ const NewNumericChart: FC<Props> = ({
     () => !!chartWidth && !!xScale.ticks.length && yScale.ticks.length,
     [chartWidth, xScale.ticks.length, yScale.ticks.length]
   );
-  console.log(yScale);
+
   return (
     <div
       className={cn(
@@ -541,4 +546,4 @@ function findLastIndexBefore(line: Line, timestamp: number): number {
   return -1;
 }
 
-export default NewNumericChart;
+export default memo(NewNumericChart);
