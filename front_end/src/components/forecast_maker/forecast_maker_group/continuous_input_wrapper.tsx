@@ -123,6 +123,12 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   const hasUserForecast = useMemo(() => {
     const prevForecast = option.question.my_forecasts?.latest;
 
+    return !!prevForecast && !!prevForecast.distribution_input;
+  }, [option]);
+
+  const hasActiveUserForecast = useMemo(() => {
+    const prevForecast = option.question.my_forecasts?.latest;
+
     return (
       !!prevForecast &&
       !!prevForecast.distribution_input &&
@@ -290,6 +296,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
               onSubmit={() => onSubmit(modalSavedState.forecastExpiration)}
               isDirty={option.isDirty}
               hasUserForecast={hasUserForecast}
+              isUserForecastActive={hasActiveUserForecast}
               isPending={isPending}
               isDisabled={
                 option.userSliderForecast === null &&
@@ -325,7 +332,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
         {previousForecastExpiration && (
           <span
             className={cn(
-              "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+              "mb-2.5 text-center text-xs text-gray-800 dark:text-gray-800-dark",
               previousForecastExpiration.expiresSoon &&
                 "text-salmon-800 dark:text-salmon-800-dark"
             )}
@@ -352,7 +359,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           isOpen={isForecastExpirationModalOpen}
           onClose={() => setIsForecastExpirationModalOpen(false)}
           questionDuration={questionDuration}
-          onReaffirm={hasUserForecast && !isDirty ? onSubmit : undefined}
+          onReaffirm={hasActiveUserForecast && !isDirty ? onSubmit : undefined}
         />
 
         <ContinuousInput
