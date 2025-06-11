@@ -28,9 +28,9 @@ const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
     [tournament]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
-  const handleCursorChange = useCallback((value: number | null) => {
+  const handleCursorChange = (value: number | null) => {
     setCursorTimestamp(value);
-  }, []);
+  };
 
   return (
     <NewNumericChart

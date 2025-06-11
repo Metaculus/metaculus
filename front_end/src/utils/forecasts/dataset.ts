@@ -40,7 +40,7 @@ export function getSliderNumericForecastDataset(
       upperOpen,
       inboundOutcomeCount
     );
-    console.log(cdf, normalizedWeights[index]);
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const result = cdf.map((x) => x * normalizedWeights[index]!);
     return result;
