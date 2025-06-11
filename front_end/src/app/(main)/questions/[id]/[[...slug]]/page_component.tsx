@@ -186,7 +186,11 @@ const IndividualQuestionPage: FC<{
             </div>
           </main>
 
-          <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
+          <QuestionEmbedModal
+            postId={postData.id}
+            postTitle={postData.title}
+            questionType={postData.question?.type}
+          />
         </HideCPProvider>
       </CommentsFeedProvider>
     </EmbedModalContextProvider>

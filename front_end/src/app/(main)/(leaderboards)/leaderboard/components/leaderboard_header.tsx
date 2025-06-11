@@ -73,7 +73,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
         {durations &&
           duration &&
           ["all", "peer", "baseline"].includes(category) && (
-            <div className="flex flex-row items-center justify-center gap-2.5">
+            <div className="flex flex-col items-center justify-center gap-2.5 md:flex-row">
               <span className="text-base font-medium">{t("duration:")}</span>
               <ButtonGroup
                 buttons={durations}
@@ -84,7 +84,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
             </div>
           )}
         {periods && year && (
-          <div className="flex flex-row items-center justify-center gap-2.5">
+          <div className="flex flex-col items-center justify-center gap-2.5 md:flex-row">
             <span className="text-base font-medium">{t("timePeriod")}</span>
             <ButtonGroup
               buttons={periods}
