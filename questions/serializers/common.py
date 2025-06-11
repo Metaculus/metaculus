@@ -19,7 +19,10 @@ from questions.models import (
     AggregationMethod,
 )
 from questions.models import Forecast
-from questions.utils import get_question_movement_period
+from questions.utils import (
+    get_question_movement_period,
+    get_last_forecast_in_the_past,
+)
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
@@ -700,6 +703,7 @@ def serialize_question(
             if (
                 aggregate.method == AggregationMethod.RECENCY_WEIGHTED
                 and aggregate.start_time <= movement_start_date
+                and aggregate.start_time <= timezone.now()
                 and (
                     aggregate.end_time is None
                     or aggregate.end_time > movement_start_date
@@ -780,15 +784,17 @@ def serialize_question(
                 if forecasts
                 else None
             )
+            movement_f_last = get_last_forecast_in_the_past(forecasts)
 
             if (
                 method == AggregationMethod.RECENCY_WEIGHTED
                 and movement_f1
+                and movement_f_last
                 and movement_start_date
             ):
                 serialized_data["aggregations"][method]["movement"] = (
                     serialize_question_movement(
-                        question, movement_f1, forecasts[-1], movement_period
+                        question, movement_f1, movement_f_last, movement_period
                     )
                 )
 
