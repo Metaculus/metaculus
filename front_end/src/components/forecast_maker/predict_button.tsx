@@ -14,6 +14,7 @@ type Props = {
   onSubmit: () => void;
   isDirty: boolean;
   hasUserForecast: boolean;
+  isUserForecastActive?: boolean;
   isPending: boolean;
   isDisabled?: boolean;
   predictionExpirationChip?: ReactNode;
@@ -23,6 +24,7 @@ type Props = {
 const PredictButton: FC<Props> = ({
   predictLabel,
   hasUserForecast,
+  isUserForecastActive,
   isPending,
   isDirty,
   onSubmit,
@@ -58,12 +60,12 @@ const PredictButton: FC<Props> = ({
       return t("signUpToPredict");
     }
 
-    if (hasUserForecast && !isDirty) {
+    if (hasUserForecast && !isDirty && isUserForecastActive) {
       return t("reaffirm");
     }
 
     return predictLabel ?? t("saveChange");
-  }, [hasUserForecast, isDirty, predictLabel, t, user]);
+  }, [hasUserForecast, isDirty, predictLabel, t, user, isUserForecastActive]);
 
   const handleClick = () => {
     if (!user) {
