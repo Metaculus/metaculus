@@ -257,7 +257,7 @@ export const useExpirationModalState = (
   let previousForecastExpiration = undefined;
 
   if (lastForecast?.end_time) {
-    const lastForecastExpiryDate = new Date(lastForecast.end_time * 1000);
+    const lastForecastExpiryDate = new Date((lastForecast.end_time - 1) * 1000); //make this one second earlier, to avoid having 0 seconds as expiration delta
     const previousForecastIsExpired = lastForecastExpiryDate <= new Date();
 
     const lastForecastExpiryDuration = intervalToDuration({
