@@ -234,6 +234,17 @@ export const useExpirationModalState = (
     "forecast_expiration"
   );
 
+  useEffect(() => {
+    // When the user last forecast changes (user withdraws), we need to update the chip to duration closed to the last user forecast
+    setModalSavedState(
+      buildDefaultState(
+        lastForecast,
+        modalPresets,
+        userDefaultExpirationDurationSec
+      )
+    );
+  }, [lastForecast]);
+
   let expirationShortChip: React.ReactNode = (
     <FontAwesomeIcon icon={faInfinity} />
   );
