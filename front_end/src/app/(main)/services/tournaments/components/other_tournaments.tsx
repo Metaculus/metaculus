@@ -1,14 +1,14 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { Tournament } from "@/types/projects";
+import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
 import EmblaCarousel from "../../components/embla_carousel";
 import TournamentCard from "../../components/tournament_card";
 
 type Props = {
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   className?: string;
 };
 

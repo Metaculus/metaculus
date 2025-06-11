@@ -6,12 +6,18 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
+import { SiteStats } from "@/services/api/misc/misc.shared";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import Button from "./button";
 import * as HeadingDark from "../assets/heading-dark.svg";
 import * as HeadingLight from "../assets/heading-light.svg";
 
-const HeadingBlock: FC = () => {
+type Props = {
+  siteStats: SiteStats;
+};
+
+const HeadingBlock: FC<Props> = ({ siteStats }) => {
   const t = useTranslations();
   const { theme } = useAppTheme();
   return (
@@ -34,8 +40,8 @@ const HeadingBlock: FC = () => {
               width={14}
               className="mr-2.5 text-blue-500 dark:text-blue-500-dark"
             />
-            <span className="font-bold capitalize text-blue-700 dark:text-blue-700-dark">
-              2.1M+
+            <span className="font-bold uppercase text-blue-700 dark:text-blue-700-dark">
+              {abbreviatedNumber(siteStats.predictions)}+
             </span>
             &nbsp;
             {t("predictions")}
@@ -46,8 +52,8 @@ const HeadingBlock: FC = () => {
               width={14}
               className="mr-2.5 text-blue-500 dark:text-blue-500-dark"
             />
-            <span className="font-bold capitalize text-blue-700 dark:text-blue-700-dark">
-              17K+
+            <span className="font-bold uppercase text-blue-700 dark:text-blue-700-dark">
+              {abbreviatedNumber(siteStats.questions)}+
             </span>
             &nbsp;
             {t("forecastingQuestions")}
@@ -58,8 +64,8 @@ const HeadingBlock: FC = () => {
               width={14}
               className="mr-2.5 text-blue-500 dark:text-blue-500-dark"
             />
-            <span className="font-bold capitalize text-blue-700 dark:text-blue-700-dark">
-              6.6K+
+            <span className="font-bold uppercase text-blue-700 dark:text-blue-700-dark">
+              {abbreviatedNumber(siteStats.resolved_questions)}+
             </span>
             &nbsp;
             {t("questionsResolved")}
@@ -71,7 +77,7 @@ const HeadingBlock: FC = () => {
               className="mr-2.5 text-blue-500 dark:text-blue-500-dark"
             />
             <span className="font-bold text-blue-700 dark:text-blue-700-dark">
-              10 {t("years")}
+              {siteStats.years_of_predictions} {t("years")}
             </span>
             &nbsp;
             {t("ofPredictions")}
@@ -79,7 +85,6 @@ const HeadingBlock: FC = () => {
         </div>
         <Button href="#contact-us">{t("contactUs")}</Button>
       </div>
-      {/* TODO adjust image based on theme */}
       <Image
         src={theme === "light" ? HeadingLight : HeadingDark}
         alt="heading"

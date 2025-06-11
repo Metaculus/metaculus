@@ -54,6 +54,8 @@ export type TournamentMember = {
 export type TournamentPreview = Project & {
   type: TournamentType;
   header_image: string;
+  forecasts_count: number;
+  forecasters_count: number;
   prize_pool: string | null;
   start_date: string;
   close_date?: string;

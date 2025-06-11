@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
+import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
-import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
 import DevicesImage from "./assets/devices.svg";
@@ -21,15 +21,17 @@ export const metadata = {
 
 export default async function ServicesPage() {
   const t = await getTranslations();
-  const { proForecastersImages, tournamentsIds } = ServiceConfig;
-  // TODO: replace with new API call
-  const tournaments = await Promise.all(
-    tournamentsIds.map((id) => ServerProjectsApi.getTournament(id))
-  );
+  const { proForecastersImages } = ServiceConfig;
+  const [tournaments, siteStats] = await Promise.all([
+    ServerProjectsApi.getTournaments({
+      show_on_services_page: true,
+    }),
+    serverMiscApi.getSiteStats(),
+  ]);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8  sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
-      <HeadingBlock />
+      <HeadingBlock siteStats={siteStats} />
       <PartnersCarousel className="my-10 sm:my-12 lg:my-32" />
 
       <div className="flex flex-col items-center gap-3 px-4 text-center">
@@ -40,13 +42,9 @@ export default async function ServicesPage() {
           {t("learnAboutPotentialWays")}
         </p>
       </div>
-      {/* TODO: adjust check after new API integration */}
-      {tournaments.every((tournament) => tournament !== null) && (
-        <TournamentBlock
-          className="mt-12"
-          tournaments={tournaments as Tournament[]}
-        />
-      )}
+
+      <TournamentBlock className="mt-12" tournaments={tournaments} />
+
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
         {/* Private instances block */}
         <div className="flex w-full flex-col items-center rounded-2xl  bg-blue-800 p-8 sm:items-start  sm:p-[64px]">

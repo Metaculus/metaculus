@@ -1,9 +1,9 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isNaN } from "lodash";
 import { getTranslations } from "next-intl/server";
 
 import ServerProjectsApi from "@/services/api/projects/projects.server";
-import { Tournament } from "@/types/projects";
 
 import StepCard from "../components/step_card";
 import ServiceConfig from "../serviceConfig.json";
@@ -19,12 +19,16 @@ export const metadata = {
 
 export default async function ServicesPage() {
   const t = await getTranslations();
-  const { spotlightTournamentId, tournamentsIds } = ServiceConfig;
-  const [spotlightTournament, ...otherTournaments] = await Promise.all([
-    ServerProjectsApi.getTournament(spotlightTournamentId),
-    ...tournamentsIds.map((id) => ServerProjectsApi.getTournament(id)),
-  ]);
-
+  const { spotlightTournamentId } = ServiceConfig;
+  const tournaments = await ServerProjectsApi.getTournaments({
+    show_on_services_page: true,
+  });
+  const spotlightTournament = tournaments.find((tournament) => {
+    if (!isNaN(Number(spotlightTournamentId))) {
+      return tournament.id === Number(spotlightTournamentId);
+    }
+    return tournament.slug === spotlightTournamentId;
+  });
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px] min-[1366px]:pt-[103px]">
       <div>
@@ -98,10 +102,7 @@ export default async function ServicesPage() {
         />
       )}
 
-      {/* TODO: adjust check after new API integration */}
-      {otherTournaments.every((tournament) => tournament !== null) && (
-        <OtherTournaments tournaments={otherTournaments as Tournament[]} />
-      )}
+      <OtherTournaments tournaments={tournaments} />
 
       <GetInTouchForm className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]" />
     </main>
