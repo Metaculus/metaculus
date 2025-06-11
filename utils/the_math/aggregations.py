@@ -257,7 +257,7 @@ class MeanValues:
 
 
 class LogOddsMeanValues:
-    """Takes the mean of the natrual log of odds of forecast values"""
+    """Takes the mean of the natural log of odds of forecast values"""
 
     def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
         super().__init__(*args, question_type=question_type, **kwargs)
