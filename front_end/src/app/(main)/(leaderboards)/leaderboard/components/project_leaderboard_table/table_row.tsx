@@ -78,7 +78,7 @@ const TableRow: FC<Props> = ({
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
         {!user && aggregation_method === "recency_weighted" ? (
-          <RecencyWeightedAggregationRow />
+          <RecencyWeightedAggregationRankTooltip />
         ) : (
           <>
             {!!medal && <MedalIcon type={medal} className="size-5" />}
