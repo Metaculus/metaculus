@@ -20,7 +20,6 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
   const {
     prize_pool: prizePool,
     header_image: headerImage,
-    is_ongoing: isOngoing,
     questions_count: questionsCount,
     forecasts_count: forecastsCount,
   } = tournament;
@@ -51,14 +50,6 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
             quality={100}
           />
         )}
-        {!!isOngoing && (
-          <div className="z-2 absolute right-2.5 top-2.5 flex h-4 items-center gap-1 rounded-3xl bg-mc-option-2 px-1.5">
-            <span className="h-1 w-1 rounded-full bg-gray-0"></span>
-            <span className="text-xs font-medium uppercase text-gray-0">
-              {t("live")}
-            </span>
-          </div>
-        )}
       </div>
       <div className="flex flex-1 flex-col justify-between bg-gray-0 p-4">
         <p className="m-0 text-center text-lg font-bold text-blue-800">
@@ -79,7 +70,7 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
               {t("questions")}
             </span>
             <span className="text-sm font-medium text-blue-800">
-              {questionsCount}
+              {Number(questionsCount).toLocaleString(locale)}
             </span>
           </div>
 
@@ -88,7 +79,7 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
               {t("predictions")}
             </span>
             <span className="text-sm font-medium text-blue-800">
-              {forecastsCount}
+              {Number(forecastsCount).toLocaleString(locale)}
             </span>
           </div>
         </div>

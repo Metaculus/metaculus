@@ -17,7 +17,8 @@ type Props = {
 const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
   const t = useTranslations();
   // Duplicate tournaments to allow for infinite scrolling
-  const duplicatedTournaments = [...tournaments, ...tournaments];
+  const carouselTournaments =
+    tournaments.length < 4 ? [...tournaments, ...tournaments] : tournaments;
   return (
     <div
       className={cn(
@@ -40,7 +41,7 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
       <div className="mt-10 w-full sm:mt-12">
         <EmblaCarousel className="xl:hidden">
           <div className="-ml-6 flex">
-            {duplicatedTournaments.map((tournament, index) => (
+            {carouselTournaments.map((tournament, index) => (
               <div
                 key={index}
                 className="flex-[0_0_100%] pl-6 xs:flex-[0_0_50%] md:flex-[0_0_33.33%] xl:flex-[0_0_25%]"

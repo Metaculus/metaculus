@@ -11,6 +11,7 @@ import GetInTouchForm from "./components/get_in_touch_form";
 import HeadingBlock from "./components/heading_block";
 import PartnersCarousel from "./components/partners_carousel";
 import TournamentBlock from "./components/tournament_block";
+import { sortServiceTournaments } from "./helpers";
 import ServiceConfig from "./serviceConfig";
 
 export const metadata = {
@@ -28,7 +29,7 @@ export default async function ServicesPage() {
     }),
     serverMiscApi.getSiteStats(),
   ]);
-
+  const sortedTournaments = sortServiceTournaments(tournaments);
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8  sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock siteStats={siteStats} />
@@ -43,7 +44,7 @@ export default async function ServicesPage() {
         </p>
       </div>
 
-      <TournamentBlock className="mt-12" tournaments={tournaments} />
+      <TournamentBlock className="mt-12" tournaments={sortedTournaments} />
 
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
         {/* Private instances block */}

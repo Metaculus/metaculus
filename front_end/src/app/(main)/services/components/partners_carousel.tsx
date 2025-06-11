@@ -27,10 +27,10 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
   const { partnersLogos } = ServiceConfig;
   const logoKey = theme === "light" || theme === "dark" ? theme : "light";
   // Duplicate logos to always have the infinite scrolling effect
-  const duplicatedLogos = [
-    ...partnersLogos[logoKey],
-    ...partnersLogos[logoKey],
-  ];
+  const carouselLogos =
+    partnersLogos.length < 5
+      ? [...partnersLogos, ...partnersLogos]
+      : partnersLogos;
   return (
     <div
       className={cn(
@@ -40,16 +40,34 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
     >
       <div className="h-[50px] overflow-hidden" ref={emblaRef}>
         <div className="flex h-full w-full">
-          {duplicatedLogos.map((logo, index) => (
+          {carouselLogos.map((logo, index) => (
             <div key={index} className="flex h-full flex-none items-center">
-              <Image
-                src={logo.logo}
-                alt="logo"
-                height={Number(logo.height)}
-                width={50}
-                className="w-auto pr-[50px]"
-                style={{ height: `${logo.height}px` }}
-              />
+              {logo.href ? (
+                <a
+                  href={logo.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Image
+                    src={logo[logoKey]}
+                    alt="logo"
+                    height={Number(logo.height)}
+                    width={50}
+                    className="w-auto pr-[50px]"
+                    style={{ height: `${logo.height}px` }}
+                  />
+                </a>
+              ) : (
+                <Image
+                  src={logo[logoKey]}
+                  alt="logo"
+                  height={Number(logo.height)}
+                  width={50}
+                  className="w-auto pr-[50px]"
+                  style={{ height: `${logo.height}px` }}
+                />
+              )}
             </div>
           ))}
         </div>

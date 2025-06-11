@@ -9,7 +9,7 @@ export type ContactForm = {
 export type GetInTouchForm = {
   name: string;
   email: string;
-  organization: string;
+  organization?: string;
   service: string;
 };
 

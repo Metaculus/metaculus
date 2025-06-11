@@ -12,6 +12,7 @@ import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { ErrorResponse } from "@/types/fetch";
 import { TranslationKey } from "@/types/translations";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
@@ -63,7 +64,7 @@ const SERVICE_OPTIONS: ServiceOption[] = [
 const getInTouchFormSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   email: z.string().min(1, { message: "Email is required" }),
-  organization: z.string().min(1, { message: "Organization is required" }),
+  organization: z.string().optional(),
   services: z
     .array(
       z.enum([
@@ -117,6 +118,7 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
           organization,
           service: serviceString,
         });
+        sendAnalyticsEvent("ServiceContactForm");
         reset();
       } catch (e) {
         logError(e);
@@ -214,7 +216,12 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
               errors={errors.services}
             />
           )}
-          {!isLoading && <FormErrorMessage errors={error?.digest} />}
+          {!isLoading && (
+            <FormErrorMessage
+              errors={error?.digest}
+              containerClassName="text-center"
+            />
+          )}
         </div>
         <Button
           variant="primary"

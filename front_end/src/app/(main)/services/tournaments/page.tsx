@@ -10,6 +10,7 @@ import ServiceConfig from "../serviceConfig";
 import OtherTournaments from "./components/other_tournaments";
 import TournamentSpotlight from "./components/tournament_spotlight";
 import GetInTouchForm from "../components/get_in_touch_form";
+import { sortServiceTournaments } from "../helpers";
 
 export const metadata = {
   title: "Run a Forecasting Tournament with Metaculus",
@@ -17,7 +18,7 @@ export const metadata = {
     "Design and run forecasting tournaments to crowdsource insights on your critical questions. Metaculus helps you surface expert predictions and solve complex challenges with structured, competitive forecasting.",
 };
 
-export default async function ServicesPage() {
+export default async function TournamentsPage() {
   const t = await getTranslations();
   const { spotlightTournamentId } = ServiceConfig;
   const tournaments = await ServerProjectsApi.getTournaments({
@@ -29,6 +30,7 @@ export default async function ServicesPage() {
     }
     return tournament.slug === spotlightTournamentId;
   });
+  const sortedTournaments = sortServiceTournaments(tournaments);
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px] min-[1366px]:pt-[103px]">
       <div>
@@ -102,7 +104,7 @@ export default async function ServicesPage() {
         />
       )}
 
-      <OtherTournaments tournaments={tournaments} />
+      <OtherTournaments tournaments={sortedTournaments} />
 
       <GetInTouchForm className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]" />
     </main>
