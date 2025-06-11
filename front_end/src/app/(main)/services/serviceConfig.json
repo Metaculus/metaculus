@@ -1,0 +1,11 @@
+{
+  "tournamentsIds": ["32567", "1756", "2100", "32725"],
+  "proForecastersImages": [
+    "./assets/pro-forecasters/pro-forecaster.jpg",
+    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
+    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
+    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
+    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
+    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg"
+  ]
+}
