@@ -74,7 +74,7 @@ export function abbreviatedNumber(
     suffix = "M";
     val /= 1e6;
     leadingNumbers = pow - 5;
-  } else if (pow >= 3) {
+  } else if (pow >= 4) {
     suffix = "k";
     val /= 1e3;
     leadingNumbers = pow - 2;
