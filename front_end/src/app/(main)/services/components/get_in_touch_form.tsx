@@ -9,6 +9,7 @@ import { z } from "zod";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import { ServiceType } from "@/constants/services";
 import { ErrorResponse } from "@/types/fetch";
 import { TranslationKey } from "@/types/translations";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -17,14 +18,6 @@ import { logError } from "@/utils/core/errors";
 
 import Checkbox from "./get_in_touch_checkbox";
 import { submitGetInTouchForm } from "../actions";
-
-const ServiceType = {
-  RUNNING_TOURNAMENT: "running_tournament",
-  PRIVATE_INSTANCE: "private_instance",
-  PARTNERSHIP: "partnership",
-  GENERAL_INQUIRY: "general_inquiry",
-  PRO_FORECASTING: "pro_forecasting",
-} as const;
 
 type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];
 type ServiceOption = {
@@ -77,9 +70,10 @@ type GetInTouchFormSchema = z.infer<typeof getInTouchFormSchema>;
 type Props = {
   className?: string;
   id?: string;
+  preselectedServices?: ServiceType[];
 };
 
-const GetInTouchForm: FC<Props> = ({ className, id }) => {
+const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<
@@ -96,7 +90,7 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
   } = useForm<GetInTouchFormSchema>({
     resolver: zodResolver(getInTouchFormSchema),
     defaultValues: {
-      services: [],
+      services: preselectedServices ?? [],
     },
   });
 

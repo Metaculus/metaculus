@@ -2,6 +2,8 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 
+import { ServiceType } from "@/constants/services";
+
 import Button from "../components/button";
 import GetInTouchForm from "../components/get_in_touch_form";
 import StepCard from "../components/step_card";
@@ -87,6 +89,7 @@ export default async function PrivateInstancesPage() {
       <GetInTouchForm
         id="contact-us"
         className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]"
+        preselectedServices={[ServiceType.PRIVATE_INSTANCE]}
       />
     </main>
   );

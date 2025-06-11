@@ -81,6 +81,7 @@ const ServiceConfig = {
       dark: "/partners/bw-dark-alt.svg?url",
       alt: "Bridgewater logo",
       height: "27",
+      href: "https://bridgewater.com/",
     },
     {
       light: "/partners/LSE-light.svg?url",
@@ -97,6 +98,8 @@ const ServiceConfig = {
       href: "https://www.vox.com/future-perfect",
     },
   ],
+  caseStudyPDFLink:
+    "https://metaculus-web-media.s3.us-west-2.amazonaws.com/static/metaculus_monthly_update_for_cdc_february_11_2025.pdf",
 };
 
 export default ServiceConfig;

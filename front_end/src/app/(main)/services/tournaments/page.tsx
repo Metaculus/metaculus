@@ -2,6 +2,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 
+import { ServiceType } from "@/constants/services";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentPreview } from "@/types/projects";
 
@@ -122,6 +123,7 @@ export default async function TournamentsPage() {
       <GetInTouchForm
         id="contact-us"
         className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]"
+        preselectedServices={[ServiceType.RUNNING_TOURNAMENT]}
       />
     </main>
   );

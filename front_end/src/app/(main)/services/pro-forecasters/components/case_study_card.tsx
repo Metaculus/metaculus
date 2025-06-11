@@ -5,9 +5,11 @@ import { getTranslations } from "next-intl/server";
 import PdfThumb from "@/app/(main)/services/assets/pdf-thumb.png";
 
 import Button from "../../components/button";
+import ServiceConfig from "../../serviceConfig";
 
 const CaseStudyCard = async () => {
   const t = await getTranslations();
+  const { caseStudyPDFLink } = ServiceConfig;
   return (
     <div className="mt-[120px] flex flex-col justify-center gap-x-12 rounded-2xl bg-blue-800 px-8 py-12 text-base text-blue-500 sm:px-14 sm:text-lg">
       <div className="flex flex-col gap-x-9 text-base text-blue-500 sm:text-lg md:flex-row">
@@ -37,7 +39,9 @@ const CaseStudyCard = async () => {
           <p className="m-0 mt-4 text-pretty text-center text-sm">
             {t("monthlyReportSharedWithCdc")}
           </p>
-          <Button className="mt-4">{t("viewPdf")}</Button>
+          <Button href={caseStudyPDFLink} target="_blank" className="mt-4">
+            {t("viewPdf")}
+          </Button>
         </div>
       </div>
     </div>
