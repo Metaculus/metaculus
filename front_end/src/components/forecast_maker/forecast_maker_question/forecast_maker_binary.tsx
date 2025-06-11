@@ -67,9 +67,12 @@ const ForecastMakerBinary: FC<Props> = ({
       ? undefined
       : question.my_forecasts?.latest;
 
+  const previousUserForecast = question.my_forecasts?.latest;
+
   const prevForecastValue = extractPrevBinaryForecastValue(
-    activeUserForecast?.forecast_values[1]
+    previousUserForecast?.forecast_values[1]
   );
+
   const hasUserForecast = !!prevForecastValue;
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);
 
@@ -162,7 +165,9 @@ const ForecastMakerBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={hasUserForecast && !isForecastDirty ? submit : undefined}
+        onReaffirm={
+          !!activeUserForecast && !isForecastDirty ? submit : undefined
+        }
         questionDuration={questionDuration}
       />
 
@@ -200,6 +205,7 @@ const ForecastMakerBinary: FC<Props> = ({
                 )}
                 <PredictButton
                   hasUserForecast={hasUserForecast}
+                  isUserForecastActive={!!activeUserForecast}
                   isDirty={isForecastDirty}
                   isPending={isPending}
                   onSubmit={() => submit(modalSavedState.forecastExpiration)}
