@@ -605,7 +605,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
-
     if (!hasLatestActiveYes && !hasLatestActiveNo) return;
 
     const response = await withdrawForecasts(postId, [
