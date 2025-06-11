@@ -6,6 +6,7 @@ import { FC, useCallback, useState } from "react";
 import { useForm, Controller, UseFormRegister } from "react-hook-form";
 import { z } from "zod";
 
+import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -75,6 +76,7 @@ type Props = {
 
 const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
   const t = useTranslations();
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -108,6 +110,7 @@ const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
         });
         sendAnalyticsEvent("ServiceContactForm");
         reset();
+        setIsSuccessModalOpen(true);
       } catch (e) {
         logError(e);
         const error = e as Error & { digest?: string };
@@ -226,6 +229,18 @@ const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
           {isLoading ? <LoadingSpinner size="sm" /> : t("submit")}
         </Button>
       </form>
+      <BaseModal
+        className="max-w-xl overflow-y-auto"
+        label={t("contactUs")}
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+      >
+        <div className="max-h-full w-full">
+          <p className="my-6 text-base leading-tight">
+            {t("thankYouForGettingInTouch")}
+          </p>
+        </div>
+      </BaseModal>
     </div>
   );
 };

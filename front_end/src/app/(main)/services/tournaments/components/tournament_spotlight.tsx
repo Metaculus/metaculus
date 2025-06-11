@@ -56,15 +56,15 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
           <p className="m-0 mt-5 text-sm font-normal text-blue-500 sm:text-base sm:font-medium">
             {t("tournamentSpotlightDescription")}
           </p>
-
-          <div className="mt-8 rounded-md bg-blue-900 p-6">
+          {/* TODO: add after approval */}
+          {/* <div className="mt-8 rounded-md bg-blue-900 p-6">
             <p className="m-0 text-sm italic text-blue-300 sm:text-base">
               {t("tournamentSpotlightFeedback")}
             </p>
             <p className="m-0 mt-3.5 text-base font-bold text-blue-500">
               {t("tournamentSpotlightFeedbackAuthor")}
             </p>
-          </div>
+          </div> */}
 
           <Button
             href={getProjectLink(tournament)}

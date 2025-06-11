@@ -1,14 +1,16 @@
 import IsabelJuniewiczImage from "@/app/(main)/pro-forecasters/assets/Isabel Juniewicz.png";
+import JaredImage from "@/app/(main)/pro-forecasters/assets/Jared.png";
+import MarkusImage from "@/app/(main)/pro-forecasters/assets/Max.png";
 import PeterWildefordImage from "@/app/(main)/pro-forecasters/assets/Peter Wildeford.png";
-import ScottEastmanImageImage from "@/app/(main)/pro-forecasters/assets/Scott Eastman.jpeg";
+import ScottEastmanImage from "@/app/(main)/pro-forecasters/assets/Scott Eastman.jpeg";
 
 const ServiceConfig = {
   proForecastersImages: [
     PeterWildefordImage,
     IsabelJuniewiczImage,
-    ScottEastmanImageImage,
-    PeterWildefordImage,
-    IsabelJuniewiczImage,
+    ScottEastmanImage,
+    MarkusImage,
+    JaredImage,
     "placeholder-for-last-circle",
   ],
   mainPageTournamentsList: [
@@ -76,13 +78,14 @@ const ServiceConfig = {
       height: "35",
       href: "https://health.lehigh.edu/",
     },
-    {
-      light: "/partners/bw-light-alt.svg?url",
-      dark: "/partners/bw-dark-alt.svg?url",
-      alt: "Bridgewater logo",
-      height: "27",
-      href: "https://bridgewater.com/",
-    },
+    // TODO: add BW logo after approval
+    // {
+    //   light: "/partners/bw-light-alt.svg?url",
+    //   dark: "/partners/bw-dark-alt.svg?url",
+    //   alt: "Bridgewater logo",
+    //   height: "27",
+    //   href: "https://bridgewater.com/",
+    // },
     {
       light: "/partners/LSE-light.svg?url",
       dark: "/partners/LSE-dark.svg?url",
