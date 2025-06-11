@@ -39,7 +39,7 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
       </div>
 
       <div className="mt-10 w-full sm:mt-12">
-        <EmblaCarousel className="xl:hidden">
+        <EmblaCarousel className={tournaments.length <= 4 ? "xl:hidden" : ""}>
           <div className="-ml-6 flex">
             {carouselTournaments.map((tournament, index) => (
               <div
@@ -51,8 +51,12 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
             ))}
           </div>
         </EmblaCarousel>
-        {/* Desktop tournaments lis */}
-        <div className="hidden gap-6 xl:flex">
+        {/* Desktop tournaments list */}
+        <div
+          className={cn("hidden gap-6 ", {
+            "xl:flex": tournaments.length <= 4,
+          })}
+        >
           {tournaments.map((tournament) => (
             <div key={tournament.id} className="flex-1">
               <TournamentCard key={tournament.id} tournament={tournament} />

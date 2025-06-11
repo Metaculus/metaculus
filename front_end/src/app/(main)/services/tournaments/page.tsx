@@ -4,11 +4,13 @@ import { isNaN } from "lodash";
 import { getTranslations } from "next-intl/server";
 
 import ServerProjectsApi from "@/services/api/projects/projects.server";
+import { TournamentPreview } from "@/types/projects";
 
 import StepCard from "../components/step_card";
 import ServiceConfig from "../serviceConfig";
 import OtherTournaments from "./components/other_tournaments";
 import TournamentSpotlight from "./components/tournament_spotlight";
+import Button from "../components/button";
 import GetInTouchForm from "../components/get_in_touch_form";
 import { sortServiceTournaments } from "../helpers";
 
@@ -24,17 +26,25 @@ export default async function TournamentsPage() {
   const tournaments = await ServerProjectsApi.getTournaments({
     show_on_services_page: true,
   });
-  const spotlightTournament = tournaments.find((tournament) => {
-    if (!isNaN(Number(spotlightTournamentId))) {
-      return tournament.id === Number(spotlightTournamentId);
+  const { spotlightTournament, filteredTournaments } = tournaments.reduce(
+    (acc, tournament) => {
+      if (isSpotlightTournament(tournament, spotlightTournamentId)) {
+        acc.spotlightTournament = tournament;
+      } else {
+        acc.filteredTournaments.push(tournament);
+      }
+      return acc;
+    },
+    {
+      spotlightTournament: undefined as TournamentPreview | undefined,
+      filteredTournaments: [] as TournamentPreview[],
     }
-    return tournament.slug === spotlightTournamentId;
-  });
-  const sortedTournaments = sortServiceTournaments(tournaments);
+  );
+  const sortedTournaments = sortServiceTournaments(filteredTournaments);
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px] min-[1366px]:pt-[103px]">
       <div>
-        <h3 className="m-0 mx-auto max-w-[448px] text-balance px-6 text-center text-[32px] font-bold leading-9 tracking-tight text-blue-800 dark:text-blue-800-dark sm:text-5xl md:max-w-[576px] lg:max-w-full lg:px-0 lg:text-start">
+        <h3 className="m-0 mx-auto max-w-[448px] text-balance px-6 text-center text-[32px] font-bold leading-9 tracking-tight text-blue-800 dark:text-blue-800-dark sm:text-5xl md:max-w-[576px] lg:max-w-full lg:px-0">
           {t.rich("runTournamentOnMetaculus", {
             span: (chunks) => (
               <span className="text-blue-700 dark:text-blue-700-dark">
@@ -44,7 +54,7 @@ export default async function TournamentsPage() {
           })}
         </h3>
 
-        <div className="mt-5 flex-col px-6 text-center text-sm text-blue-700 dark:text-blue-700-dark sm:px-16 sm:text-[21px] sm:leading-[32px] lg:mt-8 lg:flex lg:px-0 lg:text-start">
+        <div className="mt-5 max-w-[880px] flex-col px-6 text-center text-sm text-blue-700 dark:text-blue-700-dark sm:px-16 sm:text-[21px] sm:leading-[32px] lg:mt-8 lg:flex lg:px-0">
           {/* Mobile paragraph */}
           <p className="m-0 text-pretty text-blue-700 dark:text-blue-700-dark lg:hidden">
             {t("metaculusHasYearsOfExperience")}{" "}
@@ -59,6 +69,10 @@ export default async function TournamentsPage() {
             <p className="m-0 text-lg">{t("metaculusHelpsOrganizations")}</p>
           </div>
         </div>
+
+        <Button href="#contact-us" className="mx-auto mt-8 block">
+          {t("contactUs")}
+        </Button>
       </div>
 
       <div className="mt-10 text-blue-700 dark:text-blue-700-dark sm:mt-16 lg:mt-[120px]">
@@ -106,7 +120,19 @@ export default async function TournamentsPage() {
 
       <OtherTournaments tournaments={sortedTournaments} />
 
-      <GetInTouchForm className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]" />
+      <GetInTouchForm
+        id="contact-us"
+        className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]"
+      />
     </main>
   );
+}
+
+function isSpotlightTournament(
+  tournament: TournamentPreview,
+  spotlightId: string
+) {
+  return !isNaN(Number(spotlightId))
+    ? tournament.id === Number(spotlightId)
+    : tournament.slug === spotlightId;
 }

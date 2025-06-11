@@ -22,14 +22,19 @@ export const metadata = {
 
 export default async function ServicesPage() {
   const t = await getTranslations();
-  const { proForecastersImages } = ServiceConfig;
+  const { proForecastersImages, mainPageTournamentsList } = ServiceConfig;
   const [tournaments, siteStats] = await Promise.all([
     ServerProjectsApi.getTournaments({
       show_on_services_page: true,
     }),
     serverMiscApi.getSiteStats(),
   ]);
-  const sortedTournaments = sortServiceTournaments(tournaments);
+  const mainPageTournaments = tournaments.filter((tournament) =>
+    mainPageTournamentsList.find(
+      ({ id }) => id === tournament.slug || id === String(tournament.id)
+    )
+  );
+  const sortedTournaments = sortServiceTournaments(mainPageTournaments);
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8  sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock siteStats={siteStats} />

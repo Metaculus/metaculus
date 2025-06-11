@@ -10,6 +10,7 @@ export type GetInTouchForm = {
   name: string;
   email: string;
   organization?: string;
+  message?: string;
   service: string;
 };
 

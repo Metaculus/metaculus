@@ -79,9 +79,18 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
             field={t("prizePool")}
             value={"$" + `${Number(prizePool).toLocaleString(locale)}`}
           />
-          <InfoCard field={t("participations")} value={forecastersCount} />
-          <InfoCard field={t("questions")} value={questionsCount} />
-          <InfoCard field={t("predictions")} value={forecastsCount} />
+          <InfoCard
+            field={t("participants")}
+            value={Number(forecastersCount).toLocaleString(locale)}
+          />
+          <InfoCard
+            field={t("questions")}
+            value={Number(questionsCount).toLocaleString(locale)}
+          />
+          <InfoCard
+            field={t("predictions")}
+            value={Number(forecastsCount).toLocaleString(locale)}
+          />
         </div>
       </div>
     </div>

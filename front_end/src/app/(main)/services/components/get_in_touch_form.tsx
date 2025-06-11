@@ -7,8 +7,7 @@ import { useForm, Controller, UseFormRegister } from "react-hook-form";
 import { z } from "zod";
 
 import Button from "@/components/ui/button";
-import Checkbox from "@/components/ui/checkbox";
-import { FormErrorMessage, Input } from "@/components/ui/form_field";
+import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { ErrorResponse } from "@/types/fetch";
 import { TranslationKey } from "@/types/translations";
@@ -16,6 +15,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
+import Checkbox from "./get_in_touch_checkbox";
 import { submitGetInTouchForm } from "../actions";
 
 const ServiceType = {
@@ -30,34 +30,28 @@ type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];
 type ServiceOption = {
   value: ServiceType;
   labelKey: TranslationKey;
-  order: string;
 };
 
 const SERVICE_OPTIONS: ServiceOption[] = [
   {
     value: ServiceType.GENERAL_INQUIRY,
     labelKey: "generalInquiry",
-    order: "lg:order-1",
   },
   {
     value: ServiceType.RUNNING_TOURNAMENT,
     labelKey: "runningTournament",
-    order: "lg:order-2",
   },
   {
     value: ServiceType.PRIVATE_INSTANCE,
     labelKey: "settingUpPrivateInstance",
-    order: "lg:order-3",
   },
   {
     value: ServiceType.PRO_FORECASTING,
     labelKey: "proForecasting",
-    order: "lg:order-4",
   },
   {
     value: ServiceType.PARTNERSHIP,
     labelKey: "partnership",
-    order: "lg:order-5",
   },
 ];
 
@@ -65,6 +59,7 @@ const getInTouchFormSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   email: z.string().min(1, { message: "Email is required" }),
   organization: z.string().optional(),
+  message: z.string().optional(),
   services: z
     .array(
       z.enum([
@@ -77,7 +72,7 @@ const getInTouchFormSchema = z.object({
     )
     .min(1, { message: "At least one service must be selected" }),
 });
-type GetInTouchFormchema = z.infer<typeof getInTouchFormSchema>;
+type GetInTouchFormSchema = z.infer<typeof getInTouchFormSchema>;
 
 type Props = {
   className?: string;
@@ -98,7 +93,7 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
     control,
     reset,
     clearErrors,
-  } = useForm<GetInTouchFormchema>({
+  } = useForm<GetInTouchFormSchema>({
     resolver: zodResolver(getInTouchFormSchema),
     defaultValues: {
       services: [],
@@ -106,16 +101,15 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
   });
 
   const onSubmit = useCallback(
-    async (data: GetInTouchFormchema) => {
+    async (data: GetInTouchFormSchema) => {
       setIsLoading(true);
       setError(undefined);
-      const { name, email, organization } = data;
-      const serviceString = getServiceString(data);
+      const { services, ...formData } = data;
+      const serviceString = getServiceString(services);
+
       try {
         await submitGetInTouchForm({
-          name,
-          email,
-          organization,
+          ...formData,
           service: serviceString,
         });
         sendAnalyticsEvent("ServiceContactForm");
@@ -147,87 +141,95 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
       </p>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-2.5 flex w-full flex-col gap-[21px] lg:mt-10 lg:items-center"
+        className="mt-6 flex w-full flex-col gap-[21px] lg:mt-10 lg:items-center"
       >
-        <div className="flex w-full flex-col gap-5 lg:flex-row">
-          <FormInput
-            label={t("yourName")}
-            errors={errors.name}
-            register={register}
-            name="name"
-          />
-          <FormInput
-            label={t("emailAddress")}
-            errors={errors.email}
-            register={register}
-            name="email"
-            type="email"
-          />
+        <div className="flex w-full flex-col gap-y-6 lg:flex-row lg:gap-x-8">
+          <div className="flex w-full flex-col gap-5">
+            <FormInput
+              label={t("yourName")}
+              errors={errors.name}
+              register={register}
+              name="name"
+            />
+            <FormInput
+              label={t("emailAddress")}
+              errors={errors.email}
+              register={register}
+              name="email"
+              type="email"
+            />
 
-          <FormInput
-            label={t("organization")}
-            errors={errors.organization}
-            register={register}
-            name="organization"
-          />
-        </div>
-        <div className="lg:mt-2.5">
-          <p className="m-0 text-center text-sm font-bold text-blue-700 dark:text-blue-700-dark lg:text-lg">
-            {t("whatServiceAreYouInterestedIn")}
-          </p>
-          <div className="mx-auto mt-3 flex max-w-[600px] flex-wrap items-center justify-center gap-x-5 gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-5">
-            {SERVICE_OPTIONS.map((serviceOption) => (
-              <Controller
-                key={serviceOption.value}
-                name="services"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    label={t(serviceOption.labelKey)}
-                    className={cn(
-                      "inline-flex items-center",
-                      serviceOption.order
-                    )}
-                    inputClassName="w-4 h-4 flex"
-                    checked={field.value?.includes(serviceOption.value)}
-                    onChange={(checked) => {
-                      if (checked) {
-                        clearErrors("services");
-                        field.onChange([
-                          ...(field.value || []),
-                          serviceOption.value,
-                        ]);
-                      } else {
-                        field.onChange(
-                          (field.value || []).filter(
-                            (v) => v !== serviceOption.value
-                          )
-                        );
-                      }
-                    }}
-                  />
-                )}
-              />
-            ))}
+            <FormInput
+              label={t("organization")}
+              errors={errors.organization}
+              register={register}
+              name="organization"
+            />
+
+            <FormInput
+              label={t("yourMessageOptional")}
+              errors={errors.message}
+              register={register}
+              name="message"
+              className="lg:h-24"
+              isTextarea
+            />
           </div>
-          {!!errors.services && (
-            <FormErrorMessage
-              containerClassName="flex justify-center py-1.5"
-              errors={errors.services}
-            />
-          )}
-          {!isLoading && (
-            <FormErrorMessage
-              errors={error?.digest}
-              containerClassName="text-center"
-            />
-          )}
+          <div className="relative w-full lg:mt-auto">
+            <p className="m-0 text-pretty text-center text-lg font-medium text-blue-700 dark:text-blue-700-dark lg:mt-auto lg:text-start">
+              {t("whatServiceAreYouInterestedIn")}
+            </p>
+            <div className="mx-auto mt-4 flex flex-col items-center justify-center gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-3">
+              {SERVICE_OPTIONS.map((serviceOption) => (
+                <Controller
+                  key={serviceOption.value}
+                  name="services"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      label={t(serviceOption.labelKey)}
+                      className="flex w-full"
+                      inputClassName="w-4 h-4 flex mr-3"
+                      checked={field.value?.includes(serviceOption.value)}
+                      onChange={(checked) => {
+                        if (checked) {
+                          clearErrors("services");
+                          field.onChange([
+                            ...(field.value || []),
+                            serviceOption.value,
+                          ]);
+                        } else {
+                          field.onChange(
+                            (field.value || []).filter(
+                              (v) => v !== serviceOption.value
+                            )
+                          );
+                        }
+                      }}
+                    />
+                  )}
+                />
+              ))}
+            </div>
+            {!!errors.services && (
+              <FormErrorMessage
+                containerClassName="w-full absolute top-full flex justify-center py-1.5"
+                errors={errors.services}
+              />
+            )}
+          </div>
         </div>
+        {!isLoading && (
+          <FormErrorMessage
+            errors={error?.digest}
+            containerClassName="text-center"
+          />
+        )}
         <Button
           variant="primary"
           type="submit"
           size="lg"
-          className="mx-auto lg:mt-2.5"
+          className="mx-auto mt-2.5"
           disabled={isLoading}
         >
           {isLoading ? <LoadingSpinner size="sm" /> : t("submit")}
@@ -243,6 +245,8 @@ type FormInputProps = {
   register: UseFormRegister<any>;
   name: string;
   type?: "text" | "email";
+  isTextarea?: boolean;
+  className?: string;
 };
 
 const FormInput: FC<FormInputProps> = ({
@@ -251,18 +255,37 @@ const FormInput: FC<FormInputProps> = ({
   register,
   name,
   type = "text",
+  isTextarea = false,
+  className,
 }) => {
   return (
     <label className="flex w-full flex-col gap-2">
-      <span className="text-sm font-bold text-blue-700 dark:text-blue-700-dark lg:text-lg">
-        {label}:
+      <span className="text-sm font-normal text-blue-700 dark:text-blue-700-dark lg:text-base">
+        {label}
       </span>
-      <Input
-        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-        type={type}
-        errors={errors}
-        {...register(name)}
-      />
+      <div>
+        {isTextarea ? (
+          <Textarea
+            className={cn(
+              "block w-full resize-none rounded border border-gray-400 bg-inherit px-3 py-2 outline-none focus:border-gray-700 dark:border-gray-400-dark dark:focus:border-gray-700-dark",
+              className
+            )}
+            type={type}
+            errors={errors}
+            {...register(name)}
+          />
+        ) : (
+          <Input
+            className={cn(
+              "block w-full rounded border border-gray-400 bg-inherit px-3 py-[9px] outline-none focus:border-gray-700 dark:border-gray-400-dark dark:focus:border-gray-700-dark",
+              className
+            )}
+            type={type}
+            errors={errors}
+            {...register(name)}
+          />
+        )}
+      </div>
     </label>
   );
 };
@@ -275,8 +298,8 @@ const SERVICE_LABELS = {
   [ServiceType.GENERAL_INQUIRY]: "General Inquiry",
 } as const;
 
-function getServiceString(data: GetInTouchFormchema) {
-  return data.services.map((service) => SERVICE_LABELS[service]).join(", ");
+function getServiceString(services: ServiceType[]) {
+  return services.map((service) => SERVICE_LABELS[service]).join(", ");
 }
 
 export default GetInTouchForm;

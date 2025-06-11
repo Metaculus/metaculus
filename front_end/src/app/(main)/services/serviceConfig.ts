@@ -3,7 +3,6 @@ import PeterWildefordImage from "@/app/(main)/pro-forecasters/assets/Peter Wilde
 import ScottEastmanImageImage from "@/app/(main)/pro-forecasters/assets/Scott Eastman.jpeg";
 
 const ServiceConfig = {
-  spotlightTournamentId: "bridgewater",
   proForecastersImages: [
     PeterWildefordImage,
     IsabelJuniewiczImage,
@@ -12,13 +11,20 @@ const ServiceConfig = {
     IsabelJuniewiczImage,
     "placeholder-for-last-circle",
   ],
-  // Use order to sort tournaments in the carousel
+  // Use order to sort tournaments in the carousel/list
+  mainPageTournamentsList: [
+    { id: "bridgewater" },
+    { id: "keep-virginia-safe-ii" },
+    { id: "fiscal" },
+    { id: "climate", order: 4 },
+  ],
   tournamentsOrder: [
     { id: "bridgewater" },
     { id: "keep-virginia-safe-ii" },
     { id: "fiscal" },
     { id: "climate", order: 4 },
   ],
+  spotlightTournamentId: "bridgewater",
   partnersLogos: [
     {
       light: "/partners/astera-logo.svg?url",
@@ -74,6 +80,13 @@ const ServiceConfig = {
       alt: "LSE logo",
       height: "50",
       href: "https://www.lse.ac.uk/",
+    },
+    {
+      light: "/partners/vox-fp-light.svg?url",
+      dark: "/partners/vox-fp-dark.svg?url",
+      alt: "Vox Future Perfect logo",
+      height: "50",
+      href: "https://www.vox.com/future-perfect",
     },
   ],
 };

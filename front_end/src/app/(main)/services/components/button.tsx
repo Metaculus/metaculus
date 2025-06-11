@@ -24,7 +24,7 @@ const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
           as={Link}
           href={href}
           className={cn(
-            "w-fit rounded-full bg-blue-700 px-[30px] py-2.5 text-sm font-bold uppercase tracking-wide text-gray-0 no-underline hover:bg-blue-600 dark:bg-blue-700 dark:text-gray-0 dark:hover:bg-blue-600",
+            "w-fit rounded-full bg-blue-700 px-[30px] py-2.5 text-sm font-bold uppercase tracking-wide text-gray-0 no-underline hover:bg-blue-600 dark:bg-blue-700-dark dark:text-gray-0-dark dark:hover:bg-blue-600",
             className
           )}
           {...props}

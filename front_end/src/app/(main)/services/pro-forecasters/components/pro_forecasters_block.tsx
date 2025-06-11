@@ -19,9 +19,7 @@ const ProForecastersBlock: FC<Props> = ({ className }) => {
       <h3 className="m-0 text-center text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark">
         {t("proForecastersBlockTitle")}
       </h3>
-      <p className="m-0 mt-3 text-center text-xl font-medium text-blue-700 dark:text-blue-700-dark">
-        {t("proForecastersBlockDescription")}
-      </p>
+
       <div className="mt-12 px-4 sm:px-0">
         {/* Adjust visibility of arrows when adding more pro forecasters */}
         <EmblaCarousel

@@ -2,9 +2,10 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 
-import CaseStudyCard from "../components/case_study_card";
+import Button from "../components/button";
 import GetInTouchForm from "../components/get_in_touch_form";
 import StepCard from "../components/step_card";
+import PlatfromBlock from "./components/platform_block";
 
 export const metadata = {
   title: "Create Your Private Forecasting Platform",
@@ -14,10 +15,11 @@ export const metadata = {
 
 export default async function PrivateInstancesPage() {
   const t = await getTranslations();
+
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px] min-[1366px]:pt-[103px]">
-      <div>
-        <h3 className="m-0 mx-auto max-w-[448px] text-balance px-6 text-center text-[32px] font-bold leading-9 tracking-tight text-blue-800 dark:text-blue-800-dark sm:text-5xl md:max-w-[576px] lg:max-w-full lg:px-0 lg:text-start">
+      <div className="mx-auto max-w-[880px]">
+        <h3 className="m-0 mx-auto max-w-[400px] text-pretty px-2.5 text-center text-[32px] font-bold leading-9 tracking-tight text-blue-800 dark:text-blue-800-dark sm:max-w-[570px] sm:text-5xl lg:px-0">
           {t.rich("createPrivateInstance", {
             span: (chunks) => (
               <span className="text-blue-700 dark:text-blue-700-dark">
@@ -27,27 +29,29 @@ export default async function PrivateInstancesPage() {
           })}
         </h3>
 
-        <div className="mt-5 flex-col px-6 text-center text-sm text-blue-700 dark:text-blue-700-dark sm:px-16 sm:text-[21px] sm:leading-[32px] lg:mt-8 lg:flex lg:px-0 lg:text-start">
-          {/* Mobile paragraph */}
-          <p className="m-0 text-pretty text-blue-700 dark:text-blue-700-dark lg:hidden">
-            {t("sinceItsDebutIn2016")} {t("youCanDeployProForecasters")}
+        <div className="mt-5 flex-col px-2.5 text-center text-sm text-blue-700 dark:text-blue-700-dark sm:px-16 sm:text-[21px] sm:leading-[32px] lg:mt-8 lg:flex lg:px-0">
+          <p className="m-0 text-sm font-medium sm:text-xl">
+            {t("sinceItsDebutIn2016")}
           </p>
-          {/* Desktop paragraphs */}
-          <div className="hidden lg:block">
-            <p className="m-0 text-xl font-medium">
-              {t("sinceItsDebutIn2016")}
-            </p>
-            <br />
-            <p className="m-0 text-lg">{t("youCanDeployProForecasters")}</p>
-          </div>
+          <br />
+          <p className="m-0 text-sm sm:text-lg">
+            {t("youCanDeployPrivateInstance")}
+          </p>
         </div>
+
+        <Button href="#contact-us" className="mx-auto mt-8 block">
+          {t("contactUs")}
+        </Button>
       </div>
 
-      <div className="mt-10 text-blue-700 dark:text-blue-700-dark sm:mt-16 lg:mt-[120px]">
+      {/* Metaculus platform block */}
+      <PlatfromBlock />
+
+      <div className="mt-[100px] text-blue-700 dark:text-blue-700-dark md:mt-[150px] xl:mt-[120px]">
         <h3 className="m-0 text-center text-3xl font-bold tracking-tight text-inherit dark:text-inherit">
           {t("howItWorks")}
         </h3>
-        <p className="m-0 mt-3 text-center text-xl font-medium">
+        <p className="m-0 mt-3 text-pretty text-center text-xl font-medium">
           {t("stepsForSettingUpPrivateInstance")}
         </p>
         <div className="mt-12 flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-[22px]">
@@ -63,7 +67,7 @@ export default async function PrivateInstancesPage() {
           />
           <StepCard
             step={2}
-            title={t("payAnnuallyOrMonthly")}
+            title={t("billedAnnuallyOrMonthly")}
             description={t("chooseServiceArrangement")}
             className="flex-1"
           />
@@ -80,16 +84,10 @@ export default async function PrivateInstancesPage() {
         </div>
       </div>
 
-      <CaseStudyCard
-        title={t("organizationsLikeCzechPriorities")}
-        className="mt-10 sm:mt-16 lg:mt-[120px]"
-      >
-        <p className="m-0">{t("sinceItsDebutIn2016")}</p>
-        <br />
-        <p className="m-0">{t("youCanDeployMetaculusCodebase")}</p>
-      </CaseStudyCard>
-
-      <GetInTouchForm className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]" />
+      <GetInTouchForm
+        id="contact-us"
+        className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]"
+      />
     </main>
   );
 }

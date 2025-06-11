@@ -30,7 +30,12 @@ const ProForecasterCard: FC<Props> = ({ proForecaster, className }) => {
       <p className="m-0 my-3 flex items-center text-xl font-medium text-blue-800 dark:text-blue-800-dark">
         {name}
         {!!linkedInUrl && (
-          <a href={linkedInUrl} className="ml-2.5">
+          <a
+            href={linkedInUrl}
+            className="ml-2.5"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <LinkedInIcon />
           </a>
         )}
