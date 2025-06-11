@@ -1283,5 +1283,8 @@
   "emailScheduled": "Email Scheduled to be Sent.",
   "emailMeError": "Error encountered. Please contact support for help.",
   "currentForecast": "Current Forecast",
-  "selectAGraphType": "Select a graph type"
+  "selectAGraphType": "Select a graph type",
+  "partnerWith": "Partner with",
+  "forecastingQuestions": "forecasting questions",
+  "ofPredictions": "of predictions"
 }
