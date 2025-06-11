@@ -103,9 +103,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         Record<number, DistributionSlider | DistributionQuantile | undefined>
       >((acc, question) => {
         const latest = question.my_forecasts?.latest;
-        const isQPredicted = isOpenQuestionPredicted(question, {
-          treatClosedAsPredicted: false,
-        });
+        const isQPredicted = !!latest;
         const dist_input = isQPredicted
           ? latest?.distribution_input
           : undefined;
