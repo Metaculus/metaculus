@@ -5,14 +5,14 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
-import * as DevicesImage from "./assets/devices.svg";
-import ProForecastersImage from "./assets/pro-forecasters/pro-forecaster.jpg";
+import DevicesImage from "./assets/devices.svg";
 import Button from "./components/button";
-import ContactForm from "./components/contact_form";
+import GetInTouchForm from "./components/get_in_touch_form";
 import HeadingBlock from "./components/heading_block";
 import PartnersCarousel from "./components/partners_carousel";
 import TournamentBlock from "./components/tournament_block";
 import ServiceConfig from "./serviceConfig.json";
+
 // TODO: adjust metadata
 export const metadata = {
   title: "Services Metaculus",
@@ -90,7 +90,7 @@ export default async function ServicesPage() {
                   </div>
                 ) : (
                   <Image
-                    src={ProForecastersImage}
+                    src={image}
                     alt="Pro forecaster"
                     unoptimized
                     width={80}
@@ -120,7 +120,7 @@ export default async function ServicesPage() {
         </div>
       </div>
 
-      <ContactForm className="mt-12" />
+      <GetInTouchForm className="mb-36 mt-10 sm:mt-12 lg:mt-32" />
     </main>
   );
 }

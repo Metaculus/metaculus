@@ -1,11 +1,14 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import tournamentPlaceholder from "@/app/assets/images/tournament.png";
 import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
+import { getProjectLink } from "@/utils/navigation";
+
 type Props = {
   tournament: Tournament;
   className?: string;
@@ -22,11 +25,12 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
   } = tournament;
 
   return (
-    <div
+    <Link
       className={cn(
-        "flex h-full w-full flex-col overflow-hidden rounded-md",
+        "flex h-full w-full flex-col overflow-hidden rounded-md no-underline",
         className
       )}
+      href={getProjectLink(tournament)}
     >
       <div className="relative h-[100px] w-full flex-none bg-cover bg-center">
         <Image
@@ -88,7 +92,7 @@ const TournamentCard: FC<Props> = ({ tournament, className }) => {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

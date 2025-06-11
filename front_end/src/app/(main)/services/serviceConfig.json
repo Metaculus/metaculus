@@ -1,11 +1,88 @@
 {
   "tournamentsIds": ["32567", "1756", "2100", "32725"],
   "proForecastersImages": [
-    "./assets/pro-forecasters/pro-forecaster.jpg",
-    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
-    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
-    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
-    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg",
-    "@/src/app/(main)/services/assets/pro-forecasters/pro-forecaster.jpg"
-  ]
+    "/images/pro-forecasters/pro-forecaster.jpg",
+    "/images/pro-forecasters/pro-forecaster.jpg",
+    "/images/pro-forecasters/pro-forecaster.jpg",
+    "/images/pro-forecasters/pro-forecaster.jpg",
+    "/images/pro-forecasters/pro-forecaster.jpg",
+    "/images/pro-forecasters/pro-forecaster.jpg"
+  ],
+  "partnersLogos": {
+    "light": [
+      {
+        "logo": "/partners/astera-logo.svg",
+        "alt": "Asteria logo",
+        "height": "50"
+      },
+      {
+        "logo": "/partners/clearer-thinking-logo.svg",
+        "alt": "Clearer thinking logo",
+        "height": "50"
+      },
+      {
+        "logo": "/partners/convergence-logo.svg",
+        "alt": "Convergence logo",
+        "height": "50"
+      },
+      {
+        "logo": "/partners/fas-logo.svg",
+        "alt": "FAS logo",
+        "height": "30"
+      },
+      {
+        "logo": "/partners/givewell-logo.svg",
+        "alt": "Givewell logo",
+        "height": "27"
+      },
+      {
+        "logo": "/partners/lehigh-light.svg",
+        "alt": "Lehigh logo",
+        "height": "35"
+      },
+      {
+        "logo": "/partners/bw-light-alt.svg",
+        "alt": "Bridgewater logo",
+        "height": "27"
+      }
+    ],
+    "dark": [
+      {
+        "logo": "/partners/astera-logo-dark.svg",
+        "alt": "Asteria logo",
+        "height": "50"
+      },
+      {
+        "logo": "/partners/clearer-thinking-logo-dark.svg",
+        "alt": "Clearer thinking logo",
+        "height": "50"
+      },
+      {
+        "logo": "/partners/convergence-logo-dark.svg",
+        "alt": "Convergence logo",
+        "height": "50"
+      },
+      {
+        "logo": "/partners/fas-logo-dark.svg",
+        "alt": "FAS logo",
+        "height": "30"
+      },
+      {
+        "logo": "/partners/givewell-logo-dark.svg",
+        "alt": "Givewell logo",
+        "height": "27"
+      },
+      {
+        "logo": "/partners/lehigh-dark.svg",
+        "alt": "Lehigh logo",
+        "height": "35"
+      },
+      {
+        "logo": "/partners/bw-dark-alt.svg",
+        "alt": "Bridgewater logo",
+        "height": "27"
+      }
+    ]
+  },
+  "spotlightTournamentId": "32567"
 }
