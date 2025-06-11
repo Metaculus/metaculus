@@ -12,3 +12,12 @@ export function sortServiceTournaments(tournaments: TournamentPreview[]) {
         0)
   );
 }
+
+export function isSpotlightTournament(
+  tournament: TournamentPreview,
+  spotlightId: string
+) {
+  return !isNaN(Number(spotlightId))
+    ? tournament.id === Number(spotlightId)
+    : tournament.slug === spotlightId;
+}

@@ -41,7 +41,7 @@ export default async function ProForecastersPage() {
               {t("proForecastersHeaderFirstParagraph")}
             </p>
             <br />
-            <p className="m-0 text-lg">
+            <p className="m-0 mx-auto max-w-[800px] text-pretty text-lg">
               {t("proForecastersHeaderSecondParagraph")}
             </p>
           </div>

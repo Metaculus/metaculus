@@ -9,9 +9,16 @@ type Props = {
   title: string;
   description: string;
   className?: string;
+  titleClassName?: string;
 };
 
-const StepCard: FC<Props> = ({ step, title, description, className }) => {
+const StepCard: FC<Props> = ({
+  step,
+  title,
+  description,
+  className,
+  titleClassName,
+}) => {
   const t = useTranslations();
   return (
     <div
@@ -23,7 +30,12 @@ const StepCard: FC<Props> = ({ step, title, description, className }) => {
       <p className="m-0 text-[16px] uppercase leading-[16px] text-blue-600 dark:text-blue-600-dark">
         {t("stepX", { step })}
       </p>
-      <h6 className="m-0 font-serif text-2xl font-medium text-gray-800 dark:text-gray-200">
+      <h6
+        className={cn(
+          "m-0 font-serif text-2xl font-medium text-gray-800 dark:text-gray-200",
+          titleClassName
+        )}
+      >
         {title}
       </h6>
       <p className="m-0 text-base text-gray-600 dark:text-gray-600-dark">

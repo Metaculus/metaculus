@@ -30,8 +30,7 @@ const HeadingBlock: FC<Props> = ({ siteStats }) => {
           </span>
         </h2>
         <p className="m-0 mt-5 text-balance text-sm font-normal sm:max-w-[500px] sm:text-[21px] sm:leading-8 lg:text-start">
-          Metaculus is a forecasting platform helping organizations make better
-          decisions by aggregating predictions on global events.
+          {t("weHelpOrganizationsMakeBetterDecisions")}
         </p>
         <div className="my-6 flex flex-col items-center gap-3 text-sm lowercase text-blue-600 dark:text-blue-600-dark sm:my-10 sm:text-xl lg:items-start">
           <p className="m-0 flex items-center justify-center text-sm sm:text-xl">

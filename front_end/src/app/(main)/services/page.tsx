@@ -111,7 +111,7 @@ export default async function ServicesPage() {
             {t("youCanDeployProForecasters")}
           </p>
           <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
-            {t("proForecastersProvideNotOnly")}
+            {t("ourMostAccurateForecasters")}
           </p>
           <Button
             href="/services/pro-forecasters"

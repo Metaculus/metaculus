@@ -28,10 +28,10 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
     >
       <div className="flex flex-col items-center justify-center">
         <h3 className="m-0 text-2xl font-bold tracking-tight text-blue-200 sm:text-3xl">
-          {t("runTournament")}
+          {t("launchTournament")}
         </h3>
-        <p className="m-0 mt-5 max-w-[560px] text-center text-sm font-normal text-blue-500 sm:text-lg sm:font-medium">
-          {t("runTournamentDescription")}
+        <p className="m-0 mt-5 max-w-[570px] text-center text-sm font-normal text-blue-500 sm:text-lg sm:font-medium">
+          {t("launchTournamentDescription")}
         </p>
         <Button href="/services/tournaments" className="mt-8 uppercase">
           {t("learnMore")}

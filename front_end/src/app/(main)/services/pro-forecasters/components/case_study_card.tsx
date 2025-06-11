@@ -10,13 +10,13 @@ const CaseStudyCard = async () => {
   const t = await getTranslations();
   return (
     <div className="mt-[120px] flex flex-col justify-center gap-x-12 rounded-2xl bg-blue-800 px-8 py-12 text-base text-blue-500 sm:px-14 sm:text-lg">
-      <div className="flex flex-col gap-x-12 text-base text-blue-500 sm:text-lg md:flex-row">
+      <div className="flex flex-col gap-x-9 text-base text-blue-500 sm:text-lg md:flex-row">
         <div className="flex flex-col md:w-2/3">
           <p className="m-0 text-[20px] text-olive-500">{t("caseStudy")}</p>
           <p className="m-0 mt-5 text-2xl font-bold leading-[140%] text-blue-200 sm:text-[30px]">
             {t("proForecastersCaseStudyTitle")}
           </p>
-          <p className="m-0">{t("proForecastersCaseStudyParagraph1")}</p>
+          <p className="m-0 mt-5">{t("proForecastersCaseStudyParagraph1")}</p>
           <br />
           <p className="m-0">
             {t.rich("proForecastersCaseStudyParagraph2", {
