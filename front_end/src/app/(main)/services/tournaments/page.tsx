@@ -56,7 +56,7 @@ export default async function TournamentsPage() {
         <div className="mx-auto mt-5 max-w-[880px] flex-col px-6 text-center text-sm text-blue-700 dark:text-blue-700-dark sm:px-16 sm:text-[21px] sm:leading-[32px] lg:mt-8 lg:flex lg:px-0">
           {/* Mobile paragraph */}
           <p className="m-0 text-pretty text-blue-700 dark:text-blue-700-dark lg:hidden">
-            {t("metaculusHasYearsOfExperience")} {t("weHelpOrganizations")}
+            {t("metaculusHasYearsOfExperience")} {t("weHelpOrganizationsSolve")}
           </p>
           {/* Desktop paragraphs */}
           <div className="hidden lg:block">
@@ -64,7 +64,7 @@ export default async function TournamentsPage() {
               {t("metaculusHasYearsOfExperience")}
             </p>
             <br />
-            <p className="m-0 text-lg">{t("weHelpOrganizations")}</p>
+            <p className="m-0 text-lg">{t("weHelpOrganizationsSolve")}</p>
           </div>
         </div>
 

@@ -39,7 +39,7 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
             src={headerImage}
             alt=""
             fill
-            className="size-full object-cover object-center"
+            className="size-full object-cover object-center sm:object-right"
             sizes="(max-width: 768px) 200vw, 100vw"
             quality={100}
           />

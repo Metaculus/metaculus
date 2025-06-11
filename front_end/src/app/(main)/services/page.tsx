@@ -64,7 +64,7 @@ export default async function ServicesPage() {
             {t("privateInstances")}
           </h3>
           <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
-            {t("youCanDeployMetaculusCodebase")}
+            {t("deployMetaculusPlatform")}
           </p>
           <Button
             href="/services/private-instances"
@@ -108,7 +108,7 @@ export default async function ServicesPage() {
             {t("proForecasters")}
           </h3>
           <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
-            {t("youCanDeployProForecasters")}
+            {t("engageProForecasters")}
           </p>
           <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
             {t("ourMostAccurateForecasters")}

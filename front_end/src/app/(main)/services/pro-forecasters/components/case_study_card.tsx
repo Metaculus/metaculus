@@ -23,7 +23,7 @@ const CaseStudyCard = async () => {
               link: (chunks) => (
                 <Link
                   className="underline"
-                  href="/tournament/respiratory-outlook-23-24/"
+                  href="/tournament/respiratory-outlook-24-25/"
                 >
                   {chunks}
                 </Link>

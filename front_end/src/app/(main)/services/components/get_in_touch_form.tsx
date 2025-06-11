@@ -136,9 +136,6 @@ const GetInTouchForm: FC<Props> = ({ className, id }) => {
       <h3 className="m-0 w-full text-start text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark lg:text-center">
         {t("getInTouch")}
       </h3>
-      <p className="m-0 mt-3 w-full text-start text-base leading-tight text-blue-700 dark:text-blue-700-dark lg:text-center lg:text-xl">
-        {t("learnAboutPotentialWaysToWorkWithUs")}
-      </p>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="mt-6 flex w-full flex-col gap-[21px] lg:mt-10 lg:items-center"

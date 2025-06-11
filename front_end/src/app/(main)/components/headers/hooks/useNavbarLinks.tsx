@@ -45,8 +45,8 @@ const useNavbarLinks = ({
           label: t("tournaments"),
           href: "/tournaments",
         },
-        workWithUs: {
-          label: t("workWithUs"),
+        services: {
+          label: t("services"),
           href: "/services",
         },
         leaderboards: {
@@ -104,7 +104,7 @@ const useNavbarLinks = ({
       lgLinks: [
         LINKS.questions,
         LINKS.tournaments,
-        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.workWithUs, LINKS.news]),
+        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.services, LINKS.news]),
       ],
       /**
        * Breakpoint: 512 - 1023
@@ -152,7 +152,7 @@ const useNavbarLinks = ({
       ],
     }),
     [
-      LINKS.workWithUs,
+      LINKS.services,
       LINKS.news,
       LINKS.questions,
       LINKS.tournaments,
@@ -184,7 +184,7 @@ const useNavbarLinks = ({
 
       if (!isMenuCollapsed) {
         // leaderboard and news are moved from navbar to desktop menu
-        links.unshift(LINKS.workWithUs, LINKS.news);
+        links.unshift(LINKS.services, LINKS.news);
       }
     }
 
@@ -196,7 +196,7 @@ const useNavbarLinks = ({
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,
-    LINKS.workWithUs,
+    LINKS.services,
     LINKS.news,
     LINKS.press,
     LINKS.trackRecord,
@@ -220,7 +220,7 @@ const useNavbarLinks = ({
                 "max-[511px]:flex": isNil(user),
               }),
             },
-            LINKS.workWithUs,
+            LINKS.services,
             LINKS.news,
             { href: null, label: t("more"), isTitle: true },
             LINKS.leaderboards,

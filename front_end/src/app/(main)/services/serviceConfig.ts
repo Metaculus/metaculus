@@ -11,18 +11,26 @@ const ServiceConfig = {
     IsabelJuniewiczImage,
     "placeholder-for-last-circle",
   ],
-  // Use order to sort tournaments in the carousel/list
   mainPageTournamentsList: [
     { id: "bridgewater" },
     { id: "keep-virginia-safe-ii" },
     { id: "fiscal" },
-    { id: "climate", order: 4 },
+    { id: "climate" },
   ],
+  // Use order to sort tournaments in the carousel/list
   tournamentsOrder: [
-    { id: "bridgewater" },
-    { id: "keep-virginia-safe-ii" },
-    { id: "fiscal" },
-    { id: "climate", order: 4 },
+    { id: "bridgewater", order: 1 },
+    { id: "keep-virginia-safe-ii", order: 2 },
+    { id: "respiratory-outlook-24-25", order: 3 },
+    { id: "fiscal", order: 4 },
+    { id: "climate", order: 5 },
+    { id: "biosecurity-tournament", order: 6 },
+    { id: "market-pulse", order: 7 },
+    { id: "flusight-challenge23-24", order: 8 },
+    { id: "global-pulse", order: 9 },
+    { id: "aibq2", order: 10 },
+    { id: "metaculus-cup", order: 11 },
+    { id: "ukraine-conflict", order: 12 },
   ],
   spotlightTournamentId: "bridgewater",
   partnersLogos: [
