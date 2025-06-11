@@ -27,9 +27,10 @@ type GetInTouchFormchema = z.infer<typeof getInTouchFormSchema>;
 
 type Props = {
   className?: string;
+  id?: string;
 };
 
-const GetInTouchForm: FC<Props> = ({ className }) => {
+const GetInTouchForm: FC<Props> = ({ className, id }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<
@@ -41,7 +42,6 @@ const GetInTouchForm: FC<Props> = ({ className }) => {
     register,
     handleSubmit,
     control,
-    getValues,
   } = useForm<GetInTouchFormchema>({
     resolver: zodResolver(getInTouchFormSchema),
   });
@@ -65,9 +65,10 @@ const GetInTouchForm: FC<Props> = ({ className }) => {
   return (
     <div
       className={cn(
-        "flex w-full flex-col items-center justify-center rounded-2xl bg-gray-0 px-8 py-11 dark:bg-gray-0-dark sm:px-16 sm:py-14 md:py-[74px] lg:py-16",
+        "flex w-full scroll-m-16 flex-col items-center justify-center rounded-2xl bg-gray-0 px-8 py-11 dark:bg-gray-0-dark sm:px-16 sm:py-14 md:py-[74px] lg:py-16",
         className
       )}
+      id={id}
     >
       <h3 className="m-0 w-full text-start text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark lg:text-center">
         {t("getInTouch")}
@@ -79,8 +80,6 @@ const GetInTouchForm: FC<Props> = ({ className }) => {
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit(onSubmit)();
-          console.log(errors);
-          console.log(getValues());
         }}
         className="mt-2.5 flex w-full flex-col gap-[21px] lg:mt-10 lg:items-center"
       >
@@ -125,7 +124,7 @@ const GetInTouchForm: FC<Props> = ({ className }) => {
           <p className="m-0 text-center text-sm font-bold text-blue-700 dark:text-blue-700-dark lg:text-lg">
             {t("whatServiceAreYouInterestedIn")}
           </p>
-          <div className="mt-3 flex max-w-[600px] flex-wrap items-center justify-center gap-x-5 gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-5">
+          <div className="mx-auto mt-3 flex max-w-[600px] flex-wrap items-center justify-center gap-x-5 gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-5">
             <Controller
               name="runingTournament"
               control={control}
@@ -151,6 +150,18 @@ const GetInTouchForm: FC<Props> = ({ className }) => {
               )}
             />
             <Controller
+              name="proForecasting"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  {...field}
+                  label={t("proForecasting")}
+                  className="inline-flex items-center lg:order-4"
+                  inputClassName="w-4 h-4 flex"
+                />
+              )}
+            />
+            <Controller
               name="partnership"
               control={control}
               render={({ field }) => (
@@ -170,18 +181,6 @@ const GetInTouchForm: FC<Props> = ({ className }) => {
                   {...field}
                   label={t("generalInquiry")}
                   className="inline-flex items-center lg:order-1"
-                  inputClassName="w-4 h-4 flex"
-                />
-              )}
-            />
-            <Controller
-              name="proForecasting"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  label={t("proForecasting")}
-                  className="inline-flex items-center lg:order-4"
                   inputClassName="w-4 h-4 flex"
                 />
               )}

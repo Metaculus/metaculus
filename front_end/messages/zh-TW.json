@@ -1336,5 +1336,22 @@
   "deployToYourTeam": "部署到您的團隊",
   "whetherMetaculusHostedOrOnPremises": "無論是 Metaculus 託管還是內部部署，開始從您的團隊中收集有價值的見解",
   "caseStudy": "案例研究",
-  "organizationsLikeCzechPriorities": "像 Czech Priorities 和一家大型諮詢公司這樣的組織已經使用 Metaculus 私有實例來識別信息。"
+  "organizationsLikeCzechPriorities": "像 Czech Priorities 和一家大型諮詢公司這樣的組織已經使用 Metaculus 私有實例來識別信息。",
+  "stepsForSettingUpPrivateInstance": "設定私人實例的步驟",
+  "stepsForCollaboratingWithProForecasters": "與專業預測師合作的步驟",
+  "metaculusProForecasters": "Metaculus <span>專業預測師</span>",
+  "workWithUs": "與我們合作",
+  "proForecastersHeaderFirstParagraph": "Metaculus 已經解決了超過 6,000 個問題，擁有識別預測能力的數據——並有能力讓經驗豐富的預測專家解決您最重要的挑戰。",
+  "proForecastersHeaderSecondParagraph": "專業預測師不僅提供校準的預測，還提供透明的推理，幫助決策者解釋預測。無論是在您的私人實例上還是在 Metaculus 平台上推出的問題上，您都可以部署 Metaculus 專業預測師，處理您最關心的問題。",
+  "proForecastersStep1Description": "我們將探討如何讓我們的專業預測師最有效地挖掘您所需的洞察力",
+  "proForecastersStep2Title": "識別預測問題",
+  "proForecastersStep2Description": "無論是將不確定性分解成新的問題，還是從現有問題中挖掘洞察力，我們都會幫助您鎖定需獲取的信息。",
+  "proForecastersStep3Title": "向專業人士學習",
+  "proForecastersStep3Description": "Pros 將組建精心挑選的團隊，並按您的時間表分享校準的預測和推理，幫助您在關鍵時刻做出正確的選擇",
+  "proForecastersCaseStudyTitle": "Metaculus 部署專業預測師支持 CDC 2024/25 呼吸道疾病預測",
+  "proForecastersCaseStudyParagraph1": "《呼吸道展望 2024/25》是疾病預防控制中心（CDC）和 Metaculus 的合作項目。Metaculus 社區預測會與 CDC 共享，不一定反映 CDC 的意見。",
+  "proForecastersCaseStudyParagraph2": "基於 <link>呼吸道展望 2023/24</link>，2024/25 年展望提供了流感、COVID-19 和 RSV 的疾病負擔預測。您可以通過將您的預測添加到總體中，支持預測疾病趨勢的努力。",
+  "proForecastersCaseStudyParagraph3": "該項目由 <link>國家科學基金會</link> 在授獎號 2438211 下提供支持。此項目中表達的任何意見、研究發現和結論或建議均為 Metaculus 和我們的預測師的觀點，不一定反映國家科學基金會的看法。",
+  "proForecastersBlockTitle": "認識我們的專家",
+  "proForecastersBlockDescription": "了解與我們合作的潛在方式"
 }

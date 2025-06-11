@@ -10,11 +10,11 @@ import ServiceConfig from "../serviceConfig.json";
 import OtherTournaments from "./components/other_tournaments";
 import TournamentSpotlight from "./components/tournament_spotlight";
 import GetInTouchForm from "../components/get_in_touch_form";
-// TODO: adjust metadata
+
 export const metadata = {
-  title: "Tournaments Service Metaculus",
+  title: "Run a Forecasting Tournament with Metaculus",
   description:
-    "Metaculus is an online forecasting platform and aggregation engine working to improve human reasoning and coordination on topics of global importance.",
+    "Design and run forecasting tournaments to crowdsource insights on your critical questions. Metaculus helps you surface expert predictions and solve complex challenges with structured, competitive forecasting.",
 };
 
 export default async function ServicesPage() {

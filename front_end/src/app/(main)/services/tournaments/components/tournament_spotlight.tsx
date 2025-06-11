@@ -27,7 +27,7 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
       <div className="relative h-[195px] w-full ">
         <Image
           src={tournamentPlaceholder}
-          className="absolute h-full w-full"
+          className="absolute size-full"
           alt=""
           placeholder={"blur"}
           quality={100}
@@ -37,6 +37,7 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
             src={headerImage}
             alt=""
             fill
+            className="size-full object-cover object-center"
             sizes="(max-width: 768px) 200vw, 100vw"
             quality={100}
           />

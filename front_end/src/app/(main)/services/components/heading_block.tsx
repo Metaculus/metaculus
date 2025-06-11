@@ -27,7 +27,7 @@ const HeadingBlock: FC = () => {
           Metaculus is a forecasting platform helping organizations make better
           decisions by aggregating predictions on global events.
         </p>
-        <div className="my-6 flex flex-col items-center gap-3 text-sm lowercase text-blue-600 dark:text-blue-600-dark sm:text-xl lg:items-start">
+        <div className="my-6 flex flex-col items-center gap-3 text-sm lowercase text-blue-600 dark:text-blue-600-dark sm:my-10 sm:text-xl lg:items-start">
           <p className="m-0 flex items-center justify-center text-sm sm:text-xl">
             <FontAwesomeIcon
               icon={faArrowTrendUp}
@@ -77,7 +77,7 @@ const HeadingBlock: FC = () => {
             {t("ofPredictions")}
           </p>
         </div>
-        <Button href="#contact">{t("contactUs")}</Button>
+        <Button href="#contact-us">{t("contactUs")}</Button>
       </div>
       {/* TODO adjust image based on theme */}
       <Image

@@ -4,8 +4,8 @@ import { FC } from "react";
 import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
+import EmblaCarousel from "../../components/embla_carousel";
 import TournamentCard from "../../components/tournament_card";
-import TournamentCarousel from "../../components/tournament_carousel";
 
 type Props = {
   tournaments: Tournament[];
@@ -14,7 +14,8 @@ type Props = {
 
 const OtherTournaments: FC<Props> = ({ tournaments, className }) => {
   const t = useTranslations();
-
+  // Duplicate tournaments to allow for infinite scrolling
+  const duplicatedTournaments = [...tournaments, ...tournaments];
   return (
     <div className={cn("hidden flex-col items-center sm:flex", className)}>
       <p className="m-0 mb-12 mt-16 text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark lg:mt-[120px]">
@@ -26,12 +27,22 @@ const OtherTournaments: FC<Props> = ({ tournaments, className }) => {
           <TournamentCard key={tournament.id} tournament={tournament} />
         ))}
       </div>
-      <TournamentCarousel
-        tournaments={tournaments}
+      <EmblaCarousel
         className="hidden md:block"
         arrowsClassName="text-blue-800/30 dark:text-blue-800-dark/30"
         buttonPosition="loose"
-      />
+      >
+        <div className="-ml-6 flex">
+          {duplicatedTournaments.map((tournament, index) => (
+            <div
+              key={index}
+              className="flex-[0_0_100%] pl-6 xs:flex-[0_0_50%] md:flex-[0_0_33.33%] xl:flex-[0_0_25%]"
+            >
+              <TournamentCard tournament={tournament} className="h-full" />
+            </div>
+          ))}
+        </div>
+      </EmblaCarousel>
     </div>
   );
 };

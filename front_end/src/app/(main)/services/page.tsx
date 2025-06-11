@@ -13,11 +13,10 @@ import PartnersCarousel from "./components/partners_carousel";
 import TournamentBlock from "./components/tournament_block";
 import ServiceConfig from "./serviceConfig.json";
 
-// TODO: adjust metadata
 export const metadata = {
-  title: "Services Metaculus",
+  title: "Partner with Metaculus",
   description:
-    "Metaculus is an online forecasting platform and aggregation engine working to improve human reasoning and coordination on topics of global importance.",
+    "Discover how your organization can collaborate with Metaculus to improve strategic decision-making through forecasting. Explore our solutions for quantifying risk, identifying top talent, and enabling internal forecasting.",
 };
 
 export default async function ServicesPage() {
@@ -29,7 +28,7 @@ export default async function ServicesPage() {
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:pt-[52px] lg:pt-[72px] xl:pt-[132px]">
+    <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8  sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock />
       <PartnersCarousel className="my-10 sm:my-12 lg:my-32" />
 
@@ -50,7 +49,7 @@ export default async function ServicesPage() {
       )}
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
         {/* Private instances block */}
-        <div className="flex w-full flex-col items-center justify-center rounded-2xl bg-blue-800 p-8 sm:items-start sm:p-[64px]">
+        <div className="flex w-full flex-col items-center rounded-2xl  bg-blue-800 p-8 sm:items-start  sm:p-[64px]">
           <Image
             src={DevicesImage}
             alt="Devices image"
@@ -60,12 +59,12 @@ export default async function ServicesPage() {
           <h3 className="m-0 mt-[38px] text-2xl font-bold tracking-tight text-blue-200 sm:text-start sm:text-3xl">
             {t("privateInstances")}
           </h3>
-          <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg">
+          <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
             {t("youCanDeployMetaculusCodebase")}
           </p>
           <Button
             href="/services/private-instances"
-            className="mt-[38px] uppercase"
+            className="mt-[38px] uppercase lg:mt-auto"
           >
             {t("learnMore")}
           </Button>
@@ -73,7 +72,6 @@ export default async function ServicesPage() {
         {/* Pro forecasters block */}
         <div className="flex w-full flex-col items-center justify-center rounded-2xl bg-blue-800 p-8 sm:items-start sm:p-[64px]">
           <div className="flex flex-row">
-            {/* TODO: adjust with correct image paths */}
             {proForecastersImages.map((image, index) => (
               <div
                 key={index}
@@ -105,14 +103,14 @@ export default async function ServicesPage() {
           <h3 className="m-0 mt-[38px] text-2xl font-bold tracking-tight text-blue-200 sm:text-start sm:text-3xl">
             {t("proForecasters")}
           </h3>
-          <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg">
+          <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
             {t("youCanDeployProForecasters")}
           </p>
-          <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg">
+          <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
             {t("proForecastersProvideNotOnly")}
           </p>
           <Button
-            href="/services/private-instances"
+            href="/services/pro-forecasters"
             className="mt-[38px] uppercase"
           >
             {t("learnMore")}
@@ -120,7 +118,10 @@ export default async function ServicesPage() {
         </div>
       </div>
 
-      <GetInTouchForm className="mb-36 mt-10 sm:mt-12 lg:mt-32" />
+      <GetInTouchForm
+        id="contact-us"
+        className="mb-36 mt-10 sm:mt-12 lg:mt-32"
+      />
     </main>
   );
 }

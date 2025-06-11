@@ -1336,5 +1336,22 @@
   "deployToYourTeam": "Implante para sua equipe",
   "whetherMetaculusHostedOrOnPremises": "Seja hospedado pelo Metaculus ou no local, comece a coletar insights valiosos da sua equipe",
   "caseStudy": "Estudo de Caso",
-  "organizationsLikeCzechPriorities": "Organizações como Czech Priorities e uma grande consultoria têm usado instâncias privadas do Metaculus para identificar informações."
+  "organizationsLikeCzechPriorities": "Organizações como Czech Priorities e uma grande consultoria têm usado instâncias privadas do Metaculus para identificar informações.",
+  "stepsForSettingUpPrivateInstance": "Passos para configurar uma instância privada",
+  "stepsForCollaboratingWithProForecasters": "Passos para colaborar com Pro Forecasters",
+  "metaculusProForecasters": "Metaculus <span>Pro Forecasters</span>",
+  "workWithUs": "Trabalhe Conosco",
+  "proForecastersHeaderFirstParagraph": "Com mais de 6.000 perguntas resolvidas, o Metaculus tem os dados para identificar a excelência em previsão—e o poder de colocar especialistas comprovados em previsão para trabalhar nos seus desafios mais importantes.",
+  "proForecastersHeaderSecondParagraph": "Os Pro Forecasters fornecem não só previsões calibradas, mas também raciocínio transparente para ajudar os tomadores de decisão a interpretar as previsões. Você pode implantar os Metaculus Pro Forecasters nas perguntas que mais lhe interessam, seja na sua instância privada ou em perguntas lançadas na plataforma Metaculus.",
+  "proForecastersStep1Description": "Exploraremos como nossos Pro Forecasters podem melhor revelar os insights de que você precisa",
+  "proForecastersStep2Title": "Identificar perguntas de previsão",
+  "proForecastersStep2Description": "Quer seja decompôr incertezas em novas perguntas ou revelar insights de perguntas existentes, ajudaremos você a direcionar a informação de que precisa.",
+  "proForecastersStep3Title": "Aprenda com os Profissionais",
+  "proForecastersStep3Description": "Com uma equipe cuidadosamente selecionada e na sua linha do tempo, os profissionais compartilharão previsões calibradas e raciocínio para ajudá-lo a tomar as decisões certas quando mais importa",
+  "proForecastersCaseStudyTitle": "Metaculus Implantou Pro Forecasters para Apoiar o CDC com Previsões de Doenças Respiratórias no Torneio de Perspectivas Respiratórias 2024/25",
+  "proForecastersCaseStudyParagraph1": "A Perspectiva Respiratória 2024/25 é uma colaboração entre os Centros para Controle e Prevenção de Doenças (CDC) e Metaculus. As previsões da Comunidade Metaculus são compartilhadas com o CDC e não refletem necessariamente as opiniões do CDC.",
+  "proForecastersCaseStudyParagraph2": "Com base na <link>Perspectiva Respiratória 2023/24</link>, a Perspectiva 2024/25 fornece previsões sobre a carga de doenças da gripe, COVID-19 e RSV. Você pode apoiar os esforços para antecipar tendências de doenças adicionando suas previsões ao agregado.",
+  "proForecastersCaseStudyParagraph3": "Este projeto é apoiado pela <link>Fundação Nacional de Ciências</link> sob a Premiação No. 2438211. Quaisquer opiniões, achados e conclusões ou recomendações expressas neste projeto são de responsabilidade do Metaculus e de nossos previsores, e não refletem necessariamente as opiniões da Fundação Nacional de Ciências.",
+  "proForecastersBlockTitle": "Conheça nossos Pro's",
+  "proForecastersBlockDescription": "Saiba mais sobre as maneiras potenciais de trabalhar conosco"
 }

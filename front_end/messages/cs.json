@@ -1338,5 +1338,22 @@
   "deployToYourTeam": "Nasazení týmu",
   "whetherMetaculusHostedOrOnPremises": "Ať už hostované Metaculus nebo na místě, začněte sbírat cenné poznatky od vašeho týmu",
   "caseStudy": "Případová studie",
-  "organizationsLikeCzechPriorities": "Organizace jako Czech Priorities a velká poradenská firma použily soukromé instance Metaculus k identifikaci informací."
+  "organizationsLikeCzechPriorities": "Organizace jako Czech Priorities a velká poradenská firma použily soukromé instance Metaculus k identifikaci informací.",
+  "stepsForSettingUpPrivateInstance": "Kroky pro nastavení soukromého instance",
+  "stepsForCollaboratingWithProForecasters": "Kroky pro spolupráci s profesionálními předpověditeli",
+  "metaculusProForecasters": "Metaculus <span>profesionální předpověditelé</span>",
+  "workWithUs": "Spolupracujte s námi",
+  "proForecastersHeaderFirstParagraph": "S více než 6 000 vyřešenými otázkami má Metaculus data k identifikaci excelence v předpovídání a sílu zaměstnat osvědčené odborníky na předpovídání pro řešení vašich nejdůležitějších výzev.",
+  "proForecastersHeaderSecondParagraph": "Profesionální předpověditelé neposkytují pouze kalibrované předpovědi, ale také transparentní zdůvodnění, které pomáhá rozhodovatelům interpretovat předpovědi. Můžete nasadit Metaculus profesionální předpověditele na otázky, na kterých vám nejvíce záleží, ať už na vaší soukromé instanci, nebo na otázkách spuštěných na platformě Metaculus.",
+  "proForecastersStep1Description": "Prozkoumáme, jak mohou naši profesionální předpověditelé nejlépe zviditelnit poznatky, které potřebujete",
+  "proForecastersStep2Title": "Identifikujte otázky pro předpovídání",
+  "proForecastersStep2Description": "Ať už je to dekonstruování nejistot do nových otázek, nebo odhalování poznatků z existujících otázek, pomůžeme vám zaměřit se na potřebné informace.",
+  "proForecastersStep3Title": "Učte se od profesionálů",
+  "proForecastersStep3Description": "S pečlivě vybraným týmem a na vaší časové ose budou profesionálové sdílet kalibrované předpovědi a zdůvodnění, aby vám pomohli učinit správná rozhodnutí, když je to nejvíce potřeba",
+  "proForecastersCaseStudyTitle": "Metaculus nasadil profesionální předpověditelé k podpoře CDC s předpověďmi respiračních onemocnění v Turnaji střednědobých respiračních prognóz 2024/25",
+  "proForecastersCaseStudyParagraph1": "Střednědobé respirační prognózy 2024/25 jsou spoluprací mezi Centrem pro kontrolu a prevenci nemocí (CDC) a Metaculem. Prognózy z komunity Metaculus jsou sdíleny s CDC a nemusí nutně vyjadřovat názory CDC.",
+  "proForecastersCaseStudyParagraph2": "Na základě <link>střednědobých respiračních prognóz 2023/24</link> poskytuje výhled 2024/25 předpovědi zátěže onemocnění chřipkou, COVID-19 a RSV. Můžete podpořit úsilí o předvídání trendů onemocnění tím, že přidáte své předpovědi do souhrnného výsledku.",
+  "proForecastersCaseStudyParagraph3": "Tento projekt je podporován <link>Národní vědeckou nadací</link> pod oceněním č. 2438211. Jakékoli názory, zjištění a závěry nebo doporučení vyjádřené v tomto projektu jsou názory Metaculus a našich předpověditelů a nemusí nutně odrážet názory Národní vědecké nadace.",
+  "proForecastersBlockTitle": "Seznamte se s našimi profesionály",
+  "proForecastersBlockDescription": "Zjistěte, jaké jsou potenciální způsoby, jak s námi můžete spolupracovat"
 }

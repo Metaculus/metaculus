@@ -1,12 +1,12 @@
 {
   "tournamentsIds": ["32567", "1756", "2100", "32725"],
   "proForecastersImages": [
-    "/images/pro-forecasters/pro-forecaster.jpg",
-    "/images/pro-forecasters/pro-forecaster.jpg",
-    "/images/pro-forecasters/pro-forecaster.jpg",
-    "/images/pro-forecasters/pro-forecaster.jpg",
-    "/images/pro-forecasters/pro-forecaster.jpg",
-    "/images/pro-forecasters/pro-forecaster.jpg"
+    "/images/pro-forecasters/pro-forecaster-1.jpg",
+    "/images/pro-forecasters/pro-forecaster-2.jpg",
+    "/images/pro-forecasters/pro-forecaster-3.jpg",
+    "/images/pro-forecasters/pro-forecaster-4.jpg",
+    "/images/pro-forecasters/pro-forecaster-5.jpg",
+    "placeholder-for-last-circle"
   ],
   "partnersLogos": {
     "light": [

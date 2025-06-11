@@ -6,8 +6,8 @@ import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
 import Button from "./button";
+import EmblaCarousel from "./embla_carousel";
 import TournamentCard from "./tournament_card";
-import TournamentCarousel from "./tournament_carousel";
 
 type Props = {
   tournaments: Tournament[];
@@ -16,7 +16,8 @@ type Props = {
 
 const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
   const t = useTranslations();
-
+  // Duplicate tournaments to allow for infinite scrolling
+  const duplicatedTournaments = [...tournaments, ...tournaments];
   return (
     <div
       className={cn(
@@ -28,7 +29,7 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
         <h3 className="m-0 text-2xl font-bold tracking-tight text-blue-200 sm:text-3xl">
           {t("runTournament")}
         </h3>
-        <p className="m-0 mt-5 text-center text-sm font-normal text-blue-500 sm:text-sm sm:font-medium">
+        <p className="m-0 mt-5 max-w-[560px] text-center text-sm font-normal text-blue-500 sm:text-lg sm:font-medium">
           {t("runTournamentDescription")}
         </p>
         <Button href="/services/tournaments" className="mt-8 uppercase">
@@ -37,7 +38,18 @@ const TournamentBlock: FC<Props> = ({ tournaments, className }) => {
       </div>
 
       <div className="mt-10 w-full sm:mt-12">
-        <TournamentCarousel tournaments={tournaments} className="xl:hidden" />
+        <EmblaCarousel className="xl:hidden">
+          <div className="-ml-6 flex">
+            {duplicatedTournaments.map((tournament, index) => (
+              <div
+                key={index}
+                className="flex-[0_0_100%] pl-6 xs:flex-[0_0_50%] md:flex-[0_0_33.33%] xl:flex-[0_0_25%]"
+              >
+                <TournamentCard tournament={tournament} className="h-full" />
+              </div>
+            ))}
+          </div>
+        </EmblaCarousel>
         {/* Desktop tournaments lis */}
         <div className="hidden gap-6 xl:flex">
           {tournaments.map((tournament) => (

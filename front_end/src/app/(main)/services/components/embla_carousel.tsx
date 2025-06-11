@@ -6,46 +6,33 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useEmblaCarousel from "embla-carousel-react";
+import { FC, PropsWithChildren } from "react";
 
 import Button from "@/components/ui/button";
-import { Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
-import TournamentCard from "./tournament_card";
-
-type Props = {
-  tournaments: Tournament[];
+type Props = PropsWithChildren<{
   className?: string;
   arrowsClassName?: string;
   buttonPosition?: "tight" | "loose";
-};
+}>;
 
-const TournamentCarousel = ({
-  tournaments,
+const EmblaCarousel: FC<Props> = ({
   className,
   arrowsClassName,
   buttonPosition = "tight",
-}: Props) => {
+  children,
+}) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
     watchDrag: true,
   });
-  // Duplicate tournaments to allow for infinite scrolling
-  const duplicatedTournaments = [...tournaments, ...tournaments];
+
   return (
     <div className={cn("relative w-full", className)}>
       <div ref={emblaRef} className="overflow-hidden">
-        <div className="-ml-6 flex">
-          {duplicatedTournaments.map((tournament, index) => (
-            <div
-              key={tournament.id + index}
-              className="flex-[0_0_100%] pl-6 xs:flex-[0_0_50%] md:flex-[0_0_33.33%] xl:flex-[0_0_25%]"
-            >
-              <TournamentCard tournament={tournament} className="h-full" />
-            </div>
-          ))}
-        </div>
+        {children}
       </div>
       {/* Carousel controls */}
       <div>
@@ -88,4 +75,4 @@ const TournamentCarousel = ({
   );
 };
 
-export default TournamentCarousel;
+export default EmblaCarousel;
