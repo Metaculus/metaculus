@@ -49,7 +49,6 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            "description",
             "created_at",
             "open_time",
             "cp_reveal_time",
@@ -70,8 +69,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution",
             "include_bots_in_aggregates",
             "question_weight",
-            "resolution_criteria",
-            "fine_print",
             "label",
             "unit",
             "open_upper_bound",
@@ -268,9 +265,6 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
         model = GroupOfQuestions
         fields = (
             "id",
-            "description",
-            "resolution_criteria",
-            "fine_print",
             "group_variable",
             "graph_type",
             "subquestions_order",
@@ -667,12 +661,23 @@ def serialize_question(
     aggregate_forecasts: list[AggregateForecast] = None,
     full_forecast_values: bool = False,
     minimize: bool = True,
+    include_descriptions: bool = False,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+
+    if include_descriptions:
+        serialized_data.update(
+            {
+                "description": question.description,
+                "resolution_criteria": question.resolution_criteria,
+                "fine_print": question.fine_print,
+            }
+        )
+
     serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = {
         "recency_weighted": {
@@ -854,18 +859,22 @@ def serialize_conditional(
     current_user: User = None,
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
+    include_descriptions: bool = False,
 ):
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition, post=conditional.condition.get_post()
+        conditional.condition,
+        post=conditional.condition.get_post(),
+        include_descriptions=include_descriptions,
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         current_user=current_user,
         post=conditional.condition_child.get_post(),
+        include_descriptions=include_descriptions,
     )
 
     # Autogen questions
@@ -879,6 +888,7 @@ def serialize_conditional(
         current_user=current_user,
         post=post,
         aggregate_forecasts=question_yes_aggregate_forecasts,
+        include_descriptions=include_descriptions,
     )
     question_no_aggregate_forecasts = (
         aggregate_forecasts.get(conditional.question_no) or []
@@ -890,6 +900,7 @@ def serialize_conditional(
         current_user=current_user,
         post=post,
         aggregate_forecasts=question_no_aggregate_forecasts,
+        include_descriptions=include_descriptions,
     )
 
     return serialized_data
@@ -900,9 +911,20 @@ def serialize_group(
     current_user: User = None,
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
+    include_descriptions: bool = False,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
+
+    if include_descriptions:
+        serialized_data.update(
+            {
+                "description": group.description,
+                "resolution_criteria": group.resolution_criteria,
+                "fine_print": group.fine_print,
+            }
+        )
+
     serialized_data["questions"] = []
 
     questions = group.questions.all()
@@ -917,6 +939,7 @@ def serialize_group(
                     if aggregate_forecasts
                     else None
                 ),
+                include_descriptions=include_descriptions,
             )
         )
 

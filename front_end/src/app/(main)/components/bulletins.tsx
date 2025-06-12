@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { FC, useCallback, useEffect, useState } from "react";
 
@@ -41,4 +42,6 @@ const Bulletins: FC = () => {
   );
 };
 
-export default Bulletins;
+export default dynamic(() => Promise.resolve(Bulletins), {
+  ssr: false,
+});
