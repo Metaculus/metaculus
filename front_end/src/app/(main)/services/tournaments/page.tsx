@@ -124,6 +124,7 @@ export default async function TournamentsPage() {
         id="contact-us"
         className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]"
         preselectedServices={[ServiceType.RUNNING_TOURNAMENT]}
+        pageLabel="tournaments"
       />
     </main>
   );
