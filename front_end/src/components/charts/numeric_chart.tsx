@@ -256,13 +256,13 @@ const NumericChart: FC<Props> = ({
                   if (!onCursorChange) return;
                   setIsCursorActive(true);
                 },
-                onMouseOverCapture: () => {
-                  if (!onCursorChange) return;
-                  setIsCursorActive(true);
-                },
                 onMouseOutCapture: () => {
                   if (!onCursorChange) return;
                   setIsCursorActive(false);
+                },
+                onMouseEnter: () => {
+                  if (!onCursorChange) return;
+                  setIsCursorActive(true);
                 },
                 onMouseLeave: () => {
                   if (!onCursorChange) return;

@@ -182,6 +182,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             myForecasts={question.my_forecasts}
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
+            cursorTimestamp={cursorTimestamp}
             onCursorChange={handleCursorChange}
             onChartReady={handleChartReady}
             questionType={question.type}
