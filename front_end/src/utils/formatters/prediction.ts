@@ -70,10 +70,16 @@ export function getForecastDateDisplayValue(
     actual_resolve_time?: string | null;
     dateFormatString?: string;
     adjustLabels?: boolean;
+    skipHoursFormatting?: boolean;
   }
 ) {
-  const { scaling, actual_resolve_time, dateFormatString, adjustLabels } =
-    params ?? {};
+  const {
+    scaling,
+    actual_resolve_time,
+    dateFormatString,
+    adjustLabels,
+    skipHoursFormatting,
+  } = params ?? {};
 
   if (dateFormatString) {
     return format(fromUnixTime(value), dateFormatString);
@@ -85,6 +91,7 @@ export function getForecastDateDisplayValue(
         actual_resolve_time,
         valueTimestamp: value,
         includeRefTime: adjustLabels,
+        skipHoursFormatting,
       })
     : "d MMM yyyy";
 
@@ -102,6 +109,7 @@ function formatPredictionDisplayValue(
     unit,
     adjustLabels = false,
     discreteValueOptions,
+    skipHoursFormatting = false,
   }: {
     questionType: QuestionType;
     actual_resolve_time: string | null;
@@ -112,6 +120,7 @@ function formatPredictionDisplayValue(
     unit?: string;
     adjustLabels?: boolean;
     discreteValueOptions?: number[];
+    skipHoursFormatting?: boolean;
   }
 ): string {
   precision = precision ?? 3;
@@ -121,6 +130,7 @@ function formatPredictionDisplayValue(
       actual_resolve_time,
       scaling,
       adjustLabels,
+      skipHoursFormatting,
     });
   } else if (
     questionType === QuestionType.Numeric ||
@@ -165,6 +175,7 @@ type PredictionDisplayValueParams = {
   longBounds?: boolean;
   emptyLabel?: string;
   discreteValueOptions?: number[];
+  skipHoursFormatting?: boolean;
 };
 
 function displayValue(
@@ -181,6 +192,7 @@ function displayValue(
     longBounds = false,
     emptyLabel = "...",
     discreteValueOptions,
+    skipHoursFormatting = false,
   }: Omit<PredictionDisplayValueParams, "range">
 ) {
   if (isNil(value)) {
@@ -210,6 +222,7 @@ function displayValue(
       dateFormatString,
       unit,
       adjustLabels,
+      skipHoursFormatting,
     })
   );
 }
@@ -302,11 +315,13 @@ export function getQuestionDateFormatString({
   actual_resolve_time,
   valueTimestamp,
   includeRefTime = false,
+  skipHoursFormatting = false,
 }: {
   scaling: Scaling;
   actual_resolve_time: string | null | undefined;
   valueTimestamp: number;
   includeRefTime?: boolean;
+  skipHoursFormatting?: boolean;
 }) {
   const { range_min, range_max } = scaling;
   let dateFormat = "dd MMM yyyy HH:mm";
@@ -326,7 +341,7 @@ export function getQuestionDateFormatString({
       scaleDiffInSeconds,
       includeRefTime ? scaleDiffInSeconds : refDiffInSeconds
     );
-    if (diffInSeconds < oneWeek) {
+    if (diffInSeconds < oneWeek && !skipHoursFormatting) {
       dateFormat = "dd MMM yyyy HH:mm";
     } else if (diffInSeconds < 5 * oneYear) {
       dateFormat = "dd MMM yyyy";
