@@ -25,11 +25,13 @@ def build_question_graph_image_url(post_id: int):
 
 
 @register.simple_tag
-def post_url(post_id: int, post_title: str, subquestion_id: int = None):
+def post_url(
+    post_id: int, post_title: str, subquestion_id: int = None, post_type: int = None
+):
     url = f"/questions/{post_id}/{slugify(post_title)}"
 
-    if subquestion_id:
-        url += f"{url}?sub-question={subquestion_id}"
+    if post_type == "group_of_questions" and subquestion_id:
+        url = f"{url}?sub-question={subquestion_id}"
 
     return _build_frontend_url(url)
 

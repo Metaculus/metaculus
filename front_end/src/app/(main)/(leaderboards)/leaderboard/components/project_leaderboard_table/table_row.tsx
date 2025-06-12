@@ -7,6 +7,7 @@ import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
+import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -29,23 +30,26 @@ const TableRow: FC<Props> = ({
     medal,
     rank,
     score,
+    excluded,
     coverage,
     take,
     percent_prize,
     prize,
   } = rowEntry;
-  const highlight = user?.id === userId;
+  const highlight = user?.id === userId || excluded;
   const t = useTranslations();
 
   return (
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
-        {medal ? (
-          <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+        {!user && aggregation_method === "recency_weighted" ? (
+          <RecencyWeightedAggregationRankTooltip />
         ) : (
-          <div className="mr-2 inline-block size-4" />
+          <>
+            {!!medal && <MedalIcon type={medal} className="size-5" />}
+            <span className="flex-1 text-center">{rank}</span>
+          </>
         )}
-        {rank}
       </Td>
       <Td className="sticky left-0 text-left" highlight={highlight}>
         <Link

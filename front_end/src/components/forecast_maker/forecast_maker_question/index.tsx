@@ -1,8 +1,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { formatResolution } from "@/utils/formatters/resolution";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
@@ -39,13 +44,11 @@ const QuestionForecastMaker: FC<Props> = ({
 
   return (
     <ForecastMakerContainer>
-      {(question.type === QuestionType.Numeric ||
-        question.type === QuestionType.Discrete ||
-        question.type === QuestionType.Date) && (
+      {ContinuousQuestionTypes.some((type) => type === question.type) && (
         <>
           <ForecastMakerContinuous
             post={post}
-            question={question}
+            question={question as QuestionWithNumericForecasts}
             permission={permission}
             canPredict={canPredict}
             canResolve={canResolve}

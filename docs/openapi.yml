@@ -1067,6 +1067,12 @@ paths:
             example: true
           description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
         - in: query
+          name: include_descriptions
+          schema:
+            type: boolean
+            example: true
+          description: "With this flag enabled, each post question will include the description, fine_print, and resolution_criteria fields in its response."
+        - in: query
           name: not_forecaster_id
           schema:
             type: integer
