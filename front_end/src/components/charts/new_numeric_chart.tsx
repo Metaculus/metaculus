@@ -1,6 +1,14 @@
 "use client";
 import { isNil, merge } from "lodash";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -60,6 +68,7 @@ type Props = {
   tickFontSize?: number;
   extraTheme?: VictoryThemeDefinition;
   onChartReady?: () => void;
+  cursorTimestamp?: number | null;
   onCursorChange?: (value: number | null) => void;
   getCursorValue?: (value: number) => string;
   colorOverride?: ThemeColor;
@@ -81,6 +90,7 @@ const NewNumericChart: FC<Props> = ({
   tickFontSize = 10,
   extraTheme,
   onChartReady,
+  cursorTimestamp,
   onCursorChange,
   getCursorValue,
   colorOverride,
@@ -101,46 +111,52 @@ const NewNumericChart: FC<Props> = ({
     () => line.at(-1)?.x ?? Date.now() / 1000,
     [line]
   );
-  const [cursorTimestamp, setCursorTimestamp] = useState(defaultCursor);
+  const cursorValue = useMemo(() => {
+    if (isNil(cursorTimestamp)) return defaultCursor;
+    return cursorTimestamp;
+  }, [cursorTimestamp, defaultCursor]);
   const handleCursorChange = useCallback(
     (value: number | null) => {
-      setCursorTimestamp(isNil(value) ? defaultCursor : value);
+      if (nonInteractive) return;
       onCursorChange?.(value);
     },
-    [defaultCursor, onCursorChange]
+    [onCursorChange, nonInteractive]
   );
-  const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const actualTheme = extraTheme
-    ? merge({}, chartTheme, extraTheme)
-    : chartTheme;
+  const chartTheme = useMemo(
+    () => (theme === "dark" ? darkTheme : lightTheme),
+    [theme]
+  );
+  const actualTheme = useMemo(
+    () => (extraTheme ? merge({}, chartTheme, extraTheme) : chartTheme),
+    [chartTheme, extraTheme]
+  );
   const tickLabelFontSize =
     isNil(tickFontSize) || !isNil(extraTheme)
       ? getTickLabelFontSize(actualTheme)
       : tickFontSize;
 
   const highlightedLine = useMemo(() => {
-    const filteredLine = line.filter((point) => point.x <= cursorTimestamp);
-    // fix visual issue when highlighted line ends before cursor timestamp
-    const lastFilteredPointIndex = filteredLine.length - 1;
-    const lastFilteredPoint = line[lastFilteredPointIndex];
-    const nextPoint = line[lastFilteredPointIndex + 1];
+    const lastIndex = findLastIndexBefore(line, cursorValue);
+    if (lastIndex === -1) return [];
 
-    if (
-      !!lastFilteredPoint &&
-      lastFilteredPoint.x < cursorTimestamp &&
-      !isNil(nextPoint?.y)
-    ) {
-      filteredLine.push({
-        x: cursorTimestamp,
-        y: lastFilteredPoint.y,
+    const result = line.slice(0, lastIndex + 1);
+    const lastPoint = result[result.length - 1];
+    if (!lastPoint) return result;
+
+    if (lastPoint.x < cursorValue && lastIndex + 1 < line.length) {
+      result.push({
+        x: cursorValue,
+        y: lastPoint.y,
       });
     }
-    return filteredLine;
-  }, [cursorTimestamp, line]);
 
-  const highlightedPoint = useMemo(() => {
-    return highlightedLine.at(-1);
-  }, [highlightedLine]);
+    return result;
+  }, [line, cursorValue]);
+
+  const highlightedPoint = useMemo(
+    () => highlightedLine.at(-1),
+    [highlightedLine]
+  );
 
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
@@ -161,56 +177,101 @@ const NewNumericChart: FC<Props> = ({
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
-  const CursorContainer = (
-    <VictoryCursorContainer
-      cursorDimension={"x"}
-      defaultCursor={defaultCursor}
-      style={{
-        touchAction: "pan-y",
-      }}
-      cursorLabelOffset={{
-        x: 0,
-        y: 0,
-      }}
-      cursorLabel={({ datum }: VictoryLabelProps) => {
-        if (datum) {
-          return datum.x === defaultCursor
-            ? ""
-            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
-        }
-      }}
-      cursorComponent={
-        <LineSegment
+  const containerComponent = useMemo(() => {
+    if (nonInteractive) {
+      return (
+        <VictoryContainer
           style={{
-            stroke: getThemeColor(METAC_COLORS.blue["700"]),
-            opacity: 0.5,
-            strokeDasharray: "5,2",
+            pointerEvents: "auto",
+            userSelect: "auto",
+            touchAction: "auto",
           }}
         />
-      }
-      cursorLabelComponent={
-        <VictoryPortal>
-          <ChartCursorLabel
-            positionY={height - 10}
-            fill={getThemeColor(METAC_COLORS.gray["700"])}
+      );
+    }
+
+    return (
+      <VictoryCursorContainer
+        cursorDimension={"x"}
+        defaultCursor={defaultCursor}
+        style={{
+          touchAction: "pan-y",
+        }}
+        cursorLabelOffset={{
+          x: 0,
+          y: 0,
+        }}
+        cursorLabel={({ datum }: VictoryLabelProps) => {
+          if (datum) {
+            return datum.x === defaultCursor
+              ? ""
+              : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+          }
+        }}
+        cursorComponent={
+          <LineSegment
             style={{
-              fontFamily: LABEL_FONT_FAMILY,
+              stroke: getThemeColor(METAC_COLORS.blue["700"]),
+              opacity: 0.5,
+              strokeDasharray: "5,2",
             }}
           />
-        </VictoryPortal>
-      }
-      onCursorChange={(value: CursorCoordinatesPropType) => {
-        if (typeof value === "number") {
-          handleCursorChange(value);
-        } else {
-          handleCursorChange(null);
         }
-      }}
-    />
-  );
+        cursorLabelComponent={
+          <VictoryPortal>
+            <ChartCursorLabel
+              positionY={height - 10}
+              fill={getThemeColor(METAC_COLORS.gray["700"])}
+              style={{
+                fontFamily: LABEL_FONT_FAMILY,
+              }}
+            />
+          </VictoryPortal>
+        }
+        onCursorChange={(value: CursorCoordinatesPropType) => {
+          if (typeof value === "number") {
+            handleCursorChange(value);
+          } else {
+            handleCursorChange(null);
+          }
+        }}
+      />
+    );
+  }, [
+    defaultCursor,
+    xScale,
+    height,
+    getThemeColor,
+    handleCursorChange,
+    nonInteractive,
+  ]);
 
-  const shouldDisplayChart =
-    !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
+  const chartEvents = useMemo(() => {
+    if (nonInteractive) return [];
+
+    return [
+      {
+        target: "parent",
+        eventHandlers: {
+          onTouchStart: () => {
+            setIsCursorActive(true);
+          },
+          onMouseEnter: () => {
+            setIsCursorActive(true);
+          },
+          onMouseLeave: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
+          },
+        },
+      },
+    ];
+  }, [nonInteractive, handleCursorChange]);
+
+  const shouldDisplayChart = useMemo(
+    () => !!chartWidth && !!xScale.ticks.length && yScale.ticks.length,
+    [chartWidth, xScale.ticks.length, yScale.ticks.length]
+  );
 
   return (
     <div
@@ -241,43 +302,8 @@ const NewNumericChart: FC<Props> = ({
               left: 0,
               bottom: BOTTOM_PADDING,
             }}
-            events={[
-              {
-                target: "parent",
-                eventHandlers: {
-                  onTouchStart: () => {
-                    if (nonInteractive) return;
-                    setIsCursorActive(true);
-                  },
-                  onMouseOverCapture: () => {
-                    if (nonInteractive) return;
-                    setIsCursorActive(true);
-                  },
-                  onMouseOutCapture: () => {
-                    if (nonInteractive) return;
-                    setIsCursorActive(false);
-                  },
-                  onMouseLeave: () => {
-                    if (nonInteractive) return;
-                    setIsCursorActive(false);
-                    handleCursorChange(null);
-                  },
-                },
-              },
-            ]}
-            containerComponent={
-              nonInteractive ? (
-                <VictoryContainer
-                  style={{
-                    pointerEvents: "auto",
-                    userSelect: "auto",
-                    touchAction: "auto",
-                  }}
-                />
-              ) : (
-                CursorContainer
-              )
-            }
+            events={chartEvents}
+            containerComponent={containerComponent}
           >
             {/* Y axis */}
             <VictoryAxis
@@ -426,7 +452,7 @@ const NewNumericChart: FC<Props> = ({
   );
 };
 
-const CursorValue: React.FC<{
+const CursorValue: FC<{
   x?: number;
   y?: number;
   datum?: any;
@@ -494,4 +520,30 @@ const CursorValue: React.FC<{
   );
 };
 
-export default NewNumericChart;
+function findLastIndexBefore(line: Line, timestamp: number): number {
+  if (!line.length) return -1;
+
+  let left = 0;
+  let right = line.length - 1;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    const point = line[mid];
+    if (!point) return -1;
+
+    if (point.x <= timestamp) {
+      if (
+        mid === line.length - 1 ||
+        (line[mid + 1]?.x ?? Infinity) > timestamp
+      ) {
+        return mid;
+      }
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+  return -1;
+}
+
+export default memo(NewNumericChart);
