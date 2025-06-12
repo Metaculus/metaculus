@@ -78,9 +78,10 @@ export const FormError: FC<ErrorProps> = ({
 
 export const FormErrorMessage: FC<{
   errors: any;
+  containerClassName?: string;
   className?: string;
   detached?: boolean;
-}> = ({ errors, className, detached }) => {
+}> = ({ errors, containerClassName, className, detached }) => {
   const message = useMemo(
     () => (errors ? extractError(errors, { detached }) : null),
     [detached, errors]
@@ -89,7 +90,7 @@ export const FormErrorMessage: FC<{
   return (
     <>
       {message && (
-        <div>
+        <div className={containerClassName}>
           <span
             className={cn(
               "whitespace-pre-wrap text-xs text-red-500 dark:text-red-500-dark",
