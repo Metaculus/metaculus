@@ -54,9 +54,6 @@ def serialize_aggregate_forecast(
     return data
 
 
-# TODO: bring back movement configuration!
-
-
 def serialize_question_aggregations(
     question: Question,
     aggregate_forecasts: list[AggregateForecast],
