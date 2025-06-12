@@ -102,13 +102,6 @@ def serialize_question_aggregations(
                 histogram=True,
             )
 
-        recency_weighted = aggregate_forecasts_by_method.get(
-            AggregationMethod.RECENCY_WEIGHTED
-        )
-        serialized_data["nr_forecasters"] = (
-            recency_weighted[-1].forecaster_count if recency_weighted else 0
-        )
-
         if question.is_cp_hidden:
             # don't show any forecasts
             aggregate_forecasts_by_method = {}
