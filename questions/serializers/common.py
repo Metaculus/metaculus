@@ -19,6 +19,7 @@ from questions.models import Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
+from questions.types import AggregationMethod
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
@@ -566,6 +567,7 @@ def serialize_question(
     full_forecast_values: bool = False,
     minimize: bool = True,
     include_descriptions: bool = False,
+    question_movement: dict = None,
 ):
     """
     Serializes question object
@@ -586,6 +588,11 @@ def serialize_question(
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
+
+    if question_movement:
+        serialized_data["aggregations"][AggregationMethod.RECENCY_WEIGHTED][
+            "movement"
+        ] = question_movement
 
     if (
         current_user
@@ -644,7 +651,10 @@ def serialize_conditional(
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
+    question_movements: dict[Question, AggregateForecast] = None,
 ):
+    question_movements = question_movements or {}
+
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
 
@@ -673,7 +683,9 @@ def serialize_conditional(
         post=post,
         aggregate_forecasts=question_yes_aggregate_forecasts,
         include_descriptions=include_descriptions,
+        question_movement=question_movements.get(conditional.question_yes),
     )
+
     question_no_aggregate_forecasts = (
         aggregate_forecasts.get(conditional.question_no) or []
         if aggregate_forecasts
@@ -685,6 +697,7 @@ def serialize_conditional(
         post=post,
         aggregate_forecasts=question_no_aggregate_forecasts,
         include_descriptions=include_descriptions,
+        question_movement=question_movements.get(conditional.question_no),
     )
 
     return serialized_data
@@ -696,7 +709,10 @@ def serialize_group(
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
+    question_movements: dict[Question, AggregateForecast] = None,
 ):
+    question_movements = question_movements or {}
+
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
 
@@ -724,6 +740,7 @@ def serialize_group(
                     else None
                 ),
                 include_descriptions=include_descriptions,
+                question_movement=question_movements.get(question),
             )
         )
 

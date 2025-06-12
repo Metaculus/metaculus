@@ -76,6 +76,9 @@ def posts_list_api_view(request):
     include_cp_history = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("include_cp_history")
     )
+    include_movements = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_movements")
+    )
     group_cutoff = (
         serializers.IntegerField(
             allow_null=True, default=3, max_value=3, min_value=0
@@ -99,6 +102,7 @@ def posts_list_api_view(request):
         with_key_factors=True,
         include_descriptions=include_descriptions,
         include_cp_history=include_cp_history,
+        include_movements=include_movements
     )
 
     return paginator.get_paginated_response(data)

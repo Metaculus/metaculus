@@ -32,12 +32,12 @@ def calculate_question_lifespan_from_date(
 
 def get_question_movement_period(question: Question):
     if timezone.now() - question.open_time < timedelta(hours=24):
-        return timedelta(hours=1)
+        return timedelta(hours=2)
 
     if timezone.now() - question.open_time < timedelta(days=7):
-        return timedelta(hours=24)
+        return timedelta(hours=48)
 
-    return timedelta(days=7)
+    return timedelta(days=14)
 
 
 def get_last_forecast_in_the_past(

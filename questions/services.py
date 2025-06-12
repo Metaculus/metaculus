@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast, TypedDict, Iterable
 
 from django.db import transaction
@@ -27,6 +27,7 @@ from questions.models import (
     Forecast,
     AggregateForecast,
 )
+from questions.serializers.common import serialize_question_movement
 from questions.types import AggregationMethod
 from questions.utils import (
     get_question_movement_period,
@@ -46,7 +47,6 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
-    get_difference_display,
     Direction,
 )
 
@@ -904,9 +904,11 @@ def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None
     return set(questions) - cutoff_excluded
 
 
-def get_last_aggregated_forecasts_for_questions(questions: Iterable[Question]):
+def get_last_aggregated_forecasts_for_questions(
+    questions: Iterable[Question], aggregated_forecast_qs: QuerySet[AggregateForecast]
+):
     return (
-        AggregateForecast.objects.filter(question__in=questions)
+        aggregated_forecast_qs.filter(question__in=questions)
         .filter(
             (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
             start_time__lte=timezone.now(),
@@ -939,7 +941,9 @@ def get_aggregated_forecasts_for_questions(
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 
     aggregated_forecasts = set(
-        get_last_aggregated_forecasts_for_questions(questions_to_fetch)
+        get_last_aggregated_forecasts_for_questions(
+            questions_to_fetch, aggregated_forecast_qs
+        )
     )
 
     if include_cp_history:
@@ -982,9 +986,14 @@ QuestionMovement = TypedDict(
 )
 
 
+# TODO: add ONLY fields to the AggregateForecasts not to fetch them from DB!
+
+
 # TODO: test this!
-def calculate_user_forecast_movement_for_questions(
-    questions: Iterable[Question], forecasts_map: dict[Question, Forecast]
+def calculate_period_movement_for_questions(
+    questions: Iterable[Question],
+    compare_periods_map: dict[Question, timedelta],
+    threshold: float = 0.25,
 ) -> dict[Question, QuestionMovement | None]:
     """
     Calculate, for each question, how much forecast has moved
@@ -1007,7 +1016,7 @@ def calculate_user_forecast_movement_for_questions(
         # because the `forecast_values` object can be quite large.
         question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
             # Only forecasted questions
-            forecasts_map.keys(),
+            compare_periods_map.keys(),
             aggregated_forecast_qs=AggregateForecast.objects.filter(
                 method=AggregationMethod.RECENCY_WEIGHTED,
             ).only("id", "start_time", "question_id", "end_time"),
@@ -1015,13 +1024,14 @@ def calculate_user_forecast_movement_for_questions(
         )
 
         agg_id_map: dict[Question, tuple[int, int]] = {}
+        now = timezone.now()
 
         # Step 2: find First and Last AggregateForecast for each question
         for question in questions:
-            user_forecast = forecasts_map[question]
+            from_date = now - compare_periods_map[question]
             aggregated_forecasts = question_aggregated_forecasts_map.get(question)
 
-            if not user_forecast or not aggregated_forecasts:
+            if not from_date or not aggregated_forecasts:
                 continue
 
             # Skip hidden CP
@@ -1034,11 +1044,9 @@ def calculate_user_forecast_movement_for_questions(
                     (
                         agg
                         for agg in aggregated_forecasts
-                        if agg.start_time <= user_forecast.start_time
-                        and (
-                            agg.end_time is None
-                            or agg.end_time > user_forecast.start_time
-                        )
+                        if agg.start_time <= from_date
+                        and agg.start_time <= now
+                        and (agg.end_time is None or agg.end_time > from_date)
                     ),
                     None,
                 )
@@ -1059,32 +1067,25 @@ def calculate_user_forecast_movement_for_questions(
     for question, (first_id, last_id) in agg_id_map.items():
         f1 = full_aggs[first_id]
         f2 = full_aggs[last_id]
+        period = compare_periods_map.get(question)
 
-        divergence = prediction_difference_for_sorting(
-            f1.forecast_values,
-            f2.forecast_values,
-            question,
+        question_movement_map[question] = serialize_question_movement(
+            question, f1, f2, period, threshold=threshold
         )
 
-        if divergence >= 0.25:
-            display_diff = get_difference_display(
-                f1,
-                f2,
-                question,
-            )
-
-            # Finds max difference for multiple choice cases
-            direction, change = max(display_diff, key=lambda x: x[1])
-
-            question_movement_map[question] = cast(
-                QuestionMovement,
-                {
-                    "direction": direction,
-                    "movement": change,
-                },
-            )
-
     return question_movement_map
+
+
+def calculate_movement_for_questions(questions: Iterable[Question]):
+    """
+    Generates question movement based on its lifetime
+    """
+
+    return calculate_period_movement_for_questions(
+        questions,
+        {q: get_question_movement_period(q) for q in questions},
+        threshold=0,
+    )
 
 
 def handle_question_open(question: Question):
