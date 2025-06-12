@@ -125,6 +125,7 @@ export default async function ServicesPage() {
       <GetInTouchForm
         id="contact-us"
         className="mb-36 mt-10 sm:mt-12 lg:mt-32"
+        pageLabel="services"
       />
     </main>
   );

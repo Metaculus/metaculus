@@ -90,6 +90,7 @@ export default async function PrivateInstancesPage() {
         id="contact-us"
         className="mb-36 mt-10 sm:mt-12 md:mt-16 lg:mt-[120px]"
         preselectedServices={[ServiceType.PRIVATE_INSTANCE]}
+        pageLabel="private-instances"
       />
     </main>
   );

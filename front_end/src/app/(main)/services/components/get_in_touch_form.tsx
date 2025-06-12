@@ -72,9 +72,19 @@ type Props = {
   className?: string;
   id?: string;
   preselectedServices?: ServiceType[];
+  pageLabel?:
+    | "services"
+    | "tournaments"
+    | "pro-forecasters"
+    | "private-instances";
 };
 
-const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
+const GetInTouchForm: FC<Props> = ({
+  className,
+  id,
+  preselectedServices,
+  pageLabel,
+}) => {
   const t = useTranslations();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -108,7 +118,9 @@ const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
           ...formData,
           service: serviceString,
         });
-        sendAnalyticsEvent("ServiceContactForm");
+        sendAnalyticsEvent("ServiceContactForm", {
+          event_label: pageLabel,
+        });
         reset();
         setIsSuccessModalOpen(true);
       } catch (e) {
@@ -119,7 +131,7 @@ const GetInTouchForm: FC<Props> = ({ className, id, preselectedServices }) => {
         setIsLoading(false);
       }
     },
-    [reset]
+    [reset, pageLabel]
   );
 
   return (
