@@ -833,19 +833,87 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
-def get_recency_weighted_for_questions(
-    questions: Iterable[Question],
-) -> dict[Question, AggregateForecast]:
+def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None):
+    if not group_cutoff:
+        return questions
+
     qs = (
         AggregateForecast.objects.filter(
             question__in=questions, method=AggregationMethod.RECENCY_WEIGHTED
         )
+        .filter(
+            (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
+            start_time__lte=timezone.now(),
+        )
         .order_by("question_id", "-start_time")
         .distinct("question_id")
+        .values_list("question_id", "centers")
     )
-    aggregations_map = {x.question_id: x for x in qs}
+    recently_weighted = dict(qs)
+    grouped = defaultdict(list)
 
-    return {q: aggregations_map.get(q.pk) for q in questions}
+    for q in questions:
+        if (
+            q.group_id
+            and q.group.graph_type
+            != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+        ):
+            grouped[q.group].append(q)
+
+    def rank_sorting_key(q: Question):
+        return q.group_rank or 0
+
+    def cp_sorting_key(q: Question):
+        """
+        Extracts question aggregation forecast value
+        """
+        centers = recently_weighted.get(q.id)
+
+        if not centers:
+            return 0
+        if q.type == "binary":
+            if len(centers) < 2:
+                return 0
+
+            return centers[1]
+        if q.type in QUESTION_CONTINUOUS_TYPES:
+            return unscaled_location_to_scaled_location(centers[0], q)
+        if q.type == "multiple_choice":
+            return max(centers)
+        return 0
+
+    cutoff_excluded = {
+        q
+        for group, qs in grouped.items()
+        for q in sorted(
+            qs,
+            key=(
+                rank_sorting_key
+                if group.subquestions_order
+                == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
+                else cp_sorting_key
+            ),
+            reverse=group.subquestions_order
+            in [
+                GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
+                None,  # if sort order is not set, then sort CP descending, hence reverse here
+            ],
+        )[group_cutoff:]
+    }
+
+    return set(questions) - cutoff_excluded
+
+
+def get_last_aggregated_forecasts_for_questions(questions: Iterable[Question]):
+    return (
+        AggregateForecast.objects.filter(question__in=questions)
+        .filter(
+            (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
+            start_time__lte=timezone.now(),
+        )
+        .order_by("question_id", "method", "-start_time")
+        .distinct("question_id", "method")
+    )
 
 
 def get_aggregated_forecasts_for_questions(
@@ -863,68 +931,20 @@ def get_aggregated_forecasts_for_questions(
 
     # Copy questions list
     questions = list(questions)
-    questions_to_fetch = set(questions)
     question_map = {q.pk: q for q in questions}
-    aggregated_forecasts = set()
     if aggregated_forecast_qs is None:
         aggregated_forecast_qs = AggregateForecast.objects.all()
 
-    if group_cutoff is not None:
-        recently_weighted = get_recency_weighted_for_questions(questions)
-        aggregated_forecasts.update([x for x in recently_weighted.values() if x])
+    questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 
-        grouped = defaultdict(list)
-        for q in questions:
-            if (
-                q.group_id
-                and q.group.graph_type
-                != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
-            ):
-                grouped[q.group].append(q)
-
-        def rank_sorting_key(q: Question):
-            return q.group_rank or 0
-
-        def cp_sorting_key(q: Question):
-            """
-            Extracts question aggregation forecast value
-            """
-            agg = recently_weighted.get(q)
-            if not agg or len(agg.forecast_values) < 2:
-                return 0
-            if q.type == "binary":
-                return agg.forecast_values[1]
-            if q.type in QUESTION_CONTINUOUS_TYPES:
-                return unscaled_location_to_scaled_location(agg.centers[0], q)
-            if q.type == "multiple_choice":
-                return max(agg.forecast_values)
-            return 0
-
-        cutoff_excluded = {
-            q
-            for group, qs in grouped.items()
-            for q in sorted(
-                qs,
-                key=(
-                    rank_sorting_key
-                    if group.subquestions_order
-                    == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
-                    else cp_sorting_key
-                ),
-                reverse=group.subquestions_order
-                in [
-                    GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
-                    None,  # if sort order is not set, then sort CP descending, hence reverse here
-                ],
-            )[group_cutoff:]
-        }
-        questions_to_fetch = questions_to_fetch - cutoff_excluded
-
-    aggregated_forecasts.update(
-        aggregated_forecast_qs.filter(question__in=questions_to_fetch).exclude(
-            # Exclude previously fetched aggregated_forecasts
-            id__in=[f.id for f in aggregated_forecasts]
-        )
+    aggregated_forecasts = set(
+        get_last_aggregated_forecasts_for_questions(questions_to_fetch)
+    )
+    # Fetch full aggregation history with lightweight objects
+    aggregated_forecasts |= set(
+        aggregated_forecast_qs.filter(question__in=questions_to_fetch)
+        .exclude(pk__in=[x.id for x in aggregated_forecasts])
+        .defer("forecast_values", "histogram", "means")
     )
 
     forecasts_by_question = defaultdict(list)
