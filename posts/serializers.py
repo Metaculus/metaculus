@@ -331,6 +331,7 @@ def serialize_post(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
+    include_descriptions: bool = False,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -352,6 +353,7 @@ def serialize_post(
                 if aggregate_forecasts
                 else None
             ),
+            include_descriptions=include_descriptions,
         )
 
     if post.conditional:
@@ -360,6 +362,7 @@ def serialize_post(
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
+            include_descriptions=include_descriptions,
         )
 
     if post.group_of_questions:
@@ -368,6 +371,7 @@ def serialize_post(
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
+            include_descriptions=include_descriptions,
         )
 
     if post.notebook:
@@ -430,6 +434,7 @@ def serialize_post_many(
     with_subscriptions: bool = False,
     group_cutoff: int = None,
     with_key_factors: bool = False,
+    include_descriptions: bool = False,
     include_cp_history: bool = False,
 ) -> list[dict]:
     current_user = (
@@ -500,6 +505,7 @@ def serialize_post_many(
             },
             key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
+            include_descriptions=include_descriptions,
         )
         for post in posts
     ]
