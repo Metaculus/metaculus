@@ -920,6 +920,7 @@ def get_aggregated_forecasts_for_questions(
     questions: Iterable[Question],
     group_cutoff: int = None,
     aggregated_forecast_qs: QuerySet[AggregateForecast] | None = None,
+    include_cp_history: bool = False,
 ):
     """
     Extracts aggregated forecasts for the given questions.
@@ -940,12 +941,14 @@ def get_aggregated_forecasts_for_questions(
     aggregated_forecasts = set(
         get_last_aggregated_forecasts_for_questions(questions_to_fetch)
     )
-    # Fetch full aggregation history with lightweight objects
-    aggregated_forecasts |= set(
-        aggregated_forecast_qs.filter(question__in=questions_to_fetch)
-        .exclude(pk__in=[x.id for x in aggregated_forecasts])
-        .defer("forecast_values", "histogram", "means")
-    )
+
+    if include_cp_history:
+        # Fetch full aggregation history with lightweight objects
+        aggregated_forecasts |= set(
+            aggregated_forecast_qs.filter(question__in=questions_to_fetch)
+            .exclude(pk__in=[x.id for x in aggregated_forecasts])
+            .defer("forecast_values", "histogram", "means")
+        )
 
     forecasts_by_question = defaultdict(list)
     for forecast in sorted(aggregated_forecasts, key=lambda f: f.start_time):
@@ -1008,6 +1011,7 @@ def calculate_user_forecast_movement_for_questions(
             aggregated_forecast_qs=AggregateForecast.objects.filter(
                 method=AggregationMethod.RECENCY_WEIGHTED,
             ).only("id", "start_time", "question_id", "end_time"),
+            include_cp_history=True,
         )
 
         agg_id_map: dict[Question, tuple[int, int]] = {}

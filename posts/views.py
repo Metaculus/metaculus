@@ -70,6 +70,9 @@ def posts_list_api_view(request):
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("with_cp")
     )
+    include_cp_history = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_history")
+    )
     group_cutoff = (
         serializers.IntegerField(
             allow_null=True, default=3, max_value=3, min_value=0
@@ -91,6 +94,7 @@ def posts_list_api_view(request):
         current_user=request.user,
         group_cutoff=group_cutoff,
         with_key_factors=True,
+        include_cp_history=include_cp_history,
     )
 
     return paginator.get_paginated_response(data)
@@ -211,6 +215,7 @@ def post_detail(request: Request, pk):
         with_cp=with_cp,
         with_subscriptions=True,
         with_key_factors=True,
+        include_cp_history=True
     )
 
     if not posts:

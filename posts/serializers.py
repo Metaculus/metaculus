@@ -430,6 +430,7 @@ def serialize_post_many(
     with_subscriptions: bool = False,
     group_cutoff: int = None,
     with_key_factors: bool = False,
+    include_cp_history: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -466,7 +467,9 @@ def serialize_post_many(
 
     if with_cp:
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
-            flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
+            flatten([p.get_questions() for p in posts]),
+            group_cutoff=group_cutoff,
+            include_cp_history=include_cp_history,
         )
 
     comment_key_factors_map = {}
