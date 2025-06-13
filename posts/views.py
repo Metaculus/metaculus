@@ -169,6 +169,7 @@ def posts_list_oldapi_view(request):
         posts,
         with_cp=True,
         current_user=request.user,
+        include_descriptions=True,
     )
 
     # Given we limit the feed to binary questions, we expect each post to have a question with a description
