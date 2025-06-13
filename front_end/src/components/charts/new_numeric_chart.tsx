@@ -329,7 +329,7 @@ const NewNumericChart: FC<Props> = ({
                 grid: {
                   stroke: getThemeColor(METAC_COLORS.gray["300"]),
                   strokeWidth: 1,
-                  strokeDasharray: "2, 5",
+                  strokeDasharray: "3, 5",
                 },
               }}
               tickValues={yScale.ticks}
