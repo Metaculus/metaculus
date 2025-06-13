@@ -850,12 +850,12 @@ def update_forecast_notification(
     user = forecast.author
     question = forecast.question
 
+    # Delete existing notification
+    UserForecastNotification.objects.filter(user=user, question=question).delete()
+
     if created:
-        # Only create notification if forecast has an end_time in the future, otherwise delete existing notification
+        # Only create notification if forecast has an end_time in the future
         if forecast.end_time is None or forecast.end_time <= timezone.now():
-            UserForecastNotification.objects.filter(
-                user=user, question=question
-            ).delete()
             return
 
         # Calculate total lifetime of the forecast
@@ -879,9 +879,6 @@ def update_forecast_notification(
                 "forecast": forecast,
             },
         )
-    else:
-        # Delete existing notification
-        UserForecastNotification.objects.filter(user=user, question=question).delete()
 
 
 def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None):
