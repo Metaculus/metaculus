@@ -945,7 +945,7 @@ def get_aggregated_forecasts_for_questions(
 
     aggregated_forecasts = set(
         get_last_aggregated_forecasts_for_questions(
-            questions_to_fetch, aggregated_forecast_qs
+            questions, aggregated_forecast_qs
         )
     )
 
