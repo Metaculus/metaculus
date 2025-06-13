@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import cast, TypedDict, Iterable
 
+import sentry_sdk
 from django.db import transaction
 from django.db.models import Q, QuerySet, Subquery, OuterRef
 from django.utils import timezone
@@ -833,6 +834,7 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
+@sentry_sdk.trace
 def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None):
     if not group_cutoff:
         return questions
@@ -918,6 +920,7 @@ def get_last_aggregated_forecasts_for_questions(
     )
 
 
+@sentry_sdk.trace
 def get_aggregated_forecasts_for_questions(
     questions: Iterable[Question],
     group_cutoff: int = None,
@@ -1076,6 +1079,7 @@ def calculate_period_movement_for_questions(
     return question_movement_map
 
 
+@sentry_sdk.trace
 def calculate_movement_for_questions(questions: Iterable[Question]):
     """
     Generates question movement based on its lifetime
