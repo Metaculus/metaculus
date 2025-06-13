@@ -32,7 +32,7 @@ const StepCard: FC<Props> = ({
       </p>
       <h6
         className={cn(
-          "m-0 font-serif text-2xl font-medium text-gray-800 dark:text-gray-200",
+          "m-0 font-serif text-2xl font-medium lowercase text-gray-800 first-letter:uppercase dark:text-gray-200",
           titleClassName
         )}
       >
