@@ -91,10 +91,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
     return point;
   }, [hoverIndex, clickIndex, score_scatter_plot]);
 
-  const averageScore = useMemo(() => {
-    const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
-    return (sum / score_scatter_plot.length).toFixed(3);
-  }, [score_scatter_plot]);
+  const averageScore = overallAverage.toFixed(2);
   const yMin = Math.min(-10, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(10, ...score_scatter_plot.map((data) => data.score));
 
@@ -283,7 +280,9 @@ function buildChartData({
     score_scatter_plot.length === 0
       ? 0
       : score_scatter_plot.reduce((reducer, data) => {
-          return reducer + data.score;
+          return (
+            reducer + (data.score > 0 ? data.score ** 2 : -1 * data.score ** 2)
+          );
         }, 0) / score_scatter_plot.length;
 
   let scoreLocalSum = 0;
