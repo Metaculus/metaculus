@@ -145,16 +145,11 @@ def validate_data_request(request: Request, **kwargs):
 
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
-    is_whitelisted = (
-        user.is_authenticated
-        and WhitelistUser.objects.filter(
-            (
-                (Q(post=post) if post else Q())
-                | (Q(project=project) if project else Q())
-            ),
-            user=user,
-        ).exists()
+    whitelistings = WhitelistUser.objects.filter(
+        ((Q(post=post) if post else Q()) | (Q(project=project) if project else Q())),
+        user=user,
     )
+    is_whitelisted = user.is_authenticated and whitelistings.exists()
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
@@ -176,7 +171,10 @@ def validate_data_request(request: Request, **kwargs):
     if is_staff:
         anonymized = params.get("anonymized", False)
     elif is_whitelisted:
-        anonymized = True
+        if whitelistings.filter(anonymized_data_only=False).exists():
+            anonymized = params.get("anonymized", False)
+        else:
+            anonymized = True
     else:
         anonymized = False
 

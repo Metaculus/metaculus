@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
-from .models import Bulletin, SidebarItem
+from .models import Bulletin, SidebarItem, WhitelistUser
 
 
 @admin.register(Bulletin)
@@ -71,3 +71,10 @@ class SidebarItemAdmin(admin.ModelAdmin):
             return "Project"
 
         return ""
+
+
+@admin.register(WhitelistUser)
+class WhitelistUserAdmin(admin.ModelAdmin):
+    list_display = ("user", "created_at", "project", "post")
+    search_fields = ("user__username", "user__email", "project__name", "post__title")
+    autocomplete_fields = ("user", "project", "post")

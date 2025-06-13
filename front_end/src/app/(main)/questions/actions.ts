@@ -316,3 +316,10 @@ export async function getPostZipData(params: DataParams) {
 export async function emailData(params: DataParams) {
   return await ServerPostsApi.emailData(params);
 }
+
+export async function getWhitelistStatus(params: {
+  post_id?: number;
+  project_id?: number;
+}) {
+  return await ServerPostsApi.getWhitelistStatus(params);
+}

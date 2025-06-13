@@ -2,12 +2,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
 import { useTranslations } from "next-intl";
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-import { emailData, getPostZipData } from "@/app/(main)/questions/actions";
+import {
+  emailData,
+  getPostZipData,
+  getWhitelistStatus,
+} from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { CheckboxField } from "@/components/ui/form_field";
@@ -15,7 +19,7 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
 import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
-import { DataParams } from "@/types/utils";
+import { DataParams, WhitelistStatus } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
@@ -48,10 +52,36 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   const { user } = useAuth();
   const isLoggedOut = !user;
 
+  const [whitelistStatus, setWhitelistStatus] = useState({
+    is_whitelisted: false,
+    view_deanonymized_data: false,
+    isLoaded: false,
+  } as WhitelistStatus & { isLoaded: boolean });
+
+  useEffect(() => {
+    if (!isOpen || whitelistStatus.isLoaded) {
+      return;
+    }
+    const fetchWhitelistStatus = async () => {
+      try {
+        const status = await getWhitelistStatus({
+          post_id: post.id,
+        });
+        setWhitelistStatus({ ...status, isLoaded: true });
+      } catch (error) {
+        console.error("Error fetching whitelist status:", error);
+        // Set as loaded even on error to avoid infinite retries
+        setWhitelistStatus((prev) => ({ ...prev, isLoaded: true }));
+      }
+    };
+    fetchWhitelistStatus();
+  }, [isOpen, whitelistStatus.isLoaded, post.id]);
+
   const {
     control,
     formState: { errors, isDirty },
     handleSubmit,
+    reset,
   } = useForm<FormValues>({
     mode: "all",
     resolver: zodResolver(schema),
@@ -62,9 +92,23 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_scores: false,
       include_user_data: true,
       include_bots: undefined,
-      anonymized: false,
+      anonymized: !whitelistStatus.view_deanonymized_data,
     },
   });
+
+  useEffect(() => {
+    if (whitelistStatus.isLoaded) {
+      reset({
+        aggregation_methods: [DownloadAggregationMethod.recency_weighted],
+        minimize: true,
+        include_comments: false,
+        include_scores: false,
+        include_user_data: true,
+        include_bots: undefined,
+        anonymized: !whitelistStatus.view_deanonymized_data,
+      });
+    }
+  }, [whitelistStatus.isLoaded, whitelistStatus.view_deanonymized_data, reset]);
 
   const [pendingSubmission, setPendingSubmission] =
     useState<SubmissionType | null>(null);
@@ -155,7 +199,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
               disabled={isLoggedOut}
             />
           ) : null}
-          {!!user?.is_superuser && (
+          {(!!user?.is_superuser || whitelistStatus.is_whitelisted) && (
             <>
               {!!control._getWatch("include_user_data") ? (
                 <CheckboxField
@@ -165,7 +209,8 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
                   errors={errors.include_bots}
                 />
               ) : null}
-              {!!control._getWatch("include_user_data") ? (
+              {whitelistStatus.view_deanonymized_data &&
+              !!control._getWatch("include_user_data") ? (
                 <CheckboxField
                   control={control}
                   name="anonymized"
