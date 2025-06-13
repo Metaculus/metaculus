@@ -1064,8 +1064,16 @@ paths:
           name: with_cp
           schema:
             type: boolean
+            default: false
             example: true
           description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+        - in: query
+          name: include_cp_history
+          schema:
+            type: boolean
+            default: false
+            example: true
+          description: "When this flag is enabled, each post question response will include aggregations with the full history for each method. By default, question aggregations contain an empty history."
         - in: query
           name: include_descriptions
           schema:

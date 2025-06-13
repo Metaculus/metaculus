@@ -181,7 +181,9 @@ def test_get_aggregated_forecasts_for_questions(user1):
     run_build_question_forecasts(question_2.id)
 
     aggregated_forecasts = get_aggregated_forecasts_for_questions(
-        questions=[question_1, question_2, question_3], group_cutoff=1
+        questions=[question_1, question_2, question_3],
+        group_cutoff=1,
+        include_cp_history=True,
     )
 
     assert len(aggregated_forecasts[question_1]) == 3
@@ -228,7 +230,9 @@ def test_get_aggregated_forecasts_for_questions__manual_ordering(user1):
         run_build_question_forecasts(question.id)
 
     aggregated_forecasts = get_aggregated_forecasts_for_questions(
-        questions=[question_1, question_2, question_3], group_cutoff=2
+        questions=[question_1, question_2, question_3],
+        group_cutoff=2,
+        include_cp_history=True,
     )
 
     # Ensure cutoff took only first 2 questions ordered by group_rank
