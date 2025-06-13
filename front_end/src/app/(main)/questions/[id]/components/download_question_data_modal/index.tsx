@@ -1,9 +1,10 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
@@ -79,7 +80,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
 
   const {
     control,
-    formState: { errors, isDirty },
+    formState: { errors },
     handleSubmit,
     reset,
   } = useForm<FormValues>({
@@ -95,6 +96,10 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       anonymized: !whitelistStatus.view_deanonymized_data,
     },
   });
+
+  const minimize = useWatch({ control, name: "minimize" });
+  const includeBots = useWatch({ control, name: "include_bots" });
+  const isDownloadDisabled = !minimize || includeBots !== undefined;
 
   useEffect(() => {
     if (whitelistStatus.isLoaded) {
@@ -227,7 +232,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
         <div className="flex gap-1">
           <Button
             className="flex-1"
-            disabled={isDirty || isPending}
+            disabled={isDownloadDisabled || isPending}
             onClick={handleSubmit((data) =>
               handleValidatedSubmit(data, "download")
             )}
