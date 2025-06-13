@@ -24,9 +24,15 @@
                 </mj-raw>
 
                 <mj-text>
-                    {% blocktrans with prediction_value=post.prediction_value url=post.url title=post.title expiration_date=post.expiration_date %}
-                    - Your prediction{% if prediction_value %} of <span style="font-weight: bold;">{{ prediction_value }}</span>{% endif %} on <a href="{{ url }}">{{ title }}</a> will be withdrawn on <span style="font-weight: bold;">{{ expiration_date }}</span>.
-                    {% endblocktrans %}
+                    {% if prediction_value %}
+                        {% blocktrans with prediction_value=post.prediction_value url=post.url title=post.title expiration_date=post.expiration_date %}
+                        - Your prediction of <span style="font-weight: bold;">{{ prediction_value }}</span> on <a href="{{ url }}">{{ title }}</a> will be withdrawn on <span style="font-weight: bold;">{{ expiration_date }}</span>.
+                        {% endblocktrans %}
+                    {% else %}
+                        {% blocktrans with prediction_value=post.prediction_value url=post.url title=post.title expiration_date=post.expiration_date %}
+                        - Your prediction on <a href="{{ url }}">{{ title }}</a> will be withdrawn on <span style="font-weight: bold;">{{ expiration_date }}</span>.
+                        {% endblocktrans %}
+                    {% endif %}
                 </mj-text>
 
                 <mj-raw>
