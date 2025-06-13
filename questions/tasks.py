@@ -1,4 +1,7 @@
+from datetime import timedelta
+import logging
 import dramatiq
+from django.utils import timezone
 from django.db.models import Q, OuterRef, Count
 from sql_util.aggregates import SubqueryAggregate
 
@@ -7,15 +10,17 @@ from notifications.services import (
     NotificationPredictedQuestionResolved,
     NotificationPostParams,
     NotificationQuestionParams,
+    send_forecast_autowidrawal_notification,
 )
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
-from questions.models import Question
+from questions.models import Question, UserForecastNotification
 from questions.services import build_question_forecasts
 from scoring.models import Score
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
+from utils.frontend import build_frontend_account_settings_url, build_post_url
 
 
 @dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
@@ -123,3 +128,111 @@ def resolve_question_and_send_notifications(question_id: int):
     # Sending notifications
     for user, params in user_notification_params.items():
         NotificationPredictedQuestionResolved.schedule(user, params)
+
+
+@dramatiq.actor(time_limit=50 * 1000)  # don't allow it to run for more than 50 seconds
+def check_and_schedule_forecast_widrawal_due_notifications():
+    now = timezone.now()
+    one_day_ago = now - timedelta(days=1)
+
+    # Base query for notifications that are due and not sent.
+    # Check only the last day to avoid sending notifications for old forecasts
+    # when the user might have been unsubscribed.
+    due_and_unsent = Q(
+        trigger_time__gte=one_day_ago, trigger_time__lte=now, email_sent=False
+    )
+
+    # Condition for users who have unsubscribed from this type of notification
+    user_is_unsubscribed = Q(
+        user__unsubscribed_mailing_tags__contains=[
+            MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL
+        ]
+    )
+
+    # A question is considered closed if its scheduled close time has passed,
+    # or if an actual close time has been set and has passed.
+    question_is_closed = Q(question__scheduled_close_time__lte=now) | Q(
+        question__actual_close_time__lte=now
+    )
+
+    all_notifications = UserForecastNotification.objects.filter(due_and_unsent).exclude(
+        user_is_unsubscribed | question_is_closed
+    )
+
+    # Group notifications by user and post
+    user_notifications = {}
+
+    for notification in all_notifications:
+        user = notification.user
+        post = notification.question.get_post()
+
+        if not post:
+            logging.warning(
+                f"No post found for forecast {notification.forecast.id} for user {user.id}"
+            )
+            continue
+
+        if user.email not in user_notifications:
+            user_notifications[user.email] = {
+                "user": user,
+                "posts": [],
+                "notifications": [],
+            }
+
+        if post.id not in [p["id"] for p in user_notifications[user.email]["posts"]]:
+            user_notifications[user.email]["posts"].append(
+                {
+                    "id": post.id,
+                    "title": post.title,
+                    "url": build_post_url(post.id),
+                    "expiration_date": (
+                        notification.forecast.end_time.strftime("%B %d, %Y at %I:%M")
+                        if notification.forecast.end_time
+                        else None
+                    ),
+                }
+            )
+
+        user_notifications[user.email]["notifications"].append(notification)
+
+    # Send batched notifications
+    for _, notification_data in user_notifications.items():
+        email_sent = send_forecast_autowidrawal_notification(
+            user=notification_data["user"],
+            posts_data=notification_data["posts"],
+            account_settings_url=build_frontend_account_settings_url(),
+        )
+
+        if email_sent:
+            for notification in notification_data["notifications"]:
+                notification.email_sent = True
+                notification.save()
+
+
+def format_time_remaining(time_remaining: timedelta):
+    total_seconds = int(time_remaining.total_seconds())
+
+    if total_seconds < 0:
+        return "0 minutes"
+
+    days = time_remaining.days
+
+    if days >= 365:
+        years = days // 365
+        return f"{years} year{'s' if years != 1 else ''}"
+    elif days >= 30:
+        months = days // 30
+        return f"{months} month{'s' if months != 1 else ''}"
+    elif days >= 7:
+        weeks = days // 7
+        return f"{weeks} week{'s' if weeks != 1 else ''}"
+    elif days > 0:
+        return f"{days} day{'s' if days != 1 else ''}"
+    elif total_seconds >= 3600:
+        hours = total_seconds // 3600
+        return f"{hours} hour{'s' if hours != 1 else ''}"
+    elif total_seconds >= 60:
+        minutes = total_seconds // 60
+        return f"{minutes} minute{'s' if minutes != 1 else ''}"
+    else:
+        return f"{total_seconds} second{'s' if total_seconds != 1 else ''}"

@@ -579,3 +579,31 @@ class QuestionPost(models.Model):
     class Meta:
         managed = False
         db_table = "questions_question_post"
+
+
+class UserForecastNotification(models.Model):
+    id: int
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    question = models.ForeignKey(
+        Question,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    trigger_time = models.DateTimeField(null=False, db_index=True)
+    email_sent = models.BooleanField(default=False, db_index=True)
+    forecast = models.ForeignKey(
+        Forecast,
+        models.CASCADE,
+        related_name="notifications",
+        null=False,
+    )
+
+    class Meta:
+        unique_together = ("user", "question")

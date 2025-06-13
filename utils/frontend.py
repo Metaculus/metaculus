@@ -59,5 +59,13 @@ def build_post_comment_url(post_id: int, post_title: str, comment_id: int):
     )
 
 
+def build_post_url(post_id: int):
+    return build_frontend_url(f"/questions/{post_id}/")
+
+
+def build_frontend_account_settings_url():
+    return build_frontend_url("/accounts/settings/")
+
+
 def build_frontend_email_change_url(token: str):
     return build_frontend_url(f"/accounts/change-email?{urlencode({'token': token})}")
