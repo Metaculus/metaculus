@@ -405,9 +405,13 @@ export function generateScale({
   if (displayType === QuestionType.Discrete) {
     // First and last ticks are 1/2 a bucket width away from the
     // boarders
-    tickStart = Math.round(1e7 * (-0.5 / (tickCount - 2))) / 1e7;
+    tickStart =
+      Math.round(1e7 * (forceTickCount ? 0 : -0.5 / (tickCount - 2))) / 1e7;
     tickEnd = Math.round(1e7 * (1 + 0.5 / (tickCount - 2))) / 1e7;
-    minorTickInterval = Math.round(1e9 / (tickCount - 2)) / 1e9;
+    minorTickInterval = forceTickCount
+      ? (tickEnd + 1e-4 - tickStart) / forceTickCount
+      : Math.round(1e9 / (tickCount - 2)) / 1e9;
+
     minorTicks = range(tickStart, tickEnd + 1e-4, minorTickInterval).map(
       (x) => Math.round(x * 10000) / 10000
     );
