@@ -37,6 +37,7 @@ from questions.utils import (
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
+from utils.cache import cache_per_object
 from utils.db import transaction_repeatable_read
 from utils.dtypes import flatten
 from utils.models import model_update
@@ -1080,6 +1081,7 @@ def calculate_period_movement_for_questions(
 
 
 @sentry_sdk.trace
+@cache_per_object(timeout=60 * 10)
 def calculate_movement_for_questions(
     questions: Iterable[Question],
 ) -> dict[Question, QuestionMovement | None]:
