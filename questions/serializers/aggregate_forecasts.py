@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+import sentry_sdk
+
 from questions.models import AggregateForecast, Question
 from questions.types import AggregationMethod
 from utils.the_math.aggregations import get_aggregation_history
@@ -54,6 +56,7 @@ def serialize_aggregate_forecast(
     return data
 
 
+@sentry_sdk.trace
 def serialize_question_aggregations(
     question: Question,
     aggregate_forecasts: list[AggregateForecast],
@@ -132,11 +135,7 @@ def serialize_question_aggregations(
                 for forecast in forecasts
             ]
             serialized_data[method]["latest"] = (
-                serialize_aggregate_forecast(
-                    forecasts[-1],
-                    question.type,
-                    full=True
-                )
+                serialize_aggregate_forecast(forecasts[-1], question.type, full=True)
                 if forecasts
                 else None
             )
