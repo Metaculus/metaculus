@@ -17,7 +17,7 @@ import { getResolutionPoint } from "@/utils/charts/resolution";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 import { buildNumericChartData } from "./helpers";
-import NewNumericChart from "./new_numeric_chart";
+import NumericChart from "./numeric_chart";
 
 type Props = {
   aggregation: AggregateForecastHistory;
@@ -41,6 +41,9 @@ type Props = {
   unit?: string;
   tickFontSize?: number;
   nonInteractive?: boolean;
+  inboundOutcomeCount?: number | null;
+  isEmbedded?: boolean;
+  simplifiedCursor?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -65,6 +68,9 @@ const NumericTimeline: FC<Props> = ({
   unit,
   tickFontSize,
   nonInteractive,
+  inboundOutcomeCount,
+  isEmbedded,
+  simplifiedCursor,
 }) => {
   const resolutionPoint = useMemo(() => {
     if (!resolution || !resolveTime || isNil(actualCloseTime)) {
@@ -111,6 +117,7 @@ const NumericTimeline: FC<Props> = ({
         unit,
         forceYTickCount: 5,
         alwaysShowYTicks: true,
+        inboundOutcomeCount,
       }),
     [
       questionType,
@@ -124,11 +131,12 @@ const NumericTimeline: FC<Props> = ({
       isEmptyDomain,
       openTime,
       unit,
+      inboundOutcomeCount,
     ]
   );
 
   return (
-    <NewNumericChart
+    <NumericChart
       buildChartData={buildChartData}
       extraTheme={extraTheme}
       onChartReady={onChartReady}
@@ -142,6 +150,8 @@ const NumericTimeline: FC<Props> = ({
       height={height}
       tickFontSize={tickFontSize}
       nonInteractive={nonInteractive}
+      isEmbedded={isEmbedded}
+      simplifiedCursor={simplifiedCursor}
     />
   );
 };
