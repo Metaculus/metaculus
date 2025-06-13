@@ -102,3 +102,6 @@
   list-style-type: none !important;
   padding-left: 0 !important;
 }
+.editor-comment a {
+  @apply text-blue-800 decoration-blue-500 underline-offset-2 dark:text-blue-800-dark dark:decoration-blue-500-dark;
+}
