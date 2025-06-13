@@ -896,11 +896,10 @@ def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None
                 == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
                 else cp_sorting_key
             ),
-            reverse=group.subquestions_order
-            in [
-                GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
-                None,  # if sort order is not set, then sort CP descending, hence reverse here
-            ],
+            reverse=(
+                group.subquestions_order
+                == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC
+            ),
         )[group_cutoff:]
     }
 
