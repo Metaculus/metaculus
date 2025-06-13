@@ -1080,10 +1080,22 @@ def calculate_period_movement_for_questions(
 
 
 @sentry_sdk.trace
-def calculate_movement_for_questions(questions: Iterable[Question]):
+def calculate_movement_for_questions(
+    questions: Iterable[Question],
+) -> dict[Question, QuestionMovement | None]:
     """
     Generates question movement based on its lifetime
     """
+
+    now = timezone.now()
+    questions = [
+        q
+        for q in questions
+        # Our max divergence period is 7 days, so we want to skip other questions
+        if (not q.actual_close_time or now - q.actual_close_time <= timedelta(days=7))
+        # We don't want to calculate movement for groups right now
+        and not q.group_id
+    ]
 
     return calculate_period_movement_for_questions(
         questions,
