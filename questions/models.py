@@ -368,8 +368,7 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
     subquestions_order = models.CharField(
         max_length=12,
         choices=GroupOfQuestionsSubquestionsOrder.choices,
-        null=True,
-        default=None,
+        default=GroupOfQuestionsSubquestionsOrder.CP_DESC,
     )
 
     def __str__(self):

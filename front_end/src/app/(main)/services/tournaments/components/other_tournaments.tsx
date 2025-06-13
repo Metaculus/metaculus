@@ -17,18 +17,11 @@ const OtherTournaments: FC<Props> = ({ tournaments, className }) => {
   // Duplicate tournaments to allow for infinite scrolling
   const duplicatedTournaments = [...tournaments, ...tournaments];
   return (
-    <div className={cn("hidden flex-col items-center sm:flex", className)}>
+    <div className={cn("flex flex-col items-center px-4", className)}>
       <p className="m-0 mb-12 mt-16 text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark lg:mt-[120px]">
         {t("otherTournaments")}
       </p>
-      {/* Default div for small screens */}
-      <div className="hidden items-center gap-[42px] sm:flex md:hidden">
-        {tournaments.slice(0, 2).map((tournament) => (
-          <TournamentCard key={tournament.id} tournament={tournament} />
-        ))}
-      </div>
       <EmblaCarousel
-        className="hidden md:block"
         arrowsClassName="text-blue-800/30 dark:text-blue-800-dark/30"
         buttonPosition="loose"
       >

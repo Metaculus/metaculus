@@ -1343,7 +1343,6 @@
   "participants": "Účastníci",
   "billedAnnuallyOrMonthly": "Fakturováno ročně nebo měsíčně",
   "theMetaculusPlatform": "Platforma Metaculus",
-  "openSourceForecastingWebApp": "Open-source předpovědní webová aplikace vytvořená s Pythonem a React.",
   "advancedForecastingCapabilities": "Pokročilé predikční schopnosti na dosah ruky",
   "richForecastingInterface": "Bohaté prediktivní rozhraní",
   "crowdAggregationModels": "Modely agregace davu",
@@ -1358,7 +1357,6 @@
   "tournamentSpotlightDescription": "Metaculus pořádá každoroční předpovědní soutěž pro Bridgewater, jeden z předních světových hedgeových fondů, s cílem objevit výjimečné předpovědní talenty mimo tradiční kvalifikace. Toto partnerství obohacuje talentovou základnu Bridgewateru, úspěšně transformuje vybrané přední soutěžící na profesionální role. Metaculus vyvíjí předpovědní otázky přizpůsobené strategickým tématům Bridgewateru, usnadňující dvouměsíční soutěž, která rychle odhaluje výjimečné talenty.",
   "tournamentSpotlightFeedback": "Testimonium od Bridgewater, které zmiňuje hodnotu poskytovanou soutěží a jak podporuje jejich přístup k náboru založený na zásluhách.",
   "tournamentSpotlightFeedbackAuthor": "((zástupce Bridgewateru))",
-  "proForecastersHeaderSecondParagraph": "Profesionální předpovědi nabízejí kalibrované předpovědi doprovázené jasným odůvodněním, což umožňuje rozhodovatelům s důvěrou interpretovat výsledky.",
   "youCanDeployPrivateInstance": "Nasadit platformu Metaculus ve vaší organizaci, abyste odhalili poznatky a bezproblémově spojili znalosti a odbornost z vašeho týmu.",
   "weHelpOrganizationsMakeBetterDecisions": "Pomáháme organizacím dělat lepší rozhodnutí tím, že předpovídáme, na čem záleží.",
   "learnAboutPotentialWays": "Zjistěte způsoby, jak s námi můžete spolupracovat",
@@ -1374,5 +1372,6 @@
   "services": "Služby",
   "deployMetaculusPlatform": "Nasadit platformu Metaculus ve vaší organizaci, abyste odhalili poznatky a bezproblémově spojili znalosti a odbornost z vašeho týmu.",
   "engageProForecasters": "Zapojte profesionální předpovídače Metaculus do otázek, na kterých vám nejvíce záleží, ať už na vaší soukromé instanci nebo na otázkách spuštěných na Metaculu.",
-  "weHelpOrganizationsSolve": "Pomáháme organizacím řešit složité výzvy—ať už se jedná o předpovídání trendů respiračních chorob s CDC nebo odhalování výjimečných talentů pro Bridgewater."
+  "weHelpOrganizationsSolve": "Pomáháme organizacím řešit složité výzvy—ať už se jedná o předpovídání trendů respiračních chorob s CDC nebo odhalování výjimečných talentů pro Bridgewater.",
+  "proForecastersHeaderSecondParagraph": "Profesionální prognostici poskytují kalibrované předpovědi spojené s jasným odůvodněním, čímž umožňují rozhodovacím osobám jednat s důvěrou."
 }
