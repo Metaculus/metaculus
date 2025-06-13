@@ -35,13 +35,6 @@ const QuestionForecastMaker: FC<Props> = ({
   predictionMessage,
   onPredictionSubmit,
 }) => {
-  const activeUserForecast =
-    (question.my_forecasts?.latest?.end_time ||
-      new Date().getTime() / 1000 + 1000) <=
-    new Date().getTime() / 1000
-      ? undefined
-      : question.my_forecasts?.latest;
-
   return (
     <ForecastMakerContainer>
       {ContinuousQuestionTypes.some((type) => type === question.type) && (
@@ -64,7 +57,6 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             permission={permission}
-            prevForecast={activeUserForecast?.forecast_values[1]}
             canPredict={canPredict}
             canResolve={canResolve}
             predictionMessage={predictionMessage}

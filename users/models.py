@@ -55,6 +55,7 @@ class User(TimeStampedModel, AbstractUser):
         models.CharField(max_length=200), blank=True, default=list
     )
     hide_community_prediction = models.BooleanField(default=False)
+    prediction_expiration_percent = models.IntegerField(default=10, null=True, blank=True)
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)

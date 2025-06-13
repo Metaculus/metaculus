@@ -73,9 +73,17 @@ export function canWithdrawForecast(
   question: QuestionWithForecasts,
   permission?: ProjectPermissions
 ) {
+  const now = new Date();
+  const latestForecast = question.my_forecasts?.latest;
+  const latestForecastExpired =
+    latestForecast &&
+    latestForecast.end_time &&
+    new Date(latestForecast.end_time * 1000) < now;
+
   return (
     question.status === QuestionStatus.OPEN &&
-    question.my_forecasts?.latest?.end_time === null &&
+    latestForecast &&
+    !latestForecastExpired &&
     permission !== ProjectPermissions.VIEWER
   );
 }
