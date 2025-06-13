@@ -339,6 +339,7 @@ def serialize_post(
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
+    question_movements = question_movements or {}
 
     # Appending projects
     projects = projects or []

@@ -989,10 +989,6 @@ QuestionMovement = TypedDict(
 )
 
 
-# TODO: add ONLY fields to the AggregateForecasts not to fetch them from DB!
-
-
-# TODO: test this!
 def calculate_period_movement_for_questions(
     questions: Iterable[Question],
     compare_periods_map: dict[Question, timedelta],
@@ -1031,11 +1027,13 @@ def calculate_period_movement_for_questions(
 
         # Step 2: find First and Last AggregateForecast for each question
         for question in questions:
-            from_date = now - compare_periods_map[question]
+            delta = compare_periods_map[question]
             aggregated_forecasts = question_aggregated_forecasts_map.get(question)
 
-            if not from_date or not aggregated_forecasts:
+            if not delta or not aggregated_forecasts:
                 continue
+
+            from_date = now - delta
 
             # Skip hidden CP
             if question.is_cp_hidden:
