@@ -17,6 +17,7 @@ from posts.jobs import (
 )
 from posts.services.hotness import compute_feed_hotness
 from questions.jobs import job_check_question_open_event, job_close_question
+from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from scoring.jobs import (
     finalize_leaderboards,
     update_global_comment_and_question_leaderboards,
@@ -142,6 +143,19 @@ class Command(BaseCommand):
             close_old_connections(sync_itn_articles),
             trigger=CronTrigger.from_crontab("0 1 * * *"),  # Every day at 01:00 UTC
             id="misc_sync_itn_articles",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
+        # Forecast Auto Withdrawal Job
+        #
+        scheduler.add_job(
+            close_old_connections(
+                check_and_schedule_forecast_widrawal_due_notifications.send
+            ),
+            trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
+            id="forecast_auto_withdrawal",
             max_instances=1,
             replace_existing=True,
         )
