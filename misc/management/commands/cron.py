@@ -154,7 +154,7 @@ class Command(BaseCommand):
             close_old_connections(
                 check_and_schedule_forecast_widrawal_due_notifications.send
             ),
-            trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
+            trigger=CronTrigger.from_crontab("*/10 * * * *"),  # Every 10 minutes
             id="forecast_auto_withdrawal",
             max_instances=1,
             replace_existing=True,
