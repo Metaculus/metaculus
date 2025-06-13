@@ -19,12 +19,7 @@ const PlatfromSection: FC = () => {
       <h3 className="m-0 text-center text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark">
         {t("theMetaculusPlatform")}
       </h3>
-      {/* Mobile paragraph */}
-      <p className="m-0 mx-auto mt-3 max-w-[264px] text-pretty text-sm font-medium text-blue-700 dark:text-blue-700-dark sm:max-w-[380px] sm:text-xl xl:hidden">
-        {t("openSourceForecastingWebApp")}
-      </p>
-      {/* Desktop paragraph */}
-      <p className="m-0 mt-3 hidden text-pretty text-xl font-medium text-blue-700 dark:text-blue-700-dark xl:block">
+      <p className="m-0 mx-auto mt-3 max-w-[240px] text-pretty text-sm font-medium text-blue-700 dark:text-blue-700-dark sm:max-w-full sm:text-xl">
         {t("advancedForecastingCapabilities")}
       </p>
       <div className="mt-10 text-blue-700 dark:text-blue-700-dark">

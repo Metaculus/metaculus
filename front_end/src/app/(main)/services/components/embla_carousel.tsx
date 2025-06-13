@@ -45,10 +45,10 @@ const EmblaCarousel: FC<Props> = ({
       <div>
         <Button
           className={cn(
-            "absolute top-1/2 h-auto -translate-y-1/2",
+            "absolute top-1/2 h-auto w-auto -translate-y-1/2 p-3",
             {
-              tight: "-left-6 sm:-left-10",
-              loose: "-left-6 sm:-left-6 lg:-left-10 xl:-left-14",
+              tight: "-left-9 sm:-left-11",
+              loose: "-left-9 sm:-left-9 lg:-left-11 xl:-left-14",
             }[buttonPosition]
           )}
           variant="text"
@@ -62,10 +62,10 @@ const EmblaCarousel: FC<Props> = ({
         </Button>
         <Button
           className={cn(
-            "absolute top-1/2 h-auto -translate-y-1/2",
+            "absolute top-1/2 h-auto w-auto -translate-y-1/2 p-3",
             {
-              tight: "-right-6 sm:-right-10",
-              loose: "-right-6 sm:-right-6 lg:-right-10 xl:-right-14",
+              tight: "-right-9 sm:-right-11",
+              loose: "-right-9 sm:-right-9 lg:-right-11 xl:-right-14",
             }[buttonPosition]
           )}
           variant="text"

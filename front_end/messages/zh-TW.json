@@ -1341,7 +1341,6 @@
   "participants": "參與者",
   "billedAnnuallyOrMonthly": "按年或按月計費",
   "theMetaculusPlatform": "Metaculus 平台",
-  "openSourceForecastingWebApp": "一個使用 Python 和 React 構建的開源預測應用程序。",
   "advancedForecastingCapabilities": "高級預測功能觸手可及",
   "richForecastingInterface": "豐富的預測界面",
   "crowdAggregationModels": "群眾聚合模型",
@@ -1356,7 +1355,6 @@
   "tournamentSpotlightDescription": "Metaculus 為全球領先的對沖基金之一 Bridgewater 主辦年度預測比賽，旨在發掘傳統證書之外的卓越預測天賦。這一合作夥伴關係豐富了 Bridgewater 的人才庫，成功將選定的頂尖競爭者轉變為專業角色。Metaculus 根據 Bridgewater 的戰略主題開發預測問題，促成為期兩個月的競賽，迅速揭示出色的人才。",
   "tournamentSpotlightFeedback": "來自 Bridgewater 的證詞，提到比賽所提供的價值以及如何支持其以實績為基礎的招聘方式。",
   "tournamentSpotlightFeedbackAuthor": "（（Bridgewater 代表））",
-  "proForecastersHeaderSecondParagraph": "專業預測師提供校準的預測與清晰的推理，讓決策者能有信心地解讀結果。",
   "youCanDeployPrivateInstance": "在您的組織內部署 Metaculus 平台，挖掘洞見，並無縫結合來自您團隊的知識和專業技能。",
   "weHelpOrganizationsMakeBetterDecisions": "我們幫助組織通過預測重要事務來做出更好的決策。",
   "learnAboutPotentialWays": "了解您可以與我們合作的方式",
@@ -1372,5 +1370,6 @@
   "services": "服務",
   "deployMetaculusPlatform": "在您的組織內部署 Metaculus 平台，挖掘洞見，並無縫結合來自您團隊的知識和專業技能。",
   "engageProForecasters": "在您最關心的問題上，無論是在您的私人實例上還是 Metaculus 上發起的問題，聘請 Metaculus 專業預測師。",
-  "weHelpOrganizationsSolve": "我們幫助組織解決複雜的挑戰——無論是與 CDC 預測呼吸道疾病趨勢，還是為 Bridgewater 發掘卓越人才。"
+  "weHelpOrganizationsSolve": "我們幫助組織解決複雜的挑戰——無論是與 CDC 預測呼吸道疾病趨勢，還是為 Bridgewater 發掘卓越人才。",
+  "proForecastersHeaderSecondParagraph": "專業預測師提供校準過的預測，並附上清晰的理由，使決策者能夠自信地採取行動。"
 }
