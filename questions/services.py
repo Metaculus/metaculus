@@ -911,11 +911,10 @@ def get_aggregated_forecasts_for_questions(
                     == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
                     else cp_sorting_key
                 ),
-                reverse=group.subquestions_order
-                in [
-                    GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
-                    None,  # if sort order is not set, then sort CP descending, hence reverse here
-                ],
+                reverse=(
+                    group.subquestions_order
+                    == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC
+                ),
             )[group_cutoff:]
         }
         questions_to_fetch = questions_to_fetch - cutoff_excluded
