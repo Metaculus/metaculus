@@ -5,10 +5,8 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
-import { useModal } from "@/contexts/modal_context";
 
 const EngageBlock: FC = () => {
-  const { setCurrentModal } = useModal();
   const t = useTranslations();
 
   return (
@@ -40,15 +38,8 @@ const EngageBlock: FC = () => {
         <Button
           variant="tertiary"
           size="lg"
-          className="whitespace-nowrap"
-          onClick={() =>
-            setCurrentModal({
-              type: "contactUs",
-              data: {
-                defaultSubject: "Tag Feedback",
-              },
-            })
-          }
+          className="whitespace-nowrap hover:!no-underline"
+          href="/services/#contact-us"
         >
           {t("contactUs")}
         </Button>

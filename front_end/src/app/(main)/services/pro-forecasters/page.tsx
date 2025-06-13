@@ -38,8 +38,8 @@ export default async function ProForecastersPage() {
             {t("proForecastersHeaderSecondParagraph")}
           </p>
           {/* Desktop paragraphs */}
-          <div className="hidden lg:block">
-            <p className="m-0 text-xl font-medium">
+          <div className="hidden lg:block ">
+            <p className="m-0 mx-auto max-w-[1000px] text-xl font-medium">
               {t("proForecastersHeaderFirstParagraph")}
             </p>
             <br />

@@ -7,11 +7,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { useModal } from "@/contexts/modal_context";
-
 const Footer: FC = () => {
   const t = useTranslations();
-  const { setCurrentModal } = useModal();
 
   return (
     <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-gray-0">
@@ -50,9 +47,9 @@ const Footer: FC = () => {
         </ul>
         <ul className="mr-3">
           <li className="my-2">
-            <button onClick={() => setCurrentModal({ type: "contactUs" })}>
+            <Link className="no-underline" href="/services/#contact-us">
               {t("contact")}
-            </button>
+            </Link>
           </li>
           <li className="my-2">
             <a

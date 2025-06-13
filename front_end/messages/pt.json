@@ -1341,7 +1341,6 @@
   "participants": "Participantes",
   "billedAnnuallyOrMonthly": "Cobrado anualmente ou mensalmente",
   "theMetaculusPlatform": "A Plataforma Metaculus",
-  "openSourceForecastingWebApp": "Um aplicativo web de previsão de código aberto construído com Python e React.",
   "advancedForecastingCapabilities": "Capacidades avançadas de previsão ao seu alcance",
   "richForecastingInterface": "Interface de Previsão Rica",
   "crowdAggregationModels": "Modelos de Agregação de Multidão",
@@ -1356,7 +1355,6 @@
   "tournamentSpotlightDescription": "O Metaculus sedia uma competição anual de previsões para a Bridgewater, um dos principais fundos de hedge do mundo, para descobrir talentos excepcionais em previsões além das credenciais tradicionais. Esta parceria enriquece o pool de talentos da Bridgewater, transitando com sucesso competidores de topo selecionados para funções profissionais. O Metaculus desenvolve perguntas de previsão adaptadas aos tópicos estratégicos da Bridgewater, facilitando uma competição de dois meses que prontamente revela talentos excepcionais.",
   "tournamentSpotlightFeedback": "Depoimento da Bridgewater mencionando o valor fornecido pelo torneio e como apoia sua abordagem de contratação baseada em mérito.",
   "tournamentSpotlightFeedbackAuthor": "((Representante da Bridgewater))",
-  "proForecastersHeaderSecondParagraph": "Os Pro Forecasters oferecem previsões calibradas acompanhadas de raciocínio claro, capacitando os tomadores de decisão a interpretar os resultados com confiança.",
   "youCanDeployPrivateInstance": "Implante a plataforma Metaculus dentro de sua organização para obter insights e combinar perfeitamente o conhecimento e a expertise de toda a sua equipe.",
   "weHelpOrganizationsMakeBetterDecisions": "Ajudamos as organizações a tomar melhores decisões ao prever o que importa.",
   "learnAboutPotentialWays": "Saiba mais sobre as formas pelas quais você pode trabalhar conosco",
@@ -1372,5 +1370,6 @@
   "services": "Serviços",
   "deployMetaculusPlatform": "Implante a plataforma Metaculus dentro de sua organização para obter insights e combinar perfeitamente o conhecimento e a expertise de toda a sua equipe.",
   "engageProForecasters": "Envolva Metaculus Pro Forecasters nas perguntas que mais importam para você, seja em sua instância privada ou em perguntas lançadas no Metaculus.",
-  "weHelpOrganizationsSolve": "Ajudamos as organizações a resolver desafios complexos—seja prevendo tendências de doenças respiratórias com o CDC ou revelando talentos excepcionais para a Bridgewater."
+  "weHelpOrganizationsSolve": "Ajudamos as organizações a resolver desafios complexos—seja prevendo tendências de doenças respiratórias com o CDC ou revelando talentos excepcionais para a Bridgewater.",
+  "proForecastersHeaderSecondParagraph": "Os Pro Forecastadores oferecem previsões calibradas acompanhadas de um raciocínio claro, capacitando os tomadores de decisão a agir com confiança."
 }
