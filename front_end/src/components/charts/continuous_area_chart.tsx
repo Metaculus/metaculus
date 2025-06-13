@@ -75,7 +75,7 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   shortLabels?: boolean;
-  readOnly?: boolean;
+  alignChartTabs?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -89,7 +89,7 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   shortLabels = false,
-  readOnly,
+  alignChartTabs,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -225,20 +225,21 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massAboveBounds = dataset[dataset.length - 1];
   const horizontalPadding = useMemo(() => {
     if (
-      (!readOnly && graphType === "cdf") ||
+      alignChartTabs ||
+      graphType === "cdf" ||
       question.type === QuestionType.Discrete
     ) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
       );
-      const longestLabelWidth = Math.max(5, longestLabelLength) * 9;
+      const longestLabelWidth = Math.max(5, longestLabelLength) * 5;
 
       return HORIZONTAL_PADDING + longestLabelWidth;
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type, readOnly]);
+  }, [graphType, yScale, question.type, alignChartTabs]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
