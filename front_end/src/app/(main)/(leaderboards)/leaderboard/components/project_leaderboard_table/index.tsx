@@ -22,7 +22,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
   paginationStep = 5,
   isAdvanced,
 }) => {
-  console.log({ leaderboardDetails });
   const t = useTranslations();
 
   const [step, setStep] = useState(paginationStep);

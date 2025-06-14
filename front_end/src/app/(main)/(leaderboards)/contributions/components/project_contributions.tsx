@@ -40,7 +40,6 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
         contributions.length) *
       100
     ).toFixed(1) + "%";
-  // predictedQuestions is the number of contributions that have coverage
   const predictedQuestions = contributions.filter(
     (contribution) => contribution.coverage
   ).length;

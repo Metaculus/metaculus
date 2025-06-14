@@ -964,6 +964,7 @@ def get_contributions(
             if question not in scored_question:
                 coverage = None
                 if with_live_coverage:
+                    # coverage is added for questions that the user has predicted
                     forecast_horizon_start = question.open_time.timestamp()
                     forecast_horizon_end = question.scheduled_close_time.timestamp()
                     now = timezone.now().timestamp()
