@@ -47,6 +47,7 @@ class LeaderboardSerializer(serializers.Serializer):
     end_time = serializers.DateTimeField()
     finalize_time = serializers.DateTimeField()
     prize_pool = serializers.SerializerMethodField()
+    max_coverage = serializers.SerializerMethodField()
 
     class Meta:
         model = Leaderboard
@@ -61,6 +62,7 @@ class LeaderboardSerializer(serializers.Serializer):
             "end_time",
             "finalize_time",
             "prize_pool",
+            "max_coverage",
         ]
 
     def get_prize_pool(self, obj: Leaderboard):
@@ -68,6 +70,14 @@ class LeaderboardSerializer(serializers.Serializer):
             return obj.prize_pool
         if obj.project:
             return obj.project.prize_pool
+
+    def get_max_coverage(self, obj: Leaderboard):
+        return (
+            obj.get_questions()
+            .filter(resolution__isnull=False)
+            .exclude(resolution__in=["annulled", "ambiguous"])
+            .count()
+        )
 
 
 class ContributionSerializer(serializers.Serializer):

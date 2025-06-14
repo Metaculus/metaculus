@@ -789,7 +789,7 @@ def update_leaderboard_from_csv_data(
 
 @dataclass
 class Contribution:
-    score: float
+    score: float | None
     coverage: float | None = None
     question: Question | None = None
     post: Post | None = None
@@ -797,7 +797,7 @@ class Contribution:
 
 
 def get_contribution_question_writing(
-    user: User, leaderboard: Leaderboard, questions: Question.objects
+    user: User, leaderboard: Leaderboard, questions: QuerySet[Question]
 ):
     forecaster_ids_for_post = defaultdict(set)
 
@@ -851,6 +851,7 @@ def get_contribution_question_writing(
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
+    with_live_coverage: bool = False,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
         main_feed_posts = Post.objects.filter_for_main_feed().exclude(
@@ -959,12 +960,46 @@ def get_contributions(
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
     if "global" not in leaderboard.score_type:
-        contributions += [
-            Contribution(
-                score=None, coverage=None, question=question, post=question.get_post()
-            )
-            for question in questions
-            if question not in scored_question
-        ]
+        for question in questions:
+            if question not in scored_question:
+                coverage = None
+                if with_live_coverage:
+                    forecast_horizon_start = question.open_time.timestamp()
+                    forecast_horizon_end = question.scheduled_close_time.timestamp()
+                    now = timezone.now().timestamp()
+                    covered = 0
+                    user_forecasts = question.user_forecasts.filter(author=user)
+                    for forecast in user_forecasts:
+                        forecast_start = max(
+                            forecast.start_time.timestamp(), forecast_horizon_start
+                        )
+                        forecast_end = min(
+                            (
+                                forecast.end_time or question.scheduled_close_time
+                            ).timestamp(),
+                            forecast_horizon_end,
+                            now,
+                        )
+                        covered += max(0, forecast_end - forecast_start)
+                    coverage = covered / (forecast_horizon_end - forecast_horizon_start)
+
+                contribution = Contribution(
+                    score=None,
+                    coverage=coverage or None,
+                    question=question,
+                    post=question.get_post(),
+                )
+                contributions.append(contribution)
+
+    contributions = sorted(
+        contributions,
+        key=lambda c: (
+            bool(c.score),
+            c.score or 0,
+            bool(c.coverage),
+            -c.question.open_time.timestamp(),
+        ),
+        reverse=True,
+    )
 
     return contributions

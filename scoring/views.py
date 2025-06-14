@@ -232,7 +232,7 @@ def user_medals(
     return Response(entries)
 
 
-@cache_page(60 * 30)
+# @cache_page(60 * 30)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def medal_contributions(
@@ -287,7 +287,7 @@ def medal_contributions(
         else:
             leaderboard = leaderboards.first()
 
-    contributions = get_contributions(user, leaderboard)
+    contributions = get_contributions(user, leaderboard, with_live_coverage=True)
     leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
     return_data = {

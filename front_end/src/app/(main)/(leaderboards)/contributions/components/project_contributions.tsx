@@ -21,25 +21,34 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
     for_user: userId,
     project: project.id,
   });
-  const hasQuestionWeights = contributionsDetails.contributions.some(
+  const { contributions, leaderboard, leaderboard_entry } =
+    contributionsDetails;
+  if (contributions.every((contribution) => !contribution.coverage)) {
+    return null;
+  }
+  const hasQuestionWeights = contributions.some(
     (contribution) =>
       contribution.question_weight && contribution.question_weight !== 1.0
   );
 
-  const leaderboard = contributionsDetails.leaderboard;
-
-  if (
-    contributionsDetails.contributions.every(
-      (contribution) => !contribution.coverage
-    )
-  ) {
-    return null;
-  }
+  const liveCoveragePercent =
+    (
+      (contributions.reduce(
+        (acc, contribution) => acc + (contribution.coverage || 0),
+        0
+      ) /
+        contributions.length) *
+      100
+    ).toFixed(1) + "%";
+  // predictedQuestions is the number of contributions that have coverage
+  const predictedQuestions = contributions.filter(
+    (contribution) => contribution.coverage
+  ).length;
 
   return (
     <SectionToggle title={t("myScore")} variant="gold">
       <div className="rounded border border-gray-300 bg-blue-100 dark:border-gray-300-dark dark:bg-blue-100-dark">
-        {!!contributionsDetails.contributions.length && (
+        {!!contributions.length && (
           <table className="mb-3 w-full">
             <thead className="text-gray-500 dark:text-gray-500-dark">
               <tr className="border-b border-gray-300 dark:border-gray-300-dark">
@@ -47,13 +56,11 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   {t("Question")}
                 </th>
                 <th className="px-4 py-2.5 text-right text-sm font-bold">
+                  {t("coverage")}
+                </th>
+                <th className="px-4 py-2.5 text-right text-sm font-bold">
                   {t("score")}
                 </th>
-                {leaderboard.score_type === "relative_legacy_tournament" && (
-                  <th className="px-4 py-2.5 text-right text-sm font-bold">
-                    {t("coverage")}
-                  </th>
-                )}
                 {hasQuestionWeights && (
                   <th className="px-4 py-2.5 text-right text-sm font-bold">
                     {t("questionWeight")}
@@ -62,7 +69,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
               </tr>
             </thead>
             <tbody>
-              {contributionsDetails.contributions.map((contribution, i) => (
+              {contributions.map((contribution, i) => (
                 <tr
                   key={i}
                   className="border-b border-gray-300 bg-blue-200 even:bg-blue-100 dark:border-gray-300-dark dark:bg-blue-200-dark dark:even:bg-blue-100-dark"
@@ -75,16 +82,14 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                       {contribution.question_title}
                     </Link>
                   </td>
+                  <th className="px-4 py-2.5 text-right text-sm font-bold">
+                    {contribution.coverage
+                      ? `${(contribution.coverage * 100).toFixed(1)}%`
+                      : "-"}
+                  </th>
                   <td className="px-4 py-2.5 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
                     {contribution.score ? contribution.score.toFixed(3) : "-"}
                   </td>
-                  {leaderboard.score_type === "relative_legacy_tournament" && (
-                    <th className="px-4 py-2.5 text-right text-sm font-bold">
-                      {contribution.coverage
-                        ? `${(contribution.coverage * 100).toFixed(0)}%`
-                        : "0%"}
-                    </th>
-                  )}
                   {hasQuestionWeights && (
                     <th className="px-4 py-2.5 text-right text-sm font-bold">
                       {!isNil(contribution.question_weight)
@@ -99,33 +104,42 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
             <tfoot>
               <tr>
                 <th className="px-2 py-1 text-right text-sm">
-                  {t("totalTake")}
+                  {t("predictedQuestions")}
                 </th>
                 <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
-                  {contributionsDetails.leaderboard_entry.take
-                    ? `${contributionsDetails.leaderboard_entry.take.toFixed(3)}`
-                    : "-"}
+                  {predictedQuestions}
                 </td>
               </tr>
-            </tfoot>
-            <tfoot>
+              <tr>
+                <th className="px-2 py-1 text-right text-sm">
+                  {t("totalLiveCoverage")}
+                </th>
+                <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
+                  {liveCoveragePercent}
+                </td>
+              </tr>
               <tr>
                 <th className="px-2 py-1 text-right text-sm">
                   {t("totalScore")}
                 </th>
                 <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
-                  {contributionsDetails.leaderboard_entry.score
-                    ? `${contributionsDetails.leaderboard_entry.score.toFixed(2)}`
+                  {leaderboard_entry.score
+                    ? `${leaderboard_entry.score.toFixed(2)}`
                     : "-"}
                 </td>
-                {leaderboard.score_type === "relative_legacy_tournament" && (
-                  <th className="px-4 py-2.5 text-right text-sm font-bold">
-                    {contributionsDetails.leaderboard_entry.coverage
-                      ? `${(contributionsDetails.leaderboard_entry.coverage * 100).toFixed(2)}%`
-                      : "0%"}
-                  </th>
-                )}
               </tr>
+              {!!leaderboard.prize_pool && (
+                <tr>
+                  <th className="px-2 py-1 text-right text-sm">
+                    {t("totalTake")}
+                  </th>
+                  <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
+                    {leaderboard_entry.take
+                      ? `${leaderboard_entry.take.toFixed(3)}`
+                      : "-"}
+                  </td>
+                </tr>
+              )}
             </tfoot>
           </table>
         )}
@@ -136,6 +150,20 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
           ) : (
             <div className="mt-2">
               <dl className="m-0">
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("coverage")}
+                  </dt>
+                  <dd>
+                    {t.rich("coverageInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#coverage"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                </div>
                 <div className="m-2 flex text-sm">
                   <dt className="mr-2 w-20 flex-none font-bold">
                     {t("score")}
@@ -181,6 +209,26 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                       })}
                     </dd>
                   )}
+                </div>
+                {hasQuestionWeights && (
+                  <div className="m-2 flex text-sm">
+                    <dt className="mr-2 w-20 flex-none font-bold">
+                      {t("questionWeight")}
+                    </dt>
+                    <dd>{t("questionWeightInfo")}</dd>
+                  </div>
+                )}
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("predictedQuestions")}
+                  </dt>
+                  <dd>{t("predictedQuestionsInfo")}</dd>
+                </div>
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("totalLiveCoverage")}
+                  </dt>
+                  <dd>{t("totalLiveCoverageInfo")}</dd>
                 </div>
                 <div className="m-2 flex text-sm">
                   <dt className="mr-2 w-20 flex-none font-bold">
@@ -228,36 +276,24 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                     </dd>
                   )}
                 </div>
-                {leaderboard.score_type === "relative_legacy_tournament" && (
+
+                {!!leaderboard.prize_pool && (
                   <div className="m-2 flex text-sm">
                     <dt className="mr-2 w-20 flex-none font-bold">
-                      {t("coverage")}
+                      {t("totalTake")}
                     </dt>
-                    <dd>{t("relativeCoverageInfo")}</dd>
+                    {leaderboard.score_type === "peer_tournament" ? (
+                      <dd>{t("peerTakeInfo")}</dd>
+                    ) : leaderboard.score_type === "spot_peer_tournament" ? (
+                      <dd>{t("spotPeerTakeInfo")}</dd>
+                    ) : leaderboard.score_type ===
+                      "spot_baseline_tournament" ? (
+                      <dd>{t("spotBaselineTakeInfo")}</dd>
+                    ) : (
+                      <dd>{t("relativeTakeInfo")}</dd>
+                    )}
                   </div>
                 )}
-                {hasQuestionWeights && (
-                  <div className="m-2 flex text-sm">
-                    <dt className="mr-2 w-20 flex-none font-bold">
-                      {t("questionWeight")}
-                    </dt>
-                    <dd>{t("questionWeightInfo")}</dd>
-                  </div>
-                )}
-                <div className="m-2 flex text-sm">
-                  <dt className="mr-2 w-20 flex-none font-bold">
-                    {t("totalTake")}
-                  </dt>
-                  {leaderboard.score_type === "peer_tournament" ? (
-                    <dd>{t("peerTakeInfo")}</dd>
-                  ) : leaderboard.score_type === "spot_peer_tournament" ? (
-                    <dd>{t("spotPeerTakeInfo")}</dd>
-                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
-                    <dd>{t("spotBaselineTakeInfo")}</dd>
-                  ) : (
-                    <dd>{t("relativeTakeInfo")}</dd>
-                  )}
-                </div>
               </dl>
             </div>
           )}
