@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import django
+from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
@@ -13,6 +14,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from posts.models import Post
 from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
@@ -141,3 +143,51 @@ def sidebar_api_view(request: Request):
     )
 
     return Response(SidebarItemSerializer(sidebar_items, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_whitelist_status_api_view(request: Request):
+    # return the most permissive whitelist status for the user given the request
+    user = request.user
+    if not user or not user.is_authenticated:
+        return Response(
+            {"is_whitelisted": False, "view_deanonymized_data": False},
+            status=status.HTTP_200_OK,
+        )
+    if user.is_superuser or user.is_staff:
+        # staff users are always whitelisted
+        return Response(
+            {"is_whitelisted": True, "view_deanonymized_data": True},
+            status=status.HTTP_200_OK,
+        )
+
+    data = request.query_params
+    post_id = data.get("post_id")
+    project_id = data.get("project_id")
+    if not project_id and not post_id:
+        # if no project or post is specified, grab universal whitelistings
+        whitelistings = user.whitelists.filter(project__isnull=True, post__isnull=True)
+    elif post_id:
+        post = get_object_or_404(Post, pk=post_id)
+        project_ids = [post.default_project_id] + [p.id for p in post.projects.all()]
+        whitelistings = user.whitelists.filter(
+            Q(project__isnull=True, post__isnull=True)
+            | Q(project__id__in=project_ids)
+            | Q(post__id=post_id)
+        )
+    else:  # project_id exists
+        get_object_or_404(Post, pk=project_id)
+        whitelistings = user.whitelists.filter(
+            Q(project__isnull=True, post__isnull=True) | Q(project_id=project_id)
+        )
+
+    is_whitelisted = whitelistings.exists()
+    view_deanonymized_data = whitelistings.filter(view_deanonymized_data=True).exists()
+    return Response(
+        {
+            "is_whitelisted": is_whitelisted,
+            "view_deanonymized_data": view_deanonymized_data,
+        },
+        status=status.HTTP_200_OK,
+    )
