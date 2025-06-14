@@ -3,10 +3,15 @@ import React, { FC } from "react";
 
 import cn from "@/utils/core/cn";
 
-const Switch: FC<SwitchProps> = ({ className, ...props }) => {
+type Props = Omit<SwitchProps, "as"> & {
+  as?: React.ElementType;
+};
+
+const Switch: FC<Props> = ({ className, as = "button", ...props }) => {
   return (
     <HeadlessSwitch
       {...props}
+      as={as}
       className={cn(
         "group inline-flex h-6 w-11 items-center rounded-full bg-gray-400 transition data-[checked]:bg-blue-700 dark:bg-gray-400-dark dark:data-[checked]:bg-blue-700-dark",
         className
