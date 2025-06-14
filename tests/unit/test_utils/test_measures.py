@@ -207,7 +207,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
     ],
 )
 def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
-    result = prediction_difference_for_sorting(p1, p2, question)
+    result = prediction_difference_for_sorting(p1, p2, question.type)
     assert np.isclose(result, expected_result)
 
 
