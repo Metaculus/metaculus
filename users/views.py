@@ -352,7 +352,7 @@ def get_authoring_stats_data(
         .count()
     )
     comment_count = Comment.objects.filter(
-        author=user, on_post__in=Post.objects.filter_public()
+        author=user, on_post__in=Post.objects.filter_public(), is_private=False
     ).count()
 
     return {
