@@ -100,6 +100,7 @@ class PostsApi extends ApiService {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
+      include_descriptions: false,
     });
 
     return await this.get<PaginatedPayload<PostWithForecasts>>(
