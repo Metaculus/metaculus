@@ -71,7 +71,7 @@ def posts_list_api_view(request):
         request.query_params.get("with_cp")
     )
     include_descriptions = serializers.BooleanField(allow_null=True).run_validation(
-        request.query_params.get("include_descriptions")
+        request.query_params.get("include_descriptions", True)
     )
     group_cutoff = (
         serializers.IntegerField(
@@ -169,6 +169,7 @@ def posts_list_oldapi_view(request):
         posts,
         with_cp=True,
         current_user=request.user,
+        include_descriptions=True,
     )
 
     # Given we limit the feed to binary questions, we expect each post to have a question with a description

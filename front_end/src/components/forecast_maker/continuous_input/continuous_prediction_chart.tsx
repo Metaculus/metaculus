@@ -169,8 +169,8 @@ const ContinuousPredictionChart: FC<Props> = ({
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        readOnly={readOnly}
         extraTheme={chartTheme}
+        alignChartTabs={true}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
