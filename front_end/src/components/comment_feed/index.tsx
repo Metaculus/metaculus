@@ -3,6 +3,7 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -523,4 +524,6 @@ function extractUniqueAuthors({
   }));
 }
 
-export default CommentFeed;
+export default dynamic(() => Promise.resolve(CommentFeed), {
+  ssr: false,
+});

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
@@ -35,6 +36,7 @@ type Props = {
   height?: number;
   width?: number;
   showCP?: boolean;
+  chartTheme?: VictoryThemeDefinition;
 };
 
 const ContinuousPredictionChart: FC<Props> = ({
@@ -44,8 +46,9 @@ const ContinuousPredictionChart: FC<Props> = ({
   graphType,
   readOnly = false,
   height = 300,
-  showCP = true,
   width = undefined,
+  showCP = true,
+  chartTheme,
 }) => {
   const t = useTranslations();
 
@@ -166,7 +169,8 @@ const ContinuousPredictionChart: FC<Props> = ({
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        readOnly={readOnly}
+        extraTheme={chartTheme}
+        alignChartTabs={true}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
