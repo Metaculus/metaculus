@@ -1372,5 +1372,10 @@
   "deployMetaculusPlatform": "在您的組織內部署 Metaculus 平台，挖掘洞見，並無縫結合來自您團隊的知識和專業技能。",
   "engageProForecasters": "在您最關心的問題上，無論是在您的私人實例上還是 Metaculus 上發起的問題，聘請 Metaculus 專業預測師。",
   "weHelpOrganizationsSolve": "我們幫助組織解決複雜的挑戰——無論是與 CDC 預測呼吸道疾病趨勢，還是為 Bridgewater 發掘卓越人才。",
-  "proForecastersHeaderSecondParagraph": "專業預測師提供校準過的預測，並附上清晰的理由，使決策者能夠自信地採取行動。"
+  "proForecastersHeaderSecondParagraph": "專業預測師提供校準過的預測，並附上清晰的理由，使決策者能夠自信地採取行動。",
+  "totalLiveCoverage": "總實時覆蓋率",
+  "predictedQuestions": "預測問題",
+  "coverageInfo": "您在該問題上的<link>覆蓋率</link>。如果問題尚未解決，這是您到目前為止覆蓋的問題生命週期的量。這是一個動態值，會隨時間變化，並可能在問題解決時發生變化。",
+  "predictedQuestionsInfo": "您在本次錦標賽中預測的已解決及未解決問題的數量。",
+  "totalLiveCoverageInfo": "您在此錦標賽中的實時覆蓋率總量。這是您的實時覆蓋率總和除以已解決和未解決問題的數量。如果所有問題現在都得到解決，您在錦標賽中將有如此多的覆蓋率。"
 }
