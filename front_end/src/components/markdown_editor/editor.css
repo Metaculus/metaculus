@@ -28,6 +28,9 @@
   .ͼ16 {
     @apply dark:text-white;
   }
+  .cm-activeLine {
+    @apply dark:!caret-white;
+  }
 }
 
 /* user mentions menu */
@@ -98,4 +101,7 @@
 .mdx-content-editable li:has(> ol) {
   list-style-type: none !important;
   padding-left: 0 !important;
+}
+.editor-comment a {
+  @apply text-blue-800 decoration-blue-500 underline-offset-2 dark:text-blue-800-dark dark:decoration-blue-500-dark;
 }

@@ -7,12 +7,14 @@ import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
+import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
   withCoverage?: boolean;
   userId?: number;
   withPrizePool?: boolean;
+  isAdvanced?: boolean;
 };
 
 const TableRow: FC<Props> = ({
@@ -20,6 +22,7 @@ const TableRow: FC<Props> = ({
   withCoverage = false,
   userId,
   withPrizePool = true,
+  isAdvanced = false,
 }) => {
   const {
     user,
@@ -27,56 +30,28 @@ const TableRow: FC<Props> = ({
     medal,
     rank,
     score,
+    excluded,
     coverage,
     take,
     percent_prize,
     prize,
   } = rowEntry;
-  const highlight = user?.id === userId;
+  const highlight = user?.id === userId || excluded;
   const t = useTranslations();
-
-  if (!withPrizePool) {
-    return (
-      <tr>
-        <Td className="sticky left-0 text-left" highlight={highlight}>
-          {medal ? (
-            <MedalIcon type={medal} className="mr-2 inline-block size-4" />
-          ) : (
-            <div className="mr-2 inline-block size-4" />
-          )}
-          {rank}
-        </Td>
-        <Td className="sticky left-0 text-left" highlight={highlight}>
-          <Link
-            href={
-              user
-                ? `/accounts/profile/${user.id}/`
-                : `/faq/#community-prediction`
-            }
-          >
-            {user
-              ? formatUsername(user)
-              : aggregation_method == "recency_weighted"
-                ? t("communityPrediction")
-                : aggregation_method}
-          </Link>
-        </Td>
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {score.toFixed(3)}
-        </Td>
-      </tr>
-    );
-  }
 
   return (
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
-        {medal ? (
-          <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+        {!user && aggregation_method === "recency_weighted" ? (
+          <RecencyWeightedAggregationRankTooltip />
         ) : (
-          <div className="mr-2 inline-block size-4" />
+          <>
+            {!!medal && (
+              <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+            )}
+            <span className="flex-1 text-center">{rank}</span>
+          </>
         )}
-        {rank}
       </Td>
       <Td className="sticky left-0 text-left" highlight={highlight}>
         <Link
@@ -96,22 +71,28 @@ const TableRow: FC<Props> = ({
       <Td className="text-right tabular-nums" highlight={highlight}>
         {score.toFixed(3)}
       </Td>
-      {withCoverage && (
+      {isAdvanced && withCoverage && (
         <Td className="text-right tabular-nums" highlight={highlight}>
           {coverage ? `${(coverage * 100).toFixed(0)}%` : "-"}
         </Td>
       )}
-      <Td className="text-right tabular-nums" highlight={highlight}>
-        {take?.toFixed(3)}
-      </Td>
-      <>
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
-        </Td>
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
-        </Td>
-      </>
+      {withPrizePool && (
+        <>
+          {isAdvanced && (
+            <>
+              <Td className="text-right tabular-nums" highlight={highlight}>
+                {take?.toFixed(3)}
+              </Td>
+              <Td className="text-right tabular-nums" highlight={highlight}>
+                {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
+              </Td>
+            </>
+          )}
+          <Td className="text-right tabular-nums" highlight={highlight}>
+            {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
+          </Td>
+        </>
+      )}
     </tr>
   );
 };

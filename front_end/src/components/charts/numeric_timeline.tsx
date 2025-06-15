@@ -26,6 +26,7 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   height?: number;
+  cursorTimestamp?: number | null;
   onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
@@ -49,6 +50,7 @@ const NumericTimeline: FC<Props> = ({
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker,
   height = 150,
+  cursorTimestamp,
   onCursorChange,
   onChartReady,
   questionType,
@@ -108,6 +110,7 @@ const NumericTimeline: FC<Props> = ({
         openTime,
         unit,
         forceYTickCount: 5,
+        alwaysShowYTicks: true,
       }),
     [
       questionType,
@@ -129,6 +132,7 @@ const NumericTimeline: FC<Props> = ({
       buildChartData={buildChartData}
       extraTheme={extraTheme}
       onChartReady={onChartReady}
+      cursorTimestamp={cursorTimestamp}
       onCursorChange={onCursorChange}
       defaultZoom={defaultZoom}
       withZoomPicker={withZoomPicker}

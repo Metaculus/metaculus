@@ -4,12 +4,13 @@ import { getTranslations } from "next-intl/server";
 import ForecastCard from "@/components/forecast_card";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import {
+  CHART_TYPE_PARAM,
   EMBED_QUESTION_TITLE,
   GRAPH_ZOOM_PARAM,
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
 import ServerPostsApi from "@/services/api/posts/posts.server";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import "./styles.scss";
 import { TournamentType } from "@/types/projects";
@@ -34,7 +35,6 @@ export default async function GenerateQuestionPreview(props: {
     searchParams["embed_theme"],
     searchParams["css_variables"]
   );
-
   const nonInteractiveParam = searchParams["non-interactive"];
 
   const chartZoomParam = searchParams[GRAPH_ZOOM_PARAM];
@@ -47,6 +47,10 @@ export default async function GenerateQuestionPreview(props: {
 
   const hideZoomPickerParam = searchParams[HIDE_ZOOM_PICKER];
   const embedTitle = searchParams[EMBED_QUESTION_TITLE] as string | undefined;
+  const chartTypeParam = searchParams[CHART_TYPE_PARAM] as
+    | EmbedChartType
+    | undefined;
+
   return (
     <div
       className="flex size-full flex-col gap-8 bg-blue-100 p-4 text-gray-900 dark:bg-blue-100-dark dark:text-gray-900-dark xs:p-8 lg:p-14"
@@ -72,6 +76,7 @@ export default async function GenerateQuestionPreview(props: {
         withZoomPicker={hideZoomPickerParam !== "true"}
         navigateToNewTab
         embedTitle={embedTitle}
+        embedChartType={chartTypeParam}
       />
       <div className="flex items-center justify-between gap-8">
         <h4 className="text-sm font-normal lg:text-2xl">

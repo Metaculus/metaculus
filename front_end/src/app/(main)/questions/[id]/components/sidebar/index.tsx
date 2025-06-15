@@ -1,14 +1,16 @@
+import dynamic from "next/dynamic";
 import React, { FC, Suspense } from "react";
 
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
-import NewsMatch from "./news_match";
 import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionTags from "./sidebar_question_tags";
-import SimilarQuestions from "./similar_questions";
 import QuestionEmbedButton from "../question_embed_button";
+
+const NewsMatch = dynamic(() => import("./news_match"));
+const SimilarQuestions = dynamic(() => import("./similar_questions"));
 
 function SidebarContainer({ children }: { children: React.ReactNode }) {
   return (
