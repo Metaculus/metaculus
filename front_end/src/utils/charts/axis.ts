@@ -299,6 +299,7 @@ type GenerateScaleParams = {
   question?: Question | GraphingQuestionProps;
   forceTickCount?: number;
   alwaysShowTicks?: boolean;
+  skipHoursFormatting?: boolean;
 };
 
 /**
@@ -334,6 +335,7 @@ export function generateScale({
   question,
   forceTickCount,
   alwaysShowTicks,
+  skipHoursFormatting = false,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -391,7 +393,8 @@ export function generateScale({
   // forecast data. To get this to intelligently choose ticks and
   // labels, this operation will have to be done in the real
   // scaling first, then transformed back into the domain scale.
-  const zoomedRange = zoomedDomainMax - zoomedDomainMin;
+  const zoomedRange =
+    Math.round((zoomedDomainMax - zoomedDomainMin) * 10000) / 10000;
   let minorRes: number = 1;
   let majorRes: number = 1;
   let minorTickInterval: number;
@@ -422,23 +425,26 @@ export function generateScale({
       majorTicks.push(tickEnd);
     }
   } else {
+    const adjustedTickCount =
+      zoomedDomainMin === 0 || zoomedDomainMax === 1
+        ? tickCount - 1
+        : tickCount;
     if (zoomedRange > 0.7) {
-      minorRes = 0.02; // only tick on multiples of 0.05
+      minorRes = forceTickCount ? zoomedRange / adjustedTickCount : 0.02; // only tick on multiples of 0.05
       majorRes = 0.1; // only label on multiples of 0.25
     } else if (zoomedRange > 0.5) {
-      minorRes = 0.005; // only tick on multiples of 0.025
+      minorRes = forceTickCount ? zoomedRange / adjustedTickCount : 0.005; // only tick on multiples of 0.025
       majorRes = 0.05; // only label on multiples of 0.10
     } else if (zoomedRange > 0.1) {
-      minorRes = 0.005; // only tick on multiples of 0.01
+      minorRes = forceTickCount ? zoomedRange / adjustedTickCount : 0.005; // only tick on multiples of 0.01
       majorRes = 0.025; // only label on multiples of 0.05
     } else if (zoomedRange > 0.05) {
-      minorRes = 0.002; // only tick on multiples of 0.005
+      minorRes = forceTickCount ? zoomedRange / adjustedTickCount : 0.002; // only tick on multiples of 0.005
       majorRes = 0.01; // only label on multiples of 0.025
     } else {
-      minorRes = 0.001; // only tick on multiples of 0.0025
+      minorRes = forceTickCount ? zoomedRange / adjustedTickCount : 0.001; // only tick on multiples of 0.0025
       majorRes = 0.005; // only label on multiples of 0.01
     }
-
     minorTickInterval =
       Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
     tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
@@ -449,13 +455,24 @@ export function generateScale({
     minorTicks = range(tickStart, tickEnd, minorTickInterval).map(
       (x) => Math.round(x * 10000) / 10000
     );
-
     majorTickInterval =
       Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
     majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
     majorTicks = range(majorTickStart, tickEnd, majorTickInterval).map(
       (x) => Math.round(x * 10000) / 10000
     );
+    if (majorTicks.filter((tick) => minorTicks.includes(tick)).length < 3) {
+      const step = Math.max(
+        1,
+        Math.floor(minorTicks.length / (maxLabelCount - 1))
+      );
+      majorTicks = minorTicks.filter((tick, index) => {
+        if (index % step === 0) {
+          return true;
+        }
+        return false;
+      });
+    }
   }
 
   const conditionallyShowUnit = (value: string, idx?: number): string => {
@@ -514,6 +531,7 @@ export function generateScale({
           dateFormatString: shortLabels ? "yyyy" : undefined,
           adjustLabels,
           skipQuartilesBorders: true,
+          skipHoursFormatting,
         }),
         idx
       );
