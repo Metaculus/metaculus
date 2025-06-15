@@ -282,25 +282,6 @@ export function generateTimestampXScale(
   };
 }
 
-type GenerateScaleParams = {
-  displayType: QuestionType;
-  axisLength: number;
-  direction?: "horizontal" | "vertical";
-  domain?: Tuple<number>;
-  zoomedDomain?: Tuple<number>;
-  scaling?: Scaling | null;
-  unit?: string;
-  forcedTickCount?: number;
-  withCursorFormat?: boolean;
-  cursorDisplayLabel?: string | null;
-  shortLabels?: boolean;
-  adjustLabels?: boolean;
-  inboundOutcomeCount?: number | null;
-  question?: Question | GraphingQuestionProps;
-  forceTickCount?: number;
-  alwaysShowTicks?: boolean;
-};
-
 /**
  * Takes an array of values and rounds them to the minimum
  * number of significant digits such that no two values
@@ -368,6 +349,25 @@ function findOptimalTickCount(
   }
   return bestTickCount;
 }
+
+type GenerateScaleParams = {
+  displayType: QuestionType;
+  axisLength: number;
+  direction?: "horizontal" | "vertical";
+  domain?: Tuple<number>;
+  zoomedDomain?: Tuple<number>;
+  scaling?: Scaling | null;
+  unit?: string;
+  forcedTickCount?: number;
+  withCursorFormat?: boolean;
+  cursorDisplayLabel?: string | null;
+  shortLabels?: boolean;
+  adjustLabels?: boolean;
+  inboundOutcomeCount?: number | null;
+  question?: Question | GraphingQuestionProps;
+  forceTickCount?: number;
+  alwaysShowTicks?: boolean;
+};
 
 /**
  * Flexible utility function for generating ticks and tick formats
