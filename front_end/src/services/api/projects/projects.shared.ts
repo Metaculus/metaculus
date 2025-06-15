@@ -22,6 +22,7 @@ export type TournamentFilterParams = {
   // Min permission
   permission?: ProjectPermissions;
   show_on_homepage?: boolean;
+  show_on_services_page?: boolean;
 };
 
 export type CommunitiesParams = PaginationParams & {

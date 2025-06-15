@@ -10,6 +10,7 @@ import {
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 import { formatValueUnit } from "@/utils/questions/units";
 
 import PeriodMovement from "./period_movement";
@@ -140,7 +141,7 @@ export function getMovementComponents(
         : " " + t("percentagePoints");
     const amount =
       question.type === QuestionType.Numeric
-        ? round(cpMovement.movement, 1) // for numeric questions we receive already scaled value
+        ? abbreviatedNumber(round(cpMovement.movement, 1)) // for numeric questions we receive already scaled value
         : round(cpMovement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
     if (
       [MovementDirection.UP, MovementDirection.DOWN].includes(

@@ -24,6 +24,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
@@ -33,6 +34,7 @@ import {
   TournamentType,
 } from "@/types/projects";
 import {
+  ContinuousQuestionType,
   DefaultInboundOutcomeCount,
   QuestionDraft,
   QuestionType,
@@ -275,7 +277,7 @@ const createQuestionSchemas = (
 };
 
 type Props = {
-  questionType: string;
+  questionType: QuestionType;
   tournament_id?: number;
   community_id?: number;
   allCategories: Category[];
@@ -710,12 +712,10 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
-        {(questionType === QuestionType.Numeric ||
-          questionType === QuestionType.Discrete ||
-          questionType === QuestionType.Date) && (
+        {ContinuousQuestionTypes.some((type) => type === questionType) && (
           <NumericQuestionInput
             draftKey={mode === "edit" ? undefined : questionType}
-            questionType={questionType}
+            questionType={questionType as ContinuousQuestionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
             defaultZeroPoint={post?.question?.scaling.zero_point}

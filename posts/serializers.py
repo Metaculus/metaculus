@@ -1,3 +1,4 @@
+import logging
 from typing import Union, Iterable
 
 from django.db import models
@@ -39,6 +40,8 @@ from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription
 from .utils import get_post_slug
+
+logger = logging.getLogger(__name__)
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -328,6 +331,7 @@ def serialize_post(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
+    include_descriptions: bool = False,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -349,6 +353,7 @@ def serialize_post(
                 if aggregate_forecasts
                 else None
             ),
+            include_descriptions=include_descriptions,
         )
 
     if post.conditional:
@@ -357,6 +362,7 @@ def serialize_post(
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
+            include_descriptions=include_descriptions,
         )
 
     if post.group_of_questions:
@@ -365,6 +371,7 @@ def serialize_post(
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
+            include_descriptions=include_descriptions,
         )
 
     if post.notebook:
@@ -427,6 +434,7 @@ def serialize_post_many(
     with_subscriptions: bool = False,
     group_cutoff: int = None,
     with_key_factors: bool = False,
+    include_descriptions: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -494,6 +502,7 @@ def serialize_post_many(
             },
             key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
+            include_descriptions=include_descriptions,
         )
         for post in posts
     ]
@@ -620,9 +629,14 @@ def serialize_posts_many_forecast_flow(
     questions = flatten([p.get_questions() for p in posts])
 
     user_question_forecasts_map = get_user_last_forecasts_map(questions, current_user)
-    question_movement_map = calculate_user_forecast_movement_for_questions(
-        questions, user_question_forecasts_map
-    )
+
+    try:
+        question_movement_map = calculate_user_forecast_movement_for_questions(
+            questions, user_question_forecasts_map
+        )
+    except Exception:
+        logger.exception("Failed to calculate user forecast movement")
+        question_movement_map = {}
 
     return [
         {

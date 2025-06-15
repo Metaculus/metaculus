@@ -154,10 +154,10 @@ def calculate_aggregation_entry(
         )
         aggregation = AggregateForecast(forecast_values=normalized_medians.tolist())
 
+    aggregation.start_time = forecast_set.timestep
+    aggregation.forecaster_count = len(forecast_set.forecasts_values)
     if include_stats:
         forecasts_values = np.array(forecast_set.forecasts_values)
-        aggregation.start_time = forecast_set.timestep
-        aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if question_type in [
             Question.QuestionType.BINARY,
             Question.QuestionType.MULTIPLE_CHOICE,

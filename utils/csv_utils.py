@@ -451,7 +451,7 @@ def generate_data(
                 )
                 if aggregate_forecast.question.type == Question.QuestionType.DATE:
                     scaled_location = datetime.datetime.fromtimestamp(
-                        val, datetime.timezone.utc
+                        scaled_location, datetime.timezone.utc
                     ).strftime("%Y-%m-%d")
                 continuous_columns.append(scaled_location)
             row.extend(continuous_columns)

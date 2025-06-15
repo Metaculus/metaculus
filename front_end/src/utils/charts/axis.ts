@@ -298,6 +298,7 @@ type GenerateScaleParams = {
   inboundOutcomeCount?: number | null;
   question?: Question | GraphingQuestionProps;
   forceTickCount?: number;
+  alwaysShowTicks?: boolean;
 };
 
 /**
@@ -400,6 +401,7 @@ export function generateScale({
   inboundOutcomeCount,
   question,
   forceTickCount,
+  alwaysShowTicks,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -611,8 +613,9 @@ export function generateScale({
       );
     }
   }
+
   function tickFormat(x: number, idx?: number) {
-    if (majorTicks.includes(Math.round(x * 10000) / 10000)) {
+    if (alwaysShowTicks || majorTicks.includes(Math.round(x * 10000) / 10000)) {
       if (displayType === QuestionType.Discrete) {
         return conditionallyShowUnit(
           getPredictionDisplayValue(x, {

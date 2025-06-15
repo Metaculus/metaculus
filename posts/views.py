@@ -50,8 +50,8 @@ from questions.serializers.common import QuestionApproveSerializer
 from utils.csv_utils import export_data_for_questions
 from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
-from utils.views import validate_data_request
 from utils.tasks import email_data_task
+from utils.views import validate_data_request
 
 spam_error = ValidationError(
     detail="This post seems to be spam. Please contact "
@@ -69,6 +69,9 @@ def posts_list_api_view(request):
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("with_cp")
+    )
+    include_descriptions = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_descriptions", True)
     )
     group_cutoff = (
         serializers.IntegerField(
@@ -91,6 +94,7 @@ def posts_list_api_view(request):
         current_user=request.user,
         group_cutoff=group_cutoff,
         with_key_factors=True,
+        include_descriptions=include_descriptions,
     )
 
     return paginator.get_paginated_response(data)
@@ -165,6 +169,7 @@ def posts_list_oldapi_view(request):
         posts,
         with_cp=True,
         current_user=request.user,
+        include_descriptions=True,
     )
 
     # Given we limit the feed to binary questions, we expect each post to have a question with a description
@@ -211,6 +216,7 @@ def post_detail(request: Request, pk):
         with_cp=with_cp,
         with_subscriptions=True,
         with_key_factors=True,
+        include_descriptions=True,
     )
 
     if not posts:
