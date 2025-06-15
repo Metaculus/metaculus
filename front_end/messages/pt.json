@@ -1372,10 +1372,5 @@
   "deployMetaculusPlatform": "Implante a plataforma Metaculus dentro de sua organização para obter insights e combinar perfeitamente o conhecimento e a expertise de toda a sua equipe.",
   "engageProForecasters": "Envolva Metaculus Pro Forecasters nas perguntas que mais importam para você, seja em sua instância privada ou em perguntas lançadas no Metaculus.",
   "weHelpOrganizationsSolve": "Ajudamos as organizações a resolver desafios complexos—seja prevendo tendências de doenças respiratórias com o CDC ou revelando talentos excepcionais para a Bridgewater.",
-  "proForecastersHeaderSecondParagraph": "Os Pro Forecastadores oferecem previsões calibradas acompanhadas de um raciocínio claro, capacitando os tomadores de decisão a agir com confiança.",
-  "totalLiveCoverage": "Cobertura Ao Vivo Total",
-  "predictedQuestions": "Perguntas Previstas",
-  "coverageInfo": "Sua <link>cobertura</link> nessa pergunta. Se a pergunta ainda não foi resolvida, este é o tempo de vida da pergunta que você cobriu até agora. Este é um valor ao vivo e mudará com o tempo e poderá saltar quando a pergunta for resolvida.",
-  "predictedQuestionsInfo": "O número de perguntas resolvidas e abertas que você previu neste torneio.",
-  "totalLiveCoverageInfo": "A quantidade total de cobertura ao vivo que você tem no torneio. Esta é a soma das suas coberturas ao vivo dividida pelo número de perguntas resolvidas e abertas. Se todas as perguntas fossem resolvidas agora, você teria essa quantidade de cobertura no torneio."
+  "proForecastersHeaderSecondParagraph": "Os Pro Forecastadores oferecem previsões calibradas acompanhadas de um raciocínio claro, capacitando os tomadores de decisão a agir com confiança."
 }

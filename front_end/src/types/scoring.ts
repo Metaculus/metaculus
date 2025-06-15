@@ -100,7 +100,6 @@ type BaseLeaderboardDetails = {
   end_time: string | null;
   finalize_time: string;
   prize_pool: number | null;
-  max_coverage?: number;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {
