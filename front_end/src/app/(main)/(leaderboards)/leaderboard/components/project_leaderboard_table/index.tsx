@@ -38,10 +38,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
     setStep((prev) => (isNil(prev) ? prev : prev * 10));
   };
 
-  const maxCoverage =
-    leaderboardDetails.score_type === "relative_legacy_tournament"
-      ? undefined
-      : leaderboardDetails.max_coverage;
+  const withCoverage =
+    leaderboardDetails.score_type === "relative_legacy_tournament";
 
   return (
     <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -55,15 +53,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
               {t("forecaster")}
             </TableHeader>
             <TableHeader className="text-right">{t("totalScore")}</TableHeader>
-            {isAdvanced && (
-              <>
-                <TableHeader className=" text-right">
-                  {t("questions")}
-                </TableHeader>
-                <TableHeader className="text-right">
-                  {t("coverage")}
-                </TableHeader>
-              </>
+            {isAdvanced && withCoverage && (
+              <TableHeader className="text-right">{t("coverage")}</TableHeader>
             )}
             {!!leaderboardDetails.prize_pool && (
               <>
@@ -91,7 +82,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               }
               rowEntry={leaderboardDetails.userEntry}
               userId={userId}
-              maxCoverage={maxCoverage}
+              withCoverage={withCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
               isAdvanced={isAdvanced}
             />
@@ -101,7 +92,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               key={entry.user?.id ?? entry.aggregation_method}
               rowEntry={entry}
               userId={userId}
-              maxCoverage={maxCoverage}
+              withCoverage={withCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
               isAdvanced={isAdvanced}
             />

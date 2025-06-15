@@ -11,7 +11,7 @@ import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregati
 
 type Props = {
   rowEntry: LeaderboardEntry;
-  maxCoverage?: number;
+  withCoverage?: boolean;
   userId?: number;
   withPrizePool?: boolean;
   isAdvanced?: boolean;
@@ -19,7 +19,7 @@ type Props = {
 
 const TableRow: FC<Props> = ({
   rowEntry,
-  maxCoverage,
+  withCoverage = false,
   userId,
   withPrizePool = true,
   isAdvanced = false,
@@ -32,18 +32,12 @@ const TableRow: FC<Props> = ({
     score,
     excluded,
     coverage,
-    contribution_count,
     take,
     percent_prize,
     prize,
   } = rowEntry;
   const highlight = user?.id === userId || excluded;
   const t = useTranslations();
-  const coveragePercent = coverage
-    ? maxCoverage
-      ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
-      : (coverage * 100).toFixed(1) + "%"
-    : "-";
 
   return (
     <tr>
@@ -77,15 +71,10 @@ const TableRow: FC<Props> = ({
       <Td className="text-right tabular-nums" highlight={highlight}>
         {score.toFixed(3)}
       </Td>
-      {isAdvanced && (
-        <>
-          <Td className="text-right tabular-nums" highlight={highlight}>
-            {contribution_count ? `${contribution_count.toFixed(0)}` : "-"}
-          </Td>
-          <Td className="text-right tabular-nums" highlight={highlight}>
-            {coveragePercent}
-          </Td>
-        </>
+      {isAdvanced && withCoverage && (
+        <Td className="text-right tabular-nums" highlight={highlight}>
+          {coverage ? `${(coverage * 100).toFixed(0)}%` : "-"}
+        </Td>
       )}
       {withPrizePool && (
         <>
