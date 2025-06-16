@@ -164,6 +164,9 @@ export type AggregateForecastHistory = {
 
 export type Aggregations = {
   recency_weighted: AggregateForecastHistory;
+  unweighted?: AggregateForecastHistory;
+  single_aggregation?: AggregateForecastHistory;
+  metaculus_prediction?: AggregateForecastHistory;
 };
 
 export type BaseForecast = {
