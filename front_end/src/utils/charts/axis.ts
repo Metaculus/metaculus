@@ -451,6 +451,9 @@ export function generateScale({
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
   if (displayType === QuestionType.Discrete) {
+    // Discrete Scaling
+    // Try and label as many ticks as possible
+    // Ticks line up with the middle of the buckets
     const tickCount =
       forceTickCount ??
       inbound_outcome_count +
@@ -474,6 +477,9 @@ export function generateScale({
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
     // Linear Scaling
+    // Typical scaling, evenly spaced ticks
+    // choose optimal tick count to minimize the number
+    // of significant digits in the tick labels
     const majorTickCount = forceTickCount
       ? forceTickCount
       : findOptimalTickCount(
@@ -509,7 +515,10 @@ export function generateScale({
     );
   } else {
     // Logarithmic Scaling
-    // choose the number of ticks to display
+    // Labeled ticks are not spaced evenly, but rather rounded to the nearby
+    // values that have the fewest significant digits
+    // Then, minor ticks are spaced evenly in real space, showcasing the
+    // strength of the logarithmic scaling
     const tickCount = forceTickCount
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
@@ -629,94 +638,94 @@ export function generateScale({
     );
   }
 
-  if (direction === "horizontal") {
-    // Debugging - do not remove
-    console.log(
-      "\n displayType",
-      displayType,
-      "\n axisLength",
-      axisLength,
-      "\n direction",
-      direction,
-      "\n domain",
-      domain,
-      "\n zoomedDomain",
-      zoomedDomain,
-      "\n scaling",
-      scaling,
-      "\n unit",
-      unit,
-      "\n shortLabels",
-      shortLabels,
-      "\n adjustLabels",
-      adjustLabels,
-      "\n inboundOutcomeCount",
-      inboundOutcomeCount,
-      "\n question",
-      question,
-      "\n forceTickCount",
-      forceTickCount,
-      "\n alwaysShowTicks",
-      alwaysShowTicks,
-      "\n",
-      "\n domainMin",
-      domainMin,
-      "\n domainMax",
-      domainMax,
-      "\n domainScaling",
-      domainScaling,
-      "\n rangeMin",
-      rangeMin,
-      "\n rangeMax",
-      rangeMax,
-      "\n zeroPoint",
-      zeroPoint,
-      "\n inbound_outcome_count",
-      inbound_outcome_count,
-      "\n rangeScaling",
-      rangeScaling,
-      "\n zoomedDomainMin",
-      zoomedDomainMin,
-      "\n zoomedDomainMax",
-      zoomedDomainMax,
-      "\n",
-      "\n maxLabelCount",
-      maxLabelCount,
-      // "\n zoomedRange",
-      // zoomedRange,
-      // "\n minorRes",
-      // minorRes,
-      // "\n majorRes",
-      // majorRes,
-      // "\n minorTickInterval",
-      // minorTickInterval,
-      // "\n tickStart",
-      // tickStart,
-      // "\n tickEnd",
-      // tickEnd,
-      // "\n unscaledTargets",
-      // unscaledTargets,
-      // "\n scaledTargets",
-      // scaledTargets,
-      // "\n roundedScaledTargets",
-      // roundedScaledTargets,
-      // "\n minorTicksPerMajorInterval",
-      // minorTicksPerMajorInterval,
-      // "\n majorTickStart",
-      // majorTickStart,
-      // "\n majorTickInterval",
-      // majorTickInterval,
-      "\n minorTicks",
-      minorTicks,
-      "\n majorTicks",
-      majorTicks,
-      "\n",
-      "\n discreteValueOptions:",
-      discreteValueOptions,
-      "\n tick labels:",
-      minorTicks.map((x) => tickFormat(x))
-    );
-  }
+  // if (direction === "horizontal") {
+  //   // Debugging - do not remove
+  //   console.log(
+  //     "\n displayType",
+  //     displayType,
+  //     "\n axisLength",
+  //     axisLength,
+  //     "\n direction",
+  //     direction,
+  //     "\n domain",
+  //     domain,
+  //     "\n zoomedDomain",
+  //     zoomedDomain,
+  //     "\n scaling",
+  //     scaling,
+  //     "\n unit",
+  //     unit,
+  //     "\n shortLabels",
+  //     shortLabels,
+  //     "\n adjustLabels",
+  //     adjustLabels,
+  //     "\n inboundOutcomeCount",
+  //     inboundOutcomeCount,
+  //     "\n question",
+  //     question,
+  //     "\n forceTickCount",
+  //     forceTickCount,
+  //     "\n alwaysShowTicks",
+  //     alwaysShowTicks,
+  //     "\n",
+  //     "\n domainMin",
+  //     domainMin,
+  //     "\n domainMax",
+  //     domainMax,
+  //     "\n domainScaling",
+  //     domainScaling,
+  //     "\n rangeMin",
+  //     rangeMin,
+  //     "\n rangeMax",
+  //     rangeMax,
+  //     "\n zeroPoint",
+  //     zeroPoint,
+  //     "\n inbound_outcome_count",
+  //     inbound_outcome_count,
+  //     "\n rangeScaling",
+  //     rangeScaling,
+  //     "\n zoomedDomainMin",
+  //     zoomedDomainMin,
+  //     "\n zoomedDomainMax",
+  //     zoomedDomainMax,
+  //     "\n",
+  //     "\n maxLabelCount",
+  //     maxLabelCount,
+  //     // "\n zoomedRange",
+  //     // zoomedRange,
+  //     // "\n minorRes",
+  //     // minorRes,
+  //     // "\n majorRes",
+  //     // majorRes,
+  //     // "\n minorTickInterval",
+  //     // minorTickInterval,
+  //     // "\n tickStart",
+  //     // tickStart,
+  //     // "\n tickEnd",
+  //     // tickEnd,
+  //     // "\n unscaledTargets",
+  //     // unscaledTargets,
+  //     // "\n scaledTargets",
+  //     // scaledTargets,
+  //     // "\n roundedScaledTargets",
+  //     // roundedScaledTargets,
+  //     // "\n minorTicksPerMajorInterval",
+  //     // minorTicksPerMajorInterval,
+  //     // "\n majorTickStart",
+  //     // majorTickStart,
+  //     // "\n majorTickInterval",
+  //     // majorTickInterval,
+  //     "\n minorTicks",
+  //     minorTicks,
+  //     "\n majorTicks",
+  //     majorTicks,
+  //     "\n",
+  //     "\n discreteValueOptions:",
+  //     discreteValueOptions,
+  //     "\n tick labels:",
+  //     minorTicks.map((x) => tickFormat(x))
+  //   );
+  // }
 
   return {
     ticks: minorTicks,
