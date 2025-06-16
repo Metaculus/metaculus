@@ -63,6 +63,11 @@ def serialize_question_aggregations(
     full_forecast_values: bool = False,
     minimize: bool = True,
 ) -> dict:
+    """
+    Serializes questions aggregations.
+    Please note: aggregate_forecasts need to be in "start_time" ascending order!
+    """
+
     # Aggregations available to the users
     # But in real life we only pass "RECENCY_WEIGHTED" aggregation
     aggregations = [
