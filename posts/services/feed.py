@@ -37,7 +37,6 @@ def get_posts_feed(
     public_figure: Project = None,
     news_type: Project = None,
     curation_status: Post.CurationStatus = None,
-    notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
     withdrawn: bool = None,
@@ -110,9 +109,6 @@ def get_posts_feed(
 
     if curation_status:
         qs = qs.filter(curation_status=curation_status)
-
-    if notebook_type:
-        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()

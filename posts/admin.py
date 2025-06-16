@@ -139,7 +139,6 @@ class PostAdmin(CustomTranslationAdmin):
 class NotebookAdmin(CustomTranslationAdmin):
     list_display = [
         "title",
-        "type",
         "author",
         "curation_status",
         "published_at",

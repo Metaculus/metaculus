@@ -50,7 +50,6 @@ class NotebookSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "markdown",
-            "type",
             "image_url",
             "created_at",
             "edited_at",
@@ -107,7 +106,6 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
-            "type",
             "image_url",
         )
 
@@ -199,9 +197,6 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     order_by = serializers.CharField(required=False, allow_null=True)
     curation_status = serializers.ChoiceField(
         required=False, choices=Post.CurationStatus.choices
-    )
-    notebook_type = serializers.ChoiceField(
-        choices=Notebook.NotebookType.choices, required=False, allow_null=True
     )
     news_type = serializers.CharField(required=False)
     public_figure = serializers.CharField(required=False)
