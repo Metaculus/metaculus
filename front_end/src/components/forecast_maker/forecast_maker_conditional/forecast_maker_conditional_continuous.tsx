@@ -57,7 +57,6 @@ import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
 import ContinuousInput from "../continuous_input";
-import WithdrawButton from "../withdraw/withdraw_button";
 import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
@@ -71,6 +70,7 @@ import {
 } from "../helpers";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   postId: number;

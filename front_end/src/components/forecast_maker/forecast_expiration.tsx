@@ -430,7 +430,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
         kind: "date",
         value: add(new Date(), {
           seconds: userDefaultExpirationDurationSec,
-        })!,
+        }),
       },
     });
   };
