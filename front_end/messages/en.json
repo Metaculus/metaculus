@@ -1370,5 +1370,7 @@
   "deployMetaculusPlatform": "Deploy the Metaculus platform within your organization to surface insights and seamlessly combine the knowledge and expertise from across your team.",
   "engageProForecasters": "Engage Metaculus Pro Forecasters on the questions that you care about most, whether on your private instance or on questions launched on Metaculus.",
   "weHelpOrganizationsSolve": "We help organizations solve complex challenges—whether it's forecasting respiratory disease trends with CDC or surfacing exceptional talent for Bridgewater.",
-  "proForecastersHeaderFirstParagraph": "With more than 11,000 resolved questions, Metaculus has the data to spot forecasting excellence and the power to put proven forecasting experts to work on your most important challenges."
+  "proForecastersHeaderFirstParagraph": "With more than 11,000 resolved questions, Metaculus has the data to spot forecasting excellence and the power to put proven forecasting experts to work on your most important challenges.",
+  "CPMovementChangeLabel": "{value} this {period}",
+  "withdrawConfirmation": "Are you sure you want to withdraw? You will still be scored on your previous predictions in this question."
 }

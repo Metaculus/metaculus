@@ -1374,5 +1374,6 @@
   "deployMetaculusPlatform": "Nasadit platformu Metaculus ve vaší organizaci, abyste odhalili poznatky a bezproblémově spojili znalosti a odbornost z vašeho týmu.",
   "engageProForecasters": "Zapojte profesionální předpovídače Metaculus do otázek, na kterých vám nejvíce záleží, ať už na vaší soukromé instanci nebo na otázkách spuštěných na Metaculu.",
   "weHelpOrganizationsSolve": "Pomáháme organizacím řešit složité výzvy—ať už se jedná o předpovídání trendů respiračních chorob s CDC nebo odhalování výjimečných talentů pro Bridgewater.",
-  "proForecastersHeaderSecondParagraph": "Profesionální prognostici poskytují kalibrované předpovědi spojené s jasným odůvodněním, čímž umožňují rozhodovacím osobám jednat s důvěrou."
+  "proForecastersHeaderSecondParagraph": "Profesionální prognostici poskytují kalibrované předpovědi spojené s jasným odůvodněním, čímž umožňují rozhodovacím osobám jednat s důvěrou.",
+  "withdrawConfirmation": "Opravdu chcete odstoupit? Za vaše předchozí předpovědi u této otázky budete stále bodováni."
 }
