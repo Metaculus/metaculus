@@ -602,6 +602,8 @@ const ContinuousAreaChart: FC<Props> = ({
               tickLabels: {
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
+                  // except for discrete questions, whose first and last ticks are not
+                  // at the edges of the chart
                   index === 0 && question.type !== QuestionType.Discrete
                     ? "start"
                     : index === ticks.length - 1 &&
