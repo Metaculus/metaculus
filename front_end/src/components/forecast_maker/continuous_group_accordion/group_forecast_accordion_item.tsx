@@ -54,6 +54,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
       scaling: question.scaling,
       unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
+      sigfigs: 6,
     });
     const isLargeScreen = useBreakpoint("sm");
     const showUserPrediction = hasUserForecast || isDirty;
