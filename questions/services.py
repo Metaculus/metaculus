@@ -883,6 +883,7 @@ def update_forecast_notification(
         )
 
 
+@sentry_sdk.trace
 def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None):
     if not group_cutoff:
         return questions
