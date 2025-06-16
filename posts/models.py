@@ -31,6 +31,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
+from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -109,11 +110,15 @@ class PostQuerySet(models.QuerySet):
                     [
                         Prefetch(
                             f"{rel}__scores",
-                            Score.objects.filter(aggregation_method__isnull=False),
+                            Score.objects.filter(
+                                aggregation_method=AggregationMethod.RECENCY_WEIGHTED
+                            ),
                         ),
                         Prefetch(
                             f"{rel}__archived_scores",
-                            Score.objects.filter(aggregation_method__isnull=False),
+                            Score.objects.filter(
+                                aggregation_method=AggregationMethod.RECENCY_WEIGHTED
+                            ),
                         ),
                     ]
                     for rel in question_relations

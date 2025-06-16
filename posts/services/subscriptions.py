@@ -21,7 +21,7 @@ from notifications.services import (
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, Direction
 from questions.utils import get_last_forecast_in_the_past
 from users.models import User
 from utils.models import ArrayLength
@@ -32,7 +32,6 @@ from utils.the_math.formulas import (
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
     get_difference_display,
-    Direction,
 )
 
 

@@ -100,6 +100,8 @@ class PostsApi extends ApiService {
       ...(params ?? {}),
       with_cp: true,
       include_descriptions: false,
+      include_cp_history: true,
+      include_movements: true,
     });
 
     return await this.get<PaginatedPayload<PostWithForecasts>>(
