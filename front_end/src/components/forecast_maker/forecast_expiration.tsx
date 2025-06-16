@@ -352,9 +352,8 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const { user } = useAuth();
 
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
-  const userDefaultExpirationDurationSec = userExpirationPercent
-    ? ((userExpirationPercent / 100) * questionDuration) / 1000
-    : null;
+  const userDefaultExpirationDurationSec =
+    (((userExpirationPercent ?? 10) / 100) * questionDuration) / 1000;
 
   // intervalToDuration is needed so the duration will contain all units
   const userDefaultExpirationDuration = userDefaultExpirationDurationSec
@@ -423,6 +422,19 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     });
   };
 
+  const onAccountOptionSelected = () => {
+    setCurrentState({
+      ...currentState,
+      option: "account",
+      forecastExpiration: {
+        kind: "date",
+        value: add(new Date(), {
+          seconds: userDefaultExpirationDurationSec,
+        })!,
+      },
+    });
+  };
+
   const onNeverExpiresSelected = () => {
     setCurrentState({
       ...currentState,
@@ -462,9 +474,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
 
         <div
           className={optionClasses(currentState.option === "account")}
-          onClick={() => {
-            setCurrentState({ ...currentState, option: "account" });
-          }}
+          onClick={onAccountOptionSelected}
         >
           <div className="flex items-center gap-2.5 lg:items-start">
             <span className="flex h-4 w-4 items-center justify-center">
