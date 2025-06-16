@@ -71,7 +71,7 @@ def posts_list_api_view(request):
         request.query_params.get("with_cp")
     )
     include_descriptions = serializers.BooleanField(allow_null=True).run_validation(
-        request.query_params.get("include_descriptions")
+        request.query_params.get("include_descriptions", True)
     )
     include_cp_history = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("include_cp_history")

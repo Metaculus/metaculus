@@ -100,6 +100,7 @@ class PostsApi extends ApiService {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
+      include_descriptions: false,
       include_cp_history: true,
       include_movements: true,
     });

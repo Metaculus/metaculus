@@ -270,7 +270,7 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
             case UserSpamActivity.SpamContentType.COMMENT:
                 url = f"/admin/comments/comment/{obj.content_id}/change/"
             case UserSpamActivity.SpamContentType.QUESTION:
-                url = f"/admin/questions/question/{obj.content_id}/change/"
+                url = f"/admin/posts/post/{obj.content_id}/change/"
             case UserSpamActivity.SpamContentType.NOTEBOOK:
                 url = f"/admin/posts/notebook/{obj.content_id}/change/"
             case _:
