@@ -1,5 +1,4 @@
 import numpy as np
-from django.db.models import TextChoices
 
 from questions.models import Question, AggregateForecast
 from questions.types import Direction
