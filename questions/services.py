@@ -1023,7 +1023,7 @@ def calculate_period_movement_for_questions(
 
         # Step 2: find First and Last AggregateForecast for each question
         for question in questions:
-            delta = compare_periods_map[question]
+            delta = compare_periods_map.get(question)
             aggregated_forecasts = question_aggregated_forecasts_map.get(question)
 
             if not delta or not aggregated_forecasts:
@@ -1094,7 +1094,7 @@ def calculate_movement_for_questions(
 
     return calculate_period_movement_for_questions(
         questions,
-        {q: get_question_movement_period(q) for q in questions},
+        {q: get_question_movement_period(q) for q in questions if q.open_time},
         threshold=0,
     )
 
