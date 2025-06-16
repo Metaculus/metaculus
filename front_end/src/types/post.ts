@@ -7,7 +7,7 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Community, Tournament } from "./projects";
+import { Community, NewsCategory, Tournament } from "./projects";
 
 export type Resolution =
   | "yes"
@@ -133,6 +133,7 @@ type BasePost = {
     tag?: Tag[];
     community?: Community[];
     index?: Tournament[];
+    news_category?: NewsCategory[];
   };
   title: string;
   short_title: string;
