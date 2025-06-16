@@ -38,10 +38,9 @@ export type PostsParams = PaginationParams & {
   community?: string;
   for_main_feed?: string;
   ids?: number[];
-  news_type?: string;
+  news_type?: string | string[];
   public_figure?: number;
   curation_status?: string;
-  notebook_type?: string;
   similar_to_post_id?: number;
   default_project_id?: string;
 };
