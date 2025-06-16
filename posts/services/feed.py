@@ -35,7 +35,7 @@ def get_posts_feed(
     access: PostFilterSerializer.Access = None,
     ids: list[int] = None,
     public_figure: Project = None,
-    news_type: Project = None,
+    news_type: list[Project] = None,
     curation_status: Post.CurationStatus = None,
     usernames: list[str] = None,
     forecaster_id: int = None,

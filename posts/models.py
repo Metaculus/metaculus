@@ -458,7 +458,6 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
 
 class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     markdown = models.TextField()
-    news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
     def __str__(self):
