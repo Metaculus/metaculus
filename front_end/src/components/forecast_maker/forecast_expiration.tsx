@@ -569,7 +569,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 {/* Always render input but conditionally show the date display */}
                 <input
                   ref={dateInputRef}
-                  type="datetime-local"
+                  type="date"
                   className="absolute left-0 top-0 opacity-0"
                   min={new Date(
                     Date.now() - new Date().getTimezoneOffset() * 60000
