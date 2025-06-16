@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import cast, TypedDict, Iterable
+from typing import cast, Iterable
 
 import sentry_sdk
 from django.db import transaction

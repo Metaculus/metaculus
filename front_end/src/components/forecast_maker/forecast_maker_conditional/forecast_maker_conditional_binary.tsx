@@ -31,7 +31,6 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
-import WithdrawButton from "../withdraw/withdraw_button";
 import {
   ForecastExpirationModal,
   forecastExpirationToDate,
@@ -40,6 +39,7 @@ import {
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   postId: number;
