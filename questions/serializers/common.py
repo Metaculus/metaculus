@@ -19,6 +19,7 @@ from questions.models import Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
+from questions.services import QuestionMovement
 from questions.types import AggregationMethod
 from users.models import User
 from utils.the_math.formulas import (
@@ -567,7 +568,7 @@ def serialize_question(
     full_forecast_values: bool = False,
     minimize: bool = True,
     include_descriptions: bool = False,
-    question_movement: dict = None,
+    question_movement: QuestionMovement | None = None,
 ):
     """
     Serializes question object
@@ -651,7 +652,7 @@ def serialize_conditional(
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
-    question_movements: dict[Question, AggregateForecast] = None,
+    question_movements: dict[Question, QuestionMovement | None] = None,
 ):
     question_movements = question_movements or {}
 
@@ -709,7 +710,7 @@ def serialize_group(
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
-    question_movements: dict[Question, AggregateForecast] = None,
+    question_movements: dict[Question, QuestionMovement | None] = None,
 ):
     question_movements = question_movements or {}
 

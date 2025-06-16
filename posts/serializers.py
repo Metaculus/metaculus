@@ -34,7 +34,7 @@ from questions.services import (
     get_aggregated_forecasts_for_questions,
     get_user_last_forecasts_map,
     calculate_movement_for_questions,
-    calculate_period_movement_for_questions,
+    calculate_period_movement_for_questions, QuestionMovement,
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
@@ -333,7 +333,7 @@ def serialize_post(
     key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
     include_descriptions: bool = False,
-    question_movements: dict[Question, AggregateForecast] = None,
+    question_movements: dict[Question, QuestionMovement | None] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
