@@ -430,7 +430,9 @@ export function generateScale({
   // determine the number of ticks to label
   // based on the axis length and direction
   let maxLabelCount: number;
-  if (axisLength < 100) {
+  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+    maxLabelCount = Math.min(33, inbound_outcome_count + 2);
+  } else if (axisLength < 100) {
     maxLabelCount = direction === "horizontal" ? 2 : 3;
   } else if (axisLength < 150) {
     maxLabelCount = direction === "horizontal" ? 3 : 5;
@@ -446,101 +448,40 @@ export function generateScale({
     maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
 
-  // choose the number of ticks to display
-  let tickCount: number;
-  if (forceTickCount) {
-    tickCount = forceTickCount;
-  } else if (displayType === QuestionType.Discrete) {
-    tickCount = inbound_outcome_count
-      ? 2 + inbound_outcome_count
-      : (maxLabelCount - 1) * 5 + 1;
-  } else {
-    tickCount = (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
-  }
-
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
-  if (isNil(zeroPoint)) {
-    // // TODO: this does not support choosing values intelligently in
-    // // real scaling. The y-axis is always a domain of 0-1 with
-    // // linear scaling as that is the native format for the
-    // // forecast data. To get this to intelligently choose ticks and
-    // // labels, this operation will have to be done in the real
-    // // scaling first, then transformed back into the domain scale.
-    // const zoomedRange = zoomedDomainMax - zoomedDomainMin;
-    // let minorRes: number = 1;
-    // let majorRes: number = 1;
-    // let minorTickInterval: number;
-    // let tickStart: number;
-    // let tickEnd: number;
-    // let majorTickStart: number;
-    // let majorTickInterval: number;
+  if (displayType === QuestionType.Discrete) {
+    const tickCount =
+      forceTickCount ??
+      inbound_outcome_count +
+        (question?.open_lower_bound ? 1 : 0) +
+        (question?.open_upper_bound ? 1 : 0);
 
-    // if (displayType === QuestionType.Discrete) {
-    //   // First and last ticks are 1/2 a bucket width away from the
-    //   // boarders
-    //   tickStart = Math.round(1e7 * (-0.5 / (tickCount - 2))) / 1e7;
-    //   tickEnd = Math.round(1e7 * (1 + 0.5 / (tickCount - 2))) / 1e7;
-    //   minorTickInterval = Math.round(1e9 / (tickCount - 2)) / 1e9;
-    //   minorTicks = range(tickStart, tickEnd + 1e-4, minorTickInterval).map(
-    //     (x) => Math.round(x * 10000) / 10000
-    //   );
-    //   majorTickStart = tickStart;
-    //   majorTickInterval =
-    //     minorTickInterval *
-    //     Math.max(1, Math.round((tickCount - 2) / maxLabelCount));
-    //   majorTicks = range(majorTickStart, tickEnd + 1e-4, majorTickInterval).map(
-    //     (x) => Math.round(x * 10000) / 10000
-    //   );
-    //   if (!(majorTicks.at(-1) === tickEnd)) {
-    //     majorTicks.push(tickEnd);
-    //   }
-    // } else {
-    //   if (zoomedRange > 0.7) {
-    //     minorRes = 0.02; // only tick on multiples of 0.05
-    //     majorRes = 0.1; // only label on multiples of 0.25
-    //   } else if (zoomedRange > 0.5) {
-    //     minorRes = 0.005; // only tick on multiples of 0.025
-    //     majorRes = 0.05; // only label on multiples of 0.10
-    //   } else if (zoomedRange > 0.1) {
-    //     minorRes = 0.005; // only tick on multiples of 0.01
-    //     majorRes = 0.025; // only label on multiples of 0.05
-    //   } else if (zoomedRange > 0.05) {
-    //     minorRes = 0.002; // only tick on multiples of 0.005
-    //     majorRes = 0.01; // only label on multiples of 0.025
-    //   } else {
-    //     minorRes = 0.001; // only tick on multiples of 0.0025
-    //     majorRes = 0.005; // only label on multiples of 0.01
-    //   }
+    const bucketCount = tickCount - 2;
+    const halfBucket = 0.5 / bucketCount;
+    const tickStart = question?.open_lower_bound ? -halfBucket : halfBucket;
+    const tickEnd = 1 + (question?.open_upper_bound ? halfBucket : -halfBucket);
 
-    //   minorTickInterval =
-    //     Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
-    //   tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
-    //   tickEnd =
-    //     Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
-    //     minorRes *
-    //     1.001;
-    //   minorTicks = range(tickStart, tickEnd, minorTickInterval).map(
-    //     (x) => Math.round(x * 10000) / 10000
-    //   );
-
-    //   majorTickInterval =
-    //     Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
-    //   majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
-    //   majorTicks = range(majorTickStart, tickEnd, majorTickInterval).map(
-    //     (x) => Math.round(x * 10000) / 10000
-    //   );
-    // }
-    //
-    //
-    //
-    // Linear Scaling
-    const majorTickCount = findOptimalTickCount(
-      rangeMin,
-      rangeMax,
-      Math.ceil(maxLabelCount / 2),
-      maxLabelCount
+    minorTicks = range(tickStart, tickEnd + 1e-4, 1 / bucketCount).map(
+      (x) => Math.round(x * 10000) / 10000
     );
+
+    const step =
+      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / bucketCount;
+    majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
+      (x) => Math.round(x * 10000) / 10000
+    );
+    majorTicks.push(minorTicks.at(-1) ?? 1);
+  } else if (isNil(zeroPoint)) {
+    // Linear Scaling
+    const majorTickCount = forceTickCount
+      ? forceTickCount
+      : findOptimalTickCount(
+          rangeMin,
+          rangeMax,
+          Math.ceil(maxLabelCount / 2),
+          maxLabelCount
+        );
     majorTicks = range(0, majorTickCount).map(
       (i) =>
         Math.round(
@@ -551,11 +492,13 @@ export function generateScale({
     );
     const minorTicksPerMajor = findOptimalTickCount(
       rangeMin,
-      rangeMin + (rangeMax - rangeMin) * majorTicks[1],
+      rangeMin + (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTickCount),
       direction === "horizontal" ? 4 : 2,
       direction === "horizontal" ? 10 : 5
     );
-    const minorTickCount = (majorTickCount - 1) * minorTicksPerMajor;
+    const minorTickCount = forceTickCount
+      ? forceTickCount
+      : (majorTickCount - 1) * minorTicksPerMajor;
     minorTicks = range(0, minorTickCount + 1).map(
       (i) =>
         Math.round(
@@ -566,6 +509,10 @@ export function generateScale({
     );
   } else {
     // Logarithmic Scaling
+    // choose the number of ticks to display
+    const tickCount = forceTickCount
+      ? forceTickCount
+      : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
     const unscaledTargets = Array.from(
       { length: maxLabelCount },
       (_, i) =>
@@ -584,8 +531,8 @@ export function generateScale({
     minorTicks = majorTicks.map((x) => x);
     // Logarithmic Scaling
     range(0, roundedScaledTargets.length - 1).forEach((i) => {
-      const prevMajor = roundedScaledTargets[i];
-      const nextMajor = roundedScaledTargets[i + 1];
+      const prevMajor = roundedScaledTargets.at(i) ?? 0;
+      const nextMajor = roundedScaledTargets.at(i + 1) ?? 1;
       const step = (nextMajor - prevMajor) / minorTicksPerMajorInterval;
       for (let j = 0; j < minorTicksPerMajorInterval - 1; j++) {
         const newMinorTick = prevMajor + (j + 1) * step;
@@ -682,7 +629,7 @@ export function generateScale({
     );
   }
 
-  if (displayType === "numeric" && direction === "vertical") {
+  if (direction === "horizontal") {
     // Debugging - do not remove
     console.log(
       "\n displayType",
@@ -709,6 +656,8 @@ export function generateScale({
       question,
       "\n forceTickCount",
       forceTickCount,
+      "\n alwaysShowTicks",
+      alwaysShowTicks,
       "\n",
       "\n domainMin",
       domainMin,
@@ -733,8 +682,6 @@ export function generateScale({
       "\n",
       "\n maxLabelCount",
       maxLabelCount,
-      "\n tickCount",
-      tickCount,
       // "\n zoomedRange",
       // zoomedRange,
       // "\n minorRes",
@@ -755,19 +702,19 @@ export function generateScale({
       // roundedScaledTargets,
       // "\n minorTicksPerMajorInterval",
       // minorTicksPerMajorInterval,
-      "\n minorTicks",
-      minorTicks,
       // "\n majorTickStart",
       // majorTickStart,
       // "\n majorTickInterval",
       // majorTickInterval,
+      "\n minorTicks",
+      minorTicks,
       "\n majorTicks",
       majorTicks,
       "\n",
       "\n discreteValueOptions:",
       discreteValueOptions,
-      "\n major tick labels:",
-      majorTicks.map((x) => tickFormat(x))
+      "\n tick labels:",
+      minorTicks.map((x) => tickFormat(x))
     );
   }
 
