@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
-from posts.models import Notebook, Post
+from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import (
     perform_post_search,
