@@ -34,7 +34,8 @@ from questions.services import (
     get_aggregated_forecasts_for_questions,
     get_user_last_forecasts_map,
     calculate_movement_for_questions,
-    calculate_period_movement_for_questions, QuestionMovement,
+    calculate_period_movement_for_questions,
+    QuestionMovement,
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
@@ -518,7 +519,7 @@ def serialize_post_many(
             key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
             include_descriptions=include_descriptions,
-            question_movements=question_movements
+            question_movements=question_movements,
         )
         for post in posts
     ]

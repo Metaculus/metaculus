@@ -851,7 +851,7 @@ def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None
         .distinct("question_id")
         .values_list("question_id", "centers")
     )
-    recently_weighted = dict(qs)
+    recency_weighted = dict(qs)
     grouped = defaultdict(list)
 
     for q in questions:
@@ -869,7 +869,7 @@ def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None
         """
         Extracts question aggregation forecast value
         """
-        centers = recently_weighted.get(q.id)
+        centers = recency_weighted.get(q.id)
 
         if not centers:
             return 0
@@ -938,7 +938,11 @@ def get_aggregated_forecasts_for_questions(
     questions = list(questions)
     question_map = {q.pk: q for q in questions}
     if aggregated_forecast_qs is None:
-        aggregated_forecast_qs = AggregateForecast.objects.all()
+        aggregated_forecast_qs = AggregateForecast.objects.filter(
+            method__in=[
+                AggregationMethod.RECENCY_WEIGHTED,
+            ],
+        )
 
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 

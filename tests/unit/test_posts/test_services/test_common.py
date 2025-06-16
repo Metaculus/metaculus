@@ -238,5 +238,5 @@ def test_get_aggregated_forecasts_for_questions__manual_ordering(user1):
     # Ensure cutoff took only first 2 questions ordered by group_rank
     assert len(aggregated_forecasts[question_2]) == 2
     assert len(aggregated_forecasts[question_3]) == 2
-    # And left the 3rd one with recently_weighted only
+    # And left the 3rd one with recency_weighted only
     assert len(aggregated_forecasts[question_1]) == 1

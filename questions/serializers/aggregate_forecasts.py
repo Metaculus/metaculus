@@ -63,20 +63,23 @@ def serialize_question_aggregations(
     full_forecast_values: bool = False,
     minimize: bool = True,
 ) -> dict:
+    # Aggregations available to the users
+    # But in real life we only pass "RECENCY_WEIGHTED" aggregation
+    aggregations = [
+        AggregationMethod.RECENCY_WEIGHTED,
+        # AggregationMethod.UNWEIGHTED,
+        # AggregationMethod.SINGLE_AGGREGATION,
+        # AggregationMethod.METACULUS_PREDICTION,
+    ]
+
     serialized_data = {
-        "recency_weighted": {
+        aggregation_type: {
             "history": [],
             "latest": None,
-            "score_data": dict(),
+            "score_data": {},
             "movement": None,
-        },
-        "unweighted": {"history": [], "latest": None, "score_data": dict()},
-        "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
-        "metaculus_prediction": {
-            "history": [],
-            "latest": None,
-            "score_data": dict(),
-        },
+        }
+        for aggregation_type in aggregations
     }
 
     if aggregate_forecasts is not None:
