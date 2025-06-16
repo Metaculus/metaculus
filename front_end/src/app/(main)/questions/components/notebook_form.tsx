@@ -133,8 +133,6 @@ const NotebookForm: React.FC<Props> = ({
       categories: categoriesList.map((x) => x.id),
       notebook: {
         markdown: data["markdown"],
-        type:
-          post?.notebook?.type ?? (news_category_id ? "news" : "discussion"),
       },
     };
 

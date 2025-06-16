@@ -50,7 +50,6 @@ class NotebookSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "markdown",
-            "type",
             "image_url",
             "created_at",
             "edited_at",
@@ -107,7 +106,6 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
-            "type",
             "image_url",
         )
 
@@ -200,10 +198,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     curation_status = serializers.ChoiceField(
         required=False, choices=Post.CurationStatus.choices
     )
-    notebook_type = serializers.ChoiceField(
-        choices=Notebook.NotebookType.choices, required=False, allow_null=True
-    )
-    news_type = serializers.CharField(required=False)
+    news_type = serializers.ListField(child=serializers.CharField(), required=False)
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
@@ -241,13 +236,15 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
 
-    def validate_news_type(self, value: str):
-        try:
-            return Project.objects.get(
-                slug__iexact=value, type=Project.ProjectTypes.NEWS_CATEGORY
-            )
-        except Project.DoesNotExist:
-            raise ValidationError("Slug does not exist")
+    def validate_news_type(self, values: list[str]):
+        news_types = Project.objects.filter_news_category().filter(slug__in=values)
+        slugs = {obj.slug for obj in news_types}
+
+        for value in values:
+            if value not in slugs:
+                raise ValidationError(f"News Category {value} does not exist")
+
+        return news_types
 
     def validate_topic(self, value: str):
         try:

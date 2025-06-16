@@ -457,18 +457,11 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
 
 
 class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
-    class NotebookType(models.TextChoices):
-        DISCUSSION = "discussion"
-        NEWS = "news"
-        PUBLIC_FIGURE = "public_figure"
-
     markdown = models.TextField()
-    type = models.CharField(max_length=100, choices=NotebookType)
-    news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
     def __str__(self):
-        return f"{self.type} Notebook for {self.post} by {self.post.author}"
+        return f"Notebook for {self.post} by {self.post.author}"
 
 
 class Post(TimeStampedModel, TranslatedModel):  # type: ignore
