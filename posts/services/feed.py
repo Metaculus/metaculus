@@ -291,7 +291,12 @@ def get_similar_posts(post: Post):
         lambda: [
             p.pk
             for p in get_posts_feed(
-                similar_to_post_id=post.id, statuses=["open"], for_main_feed=True
+                # Exclude conditional
+                # Since we don't have a compact tile to display here
+                Post.objects.filter(conditional__isnull=True, notebook__isnull=True),
+                similar_to_post_id=post.id,
+                statuses=["open"],
+                for_main_feed=True,
             )[:8]
         ],
         # 24h
