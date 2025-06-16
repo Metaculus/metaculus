@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import cast, TypedDict, Iterable
+from typing import cast, Iterable
 
 import sentry_sdk
 from django.db import transaction
@@ -29,7 +29,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.serializers.common import serialize_question_movement
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, QuestionMovement
 from questions.utils import (
     get_question_movement_period,
     get_last_forecast_in_the_past,
@@ -49,7 +49,6 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
-    Direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -944,9 +943,7 @@ def get_aggregated_forecasts_for_questions(
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 
     aggregated_forecasts = set(
-        get_last_aggregated_forecasts_for_questions(
-            questions, aggregated_forecast_qs
-        )
+        get_last_aggregated_forecasts_for_questions(questions, aggregated_forecast_qs)
     )
 
     if include_cp_history:
@@ -982,11 +979,6 @@ def get_user_last_forecasts_map(
     question_id_map = {x.question_id: x for x in qs}
 
     return {q: question_id_map.get(q.id) for q in questions}
-
-
-QuestionMovement = TypedDict(
-    "QuestionMovement", {"direction": Direction, "movement": float}
-)
 
 
 def calculate_period_movement_for_questions(

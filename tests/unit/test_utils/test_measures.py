@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from questions.models import Question, AggregateForecast
+from questions.types import Direction
 from tests.unit.test_questions.factories import create_question
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -9,7 +10,6 @@ from utils.the_math.measures import (
     prediction_difference_for_sorting,
     prediction_difference_for_display,
     decimal_h_index,
-    Direction,
     get_difference_display,
 )
 

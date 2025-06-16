@@ -2,6 +2,7 @@ import numpy as np
 from django.db.models import TextChoices
 
 from questions.models import Question, AggregateForecast
+from questions.types import Direction
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
     ForecastValues,
@@ -130,15 +131,6 @@ def prediction_difference_for_display(
             asymmetric if not np.isnan(asymmetric) else None,
         )
     ]
-
-
-class Direction(TextChoices):
-    UNCHANGED = "unchanged"
-    UP = "up"
-    DOWN = "down"
-    EXPANDED = "expanded"
-    CONTRACTED = "contracted"
-    CHANGED = "changed"  # failsafe
 
 
 def get_difference_display(
