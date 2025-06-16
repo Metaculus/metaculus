@@ -48,7 +48,6 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
-import WithdrawButton from "../withdraw/withdraw_button";
 import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
@@ -58,6 +57,7 @@ import {
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type QuestionOption = {
   id: number;

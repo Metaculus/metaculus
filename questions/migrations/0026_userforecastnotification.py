@@ -8,23 +8,52 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0025_alter_groupofquestions_subquestions_order'),
+        ("questions", "0025_alter_groupofquestions_subquestions_order"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserForecastNotification',
+            name="UserForecastNotification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('trigger_time', models.DateTimeField(db_index=True)),
-                ('email_sent', models.BooleanField(db_index=True, default=False)),
-                ('forecast', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to='questions.forecast')),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='forecast_withdrawal_notifications', to='questions.question')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='forecast_withdrawal_notifications', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("trigger_time", models.DateTimeField(db_index=True)),
+                ("email_sent", models.BooleanField(db_index=True, default=False)),
+                (
+                    "forecast",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notifications",
+                        to="questions.forecast",
+                    ),
+                ),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="forecast_withdrawal_notifications",
+                        to="questions.question",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="forecast_withdrawal_notifications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'question')},
+                "unique_together": {("user", "question")},
             },
         ),
     ]

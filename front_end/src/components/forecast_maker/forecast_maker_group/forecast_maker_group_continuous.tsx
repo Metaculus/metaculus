@@ -63,7 +63,6 @@ import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import GroupForecastAccordion, {
   ContinuousGroupOption,
 } from "../continuous_group_accordion/group_forecast_accordion";
-import WithdrawButton from "../withdraw/withdraw_button";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
@@ -72,6 +71,7 @@ import {
 } from "../forecast_expiration";
 import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
