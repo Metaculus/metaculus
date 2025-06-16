@@ -854,20 +854,22 @@ def update_forecast_notification(
     UserForecastNotification.objects.filter(user=user, question=question).delete()
 
     if created:
-        # Only create notification if forecast has an end_time in the future
-        if forecast.end_time is None or forecast.end_time <= timezone.now():
-            return
-
         # Calculate total lifetime of the forecast
-        total_lifetime = forecast.end_time - forecast.start_time
+        start_time = forecast.start_time
+        end_time = (
+            forecast.end_time or start_time
+        )  # If end_time is None, same case as duration 0 -> no notification
+        total_lifetime = end_time - start_time
 
         # Determine trigger time based on lifetime
-        if total_lifetime > timedelta(weeks=3):
+        if total_lifetime < timedelta(hours=8):
+            return
+        elif total_lifetime > timedelta(weeks=3):
             # If lifetime > 3 weeks, trigger 1 week before end
-            trigger_time = forecast.end_time - timedelta(weeks=1)
+            trigger_time = end_time - timedelta(weeks=1)
         else:
             # Otherwise, trigger 1 day before end
-            trigger_time = forecast.end_time - timedelta(days=1)
+            trigger_time = end_time - timedelta(days=1)
 
         # Create or update the notification
         UserForecastNotification.objects.update_or_create(
