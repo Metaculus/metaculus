@@ -119,7 +119,6 @@ export type Notebook = {
   created_at: string;
   edited_at: string;
   markdown: string;
-  type: string;
   image_url: string;
 };
 
