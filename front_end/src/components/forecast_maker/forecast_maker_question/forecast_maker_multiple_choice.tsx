@@ -35,6 +35,7 @@ import ForecastChoiceOption from "../forecast_choice_option";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type ChoiceOption = {
   name: string;
@@ -74,6 +75,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       : question.my_forecasts?.latest;
 
   const [isDirty, setIsDirty] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
@@ -238,6 +240,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       setSubmitError(response.errors);
     } else {
       resetForecasts();
+      setIsWithdrawModalOpen(false);
       onPredictionSubmit?.();
     }
   };
@@ -331,14 +334,15 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               </Button>
             ) : (
               !!activeUserForecast && (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
+                <WithdrawButton
+                  type="button"
+                  isPromptOpen={isWithdrawModalOpen}
+                  isPending={withdrawalIsPending}
+                  onSubmit={withdraw}
+                  onPromptVisibilityChange={setIsWithdrawModalOpen}
                 >
                   {t("withdraw")}
-                </Button>
+                </WithdrawButton>
               )
             )}
             <PredictButton

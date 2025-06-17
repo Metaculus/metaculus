@@ -8,7 +8,6 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
-import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
@@ -25,11 +24,12 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
-  prevForecast?: any;
+  prevForecast?: number | null;
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
@@ -69,6 +69,7 @@ const ForecastMakerBinary: FC<Props> = ({
   }, [prevForecastValue]);
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
@@ -113,6 +114,7 @@ const ForecastMakerBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    setIsWithdrawModalOpen(false);
     onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -142,14 +144,14 @@ const ForecastMakerBinary: FC<Props> = ({
           {canPredict && (
             <>
               {!!prevForecastValue && (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
+                <WithdrawButton
+                  isPromptOpen={isWithdrawModalOpen}
+                  isPending={withdrawalIsPending}
+                  onSubmit={withdraw}
+                  onPromptVisibilityChange={setIsWithdrawModalOpen}
                 >
                   {t("withdraw")}
-                </Button>
+                </WithdrawButton>
               )}
               <PredictButton
                 hasUserForecast={hasUserForecast}

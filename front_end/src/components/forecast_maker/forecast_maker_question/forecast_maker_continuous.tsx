@@ -50,6 +50,7 @@ import {
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
@@ -74,6 +75,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const previousForecast = question.my_forecasts?.latest;
   const activeForecast =
     !!previousForecast && isNil(previousForecast.end_time)
@@ -282,6 +284,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    setIsWithdrawModalOpen(false);
     onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -348,14 +351,15 @@ const ForecastMakerContinuous: FC<Props> = ({
             </Button>
           ) : (
             !!activeForecast && (
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={withdrawalIsPending}
-                onClick={withdraw}
+              <WithdrawButton
+                type="button"
+                isPromptOpen={isWithdrawModalOpen}
+                isPending={withdrawalIsPending}
+                onSubmit={withdraw}
+                onPromptVisibilityChange={setIsWithdrawModalOpen}
               >
                 {t("withdraw")}
-              </Button>
+              </WithdrawButton>
             )
           )}
 
