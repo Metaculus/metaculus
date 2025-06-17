@@ -63,6 +63,7 @@ import {
 } from "../helpers";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   postId: number;
@@ -132,9 +133,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     () => questionOptions.find((option) => option.id === activeTableOption),
     [activeTableOption, questionOptions]
   );
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
@@ -539,6 +540,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    setIsWithdrawModalOpen(false);
     onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -666,14 +668,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                   {t("discardChangesButton")}
                 </Button>
               ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
+                <WithdrawButton
+                  type="button"
+                  isPromptOpen={isWithdrawModalOpen}
+                  isPending={withdrawalIsPending}
+                  onSubmit={withdraw}
+                  onPromptVisibilityChange={setIsWithdrawModalOpen}
                 >
                   {t("withdraw")}
-                </Button>
+                </WithdrawButton>
               ) : null}
             </>
           )}

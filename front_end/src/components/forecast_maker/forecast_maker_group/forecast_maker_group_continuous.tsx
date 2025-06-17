@@ -63,6 +63,7 @@ import GroupForecastAccordion, {
 } from "../continuous_group_accordion/group_forecast_accordion";
 import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
@@ -140,9 +141,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions]);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const questionsToSubmit = useMemo(
     () =>
       groupOptions.filter(
@@ -474,6 +475,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       if (response && "errors" in response && !!response.errors) {
         setSubmitError(response.errors);
       }
+      setIsWithdrawModalOpen(false);
       onPredictionSubmit?.();
       return response;
     },
@@ -533,14 +535,15 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       />
       <div className="mx-auto mb-2 mt-4 flex flex-wrap justify-center gap-3">
         {questions.some((q) => canWithdrawForecast(q, permission)) && (
-          <Button
-            variant="secondary"
-            type="submit"
-            disabled={isSubmitting}
-            onClick={() => handlePredictWithdraw()}
+          <WithdrawButton
+            type="button"
+            isPromptOpen={isWithdrawModalOpen}
+            isPending={isSubmitting}
+            onSubmit={handlePredictWithdraw}
+            onPromptVisibilityChange={setIsWithdrawModalOpen}
           >
             {t("withdrawAll")}
-          </Button>
+          </WithdrawButton>
         )}
         {predictedQuestions.length > 0 && (
           <Button
@@ -573,7 +576,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           </>
         )}
       </div>
-
       <FormError
         errors={submitError}
         className="mt-2 flex items-center justify-center"

@@ -1374,5 +1374,6 @@
   "deployMetaculusPlatform": "Despliegue la plataforma de Metaculus dentro de su organización para descubrir perspectivas y combinar sin problemas el conocimiento y la experiencia de todo su equipo.",
   "engageProForecasters": "Involucre a los pronosticadores profesionales de Metaculus en las preguntas que más le importan, ya sea en su instancia privada o en preguntas lanzadas en Metaculus.",
   "weHelpOrganizationsSolve": "Ayudamos a las organizaciones a resolver desafíos complejos, ya sea pronosticando tendencias de enfermedades respiratorias con el CDC o descubriendo talento excepcional para Bridgewater.",
-  "proForecastersHeaderSecondParagraph": "Los pronosticadores profesionales ofrecen predicciones calibradas acompañadas de razonamiento claro, lo que permite a los responsables de la toma de decisiones actuar con confianza."
+  "proForecastersHeaderSecondParagraph": "Los pronosticadores profesionales ofrecen predicciones calibradas acompañadas de razonamiento claro, lo que permite a los responsables de la toma de decisiones actuar con confianza.",
+  "withdrawConfirmation": "¿Estás seguro de que quieres retirar? Seguirás siendo puntuado por tus predicciones anteriores en esta pregunta."
 }

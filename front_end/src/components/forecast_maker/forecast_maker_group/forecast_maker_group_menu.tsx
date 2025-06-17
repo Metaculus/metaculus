@@ -26,6 +26,7 @@ import { canWithdrawForecast } from "@/utils/questions/predictions";
 import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 import QuestionResolutionModal from "../resolution/resolution_modal";
+import WithdrawConfirmation from "../withdraw/withdraw_confirmation";
 
 type Props = {
   question: Question;
@@ -43,11 +44,22 @@ const ForecastMakerGroupControls: FC<Props> = ({
   onPredictionSubmit,
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const t = useTranslations();
   const { setCurrentModal } = useModal();
   const [unresolveQuestion, isPending] = useServerAction(
     unresolveQuestionAction
   );
+
+  const handleWithdraw = async () => {
+    if (post) {
+      await withdrawForecasts(post.id, [{ question: question.id }]);
+      onPredictionSubmit?.();
+      setIsWithdrawModalOpen(false);
+    }
+  };
+
+  const [withdraw, withdrawalIsPending] = useServerAction(handleWithdraw);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -101,11 +113,8 @@ const ForecastMakerGroupControls: FC<Props> = ({
                 {
                   id: "withdraw",
                   name: t("withdrawForecast"),
-                  onClick: async () => {
-                    await withdrawForecasts(post.id, [
-                      { question: question.id },
-                    ]);
-                    onPredictionSubmit?.();
+                  onClick: () => {
+                    setIsWithdrawModalOpen(true);
                   },
                 },
               ]
@@ -155,6 +164,14 @@ const ForecastMakerGroupControls: FC<Props> = ({
         question={question}
         isOpen={isResolutionModalOpen}
         onClose={() => setIsResolutionModalOpen(false)}
+      />
+
+      {/* Withdraw Confirmation Modal */}
+      <WithdrawConfirmation
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        onSubmit={withdraw}
+        isPending={withdrawalIsPending}
       />
     </>
   );

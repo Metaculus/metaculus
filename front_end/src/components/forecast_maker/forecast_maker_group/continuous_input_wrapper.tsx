@@ -39,6 +39,7 @@ import {
 } from "../helpers";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   option: ContinuousGroupOption;
@@ -90,8 +91,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
       !!previousForecast?.forecast_values &&
         !previousForecast.distribution_input
     );
-
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const { forecastInputMode, isDirty, userQuantileForecast } = option;
 
   const forecast = useMemo(
@@ -176,7 +177,10 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    setIsWithdrawModalOpen(false);
   }, [handlePredictWithdraw, option]);
+
+  const withdraw = () => onWithdraw();
 
   const userCdf: number[] | undefined = getSliderNumericForecastDataset(
     getNormalizedContinuousForecast(option.userSliderForecast),
@@ -231,14 +235,15 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
                 {t("discardChangesButton")}
               </Button>
               {canWithdrawForecast(option.question, permission) && (
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={isPending}
-                  onClick={onWithdraw}
+                <WithdrawButton
+                  type="button"
+                  isPromptOpen={isWithdrawModalOpen}
+                  isPending={isPending}
+                  onSubmit={withdraw}
+                  onPromptVisibilityChange={setIsWithdrawModalOpen}
                 >
                   {t("withdrawForecast")}
-                </Button>
+                </WithdrawButton>
               )}
             </>
           )}

@@ -26,6 +26,7 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   postId: number;
@@ -50,6 +51,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const { user } = useAuth();
   const { hideCP } = useHideCP();
 
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
@@ -292,6 +294,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    setIsWithdrawModalOpen(false);
     onPredictionSubmit?.();
   };
   const [withdraw, withdrawalIsPending] = useServerAction(
@@ -366,14 +369,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                     {t("discardChangesButton")}
                   </Button>
                 ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={withdrawalIsPending}
-                    onClick={withdraw}
+                  <WithdrawButton
+                    isPromptOpen={isWithdrawModalOpen}
+                    isPending={withdrawalIsPending}
+                    onSubmit={withdraw}
+                    onPromptVisibilityChange={setIsWithdrawModalOpen}
                   >
                     {t("withdraw")}
-                  </Button>
+                  </WithdrawButton>
                 ) : null}
               </>
             )}
