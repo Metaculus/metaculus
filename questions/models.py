@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet
+from django.db.models import Count, QuerySet, Q
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
@@ -378,6 +378,39 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
 class ForecastNoSpamManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(author__is_spam=False)
+
+    def active(self):
+        """
+        Returns active forecasts.
+
+        An active forecast is one that:
+        - start_time is in the past
+        - end_time is either None, or in the future
+        - their question is still open (question.actual_close_time is None and
+          question.scheduled_close_time is in the future and question.open_time is in the past)
+        """
+        now = timezone.now()
+
+        # Forecast timing conditions
+        forecast_started = Q(start_time__lte=now)
+        forecast_not_ended = Q(end_time__isnull=True) | Q(end_time__gt=now)
+
+        # Question status conditions
+        question_not_closed = Q(question__actual_close_time__isnull=True)
+        question_still_accepting_forecasts = Q(question__scheduled_close_time__gt=now)
+        question_opened = Q(question__open_time__lte=now)
+
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                forecast_started
+                & forecast_not_ended
+                & question_not_closed
+                & question_still_accepting_forecasts
+                & question_opened
+            )
+        )
 
 
 class Forecast(models.Model):
