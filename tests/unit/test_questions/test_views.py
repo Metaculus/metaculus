@@ -647,9 +647,9 @@ class TestQuestionForecastAutoWithdrawal:
                 # Should be called once for user2
                 mock_send.assert_called_once()
                 call_args = mock_send.call_args
-                assert call_args[1]["user_email"] == user2.email
+                assert call_args[1]["user"].email == user2.email
                 assert len(call_args[1]["posts_data"]) == 1
-                assert call_args[1]["posts_data"][0]["post_title"] == question2.title
+                assert call_args[1]["posts_data"][0]["title"] == question2.title
 
                 # call one more time, no notifications should be sent again
                 mock_send.reset_mock()
@@ -664,9 +664,9 @@ class TestQuestionForecastAutoWithdrawal:
                 # Should be called once for user1 (user2's notification already sent)
                 mock_send.assert_called_once()
                 call_args = mock_send.call_args
-                assert call_args[1]["user_email"] == user1.email
+                assert call_args[1]["user"].email == user1.email
                 assert len(call_args[1]["posts_data"]) == 1
-                assert call_args[1]["posts_data"][0]["post_title"] == question2.title
+                assert call_args[1]["posts_data"][0]["title"] == question2.title
 
             # Test 4: Freeze time when user2's long forecast notification should be sent
             with freeze_time(base_time + timedelta(days=18, hours=1)):
@@ -676,9 +676,9 @@ class TestQuestionForecastAutoWithdrawal:
                 # Should be called once for user2
                 mock_send.assert_called_once()
                 call_args = mock_send.call_args
-                assert call_args[1]["user_email"] == user2.email
+                assert call_args[1]["user"].email == user2.email
                 assert len(call_args[1]["posts_data"]) == 1
-                assert call_args[1]["posts_data"][0]["post_title"] == question1.title
+                assert call_args[1]["posts_data"][0]["title"] == question1.title
 
             # Test 5: Freeze time when user1's long forecast notification should be sent
             with freeze_time(base_time + timedelta(days=23, hours=1)):
@@ -688,9 +688,9 @@ class TestQuestionForecastAutoWithdrawal:
                 # Should be called once for user1
                 mock_send.assert_called_once()
                 call_args = mock_send.call_args
-                assert call_args[1]["user_email"] == user1.email
+                assert call_args[1]["user"].email == user1.email
                 assert len(call_args[1]["posts_data"]) == 1
-                assert call_args[1]["posts_data"][0]["post_title"] == question1.title
+                assert call_args[1]["posts_data"][0]["title"] == question1.title
 
             # Test 6: Verify no duplicate notifications are sent
             with freeze_time(base_time + timedelta(days=30)):
