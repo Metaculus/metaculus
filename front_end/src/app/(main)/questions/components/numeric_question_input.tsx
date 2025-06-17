@@ -15,7 +15,7 @@ import {
   QuestionDraft,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { QuestionType } from "@/types/question";
+import { ContinuousQuestionType, QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
 
 const NumericQuestionInput: React.FC<{
@@ -34,10 +34,7 @@ const NumericQuestionInput: React.FC<{
     open_lower_bound: boolean;
     inbound_outcome_count: number;
   }) => void;
-  questionType:
-    | QuestionType.Numeric
-    | QuestionType.Discrete
-    | QuestionType.Date;
+  questionType: ContinuousQuestionType;
   defaultMin: number | undefined;
   defaultMax: number | undefined;
   defaultZeroPoint: number | undefined | null;
@@ -119,7 +116,6 @@ const NumericQuestionInput: React.FC<{
     resolution_criteria: "",
     label: "",
     unit: unit || "",
-    nr_forecasters: 0,
     author_username: "",
     post_id: 0,
     resolution: "",

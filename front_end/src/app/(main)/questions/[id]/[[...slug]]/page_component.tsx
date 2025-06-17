@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 import { FC } from "react";
 
@@ -10,7 +11,6 @@ import ConditionalTimeline from "@/components/conditional_timeline";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
-import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import HideCPProvider from "@/contexts/cp_context";
@@ -40,6 +40,10 @@ import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+
+const CommunityDisclaimer = dynamic(
+  () => import("@/components/post_card/community_disclaimer")
+);
 
 const IndividualQuestionPage: FC<{
   params: { id: number; slug: string[] };
@@ -186,7 +190,11 @@ const IndividualQuestionPage: FC<{
             </div>
           </main>
 
-          <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
+          <QuestionEmbedModal
+            postId={postData.id}
+            postTitle={postData.title}
+            questionType={postData.question?.type}
+          />
         </HideCPProvider>
       </CommentsFeedProvider>
     </EmbedModalContextProvider>

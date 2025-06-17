@@ -1,3 +1,4 @@
+import logging
 from typing import Union, Iterable
 
 from django.db import models
@@ -32,13 +33,17 @@ from questions.serializers.forecasting_flow import serialize_forecasting_flow_co
 from questions.services import (
     get_aggregated_forecasts_for_questions,
     get_user_last_forecasts_map,
-    calculate_user_forecast_movement_for_questions,
+    calculate_movement_for_questions,
+    calculate_period_movement_for_questions,
+    QuestionMovement,
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription
 from .utils import get_post_slug
+
+logger = logging.getLogger(__name__)
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -47,7 +52,6 @@ class NotebookSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "markdown",
-            "type",
             "image_url",
             "created_at",
             "edited_at",
@@ -104,7 +108,6 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
-            "type",
             "image_url",
         )
 
@@ -197,10 +200,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     curation_status = serializers.ChoiceField(
         required=False, choices=Post.CurationStatus.choices
     )
-    notebook_type = serializers.ChoiceField(
-        choices=Notebook.NotebookType.choices, required=False, allow_null=True
-    )
-    news_type = serializers.CharField(required=False)
+    news_type = serializers.ListField(child=serializers.CharField(), required=False)
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
@@ -238,13 +238,15 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
 
-    def validate_news_type(self, value: str):
-        try:
-            return Project.objects.get(
-                slug__iexact=value, type=Project.ProjectTypes.NEWS_CATEGORY
-            )
-        except Project.DoesNotExist:
-            raise ValidationError("Slug does not exist")
+    def validate_news_type(self, values: list[str]):
+        news_types = Project.objects.filter_news_category().filter(slug__in=values)
+        slugs = {obj.slug for obj in news_types}
+
+        for value in values:
+            if value not in slugs:
+                raise ValidationError(f"News Category {value} does not exist")
+
+        return news_types
 
     def validate_topic(self, value: str):
         try:
@@ -328,11 +330,14 @@ def serialize_post(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
+    include_descriptions: bool = False,
+    question_movements: dict[Question, QuestionMovement | None] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
+    question_movements = question_movements or {}
 
     # Appending projects
     projects = projects or []
@@ -349,6 +354,8 @@ def serialize_post(
                 if aggregate_forecasts
                 else None
             ),
+            include_descriptions=include_descriptions,
+            question_movement=question_movements.get(post.question),
         )
 
     if post.conditional:
@@ -357,6 +364,8 @@ def serialize_post(
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
+            include_descriptions=include_descriptions,
+            question_movements=question_movements,
         )
 
     if post.group_of_questions:
@@ -365,6 +374,8 @@ def serialize_post(
             current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
+            include_descriptions=include_descriptions,
+            question_movements=question_movements,
         )
 
     if post.notebook:
@@ -427,6 +438,9 @@ def serialize_post_many(
     with_subscriptions: bool = False,
     group_cutoff: int = None,
     with_key_factors: bool = False,
+    include_descriptions: bool = False,
+    include_cp_history: bool = False,
+    include_movements: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -460,10 +474,13 @@ def serialize_post_many(
     # Restore the original ordering
     posts = sorted(qs.all(), key=lambda obj: ids.index(obj.id))
     aggregate_forecasts = {}
+    questions = flatten([p.get_questions() for p in posts])
 
     if with_cp:
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
-            flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
+            questions,
+            group_cutoff=group_cutoff,
+            include_cp_history=include_cp_history,
         )
 
     comment_key_factors_map = {}
@@ -478,6 +495,10 @@ def serialize_post_many(
             ),
             key=lambda x: x["post_id"],
         )
+
+    question_movements = {}
+    if include_movements:
+        question_movements = calculate_movement_for_questions(questions)
 
     # Fetch projects
     projects_map = get_projects_for_posts(posts, user=current_user)
@@ -494,6 +515,8 @@ def serialize_post_many(
             },
             key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
+            include_descriptions=include_descriptions,
+            question_movements=question_movements,
         )
         for post in posts
     ]
@@ -618,11 +641,21 @@ def serialize_posts_many_forecast_flow(
     )
 
     questions = flatten([p.get_questions() for p in posts])
+    now = timezone.now()
 
     user_question_forecasts_map = get_user_last_forecasts_map(questions, current_user)
-    question_movement_map = calculate_user_forecast_movement_for_questions(
-        questions, user_question_forecasts_map
-    )
+
+    try:
+        question_movement_map = calculate_period_movement_for_questions(
+            questions,
+            {
+                q: now - f.start_time if f else None
+                for q, f in user_question_forecasts_map.items()
+            },
+        )
+    except Exception:
+        logger.exception("Failed to calculate user forecast movement")
+        question_movement_map = {}
 
     return [
         {

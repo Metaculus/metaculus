@@ -1,3 +1,4 @@
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { Category, QuestionStatus, Resolution } from "@/types/post";
 
 import { ContinuousForecastInputType } from "./charts";
@@ -11,7 +12,11 @@ export enum QuestionType {
   Discrete = "discrete",
   Date = "date",
 }
-
+export type ContinuousQuestionType = (typeof ContinuousQuestionTypes)[number];
+export type SimpleQuestionType = Exclude<
+  QuestionType,
+  QuestionType.MultipleChoice
+>;
 export type QuestionLinearGraphType = "binary" | "continuous";
 
 export enum QuestionOrder {
@@ -242,7 +247,6 @@ export type Question = {
   resolution_criteria: string | null;
   label: string;
   unit: string;
-  nr_forecasters: number;
   author_username: string;
   post_id: number;
   display_divergences?: number[][];

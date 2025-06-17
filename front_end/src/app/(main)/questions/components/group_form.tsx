@@ -33,6 +33,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import Select from "@/components/ui/select";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
   Category,
@@ -48,6 +49,7 @@ import {
 } from "@/types/projects";
 import {
   DefaultInboundOutcomeCount,
+  SimpleQuestionType,
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
@@ -111,15 +113,8 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
   });
 };
 
-type SupportedType =
-  | QuestionType.Binary
-  | QuestionType.Numeric
-  | QuestionType.Discrete
-  | QuestionType.Date
-  | string;
-
 type Props = {
-  subtype: SupportedType;
+  subtype: SimpleQuestionType;
   tournament_id?: number;
   community_id?: number;
   post?: PostWithForecasts | null;
@@ -318,7 +313,8 @@ const GroupForm: React.FC<Props> = ({
         scaling: x.scaling,
         open_lower_bound: x.open_lower_bound,
         open_upper_bound: x.open_upper_bound,
-        has_forecasts: (x.nr_forecasters || 0) > 0,
+        has_forecasts:
+          (x.aggregations?.recency_weighted?.latest?.forecaster_count || 0) > 0,
         group_rank: x.group_rank ?? idx,
       };
     });
@@ -804,12 +800,14 @@ const GroupForm: React.FC<Props> = ({
                         </InputContainer>
                       </div>
                     )}
-                    {(subtype === QuestionType.Numeric ||
-                      subtype === QuestionType.Discrete ||
-                      subtype === QuestionType.Date) && (
+                    {ContinuousQuestionTypes.some(
+                      (type) => type === subtype
+                    ) && (
                       <NumericQuestionInput
                         draftKey={mode === "edit" ? undefined : draftKey}
-                        questionType={subtype}
+                        questionType={
+                          subtype as (typeof ContinuousQuestionTypes)[number]
+                        }
                         defaultMin={subQuestion.scaling?.range_min}
                         defaultMax={subQuestion.scaling?.range_max}
                         defaultOpenLowerBound={subQuestion.open_lower_bound}

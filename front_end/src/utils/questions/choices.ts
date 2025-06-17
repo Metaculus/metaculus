@@ -150,6 +150,8 @@ type QuestionOptionsConfig = {
   preselectedQuestionId?: number;
   locale?: string;
   shortBounds?: boolean;
+  excludeUnit?: boolean;
+  resolutionSigfigs?: number;
 };
 
 /**
@@ -178,8 +180,14 @@ export function generateChoiceItemsFromGroupQuestions(
   if (questions.length == 0) {
     return [];
   }
-  const { activeCount, preselectedQuestionId, locale, shortBounds } =
-    config ?? {};
+  const {
+    activeCount,
+    preselectedQuestionId,
+    locale,
+    shortBounds,
+    excludeUnit,
+    resolutionSigfigs,
+  } = config ?? {};
 
   const preselectedQuestionLabel = preselectedQuestionId
     ? questions.find((q) => q.id === preselectedQuestionId)?.label
@@ -283,9 +291,10 @@ export function generateChoiceItemsFromGroupQuestions(
             questionType: question.type,
             locale: locale ?? "en",
             scaling: question.scaling,
-            unit: question.unit,
+            unit: excludeUnit ? undefined : question.unit,
             actual_resolve_time: question.actual_resolve_time ?? null,
             completeBounds: shortBounds,
+            sigfigs: resolutionSigfigs,
           })
         : null,
       closeTime,

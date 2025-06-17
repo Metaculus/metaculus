@@ -22,7 +22,7 @@
                     {% for notification in item.notifications %}
 
                     <li>
-                        <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id %}">{{ notification.question.title|default:notification.post.post_title }}</a>
+                        <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id notification.post.post_type %}">{{ notification.question.title|default:notification.post.post_title }}</a>
                         {% if notification.post.post_type != 'notebook' %}
                         <span>is now {{notification.event}}</span>
                         {% endif %}
@@ -47,7 +47,7 @@
                     <ul>
                         {% for notification in params.from_posts %}
                         <li>
-                            <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id %}">{{ notification.question.title|default:notification.post.post_title }}</a>
+                            <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id notification.post.post_type %}">{{ notification.question.title|default:notification.post.post_title }}</a>
                             <span>is now {{notification.event}}</span>
                         </li>
                         {% endfor %}

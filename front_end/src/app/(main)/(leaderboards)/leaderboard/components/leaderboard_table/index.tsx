@@ -32,7 +32,7 @@ const LeaderboardTable: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { activeCategoryKey } = useLeaderboardMobileTabBar();
-  const isLargeScreen = useBreakpoint("md");
+  const isLargeScreen = useBreakpoint("sm");
 
   const categoryUrl = `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 

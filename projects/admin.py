@@ -327,6 +327,14 @@ class ProjectAdmin(CustomTranslationAdmin):
         "view_default_posts_link",
         "view_posts_link",
     ]
+    readonly_fields = [
+        "questions_in_project",
+        "questions_in_primary_leaderboard",
+        "latest_resolving_time",
+        "primary_leaderboard_finalize_time",
+        "view_default_posts_link",
+        "view_posts_link",
+    ]
     list_filter = [
         "type",
         "show_on_homepage",
@@ -585,3 +593,79 @@ class ProjectAdmin(CustomTranslationAdmin):
             "title": f"Add Posts to {project.name}",
         }
         return render(request, "admin/projects/add_posts_to_project.html", context)
+
+    def questions_in_project(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        project = Project.objects.filter(id=obj.id).annotate_questions_count().first()
+        if project:
+            return project.questions_count
+
+    questions_in_project.short_description = "Questions in Project (weight > 0)"
+
+    def questions_in_primary_leaderboard(self, obj: Project):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        leaderboard = obj.primary_leaderboard
+        if leaderboard:
+            return (
+                leaderboard.get_questions()
+                .filter(question_weight__gt=0)
+                .distinct()
+                .count()
+            )
+
+    questions_in_primary_leaderboard.short_description = (
+        "Questions in Primary Leaderboard (weight > 0)"
+    )
+
+    def latest_resolving_time(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        questions = Question.objects.filter(
+            Q(related_posts__post__projects=obj)
+            | Q(related_posts__post__default_project=obj),
+        ).distinct()
+        latest_resolving_time = None
+        for question in questions:
+            if question.actual_resolve_time:
+                latest_resolving_time = (
+                    max(latest_resolving_time, question.actual_resolve_time)
+                    if latest_resolving_time
+                    else question.actual_resolve_time
+                )
+            else:
+                latest_resolving_time = (
+                    max(latest_resolving_time, question.scheduled_resolve_time)
+                    if latest_resolving_time
+                    else question.scheduled_resolve_time
+                )
+        return latest_resolving_time
+
+    latest_resolving_time.short_description = "Latest Resolving Time (Expected)"
+
+    def primary_leaderboard_finalize_time(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        leaderboard = obj.primary_leaderboard
+        if leaderboard:
+            return leaderboard.finalize_time or (obj.close_date if obj else None)
+
+    primary_leaderboard_finalize_time.short_description = (
+        "Time when Primary Leaderboard is Finalized"
+    )
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        for field in [
+            "primary_leaderboard_finalize_time",
+            "latest_resolving_time",
+            "questions_in_primary_leaderboard",
+            "questions_in_project",
+            "view_default_posts_link",
+            "view_posts_link",
+        ]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
+        return fields

@@ -1,6 +1,6 @@
 import "./styles.scss";
 
-import { isNil } from "lodash";
+import { isNil, round } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 import {
@@ -203,6 +203,7 @@ function buildChartData(
             scaling: question.scaling,
             completeBounds: true,
             actual_resolve_time: null,
+            sigfigs: 4,
           })
         : null;
 
@@ -250,9 +251,12 @@ function getOptionPoint(
   if (withoutScaling) {
     return value;
   }
-  return unscaleNominalLocation(
-    scaleInternalLocation(value, optionScaling),
-    questionScaling
+  return round(
+    unscaleNominalLocation(
+      scaleInternalLocation(value, optionScaling),
+      questionScaling
+    ),
+    2
   );
 }
 
