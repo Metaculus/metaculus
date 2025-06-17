@@ -3,13 +3,13 @@
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/form_field";
+import { FormErrorMessage, Textarea } from "@/components/ui/form_field";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -17,6 +17,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
+import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseComment } from "@/utils/comments";
 import {
@@ -67,7 +68,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const debouncedMarkdown = useDebouncedValue(markdown, 1000);
-  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
+  const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -160,10 +161,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       }
 
       if (!!response && "errors" in response) {
-        const errorMessage =
-          response.errors?.message ?? response.errors?.non_field_errors?.[0];
-
-        setErrorMessage(errorMessage);
+        setErrorMessage(response.errors as ErrorResponse);
         return;
       }
 
@@ -253,11 +251,10 @@ const CommentEditor: FC<CommentEditorProps> = ({
           </Button>
         </div>
       )}
-      {!!errorMessage && (
-        <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
-          {errorMessage}
-        </div>
-      )}
+      <FormErrorMessage
+        errors={errorMessage}
+        containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
+      />
     </>
   );
 };
