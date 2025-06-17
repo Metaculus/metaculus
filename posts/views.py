@@ -260,8 +260,6 @@ def post_create_api_view(request):
         post.save(update_fields=["curation_status"])
         raise spam_error
 
-    trigger_update_post_translations(post, with_comments=False, force=False)
-
     return Response(
         serialize_post(post, current_user=request.user),
         status=status.HTTP_201_CREATED,
