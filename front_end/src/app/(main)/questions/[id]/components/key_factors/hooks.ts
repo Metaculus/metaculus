@@ -10,6 +10,7 @@ import {
 import { useServerAction } from "@/hooks/use_server_action";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { BECommentType, KeyFactor } from "@/types/comment";
+import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 const FACTORS_PER_QUESTION = 6;
@@ -40,7 +41,7 @@ export const useKeyFactors = ({
     useCommentsFeed();
 
   const [keyFactors, setKeyFactors] = useState<string[]>([""]);
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
     SuggestedKeyFactor[]
   >([]);
@@ -85,7 +86,7 @@ export const useKeyFactors = ({
     markdown?: string
   ): Promise<
     | {
-        error: string;
+        errors: ErrorResponse;
         comment?: never;
       }
     | {
@@ -95,7 +96,7 @@ export const useKeyFactors = ({
   > => {
     for (const keyFactor of keyFactors) {
       if (keyFactor.trim().length > 150) {
-        return { error: t("maxKeyFactorLength") };
+        return { errors: new Error(t("maxKeyFactorLength")) };
       }
     }
 
@@ -125,13 +126,8 @@ export const useKeyFactors = ({
     });
 
     if ("errors" in comment) {
-      const errors = comment.errors;
       return {
-        error:
-          errors?.message ??
-          errors?.text ??
-          errors?.non_field_errors?.[0] ??
-          "" + comment.errors,
+        errors: comment.errors as ErrorResponse,
       };
     }
 
@@ -152,15 +148,15 @@ export const useKeyFactors = ({
 
   const clearState = () => {
     setKeyFactors([""]);
-    setErrorMessage(undefined);
+    setErrors(undefined);
     setSuggestedKeyFactors([]);
   };
 
   return {
     keyFactors,
     setKeyFactors,
-    errorMessage,
-    setErrorMessage,
+    errors,
+    setErrors,
     suggestedKeyFactors,
     setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
