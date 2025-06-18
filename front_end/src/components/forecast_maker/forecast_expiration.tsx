@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   add,
   Duration,
+  endOfDay,
   format,
   formatDuration,
   intervalToDuration,
@@ -581,15 +582,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                   ref={dateInputRef}
                   type="date"
                   className="absolute left-0 top-0 opacity-0"
-                  min={new Date(
-                    Date.now() - new Date().getTimezoneOffset() * 60000
-                  )
-                    .toISOString()
-                    .slice(0, 16)}
+                  min={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => {
-                    const selectedDate = new Date(e.target.value);
+                    const selectedDate = endOfDay(new Date(e.target.value));
                     const now = new Date();
-
                     // Only update if the selected date is not in the past
                     if (selectedDate >= now) {
                       setCurrentState({
