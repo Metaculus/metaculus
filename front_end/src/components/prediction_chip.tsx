@@ -64,7 +64,11 @@ const PredictionChip: FC<Props> = ({
   const renderUserForecast = () => {
     const latest = question.my_forecasts?.latest;
 
-    if (showUserForecast && latest && !latest.end_time) {
+    if (
+      showUserForecast &&
+      latest &&
+      (!latest.end_time || latest.end_time > new Date().getTime() / 1000)
+    ) {
       const displayValue = getPredictionDisplayValue(
         latest.centers ? latest.centers[0] : latest.forecast_values[1],
         {
