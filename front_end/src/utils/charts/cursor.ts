@@ -28,7 +28,11 @@ export function getCursorForecast(
         f.start_time <= cursorTimestamp &&
         (f.end_time === null || f.end_time > cursorTimestamp)
     );
-  } else if (cursorTimestamp === null && isNil(aggregation.latest?.end_time)) {
+  } else if (
+    cursorTimestamp === null &&
+    (isNil(aggregation.latest?.end_time) ||
+      aggregation.latest?.end_time > new Date().getTime() / 1000)
+  ) {
     forecastIndex = aggregation.history.length - 1;
   }
   return forecastIndex === -1
