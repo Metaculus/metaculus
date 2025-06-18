@@ -932,48 +932,48 @@ export default async function TermsOfUse() {
         If a dispute arises between you and Metaculus, you agree that we will
         resolve any claim or controversy at law or equity that relates to or
         arises out of the Terms of Use or the Service or your use of the Service
-        (a "Claim") in accordance with the subsections below.
+        (a &quot;Claim&quot;) in accordance with the subsections below.
       </p>
       <p className="mb-4">
         General. You and Metaculus agree that any dispute, claim or controversy
         arising out of or relating to these Terms of Use or the breach,
         termination, enforcement, interpretation or validity thereof
-        (collectively, "Disputes") will be settled by binding arbitration;
-        except as set forth in the Judicial Resolution section below. You
-        acknowledge and agree that you and Metaculus are each waiving the right
-        to a trial by jury or to participate as a plaintiff or class member in
-        any purported class action or representative proceeding. Further, unless
-        both you and Metaculus otherwise agree, the arbitrator may not
-        consolidate more than one person's claims, and may not otherwise preside
-        over any form of any class or representative proceeding. If this
-        specific paragraph is held unenforceable, then the entirety of this
-        "Legal Disputes" section will be deemed void. This "Legal Disputes"
-        section will survive any termination of these Terms of Use.
-        Notwithstanding the foregoing, each party reserves the right to seek
-        injunctive or other equitable relief in a court of competent
-        jurisdiction with respect to any dispute related to the actual or
-        threatened infringement, misappropriation or violation of a party's
-        intellectual property or proprietary rights or breach of the User
-        Content and Activities provisions of this Agreement.
+        (collectively, &quot;Disputes&quot;) will be settled by binding
+        arbitration; except as set forth in the Judicial Resolution section
+        below. You acknowledge and agree that you and Metaculus are each waiving
+        the right to a trial by jury or to participate as a plaintiff or class
+        member in any purported class action or representative proceeding.
+        Further, unless both you and Metaculus otherwise agree, the arbitrator
+        may not consolidate more than one person&apos;s claims, and may not
+        otherwise preside over any form of any class or representative
+        proceeding. If this specific paragraph is held unenforceable, then the
+        entirety of this &quot;Legal Disputes&quot; section will be deemed void.
+        This &quot;Legal Disputes&quot; section will survive any termination of
+        these Terms of Use. Notwithstanding the foregoing, each party reserves
+        the right to seek injunctive or other equitable relief in a court of
+        competent jurisdiction with respect to any dispute related to the actual
+        or threatened infringement, misappropriation or violation of a
+        party&apos;s intellectual property or proprietary rights or breach of
+        the User Content and Activities provisions of this Agreement.
       </p>
       <p className="mb-4">
         Arbitration Rules, Governing Law, Jurisdiction and Venue. The
         arbitration will be administered by the American Arbitration Association
-        ("AAA") in accordance with the Commercial Arbitration Rules and the
-        Supplementary Procedures for Consumer Related Disputes (the "AAA Rules")
-        then in effect, except as modified by this Section of these Terms of
-        Use. The Federal Arbitration Act will govern the interpretation and
-        enforcement of this Section. These Terms of Use and any action related
-        thereto will be governed by the laws of the State of California without
-        regard to its conflict of laws provisions.
+        (&quot;AAA&quot;) in accordance with the Commercial Arbitration Rules
+        and the Supplementary Procedures for Consumer Related Disputes (the
+        &quot;AAA Rules&quot;) then in effect, except as modified by this
+        Section of these Terms of Use. The Federal Arbitration Act will govern
+        the interpretation and enforcement of this Section. These Terms of Use
+        and any action related thereto will be governed by the laws of the State
+        of California without regard to its conflict of laws provisions.
       </p>
       <p className="mb-4">
         Arbitration Process. A party who desires to initiate arbitration must
         provide the other party with a written Demand for Arbitration as
         specified in the AAA Rules. The arbitrator will be either a retired
         judge or an attorney licensed to practice law in the state of California
-        and will be selected by the parties from the AAA's roster of consumer
-        dispute arbitrators. If the parties are unable to agree upon an
+        and will be selected by the parties from the AAA&apos;s roster of
+        consumer dispute arbitrators. If the parties are unable to agree upon an
         arbitrator within seven (7) days of delivery of the Demand for
         Arbitration, then the AAA will appoint the arbitrator in accordance with
         the AAA Rules.
@@ -991,17 +991,17 @@ export default async function TermsOfUse() {
         expedited nature of the arbitration.
       </p>
       <p className="mb-4">
-        Arbitrator's Decision. The arbitrator will render an award within the
-        time frame specified in the AAA Rules. The arbitrator's decision will
-        include the essential findings and conclusions upon which the arbitrator
-        based the award. Judgment on the arbitration award may be entered in any
-        court having jurisdiction thereof. The arbitrator's award damages must
-        be consistent with the terms of Limitation of Liability section of these
-        Terms of Use as to the types and the amounts of damages for which a
-        party may be held liable. The arbitrator may award declaratory or
-        injunctive relief only in favor of the claimant and only to the extent
-        necessary to provide relief warranted by the claimant's individual
-        claim.
+        Arbitrator&apos;s Decision. The arbitrator will render an award within
+        the time frame specified in the AAA Rules. The arbitrator&apos;s
+        decision will include the essential findings and conclusions upon which
+        the arbitrator based the award. Judgment on the arbitration award may be
+        entered in any court having jurisdiction thereof. The arbitrator&apos;s
+        award damages must be consistent with the terms of Limitation of
+        Liability section of these Terms of Use as to the types and the amounts
+        of damages for which a party may be held liable. The arbitrator may
+        award declaratory or injunctive relief only in favor of the claimant and
+        only to the extent necessary to provide relief warranted by the
+        claimant&apos;s individual claim.
       </p>
       <p className="mb-4">
         Fees. Your responsibility to pay any AAA filing, administrative and
@@ -1037,14 +1037,14 @@ export default async function TermsOfUse() {
         Changes. If Metaculus changes this Legal Disputes section, you may
         reject any such change by sending us written notice (including by email
         to legal@metaculus.com) within 30 days of the date such change became
-        effective, as indicated in the "Last Updated" date. By rejecting any
-        change, you are agreeing that you will resolve any Dispute between you
-        and Metaculus in accordance with the provisions of this Section as of
-        the date you first accepted the terms of these Terms of Use (or accepted
-        any subsequent changes to these Terms of Use).
+        effective, as indicated in the &quot;Last Updated&quot; date. By
+        rejecting any change, you are agreeing that you will resolve any Dispute
+        between you and Metaculus in accordance with the provisions of this
+        Section as of the date you first accepted the terms of these Terms of
+        Use (or accepted any subsequent changes to these Terms of Use).
       </p>
       <p className="mb-4">
-        This "Legal Disputes" section shall survive any expiration or
+        This &quot;Legal Disputes&quot; section shall survive any expiration or
         termination of your relationship with Metaculus.
       </p>
 
