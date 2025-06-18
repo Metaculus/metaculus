@@ -72,9 +72,9 @@ def serialize_question_aggregations(
     # But in real life we only pass "RECENCY_WEIGHTED" aggregation
     aggregations = [
         AggregationMethod.RECENCY_WEIGHTED,
-        # AggregationMethod.UNWEIGHTED,
-        # AggregationMethod.SINGLE_AGGREGATION,
-        # AggregationMethod.METACULUS_PREDICTION,
+        AggregationMethod.UNWEIGHTED,
+        AggregationMethod.SINGLE_AGGREGATION,
+        AggregationMethod.METACULUS_PREDICTION,
     ]
 
     serialized_data = {
