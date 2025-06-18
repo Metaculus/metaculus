@@ -15,6 +15,7 @@ import {
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
 import {
+  isForecastActive,
   isQuantileForecast,
   isSliderForecast,
 } from "@/utils/forecasts/helpers";
@@ -63,12 +64,12 @@ const ConditionalChart: FC<Props> = ({
   switch (question.type) {
     case QuestionType.Binary: {
       const pctCandidate =
-        aggregateLatest && !aggregateLatest.end_time
+        aggregateLatest && isForecastActive(aggregateLatest)
           ? aggregateLatest.centers?.[0]
           : undefined;
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
       const userForecast =
-        userLatest && !userLatest.end_time
+        userLatest && isForecastActive(userLatest)
           ? userLatest.forecast_values[1]
           : null;
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
@@ -119,12 +120,12 @@ const ConditionalChart: FC<Props> = ({
       if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }
-      if (aggregateLatest && aggregateLatest.end_time) {
+      if (aggregateLatest && !isForecastActive(aggregateLatest)) {
         return <div className="text-center text-xs">No data</div>;
       }
 
       const prediction =
-        aggregateLatest && !aggregateLatest.end_time
+        aggregateLatest && isForecastActive(aggregateLatest)
           ? aggregateLatest.centers?.[0]
           : undefined;
       const formattedPrediction = prediction
@@ -141,7 +142,7 @@ const ConditionalChart: FC<Props> = ({
         componentCdfs?: number[][] | null;
         type: ContinuousAreaType;
       }[] =
-        aggregateLatest && !aggregateLatest.end_time
+        aggregateLatest && isForecastActive(aggregateLatest)
           ? [
               {
                 pmf: cdfToPmf(aggregateLatest.forecast_values),
@@ -151,7 +152,7 @@ const ConditionalChart: FC<Props> = ({
             ]
           : [];
       const prevForecast =
-        userLatest && !userLatest.end_time
+        userLatest && isForecastActive(userLatest)
           ? userLatest.distribution_input
           : null;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);

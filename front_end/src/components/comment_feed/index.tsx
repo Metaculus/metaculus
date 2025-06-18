@@ -31,6 +31,7 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
@@ -82,7 +83,7 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
       return false;
     }
     const latest = postData.question.my_forecasts?.latest;
-    return !!latest && isNil(latest.end_time);
+    return !!latest && isForecastActive(latest);
   }
 
   return false;

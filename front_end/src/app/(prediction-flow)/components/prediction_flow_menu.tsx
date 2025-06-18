@@ -6,6 +6,7 @@ import { PredictionFlowPost } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
+  isForecastActive,
   isOpenQuestionPredicted,
   isPostOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
@@ -84,7 +85,7 @@ function getUserPredictionChip(
       return `${isPredicted ? optionsAmount : 0}/${optionsAmount} ${t("options")}`;
     }
     const latest = post.question.my_forecast?.latest;
-    if (latest && !latest.end_time) {
+    if (latest && isForecastActive(latest)) {
       return getPredictionDisplayValue(
         latest.centers ? latest.centers[0] : latest.forecast_values[1],
         {

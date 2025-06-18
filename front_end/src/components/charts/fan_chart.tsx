@@ -50,6 +50,7 @@ import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   extractPrevBinaryForecastValue,
   extractPrevNumericForecastValue,
@@ -637,7 +638,9 @@ function getFanOptionsFromContinuousGroup(
     .map((q) => {
       const latest = q.my_forecasts?.latest;
       const userForecast = extractPrevNumericForecastValue(
-        latest && !latest.end_time ? latest.distribution_input : undefined
+        latest && isForecastActive(latest)
+          ? latest.distribution_input
+          : undefined
       );
 
       let userCdf: number[] | null = null;
@@ -684,7 +687,7 @@ function getFanOptionsFromBinaryGroup(
 
     const latest = q.my_forecasts?.latest;
     const userForecast = extractPrevBinaryForecastValue(
-      latest && !latest.end_time ? latest.forecast_values[1] : null
+      latest && isForecastActive(latest) ? latest.forecast_values[1] : null
     );
 
     return {

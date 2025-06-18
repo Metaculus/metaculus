@@ -33,6 +33,7 @@ import {
 import {
   clearQuantileComponents,
   isAllQuantileComponentsDirty,
+  isForecastActive,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import {
@@ -204,7 +205,7 @@ const ForecastMakerContinuous: FC<Props> = ({
       : undefined;
   const latest = question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    latest && !latest.end_time ? latest?.forecast_values : undefined;
+    latest && isForecastActive(latest) ? latest?.forecast_values : undefined;
 
   const handleAddComponent = () => {
     setSliderDistributionComponents([
