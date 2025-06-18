@@ -140,7 +140,10 @@ const PredictionChip: FC<Props> = ({
         actual_resolve_time: question.actual_resolve_time ?? null,
       }
     );
-  } else if (latest && !latest.end_time) {
+  } else if (
+    latest &&
+    (!latest.end_time || latest.end_time > new Date().getTime() / 1000)
+  ) {
     communityPredictionDisplayValue = getPredictionDisplayValue(
       latest.centers?.[0],
       {

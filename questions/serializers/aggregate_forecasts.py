@@ -136,16 +136,25 @@ def serialize_question_aggregations(
                     ] = score.coverage
 
         for method, forecasts in aggregate_forecasts_by_method.items():
-            serialized_data[method]["history"] = [
+            history = [
                 serialize_aggregate_forecast(
                     forecast, question.type, full=full_forecast_values
                 )
                 for forecast in forecasts
             ]
-            serialized_data[method]["latest"] = (
+            latest = (
                 serialize_aggregate_forecast(forecasts[-1], question.type, full=True)
                 if forecasts
                 else None
             )
+
+            # Currently, frontend has an issue displaying last aggregation record with end_time not null.
+            # This is a small workaround to make it work like before
+            if history:
+                history[-1]["end_time"] = None
+            if latest:
+                latest["end_time"] = None
+
+            serialized_data[method].update(history=history, latest=latest)
 
     return serialized_data
