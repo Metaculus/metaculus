@@ -46,12 +46,16 @@ export default async function TournamentRules() {
         awarded to such winner(s), and when such prize(s) will be awarded will
         be posted on the relevant Competition page. All Competitions will be run
         in accordance with these rules, Competition-specific rules, if any, all
-        applicable laws, and the Metaculus <a href="/terms-of-use" className="text-blue-600 hover:underline">Terms of Use</a> (collectively,
-        &quot;Competition Rules&quot;). Such Competition Rules will also include
-        how and when a Participant User must submit Competition Entries (defined
-        below) and the rights that Metaculus and any competition sponsor(s) will
-        be granted in such Competition Entry. The Competition Rules may impose
-        additional restrictions or requirements for Competitions.
+        applicable laws, and the Metaculus{" "}
+        <a href="/terms-of-use" className="text-blue-600 hover:underline">
+          Terms of Use
+        </a>{" "}
+        (collectively, &quot;Competition Rules&quot;). Such Competition Rules
+        will also include how and when a Participant User must submit
+        Competition Entries (defined below) and the rights that Metaculus and
+        any competition sponsor(s) will be granted in such Competition Entry.
+        The Competition Rules may impose additional restrictions or requirements
+        for Competitions.
       </p>
 
       <p className="mb-4">
@@ -65,8 +69,12 @@ export default async function TournamentRules() {
         without any obligation to do so, remove or disqualify a Participant
         User, if Metaculus determines, in its sole and absolute discretion, that
         such Participant User is in violation these Competition Rules or the
-        sitewide <a href="/terms-of-use" className="text-blue-600 hover:underline">Terms of Use</a> or otherwise poses a risk to Metaculus, the
-        Service (as defined in the Terms of Use) or another user of the Service.
+        sitewide{" "}
+        <a href="/terms-of-use" className="text-blue-600 hover:underline">
+          Terms of Use
+        </a>{" "}
+        or otherwise poses a risk to Metaculus, the Service (as defined in the
+        Terms of Use) or another user of the Service.
       </p>
 
       <p className="mb-4">

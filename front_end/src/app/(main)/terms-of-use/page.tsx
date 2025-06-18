@@ -19,7 +19,7 @@ export default async function TermsOfUse() {
     <PageWrapper>
       <h1 className="mb-6 text-3xl font-bold">Terms of Use</h1>
 
-      <p className="mb-4">Last Modified: Jun 10, 2025</p>
+      <p className="mb-4">Last Modified: Jun 13, 2025</p>
 
       <p className="mb-4 font-bold">Welcome to Metaculus!</p>
 
@@ -107,19 +107,6 @@ export default async function TermsOfUse() {
         has the right to terminate, suspend, or limit your account for any
         reason at our sole discretion without notice and without liability.
       </p>
-      <p className="mb-4">
-        Competitions on Metaculus are skills-based, designed to evaluate
-        participants&apos; forecasting and reasoning skills. No purchase, fee,
-        or payment is required to participate. All entries are judged by an
-        algorithm, described at{" "}
-        <a
-          href="https://www.metaculus.com/help/scores-faq/#proper-scoring"
-          className="text-blue-600 hover:underline"
-        >
-          https://www.metaculus.com/help/scores-faq/#proper-scoring
-        </a>
-        , that applies objective criteria.
-      </p>
 
       <h2
         className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold"
@@ -137,7 +124,7 @@ export default async function TermsOfUse() {
         to law or regulation or which would subject Metaculus to any
         registration requirement within such jurisdiction or country. By using
         this Website, you represent and warrant that you of legal age to form a
-        binding contract with the Metaculus, are not on any list of restricted
+        binding contract with Metaculus, are not on any list of restricted
         persons with whom it is unlawful for a U.S. company to do business.
         Metaculus operates the Service in the United States. Metaculus makes no
         representations or warranties that the Service is appropriate for use or
@@ -828,7 +815,7 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         You agree to defend, indemnify and hold harmless the Metaculus Parties
-        from and against any and all loss, liability, damages, judgments,
+        from and against any and all losses, liabilities, damages, judgments,
         claims, demands, costs, investigations, settlements, and expenses
         (including, without limitation, reasonable attorneys&apos; fees) arising
         out of or directly or indirectly relating to (a) your User Content; (b)
@@ -909,11 +896,12 @@ export default async function TermsOfUse() {
       </p>
       <p className="mb-4">
         It is often difficult to determine if your intellectual property rights
-        have been violated or if the DMCA requirements have been met. We may
-        request additional information before we remove any infringing material.
-        If a dispute develops as to the correct owner of the rights in question,
-        we reserve the right to remove your content along with that of the
-        alleged infringer pending resolution of the matter.
+        have been violated or if legal requirements to remove the allegedly
+        infringing content have been met. We may request additional information
+        before we remove any infringing material. If a dispute develops as to
+        the correct owner of the rights in question, we reserve the right to
+        remove your content along with that of the alleged infringer pending
+        resolution of the matter.
       </p>
       <p className="mb-4">
         Metaculus will provide you with notice if your materials have been
@@ -944,63 +932,51 @@ export default async function TermsOfUse() {
         If a dispute arises between you and Metaculus, you agree that we will
         resolve any claim or controversy at law or equity that relates to or
         arises out of the Terms of Use or the Service or your use of the Service
-        (a &quot;<strong>Claim</strong>&quot;) in accordance with the
-        subsections below.
+        (a "Claim") in accordance with the subsections below.
       </p>
       <p className="mb-4">
         General. You and Metaculus agree that any dispute, claim or controversy
         arising out of or relating to these Terms of Use or the breach,
         termination, enforcement, interpretation or validity thereof
-        (collectively, &quot;<strong>Disputes</strong>&quot;) will be settled by
-        binding arbitration; except as set forth in the Judicial Resolution
-        section below.{" "}
-        <strong>
-          You acknowledge and agree that you and Metaculus are each waiving the
-          right to a trial by jury or to participate as a plaintiff or class
-          member in any purported class action or representative proceeding.
-        </strong>{" "}
-        Further, unless both you and Metaculus otherwise agree, the arbitrator
-        may not consolidate more than one person&apos;s claims, and may not
-        otherwise preside over any form of any class or representative
-        proceeding. If this specific paragraph is held unenforceable, then the
-        entirety of this &quot;Legal Disputes&quot; section will be deemed void.
-        This &quot;Legal Disputes&quot; section will survive any termination of
-        these Terms of Use. Notwithstanding the foregoing, each party reserves
-        the right to seek injunctive or other equitable relief in a court of
-        competent jurisdiction with respect to any dispute related to the actual
-        or threatened infringement, misappropriation or violation of a
-        party&apos;s intellectual property or proprietary rights or breach of
-        the User Content and Activities provisions of this Agreement.
+        (collectively, "Disputes") will be settled by binding arbitration;
+        except as set forth in the Judicial Resolution section below. You
+        acknowledge and agree that you and Metaculus are each waiving the right
+        to a trial by jury or to participate as a plaintiff or class member in
+        any purported class action or representative proceeding. Further, unless
+        both you and Metaculus otherwise agree, the arbitrator may not
+        consolidate more than one person's claims, and may not otherwise preside
+        over any form of any class or representative proceeding. If this
+        specific paragraph is held unenforceable, then the entirety of this
+        "Legal Disputes" section will be deemed void. This "Legal Disputes"
+        section will survive any termination of these Terms of Use.
+        Notwithstanding the foregoing, each party reserves the right to seek
+        injunctive or other equitable relief in a court of competent
+        jurisdiction with respect to any dispute related to the actual or
+        threatened infringement, misappropriation or violation of a party's
+        intellectual property or proprietary rights or breach of the User
+        Content and Activities provisions of this Agreement.
       </p>
       <p className="mb-4">
         Arbitration Rules, Governing Law, Jurisdiction and Venue. The
         arbitration will be administered by the American Arbitration Association
-        (&quot;<strong>AAA</strong>&quot;) in accordance with the Commercial
-        Arbitration Rules and the Supplementary Procedures for Consumer Related
-        Disputes (the &quot;<strong>AAA Rules</strong>&quot;) then in effect,
-        except as modified by this Section of these Terms of Use. (The AAA Rules
-        are available at www.adr.org/arb_med or by calling the AAA at
-        1-800-778-7879.) The Federal Arbitration Act will govern the
-        interpretation and enforcement of this Section. These Terms and any
-        action related thereto will be governed by the laws of the State of
-        California without regard to its conflict of laws provisions. The
-        exclusive jurisdiction and venue of any action taken in a small claims
-        court as contemplated by these terms will be the courts located in the
-        Northern District of California and each of the parties hereto waives
-        any objection to jurisdiction and venue in such courts.
+        ("AAA") in accordance with the Commercial Arbitration Rules and the
+        Supplementary Procedures for Consumer Related Disputes (the "AAA Rules")
+        then in effect, except as modified by this Section of these Terms of
+        Use. The Federal Arbitration Act will govern the interpretation and
+        enforcement of this Section. These Terms of Use and any action related
+        thereto will be governed by the laws of the State of California without
+        regard to its conflict of laws provisions.
       </p>
       <p className="mb-4">
         Arbitration Process. A party who desires to initiate arbitration must
         provide the other party with a written Demand for Arbitration as
-        specified in the AAA Rules. (The AAA provides a form Demand for
-        Arbitration at www.adr.org/si.asp?id=3477 and a separate form for
-        California residents at www.adr.org/si.asp?id=3485.) The arbitrator will
-        be either a retired judge or an attorney licensed to practice law in the
-        state of California and will be selected by the parties from the
-        AAA&apos;s roster of consumer dispute arbitrators. If the parties are
-        unable to agree upon an arbitrator within seven (7) days of delivery of
-        the Demand for Arbitration, then the AAA will appoint the arbitrator in
-        accordance with the AAA Rules.
+        specified in the AAA Rules. The arbitrator will be either a retired
+        judge or an attorney licensed to practice law in the state of California
+        and will be selected by the parties from the AAA's roster of consumer
+        dispute arbitrators. If the parties are unable to agree upon an
+        arbitrator within seven (7) days of delivery of the Demand for
+        Arbitration, then the AAA will appoint the arbitrator in accordance with
+        the AAA Rules.
       </p>
       <p className="mb-4">
         Arbitration Location and Procedure. Unless you and Metaculus otherwise
@@ -1015,21 +991,17 @@ export default async function TermsOfUse() {
         expedited nature of the arbitration.
       </p>
       <p className="mb-4">
-        Arbitrator&apos;s Decision. The arbitrator will render an award within
-        the time frame specified in the AAA Rules. The arbitrator&apos;s
-        decision will include the essential findings and conclusions upon which
-        the arbitrator based the award. Judgment on the arbitration award may be
-        entered in any court having jurisdiction thereof. The arbitrator&apos;s
-        award damages must be consistent with the terms of Limitation of
-        Liability section of these Terms of Use as to the types and the amounts
-        of damages for which a party may be held liable. The arbitrator may
-        award declaratory or injunctive relief only in favor of the claimant and
-        only to the extent necessary to provide relief warranted by the
-        claimant&apos;s individual claim. If you prevail in arbitration you will
-        be entitled to an award of attorneys&apos; fees and expenses, to the
-        extent provided under applicable law. Metaculus will not seek, and
-        hereby waives all rights it may have under applicable law to recover,
-        attorneys&apos; fees and expenses if it prevails in arbitration.
+        Arbitrator's Decision. The arbitrator will render an award within the
+        time frame specified in the AAA Rules. The arbitrator's decision will
+        include the essential findings and conclusions upon which the arbitrator
+        based the award. Judgment on the arbitration award may be entered in any
+        court having jurisdiction thereof. The arbitrator's award damages must
+        be consistent with the terms of Limitation of Liability section of these
+        Terms of Use as to the types and the amounts of damages for which a
+        party may be held liable. The arbitrator may award declaratory or
+        injunctive relief only in favor of the claimant and only to the extent
+        necessary to provide relief warranted by the claimant's individual
+        claim.
       </p>
       <p className="mb-4">
         Fees. Your responsibility to pay any AAA filing, administrative and
@@ -1042,36 +1014,37 @@ export default async function TermsOfUse() {
       </p>
       <p className="mb-4">
         Judicial Resolution. Notwithstanding the foregoing: (1) either party
-        retains the right to bring an individual action in small claims court;
-        (2) either party may apply to a court of competent jurisdiction or other
-        appropriate tribunal to secure preliminary or provisional relief as
-        available under applicable law in connection with a Dispute; and (3) any
-        Dispute involving or relating to (i) the ownership, infringement, or
-        misappropriation of any intellectual property right, including but not
-        limited to copyrights, patents, patent disclosures and inventions
-        (whether patentable or not), trademarks, service marks, trade secrets,
-        know-how, and other confidential information, trade dress, trade names,
-        logos, corporate names and domain names, together with all of the
-        goodwill associated therewith, or (ii) your breach of the License to Use
-        Site Content or the Acceptable Use Policy sections set forth above, may
-        be brought in the courts of the State of California or the courts of the
-        United States of America, in either case, situated in Santa Clara
-        County, California. Each party hereby submits to the jurisdiction of
-        such courts and waives any defense to the exercise of such jurisdiction
-        based on lack of personal jurisdiction or forum non conveniens.{" "}
+        retains the right to bring an individual action in small claims court in
+        the State of California; (2) either party may apply to a court of
+        competent jurisdiction or other appropriate tribunal to secure
+        preliminary or provisional relief as available under applicable law in
+        connection with a Dispute; and (3) any Dispute involving or relating to
+        (i) the ownership, infringement, or misappropriation of any intellectual
+        property right, including but not limited to copyrights, patents, patent
+        disclosures and inventions (whether patentable or not), trademarks,
+        service marks, trade secrets, know-how, and other confidential
+        information, trade dress, trade names, logos, corporate names and domain
+        names, together with all of the goodwill associated therewith, or (ii)
+        your breach of the License to Use Site Content or the Acceptable Use
+        Policy sections set forth above, may be brought in the courts of the
+        State of California or the courts of the United States of America, in
+        either case, situated in Santa Clara County, California. Each party
+        hereby submits to the jurisdiction of such courts and waives any defense
+        to the exercise of such jurisdiction based on lack of personal
+        jurisdiction or forum non conveniens.
       </p>
       <p className="mb-4">
         Changes. If Metaculus changes this Legal Disputes section, you may
         reject any such change by sending us written notice (including by email
         to legal@metaculus.com) within 30 days of the date such change became
-        effective, as indicated in the &quot;Last Updated&quot; date. By
-        rejecting any change, you are agreeing that you will resolve any Dispute
-        between you and Metaculus in accordance with the provisions of this
-        Section as of the date you first accepted the terms of these Terms of
-        Use (or accepted any subsequent changes to these Terms of Use).
+        effective, as indicated in the "Last Updated" date. By rejecting any
+        change, you are agreeing that you will resolve any Dispute between you
+        and Metaculus in accordance with the provisions of this Section as of
+        the date you first accepted the terms of these Terms of Use (or accepted
+        any subsequent changes to these Terms of Use).
       </p>
       <p className="mb-4">
-        This &quot;Legal Disputes&quot; section shall survive any expiration or
+        This "Legal Disputes" section shall survive any expiration or
         termination of your relationship with Metaculus.
       </p>
 
@@ -1083,10 +1056,9 @@ export default async function TermsOfUse() {
         applicable to features you use through the Service, including without
         limitation the GENERAL POLICIES, FAQ/Help, Rules for Competitions on
         Metaculus, and all policies referenced in the General Policies or
-        elsewhere in this Agreement (&quot;
-        <strong>Additional Terms</strong>&quot;). All such policies or rules are
-        hereby incorporated into these Terms of Use. These policies may change
-        from time to time.
+        elsewhere in this Agreement (&quot;<strong>Additional Terms</strong>
+        &quot;). All such policies or rules are hereby incorporated into these
+        Terms of Use. These policies may change from time to time.
       </p>
 
       <h2
