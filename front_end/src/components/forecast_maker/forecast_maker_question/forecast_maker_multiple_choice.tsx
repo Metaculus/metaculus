@@ -26,7 +26,10 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { sendPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
-import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
+import {
+  isForecastActive,
+  isOpenQuestionPredicted,
+} from "@/utils/forecasts/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -77,11 +80,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const { hideCP } = useHideCP();
 
   const activeUserForecast =
-    (question.my_forecasts?.latest?.end_time ||
-      new Date().getTime() / 1000 + 1000) <=
-    new Date().getTime() / 1000
-      ? undefined
-      : question.my_forecasts?.latest;
+    question.my_forecasts?.latest &&
+    isForecastActive(question.my_forecasts.latest)
+      ? question.my_forecasts.latest
+      : undefined;
 
   const userLastForecast = question.my_forecasts?.latest;
 

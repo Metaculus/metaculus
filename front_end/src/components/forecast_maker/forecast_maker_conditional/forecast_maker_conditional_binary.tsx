@@ -25,6 +25,7 @@ import { Post, PostConditional } from "@/types/post";
 import { Question, QuestionWithNumericForecasts } from "@/types/question";
 import { sendConditionalPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
@@ -72,11 +73,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
 
-  const todayTs = new Date().getTime();
-  const hasLatestActiveYes =
-    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs);
-  const hasLatestActiveNo =
-    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs);
+  const hasLatestActiveYes = latestYes && isForecastActive(latestYes);
+  const hasLatestActiveNo = latestNo && isForecastActive(latestNo);
 
   const prevYesForecastValue = latestYes
     ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
@@ -92,11 +90,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const latestAggregationNo = question_no.aggregations?.recency_weighted.latest;
 
   const prevYesAggregationValue =
-    latestAggregationYes && !latestAggregationYes.end_time
+    latestAggregationYes && isForecastActive(latestAggregationYes)
       ? latestAggregationYes.centers?.[0]
       : null;
   const prevNoAggregationValue =
-    latestAggregationNo && !latestAggregationNo.end_time
+    latestAggregationNo && isForecastActive(latestAggregationNo)
       ? latestAggregationNo.centers?.[0]
       : null;
 

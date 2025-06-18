@@ -1,6 +1,7 @@
 import { isNil } from "lodash";
 
 import { AggregateForecast, AggregateForecastHistory } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 export function findPreviousTimestamp(
   timestamps: number[],
@@ -30,8 +31,8 @@ export function getCursorForecast(
     );
   } else if (
     cursorTimestamp === null &&
-    (isNil(aggregation.latest?.end_time) ||
-      aggregation.latest?.end_time > new Date().getTime() / 1000)
+    aggregation.latest &&
+    isForecastActive(aggregation.latest)
   ) {
     forecastIndex = aggregation.history.length - 1;
   }

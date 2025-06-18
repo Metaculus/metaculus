@@ -37,7 +37,10 @@ import {
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/core/cn";
-import { isOpenQuestionPredicted } from "@/utils/forecasts/helpers";
+import {
+  isForecastActive,
+  isOpenQuestionPredicted,
+} from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { canWithdrawForecast } from "@/utils/questions/predictions";
 
@@ -503,7 +506,7 @@ function generateChoiceOptions({
       id: question.id,
       name: question.label,
       communityForecast:
-        latest && !latest.end_time ? latest.centers?.[0] ?? null : null,
+        latest && isForecastActive(latest) ? latest.centers?.[0] ?? null : null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

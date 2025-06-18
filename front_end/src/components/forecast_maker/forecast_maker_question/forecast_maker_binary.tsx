@@ -18,6 +18,7 @@ import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import PredictionSuccessBox from "./prediction_success_box";
@@ -58,14 +59,13 @@ const ForecastMakerBinary: FC<Props> = ({
   const { hideCP } = useHideCP();
   const latest = question.aggregations.recency_weighted.latest;
   const communityForecast =
-    latest && !latest.end_time ? latest?.centers?.[0] : undefined;
+    latest && isForecastActive(latest) ? latest?.centers?.[0] : undefined;
 
   const activeUserForecast =
-    (question.my_forecasts?.latest?.end_time ||
-      new Date().getTime() / 1000 + 1000) <=
-    new Date().getTime() / 1000
-      ? undefined
-      : question.my_forecasts?.latest;
+    question.my_forecasts?.latest &&
+    isForecastActive(question.my_forecasts.latest)
+      ? question.my_forecasts.latest
+      : undefined;
 
   const previousUserForecast = question.my_forecasts?.latest;
 
