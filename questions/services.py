@@ -27,6 +27,7 @@ from questions.models import (
     Conditional,
     Forecast,
     AggregateForecast,
+    UserForecastNotification,
 )
 from questions.serializers.common import serialize_question_movement
 from questions.types import AggregationMethod, QuestionMovement
@@ -701,7 +702,6 @@ def create_forecast(
         question=question,
         author=user,
         start_time=now,
-        end_time=None,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
@@ -770,7 +770,8 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        create_forecast(question=question, user=user, **forecast)
+        forecast = create_forecast(question=question, user=user, **forecast)
+        update_forecast_notification(forecast=forecast, created=True)
         after_forecast_actions(question, user)
 
     # Update counters
@@ -812,6 +813,7 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         forecast_to_terminate.end_time = withdraw_at
         forecast_to_terminate.save()
         forecasts_to_delete = user_forecasts.exclude(pk=forecast_to_terminate.pk)
+        update_forecast_notification(forecast=forecast_to_terminate, created=False)
         forecasts_to_delete.delete()
 
         after_forecast_actions(question, user)
@@ -832,6 +834,53 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         # As a temporary solution, we introduce a 10-second delay before execution
         # to ensure all forecasts are processed.
         run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
+
+
+def update_forecast_notification(
+    forecast: Forecast,
+    created: bool,
+):
+    """
+    Creates or deletes UserForecastNotification objects based on forecast lifecycle.
+
+    When created=True: Creates/updates notification if forecast has future end_time
+    When created=False: Deletes existing notification for user/question pair
+    """
+
+    user = forecast.author
+    question = forecast.question
+
+    # Delete existing notification
+    UserForecastNotification.objects.filter(user=user, question=question).delete()
+
+    if created:
+        # Calculate total lifetime of the forecast
+        start_time = forecast.start_time
+        end_time = (
+            forecast.end_time or start_time
+        )  # If end_time is None, same case as duration 0 -> no notification
+        total_lifetime = end_time - start_time
+
+        # Determine trigger time based on lifetime
+        if total_lifetime < timedelta(hours=8):
+            return
+        elif total_lifetime > timedelta(weeks=3):
+            # If lifetime > 3 weeks, trigger 1 week before end
+            trigger_time = end_time - timedelta(weeks=1)
+        else:
+            # Otherwise, trigger 1 day before end
+            trigger_time = end_time - timedelta(days=1)
+
+        # Create or update the notification
+        UserForecastNotification.objects.update_or_create(
+            user=user,
+            question=question,
+            defaults={
+                "trigger_time": trigger_time,
+                "email_sent": False,
+                "forecast": forecast,
+            },
+        )
 
 
 @sentry_sdk.trace

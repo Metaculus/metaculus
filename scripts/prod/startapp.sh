@@ -33,7 +33,7 @@ source venv/bin/activate
 
 # 2) Next.js Frontend
 export NODE_ENV=production
-export NODE_OPTIONS="--max-old-space-size=1024"
+export NODE_OPTIONS="--max-old-space-size=1536"
 export UV_THREADPOOL_SIZE=2
 
 (

@@ -7,9 +7,14 @@ import ContinuousAreaChart, {
 } from "@/components/charts/continuous_area_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+} from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
@@ -44,6 +49,7 @@ const QuestionContinuousTile: FC<Props> = ({
   const { onReaffirm } = useCardReaffirmContext();
 
   const { hideCP } = useHideCP();
+  const { user } = useAuth();
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
@@ -68,9 +74,14 @@ const QuestionContinuousTile: FC<Props> = ({
             BINARY_FORECAST_PRECISION
           );
 
+          const forecastExpiration = buildDefaultForecastExpiration(
+            question,
+            user?.prediction_expiration_percent ?? undefined
+          );
           onReaffirm([
             {
               questionId: question.id,
+              forecastEndTime: forecastExpirationToDate(forecastExpiration),
               forecastData: {
                 continuousCdf: null,
                 probabilityYes: forecastValue,

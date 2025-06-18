@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 import numpy as np
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -410,6 +411,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "percentiles",
             "distribution_input",
             "source",
+            "end_time",
         )
 
     def binary_validation(self, probability_yes):
@@ -522,6 +524,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 f"question with id {question_id} does not exist. "
                 "Check if you are forecasting with the Post Id accidentally instead."
             )
+
+        if data.get("end_time") and data["end_time"] <= timezone.now():
+            raise serializers.ValidationError("Forecast end_time mut be in the future")
 
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")

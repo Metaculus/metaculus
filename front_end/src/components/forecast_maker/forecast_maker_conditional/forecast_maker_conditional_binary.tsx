@@ -1,7 +1,14 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   createForecasts,
@@ -24,6 +31,12 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
+import {
+  ForecastExpirationModal,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
+  useExpirationModalState,
+} from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
@@ -58,15 +71,21 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
-  const prevYesForecastValue =
-    latestYes && !latestYes.end_time
-      ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
-      : null;
-  const prevNoForecastValue =
-    latestNo && !latestNo.end_time
-      ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
-      : null;
+
+  const todayTs = new Date().getTime();
+  const hasLatestActiveYes =
+    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs);
+  const hasLatestActiveNo =
+    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs);
+
+  const prevYesForecastValue = latestYes
+    ? extractPrevBinaryForecastValue(latestYes.forecast_values[1])
+    : null;
+  const prevNoForecastValue = latestNo
+    ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
+    : null;
   const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
+  const hasUserActiveForecast = hasLatestActiveYes || hasLatestActiveNo;
 
   const latestAggregationYes =
     question_yes.aggregations?.recency_weighted.latest;
@@ -80,6 +99,49 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     latestAggregationNo && !latestAggregationNo.end_time
       ? latestAggregationNo.centers?.[0]
       : null;
+
+  const [activeTableOption, setActiveTableOption] = useState(
+    question_yes.resolution === "annulled" ? questionNoId : questionYesId
+  );
+  const activeQuestion = useMemo(
+    () => [question_yes, question_no].find((q) => q.id === activeTableOption),
+    [activeTableOption, question_yes, question_no]
+  );
+
+  const questionYesDuration =
+    new Date(question_yes.scheduled_close_time).getTime() -
+    new Date(question_yes.open_time ?? question_yes.created_at).getTime();
+
+  const questionNoDuration =
+    new Date(question_no.scheduled_close_time).getTime() -
+    new Date(question_no.open_time ?? question_no.created_at).getTime();
+
+  const questionYesExpirationState = useExpirationModalState(
+    questionYesDuration,
+    question_yes.my_forecasts?.latest
+  );
+
+  const questionNoExpirationState = useExpirationModalState(
+    questionNoDuration,
+    question_no.my_forecasts?.latest
+  );
+
+  const questionDuration =
+    activeTableOption === questionYesId
+      ? questionYesDuration
+      : questionNoDuration;
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    expirationShortChip,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    previousForecastExpiration,
+  } =
+    activeTableOption === questionYesId
+      ? questionYesExpirationState
+      : questionNoExpirationState;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
@@ -96,6 +158,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       isDirty: false,
       communitiesForecast: prevYesAggregationValue,
       question: question_yes,
+      forecastExpiration:
+        questionYesExpirationState.modalSavedState.forecastExpiration,
     },
     {
       id: questionNoId,
@@ -104,16 +168,23 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       isDirty: false,
       communitiesForecast: prevNoAggregationValue,
       question: question_no,
+      forecastExpiration:
+        questionNoExpirationState.modalSavedState.forecastExpiration,
     },
   ]);
 
-  const [activeTableOption, setActiveTableOption] = useState(
-    question_yes.resolution === "annulled" ? questionNoId : questionYesId
-  );
-  const activeQuestion = useMemo(
-    () => [question_yes, question_no].find((q) => q.id === activeTableOption),
-    [activeTableOption, question_yes, question_no]
-  );
+  useEffect(() => {
+    setQuestionOptions((prev) =>
+      prev.map((option) => ({
+        ...option,
+        forecastExpiration:
+          option.id === activeTableOption
+            ? modalSavedState.forecastExpiration
+            : option.forecastExpiration,
+      }))
+    );
+  }, [modalSavedState.forecastExpiration]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const isPickerDirty = useMemo(
@@ -235,7 +306,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     );
   }, []);
 
-  const handlePredictSubmit = async () => {
+  const handlePredictSubmit = async (
+    forecastExpiration?: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
 
     if (!questionsToSubmit.length) {
@@ -252,6 +325,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
         return {
           questionId: q.id,
+          forecastEndTime: forecastExpirationToDate(
+            forecastExpiration ?? q.forecastExpiration
+          ),
           forecastData: {
             continuousCdf: null,
             probabilityYesPerCategory: null,
@@ -288,7 +364,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
     ]);
     setQuestionOptions((prev) =>
-      prev.map((prevChoice) => ({ ...prevChoice, value: null, isDirty: false }))
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
     );
 
     if (response && "errors" in response && !!response.errors) {
@@ -303,6 +379,21 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        onReaffirm={
+          !!hasUserActiveForecast && !isPickerDirty
+            ? handlePredictSubmit
+            : undefined
+        }
+        questionDuration={questionDuration}
+      />
+
       <ConditionalForecastTable
         postTitle={postTitle}
         condition={condition}
@@ -368,7 +459,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                   >
                     {t("discardChangesButton")}
                   </Button>
-                ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
+                ) : hasUserActiveForecast ? (
                   <WithdrawButton
                     isPromptOpen={isWithdrawModalOpen}
                     isPending={withdrawalIsPending}
@@ -383,14 +474,38 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
             <PredictButton
               onSubmit={handlePredictSubmit}
+              isUserForecastActive={hasUserActiveForecast}
               isDirty={isPickerDirty}
               hasUserForecast={hasUserForecast}
               isPending={isSubmitting}
               isDisabled={!questionsToSubmit.length}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
             />
           </>
         )}
       </div>
+
+      {previousForecastExpiration && (
+        <div
+          className={cn(
+            "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+            previousForecastExpiration.expiresSoon &&
+              "text-salmon-800 dark:text-salmon-800-dark"
+          )}
+        >
+          {previousForecastExpiration.isExpired
+            ? t("predictionWithdrawnText", {
+                time: previousForecastExpiration.string,
+              })
+            : t("predictionWillBeWithdrawInText", {
+                time: previousForecastExpiration.string,
+              })}
+        </div>
+      )}
+
       <FormError
         errors={submitError}
         className="flex items-center justify-center"

@@ -21,6 +21,7 @@ import {
 } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -44,6 +45,7 @@ import {
   getNormalizedContinuousForecast,
   getUserContinuousQuartiles,
   isAllQuantileComponentsDirty,
+  isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
@@ -61,6 +63,12 @@ import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import GroupForecastAccordion, {
   ContinuousGroupOption,
 } from "../continuous_group_accordion/group_forecast_accordion";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
+  getTimeToExpireDays,
+} from "../forecast_expiration";
 import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
 import WithdrawButton from "../withdraw/withdraw_button";
@@ -88,22 +96,39 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const resetTarget = useRef<"all" | number | undefined>(undefined);
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { id: postId, user_permission: permission } = post;
-
+  const { user } = useAuth();
   const prevForecastValuesMap = useMemo(
     () =>
       questions.reduce<
         Record<number, DistributionSlider | DistributionQuantile | undefined>
       >((acc, question) => {
         const latest = question.my_forecasts?.latest;
+        const isQPredicted = !!latest;
+        const dist_input = isQPredicted
+          ? latest?.distribution_input
+          : undefined;
         return {
           ...acc,
-          [question.id]: extractPrevNumericForecastValue(
-            latest && !latest.end_time ? latest.distribution_input : undefined
-          ),
+          [question.id]: extractPrevNumericForecastValue(dist_input),
         };
       }, {}),
     [questions]
   );
+
+  const soonToExpireForecastsCount = useMemo(() => {
+    return questions.filter((q) => {
+      const timeToExpireDays = getTimeToExpireDays(q.my_forecasts?.latest);
+      return timeToExpireDays && timeToExpireDays > 0 && timeToExpireDays < 2;
+    }).length;
+  }, [questions]);
+
+  const expiredForecastsCount = useMemo(() => {
+    return questions.filter((q) => {
+      const timeToExpireDays = getTimeToExpireDays(q.my_forecasts?.latest);
+      return timeToExpireDays && timeToExpireDays < 0;
+    }).length;
+  }, [questions]);
+
   const [groupOptions, setGroupOptions] = useState<ContinuousGroupOption[]>(
     generateGroupOptions({
       questions,
@@ -154,12 +179,30 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [groupOptions]
   );
 
+  const handleForecastExpiration = useCallback(
+    (optionId: number, forecastExpiration: ForecastExpirationValue) => {
+      setGroupOptions((prev) =>
+        prev.map((option) => {
+          if (option.id === optionId) {
+            return {
+              ...option,
+              forecastExpiration,
+            };
+          }
+          return option;
+        })
+      );
+    },
+    []
+  );
+
   const handleChange = useCallback(
     (
       optionId: number,
       distribution: DistributionSlider | DistributionQuantile
     ) => {
       const { components, type: forecastInputMode } = distribution;
+
       setGroupOptions((prev) =>
         prev.map((option) => {
           if (option.id === optionId) {
@@ -299,7 +342,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const handleSingleQuestionSubmit = useCallback(
-    async (questionId: number) => {
+    async (questionId: number, forecastExpiration: ForecastExpirationValue) => {
       const optionToSubmit = questionsToSubmit.find(
         (opt) => opt.id === questionId
       );
@@ -310,6 +353,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       const response = await createForecasts(postId, [
         {
           questionId: optionToSubmit.question.id,
+          forecastEndTime: forecastExpirationToDate(forecastExpiration),
           forecastData: {
             continuousCdf:
               optionToSubmit.forecastInputMode ===
@@ -397,9 +441,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           userSliderForecast,
           userQuantileForecast,
           forecastInputMode,
+          forecastExpiration,
         }) => {
           return {
             questionId: question.id,
+            forecastEndTime: forecastExpirationToDate(forecastExpiration),
             forecastData: {
               continuousCdf:
                 forecastInputMode === ContinuousForecastInputType.Quantile
@@ -447,14 +493,20 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     onPredictionSubmit?.();
     setIsSubmitting(false);
   }, [postId, questionsToSubmit, t, onPredictionSubmit]);
+
   const predictedQuestions = useMemo(() => {
-    return questions.filter(
-      (q) =>
-        q.status === QuestionStatus.OPEN &&
-        q.my_forecasts?.latest &&
-        isNil(q.my_forecasts?.latest.end_time)
-    );
-  }, [questions]);
+    return questions
+      .filter((q) =>
+        isOpenQuestionPredicted(q, { treatClosedAsPredicted: false })
+      )
+      .map((q) => ({
+        ...q,
+        forecastExpiration: buildDefaultForecastExpiration(
+          q,
+          user?.prediction_expiration_percent ?? undefined
+        ),
+      }));
+  }, [questions, user?.prediction_expiration_percent]);
 
   const handlePredictWithdraw = useCallback(
     async (questionId?: number) => {
@@ -488,10 +540,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(true);
     const response = await createForecasts(
       postId,
-      predictedQuestions.map(({ my_forecasts, id }) => {
+      predictedQuestions.map(({ my_forecasts, id, forecastExpiration }) => {
         const latest = my_forecasts?.latest as UserForecast;
         return {
           questionId: id,
+          forecastEndTime: forecastExpirationToDate(forecastExpiration),
           forecastData: {
             continuousCdf: latest.forecast_values,
             probabilityYesPerCategory: null,
@@ -531,8 +584,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         handlePredictWithdraw={handlePredictWithdraw}
         handleForecastInputModeChange={handleForecastInputModeChange}
         handleCopy={handleCopy}
+        handleForecastExpiration={handleForecastExpiration}
         permission={permission}
       />
+
       <div className="mx-auto mb-2 mt-4 flex flex-wrap justify-center gap-3">
         {questions.some((q) => canWithdrawForecast(q, permission)) && (
           <WithdrawButton
@@ -576,6 +631,22 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           </>
         )}
       </div>
+
+      <div className="mt-2 flex flex-col items-center text-xs text-salmon-800 dark:text-salmon-800-dark">
+        {soonToExpireForecastsCount > 0 && (
+          <div>
+            {t("predictionsSoonToBeWidthdrawnText", {
+              count: soonToExpireForecastsCount,
+            })}
+          </div>
+        )}
+        {expiredForecastsCount > 0 && (
+          <div>
+            {t("predictionsWithdrawnText", { count: expiredForecastsCount })}
+          </div>
+        )}
+      </div>
+
       <FormError
         errors={submitError}
         className="mt-2 flex items-center justify-center"

@@ -58,6 +58,13 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 import ContinuousInput from "../continuous_input";
 import {
+  buildDefaultForecastExpiration,
+  ForecastExpirationModal,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
+  useExpirationModalState,
+} from "../forecast_expiration";
+import {
   validateAllQuantileInputs,
   validateUserQuantileData,
 } from "../helpers";
@@ -93,16 +100,41 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const questionNoId = question_no.id;
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
-  const prevYesForecastValue =
-    latestYes && !latestYes.end_time
-      ? extractPrevNumericForecastValue(latestYes.distribution_input)
-      : undefined;
-  const prevNoForecastValue =
-    latestNo && !latestNo.end_time
-      ? extractPrevNumericForecastValue(latestNo.distribution_input)
-      : undefined;
+
+  const todayTs = new Date().getTime();
+  const hasLatestActiveYes =
+    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs);
+  const hasLatestActiveNo =
+    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs);
+
+  const prevYesForecastValue = latestYes
+    ? extractPrevNumericForecastValue(latestYes.distribution_input)
+    : undefined;
+  const prevNoForecastValue = latestNo
+    ? extractPrevNumericForecastValue(latestNo.distribution_input)
+    : undefined;
   const hasUserForecast =
     !!prevYesForecastValue?.components || !!prevNoForecastValue?.components;
+  const hasUserActiveForecast = hasLatestActiveYes || hasLatestActiveNo;
+
+  const questionYesDuration =
+    new Date(question_yes.scheduled_close_time).getTime() -
+    new Date(question_yes.open_time ?? question_yes.created_at).getTime();
+
+  const questionNoDuration =
+    new Date(question_no.scheduled_close_time).getTime() -
+    new Date(question_no.open_time ?? question_no.created_at).getTime();
+
+  const questionYesExpirationState = useExpirationModalState(
+    questionYesDuration,
+    question_yes.my_forecasts?.latest
+  );
+
+  const questionNoExpirationState = useExpirationModalState(
+    questionNoDuration,
+    question_no.my_forecasts?.latest
+  );
+
   const [questionOptions, setQuestionOptions] = useState<
     Array<
       ConditionalTableOption & {
@@ -113,12 +145,24 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         forecastInputMode: ContinuousForecastInputType;
       }
     >
-  >(() => getQuestionOptions(conditional, t));
+  >(() =>
+    getQuestionOptions(
+      conditional,
+      t,
+      user?.prediction_expiration_percent ?? null
+    )
+  );
 
   // update options on revalidate path
   useEffect(() => {
-    setQuestionOptions(() => getQuestionOptions(conditional, t));
-  }, [conditional, t]);
+    setQuestionOptions(() =>
+      getQuestionOptions(
+        conditional,
+        t,
+        user?.prediction_expiration_percent ?? null
+      )
+    );
+  }, [conditional, t, user?.prediction_expiration_percent]);
 
   const [activeTableOption, setActiveTableOption] = useState(
     questionOptions.at(0)?.question.resolution === "annulled"
@@ -133,6 +177,36 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     () => questionOptions.find((option) => option.id === activeTableOption),
     [activeTableOption, questionOptions]
   );
+
+  const questionDuration =
+    activeTableOption === questionYesId
+      ? questionYesDuration
+      : questionNoDuration;
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    expirationShortChip,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    previousForecastExpiration,
+  } =
+    activeTableOption === questionYesId
+      ? questionYesExpirationState
+      : questionNoExpirationState;
+
+  useEffect(() => {
+    setQuestionOptions((prev) =>
+      prev.map((option) => ({
+        ...option,
+        forecastExpiration:
+          option.id === activeTableOption
+            ? modalSavedState.forecastExpiration
+            : option.forecastExpiration,
+      }))
+    );
+  }, [activeTableOption, modalSavedState.forecastExpiration]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -401,7 +475,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     prevYesForecastValue,
   ]);
 
-  const handlePredictSubmit = async () => {
+  const handlePredictSubmit = async (
+    forecastExpiration?: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
     if (!questionsToSubmit.length) {
       return;
@@ -436,8 +512,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           sliderForecast,
           quantileForecast,
           forecastInputMode,
+          forecastExpiration: questionForecastExpiration,
         }) => ({
           questionId: question.id,
+          forecastEndTime: forecastExpirationToDate(
+            forecastExpiration ?? questionForecastExpiration
+          ),
           forecastData: {
             continuousCdf:
               forecastInputMode === ContinuousForecastInputType.Quantile
@@ -527,11 +607,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
-    if (!prevYesForecastValue && !prevNoForecastValue) return;
+    if (!hasLatestActiveYes && !hasLatestActiveNo) return;
 
     const response = await withdrawForecasts(postId, [
-      ...(prevYesForecastValue ? [{ question: questionYesId }] : []),
-      ...(prevNoForecastValue ? [{ question: questionNoId }] : []),
+      ...(hasLatestActiveYes ? [{ question: questionYesId }] : []),
+      ...(hasLatestActiveNo ? [{ question: questionNoId }] : []),
     ]);
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
@@ -667,7 +747,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 >
                   {t("discardChangesButton")}
                 </Button>
-              ) : !!prevYesForecastValue || !!prevNoForecastValue ? (
+              ) : hasUserActiveForecast ? (
                 <WithdrawButton
                   type="button"
                   isPromptOpen={isWithdrawModalOpen}
@@ -685,11 +765,16 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ContinuousForecastInputType.Slider && (
             <PredictButton
               onSubmit={handlePredictSubmit}
+              isUserForecastActive={hasUserActiveForecast}
               isDirty={isPickerDirty}
               hasUserForecast={hasUserForecast}
               isPending={isSubmitting}
               isDisabled={!questionsToSubmit.length}
               predictLabel={previousForecast ? undefined : t("predict")}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
             />
           )}
 
@@ -698,6 +783,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             activeQuestion && (
               <PredictButton
                 onSubmit={handlePredictSubmit}
+                isUserForecastActive={hasUserActiveForecast}
                 isDirty={activeOptionData.quantileForecast.some(
                   (q) => q.isDirty
                 )}
@@ -710,6 +796,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     components: activeOptionData.quantileForecast,
                     t,
                   }).length !== 0 || !isNil(submitError)
+                }
+                predictionExpirationChip={expirationShortChip}
+                onPredictionExpirationClick={() =>
+                  setIsForecastExpirationModalOpen(true)
                 }
               />
             )}
@@ -724,6 +814,25 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           })}
           detached
         />
+
+        {previousForecastExpiration && (
+          <span
+            className={cn(
+              "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+              previousForecastExpiration.expiresSoon &&
+                "text-salmon-800 dark:text-salmon-800-dark"
+            )}
+          >
+            {previousForecastExpiration.isExpired
+              ? t("predictionWithdrawnText", {
+                  time: previousForecastExpiration.string,
+                })
+              : t("predictionWillBeWithdrawInText", {
+                  time: previousForecastExpiration.string,
+                })}
+          </span>
+        )}
+
         <div className="h-[32px]">
           {(isSubmitting || withdrawalIsPending) && <LoadingIndicator />}
         </div>
@@ -733,6 +842,21 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        onReaffirm={
+          !!hasUserActiveForecast && !isPickerDirty
+            ? handlePredictSubmit
+            : undefined
+        }
+        questionDuration={questionDuration}
+      />
+
       <ConditionalForecastTable
         postTitle={postTitle}
         condition={condition}
@@ -849,19 +973,21 @@ function getTableValue(
 
 function getQuestionOptions(
   conditional: PostConditional<QuestionWithNumericForecasts>,
-  t: ReturnType<typeof useTranslations>
+  t: ReturnType<typeof useTranslations>,
+  userPredictionExpirationPercent: number | null
 ) {
   const { question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
+  const todayTs = new Date().getTime();
   const prevYesForecastValue =
-    latestYes && !latestYes.end_time
+    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs)
       ? extractPrevNumericForecastValue(latestYes.distribution_input)
       : undefined;
   const prevNoForecastValue =
-    latestNo && !latestNo.end_time
+    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs)
       ? extractPrevNumericForecastValue(latestNo.distribution_input)
       : undefined;
 
@@ -906,6 +1032,10 @@ function getQuestionOptions(
       })(),
       isDirty: false,
       question: question_yes,
+      forecastExpiration: buildDefaultForecastExpiration(
+        question_yes,
+        userPredictionExpirationPercent ?? undefined
+      ),
     },
     {
       id: questionNoId,
@@ -948,6 +1078,10 @@ function getQuestionOptions(
       })(),
       isDirty: false,
       question: question_no,
+      forecastExpiration: buildDefaultForecastExpiration(
+        question_no,
+        userPredictionExpirationPercent ?? undefined
+      ),
     },
   ];
 }

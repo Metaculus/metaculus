@@ -17,10 +17,17 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
+import {
+  ForecastExpirationModal,
+  ForecastExpirationValue,
+  forecastExpirationToDate,
+  useExpirationModalState,
+} from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
@@ -40,7 +47,6 @@ type Props = {
 const ForecastMakerBinary: FC<Props> = ({
   post,
   question,
-  prevForecast,
   permission,
   canPredict,
   canResolve,
@@ -54,12 +60,25 @@ const ForecastMakerBinary: FC<Props> = ({
   const communityForecast =
     latest && !latest.end_time ? latest?.centers?.[0] : undefined;
 
-  const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
+  const activeUserForecast =
+    (question.my_forecasts?.latest?.end_time ||
+      new Date().getTime() / 1000 + 1000) <=
+    new Date().getTime() / 1000
+      ? undefined
+      : question.my_forecasts?.latest;
+
+  const previousUserForecast = question.my_forecasts?.latest;
+
+  const prevForecastValue = extractPrevBinaryForecastValue(
+    previousUserForecast?.forecast_values[1]
+  );
+
   const hasUserForecast = !!prevForecastValue;
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
   const [showSuccessBox, setShowSuccessBox] = useState(false);
+
   const pathname = usePathname();
 
   const router = useRouter();
@@ -68,9 +87,24 @@ const ForecastMakerBinary: FC<Props> = ({
     setForecast(prevForecastValue);
   }, [prevForecastValue]);
 
+  const questionDuration =
+    new Date(question.scheduled_close_time).getTime() -
+    new Date(question.open_time ?? question.created_at).getTime();
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    expirationShortChip,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    previousForecastExpiration,
+  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const handlePredictSubmit = async () => {
+  const handlePredictSubmit = async (
+    forecastExpiration: ForecastExpirationValue
+  ) => {
     setSubmitError(undefined);
 
     if (forecast === null) return;
@@ -86,6 +120,7 @@ const ForecastMakerBinary: FC<Props> = ({
           probabilityYes: forecastValue,
           probabilityYesPerCategory: null,
         },
+        forecastEndTime: forecastExpirationToDate(forecastExpiration),
       },
     ]);
     setIsForecastDirty(false);
@@ -123,6 +158,19 @@ const ForecastMakerBinary: FC<Props> = ({
 
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        onReaffirm={
+          !!activeUserForecast && !isForecastDirty ? submit : undefined
+        }
+        questionDuration={questionDuration}
+      />
+
       <BinarySlider
         forecast={forecast}
         onChange={setForecast}
@@ -134,33 +182,59 @@ const ForecastMakerBinary: FC<Props> = ({
         }}
         disabled={!canPredict}
       />
+
       {predictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {predictionMessage}
         </div>
       )}
       <div className="flex flex-col items-center justify-center gap-6">
-        <div className="flex gap-3">
-          {canPredict && (
-            <>
-              {!!prevForecastValue && (
-                <WithdrawButton
-                  isPromptOpen={isWithdrawModalOpen}
-                  isPending={withdrawalIsPending}
-                  onSubmit={withdraw}
-                  onPromptVisibilityChange={setIsWithdrawModalOpen}
-                >
-                  {t("withdraw")}
-                </WithdrawButton>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex gap-3">
+            {canPredict && (
+              <>
+                {!!prevForecastValue && (
+                  <WithdrawButton
+                    isPromptOpen={isWithdrawModalOpen}
+                    isPending={withdrawalIsPending}
+                    onSubmit={withdraw}
+                    onPromptVisibilityChange={setIsWithdrawModalOpen}
+                  >
+                    {t("withdraw")}
+                  </WithdrawButton>
+                )}
+                <PredictButton
+                  hasUserForecast={hasUserForecast}
+                  isUserForecastActive={!!activeUserForecast}
+                  isDirty={isForecastDirty}
+                  isPending={isPending}
+                  onSubmit={() => submit(modalSavedState.forecastExpiration)}
+                  predictLabel={t("predict")}
+                  predictionExpirationChip={expirationShortChip}
+                  onPredictionExpirationClick={() =>
+                    setIsForecastExpirationModalOpen(true)
+                  }
+                />
+              </>
+            )}
+          </div>
+
+          {previousForecastExpiration && (
+            <span
+              className={cn(
+                "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
               )}
-              <PredictButton
-                hasUserForecast={hasUserForecast}
-                isDirty={isForecastDirty}
-                isPending={isPending}
-                onSubmit={submit}
-                predictLabel={t("predict")}
-              />
-            </>
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionWithdrawnText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillBeWithdrawInText", {
+                    time: previousForecastExpiration.string,
+                  })}
+            </span>
           )}
         </div>
 
