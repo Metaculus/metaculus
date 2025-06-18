@@ -1003,6 +1003,7 @@ def get_aggregated_forecasts_for_questions(
         # Fetch full aggregation history with lightweight objects
         aggregated_forecasts |= set(
             aggregated_forecast_qs.filter(question__in=questions_to_fetch)
+            .filter(start_time__lte=timezone.now())
             .exclude(pk__in=[x.id for x in aggregated_forecasts])
             .defer("forecast_values", "histogram", "means")
         )
