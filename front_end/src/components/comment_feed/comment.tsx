@@ -67,6 +67,7 @@ type CommentChildrenTreeProps = {
   postData?: PostWithForecasts;
   lastViewedAt?: string;
   shouldSuggestKeyFactors?: boolean;
+  isSomeChildrenUnread?: boolean;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -77,6 +78,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   postData,
   lastViewedAt,
   shouldSuggestKeyFactors = false,
+  isSomeChildrenUnread = false,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -126,6 +128,8 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                 !childrenExpanded,
               "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
                 childrenExpanded,
+              "border border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
+                isSomeChildrenUnread,
             }
           )}
           onClick={() => {
@@ -167,7 +171,6 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             const isUnread =
               lastViewedAt &&
               new Date(lastViewedAt) < new Date(child.created_at);
-
             const opacityClass =
               treeDepth % 2 === 1
                 ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
@@ -583,6 +586,17 @@ const Comment: FC<CommentProps> = ({
       </div>
     );
   }
+  const hasUnreadChildren = (comment: CommentType): boolean => {
+    if (!lastViewedAt) return false;
+
+    if (new Date(lastViewedAt) < new Date(comment.created_at)) {
+      return true;
+    }
+
+    return comment.children?.some((child) => hasUnreadChildren(child)) ?? false;
+  };
+
+  const isSomeChildrenUnread = hasUnreadChildren(comment);
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
@@ -939,6 +953,7 @@ const Comment: FC<CommentProps> = ({
           postData={postData}
           lastViewedAt={lastViewedAt}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+          isSomeChildrenUnread={isSomeChildrenUnread}
         />
       )}
       <CommentReportModal
