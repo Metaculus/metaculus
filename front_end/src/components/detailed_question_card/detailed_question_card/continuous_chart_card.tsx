@@ -58,7 +58,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     if (
       timestamp === null &&
       question.my_forecasts?.latest?.start_time &&
-      !question.my_forecasts?.latest?.end_time &&
+      (!question.my_forecasts?.latest?.end_time ||
+        question.my_forecasts.latest.end_time > new Date().getTime() / 1000) &&
       forecast &&
       forecast.start_time < question.my_forecasts.latest.start_time
     ) {
