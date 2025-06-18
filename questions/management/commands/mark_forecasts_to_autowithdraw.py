@@ -23,7 +23,6 @@ def update_standing_forecasts():
     has_valid_question_times = Q(
         question__open_time__isnull=False,
         question__scheduled_close_time__isnull=False,
-        author__username="elisescu-admin",
     )
 
     # Filter active forecasts that have valid question time fields
