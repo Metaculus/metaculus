@@ -4,6 +4,7 @@ import strip from "strip-markdown";
 
 import { defaultDescription } from "@/constants/metadata";
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { getValidString } from "@/utils/formatters/string";
 
 import IndividualNotebookPage from "./page_compotent";
 
@@ -24,11 +25,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   return {
     title:
-      postData.html_metadata_json?.title ??
-      postData.short_title ??
+      getValidString(postData.html_metadata_json?.title) ??
+      getValidString(postData.short_title) ??
       postData.title,
     description:
-      postData.html_metadata_json?.description ??
+      getValidString(postData.html_metadata_json?.description) ??
       (!!parsedDescription ? parsedDescription : defaultDescription),
   };
 }
