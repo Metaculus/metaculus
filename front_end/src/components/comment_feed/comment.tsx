@@ -10,7 +10,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -550,6 +550,25 @@ const Comment: FC<CommentProps> = ({
       },
     },
   ];
+  const hasUnreadChildren = useCallback(
+    (comment: CommentType): boolean => {
+      if (!lastViewedAt) return false;
+
+      if (new Date(lastViewedAt) < new Date(comment.created_at)) {
+        return true;
+      }
+
+      return (
+        comment.children?.some((child) => hasUnreadChildren(child)) ?? false
+      );
+    },
+    [lastViewedAt]
+  );
+
+  const isSomeChildrenUnread = useMemo(
+    () => hasUnreadChildren(comment),
+    [comment, hasUnreadChildren]
+  );
 
   if (isDeleted) {
     return (
@@ -586,17 +605,6 @@ const Comment: FC<CommentProps> = ({
       </div>
     );
   }
-  const hasUnreadChildren = (comment: CommentType): boolean => {
-    if (!lastViewedAt) return false;
-
-    if (new Date(lastViewedAt) < new Date(comment.created_at)) {
-      return true;
-    }
-
-    return comment.children?.some((child) => hasUnreadChildren(child)) ?? false;
-  };
-
-  const isSomeChildrenUnread = hasUnreadChildren(comment);
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
