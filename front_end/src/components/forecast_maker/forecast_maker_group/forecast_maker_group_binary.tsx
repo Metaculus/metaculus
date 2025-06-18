@@ -48,6 +48,7 @@ import {
 import ForecastChoiceOption from "../forecast_choice_option";
 import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type QuestionOption = {
   id: number;
@@ -145,6 +146,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   }, [permission, prevForecastValuesMap, questions, post, onPredictionSubmit]);
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const questionsToSubmit = useMemo(
     () =>
       questionOptions.filter(
@@ -237,6 +239,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
     }
+    setIsWithdrawModalOpen(false);
     onPredictionSubmit?.();
   }, [post, predictedQuestions, onPredictionSubmit]);
   const [withdraw, isWithdrawing] = useServerAction(handlePredictWithdraw);
@@ -325,14 +328,15 @@ const ForecastMakerGroupBinary: FC<Props> = ({
                 </Button>
 
                 {questions.some((q) => canWithdrawForecast(q, permission)) && (
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={isPending || isWithdrawing}
-                    onClick={withdraw}
+                  <WithdrawButton
+                    type="button"
+                    isPromptOpen={isWithdrawModalOpen}
+                    isPending={isPending || isWithdrawing}
+                    onSubmit={withdraw}
+                    onPromptVisibilityChange={setIsWithdrawModalOpen}
                   >
                     {t("withdrawAll")}
-                  </Button>
+                  </WithdrawButton>
                 )}
               </>
             )}

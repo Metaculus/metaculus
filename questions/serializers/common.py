@@ -1,9 +1,7 @@
 import logging
-from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 import numpy as np
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -16,15 +14,13 @@ from questions.models import (
     Conditional,
     GroupOfQuestions,
     AggregateForecast,
-    AggregationMethod,
 )
 from questions.models import Forecast
-from questions.utils import (
-    get_question_movement_period,
-    get_last_forecast_in_the_past,
+from questions.serializers.aggregate_forecasts import (
+    serialize_question_aggregations,
 )
+from questions.types import AggregationMethod, QuestionMovement
 from users.models import User
-from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
     unscaled_location_to_scaled_location,
@@ -49,7 +45,6 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            "description",
             "created_at",
             "open_time",
             "cp_reveal_time",
@@ -70,8 +65,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution",
             "include_bots_in_aggregates",
             "question_weight",
-            "resolution_criteria",
-            "fine_print",
             "label",
             "unit",
             "open_upper_bound",
@@ -268,9 +261,6 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
         model = GroupOfQuestions
         fields = (
             "id",
-            "description",
-            "resolution_criteria",
-            "fine_print",
             "group_variable",
             "graph_type",
             "subquestions_order",
@@ -385,97 +375,6 @@ class MyForecastSerializer(serializers.ModelSerializer):
     def get_interval_upper_bounds(self, forecast: Forecast) -> list[float] | None:
         if forecast.continuous_cdf is not None:
             return percent_point_function(forecast.continuous_cdf, [75])
-
-
-class AggregateForecastSerializer(serializers.ModelSerializer):
-    start_time = serializers.SerializerMethodField()
-    end_time = serializers.SerializerMethodField()
-    forecast_values = serializers.SerializerMethodField()
-    interval_lower_bounds = serializers.SerializerMethodField()
-    centers = serializers.SerializerMethodField()
-    interval_upper_bounds = serializers.SerializerMethodField()
-    means = serializers.SerializerMethodField()
-    histogram = serializers.SerializerMethodField()
-
-    class Meta:
-        model = AggregateForecast
-        fields = (
-            "start_time",
-            "end_time",
-            "forecast_values",
-            "forecaster_count",
-            "interval_lower_bounds",
-            "centers",
-            "interval_upper_bounds",
-            "means",
-            "histogram",
-        )
-
-    def get_start_time(self, aggregate_forecast: AggregateForecast):
-        return aggregate_forecast.start_time.timestamp()
-
-    def get_end_time(self, aggregate_forecast: AggregateForecast):
-        return (
-            aggregate_forecast.end_time.timestamp()
-            if aggregate_forecast.end_time
-            else None
-        )
-
-    def get_forecast_values(self, aggregate_forecast: AggregateForecast):
-        if self.context.get("include_forecast_values", True):
-            return aggregate_forecast.forecast_values
-
-    def get_interval_lower_bounds(
-        self, aggregate_forecast: AggregateForecast
-    ) -> list[float] | None:
-        question_type = (
-            self.context.get("question_type") or aggregate_forecast.question.type
-        )
-        if (
-            question_type == Question.QuestionType.BINARY
-            and aggregate_forecast.interval_lower_bounds
-        ):
-            return aggregate_forecast.interval_lower_bounds[1:]
-        return aggregate_forecast.interval_lower_bounds
-
-    def get_centers(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        question_type = (
-            self.context.get("question_type") or aggregate_forecast.question.type
-        )
-        if question_type == Question.QuestionType.BINARY and aggregate_forecast.centers:
-            return aggregate_forecast.centers[1:]
-        return aggregate_forecast.centers
-
-    def get_interval_upper_bounds(
-        self, aggregate_forecast: AggregateForecast
-    ) -> list[float] | None:
-        question_type = (
-            self.context.get("question_type") or aggregate_forecast.question.type
-        )
-        if (
-            question_type == Question.QuestionType.BINARY
-            and aggregate_forecast.interval_upper_bounds
-        ):
-            return aggregate_forecast.interval_upper_bounds[1:]
-        return aggregate_forecast.interval_upper_bounds
-
-    def get_means(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        question_type = (
-            self.context.get("question_type") or aggregate_forecast.question.type
-        )
-        if question_type == Question.QuestionType.BINARY and aggregate_forecast.means:
-            return aggregate_forecast.means[1:]
-        return aggregate_forecast.means
-
-    def get_histogram(
-        self, aggregate_forecast: AggregateForecast
-    ) -> list[list[float]] | None:
-        h = aggregate_forecast.histogram
-        if not h:  # h is None or []
-            return None
-        if isinstance(h[0], list):
-            return h
-        return [h]
 
 
 class ForecastWriteSerializer(serializers.ModelSerializer):
@@ -667,136 +566,33 @@ def serialize_question(
     aggregate_forecasts: list[AggregateForecast] = None,
     full_forecast_values: bool = False,
     minimize: bool = True,
+    include_descriptions: bool = False,
+    question_movement: QuestionMovement | None = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+
+    if include_descriptions:
+        serialized_data.update(
+            {
+                "description": question.description,
+                "resolution_criteria": question.resolution_criteria,
+                "fine_print": question.fine_print,
+            }
+        )
+
     serialized_data["post_id"] = post.id if post else question.get_post_id()
-    serialized_data["aggregations"] = {
-        "recency_weighted": {
-            "history": [],
-            "latest": None,
-            "score_data": dict(),
-            "movement": None,
-        },
-        "unweighted": {"history": [], "latest": None, "score_data": dict()},
-        "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
-        "metaculus_prediction": {
-            "history": [],
-            "latest": None,
-            "score_data": dict(),
-        },
-    }
+    serialized_data["aggregations"] = serialize_question_aggregations(
+        question, aggregate_forecasts, full_forecast_values, minimize
+    )
 
-    if aggregate_forecasts is not None:
-        aggregate_forecasts_by_method: dict[
-            AggregationMethod, list[AggregateForecast]
-        ] = defaultdict(list)
-
-        movement_period = get_question_movement_period(question)
-        movement_start_date = timezone.now() - movement_period
-        movement_f1 = None
-
-        for aggregate in aggregate_forecasts:
-            if (
-                aggregate.method == AggregationMethod.RECENCY_WEIGHTED
-                and aggregate.start_time <= movement_start_date
-                and aggregate.start_time <= timezone.now()
-                and (
-                    aggregate.end_time is None
-                    or aggregate.end_time > movement_start_date
-                )
-            ):
-                movement_f1 = aggregate
-
-            aggregate_forecasts_by_method[aggregate.method].append(aggregate)
-
-        # Debug method for building aggregation history from scratch
-        # Will be replaced in favour of aggregation explorer
-        if not minimize:
-            aggregate_forecasts_by_method = get_aggregation_history(
-                question,
-                aggregation_methods=[
-                    AggregationMethod.RECENCY_WEIGHTED,
-                    AggregationMethod.UNWEIGHTED,
-                ],
-                minimize=False,
-                include_stats=True,
-                include_bots=question.include_bots_in_aggregates,
-                histogram=True,
-            )
-
-        recency_weighted = aggregate_forecasts_by_method.get(
-            AggregationMethod.RECENCY_WEIGHTED
-        )
-        serialized_data["nr_forecasters"] = (
-            recency_weighted[-1].forecaster_count if recency_weighted else 0
-        )
-
-        if question.is_cp_hidden:
-            # don't show any forecasts
-            aggregate_forecasts_by_method = {}
-
-        # Appending score data
-        for suffix, scores in (
-            ("score", question.scores.all()),
-            ("archived_score", question.archived_scores.all()),
-        ):
-            for score in scores:
-                if score.aggregation_method not in serialized_data["aggregations"]:
-                    continue
-
-                serialized_data["aggregations"][score.aggregation_method]["score_data"][
-                    f"{score.score_type}_{suffix}"
-                ] = score.score
-                if score.score_type == "peer":
-                    serialized_data["aggregations"][score.aggregation_method][
-                        "score_data"
-                    ]["coverage"] = score.coverage
-                if score.score_type == "relative_legacy":
-                    serialized_data["aggregations"][score.aggregation_method][
-                        "score_data"
-                    ]["weighted_coverage"] = score.coverage
-
-        for method, forecasts in aggregate_forecasts_by_method.items():
-            serialized_data["aggregations"][method]["history"] = (
-                AggregateForecastSerializer(
-                    forecasts,
-                    many=True,
-                    context={
-                        "include_forecast_values": full_forecast_values,
-                        "question_type": question.type,
-                    },
-                ).data
-            )
-            serialized_data["aggregations"][method]["latest"] = (
-                (
-                    AggregateForecastSerializer(
-                        forecasts[-1],
-                        context={
-                            "include_forecast_values": True,
-                            "question_type": question.type,
-                        },
-                    ).data
-                )
-                if forecasts
-                else None
-            )
-            movement_f_last = get_last_forecast_in_the_past(forecasts)
-
-            if (
-                method == AggregationMethod.RECENCY_WEIGHTED
-                and movement_f1
-                and movement_f_last
-                and movement_start_date
-            ):
-                serialized_data["aggregations"][method]["movement"] = (
-                    serialize_question_movement(
-                        question, movement_f1, movement_f_last, movement_period
-                    )
-                )
+    if question_movement:
+        serialized_data["aggregations"][AggregationMethod.RECENCY_WEIGHTED][
+            "movement"
+        ] = question_movement
 
     if (
         current_user
@@ -854,18 +650,25 @@ def serialize_conditional(
     current_user: User = None,
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
+    include_descriptions: bool = False,
+    question_movements: dict[Question, QuestionMovement | None] = None,
 ):
+    question_movements = question_movements or {}
+
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition, post=conditional.condition.get_post()
+        conditional.condition,
+        post=conditional.condition.get_post(),
+        include_descriptions=include_descriptions,
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         current_user=current_user,
         post=conditional.condition_child.get_post(),
+        include_descriptions=include_descriptions,
     )
 
     # Autogen questions
@@ -879,7 +682,10 @@ def serialize_conditional(
         current_user=current_user,
         post=post,
         aggregate_forecasts=question_yes_aggregate_forecasts,
+        include_descriptions=include_descriptions,
+        question_movement=question_movements.get(conditional.question_yes),
     )
+
     question_no_aggregate_forecasts = (
         aggregate_forecasts.get(conditional.question_no) or []
         if aggregate_forecasts
@@ -890,6 +696,8 @@ def serialize_conditional(
         current_user=current_user,
         post=post,
         aggregate_forecasts=question_no_aggregate_forecasts,
+        include_descriptions=include_descriptions,
+        question_movement=question_movements.get(conditional.question_no),
     )
 
     return serialized_data
@@ -900,9 +708,23 @@ def serialize_group(
     current_user: User = None,
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
+    include_descriptions: bool = False,
+    question_movements: dict[Question, QuestionMovement | None] = None,
 ):
+    question_movements = question_movements or {}
+
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
+
+    if include_descriptions:
+        serialized_data.update(
+            {
+                "description": group.description,
+                "resolution_criteria": group.resolution_criteria,
+                "fine_print": group.fine_print,
+            }
+        )
+
     serialized_data["questions"] = []
 
     questions = group.questions.all()
@@ -917,6 +739,8 @@ def serialize_group(
                     if aggregate_forecasts
                     else None
                 ),
+                include_descriptions=include_descriptions,
+                question_movement=question_movements.get(question),
             )
         )
 

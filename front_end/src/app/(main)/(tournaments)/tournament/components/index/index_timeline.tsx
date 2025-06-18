@@ -1,9 +1,9 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { DomainTuple } from "victory";
 
-import NewNumericChart from "@/components/charts/new_numeric_chart";
+import NumericChart from "@/components/charts/numeric_chart";
 import { METAC_COLORS } from "@/constants/colors";
 import { Area, Line } from "@/types/charts";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -27,12 +27,18 @@ const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
       buildIndexChartData({ tournament, width, zoom }),
     [tournament]
   );
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const handleCursorChange = (value: number | null) => {
+    setCursorTimestamp(value);
+  };
 
   return (
-    <NewNumericChart
+    <NumericChart
       buildChartData={buildChartData}
       withZoomPicker={true}
       height={height}
+      cursorTimestamp={cursorTimestamp}
+      onCursorChange={handleCursorChange}
       chartTitle={t("indexTimeline")}
       colorOverride={METAC_COLORS.blue["600"]}
     />
