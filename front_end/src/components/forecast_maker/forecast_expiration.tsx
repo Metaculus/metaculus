@@ -353,8 +353,9 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const { user } = useAuth();
 
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
-  const userDefaultExpirationDurationSec =
-    (((userExpirationPercent ?? 10) / 100) * questionDuration) / 1000;
+  const userDefaultExpirationDurationSec = userExpirationPercent
+    ? ((userExpirationPercent / 100) * questionDuration) / 1000
+    : null;
 
   // intervalToDuration is needed so the duration will contain all units
   const userDefaultExpirationDuration = userDefaultExpirationDurationSec
