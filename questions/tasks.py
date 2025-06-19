@@ -130,16 +130,18 @@ def resolve_question_and_send_notifications(question_id: int):
         NotificationPredictedQuestionResolved.schedule(user, params)
 
 
-@dramatiq.actor(time_limit=5 * 60 * 1000)  # 5 minutes
+@dramatiq.actor
 def check_and_schedule_forecast_widrawal_due_notifications():
     now = timezone.now()
-    one_day_ago = now - timedelta(days=1)
+    one_day_from_now = now + timedelta(days=1)
 
     # Base query for notifications that are due and not sent.
     # Check only the last day to avoid sending notifications for old forecasts
     # when the user might have been unsubscribed.
     due_and_unsent = Q(
-        trigger_time__gte=one_day_ago, trigger_time__lte=now, email_sent=False
+        trigger_time__gte=now,
+        trigger_time__lt=one_day_from_now,
+        email_sent=False,
     )
 
     # Condition for users who have unsubscribed from this type of notification
@@ -195,8 +197,17 @@ def check_and_schedule_forecast_widrawal_due_notifications():
 
         user_notifications[user.email]["notifications"].append(notification)
 
+    # Sort posts by expiration_date, ascending
+    for notification_data in user_notifications.values():
+        notification_data["posts"].sort(
+            key=lambda post: (post["expiration_date"] is None, post["expiration_date"])
+        )
+
     # Send batched notifications
     for _, notification_data in user_notifications.items():
+        logging.info(
+            f"Sending notification to user {notification_data['user'].id} with {len(notification_data['posts'])} posts"
+        )
         email_sent = send_forecast_autowidrawal_notification(
             user=notification_data["user"],
             posts_data=notification_data["posts"],
