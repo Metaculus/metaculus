@@ -167,7 +167,9 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             has_active_forecast=Exists(
                 Forecast.objects.filter(
-                    post_id=OuterRef("pk"), author_id=author_id, end_time__isnull=True
+                    Q(end_time__isnull=True) | Q(end_time__gt=timezone.now()),
+                    post_id=OuterRef("pk"),
+                    author_id=author_id,
                 )
             )
         )
