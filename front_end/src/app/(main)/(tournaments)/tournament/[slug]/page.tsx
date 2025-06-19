@@ -135,9 +135,13 @@ export default async function TournamentSlug(props: Props) {
         <div>
           <HtmlContent content={tournament.description} />
 
-          {indexWeights.length > 0 && (
-            <IndexSection indexWeights={indexWeights} tournament={tournament} />
-          )}
+          {indexWeights.length > 0 &&
+            tournament.type === TournamentType.Index && (
+              <IndexSection
+                indexWeights={indexWeights}
+                tournament={tournament}
+              />
+            )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
