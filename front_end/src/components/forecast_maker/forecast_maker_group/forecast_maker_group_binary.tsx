@@ -136,9 +136,12 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, [questions]);
 
+  const firstOpenQuestion = questions.find(
+    (q) => q.status === QuestionStatus.OPEN
+  );
   const expirationState = useExpirationModalState(
     averageQuestionDuration,
-    questions[0]?.my_forecasts?.latest // Use first question as reference
+    firstOpenQuestion?.my_forecasts?.latest // Use first open question as reference
   );
 
   const {
