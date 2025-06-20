@@ -225,7 +225,10 @@ export function buildNumericChartData({
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
   });
   const yScale: Scale = generateScale({
-    displayType: questionType,
+    displayType:
+      questionType === QuestionType.Discrete
+        ? QuestionType.Numeric
+        : questionType,
     axisLength: height,
     direction: "vertical",
     domain: originalYDomain,
