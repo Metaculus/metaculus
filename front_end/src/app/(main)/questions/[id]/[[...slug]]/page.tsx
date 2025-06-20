@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 
+import { defaultDescription } from "@/constants/metadata";
 import { SearchParams } from "@/types/navigation";
+import { getValidString } from "@/utils/formatters/string";
 import { getPostTitle } from "@/utils/questions/helpers";
 
 import IndividualQuestionPage from "./page_component";
@@ -18,14 +20,15 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (!postData) {
     return {};
   }
-
   const questionTitle = getPostTitle(postData);
   return {
     title:
-      postData.html_metadata_json?.title ??
-      postData.short_title ??
+      getValidString(postData.html_metadata_json?.title) ??
+      getValidString(postData.short_title) ??
       questionTitle,
-    description: postData.html_metadata_json?.description,
+    description:
+      getValidString(postData.html_metadata_json?.description) ??
+      defaultDescription,
     openGraph: {
       type: "article",
       images: {
