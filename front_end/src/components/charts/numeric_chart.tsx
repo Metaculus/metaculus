@@ -110,6 +110,8 @@ const NumericChart: FC<Props> = ({
     () => buildChartData(chartWidth, zoom),
     [chartWidth, zoom, buildChartData]
   );
+  console.log("yScale", yScale);
+  console.log("xScale", xScale);
   const shouldAdjustCursorLabel = line.at(-1)?.x !== xDomain.at(-1);
   const defaultCursor = useMemo(
     () => line.at(-1)?.x ?? Date.now() / 1000,
@@ -177,7 +179,7 @@ const NumericChart: FC<Props> = ({
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(
       yScale,
-      (isEmbedded ? tickLabelFontSize * 0.8 : tickLabelFontSize) as number,
+      (isEmbedded ? tickLabelFontSize * 0.9 : tickLabelFontSize) as number,
       yLabel
     );
   }, [yScale, tickLabelFontSize, yLabel, isEmbedded]);
@@ -351,7 +353,11 @@ const NumericChart: FC<Props> = ({
                     ? chartWidth + 5
                     : chartWidth - tickFontSize + 5
               }
-              axisLabelComponent={<VictoryLabel x={chartWidth} />}
+              axisLabelComponent={
+                <VictoryPortal>
+                  <VictoryLabel x={chartWidth} />
+                </VictoryPortal>
+              }
             />
             {/* X axis */}
             <VictoryAxis

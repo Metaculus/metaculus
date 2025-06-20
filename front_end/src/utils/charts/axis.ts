@@ -6,7 +6,7 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
-import { isNil, min, range, uniq } from "lodash";
+import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
@@ -203,7 +203,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / (fontSize * 10));
+  const maxTicks = Math.floor(width / (fontSize * 11));
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
@@ -300,6 +300,10 @@ function minimumSignificantRounding(values: number[]): number[] {
     } else {
       const prevValue = values[i - 1];
       const nextValue = values[i + 1];
+      if (isNil(prevValue) || isNil(nextValue)) {
+        roundedValues.push(value);
+        return;
+      }
       let digits = 1;
       let candidate: number;
       while (true) {
@@ -350,6 +354,34 @@ function findOptimalTickCount(
   return bestTickCount;
 }
 
+function generateMajorTicks(
+  minorTicks: number[],
+  majorTickCount: number
+): number[] {
+  let majorTicks: number[] = [];
+  if (minorTicks.length <= majorTickCount) {
+    majorTicks = [...minorTicks];
+  } else {
+    majorTicks = [];
+    for (let i = 0; i < majorTickCount; i++) {
+      let idx: number = 0;
+      if (majorTickCount === 1) {
+        idx = 0;
+      } else {
+        idx = Math.round((i / (majorTickCount - 1)) * (minorTicks.length - 1));
+      }
+      // Ensure idx is within bounds
+      if (isNaN(idx) || idx < 0 || idx >= minorTicks.length) {
+        idx = 0;
+      }
+      const tick =
+        minorTicks[idx] !== undefined ? (minorTicks[idx] as number) : 0;
+      majorTicks.push(tick);
+    }
+  }
+  return majorTicks;
+}
+
 type GenerateScaleParams = {
   displayType: QuestionType;
   axisLength: number;
@@ -385,6 +417,8 @@ type GenerateScaleParams = {
  *  formatted tick values, defaults to an empty string
  * @param cursorDisplayLabel specifies the label to appear on the cursor
  *  state, which defaults to the displayLabel
+ * @param forceTickCount the number of ticks to force, defaults to null
+ * used only for new continuous timeline to force yAxis ticks
  *
  * @returns returns a Scale object with ticks, tickFormat, and cursorFormat
  */
@@ -488,31 +522,30 @@ export function generateScale({
           Math.ceil(maxLabelCount / 2),
           maxLabelCount
         );
-    majorTicks = range(0, majorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            10000
-        ) / 10000
-    );
     const minorTicksPerMajor = findOptimalTickCount(
       rangeMin,
-      rangeMin + (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTickCount),
+      rangeMin + (rangeMax - rangeMin) * (1 / majorTickCount),
       direction === "horizontal" ? 4 : 2,
       direction === "horizontal" ? 10 : 5
     );
     const minorTickCount = forceTickCount
-      ? forceTickCount
-      : (majorTickCount - 1) * minorTicksPerMajor;
-    minorTicks = range(0, minorTickCount + 1).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / minorTickCount) * (zoomedDomainMax - zoomedDomainMin)) *
-            10000
-        ) / 10000
-    );
+      ? forceTickCount - 1
+      : (majorTickCount - 1) * minorTicksPerMajor + 1;
+
+    minorTicks = range(0, minorTickCount + 1).map((i, idx) => {
+      const tickValue =
+        (zoomedDomainMin +
+          (i / minorTickCount) * (zoomedDomainMax - zoomedDomainMin)) *
+        10000;
+      if (idx === minorTickCount) {
+        return Math.floor(tickValue) / 10000;
+      } else if (idx === 0) {
+        return Math.ceil(tickValue) / 10000;
+      }
+      return Math.round(tickValue) / 10000;
+    });
+    // Calculate majorTicks by picking evenly spaced values from minorTicks
+    majorTicks = generateMajorTicks(minorTicks, majorTickCount);
   } else {
     // Logarithmic Scaling
     // Labeled ticks are not spaced evenly, but rather rounded to the nearby
@@ -523,18 +556,22 @@ export function generateScale({
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
     const unscaledTargets = Array.from(
-      { length: maxLabelCount },
+      { length: forceTickCount ?? maxLabelCount },
       (_, i) =>
         zoomedDomainMin +
-        ((zoomedDomainMax - zoomedDomainMin) * (i * 1)) / (maxLabelCount - 1)
+        ((zoomedDomainMax - zoomedDomainMin) * i) /
+          (forceTickCount ? forceTickCount - 1 : maxLabelCount - 1)
     );
     const scaledTargets = unscaledTargets.map((x) =>
       scaleInternalLocation(x, rangeScaling)
     );
     const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
-    majorTicks = roundedScaledTargets.map(
-      (x) => Math.round(unscaleNominalLocation(x, rangeScaling) * 10000) / 10000
-    );
+    majorTicks = forceTickCount
+      ? unscaledTargets
+      : roundedScaledTargets.map(
+          (x) =>
+            Math.round(unscaleNominalLocation(x, rangeScaling) * 10000) / 10000
+        );
 
     const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
     minorTicks = majorTicks.map((x) => x);
