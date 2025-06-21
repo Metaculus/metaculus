@@ -89,13 +89,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   }, [hoverIndex, clickIndex, score_scatter_plot]);
 
   const averageScore = overallAverage.toFixed(2);
-  const yMin = Math.min(
-    -10,
-    ...score_scatter_plot.map((data) => sqrtValue(data.score))
+  const yMin = sqrtValue(
+    Math.min(-10, ...score_scatter_plot.map((data) => data.score))
   );
-  const yMax = Math.max(
-    10,
-    ...score_scatter_plot.map((data) => sqrtValue(data.score))
+  const yMax = sqrtValue(
+    Math.max(10, ...score_scatter_plot.map((data) => data.score))
   );
 
   const handleChartClick = useCallback((event: React.MouseEvent) => {
