@@ -22,6 +22,7 @@ from django.db.models import (
     Case,
     Count,
     Func,
+    Prefetch,
 )
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
@@ -902,6 +903,7 @@ def get_contributions(
     leaderboard: Leaderboard,
     with_live_coverage: bool = False,
 ) -> list[Contribution]:
+
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
         return get_contribution_comment_insight(user, leaderboard)
 
@@ -909,7 +911,14 @@ def get_contributions(
         return get_contribution_question_writing(user, leaderboard)
 
     # Scoring Leaderboards
-    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
+    questions = leaderboard.get_questions().prefetch_related(
+        "related_posts__post",
+        Prefetch(
+            "user_forecasts",
+            queryset=Forecast.objects.filter(author_id=user.id),
+            to_attr="filtered_user_forecasts",
+        ),
+    )
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
@@ -963,7 +972,13 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
-    if "global" not in leaderboard.score_type:
+    if leaderboard.score_type in [
+        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        Leaderboard.ScoreTypes.MANUAL,
+    ]:
         for question in questions:
             if question not in scored_question:
                 coverage = None
@@ -973,7 +988,7 @@ def get_contributions(
                     forecast_horizon_end = question.scheduled_close_time.timestamp()
                     now = timezone.now().timestamp()
                     covered = 0
-                    user_forecasts = question.user_forecasts.filter(author=user)
+                    user_forecasts = getattr(question, "filtered_user_forecasts", [])
                     for forecast in user_forecasts:
                         forecast_start = max(
                             forecast.start_time.timestamp(), forecast_horizon_start
