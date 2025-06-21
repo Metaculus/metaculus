@@ -27,22 +27,19 @@ import {
 
 import TrackRecordChartHero from "../track_record_chart_hero";
 
-type HistogramProps = {
+function sqrtValue(value: number): number {
+  return value > 0 ? Math.sqrt(value) : -Math.sqrt(-value);
+}
+
+type ScatterPlotProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
   username?: string;
 };
 
-const ScatterPlot: React.FC<HistogramProps> = ({
+const ScatterPlot: React.FC<ScatterPlotProps> = ({
   score_scatter_plot,
   username,
 }) => {
-  // square root every `score` in score_scatter_plot to display more resolution
-  // near zero, compressing extreme forecasts
-  // Then, below, scale back up with y-axis labels to show original values
-  score_scatter_plot = score_scatter_plot.map((data) => ({
-    ...data,
-    score: data.score > 0 ? Math.sqrt(data.score) : -Math.sqrt(-data.score),
-  }));
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -92,8 +89,12 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   }, [hoverIndex, clickIndex, score_scatter_plot]);
 
   const averageScore = overallAverage.toFixed(2);
-  const yMin = Math.min(-10, ...score_scatter_plot.map((data) => data.score));
-  const yMax = Math.max(10, ...score_scatter_plot.map((data) => data.score));
+  const yMin = sqrtValue(
+    Math.min(-10, ...score_scatter_plot.map((data) => data.score))
+  );
+  const yMax = sqrtValue(
+    Math.max(10, ...score_scatter_plot.map((data) => data.score))
+  );
 
   const handleChartClick = useCallback((event: React.MouseEvent) => {
     const target = event.target as Element;
@@ -128,7 +129,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
               name={"scatter"}
               data={score_scatter_plot.map((point, index) => ({
                 x: point.score_timestamp,
-                y: point.score,
+                y: sqrtValue(point.score),
                 size: index === hoverIndex ? 6 : 5,
               }))}
               style={{
@@ -177,7 +178,10 @@ const ScatterPlot: React.FC<HistogramProps> = ({
               }}
             />
             <VictoryLine
-              data={movingAverage}
+              data={movingAverage.map((point) => ({
+                ...point,
+                y: sqrtValue(point.y),
+              }))}
               style={{
                 data: {
                   stroke: getThemeColor(METAC_COLORS.gray["800"]),
@@ -280,9 +284,7 @@ function buildChartData({
     score_scatter_plot.length === 0
       ? 0
       : score_scatter_plot.reduce((reducer, data) => {
-          return (
-            reducer + (data.score > 0 ? data.score ** 2 : -1 * data.score ** 2)
-          );
+          return reducer + data.score;
         }, 0) / score_scatter_plot.length;
 
   let scoreLocalSum = 0;
@@ -294,20 +296,17 @@ function buildChartData({
     };
   });
 
-  const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
-  const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
-  // these ticks are in the real range, which we then scale down so that they are
-  // evenly spaced in real space, making the chart's compression more obvious
+  const yMin = Math.min(-10, ...score_scatter_plot.map((data) => data.score));
+  const yMax = Math.max(10, ...score_scatter_plot.map((data) => data.score));
   const realTicksY = range(
-    Math.round((yMin > 0 ? yMin ** 2 : -(yMin ** 2)) / 100) * 100,
-    Math.round(yMax ** 2 / 100) * 100,
+    Math.round(yMin / 100) * 100,
+    Math.round(yMax / 100) * 100,
     10
   );
-  const ticksY = realTicksY.map((y) => (y > 0 ? Math.sqrt(y) : -Math.sqrt(-y)));
+  const ticksY = realTicksY.map((y) => sqrtValue(y));
   const ticksYFormat = (y: number) => {
-    // scale up the y value to the original scale
-    if (y ** 2 % 50 < 1) {
-      return (Math.round(y ** 2 / 10) * 10).toString();
+    if (Math.abs(y ** 2 % 50) < 1) {
+      return (Math.round(((y < 0 ? -1 : 1) * y ** 2) / 10) * 10).toString();
     } else {
       return "";
     }
