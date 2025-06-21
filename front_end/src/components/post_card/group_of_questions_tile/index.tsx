@@ -55,6 +55,8 @@ const GroupOfQuestionsTile: FC<Props> = ({ post }) => {
     {
       activeCount: VISIBLE_CHOICES_COUNT,
       locale,
+      excludeUnit: true,
+      resolutionSigfigs: 4,
     }
   );
 

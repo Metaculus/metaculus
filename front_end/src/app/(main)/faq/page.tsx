@@ -240,6 +240,9 @@ export default async function FAQ() {
                 What is &quot;Reaffirming&quot; a prediction?
               </a>
             </li>
+            <li>
+              <a href="#auto-withdrawal">What is prediction auto-withdrawal?</a>
+            </li>
           </ul>
         </div>
         <hr />
@@ -508,6 +511,13 @@ export default async function FAQ() {
           forecasters according to their forecasting performance. The more you
           forecasted and the more accurate your forecasts were, the greater
           proportion of the prize pool you receive.
+        </p>
+
+        <p>
+          Note: to limit administrative costs, tournaments that closed after 1st
+          of June, 2025 no longer give prizes below 50$, and the remaining money
+          is redistributed to forecasters with higher scores. Tournaments that
+          closed before 1st of June, 2025 still do not give prizes below 10$.
         </p>
 
         <h4 className="text-lg font-semibold">
@@ -3026,6 +3036,48 @@ export default async function FAQ() {
             you had a forecast, but not the others.
           </p>
         </div>
+
+        <div>
+          <h3
+            id="auto-withdrawal"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is prediction auto-withdrawal?
+          </h3>
+          <p>
+            Prediction auto-withdrawal is a feature that automatically{" "}
+            <Link href="/faq/#howwithdraw">withdraws</Link> your forecast after
+            a set amount of time, unless you update or re-affirm it.
+          </p>
+          <p>
+            By default, a prediction will be withdrawn after 10% of the
+            question’s lifetime has passed. You can adjust this percentage in
+            your account <Link href="/accounts/settings/">settings</Link>.
+          </p>
+          <p>
+            When a prediction is withdrawn:
+            <ul className="ml-5 list-disc">
+              <li>
+                Your forecast{" "}
+                <span className="italic">up to the point of withdrawal</span>{" "}
+                still counts toward your score.
+              </li>
+              <li>
+                You’ll receive a reminder email before the withdrawal date.
+              </li>
+              <li>
+                You can re-affirm the forecast later if it still reflects your
+                view — but the time between withdrawal and re-affirmation won’t
+                count toward your score.
+              </li>
+            </ul>
+          </p>
+          <p>
+            This helps reduce the impact of stale forecasts on your accuracy and
+            the community prediction.
+          </p>
+        </div>
+
         <hr />
         <div>
           <h2

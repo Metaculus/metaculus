@@ -1,6 +1,8 @@
 import { isNil } from "lodash";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import invariant from "ts-invariant";
@@ -20,6 +22,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
+import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
@@ -64,6 +67,17 @@ export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+
+  // Ensure project has a correct link.
+  // E.g. if tournament with /index/ url -> redirect to /tournament/
+  const correctLink = getProjectLink(tournament);
+  const headersList = await headers();
+  const originalUrl = headersList.get("x-url") || "";
+
+  if (!originalUrl.includes(correctLink)) {
+    redirect(correctLink);
+  }
+
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ServerProfileApi.getMyProfile();
   const isForecastsFlowEnabled =
@@ -135,9 +149,13 @@ export default async function TournamentSlug(props: Props) {
         <div>
           <HtmlContent content={tournament.description} />
 
-          {indexWeights.length > 0 && (
-            <IndexSection indexWeights={indexWeights} tournament={tournament} />
-          )}
+          {indexWeights.length > 0 &&
+            tournament.type === TournamentType.Index && (
+              <IndexSection
+                indexWeights={indexWeights}
+                tournament={tournament}
+              />
+            )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
