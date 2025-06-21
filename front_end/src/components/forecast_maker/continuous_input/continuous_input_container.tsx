@@ -12,6 +12,7 @@ import {
 } from "@/types/charts";
 import { QuestionType, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import ContinuousInputModeSwitcher from "./continuous_input_mode_switcher";
 
@@ -141,7 +142,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
                   "flex flex-row gap-2 text-sm text-gray-700 dark:text-gray-700-dark md:flex-row-reverse "
                 }
                 label={
-                  !!previousForecast.end_time
+                  !isForecastActive(previousForecast)
                     ? t("overlayMostRecentForecast")
                     : t("overlayCurrentForecast")
                 }

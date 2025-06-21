@@ -1,21 +1,24 @@
 from datetime import datetime
 
 import pytest  # noqa
-from freezegun import freeze_time
 from django.utils import timezone
 from django.utils.timezone import make_aware
-
+from freezegun import freeze_time
 
 from posts.models import Post
-from questions.models import Question
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
+from questions.models import Question
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import factory_forecast, create_conditional, create_question
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_questions.factories import (
+    factory_forecast,
+    create_conditional,
+    create_question,
+)
 from tests.unit.test_users.factories import factory_user
 
 
@@ -308,7 +311,7 @@ class TestPostPermissions:
                 },
             ),
             curation_status=Post.CurationStatus.APPROVED,
-            published_at=make_aware(datetime(2024, 8, 1))
+            published_at=make_aware(datetime(2024, 8, 1)),
         )
 
         qs = Post.objects.filter(pk=p1.pk)
@@ -469,3 +472,25 @@ def test_set_scheduled_close_time__conditional(
     )
     post.set_scheduled_close_time()
     assert post.scheduled_close_time == expected_sct
+
+
+@pytest.mark.parametrize(
+    "forecast_kwargs,has_active_forecast",
+    [
+        [{"start_time": datetime(2025, 1, 1)}, True],
+        [{"start_time": datetime(2025, 1, 1), "end_time": datetime(2025, 7, 1)}, True],
+        [{"start_time": datetime(2025, 1, 1), "end_time": datetime(2025, 5, 1)}, False],
+    ],
+)
+@freeze_time("2025-06-01")
+def test_annotate_has_active_forecast(
+    user1, post_binary_public, forecast_kwargs, has_active_forecast
+):
+    factory_forecast(
+        question=post_binary_public.question, author=user1, **forecast_kwargs
+    )
+    post = Post.objects.annotate_has_active_forecast(user1.id).get(
+        pk=post_binary_public.id
+    )
+
+    assert post.has_active_forecast == has_active_forecast

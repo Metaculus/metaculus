@@ -15,6 +15,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   getDiscreteValueOptions,
   getForecastPctDisplayValue,
@@ -102,7 +103,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
     const latest = question.aggregations.recency_weighted.latest;
-    if (showCP && latest && !latest.end_time) {
+    if (showCP && latest && isForecastActive(latest)) {
       charts.push({
         pmf: cdfToPmf(latest.forecast_values),
         cdf: latest.forecast_values,

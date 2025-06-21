@@ -60,6 +60,8 @@ export const FormError: FC<ErrorProps> = ({
         setErrorText(errors?.non_field_errors || errors?.message);
       } else if (name && name in errors) {
         setErrorText(errors[name]);
+      } else if (!name && Object.keys(errors).length > 0) {
+        setErrorText(extractError(errors, { detached }));
       } else {
         setErrorText(undefined);
       }

@@ -796,15 +796,64 @@ class Contribution:
     comment: Comment | None = None
 
 
-def get_contribution_question_writing(
-    user: User, leaderboard: Leaderboard, questions: QuerySet[Question]
-):
+def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
+    main_feed_posts = Post.objects.filter_for_main_feed().exclude(
+        curation_status__in=[
+            Post.CurationStatus.REJECTED,
+            Post.CurationStatus.DRAFT,
+            Post.CurationStatus.DELETED,
+        ]
+    )
+    comments = (
+        Comment.objects.filter(
+            on_post__in=main_feed_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
+        )
+        .annotate(
+            vote_score=SubqueryAggregate(
+                "comment_votes__direction",
+                filter=Q(
+                    created_at__gte=leaderboard.start_time,
+                    created_at__lte=leaderboard.end_time,
+                ),
+                aggregate=Sum,
+            )
+        )
+        .exclude(vote_score=0)
+        .distinct("pk")
+    )
+
+    # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
+    # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
+    # significantly slowing down serialization and data fetching.
+    # Instead, we perform a custom mapping fetch to optimize this process.
+    posts_map = {
+        p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
+    }
+    contributions = [
+        Contribution(
+            score=comment.vote_score,
+            post=posts_map[comment.on_post_id],
+            comment=comment,
+        )
+        for comment in comments
+    ]
+    contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+
+    h_index = decimal_h_index([c.score for c in contributions])
+    min_score = contributions[: max(int(h_index), 1)][-1].score if contributions else 0
+    return [c for c in contributions if c.score >= min_score]
+
+
+def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     forecaster_ids_for_post = defaultdict(set)
 
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
     questions = (
-        questions.prefetch_related("related_posts__post")
         # Fetch only authored posts
-        .filter(
+        questions.filter(
             Q(related_posts__post__author_id=user.id)
             | Q(related_posts__post__coauthors=user)
         )
@@ -854,58 +903,13 @@ def get_contributions(
     with_live_coverage: bool = False,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        main_feed_posts = Post.objects.filter_for_main_feed().exclude(
-            curation_status__in=[
-                Post.CurationStatus.REJECTED,
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.DELETED,
-            ]
-        )
-        comments = Comment.objects.filter(
-            on_post__in=main_feed_posts,
-            author=user,
-            created_at__lte=leaderboard.end_time,
-            comment_votes__isnull=False,
-        )
-
-        # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
-        # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
-        # significantly slowing down serialization and data fetching.
-        # Instead, we perform a custom mapping fetch to optimize this process.
-        posts_map = {
-            p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
-        }
-
-        comments = comments.annotate(
-            vote_score=SubqueryAggregate(
-                "comment_votes__direction",
-                filter=Q(
-                    created_at__gte=leaderboard.start_time,
-                    created_at__lte=leaderboard.end_time,
-                ),
-                aggregate=Sum,
-            )
-        ).distinct("pk")
-
-        contributions: list[Contribution] = []
-        for comment in comments:
-            contribution = Contribution(
-                score=comment.vote_score or 0,
-                post=posts_map[comment.on_post_id],
-                comment=comment,
-            )
-
-            contributions.append(contribution)
-
-        h_index = decimal_h_index([c.score for c in contributions])
-        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        min_score = contributions[: int(h_index)][-1].score if contributions else 0
-        return [c for c in contributions if c.score >= min_score]
-
-    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
+        return get_contribution_comment_insight(user, leaderboard)
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        return get_contribution_question_writing(user, leaderboard, questions)
+        return get_contribution_question_writing(user, leaderboard)
+
+    # Scoring Leaderboards
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
