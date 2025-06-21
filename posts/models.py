@@ -479,6 +479,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     question_id: int | None
     conditional_id: int | None
     group_of_questions_id: int | None
+    default_project_id: int
 
     # Annotated fields
     user_vote = None
