@@ -342,10 +342,9 @@ class ProjectAdmin(CustomTranslationAdmin):
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]
-    autocomplete_fields = ["created_by"]
+    autocomplete_fields = ["created_by", "primary_leaderboard"]
     ordering = ["-created_at"]
     inlines = [
-        ProjectIndexQuestionsInline,
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,
@@ -366,6 +365,15 @@ class ProjectAdmin(CustomTranslationAdmin):
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
+
+    def get_inlines(self, request, obj=None):
+        inlines = list(self.inlines)
+
+        # Only show ProjectIndexQuestionsInline if project type is Index
+        if obj and obj.type == Project.ProjectTypes.INDEX:
+            inlines.insert(0, ProjectIndexQuestionsInline)
+
+        return inlines
 
     def save_model(self, request, obj: Project, form, change):
         # Force visibility states for such project types

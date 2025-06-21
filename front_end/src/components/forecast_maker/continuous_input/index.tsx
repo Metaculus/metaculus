@@ -1,4 +1,3 @@
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useRef } from "react";
 
@@ -13,7 +12,10 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
+import {
+  isAllQuantileComponentsDirty,
+  isForecastActive,
+} from "@/utils/forecasts/helpers";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -94,7 +96,7 @@ const ContinuousInput: FC<Props> = ({
       (isDirty ||
         (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
-          isNil(previousForecast.end_time)))
+          isForecastActive(previousForecast)))
     ) {
       onQuantileChange(
         getQuantilesDistributionFromSlider(sliderComponents, question, true)

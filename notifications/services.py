@@ -738,3 +738,23 @@ def send_comment_report_notification_to_staff(
         },
         from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
+
+
+def send_forecast_autowidrawal_notification(
+    user: User,
+    posts_data: list[dict],
+    account_settings_url: str,
+):
+    send_email_with_template(
+        to=user.email,
+        subject=_(f"You have {len(posts_data)} predictions that need updating"),
+        template_name="emails/forecast_auto_withdraw.html",
+        context={
+            "recipient": user,
+            "posts_data": posts_data,
+            "account_settings_url": account_settings_url,
+        },
+        use_async=False,
+    )
+
+    return True

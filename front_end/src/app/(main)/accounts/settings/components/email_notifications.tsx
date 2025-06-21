@@ -80,6 +80,10 @@ const EmailNotifications: FC<Props> = ({ user }) => {
         </>
       ),
     },
+    {
+      type: SubscriptionEmailType.before_prediction_auto_withdrawal,
+      label: t("beforeAutoWithdrawal"),
+    },
   ];
 
   return (
