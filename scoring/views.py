@@ -287,10 +287,17 @@ def medal_contributions(
         else:
             leaderboard = leaderboards.first()
 
+    with_live_coverage = leaderboard.score_type in [
+        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        Leaderboard.ScoreTypes.MANUAL,
+    ]
     contributions = get_contributions(
         user,
         leaderboard,
-        with_live_coverage="global" not in leaderboard.score_type,
+        with_live_coverage,
     )
     leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
