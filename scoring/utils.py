@@ -429,13 +429,21 @@ def assign_ranks(
     return entries
 
 
-def assign_prize_percentages(entries: list[LeaderboardEntry]) -> list[LeaderboardEntry]:
+def assign_prize_percentages(
+    entries: list[LeaderboardEntry], minimum_prize_percent: float
+) -> list[LeaderboardEntry]:
     total_take = sum(e.take for e in entries if not e.excluded and e.take is not None)
     for entry in entries:
+        entry.percent_prize = 0
         if total_take and not entry.excluded and entry.take is not None:
-            entry.percent_prize = entry.take / total_take
-        else:
-            entry.percent_prize = 0
+            percent_prize = entry.take / total_take
+            if percent_prize >= minimum_prize_percent:
+                # only give percent prize if it's above the minimum
+                entry.percent_prize = percent_prize
+    # renormalize percent_prize to sum to 1
+    percent_prize_sum = sum(entry.percent_prize for entry in entries) or 1
+    for entry in entries:
+        entry.percent_prize /= percent_prize_sum
     return entries
 
 
@@ -683,7 +691,15 @@ def update_project_leaderboard(
     )
 
     # assign prize percentages
-    new_entries = assign_prize_percentages(new_entries)
+    prize_pool = (
+        leaderboard.prize_pool
+        if leaderboard.prize_pool is not None
+        else project.prize_pool
+    )
+    minimum_prize_percent = (
+        float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
+    )
+    new_entries = assign_prize_percentages(new_entries, minimum_prize_percent)
 
     # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
@@ -698,11 +714,6 @@ def update_project_leaderboard(
                 # assign medals
                 new_entries = assign_medals(new_entries)
             # add prize if applicable
-            prize_pool = (
-                leaderboard.prize_pool
-                if leaderboard.prize_pool is not None
-                else project.prize_pool
-            )
             if prize_pool:
                 new_entries = assign_prizes(new_entries, prize_pool)
         # always set finalize
