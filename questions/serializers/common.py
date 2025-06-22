@@ -66,6 +66,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution",
             "include_bots_in_aggregates",
             "question_weight",
+            "default_score_type",
             "label",
             "unit",
             "open_upper_bound",

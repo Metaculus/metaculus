@@ -16,6 +16,7 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
 from questions.models import Question
+from scoring.constants import LeaderboardScoreTypes
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
@@ -386,7 +387,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
             leaderboard = Leaderboard.objects.create(
                 project=self,
-                score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+                score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
             )
             Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
 
