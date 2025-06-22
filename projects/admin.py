@@ -653,12 +653,10 @@ class ProjectAdmin(CustomTranslationAdmin):
         if not leaderboard:
             return None
 
-        # Shared query
         all_questions = leaderboard.get_questions().filter(question_weight__gt=0)
         all_ids = list(all_questions.values_list("id", flat=True))
         all_count = len(all_ids)
 
-        # Finalize time logic
         finalize_time = leaderboard.finalize_time or obj.close_date
         if finalize_time:
             in_leaderboard_qs = all_questions.filter(
@@ -667,7 +665,7 @@ class ProjectAdmin(CustomTranslationAdmin):
                 scheduled_close_time__lte=finalize_time,
             )
         else:
-            in_leaderboard_qs = all_questions.none()
+            in_leaderboard_qs = all_questions
 
         in_leaderboard_ids = list(in_leaderboard_qs.values_list("id", flat=True))
         in_leaderboard_count = len(in_leaderboard_ids)
