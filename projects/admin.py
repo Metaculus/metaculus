@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import path
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
@@ -328,12 +328,10 @@ class ProjectAdmin(CustomTranslationAdmin):
         "view_posts_link",
     ]
     readonly_fields = [
-        "questions_in_project",
-        "questions_in_primary_leaderboard",
+        "posts_summary",
+        "questions_summary",
         "latest_resolving_time",
         "primary_leaderboard_finalize_time",
-        "view_default_posts_link",
-        "view_posts_link",
     ]
     list_filter = [
         "type",
@@ -513,28 +511,6 @@ class ProjectAdmin(CustomTranslationAdmin):
         "Email Me Question Data for Selected Projects Anonymized"
     )
 
-    def view_default_posts_link(self, obj):
-        count = Post.objects.filter(default_project=obj).distinct().count()
-        url = (
-            reverse("admin:posts_post_changelist")
-            + "?"
-            + f"default_project__id__exact={obj.id}"
-        )
-        return format_html('<a href="{}">{} Posts</a>', url, count)
-
-    view_default_posts_link.short_description = "Default Posts"
-
-    def view_posts_link(self, obj):
-        count = Post.objects.filter(projects=obj).distinct().count()
-        url = (
-            reverse("admin:posts_post_changelist")
-            + "?"
-            + f"projects__id__exact={obj.id}"
-        )
-        return format_html('<a href="{}">{} Posts</a>', url, count)
-
-    view_posts_link.short_description = "Posts"
-
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -602,29 +578,130 @@ class ProjectAdmin(CustomTranslationAdmin):
         }
         return render(request, "admin/projects/add_posts_to_project.html", context)
 
-    def questions_in_project(self, obj):
+    def view_default_posts_link(self, obj):
+        count = Post.objects.filter(default_project=obj).distinct().count()
+        url = (
+            reverse("admin:posts_post_changelist")
+            + "?"
+            + f"default_project__id__exact={obj.id}"
+        )
+        return format_html('<a href="{}">{} Posts</a>', url, count)
+
+    view_default_posts_link.short_description = "Default Posts"
+
+    def view_posts_link(self, obj):
+        count = Post.objects.filter(projects=obj).distinct().count()
+        url = (
+            reverse("admin:posts_post_changelist")
+            + "?"
+            + f"projects__id__exact={obj.id}"
+        )
+        return format_html('<a href="{}">{} Posts</a>', url, count)
+
+    view_posts_link.short_description = "Posts"
+
+    def posts_summary(self, obj):
         if obj.type == Project.ProjectTypes.SITE_MAIN:
             return None
-        project = Project.objects.filter(id=obj.id).annotate_questions_count().first()
-        if project:
-            return project.questions_count
+        all_posts = Post.objects.filter(
+            Q(default_project=obj) | Q(projects=obj)
+        ).distinct("id")
+        all_ids = list(all_posts.values_list("id", flat=True))
+        all_count = len(all_ids)
 
-    questions_in_project.short_description = "Questions in Project (weight > 0)"
+        default_posts = Post.objects.filter(default_project=obj)
+        default_posts_ids = list(default_posts.values_list("id", flat=True))
+        default_posts_count = len(default_posts_ids)
 
-    def questions_in_primary_leaderboard(self, obj: Project):
+        posts = Post.objects.filter(projects=obj).distinct("id")
+        posts_ids = list(posts.values_list("id", flat=True))
+        posts_count = len(posts_ids)
+
+        def make_link(ids, label):
+            query_string = f"id__in={','.join(map(str, ids)) or '0'}"
+            url = reverse("admin:posts_post_changelist") + "?" + query_string
+            return format_html('<a href="{}">{}</a>', url, label)
+
+        default_posts_count = Post.objects.filter(default_project=obj).count()
+        posts_count = Post.objects.filter(projects=obj).count()
+        return format_html_join(
+            format_html("<br>"),
+            "{}",
+            [
+                (make_link(all_ids, f"{all_count} Posts in Project"),),
+                (
+                    make_link(
+                        default_posts_ids,
+                        f"{default_posts_count} Default Posts (Determines Permissions)",
+                    ),
+                ),
+                (
+                    make_link(
+                        posts_ids,
+                        f"{posts_count} Secondary Posts",
+                    ),
+                ),
+            ],
+        )
+
+    posts_summary.short_description = "Post Summary"
+
+    def questions_summary(self, obj):
         if obj.type == Project.ProjectTypes.SITE_MAIN:
             return None
         leaderboard = obj.primary_leaderboard
-        if leaderboard:
-            return (
-                leaderboard.get_questions()
-                .filter(question_weight__gt=0)
-                .distinct()
-                .count()
-            )
+        if not leaderboard:
+            return None
 
-    questions_in_primary_leaderboard.short_description = (
-        "Questions in Primary Leaderboard (weight > 0)"
+        # Shared query
+        all_questions = leaderboard.get_questions().filter(question_weight__gt=0)
+        all_ids = list(all_questions.values_list("id", flat=True))
+        all_count = len(all_ids)
+
+        # Finalize time logic
+        finalize_time = leaderboard.finalize_time or obj.close_date
+        if finalize_time:
+            in_leaderboard_qs = all_questions.filter(
+                Q(resolution_set_time__isnull=True)
+                | Q(resolution_set_time__lte=finalize_time),
+                scheduled_close_time__lte=finalize_time,
+            )
+        else:
+            in_leaderboard_qs = all_questions.none()
+
+        in_leaderboard_ids = list(in_leaderboard_qs.values_list("id", flat=True))
+        in_leaderboard_count = len(in_leaderboard_ids)
+
+        not_in_leaderboard_ids = list(set(all_ids) - set(in_leaderboard_ids))
+        not_in_leaderboard_count = len(not_in_leaderboard_ids)
+
+        def make_link(ids, label):
+            query_string = f"id__in={','.join(map(str, ids)) or '0'}"
+            url = reverse("admin:questions_question_changelist") + "?" + query_string
+            return format_html('<a href="{}">{}</a>', url, label)
+
+        return format_html_join(
+            format_html("<br>"),
+            "{}",
+            [
+                (make_link(all_ids, f"{all_count} Questions in Project"),),
+                (
+                    make_link(
+                        in_leaderboard_ids,
+                        f"{in_leaderboard_count} Questions in Primary Leaderboard",
+                    ),
+                ),
+                (
+                    make_link(
+                        not_in_leaderboard_ids,
+                        f"{not_in_leaderboard_count} Questions NOT in Primary Leaderboard",
+                    ),
+                ),
+            ],
+        )
+
+    questions_summary.short_description = format_html(
+        "Question Summary<br>(Only Questions with Weight > 0)"
     )
 
     def latest_resolving_time(self, obj):
@@ -668,10 +745,8 @@ class ProjectAdmin(CustomTranslationAdmin):
         for field in [
             "primary_leaderboard_finalize_time",
             "latest_resolving_time",
-            "questions_in_primary_leaderboard",
-            "questions_in_project",
-            "view_default_posts_link",
-            "view_posts_link",
+            "questions_summary",
+            "posts_summary",
         ]:
             if field in fields:
                 fields.remove(field)
