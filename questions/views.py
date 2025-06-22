@@ -45,10 +45,12 @@ def question_detail_api_view(request, pk: int):
         serialize_question(
             question,
             post=question.get_post(),
-            aggregate_forecasts=question.aggregate_forecasts.all() if with_cp else None,
+            aggregate_forecasts=(
+                question.aggregate_forecasts.order_by("start_time") if with_cp else None
+            ),
             current_user=request.user,
             minimize=minimize,
-            include_descriptions=True
+            include_descriptions=True,
         )
     )
 

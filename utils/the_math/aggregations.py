@@ -550,6 +550,13 @@ def get_aggregation_history(
                 )
                 continue
 
+        last_historical_entry_index = -1
+        now = datetime.now(timezone.utc)
+        for entry in forecast_history:
+            if entry.timestep < now:
+                last_historical_entry_index += 1
+            else:
+                break
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
             include_histogram = (
@@ -558,7 +565,7 @@ def get_aggregation_history(
                 and histogram
                 if histogram is not None
                 else question.type == Question.QuestionType.BINARY
-                and i == (len(forecast_history) - 1)
+                and i >= last_historical_entry_index
             )
 
             if forecast_set.forecasts_values:
