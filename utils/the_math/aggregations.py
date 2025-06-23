@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from django.db.models import Q
+from django.utils import timezone as django_timezone
 
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
@@ -551,12 +552,12 @@ def get_aggregation_history(
                 continue
 
         last_historical_entry_index = -1
-        now = datetime.now(timezone.utc)
+        now = django_timezone.now()
         for entry in forecast_history:
             if entry.timestep < now:
                 last_historical_entry_index += 1
-            else:
-                break
+
+            break
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
             include_histogram = (
