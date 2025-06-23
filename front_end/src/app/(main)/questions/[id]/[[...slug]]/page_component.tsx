@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { redirect } from "next/navigation";
 import { FC } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
@@ -34,13 +33,13 @@ import {
 import { cachedGetPost } from "./utils/get_post";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
+import NotebookRedirect from "../components/notebook_redirect";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
-
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
 );
@@ -53,9 +52,7 @@ const IndividualQuestionPage: FC<{
   const defaultProject = postData.projects.default_project;
 
   if (postData.notebook) {
-    return redirect(
-      `/notebooks/${postData.id}${params.slug ? `/${params.slug}` : ""}`
-    );
+    return <NotebookRedirect id={postData.id} slug={params.slug} />;
   }
 
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
