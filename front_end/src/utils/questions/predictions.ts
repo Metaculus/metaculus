@@ -9,6 +9,8 @@ import {
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
+import { isForecastActive } from "../forecasts/helpers";
+
 type CanPredictParams = Pick<
   Post,
   | "user_permission"
@@ -73,12 +75,9 @@ export function canWithdrawForecast(
   question: QuestionWithForecasts,
   permission?: ProjectPermissions
 ) {
-  const now = new Date();
   const latestForecast = question.my_forecasts?.latest;
   const latestForecastExpired =
-    latestForecast &&
-    latestForecast.end_time &&
-    new Date(latestForecast.end_time * 1000) < now;
+    latestForecast && !isForecastActive(latestForecast);
 
   return (
     question.status === QuestionStatus.OPEN &&

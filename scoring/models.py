@@ -223,6 +223,14 @@ class Leaderboard(TimeStampedModel):
         </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
         """,
     )
+    minimum_prize_amount = models.DecimalField(
+        default=50.00,
+        decimal_places=2,
+        max_digits=15,
+        help_text="""The minimum amount a user can win in this leaderboard.
+        Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
+        """,
+    )
     bot_status = models.CharField(
         max_length=32,
         choices=Project.BotLeaderboardStatus.choices,

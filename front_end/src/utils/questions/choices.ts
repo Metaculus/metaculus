@@ -8,6 +8,7 @@ import {
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   formatMultipleChoiceResolution,
   formatResolution,
@@ -44,7 +45,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const aggregationTimestamps: number[] = [];
   aggregationHistory.forEach((forecast) => {
     aggregationTimestamps.push(forecast.start_time);
-    if (forecast.end_time) {
+    if (forecast.end_time && !isForecastActive(forecast)) {
       aggregationTimestamps.push(forecast.end_time);
     }
   });
@@ -54,7 +55,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const userTimestamps: number[] = [];
   userHistory?.forEach((forecast) => {
     userTimestamps.push(forecast.start_time);
-    if (forecast.end_time) {
+    if (forecast.end_time && !isForecastActive(forecast)) {
       userTimestamps.push(forecast.end_time);
     }
   });
@@ -212,7 +213,7 @@ export function generateChoiceItemsFromGroupQuestions(
     const aggregationTimestamps: number[] = [];
     aggregationHistory.forEach((forecast) => {
       aggregationTimestamps.push(forecast.start_time);
-      if (forecast.end_time) {
+      if (forecast.end_time && !isForecastActive(forecast)) {
         aggregationTimestamps.push(forecast.end_time);
       }
     });
@@ -230,7 +231,7 @@ export function generateChoiceItemsFromGroupQuestions(
     const userTimestamps: number[] = [];
     userHistory?.forEach((forecast) => {
       userTimestamps.push(forecast.start_time);
-      if (forecast.end_time) {
+      if (forecast.end_time && !isForecastActive(forecast)) {
         userTimestamps.push(forecast.end_time);
       }
     });

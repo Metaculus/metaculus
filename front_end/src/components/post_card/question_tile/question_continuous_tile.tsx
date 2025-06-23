@@ -24,6 +24,7 @@ import {
   QuestionWithNumericForecasts,
   UserForecast,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
@@ -94,7 +95,7 @@ const QuestionContinuousTile: FC<Props> = ({
         case QuestionType.Numeric:
         case QuestionType.Discrete:
         case QuestionType.Date: {
-          const activeForecast = isNil(userForecast.end_time)
+          const activeForecast = isForecastActive(userForecast)
             ? userForecast
             : undefined;
 

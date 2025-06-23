@@ -518,11 +518,6 @@ class TestQuestionForecastAutoWithdrawal:
         user_prediction = response.data["question"]["my_forecasts"]["latest"]
         assert user_prediction["end_time"] is None
 
-        community_prediction = response.data["question"]["aggregations"][
-            "recency_weighted"
-        ]["latest"]
-        assert community_prediction["end_time"] is None
-
     def test_forecast_auto_withdrawal_notification(
         self, transactional_db, user1, user2, user1_client, user2_client
     ):

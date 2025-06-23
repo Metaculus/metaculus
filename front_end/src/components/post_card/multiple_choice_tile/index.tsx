@@ -28,6 +28,7 @@ import {
   Scaling,
 } from "@/types/question";
 import { CurrentUser } from "@/types/users";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -240,8 +241,7 @@ function generateReaffirmData({
   // multiple choice question
   if (question) {
     const latest = question.my_forecasts?.latest;
-    const hasActivePrediction =
-      latest && (!latest.end_time || latest.end_time * 1000 > Date.now());
+    const hasActivePrediction = latest && isForecastActive(latest);
     if (!hasActivePrediction) {
       return fallback;
     }
@@ -286,8 +286,7 @@ function generateReaffirmData({
     if (groupType === QuestionType.Binary) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
-        const hasActivePrediction =
-          latest && (!latest.end_time || latest.end_time * 1000 > Date.now());
+        const hasActivePrediction = latest && isForecastActive(latest);
         let forecast: number | null = null;
         if (hasActivePrediction) {
           forecast = latest?.forecast_values[1] ?? null;
@@ -328,8 +327,7 @@ function generateReaffirmData({
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
         let forecastValues: number[] | undefined = undefined;
-        const hasActivePrediction =
-          latest && (!latest.end_time || latest.end_time * 1000 > Date.now());
+        const hasActivePrediction = latest && isForecastActive(latest);
 
         if (hasActivePrediction) {
           forecastValues = latest.forecast_values;

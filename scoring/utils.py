@@ -428,13 +428,21 @@ def assign_ranks(
     return entries
 
 
-def assign_prize_percentages(entries: list[LeaderboardEntry]) -> list[LeaderboardEntry]:
+def assign_prize_percentages(
+    entries: list[LeaderboardEntry], minimum_prize_percent: float
+) -> list[LeaderboardEntry]:
     total_take = sum(e.take for e in entries if not e.excluded and e.take is not None)
     for entry in entries:
+        entry.percent_prize = 0
         if total_take and not entry.excluded and entry.take is not None:
-            entry.percent_prize = entry.take / total_take
-        else:
-            entry.percent_prize = 0
+            percent_prize = entry.take / total_take
+            if percent_prize >= minimum_prize_percent:
+                # only give percent prize if it's above the minimum
+                entry.percent_prize = percent_prize
+    # renormalize percent_prize to sum to 1
+    percent_prize_sum = sum(entry.percent_prize for entry in entries) or 1
+    for entry in entries:
+        entry.percent_prize /= percent_prize_sum
     return entries
 
 
@@ -682,7 +690,15 @@ def update_project_leaderboard(
     )
 
     # assign prize percentages
-    new_entries = assign_prize_percentages(new_entries)
+    prize_pool = (
+        leaderboard.prize_pool
+        if leaderboard.prize_pool is not None
+        else project.prize_pool
+    )
+    minimum_prize_percent = (
+        float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
+    )
+    new_entries = assign_prize_percentages(new_entries, minimum_prize_percent)
 
     # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
@@ -697,11 +713,6 @@ def update_project_leaderboard(
                 # assign medals
                 new_entries = assign_medals(new_entries)
             # add prize if applicable
-            prize_pool = (
-                leaderboard.prize_pool
-                if leaderboard.prize_pool is not None
-                else project.prize_pool
-            )
             if prize_pool:
                 new_entries = assign_prizes(new_entries, prize_pool)
         # always set finalize
@@ -796,15 +807,64 @@ class Contribution:
     comment: Comment | None = None
 
 
-def get_contribution_question_writing(
-    user: User, leaderboard: Leaderboard, questions: Question.objects
-):
+def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
+    main_feed_posts = Post.objects.filter_for_main_feed().exclude(
+        curation_status__in=[
+            Post.CurationStatus.REJECTED,
+            Post.CurationStatus.DRAFT,
+            Post.CurationStatus.DELETED,
+        ]
+    )
+    comments = (
+        Comment.objects.filter(
+            on_post__in=main_feed_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
+        )
+        .annotate(
+            vote_score=SubqueryAggregate(
+                "comment_votes__direction",
+                filter=Q(
+                    created_at__gte=leaderboard.start_time,
+                    created_at__lte=leaderboard.end_time,
+                ),
+                aggregate=Sum,
+            )
+        )
+        .exclude(vote_score=0)
+        .distinct("pk")
+    )
+
+    # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
+    # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
+    # significantly slowing down serialization and data fetching.
+    # Instead, we perform a custom mapping fetch to optimize this process.
+    posts_map = {
+        p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
+    }
+    contributions = [
+        Contribution(
+            score=comment.vote_score,
+            post=posts_map[comment.on_post_id],
+            comment=comment,
+        )
+        for comment in comments
+    ]
+    contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+
+    h_index = decimal_h_index([c.score for c in contributions])
+    min_score = contributions[: max(int(h_index), 1)][-1].score if contributions else 0
+    return [c for c in contributions if c.score >= min_score]
+
+
+def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     forecaster_ids_for_post = defaultdict(set)
 
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
     questions = (
-        questions.prefetch_related("related_posts__post")
         # Fetch only authored posts
-        .filter(
+        questions.filter(
             Q(related_posts__post__author_id=user.id)
             | Q(related_posts__post__coauthors=user)
         )
@@ -853,58 +913,13 @@ def get_contributions(
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        main_feed_posts = Post.objects.filter_for_main_feed().exclude(
-            curation_status__in=[
-                Post.CurationStatus.REJECTED,
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.DELETED,
-            ]
-        )
-        comments = Comment.objects.filter(
-            on_post__in=main_feed_posts,
-            author=user,
-            created_at__lte=leaderboard.end_time,
-            comment_votes__isnull=False,
-        )
-
-        # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
-        # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
-        # significantly slowing down serialization and data fetching.
-        # Instead, we perform a custom mapping fetch to optimize this process.
-        posts_map = {
-            p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
-        }
-
-        comments = comments.annotate(
-            vote_score=SubqueryAggregate(
-                "comment_votes__direction",
-                filter=Q(
-                    created_at__gte=leaderboard.start_time,
-                    created_at__lte=leaderboard.end_time,
-                ),
-                aggregate=Sum,
-            )
-        ).distinct("pk")
-
-        contributions: list[Contribution] = []
-        for comment in comments:
-            contribution = Contribution(
-                score=comment.vote_score or 0,
-                post=posts_map[comment.on_post_id],
-                comment=comment,
-            )
-
-            contributions.append(contribution)
-
-        h_index = decimal_h_index([c.score for c in contributions])
-        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        min_score = contributions[: int(h_index)][-1].score if contributions else 0
-        return [c for c in contributions if c.score >= min_score]
-
-    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
+        return get_contribution_comment_insight(user, leaderboard)
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        return get_contribution_question_writing(user, leaderboard, questions)
+        return get_contribution_question_writing(user, leaderboard)
+
+    # Scoring Leaderboards
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
 
     calculated_scores = Score.objects.filter(
         question__in=questions,

@@ -10,6 +10,7 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { ForecastAvailability, Question, QuestionType } from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   getDiscreteValueOptions,
   getPredictionDisplayValue,
@@ -58,19 +59,15 @@ const DetailedContinuousChartCard: FC<Props> = ({
     if (
       timestamp === null &&
       question.my_forecasts?.latest?.start_time &&
-      (!question.my_forecasts?.latest?.end_time ||
-        question.my_forecasts.latest.end_time > new Date().getTime() / 1000) &&
+      isForecastActive(question.my_forecasts?.latest) &&
       forecast &&
       forecast.start_time < question.my_forecasts.latest.start_time
     ) {
       timestamp = question.my_forecasts.latest.start_time;
-      const forecasterCount = !!forecastAvailability?.cpRevealsOn
-        ? forecast?.forecaster_count ?? 0
-        : nrForecasters ?? 0;
 
       return {
         timestamp,
-        forecasterCount,
+        forecasterCount: forecast?.forecaster_count ?? 0,
         interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
         center: forecast?.centers?.[0] ?? null,
         interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,

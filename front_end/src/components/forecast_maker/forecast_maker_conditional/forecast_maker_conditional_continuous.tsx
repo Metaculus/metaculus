@@ -40,7 +40,10 @@ import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
-import { clearQuantileComponents } from "@/utils/forecasts/helpers";
+import {
+  clearQuantileComponents,
+  isForecastActive,
+} from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
   getInitialQuantileDistributionComponents,
@@ -101,11 +104,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
 
-  const todayTs = new Date().getTime();
-  const hasLatestActiveYes =
-    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs);
-  const hasLatestActiveNo =
-    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs);
+  const hasLatestActiveYes = latestYes && isForecastActive(latestYes);
+  const hasLatestActiveNo = latestNo && isForecastActive(latestNo);
 
   const prevYesForecastValue = latestYes
     ? extractPrevNumericForecastValue(latestYes.distribution_input)
@@ -681,7 +681,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const aggregateLatest =
     activeOptionData?.question.aggregations.recency_weighted.latest;
   const communityCdf: number[] | undefined =
-    aggregateLatest && !aggregateLatest.end_time
+    aggregateLatest && isForecastActive(aggregateLatest)
       ? aggregateLatest.forecast_values
       : undefined;
 
@@ -981,13 +981,12 @@ function getQuestionOptions(
   const questionNoId = question_no.id;
   const latestYes = question_yes.my_forecasts?.latest;
   const latestNo = question_no.my_forecasts?.latest;
-  const todayTs = new Date().getTime();
   const prevYesForecastValue =
-    latestYes && (!latestYes.end_time || latestYes.end_time * 1000 > todayTs)
+    latestYes && isForecastActive(latestYes)
       ? extractPrevNumericForecastValue(latestYes.distribution_input)
       : undefined;
   const prevNoForecastValue =
-    latestNo && (!latestNo.end_time || latestNo.end_time * 1000 > todayTs)
+    latestNo && isForecastActive(latestNo)
       ? extractPrevNumericForecastValue(latestNo.distribution_input)
       : undefined;
 

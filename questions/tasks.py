@@ -130,7 +130,7 @@ def resolve_question_and_send_notifications(question_id: int):
         NotificationPredictedQuestionResolved.schedule(user, params)
 
 
-@dramatiq.actor(time_limit=50 * 1000)  # don't allow it to run for more than 50 seconds
+@dramatiq.actor(time_limit=5 * 60 * 1000)  # 5 minutes
 def check_and_schedule_forecast_widrawal_due_notifications():
     now = timezone.now()
     one_day_ago = now - timedelta(days=1)

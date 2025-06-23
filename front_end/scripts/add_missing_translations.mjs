@@ -137,8 +137,18 @@ async function main() {
       const chunkResult = await translateChunk(chunkObj, language);
 
       // 3. Merge partial results
+      // pop last key from existing translations
+      const [lastKey, lastValue] = Object.entries(existingTranslations).pop();
+      if (lastKey) {
+        delete existingTranslations[lastKey];
+      }
+      // merge chunk result into existing translations
       for (const [k, v] of Object.entries(chunkResult)) {
         existingTranslations[k] = v;
+      }
+      // put last key back on existing translations
+      if (lastKey) {
+        existingTranslations[lastKey] = lastValue;
       }
     }
 
