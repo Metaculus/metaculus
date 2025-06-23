@@ -141,9 +141,11 @@ export function isOpenQuestionPredicted(
     (treatClosedAsPredicted
       ? question.status !== QuestionStatus.OPEN
       : false) ||
-    (!isNil(question.my_forecasts?.latest) &&
+    (question.status === QuestionStatus.OPEN &&
+      !isNil(question.my_forecasts?.latest) &&
       isForecastActive(question.my_forecasts.latest)) ||
-    (!isNil(question.my_forecast?.latest) &&
+    (question.status === QuestionStatus.OPEN &&
+      !isNil(question.my_forecast?.latest) &&
       isForecastActive(question.my_forecast.latest))
   );
 }
