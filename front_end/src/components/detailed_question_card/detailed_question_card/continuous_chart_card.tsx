@@ -64,13 +64,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
       forecast.start_time < question.my_forecasts.latest.start_time
     ) {
       timestamp = question.my_forecasts.latest.start_time;
-      const forecasterCount = !!forecastAvailability?.cpRevealsOn
-        ? forecast?.forecaster_count ?? 0
-        : nrForecasters ?? 0;
 
       return {
         timestamp,
-        forecasterCount,
+        forecasterCount: forecast?.forecaster_count ?? 0,
         interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
         center: forecast?.centers?.[0] ?? null,
         interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
