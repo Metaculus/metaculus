@@ -186,6 +186,10 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
+
+        if order_by == PostFilterSerializer.Order.USER_NEXT_WITHDRAW_TIME:
+            qs = qs.annotate_next_withdraw_time(forecaster_id)
+
         if withdrawn is not None:
             qs = qs.annotate_has_active_forecast(forecaster_id).filter(
                 has_active_forecast=not withdrawn
@@ -245,8 +249,13 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
-    if order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE and not (
-        forecaster_id
+    if (
+        order_type
+        in [
+            PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE,
+            PostFilterSerializer.Order.USER_NEXT_WITHDRAW_TIME,
+        ]
+        and not forecaster_id
     ):
         order_type = "created_at"
 

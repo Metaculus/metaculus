@@ -27,6 +27,7 @@ export enum QuestionOrder {
   OpenTimeDesc = "-open_time",
   LastPredictionTimeAsc = "user_last_forecasts_date",
   LastPredictionTimeDesc = "-user_last_forecasts_date",
+  UserNextWithdrawTimeAsc = "user_next_withdraw_time",
   DivergenceDesc = "-divergence",
   VotesDesc = "-vote_score",
   CommentCountDesc = "-comment_count",
