@@ -1,4 +1,9 @@
-import { Notebook, Post, PostGroupOfQuestions } from "@/types/post";
+import {
+  LeaderboardTag,
+  Notebook,
+  Post,
+  PostGroupOfQuestions,
+} from "@/types/post";
 import { Project, TaxonomyProjectType, TournamentType } from "@/types/projects";
 import { Question } from "@/types/question";
 import { Optional } from "@/types/utils";
@@ -79,10 +84,42 @@ export const getProjectLink = (
       return `/questions/?topic=${project.slug}`;
     case TaxonomyProjectType.Category:
       return `/questions/?categories=${project.slug}`;
+    case TaxonomyProjectType.LeaderboardTag:
+      return `/questions/?leaderboard_tags=${project.slug}`;
     default:
       return `/tournament/${getProjectSlug(project)}`;
   }
 };
+
+/**
+ * Returns the correct `/leaderboard` URL for a given leaderboard tag.
+ */
+export function getLeaderboardTagUrl({ slug }: LeaderboardTag): string {
+  // Remove the trailing “_leaderboard” flag and split the remaining string.
+  const years = slug
+    .replace(/_leaderboard$/, "")
+    .split("_")
+    .map(Number)
+    .filter((n) => Number.isInteger(n));
+
+  if (years.length === 0) {
+    return "/leaderboard/";
+  }
+
+  const startYear = Math.min(...years);
+  const endYear = Math.max(...years);
+
+  const params = new URLSearchParams({
+    year: String(startYear),
+  });
+
+  // If the tag spans multiple years, add an inclusive duration.
+  if (years.length > 1) {
+    params.set("duration", String(endYear - startYear + 1));
+  }
+
+  return `/leaderboard/?${params.toString()}`;
+}
 
 export const getProjectSlug = (project: Pick<Project, "id" | "slug">) => {
   return project.slug ?? project.id;

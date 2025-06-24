@@ -44,11 +44,10 @@ export type Category = {
   emoji?: string;
 };
 
-export type Tag = {
+export type LeaderboardTag = {
   id: number;
   name: string;
   slug: string;
-  is_global_leaderboard: boolean;
 };
 
 export type Topic = {
@@ -131,7 +130,7 @@ type BasePost = {
     default_project: Tournament;
     tournament?: Tournament[];
     question_series?: Tournament[];
-    tag?: Tag[];
+    leaderboard_tag?: LeaderboardTag[];
     community?: Community[];
     index?: Tournament[];
     news_category?: NewsCategory[];

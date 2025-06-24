@@ -38,7 +38,7 @@ export enum TournamentType {
 export enum TaxonomyProjectType {
   Topic = "topic",
   Category = "category",
-  Tag = "tag",
+  LeaderboardTag = "leaderboard_tag",
 }
 
 export enum TournamentsSortBy {

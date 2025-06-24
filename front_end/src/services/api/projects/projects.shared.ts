@@ -47,12 +47,6 @@ class ProjectsApi extends ApiService {
     return await this.get<NewsCategory[]>("/projects/news-categories/");
   }
 
-  async getTags(params?: TagsParams): Promise<Tag[]> {
-    const queryParams = encodeQueryParams(params ?? {});
-
-    return await this.get<Tag[]>(`/projects/tags/${queryParams}`);
-  }
-
   async getSiteMain(): Promise<Tournament> {
     return await this.get<Tournament>("/projects/site_main/", {
       next: { revalidate: 3600 },
