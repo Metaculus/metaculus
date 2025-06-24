@@ -1396,5 +1396,8 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# predicción} other {# predicciones}} se retirarán pronto",
   "predictionsWithdrawnText": "{count, plural, =1 {# predicción ha sido} other {# predicciones han sido}} retiradas",
   "withdrawAfterPercentSetting1": "Retirar después de",
+  "customize": "Personalizar",
+  "CPMovementChangeLabel": "{value} este {periodo}",
+  "beforeAutoWithdrawal": "Antes de que mis predicciones se retiren automáticamente",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

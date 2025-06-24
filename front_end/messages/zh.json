@@ -1399,5 +1399,7 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# 个预测} other {# 个预测}} 即将被撤回",
   "predictionsWithdrawnText": "{count, plural, =1 {# 个预测已} other {# 个预测已}} 被撤回",
   "withdrawAfterPercentSetting1": "在以下情况后撤回",
+  "customize": "自定义",
+  "beforeAutoWithdrawal": "在我的预测自动撤回之前",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

@@ -1396,5 +1396,8 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# předpověď} other {# předpovědí}} bude brzy staženo",
   "predictionsWithdrawnText": "{count, plural, =1 {# předpověď byla} other {# předpovědí bylo}} staženo",
   "withdrawAfterPercentSetting1": "Stažení po",
+  "customize": "Přizpůsobit",
+  "CPMovementChangeLabel": "{value} tento {period}",
+  "beforeAutoWithdrawal": "Před tím, než budou mé předpovědi automaticky vybrány",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

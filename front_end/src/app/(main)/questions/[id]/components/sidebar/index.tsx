@@ -7,8 +7,6 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionProjects from "./sidebar_question_projects";
-import SimilarQuestions from "./similar_questions";
-import SidebarQuestionTags from "./sidebar_question_tags";
 import QuestionEmbedButton from "../question_embed_button";
 import SidebarContainer from "./sidebar_container";
 
