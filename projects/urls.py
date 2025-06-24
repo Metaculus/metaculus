@@ -13,7 +13,6 @@ urlpatterns = [
         "projects/tournaments/<str:slug>/forecast-flow-posts/",
         views.tournament_forecast_flow_posts_api_view,
     ),
-    path("projects/tags/", views.tags_list_api_view),
     path(
         "projects/<int:project_id>/members/",
         views.project_members_api_view,

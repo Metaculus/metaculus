@@ -187,7 +187,9 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     default_project_id = serializers.IntegerField(required=False)
     topic = serializers.CharField(required=False)
     community = serializers.CharField(required=False)
-    tags = serializers.ListField(child=serializers.CharField(), required=False)
+    leaderboard_tags = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
@@ -260,13 +262,13 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         except Project.DoesNotExist:
             raise ValidationError("Community does not exist")
 
-    def validate_tags(self, values: list[str]):
-        tags = Project.objects.filter_tags().filter(slug__in=values)
+    def validate_leaderboard_tags(self, values: list[str]):
+        tags = Project.objects.filter_leaderboard_tags().filter(slug__in=values)
         slugs = {obj.slug for obj in tags}
 
         for value in values:
             if value not in slugs:
-                raise ValidationError(f"Tag {value} does not exist")
+                raise ValidationError(f"Leaderboard tag {value} does not exist")
 
         return tags
 

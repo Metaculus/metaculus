@@ -26,7 +26,7 @@ def get_posts_feed(
     default_project_id: int = None,
     topic: Project = None,
     community: Project = None,
-    tags: list[Project] = None,
+    leaderboard_tags: list[Project] = None,
     categories: list[Project] = None,
     tournaments: list[Project] = None,
     forecast_type: list[str] = None,
@@ -86,8 +86,8 @@ def get_posts_feed(
     if community:
         qs = qs.filter_projects(community)
 
-    if tags:
-        qs = qs.filter_projects(tags)
+    if leaderboard_tags:
+        qs = qs.filter_leaderboard_tags(leaderboard_tags)
 
     if categories:
         qs = qs.filter_projects(categories)
