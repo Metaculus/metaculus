@@ -1,25 +1,21 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { saveAs } from "file-saver";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 import toast from "react-hot-toast";
 
+import DataRequestModal from "@/app/(main)/questions/[id]/components/download_question_data_modal";
 import PostDestructiveActionModal, {
   PostDestructiveActionModalProps,
 } from "@/app/(main)/questions/[id]/components/post_destructive_action_modal";
-import {
-  changePostActivityBoost,
-  getPostZipData,
-} from "@/app/(main)/questions/actions";
+import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
-import { BoostDirection } from "@/services/posts";
+import { BoostDirection } from "@/services/api/posts/posts.shared";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
-import { base64ToBlob } from "@/utils/files";
 
 type Props = {
   post: Post;
@@ -41,6 +37,14 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     open: false,
     type: "reject",
   });
+
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const openDownloadModal = () => {
+    setIsDownloadModalOpen(true);
+  };
+  const closeDownloadModal = () => {
+    setIsDownloadModalOpen(false);
+  };
 
   const changePostActivity = useCallback(
     (direction: BoostDirection) => {
@@ -78,24 +82,14 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     return "#";
   };
 
-  const handleDownloadQuestionData = async () => {
-    try {
-      const base64 = await getPostZipData(post.id);
-      const blob = base64ToBlob(base64);
-      const filename = `${(post.short_title || post.title).replaceAll(" ", "_")}.zip`;
-      saveAs(blob, filename);
-    } catch (error) {
-      toast.error(t("downloadQuestionDataError") + error);
-    }
-  };
-
-  const menuItems: MenuItemProps[] = [
-    {
+  const menuItems: MenuItemProps[] = [];
+  if (!post.notebook) {
+    menuItems.push({
       id: "downloadQuestionData",
       name: t("downloadQuestionData"),
-      onClick: handleDownloadQuestionData,
-    },
-  ];
+      onClick: openDownloadModal,
+    });
+  }
   if (user?.is_superuser) {
     menuItems.unshift(
       ...[
@@ -169,6 +163,11 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
         onActionComplete={() => {
           router.refresh();
         }}
+      />
+      <DataRequestModal
+        isOpen={isDownloadModalOpen}
+        onClose={closeDownloadModal}
+        post={post}
       />
       <DropdownMenu items={menuItems}>
         <Button

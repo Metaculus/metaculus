@@ -1,3 +1,8 @@
+from contextlib import contextmanager
+
+from django.db import connections, transaction
+
+
 def paginate_cursor(
     cursor,
     query,
@@ -32,3 +37,16 @@ def paginate_cursor(
                     yield row
         else:
             break
+
+
+@contextmanager
+def transaction_repeatable_read(using: str = "default"):
+    """
+    Creates an atomic transaction that works in REPEATABLE READ isolation mode
+    """
+
+    with transaction.atomic():
+        with connections[using].cursor() as cursor:
+            cursor.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;")
+
+            yield

@@ -68,10 +68,19 @@ def generate_keyfactors_for_comment(
     comment_text: str, existing_keyfactors: list[str], post: Post
 ):
 
-    if post.question is None:
-        raise ValidationError("Key factors can only be generated for questions")
+    if post.question is None and post.group_of_questions is None:
+        raise ValidationError(
+            "Key factors can only be generated for questions and question groups"
+        )
 
-    question_data = f"Title: {post.title}\n Description: {post.question.description}"
+    if post.question:
+        question_data = (
+            f"Title: {post.title}\n Description: {post.question.description}"
+        )
+    elif post.group_of_questions:
+        question_data = (
+            f"Title: {post.title}\n Description: {post.group_of_questions.description}"
+        )
 
     return generate_keyfactors(
         question_data,

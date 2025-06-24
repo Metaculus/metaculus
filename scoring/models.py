@@ -128,6 +128,7 @@ class Leaderboard(TimeStampedModel):
     class ScoreTypes(models.TextChoices):
         PEER_TOURNAMENT = "peer_tournament"
         SPOT_PEER_TOURNAMENT = "spot_peer_tournament"
+        SPOT_BASELINE_TOURNAMENT = "spot_baseline_tournament"
         RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
         BASELINE_GLOBAL = "baseline_global"
         PEER_GLOBAL = "peer_global"
@@ -149,6 +150,8 @@ class Leaderboard(TimeStampedModel):
                     return Score.ScoreTypes.PEER
                 case cls.SPOT_PEER_TOURNAMENT:
                     return Score.ScoreTypes.SPOT_PEER
+                case cls.SPOT_BASELINE_TOURNAMENT:
+                    return Score.ScoreTypes.SPOT_BASELINE
                 case cls.BASELINE_GLOBAL:
                     return Score.ScoreTypes.BASELINE
                 case cls.MANUAL:
@@ -169,6 +172,7 @@ class Leaderboard(TimeStampedModel):
     <table>
         <tr><td>peer_tournament</td><td> Sum of peer scores. Most likely what you want.</td></tr>
         <tr><td>spot_peer_tournament</td><td> Sum of spot peer scores.</td></tr>
+        <tr><td>spot_baseline_tournament</td><td> Sum of spot baseline scores.</td></tr>
         <tr><td>relative_legacy</td><td> Old site scoring.</td></tr>
         <tr><td>baseline_global</td><td> Sum of baseline scores.</td></tr>
         <tr><td>peer_global</td><td> Coverage-weighted average of peer scores.</td></tr>
@@ -218,6 +222,22 @@ class Leaderboard(TimeStampedModel):
         help_text="""Optional. If not set, the Project's prize_pool will be used instead.
         </br>- If the Project has a prize pool, but this leaderboard has none, set this to 0.
         """,
+    )
+    minimum_prize_amount = models.DecimalField(
+        default=50.00,
+        decimal_places=2,
+        max_digits=15,
+        help_text="""The minimum amount a user can win in this leaderboard.
+        Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
+        """,
+    )
+    bot_status = models.CharField(
+        max_length=32,
+        choices=Project.BotLeaderboardStatus.choices,
+        null=True,
+        blank=True,
+        help_text="""Optional. If not set, the Project's bot_leaderboard_status will be
+        used instead. See Project for more details.""",
     )
     user_list = models.ManyToManyField(
         User,

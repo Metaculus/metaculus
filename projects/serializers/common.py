@@ -37,7 +37,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "emoji", "section", "type")
+        fields = ("id", "name", "slug", "emoji", "type")
 
 
 class TournamentShortSerializer(serializers.ModelSerializer):
@@ -152,15 +152,16 @@ def serialize_project_index_weights(project: Project):
     }
 
     for project_question in qs:
-        post = posts_map[project_question.question.get_post_id()]
+        post = posts_map.get(project_question.question.get_post_id())
 
-        index_weights.append(
-            {
-                "post": post,
-                "question_id": project_question.question_id,
-                "weight": project_question.weight,
-            }
-        )
+        if post:
+            index_weights.append(
+                {
+                    "post": post,
+                    "question_id": project_question.question_id,
+                    "weight": project_question.weight,
+                }
+            )
 
     return index_weights
 

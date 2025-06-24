@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -6,25 +7,38 @@ import { FC, PropsWithChildren, Suspense } from "react";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
-import { MedalsWidget } from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
-import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
-import CommentFeed from "@/components/comment_feed";
-import AwaitedPostsFeed from "@/components/posts_feed";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { defaultDescription } from "@/constants/metadata";
-import { PostsParams } from "@/services/posts";
-import ProfileApi from "@/services/profile";
+import { PostsParams } from "@/services/api/posts/posts.shared";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { SearchParams } from "@/types/navigation";
 import { ProfilePageMode, UserProfile } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
-import SoftDeleteButton from "../components/soft_delete_button";
-import TrackRecord from "../components/track_record";
+const CalibrationChart = dynamic(
+  () =>
+    import(
+      "@/app/(main)/questions/track-record/components/charts/calibration_chart"
+    )
+);
+const MedalsWidget = dynamic(
+  () => import("@/app/(main)/(leaderboards)/medals/components/medals_widget")
+);
+const MedalsPage = dynamic(
+  () => import("@/app/(main)/(leaderboards)/medals/components/medals_page")
+);
+const AwaitedPostsFeed = dynamic(() => import("@/components/posts_feed"));
+const TrackRecord = dynamic(() => import("../components/track_record"));
+const SoftDeleteButton = dynamic(
+  () => import("../components/soft_delete_button")
+);
+const CommentsFeedProvider = dynamic(
+  () => import("@/app/(main)/components/comments_feed_provider")
+);
+const CommentFeed = dynamic(() => import("@/components/comment_feed"));
 
 type Props = {
   params: Promise<{ id: number }>;
@@ -33,7 +47,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const profile = await ProfileApi.getProfileById(params.id);
+  const profile = await ServerProfileApi.getProfileById(params.id);
 
   if (!profile) {
     return {};
@@ -52,10 +66,10 @@ export default async function Profile(props: Props) {
 
   const { id } = params;
 
-  const currentUser = await ProfileApi.getMyProfile();
+  const currentUser = await ServerProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === +id;
 
-  let profile: UserProfile = await ProfileApi.getProfileById(id);
+  let profile: UserProfile = await ServerProfileApi.getProfileById(id);
   const userQuestionsFilters: PostsParams = { usernames: profile.username };
 
   if (!profile) {

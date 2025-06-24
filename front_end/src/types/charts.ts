@@ -1,3 +1,5 @@
+import { Tuple } from "victory";
+
 import {
   Bounds,
   Quartiles,
@@ -33,7 +35,10 @@ export type LinePoint<X = number, Y = number | null> = {
 export type Line<X = number, Y = number | null> = Array<LinePoint<X, Y>>;
 export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
 
-export type NumericChartType = "date" | "numeric" | "binary";
+export type YDomain = {
+  originalYDomain: Tuple<number>;
+  zoomedYDomain: Tuple<number>;
+};
 
 export type FanOption = {
   name: string;
@@ -69,4 +74,9 @@ export type ContinuousAreaGraphType = "pmf" | "cdf";
 export enum ContinuousForecastInputType {
   Slider = "slider",
   Quantile = "quantile",
+}
+
+export enum EmbedChartType {
+  Timeline = "timeline",
+  Current = "current",
 }

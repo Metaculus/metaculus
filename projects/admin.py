@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import path
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
@@ -327,6 +327,12 @@ class ProjectAdmin(CustomTranslationAdmin):
         "view_default_posts_link",
         "view_posts_link",
     ]
+    readonly_fields = [
+        "posts_summary",
+        "questions_summary",
+        "latest_resolving_time",
+        "primary_leaderboard_finalize_time",
+    ]
     list_filter = [
         "type",
         "show_on_homepage",
@@ -334,10 +340,9 @@ class ProjectAdmin(CustomTranslationAdmin):
         ProjectDefaultPermissionFilter,
     ]
     search_fields = ["type", "name_original", "slug"]
-    autocomplete_fields = ["created_by"]
+    autocomplete_fields = ["created_by", "primary_leaderboard"]
     ordering = ["-created_at"]
     inlines = [
-        ProjectIndexQuestionsInline,
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,
@@ -358,6 +363,15 @@ class ProjectAdmin(CustomTranslationAdmin):
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
+
+    def get_inlines(self, request, obj=None):
+        inlines = list(self.inlines)
+
+        # Only show ProjectIndexQuestionsInline if project type is Index
+        if obj and obj.type == Project.ProjectTypes.INDEX:
+            inlines.insert(0, ProjectIndexQuestionsInline)
+
+        return inlines
 
     def save_model(self, request, obj: Project, form, change):
         # Force visibility states for such project types
@@ -497,28 +511,6 @@ class ProjectAdmin(CustomTranslationAdmin):
         "Email Me Question Data for Selected Projects Anonymized"
     )
 
-    def view_default_posts_link(self, obj):
-        count = Post.objects.filter(default_project=obj).distinct().count()
-        url = (
-            reverse("admin:posts_post_changelist")
-            + "?"
-            + f"default_project__id__exact={obj.id}"
-        )
-        return format_html('<a href="{}">{} Posts</a>', url, count)
-
-    view_default_posts_link.short_description = "Default Posts"
-
-    def view_posts_link(self, obj):
-        count = Post.objects.filter(projects=obj).distinct().count()
-        url = (
-            reverse("admin:posts_post_changelist")
-            + "?"
-            + f"projects__id__exact={obj.id}"
-        )
-        return format_html('<a href="{}">{} Posts</a>', url, count)
-
-    view_posts_link.short_description = "Posts"
-
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -585,3 +577,176 @@ class ProjectAdmin(CustomTranslationAdmin):
             "title": f"Add Posts to {project.name}",
         }
         return render(request, "admin/projects/add_posts_to_project.html", context)
+
+    def view_default_posts_link(self, obj):
+        count = Post.objects.filter(default_project=obj).distinct().count()
+        url = (
+            reverse("admin:posts_post_changelist")
+            + "?"
+            + f"default_project__id__exact={obj.id}"
+        )
+        return format_html('<a href="{}">{} Posts</a>', url, count)
+
+    view_default_posts_link.short_description = "Default Posts"
+
+    def view_posts_link(self, obj):
+        count = Post.objects.filter(projects=obj).distinct().count()
+        url = (
+            reverse("admin:posts_post_changelist")
+            + "?"
+            + f"projects__id__exact={obj.id}"
+        )
+        return format_html('<a href="{}">{} Posts</a>', url, count)
+
+    view_posts_link.short_description = "Posts"
+
+    def posts_summary(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        all_posts = Post.objects.filter(
+            Q(default_project=obj) | Q(projects=obj)
+        ).distinct("id")
+        all_ids = list(all_posts.values_list("id", flat=True))
+        all_count = len(all_ids)
+
+        default_posts = Post.objects.filter(default_project=obj)
+        default_posts_ids = list(default_posts.values_list("id", flat=True))
+        default_posts_count = len(default_posts_ids)
+
+        posts = Post.objects.filter(projects=obj).distinct("id")
+        posts_ids = list(posts.values_list("id", flat=True))
+        posts_count = len(posts_ids)
+
+        def make_link(ids, label):
+            query_string = f"id__in={','.join(map(str, ids)) or '0'}"
+            url = reverse("admin:posts_post_changelist") + "?" + query_string
+            return format_html('<a href="{}">{}</a>', url, label)
+
+        default_posts_count = Post.objects.filter(default_project=obj).count()
+        posts_count = Post.objects.filter(projects=obj).count()
+        return format_html_join(
+            format_html("<br>"),
+            "{}",
+            [
+                (make_link(all_ids, f"{all_count} Posts in Project"),),
+                (
+                    make_link(
+                        default_posts_ids,
+                        f"{default_posts_count} Default Posts (Determines Permissions)",
+                    ),
+                ),
+                (
+                    make_link(
+                        posts_ids,
+                        f"{posts_count} Secondary Posts",
+                    ),
+                ),
+            ],
+        )
+
+    posts_summary.short_description = "Post Summary"
+
+    def questions_summary(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        leaderboard = obj.primary_leaderboard
+        if not leaderboard:
+            return None
+
+        all_questions = leaderboard.get_questions().filter(question_weight__gt=0)
+        all_ids = list(all_questions.values_list("id", flat=True))
+        all_count = len(all_ids)
+
+        finalize_time = leaderboard.finalize_time or obj.close_date
+        if finalize_time:
+            in_leaderboard_qs = all_questions.filter(
+                Q(resolution_set_time__isnull=True)
+                | Q(resolution_set_time__lte=finalize_time),
+                scheduled_close_time__lte=finalize_time,
+            )
+        else:
+            in_leaderboard_qs = all_questions
+
+        in_leaderboard_ids = list(in_leaderboard_qs.values_list("id", flat=True))
+        in_leaderboard_count = len(in_leaderboard_ids)
+
+        not_in_leaderboard_ids = list(set(all_ids) - set(in_leaderboard_ids))
+        not_in_leaderboard_count = len(not_in_leaderboard_ids)
+
+        def make_link(ids, label):
+            query_string = f"id__in={','.join(map(str, ids)) or '0'}"
+            url = reverse("admin:questions_question_changelist") + "?" + query_string
+            return format_html('<a href="{}">{}</a>', url, label)
+
+        return format_html_join(
+            format_html("<br>"),
+            "{}",
+            [
+                (make_link(all_ids, f"{all_count} Questions in Project"),),
+                (
+                    make_link(
+                        in_leaderboard_ids,
+                        f"{in_leaderboard_count} Questions in Primary Leaderboard",
+                    ),
+                ),
+                (
+                    make_link(
+                        not_in_leaderboard_ids,
+                        f"{not_in_leaderboard_count} Questions NOT in Primary Leaderboard",
+                    ),
+                ),
+            ],
+        )
+
+    questions_summary.short_description = format_html(
+        "Question Summary<br>(Only Questions with Weight > 0)"
+    )
+
+    def latest_resolving_time(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        questions = Question.objects.filter(
+            Q(related_posts__post__projects=obj)
+            | Q(related_posts__post__default_project=obj),
+        ).distinct()
+        latest_resolving_time = None
+        for question in questions:
+            if question.actual_resolve_time:
+                latest_resolving_time = (
+                    max(latest_resolving_time, question.actual_resolve_time)
+                    if latest_resolving_time
+                    else question.actual_resolve_time
+                )
+            else:
+                latest_resolving_time = (
+                    max(latest_resolving_time, question.scheduled_resolve_time)
+                    if latest_resolving_time
+                    else question.scheduled_resolve_time
+                )
+        return latest_resolving_time
+
+    latest_resolving_time.short_description = "Latest Resolving Time (Expected)"
+
+    def primary_leaderboard_finalize_time(self, obj):
+        if obj.type == Project.ProjectTypes.SITE_MAIN:
+            return None
+        leaderboard = obj.primary_leaderboard
+        if leaderboard:
+            return leaderboard.finalize_time or (obj.close_date if obj else None)
+
+    primary_leaderboard_finalize_time.short_description = (
+        "Time when Primary Leaderboard is Finalized"
+    )
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        for field in [
+            "primary_leaderboard_finalize_time",
+            "latest_resolving_time",
+            "questions_summary",
+            "posts_summary",
+        ]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
+        return fields

@@ -509,6 +509,10 @@ components:
         open_lower_bound:
           type: boolean
           nullable: false
+        inbound_outcome_count:
+          type: integer
+          nullable: true
+          example: 200
         resolution_criteria:
           type: string
           example: "string"
@@ -644,7 +648,7 @@ components:
 
             At least 1% of the probability mass must be assigned uniformly within 
             bounds, which means that the CDF must be strictly increasing by at 
-            least 0.01/200 = 0.0005 per step. No two adjacent values of the CDF 
+            least 0.01/200 = 0.00005 per step. No two adjacent values of the CDF 
             can differ by more than 0.59, which is the largest number obtainable 
             via the sliders.
           type: array
@@ -1060,8 +1064,22 @@ paths:
           name: with_cp
           schema:
             type: boolean
+            default: false
             example: true
           description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+        - in: query
+          name: include_cp_history
+          schema:
+            type: boolean
+            default: false
+            example: true
+          description: "When this flag is enabled, each post question response will include aggregations with the full history for each method. By default, question aggregations contain an empty history."
+        - in: query
+          name: include_descriptions
+          schema:
+            type: boolean
+            example: true
+          description: "With this flag enabled, each post question will include the description, fine_print, and resolution_criteria fields in its response."
         - in: query
           name: not_forecaster_id
           schema:
@@ -1095,7 +1113,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [ binary, numeric, date, multiple_choice, conditional, group_of_questions, notebook ]
+              enum: [ binary, multiple_choice, numeric, discrete, date, conditional, group_of_questions, notebook ]
             example: [ 'numeric', 'binary' ]
           description: Forecast type. You can apply multiple filters.
         - in: query
@@ -1208,21 +1226,13 @@ paths:
                           type: "numeric"
                           options: null
                           status: "resolved"
-                          possibilities:
-                            low: "tail"
-                            high: "tail"
-                            type: "continuous"
-                            scale:
-                              max: 100000000
-                              min: 200
-                              deriv_ratio: 500000
-                            format: "num"
                           resolution: "77289125.94957079"
                           resolution_criteria: "Resolution Criteria Copy"
                           fine_print: ""
                           label: null
                           open_upper_bound: true
                           open_lower_bound: true
+                          inbound_outcome_count: 200
                           unit: "people"
                           scaling:
                             range_max: 100000000.0
@@ -1887,6 +1897,11 @@ paths:
                       0.99801, 0.99830, 0.99858, 0.99884, 0.99909, 0.99933, 0.99956, 0.99978, 
                       1.00000
                     ]
+              ContinuousQuestionExample3:
+                summary: Discrete Question - inbound_outcome_count = 10, closed bounds
+                value:
+                  - question: 1
+                    continuous_cdf: [0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.6, 0.75, 0.85, 0.95, 1.0]
               MultipleChoiceQuestionExample:
                 summary: Multiple Choice
                 value:

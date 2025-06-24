@@ -1,8 +1,10 @@
 from datetime import datetime
+
 import django
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -10,13 +12,15 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-from django.views.decorators.cache import cache_page
-
-from .models import Bulletin, BulletinViewedBy, ITNArticle
-from .serializers import ContactSerializer
-from .services.itn import remove_article
 
 from questions.models import Question, Forecast
+from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
+from .serializers import (
+    ContactSerializer,
+    ContactServicesSerializer,
+    SidebarItemSerializer,
+)
+from .services.itn import remove_article
 
 
 @api_view(["POST"])
@@ -30,6 +34,29 @@ def contact_api_view(request: Request):
         body=serializer.data["message"],
         from_email=settings.EMAIL_SENDER_NO_REPLY,
         to=[settings.EMAIL_FEEDBACK],
+        reply_to=[serializer.data["email"]],
+    ).send()
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_service_api_view(request: Request):
+    serializer = ContactServicesSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    EmailMessage(
+        subject="New form submission via Services page",
+        body=(
+            f"Your name: {serializer.data.get('name')}\n"
+            f"Email address: {serializer.data['email']}\n"
+            f"Organization: {serializer.data.get('organization')}\n"
+            f"Interested in: {serializer.data.get('service')}\n"
+            f"Message: {serializer.data.get('message')}\n"
+        ),
+        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        to=[settings.EMAIL_SUPPORT],
         reply_to=[serializer.data["email"]],
     ).send()
 
@@ -104,3 +131,13 @@ def cancel_bulletin(request, pk):
     )
     bulletin_viewed_by.save()
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def sidebar_api_view(request: Request):
+    sidebar_items = SidebarItem.objects.select_related(
+        "post__default_project", "project"
+    )
+
+    return Response(SidebarItemSerializer(sidebar_items, many=True).data)

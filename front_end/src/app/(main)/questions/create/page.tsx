@@ -6,9 +6,11 @@ import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import QuestionRepost from "@/app/(main)/questions/components/question_repost";
-import ProjectsApi from "@/services/projects";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import QuestionTypePicker from "../components/question_type_picker";
@@ -24,6 +26,7 @@ export const metadata = {
 const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
   props
 ) => {
+  const currentUser = await ServerProfileApi.getMyProfile();
   const searchParams = await props.searchParams;
   const t = await getTranslations();
   const createHref = (
@@ -43,7 +46,7 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
     ? Number(searchParams["community_id"])
     : undefined;
   const communitiesResponse = communityId
-    ? await ProjectsApi.getCommunities({ ids: [communityId] })
+    ? await ServerProjectsApi.getCommunities({ ids: [communityId] })
     : undefined;
   const community = communitiesResponse
     ? communitiesResponse.results[0]
@@ -108,43 +111,73 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
         </h2>
         <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "binary" })}
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Binary,
+            })}
             questionType={t("binaryQuestion")}
             questionExample={`"${t("binaryQuestionExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "numeric" })}
-            questionType={t("numericRange")}
-            questionExample={`"${t("numericRangeExample")}"`}
-          />
-          <QuestionTypePicker
-            url={createHref("/questions/create/question", { type: "date" })}
-            questionType={t("dateRange")}
-            questionExample={`"${t("dateRangeExample")}"`}
-          />
-          <QuestionTypePicker
             url={createHref("/questions/create/question", {
-              type: "multiple_choice",
+              type: QuestionType.MultipleChoice,
             })}
             questionType={t("multipleChoice")}
             questionExample={`"${t("multipleChoiceExample")}"`}
+          />
+          <QuestionTypePicker
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Numeric,
+            })}
+            questionType={t("numericRange")}
+            questionExample={`"${t("numericRangeExample")}"`}
+          />
+          {currentUser?.is_staff && ( // TODO: remove to launch Discrete questions
+            <QuestionTypePicker
+              url={createHref("/questions/create/question", {
+                type: QuestionType.Discrete,
+              })}
+              questionType={t("discrete")}
+              questionExample={`"${t("discreteExample")}"`}
+            />
+          )}
+          <QuestionTypePicker
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Date,
+            })}
+            questionType={t("dateRange")}
+            questionExample={`"${t("dateRangeExample")}"`}
           />
         </div>
 
         <h2 className="text-lg font-light capitalize">{t("questionGroup")}</h2>
         <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "binary" })}
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Binary,
+            })}
             questionType={t("binaryGroup")}
             questionExample={`"${t("binaryGroupExample")}"`}
           />
           <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "numeric" })}
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Numeric,
+            })}
             questionType={t("numericGroup")}
             questionExample={`"${t("numericGroupExample")}"`}
           />
+          {/* {currentUser?.is_staff && ( // TODO: launch Discrete group questions
+            <QuestionTypePicker
+              url={createHref("/questions/create/group", {
+                subtype: QuestionType.Discrete,
+              })}
+              questionType={t("discreteGroup")}
+              questionExample={`"${t("discreteGroupExample")}"`}
+            />
+          )} */}
           <QuestionTypePicker
-            url={createHref("/questions/create/group", { subtype: "date" })}
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Date,
+            })}
             questionType={t("dateGroup")}
             questionExample={`"${t("dateGroupExample")}"`}
           />

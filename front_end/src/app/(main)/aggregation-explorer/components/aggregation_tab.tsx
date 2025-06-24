@@ -1,23 +1,23 @@
 "use client";
 
 import { saveAs } from "file-saver";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 import toast from "react-hot-toast";
 
-import NumericChart from "@/components/charts/numeric_chart";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import DetailsQuestionCardErrorBoundary from "@/components/detailed_question_card/detailed_question_card/error_boundary";
 import CursorDetailItem from "@/components/detailed_question_card/detailed_question_card/numeric_cursor_item";
 import Button from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use_debounce";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { QuestionType } from "@/types/question";
-import { base64ToBlob } from "@/utils/files";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
-import { getAggregationsPostZipData } from "../actions";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationQuestionWithBots } from "../types";
 
@@ -85,14 +85,17 @@ const AggregationsTab: FC<Props> = ({
       return null;
     }
 
-    const index = activeAggregation.history.findIndex(
-      (f) => f.start_time === cursorTimestamp
-    );
+    const index = isNil(cursorTimestamp)
+      ? -1
+      : activeAggregation.history.findLastIndex(
+          (f) => f.start_time <= cursorTimestamp
+        );
 
     const forecast =
       index === -1
         ? activeAggregation.history.at(-1)
         : activeAggregation.history[index];
+
     if (!forecast) {
       return null;
     }
@@ -139,6 +142,7 @@ const AggregationsTab: FC<Props> = ({
           />
         );
       case QuestionType.Numeric:
+      case QuestionType.Discrete:
       case QuestionType.Date:
         return (
           <ContinuousAggregationChart
@@ -166,7 +170,7 @@ const AggregationsTab: FC<Props> = ({
     try {
       const aggregationMethod = tabData.value;
 
-      const base64 = await getAggregationsPostZipData(
+      const blob = await ClientPostsApi.getAggregationsPostZipData(
         postId,
         typeof selectedSubQuestionOption === "number"
           ? selectedSubQuestionOption
@@ -174,8 +178,6 @@ const AggregationsTab: FC<Props> = ({
         aggregationMethod,
         tabData.includeBots
       );
-
-      const blob = base64ToBlob(base64);
       const filename = `${questionTitle.replaceAll(" ", "_")}-${aggregationMethod}${tabData.includeBots ? "-bots" : ""}.zip`;
       saveAs(blob, filename);
     } catch (error) {
@@ -204,16 +206,19 @@ const AggregationsTab: FC<Props> = ({
         </div>
       )}
       <DetailsQuestionCardErrorBoundary>
-        <NumericChart
+        <NumericTimeline
           aggregation={activeAggregation}
           aggregationIndex={aggregationIndex}
           questionType={aggregationData.type}
           actualCloseTime={actualCloseTime}
           scaling={aggregationData.scaling}
           resolution={resolution}
+          cursorTimestamp={cursorTimestamp}
           onCursorChange={handleCursorChange}
           unit={unit}
+          simplifiedCursor={aggregationData.type !== QuestionType.Binary}
         />
+
         {!!cursorData && (
           <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
             <CursorDetailItem

@@ -28,7 +28,7 @@ const KeyFactorText: FC<Props> = ({
         className
       )}
     >
-      <div className="relative ml-7 inline xs:ml-0">{text}</div>
+      <div className="relative inline xs:ml-0">{text}</div>
       <a
         href={linkAnchor}
         onClick={(e) => {
@@ -43,7 +43,7 @@ const KeyFactorText: FC<Props> = ({
             event_label: linkToComment ? "fromList" : "fromComment",
           });
         }}
-        className="target invisible ml-1 inline-flex items-center overflow-visible rounded-full p-2 text-blue-600 hover:bg-blue-400 hover:font-bold hover:text-blue-700 dark:text-blue-600 dark:hover:bg-blue-400-dark"
+        className="target visible ml-1 inline-flex items-center overflow-visible rounded-full p-2 text-blue-600 hover:bg-blue-400 hover:font-bold hover:text-blue-700 can-hover:invisible dark:text-blue-600 dark:hover:bg-blue-400-dark"
       >
         <FontAwesomeIcon
           icon={faArrowTurnUp}

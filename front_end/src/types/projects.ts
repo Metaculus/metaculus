@@ -1,8 +1,6 @@
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { UserBase, UserProfile } from "@/types/users";
 
-type TopicSection = "hot_categories" | "hot_topics";
-
 export enum ProjectVisibility {
   Normal = "normal",
   NotInMainFeed = "not_in_main_feed",
@@ -15,11 +13,6 @@ export type Project = {
   type: TournamentType;
   slug: string;
   posts_count: number;
-};
-
-export type Topic = Project & {
-  emoji: string;
-  section: TopicSection;
 };
 
 export type Category = Project & {
@@ -42,6 +35,12 @@ export enum TournamentType {
   SiteMain = "site_main",
 }
 
+export enum TaxonomyProjectType {
+  Topic = "topic",
+  Category = "category",
+  Tag = "tag",
+}
+
 export enum TournamentsSortBy {
   PrizePoolDesc = "-prize_pool",
   CloseDateAsc = "close_date",
@@ -56,6 +55,8 @@ export type TournamentMember = {
 export type TournamentPreview = Project & {
   type: TournamentType;
   header_image: string;
+  forecasts_count: number;
+  forecasters_count: number;
   prize_pool: string | null;
   start_date: string;
   close_date?: string;

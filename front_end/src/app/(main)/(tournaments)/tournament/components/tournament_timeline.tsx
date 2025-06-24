@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { Tournament } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
 import { logError } from "@/utils/core/errors";
@@ -20,7 +20,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
 
   let leaderboardDetails: LeaderboardDetails | null = null;
   try {
-    leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
+    leaderboardDetails = await ServerLeaderboardApi.getProjectLeaderboard(
       tournament.id
     );
   } catch (error) {
@@ -28,7 +28,8 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
   }
   const showLastParticipationDay =
     leaderboardDetails &&
-    leaderboardDetails.score_type === "spot_peer_tournament";
+    (leaderboardDetails.score_type === "spot_peer_tournament" ||
+      leaderboardDetails.score_type === "spot_baseline_tournament");
 
   const {
     last_cp_reveal_time,

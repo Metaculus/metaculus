@@ -240,6 +240,9 @@ export default async function FAQ() {
                 What is &quot;Reaffirming&quot; a prediction?
               </a>
             </li>
+            <li>
+              <a href="#auto-withdrawal">What is prediction auto-withdrawal?</a>
+            </li>
           </ul>
         </div>
         <hr />
@@ -508,6 +511,13 @@ export default async function FAQ() {
           forecasters according to their forecasting performance. The more you
           forecasted and the more accurate your forecasts were, the greater
           proportion of the prize pool you receive.
+        </p>
+
+        <p>
+          Note: to limit administrative costs, tournaments that closed after 1st
+          of June, 2025 no longer give prizes below 50$, and the remaining money
+          is redistributed to forecasters with higher scores. Tournaments that
+          closed before 1st of June, 2025 still do not give prizes below 10$.
         </p>
 
         <h4 className="text-lg font-semibold">
@@ -1040,6 +1050,22 @@ export default async function FAQ() {
           &quot; resolved as <strong>&gt; 6.5</strong> because the underlying
           source reported more than 6.5% annualized core CPI growth in the US,
           and 6.5 was the upper bound.
+        </p>
+
+        <h5 className="text-lg font-semibold">Discrete Range</h5>
+        {/* TODO: put a real Discrete question example after one exists */}
+        <p>
+          Discrete range questions resolve to a specific value (usually a whole
+          number). For example, the question &quot;How many days will it rain in
+          New York City in the month of June?&quot; could resolve to 10 or 11,
+          but not 10.5.
+        </p>
+        <p>
+          Same as numeric range questions, discrete questions can sometimes
+          resolve to a value outside of the given range. For example, the
+          question &quot;What will be the rate of inflation in the United States
+          next year to the nearest tenth of a percent?&quot; that has a discrete
+          range of 0% to 10% could resolve to 10.5% even if it is unlikely.
         </p>
 
         <h5 className="text-lg font-semibold">Date Range</h5>
@@ -2700,16 +2726,23 @@ export default async function FAQ() {
             How do I use the range interface?
           </h3>
           <p>
-            Some Metaculus questions are numeric or date ranges. To predict, you
-            must specify a distribution of likelyhoods over a certain range of
-            outcomes. This probability distribution is known as a{" "}
+            Some Metaculus questions are numeric, discrete, or date ranges. To
+            predict, you must specify a distribution of likelyhoods over a
+            certain range of outcomes. This probability distribution is known as
+            a{" "}
             <a href="https://en.wikipedia.org/wiki/Probability_density_function">
               probability density function
             </a>{" "}
-            (&quot;PDF&quot;) and represents the relative likelyhood of each
-            possible outcome in the question range. The area under the pdf curve
-            between two outcomes is proportional to the probability that the
-            resolution will be between these two values.
+            (&quot;PDF&quot;) for numeric and date questions, and a{" "}
+            <a href="https://en.wikipedia.org/wiki/Probability_mass_function">
+              probability mass function
+            </a>{" "}
+            (&quot;PMF&quot;) for discrete questions, and represents the
+            relative likelyhood of each possible outcome in the question range.
+            We&apos;ll refer to both as pdf for simplicity in this FAQ as the
+            difference is not significant. The area under the pdf curve between
+            two outcomes is proportional to the probability that the resolution
+            will be between these two values.
           </p>
           <p>
             To specify your pdf, move the sliders below the graph. The square
@@ -2758,6 +2791,7 @@ export default async function FAQ() {
             width={734}
             height={799}
           />
+          {/* TODO: add image of Discrete input */}
         </div>
 
         <div>
@@ -3002,6 +3036,48 @@ export default async function FAQ() {
             you had a forecast, but not the others.
           </p>
         </div>
+
+        <div>
+          <h3
+            id="auto-withdrawal"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is prediction auto-withdrawal?
+          </h3>
+          <p>
+            Prediction auto-withdrawal is a feature that automatically{" "}
+            <Link href="/faq/#howwithdraw">withdraws</Link> your forecast after
+            a set amount of time, unless you update or re-affirm it.
+          </p>
+          <p>
+            By default, a prediction will be withdrawn after 10% of the
+            question’s lifetime has passed. You can adjust this percentage in
+            your account <Link href="/accounts/settings/">settings</Link>.
+          </p>
+          <p>
+            When a prediction is withdrawn:
+            <ul className="ml-5 list-disc">
+              <li>
+                Your forecast{" "}
+                <span className="italic">up to the point of withdrawal</span>{" "}
+                still counts toward your score.
+              </li>
+              <li>
+                You’ll receive a reminder email before the withdrawal date.
+              </li>
+              <li>
+                You can re-affirm the forecast later if it still reflects your
+                view — but the time between withdrawal and re-affirmation won’t
+                count toward your score.
+              </li>
+            </ul>
+          </p>
+          <p>
+            This helps reduce the impact of stale forecasts on your accuracy and
+            the community prediction.
+          </p>
+        </div>
+
         <hr />
         <div>
           <h2

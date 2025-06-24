@@ -1,7 +1,7 @@
 import { getLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 
-import MiscApi from "@/services/misc";
+import serverMiscApi from "@/services/api/misc/misc.server";
 
 import { AboutHeader } from "./components/AboutHeader";
 import TeamBlock from "./components/TeamBlock";
@@ -23,7 +23,7 @@ export default async function AboutPage() {
   };
 
   try {
-    siteStats = await MiscApi.getSiteStats();
+    siteStats = await serverMiscApi.getSiteStats();
   } catch (error) {
     console.error(error);
   }

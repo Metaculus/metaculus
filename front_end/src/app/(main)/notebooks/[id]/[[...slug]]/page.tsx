@@ -3,7 +3,8 @@ import { remark } from "remark";
 import strip from "strip-markdown";
 
 import { defaultDescription } from "@/constants/metadata";
-import PostsApi from "@/services/posts";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import { getValidString } from "@/utils/formatters/string";
 
 import IndividualNotebookPage from "./page_compotent";
 
@@ -13,7 +14,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const postData = await PostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id);
 
   if (!postData) {
     return {};
@@ -24,11 +25,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   return {
     title:
-      postData.html_metadata_json?.title ??
-      postData.short_title ??
+      getValidString(postData.html_metadata_json?.title) ??
+      getValidString(postData.short_title) ??
       postData.title,
     description:
-      postData.html_metadata_json?.description ??
+      getValidString(postData.html_metadata_json?.description) ??
       (!!parsedDescription ? parsedDescription : defaultDescription),
   };
 }

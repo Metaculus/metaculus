@@ -13,12 +13,14 @@ type Props = {
   leaderboardDetails: LeaderboardDetails;
   userId?: number;
   paginationStep?: number;
+  isAdvanced?: boolean;
 };
 
 const ProjectLeaderboardTable: FC<Props> = ({
   leaderboardDetails,
   userId,
   paginationStep = 5,
+  isAdvanced,
 }) => {
   const t = useTranslations();
 
@@ -40,7 +42,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
     leaderboardDetails.score_type === "relative_legacy_tournament";
 
   return (
-    // TODO: add a prize pool display directly to top of table when it exists
     <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
@@ -52,17 +53,21 @@ const ProjectLeaderboardTable: FC<Props> = ({
               {t("forecaster")}
             </TableHeader>
             <TableHeader className="text-right">{t("totalScore")}</TableHeader>
+            {isAdvanced && withCoverage && (
+              <TableHeader className="text-right">{t("coverage")}</TableHeader>
+            )}
             {!!leaderboardDetails.prize_pool && (
               <>
-                {withCoverage && (
-                  <TableHeader className="text-right">
-                    {t("coverage")}
-                  </TableHeader>
+                {isAdvanced && (
+                  <>
+                    <TableHeader className="text-right">
+                      {t("take")}
+                    </TableHeader>
+                    <TableHeader className="text-right">
+                      {t("percentPrize")}
+                    </TableHeader>
+                  </>
                 )}
-                <TableHeader className="text-right">{t("take")}</TableHeader>
-                <TableHeader className="text-right">
-                  {t("percentPrize")}
-                </TableHeader>
                 <TableHeader className=" text-right">{t("prize")}</TableHeader>
               </>
             )}
@@ -79,6 +84,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               userId={userId}
               withCoverage={withCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
+              isAdvanced={isAdvanced}
             />
           )}
           {leaderboardEntries.map((entry) => (
@@ -88,6 +94,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               userId={userId}
               withCoverage={withCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
+              isAdvanced={isAdvanced}
             />
           ))}
         </tbody>

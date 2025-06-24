@@ -1,12 +1,12 @@
-from itertools import islice
 import textwrap
+from itertools import islice
+from typing import Iterable, Iterator
+
+import instructor
 import tiktoken
 from django.conf import settings
 from openai import OpenAI, AsyncOpenAI
-from typing import ClassVar, Iterable, Iterator
-
-import instructor
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel
 
 EMBEDDING_MODEL = "text-embedding-3-large"
 EMBEDDING_CTX_LENGTH = 8191
@@ -19,12 +19,12 @@ class SpamAnalysisResult(BaseModel):
     confidence: float
 
 
-def get_openai_client() -> OpenAI:
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
+def get_openai_client(api_key: str | None = None) -> OpenAI:
+    return OpenAI(api_key=api_key or settings.OPENAI_API_KEY)
 
 
-def get_openai_client_async() -> AsyncOpenAI:
-    return AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+def get_openai_client_async(api_key: str | None = None) -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=api_key or settings.OPENAI_API_KEY)
 
 
 async def generate_text_async(
@@ -62,7 +62,11 @@ def generate_text_embed_vector(text: str) -> list[float]:
 
 async def generate_text_embed_vector_async(text: str) -> list[float]:
     async with get_openai_client_async() as client:
-        response = await client.embeddings.create(input=text, model=EMBEDDING_MODEL)
+        response = await client.embeddings.create(
+            input=text, model=EMBEDDING_MODEL,
+            # Set a timeout not to block worker
+            timeout=5
+        )
     vector = response.data[0].embedding
 
     return vector
@@ -128,29 +132,12 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
     return user
 
 
-class KeyFactor(BaseModel):
-    MAX_LENGTH: ClassVar[int] = 50
-
-    text: str = Field(
-        description=f"The key factor text, which should be a single sentence, not longer than {MAX_LENGTH} characters"
-    )
-
-    @field_validator("text")
-    def validate_text(cls, v):
-        if not v:
-            raise ValueError("Text cannot be empty")
-        if len(v) > KeyFactor.MAX_LENGTH:
-            raise ValueError(
-                f"Text cannot be longer than {KeyFactor.MAX_LENGTH} characters"
-            )
-        return v
-
-
 def generate_keyfactors(
     question_data: str,
     comment: str,
     existing_keyfactors: list[str],
-) -> list[KeyFactor]:
+) -> list[str]:
+    MAX_LENGTH = 50
 
     system_prompt = textwrap.dedent(
         """
@@ -163,16 +150,28 @@ def generate_keyfactors(
         You are a helpful assistant that generates a list of maximum 3 key factors for a comment that a user makes on a Metaculus question.
         The comment is intended to describe what might influence the predictions on the question so the key factors should only be relate to that.
         The key factors should be the most important things that the user is trying to say in the comment and how it might influence the predictions on the question.
-        The key factors should be single sentences, not longer than {KeyFactor.MAX_LENGTH} characters and they should only contain the key factor, no other text (e.g.: do not reference the user).
+        The key factors should be single sentences, not longer than {MAX_LENGTH} characters and they should only contain the key factor, no other text (e.g.: do not reference the user).
+
         The user comment is: \n\n{comment}\n\n
         The Metaculus question is: \n\n{question_data}\n\n
         The existing key factors are: \n\n{existing_keyfactors}\n\n
+
+        Do not include any key factors that are already in the existing key factors list. Read that carefully and make sure you don't have any duplicates.
+
+        If we are not sure the comment has meaningful key factors information, return the literal string "None". Better be conservative than creating meaningless key factors.
+
+        Each key factor should be a single sentence, not longer than {MAX_LENGTH} characters, and they should follow this format:
+        - separate each key factor with a new line
+        - do not include any other text
+        - do not include any formatting like quotes, numbering or other punctuation
+        - do not include any other formatting like bold or italic
+        - do not include anything else than the key factors
         """
     )
 
-    client = instructor.from_openai(get_openai_client())
+    client = get_openai_client(settings.OPENAI_API_KEY_FACTORS)
 
-    keyfactors = client.chat.completions.create(
+    response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {
@@ -184,7 +183,11 @@ def generate_keyfactors(
                 "content": user_prompt,
             },
         ],
-        response_model=list[KeyFactor],
     )
+    keyfactors = response.choices[0].message.content
 
-    return keyfactors
+    if keyfactors is None or keyfactors.lower() == "none":
+        return []
+
+    keyfactors = keyfactors.split("\n")
+    return [keyfactor.strip().strip('"').strip("'") for keyfactor in keyfactors]

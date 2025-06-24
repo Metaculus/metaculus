@@ -1,16 +1,16 @@
 import { Suspense } from "react";
 
+import FeedSidebar from "@/app/(main)/questions/components/sidebar";
 import AwaitedCommunitiesFeed from "@/components/communities_feed";
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POST_COMMUNITIES_FILTER } from "@/constants/posts_feed";
-import ProjectsApi from "@/services/projects";
+import serverMiscApi from "@/services/api/misc/misc.server";
 import { SearchParams } from "@/types/navigation";
 import { QuestionOrder } from "@/types/question";
 
 import FeedFilters from "./components/feed_filters";
-import QuestionTopics from "./components/question_topics";
 import { generateFiltersFromSearchParams } from "./helpers/filters";
 
 export const metadata = {
@@ -29,14 +29,14 @@ export default async function Questions(props: {
     defaultOrderBy: QuestionOrder.HotDesc,
     defaultForMainFeed: true,
   });
-  const topics = await ProjectsApi.getTopics();
+  const sidebarItems = await serverMiscApi.getSidebarItems();
 
   return (
     <>
       <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">
         <OnboardingCheck />
         <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
-          <QuestionTopics topics={topics} />
+          <FeedSidebar items={sidebarItems} />
           <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
             {isCommunityFeed ? (
               <Suspense
@@ -58,11 +58,7 @@ export default async function Questions(props: {
                     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
                   }
                 >
-                  <AwaitedPostsFeed
-                    filters={filters}
-                    topics={topics}
-                    isCommunity={false}
-                  />
+                  <AwaitedPostsFeed filters={filters} isCommunity={false} />
                 </Suspense>
               </>
             )}

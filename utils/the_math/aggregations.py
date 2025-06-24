@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from django.db.models import Q
+from django.utils import timezone as django_timezone
 
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
@@ -154,10 +155,10 @@ def calculate_aggregation_entry(
         )
         aggregation = AggregateForecast(forecast_values=normalized_medians.tolist())
 
+    aggregation.start_time = forecast_set.timestep
+    aggregation.forecaster_count = len(forecast_set.forecasts_values)
     if include_stats:
         forecasts_values = np.array(forecast_set.forecasts_values)
-        aggregation.start_time = forecast_set.timestep
-        aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if question_type in [
             Question.QuestionType.BINARY,
             Question.QuestionType.MULTIPLE_CHOICE,
@@ -550,6 +551,13 @@ def get_aggregation_history(
                 )
                 continue
 
+        last_historical_entry_index = -1
+        now = django_timezone.now()
+        for entry in forecast_history:
+            if entry.timestep < now:
+                last_historical_entry_index += 1
+
+            break
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
             include_histogram = (
@@ -558,7 +566,7 @@ def get_aggregation_history(
                 and histogram
                 if histogram is not None
                 else question.type == Question.QuestionType.BINARY
-                and i == (len(forecast_history) - 1)
+                and i >= last_historical_entry_index
             )
 
             if forecast_set.forecasts_values:
@@ -571,6 +579,7 @@ def get_aggregation_history(
                     histogram=include_histogram,
                 )
                 new_entry.question = question
+                new_entry.question_type = question.type
                 new_entry.method = method
                 if aggregation_history and aggregation_history[-1].end_time is None:
                     aggregation_history[-1].end_time = new_entry.start_time

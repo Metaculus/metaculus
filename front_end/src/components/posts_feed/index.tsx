@@ -5,35 +5,17 @@ import PaginatedPostsFeed, {
 } from "@/components/posts_feed/paginated_feed";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
-import PostsApi, { PostsParams } from "@/services/posts";
-import { Topic } from "@/types/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import { PostsParams } from "@/services/api/posts/posts.shared";
 
 type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
-  topics?: Topic[];
   isCommunity?: boolean;
 };
 
-const AwaitedPostsFeed: FC<Props> = async ({
-  filters,
-  type,
-  topics,
-  isCommunity,
-}) => {
-  if (
-    topics &&
-    filters.topic &&
-    !topics?.some((topic) => topic.slug === filters.topic)
-  ) {
-    return (
-      <div className="text-center text-gray-500 dark:text-gray-500-dark">
-        Such topic does not exist
-      </div>
-    );
-  }
-
-  const { results: questions } = await PostsApi.getPostsWithCP({
+const AwaitedPostsFeed: FC<Props> = async ({ filters, type, isCommunity }) => {
+  const { results: questions } = await ServerPostsApi.getPostsWithCP({
     ...filters,
     limit:
       (!isNaN(Number(filters.page)) ? Number(filters.page) : 1) *

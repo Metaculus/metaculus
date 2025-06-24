@@ -1,5 +1,6 @@
 import { FC, ReactNode } from "react";
 
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
@@ -55,8 +56,7 @@ const ForecastMakerGroup: FC<Props> = ({
           onPredictionSubmit={onPredictionSubmit}
         />
       )}
-      {(tileType === QuestionType.Date ||
-        tileType === QuestionType.Numeric) && (
+      {ContinuousQuestionTypes.some((type) => type === tileType) && (
         <ForecastMakerGroupContinuous
           post={post}
           questions={sortedQuestions}

@@ -7,7 +7,7 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Community, Tournament } from "./projects";
+import { Community, NewsCategory, Tournament } from "./projects";
 
 export type Resolution =
   | "yes"
@@ -120,7 +120,6 @@ export type Notebook = {
   created_at: string;
   edited_at: string;
   markdown: string;
-  type: string;
   image_url: string;
 };
 
@@ -135,6 +134,7 @@ type BasePost = {
     tag?: Tag[];
     community?: Community[];
     index?: Tournament[];
+    news_category?: NewsCategory[];
   };
   title: string;
   short_title: string;

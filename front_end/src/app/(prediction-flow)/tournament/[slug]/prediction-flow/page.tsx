@@ -1,14 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 
-import { fetchTournamentForecastFlowPosts } from "@/app/(main)/questions/actions";
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
 import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
 import PredictionFlowProvider, {
   FlowType,
 } from "@/app/(prediction-flow)/components/prediction_flow_provider";
 import ProgressSection from "@/app/(prediction-flow)/components/progress_section";
-import ProfileApi from "@/services/profile";
-import ProjectsApi from "@/services/projects";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { getProjectSlug } from "@/utils/navigation";
 
@@ -23,18 +23,24 @@ export default async function PredictionFlow(props: Props) {
   const flowType = searchParams["flow_type"] as FlowType;
 
   const [tournament, user] = await Promise.all([
-    ProjectsApi.getTournament(params.slug),
-    ProfileApi.getMyProfile(),
+    ServerProjectsApi.getTournament(params.slug),
+    ServerProfileApi.getMyProfile(),
   ]);
 
   if (!tournament) {
     return notFound();
   }
-  if (!user || !tournament.forecasts_flow_enabled) {
+  if (
+    !user ||
+    !tournament.forecasts_flow_enabled ||
+    tournament.timeline.all_questions_closed
+  ) {
     return redirect(`/tournament/${params.slug}`);
   }
 
-  const forecastFlowPosts = await fetchTournamentForecastFlowPosts(params.slug);
+  const forecastFlowPosts = await ServerPostsApi.getTournamentForecastFlowPosts(
+    params.slug
+  );
   const tournamentSlug = getProjectSlug(tournament);
   return (
     <PredictionFlowProvider

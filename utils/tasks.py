@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 
+from questions.types import AggregationMethod
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 from utils.translation import (
     update_translations_for_model,
@@ -42,6 +43,7 @@ def email_all_data_for_questions_task(
     include_scores: bool = True,
     **kwargs,
 ):
+    # TODO: deprecate this, use email_data_task instead
     try:
         from utils.csv_utils import export_all_data_for_questions
         from questions.models import Question
@@ -72,5 +74,97 @@ def email_all_data_for_questions_task(
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[email_address],
+        )
+        email.send()
+
+
+@dramatiq.actor
+def email_data_task(
+    user_id: int,
+    user_email: str,
+    is_staff: bool,
+    is_whitelisted: bool,
+    filename: str,
+    question_ids: list[int],
+    aggregation_methods: list[AggregationMethod],
+    minimize: bool,
+    include_scores: bool,
+    include_user_data: bool,
+    include_comments: bool,
+    user_ids: list[int] | None,
+    include_bots: bool | None,
+    anonymized: bool,
+):
+    try:
+        from utils.csv_utils import export_data_for_questions
+
+        data = export_data_for_questions(
+            user_id,
+            is_staff,
+            is_whitelisted,
+            question_ids,
+            aggregation_methods,
+            minimize,
+            include_scores,
+            include_user_data,
+            include_comments,
+            user_ids,
+            include_bots,
+            anonymized,
+        )
+
+        assert data is not None, "No data generated"
+
+        email = EmailMessage(
+            subject="Your Metaculus Data",
+            body="Attached is your Metaculus data.",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.attach(filename, data, "application/zip")
+        email.send()
+
+    except Exception as e:
+        email = EmailMessage(
+            subject="Error generating Metaculus data",
+            body="Error generating Metaculus data. Please contact an adminstrator "
+            f"for assistance.\nError: {e}",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.send()
+
+
+@dramatiq.actor
+def email_user_their_data_task(user_id: int):
+    from users.models import User
+
+    user = User.objects.filter(id=user_id).first()
+    if not user:
+        raise ValueError(f"User with id {user_id} does not exist.")
+    user_email = user.email
+    try:
+        from utils.csv_utils import export_data_for_user
+
+        data = export_data_for_user(user)
+
+        assert data is not None, "No data generated"
+
+        email = EmailMessage(
+            subject="Your User Data",
+            body="Attached is your User Data on Metaculus.",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
+        )
+        email.attach("user_data.zip", data, "application/zip")
+        email.send()
+
+    except Exception as e:
+        email = EmailMessage(
+            subject="Error generating Metaculus data",
+            body="Error generating Metaculus data. Please contact an adminstrator "
+            f"for assistance.\nError: {e}",
+            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            to=[user_email],
         )
         email.send()

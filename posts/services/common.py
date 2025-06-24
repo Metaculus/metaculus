@@ -2,10 +2,12 @@ import logging
 from collections.abc import Iterable
 from datetime import date, datetime
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.db.utils import IntegrityError
 from django.utils import timezone
+from django.utils.translation import activate
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
@@ -13,6 +15,7 @@ from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import get_projects_staff_users, get_site_main_project
 from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
@@ -124,6 +127,8 @@ def create_post(
     short_title: str = None,
     published_at: datetime = None,
 ) -> Post:
+    # We always want to create post & questions content in the original mode
+    activate(settings.ORIGINAL_LANGUAGE_CODE)
     site_main = get_site_main_project()
 
     categories = list(categories or [])
@@ -172,16 +177,18 @@ def create_post(
     # Run async tasks
     run_post_indexing.send(obj.id)
 
+    # Invalidate projects cache
+    invalidate_projects_questions_count_cache(obj.get_related_projects())
+
     return obj
 
 
 def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
-    if (
-        not force
-        and not post.is_automatically_translated
-        and post.curation_status != Post.CurationStatus.APPROVED
+    if not force and (
+        not post.is_automatically_translated
+        or post.curation_status != Post.CurationStatus.APPROVED
     ):
         return
 
@@ -238,6 +245,10 @@ def update_post(
     notebook: dict = None,
     **kwargs,
 ):
+    # We need to edit post & questions content in the original mode
+    # To override _original fields instead of _<language> ones
+    activate(settings.ORIGINAL_LANGUAGE_CODE)
+
     # Content for embedding generation before update
     original_embedding_content = generate_post_content_for_embedding_vectorization(post)
 
@@ -411,11 +422,17 @@ def approve_post(
     )
 
     # Automatically update secondary and default project forecasting end date
-    for project in [post.default_project] + list(post.projects.all()):
+    for project in post.get_related_projects():
         if project.type == Project.ProjectTypes.TOURNAMENT:
             move_project_forecasting_end_date(project, post)
 
     post.update_pseudo_materialized_fields()
+
+    # Invalidate project questions count cache since approval affects visibility
+    invalidate_projects_questions_count_cache(post.get_related_projects())
+
+    # Translate approved post
+    trigger_update_post_translations(post, with_comments=False, force=False)
 
 
 @transaction.atomic

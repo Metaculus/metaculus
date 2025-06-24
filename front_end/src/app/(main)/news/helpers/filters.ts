@@ -3,7 +3,7 @@ import {
   POST_PAGE_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
-import { PostsParams } from "@/services/posts";
+import { PostsParams } from "@/services/api/posts/posts.shared";
 import { SearchParams } from "@/types/navigation";
 import { NotebookType } from "@/types/post";
 
@@ -12,7 +12,6 @@ export function generateFiltersFromSearchParams(
 ): PostsParams {
   const filters: PostsParams = {
     forecast_type: NotebookType.Notebook,
-    notebook_type: "news",
   };
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {

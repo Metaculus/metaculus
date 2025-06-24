@@ -24,6 +24,11 @@ urlpatterns = [
     ),
     path("users/me/email/", views.email_change_api_view, name="user-change-email"),
     path(
+        "users/me/email_me_my_data/",
+        views.email_me_my_data_api_view,
+        name="user-email-me-my-data",
+    ),
+    path(
         "users/me/email/confirm/",
         views.email_change_confirm_api_view,
         name="user-change-email-confirm",

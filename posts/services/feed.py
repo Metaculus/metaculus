@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
-from posts.models import Notebook, Post
+from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import (
     perform_post_search,
@@ -35,9 +35,8 @@ def get_posts_feed(
     access: PostFilterSerializer.Access = None,
     ids: list[int] = None,
     public_figure: Project = None,
-    news_type: Project = None,
+    news_type: list[Project] = None,
     curation_status: Post.CurationStatus = None,
-    notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
     withdrawn: bool = None,
@@ -110,9 +109,6 @@ def get_posts_feed(
 
     if curation_status:
         qs = qs.filter(curation_status=curation_status)
-
-    if notebook_type:
-        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
@@ -278,6 +274,12 @@ def get_posts_feed(
             resolved=False,
             curation_status=Post.CurationStatus.APPROVED,
         )
+    if order_type == PostFilterSerializer.Order.NEWS_HOTNESS:
+        if not order_desc:
+            raise ValidationError("Ascending is not supported for “In the news” order")
+
+        qs = qs.annotate_news_hotness()
+
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
     return qs.distinct("id", order_type).only("pk")
@@ -289,7 +291,12 @@ def get_similar_posts(post: Post):
         lambda: [
             p.pk
             for p in get_posts_feed(
-                similar_to_post_id=post.id, statuses=["open"], for_main_feed=True
+                # Exclude conditional
+                # Since we don't have a compact tile to display here
+                Post.objects.filter(conditional__isnull=True, notebook__isnull=True),
+                similar_to_post_id=post.id,
+                statuses=["open"],
+                for_main_feed=True,
             )[:8]
         ],
         # 24h

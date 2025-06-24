@@ -18,10 +18,13 @@ const NavigationBlock: FC<Props> = ({ tournament }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
+  const isForecastsFlowEnabled =
+    tournament.forecasts_flow_enabled &&
+    !tournament.timeline.all_questions_closed;
 
   return (
     <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
-      {tournament.forecasts_flow_enabled && (
+      {isForecastsFlowEnabled && (
         <Button
           onClick={() => {
             if (isNil(user)) {

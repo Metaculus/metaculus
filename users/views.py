@@ -42,6 +42,7 @@ from users.services.spam_detection import (
     send_deactivation_email,
 )
 from utils.paginator import LimitOffsetPagination
+from utils.tasks import email_user_their_data_task
 
 logger = logging.getLogger(__name__)
 
@@ -351,7 +352,7 @@ def get_authoring_stats_data(
         .count()
     )
     comment_count = Comment.objects.filter(
-        author=user, on_post__in=Post.objects.filter_public()
+        author=user, on_post__in=Post.objects.filter_public(), is_private=False
     ).count()
 
     return {
@@ -551,6 +552,13 @@ def email_change_api_view(request):
     send_email_change_confirmation_email(user, new_email)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def email_me_my_data_api_view(request):
+    user = request.user
+    email_user_their_data_task.send(user_id=user.id)
+    return Response({"message": "Email scheduled to be sent"}, status=200)
 
 
 @api_view(["POST"])

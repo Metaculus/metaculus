@@ -4,7 +4,7 @@ import { Button } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
 
-import { fetchRandomPostId } from "@/app/(main)/questions/actions";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 
 import { Die } from "./icons/die";
 
@@ -15,7 +15,7 @@ const RandomButton: FC = () => {
   const handleRandomClick = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchRandomPostId();
+      const data = await ClientPostsApi.getRandomPostId();
       if (!data) {
         return;
       }
@@ -32,7 +32,7 @@ const RandomButton: FC = () => {
       onClick={handleRandomClick}
       disabled={isLoading}
       aria-label="Random Question"
-      className="flex h-[48px] w-[48px] cursor-pointer items-center justify-center rounded-none border-0 bg-transparent text-xl transition-transform hover:animate-spin"
+      className="flex w-[48px] cursor-pointer items-center justify-center rounded-none border-0 bg-transparent text-xl transition-transform hover:animate-spin"
     >
       <Die className="die" />
     </Button>

@@ -9,7 +9,7 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError } from "@/components/ui/form_field";
-import { ApprovePostParams } from "@/services/posts";
+import { ApprovePostParams } from "@/services/api/posts/posts.shared";
 import { ErrorResponse } from "@/types/fetch";
 import { Post } from "@/types/post";
 import { TournamentType } from "@/types/projects";
@@ -361,10 +361,12 @@ const PostApprovalModal: FC<{
                       new Date(default_project.forecasting_end_date)
                     )
                   : "",
-              question_close_date: formatDate(
-                locale,
-                new Date(approvalData.scheduled_close_time)
-              ),
+              question_close_date: approvalData.scheduled_close_time
+                ? formatDate(
+                    locale,
+                    new Date(approvalData.scheduled_close_time)
+                  )
+                : "",
               b: (child) => <b>{child}</b>,
             })}
           </p>

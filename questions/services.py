@@ -1,8 +1,9 @@
 import logging
 from collections import defaultdict
-from datetime import datetime
-from typing import cast, TypedDict, Iterable
+from datetime import datetime, timedelta
+from typing import cast, Iterable
 
+import sentry_sdk
 from django.db import transaction
 from django.db.models import Q, QuerySet, Subquery, OuterRef
 from django.utils import timezone
@@ -16,6 +17,7 @@ from posts.services.subscriptions import (
 )
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
+from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import notify_project_subscriptions_question_open
 from questions.constants import ResolutionType
 from questions.models import (
@@ -25,12 +27,19 @@ from questions.models import (
     Conditional,
     Forecast,
     AggregateForecast,
+    UserForecastNotification,
 )
-from questions.types import AggregationMethod
-from questions.utils import get_question_movement_period
+from questions.serializers.common import serialize_question_movement
+from questions.types import AggregationMethod, QuestionMovement
+from questions.utils import (
+    get_question_movement_period,
+    get_last_forecast_in_the_past,
+)
 from scoring.models import Score, Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
+from utils.cache import cache_per_object
+from utils.db import transaction_repeatable_read
 from utils.dtypes import flatten
 from utils.models import model_update
 from utils.the_math.aggregations import (
@@ -41,8 +50,6 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import (
     percent_point_function,
     prediction_difference_for_sorting,
-    get_difference_display,
-    Direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -270,6 +277,9 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         zero_point=kwargs.pop("zero_point", question.zero_point),
         open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
         open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
+        inbound_outcome_count=kwargs.pop(
+            "inbound_outcome_count", question.inbound_outcome_count
+        ),
         options=kwargs.pop("options", question.options),
         group_variable=kwargs.pop("group_variable", question.group_variable),
         resolution_set_time=kwargs.pop(
@@ -518,6 +528,9 @@ def resolve_question(
     update_global_leaderboard_tags(post)
     post.save()
 
+    # Invalidate project questions count cache since resolution affects visibility
+    invalidate_projects_questions_count_cache(post.get_related_projects())
+
     # Calculate scores + notify forecasters
     from questions.tasks import resolve_question_and_send_notifications
 
@@ -689,7 +702,6 @@ def create_forecast(
         question=question,
         author=user,
         start_time=now,
-        end_time=None,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
@@ -749,14 +761,6 @@ def after_forecast_actions(question: Question, user: User):
 
     run_build_question_forecasts.send(question.id)
 
-    # There may be situations where async jobs from `create_forecast` complete after
-    # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
-    # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
-    #
-    # As a temporary solution, we introduce a 10-second delay before execution
-    # to ensure all forecasts are processed.
-    run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
-
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
     posts = set()
@@ -766,8 +770,19 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        create_forecast(question=question, user=user, **forecast)
+        forecast = create_forecast(question=question, user=user, **forecast)
+        update_forecast_notification(forecast=forecast, created=True)
         after_forecast_actions(question, user)
+
+    # Update counters
+    for post in posts:
+        # There may be situations where async jobs from `create_forecast` complete after
+        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+        #
+        # As a temporary solution, we introduce a 10-second delay before execution
+        # to ensure all forecasts are processed.
+        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
@@ -798,6 +813,7 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         forecast_to_terminate.end_time = withdraw_at
         forecast_to_terminate.save()
         forecasts_to_delete = user_forecasts.exclude(pk=forecast_to_terminate.pk)
+        update_forecast_notification(forecast=forecast_to_terminate, created=False)
         forecasts_to_delete.delete()
 
         after_forecast_actions(question, user)
@@ -810,26 +826,154 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
             is_global=True,
         ).delete()
 
+    for post in posts:
+        # There may be situations where async jobs from `create_forecast` complete after
+        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+        #
+        # As a temporary solution, we introduce a 10-second delay before execution
+        # to ensure all forecasts are processed.
+        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
-def get_recency_weighted_for_questions(
-    questions: Iterable[Question],
-) -> dict[Question, AggregateForecast]:
+
+def update_forecast_notification(
+    forecast: Forecast,
+    created: bool,
+):
+    """
+    Creates or deletes UserForecastNotification objects based on forecast lifecycle.
+
+    When created=True: Creates/updates notification if forecast has future end_time
+    When created=False: Deletes existing notification for user/question pair
+    """
+
+    user = forecast.author
+    question = forecast.question
+
+    # Delete existing notification
+    UserForecastNotification.objects.filter(user=user, question=question).delete()
+
+    if created:
+        # Calculate total lifetime of the forecast
+        start_time = forecast.start_time
+        end_time = (
+            forecast.end_time or start_time
+        )  # If end_time is None, same case as duration 0 -> no notification
+        total_lifetime = end_time - start_time
+
+        # Determine trigger time based on lifetime
+        if total_lifetime < timedelta(hours=8):
+            return
+        elif total_lifetime > timedelta(weeks=3):
+            # If lifetime > 3 weeks, trigger 1 week before end
+            trigger_time = end_time - timedelta(weeks=1)
+        else:
+            # Otherwise, trigger 1 day before end
+            trigger_time = end_time - timedelta(days=1)
+
+        # Create or update the notification
+        UserForecastNotification.objects.update_or_create(
+            user=user,
+            question=question,
+            defaults={
+                "trigger_time": trigger_time,
+                "email_sent": False,
+                "forecast": forecast,
+            },
+        )
+
+
+@sentry_sdk.trace
+def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None):
+    if not group_cutoff:
+        return questions
+
     qs = (
         AggregateForecast.objects.filter(
             question__in=questions, method=AggregationMethod.RECENCY_WEIGHTED
         )
+        .filter(
+            (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
+            start_time__lte=timezone.now(),
+        )
         .order_by("question_id", "-start_time")
         .distinct("question_id")
+        .values_list("question_id", "centers")
     )
-    aggregations_map = {x.question_id: x for x in qs}
+    recency_weighted = dict(qs)
+    grouped = defaultdict(list)
 
-    return {q: aggregations_map.get(q.pk) for q in questions}
+    for q in questions:
+        if (
+            q.group_id
+            and q.group.graph_type
+            != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+        ):
+            grouped[q.group].append(q)
+
+    def rank_sorting_key(q: Question):
+        return q.group_rank or 0
+
+    def cp_sorting_key(q: Question):
+        """
+        Extracts question aggregation forecast value
+        """
+        centers = recency_weighted.get(q.id)
+
+        if not centers:
+            return 0
+        if q.type == "binary":
+            if len(centers) < 2:
+                return 0
+
+            return centers[1]
+        if q.type in QUESTION_CONTINUOUS_TYPES:
+            return unscaled_location_to_scaled_location(centers[0], q)
+        if q.type == "multiple_choice":
+            return max(centers)
+        return 0
+
+    cutoff_excluded = {
+        q
+        for group, qs in grouped.items()
+        for q in sorted(
+            qs,
+            key=(
+                rank_sorting_key
+                if group.subquestions_order
+                == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
+                else cp_sorting_key
+            ),
+            reverse=(
+                group.subquestions_order
+                == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC
+            ),
+        )[group_cutoff:]
+    }
+
+    return set(questions) - cutoff_excluded
 
 
+def get_last_aggregated_forecasts_for_questions(
+    questions: Iterable[Question], aggregated_forecast_qs: QuerySet[AggregateForecast]
+):
+    return (
+        aggregated_forecast_qs.filter(question__in=questions)
+        .filter(
+            (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
+            start_time__lte=timezone.now(),
+        )
+        .order_by("question_id", "method", "-start_time")
+        .distinct("question_id", "method")
+    )
+
+
+@sentry_sdk.trace
 def get_aggregated_forecasts_for_questions(
     questions: Iterable[Question],
     group_cutoff: int = None,
     aggregated_forecast_qs: QuerySet[AggregateForecast] | None = None,
+    include_cp_history: bool = False,
 ):
     """
     Extracts aggregated forecasts for the given questions.
@@ -841,69 +985,28 @@ def get_aggregated_forecasts_for_questions(
 
     # Copy questions list
     questions = list(questions)
-    questions_to_fetch = set(questions)
     question_map = {q.pk: q for q in questions}
-    aggregated_forecasts = set()
     if aggregated_forecast_qs is None:
-        aggregated_forecast_qs = AggregateForecast.objects.all()
-
-    if group_cutoff is not None:
-        recently_weighted = get_recency_weighted_for_questions(questions)
-        aggregated_forecasts.update([x for x in recently_weighted.values() if x])
-
-        grouped = defaultdict(list)
-        for q in questions:
-            if (
-                q.group_id
-                and q.group.graph_type
-                != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
-            ):
-                grouped[q.group].append(q)
-
-        def rank_sorting_key(q: Question):
-            return q.group_rank or 0
-
-        def cp_sorting_key(q: Question):
-            """
-            Extracts question aggregation forecast value
-            """
-            agg = recently_weighted.get(q)
-            if not agg or len(agg.forecast_values) < 2:
-                return 0
-            if q.type == "binary":
-                return agg.forecast_values[1]
-            if q.type in QUESTION_CONTINUOUS_TYPES:
-                return unscaled_location_to_scaled_location(agg.centers[0], q)
-            if q.type == "multiple_choice":
-                return max(agg.forecast_values)
-            return 0
-
-        cutoff_excluded = {
-            q
-            for group, qs in grouped.items()
-            for q in sorted(
-                qs,
-                key=(
-                    rank_sorting_key
-                    if group.subquestions_order
-                    == GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL
-                    else cp_sorting_key
-                ),
-                reverse=group.subquestions_order
-                in [
-                    GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.CP_DESC,
-                    None,  # if sort order is not set, then sort CP descending, hence reverse here
-                ],
-            )[group_cutoff:]
-        }
-        questions_to_fetch = questions_to_fetch - cutoff_excluded
-
-    aggregated_forecasts.update(
-        aggregated_forecast_qs.filter(question__in=questions_to_fetch).exclude(
-            # Exclude previously fetched aggregated_forecasts
-            id__in=[f.id for f in aggregated_forecasts]
+        aggregated_forecast_qs = AggregateForecast.objects.filter(
+            method__in=[
+                AggregationMethod.RECENCY_WEIGHTED,
+            ],
         )
+
+    questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
+
+    aggregated_forecasts = set(
+        get_last_aggregated_forecasts_for_questions(questions, aggregated_forecast_qs)
     )
+
+    if include_cp_history:
+        # Fetch full aggregation history with lightweight objects
+        aggregated_forecasts |= set(
+            aggregated_forecast_qs.filter(question__in=questions_to_fetch)
+            .filter(start_time__lte=timezone.now())
+            .exclude(pk__in=[x.id for x in aggregated_forecasts])
+            .defer("forecast_values", "histogram", "means")
+        )
 
     forecasts_by_question = defaultdict(list)
     for forecast in sorted(aggregated_forecasts, key=lambda f: f.start_time):
@@ -932,13 +1035,10 @@ def get_user_last_forecasts_map(
     return {q: question_id_map.get(q.id) for q in questions}
 
 
-QuestionMovement = TypedDict(
-    "QuestionMovement", {"direction": Direction, "movement": float}
-)
-
-
-def calculate_user_forecast_movement_for_questions(
-    questions: Iterable[Question], forecasts_map: dict[Question, Forecast]
+def calculate_period_movement_for_questions(
+    questions: Iterable[Question],
+    compare_periods_map: dict[Question, timedelta],
+    threshold: float = 0.25,
 ) -> dict[Question, QuestionMovement | None]:
     """
     Calculate, for each question, how much forecast has moved
@@ -949,85 +1049,104 @@ def calculate_user_forecast_movement_for_questions(
         q: None for q in questions
     }
 
-    # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
-    # We do this to significantly reduce data transfer size and Django model instance serialization time,
-    # because the `forecast_values` object can be quite large.
-    question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
-        # Only forecasted questions
-        forecasts_map.keys(),
-        aggregated_forecast_qs=AggregateForecast.objects.filter(
-            method=AggregationMethod.RECENCY_WEIGHTED,
-        ).only("id", "start_time", "question_id", "end_time"),
-    )
-
-    agg_id_map: dict[Question, tuple[int, int]] = {}
-
-    # Step 2: find First and Last AggregateForecast for each question
-    for question in questions:
-        user_forecast = forecasts_map[question]
-        aggregated_forecasts = question_aggregated_forecasts_map.get(question)
-
-        if not user_forecast or not aggregated_forecasts:
-            continue
-
-        # Skip hidden CP
-        if question.is_cp_hidden:
-            continue
-
-        last_agg = aggregated_forecasts[-1]
-        first_agg = (
-            next(
-                (
-                    agg
-                    for agg in aggregated_forecasts
-                    if agg.start_time <= user_forecast.start_time
-                    and (
-                        agg.end_time is None or agg.end_time > user_forecast.start_time
-                    )
-                ),
-                None,
-            )
-            or last_agg
+    # Run this block at REPEATABLE READ isolation level to prevent race conditions.
+    # We first perform a lightweight query fetching only id, start_time, and end_time
+    # of AggregateForecast to identify the relevant rows, then re-fetch
+    # the full data for those IDs. Without a stable snapshot, records might disappear
+    # mid-process (e.g. due to concurrent CP recalculation), causing missing data errors.
+    # REPEATABLE READ ensures both SELECTs see the same MVCC snapshot and avoids this race.
+    with transaction_repeatable_read():
+        # Step 1: Fetch aggregated forecasts with deferred `forecast_values` field.
+        # We do this to significantly reduce data transfer size and Django model instance serialization time,
+        # because the `forecast_values` object can be quite large.
+        question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
+            # Only forecasted questions
+            compare_periods_map.keys(),
+            aggregated_forecast_qs=AggregateForecast.objects.filter(
+                method=AggregationMethod.RECENCY_WEIGHTED,
+            ).only("id", "start_time", "question_id", "end_time"),
+            include_cp_history=True,
         )
 
-        agg_id_map[question] = (first_agg.id, last_agg.id)
+        agg_id_map: dict[Question, tuple[int, int]] = {}
+        now = timezone.now()
 
-    # 3) Bulk‐fetch full forecasts for just those IDs
-    full_aggs = {
-        x.id: x
-        for x in AggregateForecast.objects.filter(pk__in=flatten(agg_id_map.values()))
-    }
+        # Step 2: find First and Last AggregateForecast for each question
+        for question in questions:
+            delta = compare_periods_map.get(question)
+            aggregated_forecasts = question_aggregated_forecasts_map.get(question)
+
+            if not delta or not aggregated_forecasts:
+                continue
+
+            from_date = now - delta
+
+            # Skip hidden CP
+            if question.is_cp_hidden:
+                continue
+
+            last_agg = get_last_forecast_in_the_past(aggregated_forecasts)
+            first_agg = (
+                next(
+                    (
+                        agg
+                        for agg in aggregated_forecasts
+                        if agg.start_time <= from_date
+                        and agg.start_time <= now
+                        and (agg.end_time is None or agg.end_time > from_date)
+                    ),
+                    None,
+                )
+                or last_agg
+            )
+
+            agg_id_map[question] = (first_agg.id, last_agg.id)
+
+        # 3) Bulk‐fetch full forecasts for just those IDs
+        full_aggs = {
+            x.id: x
+            for x in AggregateForecast.objects.filter(
+                pk__in=flatten(agg_id_map.values())
+            )
+        }
 
     # 4) Compute and return the movement per question
     for question, (first_id, last_id) in agg_id_map.items():
         f1 = full_aggs[first_id]
         f2 = full_aggs[last_id]
+        period = compare_periods_map.get(question)
 
-        divergence = prediction_difference_for_sorting(
-            f1.forecast_values,
-            f2.forecast_values,
-            question,
+        question_movement_map[question] = serialize_question_movement(
+            question, f1, f2, period, threshold=threshold
         )
 
-        if divergence >= 0.25:
-            display_diff = get_difference_display(
-                f1,
-                f2,
-                question,
-            )
-
-            # Finds max difference for multiple choice cases
-            direction, change = max(display_diff, key=lambda x: x[1])
-
-            question_movement_map[question] = cast(
-                QuestionMovement,
-                {
-                    "direction": direction,
-                    "movement": change,
-                },
-            )
-
     return question_movement_map
+
+
+@sentry_sdk.trace
+@cache_per_object(timeout=60 * 10)
+def calculate_movement_for_questions(
+    questions: Iterable[Question],
+) -> dict[Question, QuestionMovement | None]:
+    """
+    Generates question movement based on its lifetime
+    """
+
+    now = timezone.now()
+    questions = [
+        q
+        for q in questions
+        # Our max movement period is 7 days, so we want to skip other questions
+        if (not q.actual_close_time or now - q.actual_close_time <= timedelta(days=7))
+        # We don't want to calculate movement for groups right now
+        and not q.group_id
+    ]
+
+    return calculate_period_movement_for_questions(
+        questions,
+        {q: get_question_movement_period(q) for q in questions if q.open_time},
+        threshold=0,
+    )
 
 
 def handle_question_open(question: Question):

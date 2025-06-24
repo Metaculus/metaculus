@@ -1,13 +1,13 @@
 import { faArrowDown, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import { MovementDirection } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
   direction: MovementDirection;
-  message: string;
+  message: string | ReactNode;
   className?: string;
   iconClassName?: string;
 };

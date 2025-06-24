@@ -1,0 +1,54 @@
+Library,License,Link
+django,BSD 3-Clause,https://pypi.org/project/django/
+djangorestframework,BSD License (BSD),https://pypi.org/project/djangorestframework/
+rest-social-auth,MIT,https://pypi.org/project/rest-social-auth/
+dj-database-url,BSD License (BSD),https://pypi.org/project/dj-database-url/
+python-dateutil,"Apache Software License, BSD License (Dual License)",https://pypi.org/project/python-dateutil/
+django-extensions,MIT,https://pypi.org/project/django-extensions/
+numpy,BSD,https://pypi.org/project/numpy/
+django-cors-headers,MIT,https://pypi.org/project/django-cors-headers/
+django-anymail,BSD License (BSD 3-Clause License),https://pypi.org/project/django-anymail/
+django-sql-utils,MIT,https://pypi.org/project/django-sql-utils/
+django-dramatiq,Apache 2.0,https://pypi.org/project/django-dramatiq/
+django-redis,BSD License (BSD-3-Clause),https://pypi.org/project/django-redis/
+ipython,BSD License (BSD-3-Clause),https://pypi.org/project/ipython/
+scipy,BSD,https://pypi.org/project/scipy/
+django-dynamic-fixture,MIT,https://pypi.org/project/django-dynamic-fixture/
+django-admin-autocomplete-filter,GPL-3.0 license,https://pypi.org/project/django-admin-autocomplete-filter/
+html2text,GPL-3.0 license,https://pypi.org/project/html2text/
+gunicorn,MIT,https://pypi.org/project/gunicorn/
+django-storages,BSD 3-Clause,https://pypi.org/project/django-storages/
+pillow,MIT-CMU,https://pypi.org/project/Pillow/
+setuptools,MIT,https://pypi.org/project/setuptools/
+jinja2,BSD 3-Clause,https://pypi.org/project/Jinja2/
+apscheduler,MIT,https://pypi.org/project/APScheduler/
+openai,Apache-2.0,https://pypi.org/project/openai/
+pgvector,MIT,https://pypi.org/project/pgvector/
+tiktoken,MIT,https://pypi.org/project/tiktoken/
+aiohttp,Apache 2.0,https://pypi.org/project/aiohttp/
+django-mjml,MIT,https://pypi.org/project/django-mjml/
+markdown,BSD 3-Clause,https://pypi.org/project/Markdown/
+sshtunnel,MIT,https://pypi.org/project/sshtunnel/
+python-dotenv,BSD 3-Clause,https://pypi.org/project/python-dotenv/
+mysql-connector-python,GNU General Public License (GPL) (GNU GPLv2 (with FOSS License Exception)),https://pypi.org/project/mysql-connector-python/
+gspread,MIT,https://pypi.org/project/gspread/
+whitenoise,MIT,https://pypi.org/project/whitenoise/
+sentry-sdk,MIT,https://pypi.org/project/sentry-sdk/
+brotli,MIT,https://pypi.org/project/Brotli/
+django-better-admin-arrayfield,MIT,https://pypi.org/project/django-better-admin-arrayfield/
+django-modeltranslation,BSD 3-Clause,https://pypi.org/project/django-modeltranslation/
+google-auth,Apache 2.0,https://pypi.org/project/google-auth/
+django-select2,MIT,https://pypi.org/project/django-select2/
+instructor,MIT,https://pypi.org/project/instructor/
+pytz,MIT,https://pypi.org/project/pytz/
+psycopg2,LGPL,https://pypi.org/project/psycopg2/
+pytest,MIT,https://pypi.org/project/pytest/
+pytest-django,BSD 3-Clause,https://pypi.org/project/pytest-django/
+pytest-env,MIT,https://pypi.org/project/pytest-env/
+factory-boy,MIT,https://pypi.org/project/factory-boy/
+django-debug-toolbar,BSD 3-Clause,https://pypi.org/project/django-debug-toolbar/
+freezegun,Apache 2.0,https://pypi.org/project/freezegun/
+pytest-mock,MIT,https://pypi.org/project/pytest-mock/
+flake8-quotes,MIT,https://pypi.org/project/flake8-quotes/
+playwright,Apache 2.0,https://pypi.org/project/playwright/
+psycopg2-binary,LGPL,https://pypi.org/project/psycopg2-binary/

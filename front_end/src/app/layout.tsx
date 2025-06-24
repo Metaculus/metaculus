@@ -10,7 +10,6 @@ import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 
-import ChunkRetryScript from "@/components/chunk_retry_script";
 import GlobalModals from "@/components/global_modals";
 import PublicSettingsScript from "@/components/public_settings_script";
 import AppThemeProvided from "@/components/theme_provider";
@@ -23,7 +22,9 @@ import PolyfillProvider from "@/contexts/polyfill";
 import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
-import ProfileApi from "@/services/profile";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import { CurrentUser } from "@/types/users";
+import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 config.autoAddCss = false;
@@ -72,6 +73,8 @@ const sourceSerifPro = localFont({
     },
   ],
   variable: "--font-source-serif-pro",
+  display: "swap",
+  preload: false,
 });
 
 const inter = localFont({
@@ -88,6 +91,8 @@ const inter = localFont({
     },
   ],
   variable: "--font-inter",
+  display: "swap",
+  preload: false,
 });
 
 const interVariable = localFont({
@@ -99,11 +104,15 @@ const interVariable = localFont({
     },
   ],
   variable: "--font-inter-variable",
+  display: "swap",
+  preload: false,
 });
 
 const leagueGothic = localFont({
   src: "../../public/fonts/league_gothic_variable.ttf",
   variable: "--font-league-gothic",
+  display: "swap",
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -142,7 +151,14 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const user = await ProfileApi.getMyProfile();
+
+  let user: CurrentUser | null = null;
+  try {
+    user = await ServerProfileApi.getMyProfile();
+  } catch (err) {
+    logError(err);
+  }
+
   const publicSettings = getPublicSettings();
 
   return (
@@ -201,7 +217,6 @@ export default async function RootLayout({
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
       )}
-      <ChunkRetryScript />
     </html>
   );
 }

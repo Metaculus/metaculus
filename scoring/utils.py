@@ -1,9 +1,9 @@
 import csv
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from io import StringIO
-import logging
 
 import numpy as np
 from django.db import transaction
@@ -30,6 +30,7 @@ from sql_util.aggregates import SubqueryAggregate
 from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
 from scoring.models import (
@@ -45,7 +46,6 @@ from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
-from projects.permissions import ObjectPermission
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,12 @@ def score_question(
     resolution: str,
     spot_scoring_time: float | None = None,
     score_types: list[str] | None = None,
+    aggregation_methods: list[AggregationMethod] | None = None,
+    protect_uncalculated_scores: bool = False,
+    score_users: bool | list[int] = True,
 ):
+    if aggregation_methods is None:
+        aggregation_methods = [AggregationMethod.RECENCY_WEIGHTED]
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     if not spot_scoring_time:
         if question.spot_scoring_time:
@@ -74,23 +79,31 @@ def score_question(
         for score in previous_scores
     }
     new_scores = evaluate_question(
-        question,
-        resolution_bucket,
-        score_types,
-        spot_scoring_time,
+        question=question,
+        resolution_bucket=resolution_bucket,
+        score_types=score_types,
+        spot_forecast_timestamp=spot_scoring_time,
+        aggregation_methods=aggregation_methods,
+        score_users=score_users,
     )
 
+    seen = set()
     for new_score in new_scores:
         previous_score_id = previous_scores_map.get(
             (new_score.user_id, new_score.aggregation_method, new_score.score_type)
         )
+        if previous_score_id:
+            seen.add(previous_score_id)
 
         new_score.id = previous_score_id
         new_score.question = question
         new_score.edited_at = question.resolution_set_time
 
     with transaction.atomic():
-        previous_scores.delete()
+        scores_to_delete = previous_scores
+        if protect_uncalculated_scores:
+            scores_to_delete = scores_to_delete.filter(id__in=seen)
+        scores_to_delete.delete()
         Score.objects.bulk_create(new_scores, batch_size=500)
 
 
@@ -169,6 +182,7 @@ def generate_scoring_leaderboard_entries(
     elif leaderboard.score_type in (
         Leaderboard.ScoreTypes.PEER_TOURNAMENT,
         Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
     ):
         for entry in entries.values():
             entry.take = max(entry.score, 0) ** 2
@@ -333,6 +347,7 @@ def generate_project_leaderboard(
 def assign_ranks(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
+    include_humans: bool = True,
     include_bots: bool = False,
 ) -> list[LeaderboardEntry]:
     RelativeLegacy = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
@@ -382,8 +397,10 @@ def assign_ranks(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
     ).values_list("pk", flat=True)
 
+    if not include_humans:
+        included_users = included_users.exclude(is_bot=False)
     if not include_bots:
-        included_users = included_users.filter(is_bot=False)
+        included_users = included_users.exclude(is_bot=True)
 
     for entry in entries:
         if entry.user_id and entry.user_id not in included_users:
@@ -411,13 +428,21 @@ def assign_ranks(
     return entries
 
 
-def assign_prize_percentages(entries: list[LeaderboardEntry]) -> list[LeaderboardEntry]:
+def assign_prize_percentages(
+    entries: list[LeaderboardEntry], minimum_prize_percent: float
+) -> list[LeaderboardEntry]:
     total_take = sum(e.take for e in entries if not e.excluded and e.take is not None)
     for entry in entries:
+        entry.percent_prize = 0
         if total_take and not entry.excluded and entry.take is not None:
-            entry.percent_prize = entry.take / total_take
-        else:
-            entry.percent_prize = 0
+            percent_prize = entry.take / total_take
+            if percent_prize >= minimum_prize_percent:
+                # only give percent prize if it's above the minimum
+                entry.percent_prize = percent_prize
+    # renormalize percent_prize to sum to 1
+    percent_prize_sum = sum(entry.percent_prize for entry in entries) or 1
+    for entry in entries:
+        entry.percent_prize /= percent_prize_sum
     return entries
 
 
@@ -508,6 +533,7 @@ def calculate_medals_points_at_time(at_time):
                 Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
                 Leaderboard.ScoreTypes.PEER_TOURNAMENT,
                 Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+                Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
             ],
             then=Value(LeaderboardsRanksEntry.RankTypes.TOURNAMENTS_GLOBAL),
         ),
@@ -650,14 +676,29 @@ def update_project_leaderboard(
     new_entries = generate_project_leaderboard(project, leaderboard)
 
     # assign ranks - also applies exclusions
+    bot_status = leaderboard.bot_status or project.bot_leaderboard_status
+    bots_get_ranks = bot_status in [
+        Project.BotLeaderboardStatus.BOTS_ONLY,
+        Project.BotLeaderboardStatus.INCLUDE,
+    ]
+    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
     new_entries = assign_ranks(
         new_entries,
         leaderboard,
-        include_bots=project.include_bots_in_leaderboard,
+        include_humans=humans_get_ranks,
+        include_bots=bots_get_ranks,
     )
 
     # assign prize percentages
-    new_entries = assign_prize_percentages(new_entries)
+    prize_pool = (
+        leaderboard.prize_pool
+        if leaderboard.prize_pool is not None
+        else project.prize_pool
+    )
+    minimum_prize_percent = (
+        float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
+    )
+    new_entries = assign_prize_percentages(new_entries, minimum_prize_percent)
 
     # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
@@ -668,14 +709,10 @@ def update_project_leaderboard(
             Project.ProjectTypes.SITE_MAIN,
             Project.ProjectTypes.TOURNAMENT,
         ]:
-            # assign medals
-            new_entries = assign_medals(new_entries)
+            if project.default_permission is not None:
+                # assign medals
+                new_entries = assign_medals(new_entries)
             # add prize if applicable
-            prize_pool = (
-                leaderboard.prize_pool
-                if leaderboard.prize_pool is not None
-                else project.prize_pool
-            )
             if prize_pool:
                 new_entries = assign_prizes(new_entries, prize_pool)
         # always set finalize
@@ -763,22 +800,71 @@ def update_leaderboard_from_csv_data(
 
 @dataclass
 class Contribution:
-    score: float | None
+    score: float
     coverage: float | None = None
     question: Question | None = None
     post: Post | None = None
     comment: Comment | None = None
 
 
-def get_contribution_question_writing(
-    user: User, leaderboard: Leaderboard, questions: Question.objects
-):
+def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
+    main_feed_posts = Post.objects.filter_for_main_feed().exclude(
+        curation_status__in=[
+            Post.CurationStatus.REJECTED,
+            Post.CurationStatus.DRAFT,
+            Post.CurationStatus.DELETED,
+        ]
+    )
+    comments = (
+        Comment.objects.filter(
+            on_post__in=main_feed_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
+        )
+        .annotate(
+            vote_score=SubqueryAggregate(
+                "comment_votes__direction",
+                filter=Q(
+                    created_at__gte=leaderboard.start_time,
+                    created_at__lte=leaderboard.end_time,
+                ),
+                aggregate=Sum,
+            )
+        )
+        .exclude(vote_score=0)
+        .distinct("pk")
+    )
+
+    # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
+    # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
+    # significantly slowing down serialization and data fetching.
+    # Instead, we perform a custom mapping fetch to optimize this process.
+    posts_map = {
+        p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
+    }
+    contributions = [
+        Contribution(
+            score=comment.vote_score,
+            post=posts_map[comment.on_post_id],
+            comment=comment,
+        )
+        for comment in comments
+    ]
+    contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+
+    h_index = decimal_h_index([c.score for c in contributions])
+    min_score = contributions[: max(int(h_index), 1)][-1].score if contributions else 0
+    return [c for c in contributions if c.score >= min_score]
+
+
+def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     forecaster_ids_for_post = defaultdict(set)
 
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
     questions = (
-        questions.prefetch_related("related_posts__post")
         # Fetch only authored posts
-        .filter(
+        questions.filter(
             Q(related_posts__post__author_id=user.id)
             | Q(related_posts__post__coauthors=user)
         )
@@ -827,57 +913,13 @@ def get_contributions(
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        main_feed_posts = Post.objects.filter_for_main_feed().exclude(
-            curation_status__in=[
-                Post.CurationStatus.REJECTED,
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.DELETED,
-            ]
-        )
-        comments = Comment.objects.filter(
-            on_post__in=main_feed_posts,
-            author=user,
-            created_at__lte=leaderboard.end_time,
-            comment_votes__isnull=False,
-        )
-
-        # Using Comment.prefetch_related("on_post") is not efficient in this scenario,
-        # as we may retrieve 10k+ rows, each requiring a JOIN on a large Post record,
-        # significantly slowing down serialization and data fetching.
-        # Instead, we perform a custom mapping fetch to optimize this process.
-        posts_map = {
-            p.id: p for p in Post.objects.filter(comments__in=comments).distinct("pk")
-        }
-
-        comments = comments.annotate(
-            vote_score=SubqueryAggregate(
-                "comment_votes__direction",
-                filter=Q(
-                    created_at__gte=leaderboard.start_time,
-                    created_at__lte=leaderboard.end_time,
-                ),
-                aggregate=Sum,
-            )
-        ).distinct("pk")
-
-        contributions: list[Contribution] = []
-        for comment in comments:
-            contribution = Contribution(
-                score=comment.vote_score or 0,
-                post=posts_map[comment.on_post_id],
-                comment=comment,
-            )
-
-            contributions.append(contribution)
-        h_index = decimal_h_index([c.score for c in contributions])
-        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        min_score = contributions[int(h_index)].score if contributions else 0
-        return [c for c in contributions if c.score >= min_score]
-
-    questions = leaderboard.get_questions()
+        return get_contribution_comment_insight(user, leaderboard)
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        return get_contribution_question_writing(user, leaderboard, questions)
+        return get_contribution_question_writing(user, leaderboard)
+
+    # Scoring Leaderboards
+    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
 
     calculated_scores = Score.objects.filter(
         question__in=questions,

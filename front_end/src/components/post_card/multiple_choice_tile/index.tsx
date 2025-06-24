@@ -6,11 +6,17 @@ import { VictoryThemeDefinition } from "victory";
 
 import FanChart from "@/components/charts/fan_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+} from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
-import { ForecastPayload } from "@/services/questions";
+import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, PostStatus, QuestionStatus } from "@/types/post";
@@ -21,6 +27,8 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
+import { CurrentUser } from "@/types/users";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -79,6 +87,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   forecastAvailability,
   canPredict,
 }) => {
+  const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
   // when resolution chip is shown we want to hide the chart and display the chip
@@ -95,6 +104,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
         question,
         groupQuestions: group?.questions,
         groupType,
+        user,
       }),
     [group?.questions, groupType, question]
   );
@@ -166,9 +176,14 @@ export const FanGraphMultipleChoiceTile: FC<
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
-
+  const { user } = useAuth();
   const { canReaffirm, forecast } = useMemo(
-    () => generateReaffirmData({ groupQuestions: group.questions, groupType }),
+    () =>
+      generateReaffirmData({
+        groupQuestions: group.questions,
+        groupType,
+        user,
+      }),
     [group.questions, groupType]
   );
 
@@ -211,10 +226,12 @@ function generateReaffirmData({
   question,
   groupQuestions,
   groupType,
+  user,
 }: {
   question?: QuestionWithMultipleChoiceForecasts;
   groupQuestions?: QuestionWithNumericForecasts[];
   groupType?: QuestionType;
+  user: CurrentUser | null;
 }): {
   canReaffirm: boolean;
   forecast: ForecastPayload[];
@@ -224,7 +241,8 @@ function generateReaffirmData({
   // multiple choice question
   if (question) {
     const latest = question.my_forecasts?.latest;
-    if (!latest || latest.end_time) {
+    const hasActivePrediction = latest && isForecastActive(latest);
+    if (!hasActivePrediction) {
       return fallback;
     }
 
@@ -239,12 +257,19 @@ function generateReaffirmData({
       {}
     );
 
+    const forecastExpiration = buildDefaultForecastExpiration(
+      question,
+      user?.prediction_expiration_percent ?? undefined
+    );
+
+    const forecastEndTime = forecastExpirationToDate(forecastExpiration);
     return {
       canReaffirm:
         !!latest.forecast_values.length && !!Object.keys(forecastValue).length,
       forecast: [
         {
           questionId: question.id,
+          forecastEndTime,
           forecastData: {
             continuousCdf: null,
             probabilityYes: null,
@@ -261,49 +286,57 @@ function generateReaffirmData({
     if (groupType === QuestionType.Binary) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
+        const hasActivePrediction = latest && isForecastActive(latest);
         let forecast: number | null = null;
-        if (latest && !latest.end_time) {
-          forecast = latest.forecast_values[1] ?? null;
+        if (hasActivePrediction) {
+          forecast = latest?.forecast_values[1] ?? null;
         }
 
         return {
-          id: q.id,
+          question: q,
           forecast,
-          status: q.status,
         };
       });
 
       const reaffirmForecasts = groupForecasts.filter(
-        (q) => q.forecast !== null && q.status === QuestionStatus.OPEN
+        (q) => q.forecast !== null && q.question.status === QuestionStatus.OPEN
       );
 
       return {
         canReaffirm: !!reaffirmForecasts.length,
-        forecast: reaffirmForecasts.map((q) => ({
-          questionId: q.id,
-          forecastData: {
-            probabilityYes: q.forecast,
-            probabilityYesPerCategory: null,
-            continuousCdf: null,
-          },
-        })),
+        forecast: reaffirmForecasts.map((q) => {
+          const forecastExpiration = buildDefaultForecastExpiration(
+            q.question,
+            user?.prediction_expiration_percent ?? undefined
+          );
+          return {
+            questionId: q.question.id,
+            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastData: {
+              probabilityYes: q.forecast,
+              probabilityYesPerCategory: null,
+              continuousCdf: null,
+            },
+          };
+        }),
       };
     }
 
     // continuous group
-    if (groupType === QuestionType.Date || groupType === QuestionType.Numeric) {
+    if (ContinuousQuestionTypes.some((type) => type === groupType)) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
         let forecastValues: number[] | undefined = undefined;
-        if (latest && !latest.end_time) {
+        const hasActivePrediction = latest && isForecastActive(latest);
+
+        if (hasActivePrediction) {
           forecastValues = latest.forecast_values;
         }
 
         return {
-          id: q.id,
+          question: q,
           forecastValues,
           distributionInput: latest?.distribution_input,
-          status: q.status,
         };
       });
 
@@ -311,14 +344,19 @@ function generateReaffirmData({
         (q) =>
           !isNil(q.forecastValues) &&
           !isNil(q.distributionInput) &&
-          q.status === QuestionStatus.OPEN
+          q.question.status === QuestionStatus.OPEN
       );
 
       return {
         canReaffirm: !!reaffirmForecasts.length,
         forecast: reaffirmForecasts.map((q) => {
+          const forecastExpiration = buildDefaultForecastExpiration(
+            q.question,
+            user?.prediction_expiration_percent ?? undefined
+          );
           return {
-            questionId: q.id,
+            questionId: q.question.id,
+            forecastEndTime: forecastExpirationToDate(forecastExpiration),
             forecastData: {
               // okay to ignore, we check for null when calculating reaffirmForecasts
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

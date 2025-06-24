@@ -44,7 +44,7 @@ class PostAdmin(CustomTranslationAdmin):
         "coauthors",
     ]
     search_fields = ["id", "title_original"]
-    readonly_fields = ["notebook", "hotness_explanation"]
+    readonly_fields = ["notebook", "hotness_explanation", "view_questions"]
     actions = [
         "export_selected_posts_data",
         "export_selected_posts_data_anonymized",
@@ -71,6 +71,13 @@ class PostAdmin(CustomTranslationAdmin):
         return mark_safe(full_html)
 
     hotness_explanation.short_description = "Hotness Explanation"
+
+    def view_questions(self, obj):
+        url = (
+            reverse("admin:questions_question_changelist")
+            + f"?related_posts__post={obj.id}"
+        )
+        return format_html('<a href="{}">View Questions</a>', url)
 
     def other_project_count(self, obj):
         return obj.projects.count()
@@ -119,12 +126,19 @@ class PostAdmin(CustomTranslationAdmin):
             for question in post.get_questions():
                 build_question_forecasts(question)
 
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        for field in ["view_questions"]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
+        return fields
+
 
 @admin.register(Notebook)
 class NotebookAdmin(CustomTranslationAdmin):
     list_display = [
         "title",
-        "type",
         "author",
         "curation_status",
         "published_at",

@@ -3,12 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
-import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
-import PostsApi from "@/services/posts";
-import ProjectsApi from "@/services/projects";
-import { PostWithForecasts, NotebookPost } from "@/types/post";
-import { encodeQueryParams } from "@/utils/navigation";
+import serverMiscApi from "@/services/api/misc/misc.server";
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import { NotebookPost, PostWithForecasts } from "@/types/post";
 import { getPublicSettings } from "@/utils/public_settings.server";
+import { convertSidebarItem } from "@/utils/sidebar";
 
 import EmailConfirmation from "./components/email_confirmation";
 import EngageBlock from "./components/engage_block";
@@ -31,8 +30,11 @@ export default async function Home() {
   }
 
   const t = await getTranslations();
-  const topics = await ProjectsApi.getTopics();
-  const hotTopics = topics.filter((t) => t.section === "hot_topics");
+  const sidebarItems = await serverMiscApi.getSidebarItems();
+
+  const hotTopics = sidebarItems
+    .filter(({ section }) => section === "hot_topics")
+    .map((item) => convertSidebarItem(item));
 
   const FOCUS_AREAS: FocusAreaItem[] = [
     {
@@ -40,7 +42,7 @@ export default async function Home() {
       title: t("biosecurity"),
       Icon: FocusAreaBiosecurityIcon,
       text: t("biosecurityDescription"),
-      href: "/questions/?has_group=false&topic=biosecurity&order_by=-activity",
+      href: "/questions/?topic=biosecurity",
     },
     {
       id: "ai",
@@ -54,18 +56,18 @@ export default async function Home() {
       title: t("nuclearSecurity"),
       Icon: FocusAreaNuclearIcon,
       text: t("nuclearSecurityDescription"),
-      href: "/questions/?has_group=false&topic=nuclear&order_by=-activity",
+      href: "/questions/?topic=nuclear",
     },
     {
       id: "climate",
       title: t("climateChange"),
       Icon: FocusAreaClimateIcon,
       text: t("climateChangeDescription"),
-      href: "/questions/?has_group=false&topic=climate&order_by=-activity",
+      href: "/questions/?topic=climate",
     },
   ];
 
-  const homepagePosts = await PostsApi.getPostsForHomepage();
+  const homepagePosts = await ServerPostsApi.getPostsForHomepage();
   const postQuestions = homepagePosts.filter(
     (post) => !post.notebook
   ) as unknown as PostWithForecasts[];
@@ -96,12 +98,12 @@ export default async function Home() {
               <HomeSearch />
             </div>
             <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
-              {hotTopics.map((topic) => (
+              {hotTopics.map((item, idx) => (
                 <TopicLink
-                  key={topic.id}
-                  text={topic.name}
-                  emoji={topic.emoji}
-                  href={`/questions${encodeQueryParams({ [POST_TOPIC_FILTER]: topic.slug })}`}
+                  key={`topic-${idx}`}
+                  text={item.name}
+                  emoji={item.emoji}
+                  href={item.url}
                 />
               ))}
             </div>

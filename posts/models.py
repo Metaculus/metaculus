@@ -15,8 +15,10 @@ from django.db.models import (
     FilteredRelation,
     Exists,
     Value,
+    Func,
+    FloatField,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
@@ -29,6 +31,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
+from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -107,11 +110,15 @@ class PostQuerySet(models.QuerySet):
                     [
                         Prefetch(
                             f"{rel}__scores",
-                            Score.objects.filter(aggregation_method__isnull=False),
+                            Score.objects.filter(
+                                aggregation_method=AggregationMethod.RECENCY_WEIGHTED
+                            ),
                         ),
                         Prefetch(
                             f"{rel}__archived_scores",
-                            Score.objects.filter(aggregation_method__isnull=False),
+                            Score.objects.filter(
+                                aggregation_method=AggregationMethod.RECENCY_WEIGHTED
+                            ),
                         ),
                     ]
                     for rel in question_relations
@@ -160,7 +167,9 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             has_active_forecast=Exists(
                 Forecast.objects.filter(
-                    post_id=OuterRef("pk"), author_id=author_id, end_time__isnull=True
+                    Q(end_time__isnull=True) | Q(end_time__gt=timezone.now()),
+                    post_id=OuterRef("pk"),
+                    author_id=author_id,
                 )
             )
         )
@@ -221,6 +230,36 @@ class PostQuerySet(models.QuerySet):
     def annotate_divergence(self, user_id: int):
         return self.filter(snapshots__user_id=user_id).annotate(
             divergence=F("snapshots__divergence")
+        )
+
+    def annotate_news_hotness(self):
+        # prepare a subquery for the single nearest PostArticle
+        from misc.models import PostArticle
+
+        nearest = PostArticle.objects.filter(post_id=OuterRef("pk")).order_by(
+            "distance"
+        )
+
+        return self.annotate(
+            news_distance=Coalesce(
+                Subquery(nearest.values("distance")[:1]), Value(1.0)
+            ),
+            news_created_at=Subquery(nearest.values("created_at")[:1]),
+        ).annotate(
+            news_hotness=Coalesce(
+                20
+                * Greatest(Value(0.5) - F("news_distance"), Value(0.0))
+                / Func(
+                    F("news_created_at"),
+                    function="POWER",
+                    template=(
+                        "POWER(2, ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float/7))"
+                    ),
+                    output_field=FloatField(),
+                ),
+                Value(0.0),
+                output_field=FloatField(),
+            )
         )
 
     #
@@ -425,18 +464,11 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
 
 
 class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
-    class NotebookType(models.TextChoices):
-        DISCUSSION = "discussion"
-        NEWS = "news"
-        PUBLIC_FIGURE = "public_figure"
-
     markdown = models.TextField()
-    type = models.CharField(max_length=100, choices=NotebookType)
-    news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
     def __str__(self):
-        return f"{self.type} Notebook for {self.post} by {self.post.author}"
+        return f"Notebook for {self.post} by {self.post.author}"
 
 
 class Post(TimeStampedModel, TranslatedModel):  # type: ignore
@@ -792,6 +824,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def is_private(self):
         return self.default_project.default_permission is None
+
+    def get_related_projects(self) -> list[Project]:
+        return [self.default_project] + list(self.projects.all())
 
 
 class PostSubscription(TimeStampedModel):

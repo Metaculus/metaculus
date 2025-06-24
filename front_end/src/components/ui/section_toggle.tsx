@@ -11,7 +11,12 @@ import { FC, PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
 
-export type SectionVariant = "primary" | "light" | "gold" | "transparent";
+export type SectionVariant =
+  | "primary"
+  | "light"
+  | "gold"
+  | "transparent"
+  | "dark";
 
 type Props = {
   title?: string;
@@ -20,7 +25,10 @@ type Props = {
   wrapperClassName?: string;
   variant?: SectionVariant;
   id?: string;
-  detailElement?: React.ReactNode | null;
+  detailElement?:
+    | ((isOpen: boolean) => React.ReactNode)
+    | React.ReactNode
+    | null;
 };
 
 const SectionToggle: FC<PropsWithChildren<Props>> = ({
@@ -43,7 +51,9 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
       {({ open }) => (
         <div
           className={cn("rounded", {
-            "bg-blue-200 dark:bg-blue-200-dark": variant === "primary",
+            "bg-blue-200 dark:bg-blue-200-dark": ["primary", "dark"].includes(
+              variant
+            ),
             "bg-gray-0 dark:bg-gray-0-dark": variant === "light",
             "bg-gold-200 dark:bg-gold-200-dark": variant === "gold",
             "bg-transparent dark:bg-transparent": variant === "transparent",
@@ -77,6 +87,13 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
                     "text-gray-800 dark:text-gray-800-dark": open,
                     "text-gray-600 dark:text-gray-600-dark": !open,
                   }),
+
+                  // Dark variant
+                  ...(variant === "dark" && {
+                    "hover:text-blue-900 hover:dark:text-blue-900-dark": true,
+                    "text-blue-900 dark:text-blue-900-dark": open,
+                    "text-blue-800 dark:text-blue-800-dark": !open,
+                  }),
                 }
               )}
             >
@@ -90,12 +107,15 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
                       "primary",
                       "light",
                     ].includes(variant),
+                    "text-blue-900 dark:text-blue-900-dark": variant === "dark",
                   }
                 )}
               />
               <span>{title}</span>
 
-              {detailElement}
+              {typeof detailElement === "function"
+                ? detailElement(open)
+                : detailElement}
             </div>
           </DisclosureButton>
           <DisclosurePanel

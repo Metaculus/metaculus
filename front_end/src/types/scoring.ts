@@ -12,6 +12,7 @@ export type LeaderboardType =
   | "peer_global_legacy"
   | "peer_tournament"
   | "spot_peer_tournament"
+  | "spot_baseline_tournament"
   | "baseline_global"
   | "comment_insight"
   | "question_writing"

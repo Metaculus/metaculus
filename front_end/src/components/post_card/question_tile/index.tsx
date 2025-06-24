@@ -13,6 +13,7 @@ import {
   QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
@@ -66,9 +67,10 @@ const QuestionTile: FC<Props> = ({
     : TimelineChartZoomOption.TwoMonths;
 
   switch (question.type) {
-    case QuestionType.Numeric:
-    case QuestionType.Date:
     case QuestionType.Binary:
+    case QuestionType.Numeric:
+    case QuestionType.Discrete:
+    case QuestionType.Date:
       return (
         <QuestionContinuousTile
           question={question}
@@ -145,7 +147,7 @@ const generateUserForecastsForMultipleQuestion = (
         timestamps.push(forecast.start_time);
       }
 
-      if (forecast.end_time) {
+      if (forecast.end_time && !isForecastActive(forecast)) {
         // this forecast ends, add it to timestamps and a null value
         timestamps.push(forecast.end_time);
         values.push(null);

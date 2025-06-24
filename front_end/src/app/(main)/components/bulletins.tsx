@@ -1,11 +1,12 @@
 "use client";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { FC, useCallback, useEffect, useState } from "react";
 
+import ClientMiscApi from "@/services/api/misc/misc.client";
 import { logError } from "@/utils/core/errors";
 
 import Bulletin from "./bulletin";
-import { getBulletins } from "../actions";
 
 const Bulletins: FC = () => {
   const [bulletins, setBulletins] = useState<
@@ -20,8 +21,8 @@ const Bulletins: FC = () => {
 
   const fetchBulletins = useCallback(async () => {
     try {
-      const res = await getBulletins();
-      setBulletins(res);
+      const bulletins = await ClientMiscApi.getBulletins();
+      setBulletins(bulletins);
     } catch (error) {
       logError(error);
     }
@@ -35,14 +36,12 @@ const Bulletins: FC = () => {
     <div className="mt-12 flex w-full flex-col items-center justify-center bg-transparent">
       {!isHomePage &&
         bulletins.map((bulletin) => (
-          <Bulletin
-            key={bulletin.id}
-            text={bulletin.text}
-            id={bulletin.id}
-          ></Bulletin>
+          <Bulletin key={bulletin.id} text={bulletin.text} id={bulletin.id} />
         ))}
     </div>
   );
 };
 
-export default Bulletins;
+export default dynamic(() => Promise.resolve(Bulletins), {
+  ssr: false,
+});

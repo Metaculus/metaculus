@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet
+from django.db.models import Count, QuerySet, Q
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
@@ -218,13 +218,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.open_upper_bound = False
             self.open_lower_bound = False
             self.unit = ""
+            self.inbound_outcome_count = None
         if self.type not in [
             self.QuestionType.DATE,
             self.QuestionType.NUMERIC,
         ]:
             self.zero_point = None
-        if self.type != self.QuestionType.DISCRETE:
-            self.inbound_outcome_count = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
 
@@ -369,8 +368,7 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
     subquestions_order = models.CharField(
         max_length=12,
         choices=GroupOfQuestionsSubquestionsOrder.choices,
-        null=True,
-        default=None,
+        default=GroupOfQuestionsSubquestionsOrder.CP_DESC,
     )
 
     def __str__(self):
@@ -380,6 +378,39 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
 class ForecastNoSpamManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(author__is_spam=False)
+
+    def active(self):
+        """
+        Returns active forecasts.
+
+        An active forecast is one that:
+        - start_time is in the past
+        - end_time is either None, or in the future
+        - their question is still open (question.actual_close_time is None and
+          question.scheduled_close_time is in the future and question.open_time is in the past)
+        """
+        now = timezone.now()
+
+        # Forecast timing conditions
+        forecast_started = Q(start_time__lte=now)
+        forecast_not_ended = Q(end_time__isnull=True) | Q(end_time__gt=now)
+
+        # Question status conditions
+        question_not_closed = Q(question__actual_close_time__isnull=True)
+        question_still_accepting_forecasts = Q(question__scheduled_close_time__gt=now)
+        question_opened = Q(question__open_time__lte=now)
+
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                forecast_started
+                & forecast_not_ended
+                & question_not_closed
+                & question_still_accepting_forecasts
+                & question_opened
+            )
+        )
 
 
 class Forecast(models.Model):
@@ -393,12 +424,14 @@ class Forecast(models.Model):
 
     # times
     start_time = models.DateTimeField(
-        help_text="Begining time when this prediction is active", db_index=True
+        help_text="Begining time when this prediction is active",
+        db_index=True,
     )
     end_time = models.DateTimeField(
         null=True,
         help_text="Time at which this prediction is no longer active",
         db_index=True,
+        blank=True,
     )
 
     # CDF of a continuous forecast
@@ -407,11 +440,19 @@ class Forecast(models.Model):
         models.FloatField(),
         null=True,
         max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1,
+        blank=True,
     )
     # binary prediction
-    probability_yes = models.FloatField(null=True)
+    probability_yes = models.FloatField(
+        null=True,
+        blank=True,
+    )
     # multiple choice prediction
-    probability_yes_per_category = ArrayField(models.FloatField(), null=True)
+    probability_yes_per_category = ArrayField(
+        models.FloatField(),
+        null=True,
+        blank=True,
+    )
 
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(
@@ -440,7 +481,10 @@ class Forecast(models.Model):
         default="",
     )
 
-    distribution_input = models.JSONField(null=True)
+    distribution_input = models.JSONField(
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         indexes = [
@@ -489,6 +533,11 @@ class Forecast(models.Model):
 
 class AggregateForecast(models.Model):
     id: int
+    question_id: int
+
+    # Annotations
+    question_type: str
+
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_forecasts"
     )
@@ -522,15 +571,19 @@ class AggregateForecast(models.Model):
             pvs = str(pv)
         return (
             f"<Forecast at {str(self.start_time).split(".")[0]} "
-            f"by {self.method}: {pvs}>"
+            f"by {self.method} on {self.question_id}: {pvs}>"
         )
 
     def get_cdf(self) -> list[float] | None:
-        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
+        # grab annotation if it exists for efficiency
+        question_type = getattr(self, "question_type", self.question.type)
+        if question_type in QUESTION_CONTINUOUS_TYPES:
             return self.forecast_values
 
     def get_pmf(self) -> list[float]:
-        if len(self.forecast_values) == DEFAULT_INBOUND_OUTCOME_COUNT + 1:
+        # grab annotation if it exists for efficiency
+        question_type = getattr(self, "question_type", self.question.type)
+        if question_type in QUESTION_CONTINUOUS_TYPES:
             cdf = self.forecast_values
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
@@ -558,3 +611,31 @@ class QuestionPost(models.Model):
     class Meta:
         managed = False
         db_table = "questions_question_post"
+
+
+class UserForecastNotification(models.Model):
+    id: int
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    question = models.ForeignKey(
+        Question,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    trigger_time = models.DateTimeField(null=False, db_index=True)
+    email_sent = models.BooleanField(default=False, db_index=True)
+    forecast = models.ForeignKey(
+        Forecast,
+        models.CASCADE,
+        related_name="notifications",
+        null=False,
+    )
+
+    class Meta:
+        unique_together = ("user", "question")

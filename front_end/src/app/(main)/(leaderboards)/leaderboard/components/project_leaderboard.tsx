@@ -2,11 +2,10 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import SectionToggle from "@/components/ui/section_toggle";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { LeaderboardType } from "@/types/scoring";
 
-import ProjectLeaderboardTable from "./project_leaderboard_table";
+import ProjectLeaderboardClient from "./project_leaderboard_client";
 
 type Props = {
   projectId: number;
@@ -21,7 +20,7 @@ const ProjectLeaderboard: FC<Props> = async ({
   isQuestionSeries,
   userId,
 }) => {
-  const leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
+  const leaderboardDetails = await ServerLeaderboardApi.getProjectLeaderboard(
     projectId,
     leaderboardType
   );
@@ -36,26 +35,13 @@ const ProjectLeaderboard: FC<Props> = async ({
     ? t("openLeaderboard")
     : t("leaderboard");
 
-  const detailText = !!leaderboardDetails.prize_pool
-    ? t("prizePool") + ": $" + leaderboardDetails.prize_pool.toLocaleString()
-    : null;
-
-  const detailElement = (
-    <span className="ml-auto font-medium text-gray-800 dark:text-gray-800-dark">
-      {detailText}
-    </span>
-  );
   return (
-    <SectionToggle
-      title={leaderboardTitle}
-      variant={isQuestionSeries ? "primary" : "gold"}
-      detailElement={detailElement}
-    >
-      <ProjectLeaderboardTable
-        leaderboardDetails={leaderboardDetails}
-        userId={userId}
-      />
-    </SectionToggle>
+    <ProjectLeaderboardClient
+      leaderboardDetails={leaderboardDetails}
+      leaderboardTitle={leaderboardTitle}
+      isQuestionSeries={isQuestionSeries}
+      userId={userId}
+    />
   );
 };
 

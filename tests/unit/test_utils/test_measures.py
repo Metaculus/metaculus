@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from questions.models import Question, AggregateForecast
+from questions.types import Direction
 from tests.unit.test_questions.factories import create_question
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -9,7 +10,6 @@ from utils.the_math.measures import (
     prediction_difference_for_sorting,
     prediction_difference_for_display,
     decimal_h_index,
-    Direction,
     get_difference_display,
 )
 
@@ -142,7 +142,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             [0.01, 0.5, 0.99],
             [0.01, 0.5, 0.99],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -153,7 +153,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             [0.01, 0.02, 0.03],
             [0.97, 0.98, 0.99],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -164,7 +164,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             [0.01, 0.02, 0.03],
             [0.97, 0.98, 0.99],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=99,
                 range_max=100,
                 zero_point=None,
@@ -175,7 +175,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             [0.01, 0.02, 0.03],
             [0.97, 0.98, 0.99],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=100,
                 zero_point=None,
@@ -186,7 +186,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             [0.01, 0.02, 0.98, 0.99],
             [0.48, 0.49, 0.51, 0.52],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -197,7 +197,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             [0.0, 0.48, 0.49, 0.51, 0.52, 1.0],
             [0.0, 0.01, 0.49, 0.51, 0.99, 1.0],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -274,7 +274,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             [0.0, 0.5, 1.0],
             [0.0, 0.5, 1.0],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -287,7 +287,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             [0.0, 0.0, 0.0],
             [1.0, 1.0, 1.0],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -300,7 +300,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             [0.0, 0.0, 0.0],
             [1.0, 1.0, 1.0],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=99,
                 range_max=100,
                 zero_point=None,
@@ -313,7 +313,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             [0.0, 0.0, 0.0],
             [1.0, 1.0, 1.0],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=100,
                 zero_point=None,
@@ -326,7 +326,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             [0.0, 0.0, 1.0, 1.0],
             [0.5, 0.5, 0.5, 0.5],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,
@@ -339,7 +339,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             [0.0, 0.5, 0.5, 0.5, 0.5, 1.0],
             [0.0, 0.0, 0.5, 0.5, 1.0, 1.0],
             Question(
-                type="numeric",
+                type=Question.QuestionType.NUMERIC,
                 range_min=0,
                 range_max=1,
                 zero_point=None,

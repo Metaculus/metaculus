@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
@@ -5,7 +6,7 @@ import { FC } from "react";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import InfoToggle from "@/components/ui/info_toggle";
 import SectionToggle from "@/components/ui/section_toggle";
-import LeaderboardApi from "@/services/leaderboard";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import { Project } from "@/types/projects";
 
 type Props = {
@@ -15,7 +16,7 @@ type Props = {
 
 const ProjectContributions: FC<Props> = async ({ project, userId }) => {
   const t = await getTranslations();
-  const contributionsDetails = await LeaderboardApi.getContributions({
+  const contributionsDetails = await ServerLeaderboardApi.getContributions({
     type: "project",
     for_user: userId,
     project: project.id,
@@ -86,7 +87,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   )}
                   {hasQuestionWeights && (
                     <th className="px-4 py-2.5 text-right text-sm font-bold">
-                      {contribution.question_weight
+                      {!isNil(contribution.question_weight)
                         ? `${contribution.question_weight.toFixed(1)}`
                         : "1.0"}
                     </th>
@@ -159,6 +160,16 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                         ),
                       })}
                     </dd>
+                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
+                    <dd>
+                      {t.rich("spotBaselineScoreInfo", {
+                        link: (chunks) => (
+                          <Link href={"/help/scores-faq/#spot-score"}>
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </dd>
                   ) : (
                     <dd>
                       {t.rich("relativeScoreInfo", {
@@ -188,6 +199,16 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   ) : leaderboard.score_type === "spot_peer_tournament" ? (
                     <dd>
                       {t.rich("totalSpotPeerScoreInfo", {
+                        link: (chunks) => (
+                          <Link href={"/help/scores-faq/#spot-score"}>
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </dd>
+                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
+                    <dd>
+                      {t.rich("totalSpotBaselineScoreInfo", {
                         link: (chunks) => (
                           <Link href={"/help/scores-faq/#spot-score"}>
                             {chunks}
@@ -231,6 +252,8 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                     <dd>{t("peerTakeInfo")}</dd>
                   ) : leaderboard.score_type === "spot_peer_tournament" ? (
                     <dd>{t("spotPeerTakeInfo")}</dd>
+                  ) : leaderboard.score_type === "spot_baseline_tournament" ? (
+                    <dd>{t("spotBaselineTakeInfo")}</dd>
                   ) : (
                     <dd>{t("relativeTakeInfo")}</dd>
                   )}
