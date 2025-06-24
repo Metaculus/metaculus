@@ -31,11 +31,13 @@ const getDisclaimerCopy = (
           {project.name}
         </Button>
       ),
-      learnMore: (child) => (
-        <Button href="/faq/" variant="link" className="text-xs">
-          {child}
-        </Button>
-      ),
+      learnMore: () => "",
+      // TODO: uncomment when we have a FAQ section for that
+      // learnMore: (child) => (
+      //   <Button href="/faq/" variant="link" className="text-xs">
+      //     {child}
+      //   </Button>
+      // ),
     });
   }
   if (project.type === TournamentType.SiteMain) {
