@@ -190,7 +190,7 @@ def check_and_schedule_forecast_widrawal_due_notifications():
                     "title": post.title,
                     "url": build_post_url(post.id),
                     "expiration_date": (
-                        notification.forecast.end_time.strftime("%B %d, %Y at %I:%M")
+                        notification.forecast.end_time.strftime("%B %d, %Y at %H:%M %Z")
                         if notification.forecast.end_time
                         else None
                     ),
