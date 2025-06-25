@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import django
-from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
@@ -14,7 +13,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.models import Post
 from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
@@ -23,6 +21,7 @@ from .serializers import (
     SidebarItemSerializer,
 )
 from .services.itn import remove_article
+from .utils import get_whitelist_status
 
 
 @api_view(["POST"])
@@ -165,25 +164,11 @@ def get_whitelist_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
-    if not project_id and not post_id:
-        # if no project or post is specified, grab universal whitelistings
-        whitelistings = user.whitelists.filter(project__isnull=True, post__isnull=True)
-    elif post_id:
-        post = get_object_or_404(Post, pk=post_id)
-        project_ids = [post.default_project_id] + [p.id for p in post.projects.all()]
-        whitelistings = user.whitelists.filter(
-            Q(project__isnull=True, post__isnull=True)
-            | Q(project__id__in=project_ids)
-            | Q(post__id=post_id)
-        )
-    else:  # project_id exists
-        get_object_or_404(Post, pk=project_id)
-        whitelistings = user.whitelists.filter(
-            Q(project__isnull=True, post__isnull=True) | Q(project_id=project_id)
-        )
 
-    is_whitelisted = whitelistings.exists()
-    view_deanonymized_data = whitelistings.filter(view_deanonymized_data=True).exists()
+    is_whitelisted, view_deanonymized_data = get_whitelist_status(
+        user, post_id, project_id
+    )
+
     return Response(
         {
             "is_whitelisted": is_whitelisted,
