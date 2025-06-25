@@ -18,6 +18,7 @@ from projects.serializers.common import (
     TournamentShortSerializer,
     NewsCategorySerialize,
     serialize_project_index_weights,
+    LeaderboardTagSerializer,
 )
 from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
@@ -89,6 +90,14 @@ def categories_list_api_view(request: Request):
     ]
 
     return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def leaderboard_tags_list_api_view(request: Request):
+    qs = get_projects_qs().filter_leaderboard_tags()
+
+    return Response(LeaderboardTagSerializer(qs, many=True).data)
 
 
 @api_view(["GET"])

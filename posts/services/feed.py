@@ -87,7 +87,7 @@ def get_posts_feed(
         qs = qs.filter_projects(community)
 
     if leaderboard_tags:
-        qs = qs.filter_leaderboard_tags(leaderboard_tags)
+        qs = qs.filter_projects(leaderboard_tags)
 
     if categories:
         qs = qs.filter_projects(categories)
