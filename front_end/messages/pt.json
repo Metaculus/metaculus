@@ -1395,5 +1395,11 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# previsão} other {# previsões}} serão retiradas em breve",
   "predictionsWithdrawnText": "{count, plural, =1 {# previsão foi} other {# previsões foram}} retiradas",
   "withdrawAfterPercentSetting1": "Retirar após",
+  "customize": "Personalizar",
+  "CPMovementChangeLabel": "{value} este {period}",
+  "beforeAutoWithdrawal": "Antes que minhas previsões sejam retiradas automaticamente",
+  "pageNotFound": "Página não encontrada",
+  "thinkSupposedPageNote": "Se você acha que deveria haver uma página aqui, <link>envie uma nota para nós</link> e tentaremos corrigir.",
+  "returnToHomePage": "Voltar para a página inicial",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

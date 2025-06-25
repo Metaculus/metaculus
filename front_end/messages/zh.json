@@ -1400,5 +1400,10 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# 个预测} other {# 个预测}} 即将被撤回",
   "predictionsWithdrawnText": "{count, plural, =1 {# 个预测已} other {# 个预测已}} 被撤回",
   "withdrawAfterPercentSetting1": "在以下情况后撤回",
+  "customize": "自定义",
+  "beforeAutoWithdrawal": "在我的预测被自动撤回之前",
+  "pageNotFound": "页面未找到",
+  "thinkSupposedPageNote": "如果您认为此处应该有一个页面，<link>请发送便笺给我们</link>，我们会努力修复。",
+  "returnToHomePage": "返回主页",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
