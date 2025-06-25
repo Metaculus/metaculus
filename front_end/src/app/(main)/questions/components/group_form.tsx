@@ -36,7 +36,6 @@ import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
-  Category,
   Post,
   PostGroupOfQuestionsSubquestionsOrder,
   PostStatus,
@@ -46,6 +45,7 @@ import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   DefaultInboundOutcomeCount,

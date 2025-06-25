@@ -27,7 +27,6 @@
   "copyLink": "複製鏈接",
   "continueButton": "繼續",
   "submit": "提交",
-  "submitTagsFeedback": "提交標籤回饋",
   "discardChangesButton": "放棄更改",
   "opens": "開啟",
   "opened": "已開啟",
@@ -341,7 +340,6 @@
   "questionStatus": "問題狀態",
   "similarQuestions": "類似的問題",
   "category": "分類",
-  "tags": "標籤",
   "tagFilter": "標籤：{tag}",
   "questionAuthor": "問題作者",
   "questionAuthorFilter": "作者：{author}",
@@ -374,6 +372,7 @@
   "topics": "主題",
   "categories": "分類",
   "seeAllCategories": "查看所有分類",
+  "allCategories": "所有类别",
   "toggleAllTopics": "切換所有主題",
   "Filter": "篩選",
   "Done": "完成",
@@ -1405,5 +1404,6 @@
   "pageNotFound": "页面未找到",
   "thinkSupposedPageNote": "如果您认为此处应该有一个页面，<link>请发送便笺给我们</link>，我们会努力修复。",
   "returnToHomePage": "返回主页",
+  "LeaderboardTagDisclaimer": "查看所有计入此排行榜的问题 <link>在这里</link>",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

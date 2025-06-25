@@ -377,7 +377,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         # Force visibility states for such project types
         if obj.type in (
             Project.ProjectTypes.CATEGORY,
-            Project.ProjectTypes.TAG,
+            Project.ProjectTypes.LEADERBOARD_TAG,
             Project.ProjectTypes.TOPIC,
             Project.ProjectTypes.PERSONAL_PROJECT,
         ):

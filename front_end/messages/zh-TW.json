@@ -42,7 +42,6 @@
   "copyId": "複製 ID",
   "continueButton": "繼續",
   "submit": "提交",
-  "submitTagsFeedback": "提交標籤反饋",
   "discardChangesButton": "放棄變更",
   "discardAllChangesButton": "放棄所有變更",
   "opens": "開放",
@@ -390,7 +389,6 @@
   "questionStatus": "問題狀態",
   "similarQuestions": "類似問題",
   "category": "類別",
-  "tags": "標籤",
   "tagFilter": "標籤：{tag}",
   "questionAuthor": "問題作者",
   "questionAuthorFilter": "作者：{author}",
@@ -430,6 +428,7 @@
   "categories": "類別",
   "Categories": "類別",
   "seeAllCategories": "查看所有類別",
+  "allCategories": "所有類別",
   "toggleAllTopics": "切換所有話題",
   "Filter": "篩選",
   "done": "完成",
@@ -1400,5 +1399,6 @@
   "pageNotFound": "找不到網頁",
   "thinkSupposedPageNote": "如果您認為這裡應該有一個頁面，<link>發送消息給我們</link>，我們將嘗試修復。",
   "returnToHomePage": "返回首頁",
+  "LeaderboardTagDisclaimer": "查看此排行榜中計算在內的所有問題，請點擊<link>這裡</link>",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

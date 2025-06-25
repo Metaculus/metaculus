@@ -40,7 +40,6 @@ const subjects = [
   "Feature request",
   "Press request",
   "Other",
-  "Tag Feedback",
 ];
 
 const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {

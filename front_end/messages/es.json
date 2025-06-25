@@ -29,7 +29,6 @@
   "copyLink": "Copiar Enlace",
   "continueButton": "Continuar",
   "submit": "Enviar",
-  "submitTagsFeedback": "Enviar Comentarios de Etiquetas",
   "discardChangesButton": "Descartar Cambios",
   "opens": "Abre",
   "opened": "Abierto",
@@ -344,7 +343,6 @@
   "questionStatus": "Estado de la Pregunta",
   "similarQuestions": "Preguntas Similares",
   "category": "Categoría",
-  "tags": "Etiquetas",
   "tagFilter": "Etiqueta: {tag}",
   "questionAuthor": "Autor de la Pregunta",
   "questionAuthorFilter": "Autor: {author}",
@@ -377,6 +375,7 @@
   "topics": "Temas",
   "categories": "categorías",
   "seeAllCategories": "Ver todas las categorías",
+  "allCategories": "Todas las categorías",
   "toggleAllTopics": "Alternar todos los temas",
   "Filter": "Filtrar",
   "Done": "Hecho",
@@ -1403,5 +1402,6 @@
   "pageNotFound": "Página no encontrada",
   "thinkSupposedPageNote": "Si crees que debería haber una página aquí, <link>envíanos una nota</link> e intentaremos arreglarlo.",
   "returnToHomePage": "Volver a la página de inicio",
+  "LeaderboardTagDisclaimer": "Vea todas las preguntas que cuentan para esta clasificación <link>aquí</link>",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
