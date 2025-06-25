@@ -1396,5 +1396,8 @@
   "predictionsWithdrawnText": "{count, plural, =1 {# prediction has} other {# predictions have}} been withdrawn",
   "withdrawAfterPercentSetting1": "Withdraw after",
   "withdrawAfterPercentSetting2": "of the total question lifetime",
-  "beforeAutoWithdrawal": "Before my predictions are auto-withdrawn"
+  "beforeAutoWithdrawal": "Before my predictions are auto-withdrawn",
+  "pageNotFound": "Page not found",
+  "thinkSupposedPageNote": "If you think there's supposed to be a page here, <link>send a note to us</link> and we'll try to get it fixed.",
+  "returnToHomePage": "Return to Home page"
 }

@@ -1396,6 +1396,9 @@
   "withdrawAfterPercentSetting1": "在",
   "customize": "自訂",
   "beforeAutoWithdrawal": "在我的預測自動撤回之前",
+  "pageNotFound": "找不到網頁",
+  "thinkSupposedPageNote": "如果您認為這裡應該有一個頁面，<link>發送消息給我們</link>，我們將嘗試修復。",
+  "returnToHomePage": "返回首頁",
   "LeaderboardTagDisclaimer": "查看此排行榜中計算在內的所有問題，請點擊<link>這裡</link>",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

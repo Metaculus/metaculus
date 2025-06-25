@@ -619,6 +619,10 @@ components:
           type: number
           format: float
           description: Probability for a binary outcome
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     ContinuousForecast:
       type: object
@@ -683,6 +687,10 @@ components:
                   weight:
                     type: number
                     format: float
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     MultipleChoiceForecast:
       type: object
@@ -698,6 +706,10 @@ components:
             type: number
             format: float
           description: Probability distribution for multiple categories. Sum of values must equal 1.0.
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     ConditionalForecast:
       type: array
@@ -713,6 +725,10 @@ components:
           probability_yes:
             type: number
             format: float
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     GroupForecast:
       type: array

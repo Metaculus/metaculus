@@ -1397,8 +1397,11 @@
   "predictionsWithdrawnText": "{count, plural, =1 {# predicción ha sido} other {# predicciones han sido}} retiradas",
   "withdrawAfterPercentSetting1": "Retirar después de",
   "customize": "Personalizar",
-  "CPMovementChangeLabel": "{value} este {periodo}",
+  "CPMovementChangeLabel": "{value} este {period}",
   "beforeAutoWithdrawal": "Antes de que mis predicciones se retiren automáticamente",
+  "pageNotFound": "Página no encontrada",
+  "thinkSupposedPageNote": "Si crees que debería haber una página aquí, <link>envíanos una nota</link> e intentaremos arreglarlo.",
+  "returnToHomePage": "Volver a la página de inicio",
   "LeaderboardTagDisclaimer": "Vea todas las preguntas que cuentan para esta clasificación <link>aquí</link>",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

@@ -1397,8 +1397,11 @@
   "predictionsWithdrawnText": "{count, plural, =1 {# předpověď byla} other {# předpovědí bylo}} staženo",
   "withdrawAfterPercentSetting1": "Stažení po",
   "customize": "Přizpůsobit",
-  "CPMovementChangeLabel": "{value} tento {period}",
-  "beforeAutoWithdrawal": "Před tím, než budou mé předpovědi automaticky vybrány",
+  "CPMovementChangeLabel": "{value} toto {period}",
+  "beforeAutoWithdrawal": "Před automatickým stažením mých předpovědí",
+  "pageNotFound": "Stránka nebyla nalezena",
+  "thinkSupposedPageNote": "Pokud si myslíte, že by zde měla být stránka, <link>pošlete nám poznámku</link> a pokusíme se to opravit.",
+  "returnToHomePage": "Vrátit se na hlavní stránku",
   "LeaderboardTagDisclaimer": "Podívejte se na všechny otázky, které se započítávají do tohoto žebříčku <link>zde</link>",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
