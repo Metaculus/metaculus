@@ -12,7 +12,7 @@ import {
   NewsCategory,
   Tournament,
   LeaderboardTag,
-  TaxonomyProjectType,
+  Category,
 } from "./projects";
 
 export type Resolution =
@@ -41,15 +41,6 @@ export enum NotebookType {
 }
 
 export type ForecastType = PostForecastType | QuestionType | NotebookType;
-
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  type: TaxonomyProjectType;
-  description: string;
-  emoji?: string;
-};
 
 export type Topic = {
   id: number;

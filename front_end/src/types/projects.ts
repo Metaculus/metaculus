@@ -10,7 +10,7 @@ export enum ProjectVisibility {
 export type Project = {
   id: number;
   name: string;
-  type: TournamentType;
+  type: TournamentType | TaxonomyProjectType;
   slug: string;
   posts_count: number;
 };

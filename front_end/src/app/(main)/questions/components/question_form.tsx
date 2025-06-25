@@ -27,11 +27,12 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
-import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
+import { Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   ContinuousQuestionType,

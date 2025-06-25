@@ -12,7 +12,7 @@ import {
 } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 
-import { Category } from "@/types/post";
+import { Category } from "@/types/projects";
 
 const CategoryLabel: React.FC<{
   category: Category;
