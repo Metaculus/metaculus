@@ -61,8 +61,8 @@ export const Hero: FC = () => {
 
           <p className="text-base font-light leading-relaxed text-gray-800 dark:text-gray-800-dark sm:text-lg md:text-xl lg:mb-0">
             Join our forecasting tournament in partnership with the RAND
-            Corporation. Test your predictive skills and help advance the
-            science of forecasting.
+            Corporation. Open to university students - test your predictive
+            skills and help advance the science of forecasting.
           </p>
         </div>
 

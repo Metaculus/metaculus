@@ -16,7 +16,13 @@ import { submitToZapierWebhook } from "../actions";
 import { SuccessMessage } from "./success-message";
 
 const emailRegistrationSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .refine(
+      (email) => email.toLowerCase().endsWith(".edu"),
+      "Please use a university email address ending in .edu"
+    ),
 });
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
@@ -35,9 +41,6 @@ export const EmailRegistrationForm: FC = () => {
     reset,
   } = useForm<EmailRegistrationSchema>({
     resolver: zodResolver(emailRegistrationSchema),
-    defaultValues: {
-      email: user?.email || "",
-    },
   });
 
   const onSubmit = async (data: EmailRegistrationSchema) => {
@@ -68,15 +71,17 @@ export const EmailRegistrationForm: FC = () => {
 
   return (
     <div className="w-full rounded bg-white dark:bg-blue-100-dark">
-      <p className="mb-4 text-balance text-center text-sm text-olive-700 dark:text-olive-600-dark md:text-base">
-        Get notified when the tournament begins and receive exclusive updates.
-      </p>
+      <div className="mb-4 text-center">
+        <p className="text-balance text-sm text-olive-700 dark:text-olive-600-dark md:text-base">
+          Get notified when the tournament begins and receive exclusive updates.
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <InputContainer labelText="Email Address">
           <Input
             type="email"
-            placeholder="Enter your email address"
+            placeholder="Enter your university email (.edu)"
             className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 font-normal dark:border-gray-700-dark"
             disabled={isLoading}
             {...register("email")}
