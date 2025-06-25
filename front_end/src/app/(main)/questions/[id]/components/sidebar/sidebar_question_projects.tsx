@@ -3,10 +3,10 @@ import { FC } from "react";
 
 import SidebarContainer from "@/app/(main)/questions/[id]/components/sidebar/sidebar_container";
 import Chip from "@/components/ui/chip";
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { PostWithForecasts } from "@/types/post";
+import { TaxonomyProjectType } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { getLeaderboardTagUrl, getProjectLink } from "@/utils/navigation";
+import { getProjectLink } from "@/utils/navigation";
 
 type Props = {
   projects: PostWithForecasts["projects"];
@@ -28,54 +28,31 @@ const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
   const index = _index ?? [];
   const leaderboard_tag = _leaderboard_tag ?? [];
 
-  const tournamentProjects = [
+  const allProjects = [
     ...index,
     ...tournament,
     ...question_series,
     ...community,
+    ...category,
+    ...leaderboard_tag,
   ];
-  const allProjects = [...tournamentProjects, ...category, ...leaderboard_tag];
 
   if (allProjects.length > 0) {
     return (
       <SidebarContainer>
         <div className="flex flex-col items-center justify-center gap-4 self-stretch">
           <div className="flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
-            {tournamentProjects.map((element) => (
+            {allProjects.map((element) => (
               <Chip
-                color="orange"
+                color={
+                  Object.values(TaxonomyProjectType).includes(
+                    element.type as TaxonomyProjectType
+                  )
+                    ? "olive"
+                    : "orange"
+                }
                 key={element.id}
                 href={getProjectLink(element)}
-                onClick={() =>
-                  sendAnalyticsEvent("questionTagClicked", {
-                    event_category: element.name,
-                  })
-                }
-              >
-                {element.name}
-              </Chip>
-            ))}
-
-            {category.map((element) => (
-              <Chip
-                color="olive"
-                key={element.id}
-                href={`/questions/?${POST_CATEGORIES_FILTER}=${element.slug}&for_main_feed=false`}
-                onClick={() =>
-                  sendAnalyticsEvent("questionTagClicked", {
-                    event_category: element.name,
-                  })
-                }
-              >
-                {element.name}
-              </Chip>
-            ))}
-
-            {leaderboard_tag.map((element) => (
-              <Chip
-                color="olive"
-                key={element.id}
-                href={getLeaderboardTagUrl(element)}
                 onClick={() =>
                   sendAnalyticsEvent("questionTagClicked", {
                     event_category: element.name,

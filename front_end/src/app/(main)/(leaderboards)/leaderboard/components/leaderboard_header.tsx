@@ -9,7 +9,10 @@ import Listbox from "@/components/ui/listbox";
 import useSearchParams from "@/hooks/use_search_params";
 import { LeaderboardTag } from "@/types/projects";
 import { LeaderboardFilters } from "@/types/scoring";
-import { buildLeaderboardTagSlug, getProjectLink } from "@/utils/navigation";
+import {
+  buildLeaderboardTagSlug,
+  getLeaderboardTagFeedUrl,
+} from "@/utils/navigation";
 
 import { RANKING_CATEGORIES } from "../../ranking_categories";
 import {
@@ -154,7 +157,9 @@ const LeaderboardHeader: FC<Props> = ({ filters, leaderboardTags }) => {
           <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
             {t.rich("LeaderboardTagDisclaimer", {
               link: (obj) => (
-                <Link href={getProjectLink(leaderboardTag)}>{obj}</Link>
+                <Link href={getLeaderboardTagFeedUrl(leaderboardTag)}>
+                  {obj}
+                </Link>
               ),
             })}
           </div>

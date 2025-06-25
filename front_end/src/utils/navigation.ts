@@ -81,11 +81,11 @@ export const getProjectLink = (
     case TournamentType.Index:
       return `/index/${getProjectSlug(project)}/`;
     case TaxonomyProjectType.Topic:
-      return `/questions/?topic=${project.slug}`;
+      return `/questions/?topic=${project.slug}&for_main_feed=false`;
     case TaxonomyProjectType.Category:
-      return `/questions/?categories=${project.slug}`;
+      return `/questions/?categories=${project.slug}&for_main_feed=false`;
     case TaxonomyProjectType.LeaderboardTag:
-      return `/questions/?leaderboard_tags=${project.slug}`;
+      return getLeaderboardTagUrl(project);
     default:
       return `/tournament/${getProjectSlug(project)}`;
   }
@@ -94,7 +94,9 @@ export const getProjectLink = (
 /**
  * Returns the correct `/leaderboard` URL for a given leaderboard tag.
  */
-export function getLeaderboardTagUrl({ slug }: LeaderboardTag): string {
+export function getLeaderboardTagUrl({
+  slug,
+}: Pick<LeaderboardTag, "slug">): string {
   // Remove the trailing “_leaderboard” flag and split the remaining string.
   const years = slug
     .replace(/_leaderboard$/, "")
@@ -119,6 +121,10 @@ export function getLeaderboardTagUrl({ slug }: LeaderboardTag): string {
   }
 
   return `/leaderboard/?${params.toString()}`;
+}
+
+export function getLeaderboardTagFeedUrl({ slug }: LeaderboardTag) {
+  return `/questions/?leaderboard_tags=${slug}&for_main_feed=false`;
 }
 
 /**

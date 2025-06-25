@@ -12,6 +12,7 @@ import {
   NewsCategory,
   Tournament,
   LeaderboardTag,
+  TaxonomyProjectType,
 } from "./projects";
 
 export type Resolution =
@@ -45,6 +46,7 @@ export type Category = {
   id: number;
   name: string;
   slug: string;
+  type: TaxonomyProjectType;
   description: string;
   emoji?: string;
 };
