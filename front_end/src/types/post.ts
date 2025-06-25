@@ -7,7 +7,13 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Community, NewsCategory, Tournament } from "./projects";
+import {
+  Community,
+  NewsCategory,
+  Tournament,
+  LeaderboardTag,
+  TaxonomyProjectType,
+} from "./projects";
 
 export type Resolution =
   | "yes"
@@ -40,15 +46,9 @@ export type Category = {
   id: number;
   name: string;
   slug: string;
+  type: TaxonomyProjectType;
   description: string;
   emoji?: string;
-};
-
-export type Tag = {
-  id: number;
-  name: string;
-  slug: string;
-  is_global_leaderboard: boolean;
 };
 
 export type Topic = {
@@ -131,7 +131,7 @@ type BasePost = {
     default_project: Tournament;
     tournament?: Tournament[];
     question_series?: Tournament[];
-    tag?: Tag[];
+    leaderboard_tag?: LeaderboardTag[];
     community?: Community[];
     index?: Tournament[];
     news_category?: NewsCategory[];

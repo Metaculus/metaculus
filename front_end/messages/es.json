@@ -1399,5 +1399,6 @@
   "customize": "Personalizar",
   "CPMovementChangeLabel": "{value} este {periodo}",
   "beforeAutoWithdrawal": "Antes de que mis predicciones se retiren automáticamente",
+  "LeaderboardTagDisclaimer": "Vea todas las preguntas que cuentan para esta clasificación <link>aquí</link>",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

@@ -1399,5 +1399,6 @@
   "customize": "Přizpůsobit",
   "CPMovementChangeLabel": "{value} tento {period}",
   "beforeAutoWithdrawal": "Před tím, než budou mé předpovědi automaticky vybrány",
+  "LeaderboardTagDisclaimer": "Podívejte se na všechny otázky, které se započítávají do tohoto žebříčku <link>zde</link>",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

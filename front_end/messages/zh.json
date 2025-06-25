@@ -1401,5 +1401,6 @@
   "withdrawAfterPercentSetting1": "在以下情况后撤回",
   "customize": "自定义",
   "beforeAutoWithdrawal": "在我的预测自动撤回之前",
+  "LeaderboardTagDisclaimer": "查看所有计入此排行榜的问题 <link>在这里</link>",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

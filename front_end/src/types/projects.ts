@@ -15,12 +15,13 @@ export type Project = {
   posts_count: number;
 };
 
+export type LeaderboardTag = Project;
+
 export type Category = Project & {
   description: string;
   emoji?: string;
 };
 
-export type Tag = Project;
 export type NewsCategory = Project & {
   type: TournamentType.NewsCategory;
   is_subscribed?: boolean;
@@ -38,7 +39,7 @@ export enum TournamentType {
 export enum TaxonomyProjectType {
   Topic = "topic",
   Category = "category",
-  Tag = "tag",
+  LeaderboardTag = "leaderboard_tag",
 }
 
 export enum TournamentsSortBy {

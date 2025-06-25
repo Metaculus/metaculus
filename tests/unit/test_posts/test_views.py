@@ -214,13 +214,12 @@ class TestPostCreate:
 
 class TestPostUpdate:
     def test_dont_clear_tags(self, user1, user1_client):
-        tag = factory_project(type=Project.ProjectTypes.TAG)
         category = factory_project(type=Project.ProjectTypes.CATEGORY)
         tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
 
         post = factory_post(
             author=user1,
-            projects=[tag, category, tournament],
+            projects=[category, tournament],
             default_project=get_site_main_project(),
             curation_status=Post.CurationStatus.DRAFT,
         )
@@ -241,7 +240,7 @@ class TestPostUpdate:
         post.refresh_from_db()
 
         # Assert other projects were not updated
-        assert set(post.projects.all()) == {tag, category_updated, tournament}
+        assert set(post.projects.all()) == {category_updated, tournament}
         # Ensure default project
         assert post.default_project == get_site_main_project()
 
