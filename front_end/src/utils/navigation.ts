@@ -1,10 +1,10 @@
+import { Notebook, Post, PostGroupOfQuestions } from "@/types/post";
 import {
+  Project,
+  TaxonomyProjectType,
+  TournamentType,
   LeaderboardTag,
-  Notebook,
-  Post,
-  PostGroupOfQuestions,
-} from "@/types/post";
-import { Project, TaxonomyProjectType, TournamentType } from "@/types/projects";
+} from "@/types/projects";
 import { Question } from "@/types/question";
 import { Optional } from "@/types/utils";
 
@@ -119,6 +119,22 @@ export function getLeaderboardTagUrl({ slug }: LeaderboardTag): string {
   }
 
   return `/leaderboard/?${params.toString()}`;
+}
+
+/**
+ * Builds a leaderboard tag key
+ */
+export function buildLeaderboardTagSlug(
+  year: number,
+  duration: number = 1
+): string {
+  if (duration < 1 || !Number.isInteger(duration)) {
+    duration = 1;
+  }
+
+  return duration === 1
+    ? `${year}_leaderboard`
+    : `${year}_${year + duration - 1}_leaderboard`;
 }
 
 export const getProjectSlug = (project: Pick<Project, "id" | "slug">) => {

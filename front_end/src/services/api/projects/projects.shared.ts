@@ -6,17 +6,12 @@ import {
   Community,
   NewsCategory,
   ProjectVisibility,
-  Tag,
   Tournament,
   TournamentMember,
   TournamentPreview,
+  LeaderboardTag,
 } from "@/types/projects";
-import { LeaderboardDetails } from "@/types/scoring";
 import { encodeQueryParams } from "@/utils/navigation";
-
-export type TagsParams = {
-  search?: string;
-};
 
 export type TournamentFilterParams = {
   // Min permission
@@ -47,6 +42,10 @@ class ProjectsApi extends ApiService {
     return await this.get<NewsCategory[]>("/projects/news-categories/");
   }
 
+  async getLeaderboardTags(): Promise<LeaderboardTag[]> {
+    return await this.get(`/projects/leaderboard-tags/`);
+  }
+
   async getSiteMain(): Promise<Tournament> {
     return await this.get<Tournament>("/projects/site_main/", {
       next: { revalidate: 3600 },
@@ -65,22 +64,6 @@ class ProjectsApi extends ApiService {
 
   async getTournament(slug: string | number): Promise<Tournament | null> {
     return await this.get<Tournament>(`/projects/tournaments/${slug}/`);
-  }
-
-  async getProjectLeaderboard(
-    projectId: number,
-    leaderboardType: string | null = null
-  ): Promise<LeaderboardDetails> {
-    const queryParams = encodeQueryParams(
-      leaderboardType
-        ? {
-            leaderboardType,
-          }
-        : {}
-    );
-    return this.get<LeaderboardDetails>(
-      `/projects/${projectId}/leaderboard/${queryParams}`
-    );
   }
 
   async getMembers(projectId: number): Promise<TournamentMember[]> {

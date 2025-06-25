@@ -1396,5 +1396,6 @@
   "withdrawAfterPercentSetting1": "在",
   "customize": "自訂",
   "beforeAutoWithdrawal": "在我的預測自動撤回之前",
+  "LeaderboardTagDisclaimer": "查看此排行榜中計算在內的所有問題，請點擊<link>這裡</link>",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

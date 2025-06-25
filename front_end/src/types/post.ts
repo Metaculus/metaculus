@@ -7,7 +7,12 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Community, NewsCategory, Tournament } from "./projects";
+import {
+  Community,
+  NewsCategory,
+  Tournament,
+  LeaderboardTag,
+} from "./projects";
 
 export type Resolution =
   | "yes"
@@ -42,12 +47,6 @@ export type Category = {
   slug: string;
   description: string;
   emoji?: string;
-};
-
-export type LeaderboardTag = {
-  id: number;
-  name: string;
-  slug: string;
 };
 
 export type Topic = {
