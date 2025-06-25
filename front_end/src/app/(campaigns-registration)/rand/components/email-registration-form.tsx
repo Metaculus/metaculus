@@ -16,13 +16,12 @@ import { submitToZapierWebhook } from "../actions";
 import { SuccessMessage } from "./success-message";
 
 const emailRegistrationSchema = z.object({
-  email: z
-    .string()
-    .email("Please enter a valid email address")
-    .refine(
-      (email) => email.toLowerCase().endsWith(".edu"),
-      "Please use a university email address ending in .edu"
-    ),
+  email: z.string().email("Please enter a valid email address"),
+  // TEMPORARILY REMOVED FOR TESTING - TODO: Re-enable for production
+  // .refine(
+  //   (email) => email.toLowerCase().endsWith(".edu"),
+  //   "Please use a university email address ending in .edu"
+  // ),
 });
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
@@ -81,7 +80,7 @@ export const EmailRegistrationForm: FC = () => {
         <InputContainer labelText="Email Address">
           <Input
             type="email"
-            placeholder="Enter your university email (.edu)"
+            placeholder="Enter your email address"
             className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 font-normal dark:border-gray-700-dark"
             disabled={isLoading}
             {...register("email")}
