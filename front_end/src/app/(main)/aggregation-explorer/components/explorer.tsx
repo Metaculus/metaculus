@@ -41,7 +41,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   // number for group or conditional
   // string for MC
   const [subQuestionOptions, setSubQuestionOptions] = useState<
-    string[] | number[]
+    { value: string | number; label: string }[]
   >([]);
   const [selectedSubQuestionOption, setSelectedSubQuestionOption] = useState<
     string | number | null
@@ -260,6 +260,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               )}
             </span>
           </div>
+          <div>{!!postInputText && data?.title}</div>
           <SubQuestionSelect
             options={subQuestionOptions}
             value={selectedSubQuestionOption}
@@ -283,7 +284,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 };
 
 const SubQuestionSelect: FC<{
-  options: string[] | number[];
+  options: { value: string | number; label: string }[];
   value: string | number | null;
   onChange: (value: string) => void;
 }> = ({ options, value, onChange }) => {
@@ -291,8 +292,7 @@ const SubQuestionSelect: FC<{
     return null;
   }
 
-  const isMultipleChoicePost = options.some((o) => typeof o === "string");
-
+  const isMultipleChoicePost = options.some((o) => typeof o.value === "string");
   return (
     <div>
       <p>{isMultipleChoicePost ? "Select a choice" : "Select a subquestion"}</p>
@@ -304,12 +304,12 @@ const SubQuestionSelect: FC<{
             value: "",
             label: isMultipleChoicePost
               ? "Select a choice"
-              : "Select subquestion ID",
+              : "Select subquestion",
             disabled: true,
           },
           ...options.map((option) => ({
-            value: option,
-            label: option.toString(),
+            value: option.value,
+            label: option.label,
           })),
         ]}
         onChange={(e) => onChange(e.target.value)}
@@ -318,13 +318,32 @@ const SubQuestionSelect: FC<{
   );
 };
 
-function parseSubQuestions(data: Post) {
+function parseSubQuestions(
+  data: Post
+): { value: string | number; label: string }[] {
   if (data.group_of_questions) {
-    return data.group_of_questions.questions.map((group) => group.id);
+    return data.group_of_questions.questions.map((question) => ({
+      value: question.id,
+      label: question.label,
+    }));
   } else if (data.conditional) {
-    return [data.conditional.question_yes.id, data.conditional.question_no.id];
+    return [
+      {
+        value: data.conditional.question_yes.id,
+        label: "if yes",
+      },
+      {
+        value: data.conditional.question_no.id,
+        label: "if no",
+      },
+    ];
   } else if (data.question?.type === QuestionType.MultipleChoice) {
-    return data.question.options ?? [];
+    return (
+      data.question.options?.map((option) => ({
+        value: option,
+        label: option,
+      })) || []
+    );
   }
   return [];
 }

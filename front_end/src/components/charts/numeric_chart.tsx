@@ -43,7 +43,11 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { ThemeColor } from "@/types/theme";
-import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
+import {
+  getAxisLeftPadding,
+  getAxisRightPadding,
+  getTickLabelFontSize,
+} from "@/utils/charts/axis";
 import cn from "@/utils/core/cn";
 
 type ChartData = {
@@ -103,6 +107,7 @@ const NumericChart: FC<Props> = ({
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
   const [zoom, setZoom] = useState(defaultZoom);
+
   const [isCursorActive, setIsCursorActive] = useState(false);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -175,13 +180,17 @@ const NumericChart: FC<Props> = ({
   }, [prevWidth, chartWidth, handleChartReady]);
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
-    return getAxisRightPadding(
-      yScale,
-      (isEmbedded ? tickLabelFontSize * 0.8 : tickLabelFontSize) as number,
-      yLabel
-    );
-  }, [yScale, tickLabelFontSize, yLabel, isEmbedded]);
-  const maxPadding = useMemo(() => {
+    return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+
+  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+
+  const maxLeftPadding = useMemo(() => {
+    return Math.max(leftPadding, MIN_LEFT_PADDING);
+  }, [leftPadding, MIN_LEFT_PADDING]);
+  const maxRightPadding = useMemo(() => {
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
@@ -305,9 +314,9 @@ const NumericChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              right: isEmbedded ? 10 : maxPadding,
+              right: isEmbedded ? 10 : maxRightPadding,
               top: 10,
-              left: isEmbedded ? maxPadding : 10,
+              left: isEmbedded ? maxLeftPadding : 10,
               bottom: BOTTOM_PADDING,
             }}
             events={chartEvents}
@@ -346,7 +355,7 @@ const NumericChart: FC<Props> = ({
               orientation={"left"}
               offsetX={
                 isEmbedded
-                  ? maxPadding
+                  ? maxLeftPadding
                   : isNil(yLabel)
                     ? chartWidth + 5
                     : chartWidth - tickFontSize + 5
@@ -437,7 +446,7 @@ const NumericChart: FC<Props> = ({
                           shouldAdjustCursorLabel || isCursorActive
                         }
                         chartWidth={chartWidth}
-                        rightPadding={maxPadding}
+                        rightPadding={maxRightPadding}
                         colorOverride={colorOverride}
                         getCursorValue={getCursorValue}
                       />

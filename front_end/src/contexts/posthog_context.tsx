@@ -1,7 +1,7 @@
 "use client";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
 import SuspendedPostHogPageView from "@/components/posthog_page_view";
@@ -14,8 +14,6 @@ function CSPostHogProvider({
   children: ReactNode;
   locale: string;
 }) {
-  const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
     const PUBLIC_POSTHOG_KEY = getPublicSetting("PUBLIC_POSTHOG_KEY");
     const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
@@ -32,22 +30,9 @@ function CSPostHogProvider({
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"
             : "memory",
-        loaded: () => {
-          setIsMounted(true);
-        },
-        on_request_error: () => {
-          setIsMounted(true);
-        },
       });
-    } else {
-      setIsMounted(true);
     }
   }, []);
-
-  // Fix posthog usage before the initialization is complete
-  if (!isMounted) {
-    return null;
-  }
 
   return (
     <PostHogProvider client={posthog}>

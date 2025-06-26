@@ -20,10 +20,7 @@ import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
-import {
-  POST_CATEGORIES_FILTER,
-  POST_TAGS_FILTER,
-} from "@/constants/posts_feed";
+import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostStatus } from "@/types/post";
@@ -167,25 +164,6 @@ const IndividualNotebookPage: FC<{
                         {category.name}
                       </Link>
                       {index < (postData.projects.category?.length ?? 0) - 1
-                        ? ","
-                        : "."}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {!!postData.projects.tag?.length && (
-                <div>
-                  <span className="font-medium">{t("tags") + ":"}</span>
-                  {postData.projects.tag?.map((tag, index) => (
-                    <span key={tag.id}>
-                      {" "}
-                      <Link
-                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
-                        href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}
-                      >
-                        {tag.name}
-                      </Link>
-                      {index < (postData.projects.tag?.length ?? 0) - 1
                         ? ","
                         : "."}
                     </span>

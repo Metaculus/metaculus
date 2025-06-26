@@ -1,12 +1,11 @@
 "use client";
 import AutoScroll from "embla-carousel-auto-scroll";
 import useEmblaCarousel from "embla-carousel-react";
-import Image from "next/image";
 import { FC } from "react";
 
-import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 
+import ClientImage from "./client_image";
 import ServiceConfig from "../serviceConfig";
 
 type Props = {
@@ -14,7 +13,6 @@ type Props = {
 };
 
 const PartnersCarousel: FC<Props> = ({ className }) => {
-  const { theme } = useAppTheme();
   const [emblaRef] = useEmblaCarousel(
     {
       loop: true,
@@ -25,7 +23,7 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
     [AutoScroll({ speed: 1, stopOnInteraction: false })]
   );
   const { partnersLogos } = ServiceConfig;
-  const logoKey = theme === "light" || theme === "dark" ? theme : "light";
+
   // Duplicate logos to always have the infinite scrolling effect
   const carouselLogos =
     partnersLogos.length < 5
@@ -49,8 +47,9 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
                   rel="noopener noreferrer"
                   className="block"
                 >
-                  <Image
-                    src={logo[logoKey]}
+                  <ClientImage
+                    lightSrc={logo.light}
+                    darkSrc={logo.dark}
                     alt="logo"
                     height={Number(logo.height)}
                     width={50}
@@ -59,8 +58,9 @@ const PartnersCarousel: FC<Props> = ({ className }) => {
                   />
                 </a>
               ) : (
-                <Image
-                  src={logo[logoKey]}
+                <ClientImage
+                  lightSrc={logo.light}
+                  darkSrc={logo.dark}
                   alt="logo"
                   height={Number(logo.height)}
                   width={50}

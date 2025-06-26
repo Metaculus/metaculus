@@ -102,7 +102,7 @@ def posts_list_api_view(request):
         with_key_factors=True,
         include_descriptions=include_descriptions,
         include_cp_history=include_cp_history,
-        include_movements=include_movements
+        include_movements=include_movements,
     )
 
     return paginator.get_paginated_response(data)
@@ -118,7 +118,9 @@ def posts_list_homeage_api_view(request):
 
     qs = get_posts_feed(Post.objects.all(), show_on_homepage=True)
 
-    return Response(serialize_post_many(qs, with_cp=True, group_cutoff=3))
+    return Response(
+        serialize_post_many(qs, with_cp=True, include_cp_history=True, group_cutoff=3)
+    )
 
 
 @api_view(["GET"])
@@ -225,7 +227,7 @@ def post_detail(request: Request, pk):
         with_subscriptions=True,
         with_key_factors=True,
         include_descriptions=True,
-        include_cp_history=True
+        include_cp_history=True,
     )
 
     if not posts:
