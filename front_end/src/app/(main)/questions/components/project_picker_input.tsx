@@ -57,7 +57,8 @@ const ProjectPickerInput: React.FC<{
       )
     );
   }, [query]);
-
+  console.log("initialProjects", initialProjects);
+  console.log("selectedProject", selectedProject);
   // Show selector only if user has at least 2 projects
   // With admin/curator permissions
   if (initialProjects.length < 2) {
@@ -114,6 +115,7 @@ const ProjectPickerInput: React.FC<{
                     }
                     value={project}
                     onClick={() => {
+                      console.log("project", project);
                       setSelectedProject(project);
                       onChange(project);
                       setQuery("");
