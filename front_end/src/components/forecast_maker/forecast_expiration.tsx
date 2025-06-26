@@ -140,7 +140,10 @@ const buildDefaultState = (
           value: intervalToDuration({
             start: now,
             end: add(now, {
-              seconds: userDefaultExpirationDurationSec,
+              seconds: Math.max(
+                userDefaultExpirationDurationSec,
+                30 * 24 * 60 * 60 // 1 month minimum (30 days in seconds)
+              ),
             }),
           }),
         }
@@ -357,13 +360,18 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     ? ((userExpirationPercent / 100) * questionDuration) / 1000
     : null;
 
+  const now = new Date();
+
   // intervalToDuration is needed so the duration will contain all units
   const userDefaultExpirationDuration = userDefaultExpirationDurationSec
     ? truncateDuration(
         intervalToDuration({
-          start: new Date(),
-          end: add(new Date(), {
-            seconds: userDefaultExpirationDurationSec,
+          start: now,
+          end: add(now, {
+            seconds: Math.max(
+              userDefaultExpirationDurationSec,
+              30 * 24 * 60 * 60 // 1 month minimum (30 days in seconds)
+            ),
           }),
         }),
         1

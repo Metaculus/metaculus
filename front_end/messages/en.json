@@ -1389,7 +1389,7 @@
   "neverWithdraw": "Never withdraw",
   "useAccountSetting": "Use account-level setting",
   "useCustomDuration": "Use custom duration for this question",
-  "useAccountSettingDescription": "This is based on the setting {userForecastExpirationPercent}% of question's total duration.",
+  "useAccountSettingDescription": "This is based on the setting {userForecastExpirationPercent}% of question's total duration, minimum 1 month.",
   "change": "Change",
   "predictionWithdrawalReminderHelpText": "You will receive a notification email reminding you to update when approximately 5% of the duration is left.",
   "defaultWithdrawalSettingText": "By default, my predictions are withdrawn after a % of the question lifetime",
