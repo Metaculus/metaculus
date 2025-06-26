@@ -58,7 +58,13 @@ def update_standing_forecasts():
         # otherwise, if it made more than 10% of the question’s lifetime ago, it will be withdrawn at the next multiple of that 10%.
         intervals_passed = int(forecast_duration_now / ten_percent_lifetime)
         next_interval = intervals_passed + 1
-        end_time = forecast.start_time + (ten_percent_lifetime * next_interval)
+        calculated_end_time = forecast.start_time + (
+            ten_percent_lifetime * next_interval
+        )
+
+        # Ensure minimum duration of 1 month (30 days)
+        minimum_end_time = forecast.start_time + timedelta(days=30)
+        end_time = max(calculated_end_time, minimum_end_time)
 
         # Make sure we don't set end_time beyond the question's close time
         if end_time > question.scheduled_close_time:
