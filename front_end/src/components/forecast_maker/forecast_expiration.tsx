@@ -129,69 +129,95 @@ const buildDefaultState = (
   presetDurations: Preset[],
   userDefaultExpirationDurationSec: number | null
 ): ModalState => {
+  /*
+  - 1. if the user doesn't have an auto-withdraw value set (i.e.: never auto withdraw), use that (highest priority)
+  - 2.if the user has an auto-withdraw setting value, use it only if there's no previous forecast
+  - 3. if they do have a previous forecast, use that forecast duration to find the closest preset to use
+  */
+
   const now = new Date();
-  let state: ModalState = {
-    option: "account",
-    selectedPreset: "1w",
-    datePickerDate: null,
-    forecastExpiration: userDefaultExpirationDurationSec
-      ? {
-          kind: "duration",
-          value: intervalToDuration({
-            start: now,
-            end: add(now, {
-              seconds: Math.max(
-                userDefaultExpirationDurationSec,
-                30 * 24 * 60 * 60 // 1 month minimum (30 days in seconds)
-              ),
-            }),
-          }),
-        }
-      : { kind: "infinity" },
-  };
 
-  if (lastForecast?.end_time && !!userDefaultExpirationDurationSec) {
-    // Convert the last forecast duration to milliseconds for comparison
-    const lastForecastDurationMs =
-      (lastForecast.end_time - lastForecast.start_time) * 1000;
-
-    // Only consider presets with actual durations and transform them in
-    const presetsWithDurationMs = presetDurations
-      .filter((preset) => !!preset.duration)
-      .map((preset) => {
-        return {
-          durationMs: preset.duration
-            ? add(new Date(0), preset.duration).getTime()
-            : Infinity,
-          preset,
-        };
-      });
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    let closestPreset = presetsWithDurationMs[0]!.preset; // we know it's not undefined because we filtered it out above
-    let minDifference = Infinity;
-
-    for (const preset of presetsWithDurationMs) {
-      const difference = Math.abs(lastForecastDurationMs - preset.durationMs);
-      if (difference < minDifference) {
-        minDifference = difference;
-        closestPreset = preset.preset;
-      }
-    }
-
-    state = {
-      option: "custom",
-      selectedPreset: closestPreset.id,
-      forecastExpiration: {
-        kind: "duration",
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        value: closestPreset.duration!, // we know it's not undefined because we filtered it out above
-      },
+  // case 1, user has their setting to never auto withdraw
+  if (!userDefaultExpirationDurationSec) {
+    return {
+      option: "account",
+      selectedPreset: "neverWithdraw",
+      forecastExpiration: { kind: "infinity" },
       datePickerDate: null,
     };
   }
 
-  return state;
+  // case 2, user has some value in their setting and no previous forecast, so using that value
+  if (!lastForecast) {
+    return {
+      option: "account",
+      selectedPreset: "1w",
+      datePickerDate: null,
+      forecastExpiration: {
+        kind: "duration",
+        value: intervalToDuration({
+          start: now,
+          end: add(now, {
+            seconds: Math.max(
+              userDefaultExpirationDurationSec,
+              30 * 24 * 60 * 60 // 1 month minimum (30 days in seconds)
+            ),
+          }),
+        }),
+      },
+    };
+  }
+
+  // case 3.a - user has a previous forecast with without an auto-withdraw date
+
+  if (lastForecast.end_time == null) {
+    return {
+      option: "custom",
+      selectedPreset: "neverWithdraw",
+      datePickerDate: null,
+      forecastExpiration: { kind: "infinity" },
+    };
+  }
+
+  // case 3.b - user has a previous forecast with an auto-withdraw date
+
+  // Convert the last forecast duration to milliseconds for comparison
+  const lastForecastDurationMs =
+    (lastForecast.end_time - lastForecast.start_time) * 1000;
+  // Only consider presets with actual durations and transform them in
+  const presetsWithDurationMs = presetDurations
+    .filter((preset) => !!preset.duration)
+    .map((preset) => {
+      return {
+        durationMs: preset.duration
+          ? add(new Date(0), preset.duration).getTime()
+          : Infinity,
+        preset,
+      };
+    });
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  let closestPreset = presetsWithDurationMs[0]!.preset; // we know it's not undefined because we filtered it out above
+  let minDifference = Infinity;
+
+  for (const preset of presetsWithDurationMs) {
+    const difference = Math.abs(lastForecastDurationMs - preset.durationMs);
+    if (difference < minDifference) {
+      minDifference = difference;
+      closestPreset = preset.preset;
+    }
+  }
+
+  return {
+    option: "custom",
+    selectedPreset: closestPreset.id,
+    forecastExpiration: {
+      kind: "duration",
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      value: closestPreset.duration!, // we know it's not undefined because we filtered it out above
+    },
+    datePickerDate: null,
+  };
 };
 
 const getPresetLabel = (
