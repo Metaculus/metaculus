@@ -47,7 +47,10 @@ const ScoreBox: FC<ScoreBoxProps> = ({
 
   return (
     <div
-      className={`box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center ${boxTextColor} dark:border-gray-400-dark`}
+      className={cn(
+        boxTextColor,
+        "box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center dark:border-gray-400-dark"
+      )}
     >
       {icon && (
         <FontAwesomeIcon
