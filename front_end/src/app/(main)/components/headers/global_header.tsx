@@ -7,9 +7,12 @@ import { getWithDefaultHeader } from "@/utils/navigation";
 
 import Header from "./header";
 
-const GlobalHeader: FC = () => {
+type Props = {
+  forceDefault?: boolean;
+};
+const GlobalHeader: FC<Props> = ({ forceDefault = false }) => {
   const pathname = usePathname();
-  const withDefaultHeader = getWithDefaultHeader(pathname);
+  const withDefaultHeader = forceDefault || getWithDefaultHeader(pathname);
 
   if (withDefaultHeader) {
     return <Header />;

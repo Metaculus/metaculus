@@ -174,6 +174,24 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_next_withdraw_time(self, author_id: int):
+        """
+        Annotates with the earliest upcoming forecast end_time for the user on this post
+        """
+        next_withdraw_time_subquery = (
+            Forecast.objects.filter(
+                post_id=OuterRef("pk"),
+                author_id=author_id,
+                end_time__gt=timezone.now(),
+            )
+            .order_by("end_time")
+            .values("end_time")[:1]
+        )
+
+        return self.annotate(
+            user_next_withdraw_time=Subquery(next_withdraw_time_subquery)
+        )
+
     def annotate_user_is_following(self, user: User):
         """
         Annotate with a boolean flag representing whether the user

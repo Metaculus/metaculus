@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { redirect } from "next/navigation";
 import { FC } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
@@ -17,11 +16,7 @@ import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import {
-  GroupOfQuestionsGraphType,
-  PostStatus,
-  ProjectPermissions,
-} from "@/types/post";
+import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import {
@@ -34,13 +29,13 @@ import {
 import { cachedGetPost } from "./utils/get_post";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
+import NotebookRedirect from "../components/notebook_redirect";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
-
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
 );
@@ -53,9 +48,7 @@ const IndividualQuestionPage: FC<{
   const defaultProject = postData.projects.default_project;
 
   if (postData.notebook) {
-    return redirect(
-      `/notebooks/${postData.id}${params.slug ? `/${params.slug}` : ""}`
-    );
+    return <NotebookRedirect id={postData.id} slug={params.slug} />;
   }
 
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
@@ -68,12 +61,6 @@ const IndividualQuestionPage: FC<{
 
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
-
-  const allowModifications =
-    postData.user_permission === ProjectPermissions.ADMIN ||
-    postData.user_permission === ProjectPermissions.CURATOR ||
-    (postData.user_permission === ProjectPermissions.CREATOR &&
-      postData.curation_status !== PostStatus.APPROVED);
 
   const questionTitle = getPostTitle(postData);
   return (
@@ -175,18 +162,13 @@ const IndividualQuestionPage: FC<{
                   </section>
                   <Sidebar
                     postData={postData}
-                    allowModifications={allowModifications}
                     layout="mobile"
                     questionTitle={questionTitle}
                   />
                   <CommentFeed postData={postData} />
                 </div>
               </div>
-              <Sidebar
-                postData={postData}
-                allowModifications={allowModifications}
-                questionTitle={questionTitle}
-              />
+              <Sidebar postData={postData} questionTitle={questionTitle} />
             </div>
           </main>
 

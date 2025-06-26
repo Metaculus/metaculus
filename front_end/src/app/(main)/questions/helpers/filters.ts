@@ -12,21 +12,21 @@ import {
   POST_AUTHOR_FILTER,
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
+  POST_FOLLOWING_FILTER,
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
-  POST_WITHDRAWN_FILTER,
+  POST_LEADERBOARD_TAGS_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
-  POST_STATUS_FILTER,
   POST_PAGE_FILTER,
-  POST_TAGS_FILTER,
+  POST_PROJECT_FILTER,
+  POST_STATUS_FILTER,
   POST_TEXT_SEARCH_FILTER,
   POST_TOPIC_FILTER,
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
   POST_USERNAMES_FILTER,
-  POST_FOLLOWING_FILTER,
-  POST_PROJECT_FILTER,
+  POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import ClientProfileApi from "@/services/api/profile/profile.client";
@@ -109,8 +109,8 @@ export function generateFiltersFromSearchParams(
     filters.categories = searchParams[POST_CATEGORIES_FILTER];
   }
 
-  if (searchParams[POST_TAGS_FILTER]) {
-    filters.tags = searchParams[POST_TAGS_FILTER];
+  if (searchParams[POST_LEADERBOARD_TAGS_FILTER]) {
+    filters.leaderboard_tags = searchParams[POST_LEADERBOARD_TAGS_FILTER];
   }
 
   if (searchParams[POST_USERNAMES_FILTER]) {

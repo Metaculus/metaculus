@@ -1,5 +1,6 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
-import { Category, QuestionStatus, Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
+import { Category } from "@/types/projects";
 
 import { ContinuousForecastInputType } from "./charts";
 
@@ -26,6 +27,7 @@ export enum QuestionOrder {
   OpenTimeDesc = "-open_time",
   LastPredictionTimeAsc = "user_last_forecasts_date",
   LastPredictionTimeDesc = "-user_last_forecasts_date",
+  UserNextWithdrawTimeAsc = "user_next_withdraw_time",
   DivergenceDesc = "-divergence",
   VotesDesc = "-vote_score",
   CommentCountDesc = "-comment_count",

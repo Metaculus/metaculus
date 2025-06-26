@@ -9,10 +9,9 @@ import ConsumerViewDesktopLight from "@/app/(main)/services/assets/consumer-view
 import ConsumerViewMobileDark from "@/app/(main)/services/assets/consumer-views-mobile-dark.png";
 import ConsumerViewMobileLight from "@/app/(main)/services/assets/consumer-views-mobile-light.png";
 import ForecastSection from "@/app/(main)/services/assets/forecast-section.png";
-import useAppTheme from "@/hooks/use_app_theme";
+import ClientImage from "@/app/(main)/services/components/client_image";
 
 const PlatfromSection: FC = () => {
-  const { theme } = useAppTheme();
   const t = useTranslations();
   return (
     <div className="mt-[60px] text-center text-blue-700 dark:text-blue-700-dark sm:mt-16 lg:mt-[120px]">
@@ -54,21 +53,15 @@ const PlatfromSection: FC = () => {
         </div>
 
         <div className="mt-[50px] flex flex-col sm:mt-[60px] md:mt-[94px] lg:mt-[60px] xl:mt-[30px] xl:flex-row">
-          <Image
-            src={
-              theme === "dark"
-                ? ConsumerViewDesktopDark
-                : ConsumerViewDesktopLight
-            }
+          <ClientImage
+            lightSrc={ConsumerViewDesktopLight}
+            darkSrc={ConsumerViewDesktopDark}
             alt="Consumer views"
             className="hidden w-full xl:block xl:w-[685px]"
           />
-          <Image
-            src={
-              theme === "dark"
-                ? ConsumerViewMobileDark
-                : ConsumerViewMobileLight
-            }
+          <ClientImage
+            lightSrc={ConsumerViewMobileLight}
+            darkSrc={ConsumerViewMobileDark}
             alt="Consumer views"
             className="w-full xl:hidden"
           />

@@ -621,8 +621,17 @@ class TestQuestionForecastAutoWithdrawal:
         with patch(
             "questions.tasks.send_forecast_autowidrawal_notification"
         ) as mock_send:
-            # Test 0: Freeze time after questions are closed, no notifications should be sent
+            # Test 0: Freeze time after forecasts end, or questions are closed, no notifications should be sent
+            # questions closed
             with freeze_time(base_time + timedelta(days=300)):
+                mock_send.reset_mock()
+                check_and_schedule_forecast_widrawal_due_notifications()
+                # No notifications should be sent yet
+                mock_send.assert_not_called()
+
+            # user's second forecasts withdrawn, but not their first forecasts.
+            with freeze_time(base_time + timedelta(days=10)):
+                mock_send.reset_mock()
                 check_and_schedule_forecast_widrawal_due_notifications()
                 # No notifications should be sent yet
                 mock_send.assert_not_called()
@@ -632,10 +641,11 @@ class TestQuestionForecastAutoWithdrawal:
                 check_and_schedule_forecast_widrawal_due_notifications()
 
                 # No notifications should be sent yet
+                mock_send.reset_mock()
                 mock_send.assert_not_called()
 
             # Test 2: Freeze time when user2's short forecast notification should be sent
-            with freeze_time(base_time + timedelta(days=2, hours=1)):
+            with freeze_time(base_time + timedelta(days=1, hours=1)):
                 mock_send.reset_mock()
                 check_and_schedule_forecast_widrawal_due_notifications()
 
@@ -652,7 +662,7 @@ class TestQuestionForecastAutoWithdrawal:
                 mock_send.assert_not_called()
 
             # Test 3: Freeze time when user1's short forecast notification should be sent
-            with freeze_time(base_time + timedelta(days=4, hours=1)):
+            with freeze_time(base_time + timedelta(days=3, hours=1)):
                 mock_send.reset_mock()
                 check_and_schedule_forecast_widrawal_due_notifications()
 
@@ -664,7 +674,7 @@ class TestQuestionForecastAutoWithdrawal:
                 assert call_args[1]["posts_data"][0]["title"] == question2.title
 
             # Test 4: Freeze time when user2's long forecast notification should be sent
-            with freeze_time(base_time + timedelta(days=18, hours=1)):
+            with freeze_time(base_time + timedelta(days=17, hours=1)):
                 mock_send.reset_mock()
                 check_and_schedule_forecast_widrawal_due_notifications()
 
@@ -676,7 +686,7 @@ class TestQuestionForecastAutoWithdrawal:
                 assert call_args[1]["posts_data"][0]["title"] == question1.title
 
             # Test 5: Freeze time when user1's long forecast notification should be sent
-            with freeze_time(base_time + timedelta(days=23, hours=1)):
+            with freeze_time(base_time + timedelta(days=22, hours=1)):
                 mock_send.reset_mock()
                 check_and_schedule_forecast_widrawal_due_notifications()
 

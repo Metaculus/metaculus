@@ -39,8 +39,8 @@ class ProjectsQuerySet(models.QuerySet):
             )
         )
 
-    def filter_tags(self):
-        return self.filter(type=Project.ProjectTypes.TAG)
+    def filter_leaderboard_tags(self):
+        return self.filter(type=Project.ProjectTypes.LEADERBOARD_TAG)
 
     def filter_communities(self):
         return self.filter(type=Project.ProjectTypes.COMMUNITY)
@@ -189,7 +189,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         PERSONAL_PROJECT = "personal_project"
         NEWS_CATEGORY = "news_category"
         CATEGORY = "category"
-        TAG = "tag"
+        LEADERBOARD_TAG = "leaderboard_tag"
         TOPIC = "topic"
         COMMUNITY = "community"
 

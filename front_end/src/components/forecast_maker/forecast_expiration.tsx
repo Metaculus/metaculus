@@ -147,7 +147,7 @@ const buildDefaultState = (
       : { kind: "infinity" },
   };
 
-  if (lastForecast?.end_time) {
+  if (lastForecast?.end_time && !!userDefaultExpirationDurationSec) {
     // Convert the last forecast duration to milliseconds for comparison
     const lastForecastDurationMs =
       (lastForecast.end_time - lastForecast.start_time) * 1000;
