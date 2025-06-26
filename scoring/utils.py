@@ -270,9 +270,9 @@ def generate_question_writing_leaderboard_entries(
     )
     question_post_map = {
         obj.question_id: obj.post
-        for obj in QuestionPost.objects.filter(question__in=questions).select_related(
-            "post__author"
-        )
+        for obj in QuestionPost.objects.filter(question__in=questions)
+        .select_related("post__author")
+        .prefetch_related("post__coauthors", "post__projects")
     }
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
@@ -283,28 +283,50 @@ def generate_question_writing_leaderboard_entries(
         if post:
             forecaster_ids_for_post[post].update(forecasters)
 
+    exclusions = MedalExclusionRecord.objects.all().select_related("user")
+    exclusion_dict = defaultdict(list)
+    for exclusion in exclusions:
+        exclusion_dict[exclusion.user].append(exclusion)
+
     user_list = list(leaderboard.user_list.all())
-    exclusions = {
-        e.user_id: e
-        for e in MedalExclusionRecord.objects.filter(
-            (Q(project__isnull=True) & Q(leaderboard__isnull=True))
-            | Q(leaderboard=leaderboard)
-            | Q(project=leaderboard.project),
-        )
-    }
     scores_for_author: dict[User, list[float]] = defaultdict(list)
     for post, forecaster_ids in forecaster_ids_for_post.items():
         all_authors = [post.author] + list(post.coauthors.all())
         if user_list:
             all_authors = [a for a in all_authors if a in user_list]
         for author in all_authors:
-            if exclusion := exclusions.get(author.id):
-                if post.published_at > exclusion.start_time and (
-                    exclusion.end_time is None or post.published_at < exclusion.end_time
+            excluded = False
+            for exclusion in exclusion_dict.get(author, []):
+                # exclusion not applicable if post not published during exclusion period
+                if (post.published_at < exclusion.start_time) or (
+                    exclusion.end_time and post.published_at > exclusion.end_time
                 ):
                     continue
-            # we use the h-index by number of forecasters divided by 10
-            scores_for_author[author].append(len(forecaster_ids) / 10)
+                if (
+                    (exclusion.project_id is None and exclusion.leaderboard_id is None)
+                    or (
+                        exclusion.leaderboard_id
+                        and exclusion.leaderboard_id == leaderboard.id
+                    )
+                    or (
+                        exclusion.project_id
+                        and (
+                            exclusion.project_id == leaderboard.project_id
+                            or exclusion.project_id == post.default_project_id
+                            or (
+                                exclusion.project_id
+                                in post.projects.values_list("id", flat=True)
+                            )
+                        )
+                    )
+                ):
+                    excluded = True
+                    continue
+                excluded = True
+                break
+            if not excluded:
+                # we use the h-index by number of forecasters divided by 10
+                scores_for_author[author].append(len(forecaster_ids) / 10)
 
     user_entries: dict[User, LeaderboardEntry] = dict()
     for user, scores in scores_for_author.items():
@@ -859,49 +881,72 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
 
 
 def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
-    forecaster_ids_for_post = defaultdict(set)
-
     questions = leaderboard.get_questions().prefetch_related("related_posts__post")
     questions = (
         # Fetch only authored posts
         questions.filter(
             Q(related_posts__post__author_id=user.id)
             | Q(related_posts__post__coauthors=user)
-        )
-        .distinct("id")
-        .only("related_posts__post")
+        ).distinct("id")
     )
+    user_forecasts_map = generate_map_from_list(
+        Forecast.objects.filter(
+            question__in=questions,
+            start_time__gte=leaderboard.start_time,
+            start_time__lte=leaderboard.end_time,
+        ).only("question_id", "author_id"),
+        key=lambda forecast: forecast.question_id,
+    )
+    question_post_map = {
+        obj.question_id: obj.post
+        for obj in QuestionPost.objects.filter(question__in=questions)
+        .select_related("post__author")
+        .prefetch_related("post__coauthors", "post__projects")
+    }
 
-    # Fetch forecasts during leaderboard period
-    forecasts = Forecast.objects.filter(question__in=list(questions))
-
-    if leaderboard.start_time:
-        forecasts = forecasts.filter(start_time__gte=leaderboard.start_time)
-
-    if leaderboard.end_time:
-        forecasts = forecasts.filter(start_time__lte=leaderboard.end_time)
-
-    # Fetch only 2 target fields
-    forecasts = forecasts.only("question_id", "author_id")
-
-    # Generate Question<>Forecasters map
-    question_forecasters_map = defaultdict(set)
-
-    for forecast in forecasts:
-        question_forecasters_map[forecast.question_id].add(forecast.author_id)
-
-    # Loop over chunked questions
+    forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
-        post = question.get_post()
-        forecaster_ids_for_post[post] |= question_forecasters_map[question.id]
+        forecasts_during_period = user_forecasts_map.get(question.pk) or []
+        forecasters = set(forecast.author_id for forecast in forecasts_during_period)
+        post = question_post_map.get(question.id)
+        if post:
+            forecaster_ids_for_post[post].update(forecasters)
 
+    exclusions = MedalExclusionRecord.objects.filter(user=user)
     contributions: list[Contribution] = []
     for post, forecaster_ids in forecaster_ids_for_post.items():
-        contribution = Contribution(
-            score=len(forecaster_ids),
-            post=post,
-        )
-        contributions.append(contribution)
+        excluded = False
+        for exclusion in exclusions:
+            # exclusion not applicable if post not published during exclusion period
+            if (post.published_at < exclusion.start_time) or (
+                exclusion.end_time and post.published_at > exclusion.end_time
+            ):
+                continue
+            if (
+                (exclusion.project_id is None and exclusion.leaderboard_id is None)
+                or (
+                    exclusion.leaderboard_id
+                    and exclusion.leaderboard_id == leaderboard.id
+                )
+                or (
+                    exclusion.project_id
+                    and (
+                        exclusion.project_id == leaderboard.project_id
+                        or exclusion.project_id == post.default_project_id
+                        or (
+                            exclusion.project_id
+                            in post.projects.values_list("id", flat=True)
+                        )
+                    )
+                )
+            ):
+                excluded = True
+                continue
+            excluded = True
+            break
+        if not excluded:
+            # we use the h-index by number of forecasters divided by 10
+            contributions.append(Contribution(score=len(forecaster_ids), post=post))
 
     contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
 
