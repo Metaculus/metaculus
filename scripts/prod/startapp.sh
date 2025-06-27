@@ -33,12 +33,17 @@ source venv/bin/activate
 
 # 2) Next.js Frontend
 export NODE_ENV=production
-export NODE_OPTIONS="--max-old-space-size=1536"
 export UV_THREADPOOL_SIZE=2
 
 (
   cd front_end &&
-  PORT=3000 npm run start \
+  pm2-runtime npm --name frontend -- \
+      start -i 2 \
+      --node-args="--max-old-space-size=2560" \
+      --max-memory-restart 2000M \
+      --merge-logs \
+      --output /dev/stdout \
+      --error  /dev/stderr \
   2>&1 | sed 's/^/[Frontend]: /'
 ) &
 
