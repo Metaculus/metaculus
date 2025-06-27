@@ -334,9 +334,9 @@ const Comment: FC<CommentProps> = ({
     if (result?.comment) {
       const newComment = result.comment;
 
-      if (user && !user.has_key_factors) {
-        // Update the user state to have key factors
-        setUser({ ...user, has_key_factors: true });
+      if (user && !user.should_suggest_keyfactors) {
+        // Update the user state so now the user can get suggested key factors
+        setUser({ ...user, should_suggest_keyfactors: true });
       }
 
       const updatedComments = comments.map((comment) =>
