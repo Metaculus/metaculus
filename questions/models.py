@@ -560,7 +560,7 @@ class AggregateForecast(models.Model):
             models.Index(fields=["method", "question", "-start_time"]),
         ]
 
-    def __repr__(self):
+    def __str__(self):
         from utils.the_math.measures import percent_point_function
 
         pv = self.get_prediction_values()

@@ -380,6 +380,11 @@ class LeaderboardEntry(TimeStampedModel):
     calculated_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        if self.leaderboard:
+            return (
+                f"{self.user.username if self.user else self.aggregation_method}'s "
+                f"Entry in {self.leaderboard}"
+            )
         return (
             "LeaderboardEntry for "
             f"{self.user.username if self.user else self.aggregation_method}"
