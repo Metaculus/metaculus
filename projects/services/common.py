@@ -14,7 +14,7 @@ from notifications.services import (
     NotificationProjectParams,
     NotificationQuestionParams,
 )
-from posts.models import Post
+from posts.models import Post, Notebook
 from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -127,9 +127,9 @@ def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
     project.save()
 
 
-def notify_project_subscriptions_question_open(question: Question):
-    post = question.get_post()
-
+def notify_project_subscriptions_post_open(
+    post: Post, question: Question = None, notebook: Notebook = None
+):
     subscriptions = (
         ProjectSubscription.objects.filter(
             Q(project__posts=post) | Q(project__default_posts=post)
@@ -144,6 +144,14 @@ def notify_project_subscriptions_question_open(question: Question):
         .distinct("user")
     )
 
+    # TODO: remove
+    subscriptions = [
+        ProjectSubscription(
+            user=User.objects.get(username="hlb"),
+            project=Project.objects.filter(type="news_category").order_by("?").first(),
+        )
+    ]
+
     # Ensure post is available for users
     for subscription in subscriptions:
         NotificationPostStatusChange.schedule(
@@ -152,7 +160,11 @@ def notify_project_subscriptions_question_open(question: Question):
                 post=NotificationPostParams.from_post(post),
                 event=Post.PostStatusChange.OPEN,
                 project=NotificationProjectParams.from_project(subscription.project),
-                question=NotificationQuestionParams.from_question(question),
+                question=(
+                    NotificationQuestionParams.from_question(question)
+                    if question
+                    else None
+                ),
             ),
             mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
         )

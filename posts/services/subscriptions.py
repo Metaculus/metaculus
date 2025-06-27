@@ -19,7 +19,8 @@ from notifications.services import (
     CPChangeData,
     NotificationQuestionParams,
 )
-from posts.models import Post, PostSubscription
+from posts.models import Post, PostSubscription, Notebook
+from projects.services.common import notify_project_subscriptions_post_open
 from questions.models import Question, Forecast, AggregateForecast
 from questions.types import AggregationMethod, Direction
 from questions.utils import get_last_forecast_in_the_past
@@ -361,7 +362,11 @@ def notify_post_status_change(
             NotificationPostStatusChange.ParamsType(
                 post=NotificationPostParams.from_post(post),
                 event=event,
-                question=NotificationQuestionParams.from_question(question),
+                question=(
+                    NotificationQuestionParams.from_question(question)
+                    if question
+                    else None
+                ),
             ),
         )
 
@@ -548,3 +553,17 @@ def enable_global_cp_reminders(user: User):
         ],
         ignore_conflicts=True,
     )
+
+
+def handle_notebook_open(notebook: Notebook):
+    """
+    A specific handler is triggered once it's opened
+    """
+
+    post = notebook.post
+
+    # Handle post subscriptions
+    notify_post_status_change(post, Post.PostStatusChange.OPEN)
+
+    # Handle question on followed projects subscriptions
+    notify_project_subscriptions_post_open(post, notebook=notebook)

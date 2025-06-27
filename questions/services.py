@@ -18,7 +18,7 @@ from posts.services.subscriptions import (
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from projects.services.cache import invalidate_projects_questions_count_cache
-from projects.services.common import notify_project_subscriptions_question_open
+from projects.services.common import notify_project_subscriptions_post_open
 from questions.constants import ResolutionType
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
@@ -1154,10 +1154,10 @@ def handle_question_open(question: Question):
     A specific handler is triggered once it's opened
     """
 
+    post = question.get_post()
+
     # Handle post subscriptions
-    notify_post_status_change(
-        question.get_post(), Post.PostStatusChange.OPEN, question=question
-    )
+    notify_post_status_change(post, Post.PostStatusChange.OPEN, question=question)
 
     # Handle question on followed projects subscriptions
-    notify_project_subscriptions_question_open(question)
+    notify_project_subscriptions_post_open(post, question=question)

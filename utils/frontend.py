@@ -60,6 +60,7 @@ def build_post_comment_url(post_id: int, post_title: str, comment_id: int):
 
 
 def build_post_url(post_id: int):
+    # TODO: notebook!
     return build_frontend_url(f"/questions/{post_id}/")
 
 

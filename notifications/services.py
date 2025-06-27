@@ -12,7 +12,7 @@ from comments.models import Comment
 from notifications.constants import MailingTags
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
-from posts.models import Post
+from posts.models import Post, Notebook
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question

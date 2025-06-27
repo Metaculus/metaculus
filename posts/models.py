@@ -467,6 +467,13 @@ class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    # TODO: migrate old records with True, leave only latest as False to send emails
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"
 
