@@ -1075,16 +1075,16 @@ export default async function ScoresFAQ() {
       <p>
         Your rank in the tournament is determined by the sum of your Peer scores
         over all questions weighted by the question&apos;s weight in the
-        tournament (you get 0 for any question you didn’t forecast). Questions
-        that have weights other than 1.0 are indicated in the sidebar of the
-        question detail page. Typically, a question weight is changed if it is
-        determined to be highly correllated with other questions included in the
-        same tournament, especially question groups.
+        tournament (you get 0 for any question you didn&apos;t forecast).
+        Questions that have weights other than 1.0 are indicated in the sidebar
+        of the question detail page. Typically, a question weight is changed if
+        it is determined to be highly correllated with other questions included
+        in the same tournament, especially question groups.
       </p>
       <p>
         The share of the prize pool you get is proportional to that same sum of
         Peer scores, squared. If the sum of your Peer scores is negative, you
-        don’t get any prize.
+        don&apos;t get any prize.
       </p>
       <div className="w-full overflow-x-scroll">
         <KatexRenderer
@@ -1114,9 +1114,10 @@ export default async function ScoresFAQ() {
         tournament to be notified of new questions.
       </p>
       <p>
-        Note: to limit administrative costs, we also limit prize apportionment
-        to amounts above a certain threshold (typically 10$, but it can vary per
-        tournament).
+        Note: to limit administrative costs, tournaments that end after 1st of
+        June, 2025 no longer give prizes below 50$, and the remaining money is
+        redistributed to forecasters with higher scores. Tournaments that end
+        before 1st of June, 2025 still do not give prizes below 10$.
       </p>
 
       <hr />
