@@ -46,25 +46,28 @@ def update_standing_forecasts(before_date):
     notifications_batch = []
 
     for index, forecast in enumerate(base_queryset.iterator(chunk_size=batch_size), 1):
+        user_forecast_expiration_percent = (
+            forecast.author.prediction_expiration_percent / 100
+        )
         question = forecast.question
-        ten_percent_question_lifetime = (
+        question_lifetime_ratio = (
             question.scheduled_close_time - question.open_time
-        ) * 0.1
+        ) * user_forecast_expiration_percent
 
         forecast_duration_now = timezone.now() - forecast.start_time
 
         # if prediction was made less than 10% of the question’s lifetime ago (the default setting), it will be withdrawn once it reaches that 10% mark
         # otherwise, if it made more than 10% of the question’s lifetime ago, it will be withdrawn at the next multiple of that 10%.
-        intervals_passed = int(forecast_duration_now / ten_percent_question_lifetime)
+        intervals_passed = int(forecast_duration_now / question_lifetime_ratio)
         next_interval = intervals_passed + 1
         calculated_end_time = forecast.start_time + (
-            ten_percent_question_lifetime * next_interval
+            question_lifetime_ratio * next_interval
         )
 
         # Ensure the forecast duration is:
         # - at least 1 month (30 days)
         # - at least 3 days from now so users have a chance to update
-        # - matching the 10% interval logic
+        # - matching the user's forecast expiration percent interval logic
         min_onemonth_duration_end_time = forecast.start_time + timedelta(days=30)
         at_least_3days_from_now_end_time = timezone.now() + timedelta(days=3)
         end_time = max(
