@@ -5,7 +5,7 @@ import plugin from "tailwindcss/plugin";
 import { METAC_COLORS } from "./src/constants/colors";
 
 const config: Config = {
-  darkMode: "class",
+  darkMode: ["class", '[data-mode="dark"]'],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
