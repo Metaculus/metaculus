@@ -13,12 +13,6 @@ GLOBAL_LEADERBOARD_STRING = "Leaderboard"
 GLOBAL_LEADERBOARD_SLUG = "leaderboard"
 
 
-class UserWeight(TimeStampedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    calculated_on = models.DateTimeField(auto_now_add=True)
-    weight = models.FloatField(default=1)
-
-
 class Score(TimeStampedModel):
     # typing
     question_id: int
