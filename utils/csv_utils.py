@@ -492,7 +492,7 @@ def generate_data(
     for comment in comments or []:
         row = [comment.on_post_id]
         if anonymized:
-            row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
+            row.append(hashlib.sha256(str(comment.author_id).encode()).hexdigest())
         else:
             row.extend([comment.author_id, username_dict[comment.author_id]])
         row.extend(
