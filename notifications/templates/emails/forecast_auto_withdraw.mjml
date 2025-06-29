@@ -9,13 +9,15 @@
 
                 <mj-text>
                     {% blocktrans with recipient_username=recipient.username %}
-                    Hello {{ recipient_username }},
+                    Hi {{ recipient_username }},
                     {% endblocktrans %}
                 </mj-text>
 
                 <mj-text>
                     {% blocktrans %}
-                    Your predictions on these questions have almost run their duration and will be automatically withdrawn if you do not update them:
+                    We automatically <a href="https://www.metaculus.com/faq/#auto-withdrawal">withdraw forecasts</a> to reduce the influence of stale predictions on your score and on the Community Prediction.
+                    <br/>
+                    Your {{ number_of_posts }} predictions will be auto-withdrawn unless updated or <a href="https://www.metaculus.com/faq/#reaffirming">reaffirmed</a>.
                     {% endblocktrans %}
                 </mj-text>
 
@@ -41,7 +43,7 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    Keep your predictions up to date to get good scores!
+                    Your predictions up until withdrawal still count toward your score. You can adjust or turn off auto-withdrawal in <a href="{{ account_settings_url }}">settings</a>.
                     {% endblocktrans %}
                 </mj-text>
 
@@ -52,7 +54,7 @@
 
                 <mj-text font-size="12px" color="#666666">
                     {% blocktrans with account_settings_url=account_settings_url %}
-                    If you no longer wish to receive this type of email, you can unsubscribe here. You can also manage your notification settings on your Metaculus <a href="{{ account_settings_url }}">settings</a> page.
+                    You can manage your notification settings on your Metaculus <a href="{{ account_settings_url }}">settings</a> page.
                     {% endblocktrans %}
                 </mj-text>
 

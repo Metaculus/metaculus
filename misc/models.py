@@ -43,6 +43,9 @@ class Bulletin(TimeStampedModel):
     bulletin_end = models.DateTimeField()
     text = models.TextField()
 
+    def __str__(self):
+        return self.text[:150] + "..." if len(self.text) > 150 else self.text
+
 
 class BulletinViewedBy(TimeStampedModel):
     bulletin = models.ForeignKey(Bulletin, on_delete=models.CASCADE)

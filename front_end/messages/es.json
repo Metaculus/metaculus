@@ -1,4 +1,5 @@
 {
+  "withdrawingSoon": "Retiro pronto",
   "createArticle": "+ Crear artículo",
   "newsletterFormHeading": "Únete a Nuestro Boletín",
   "newsletterFormDescription": "Suscríbete para recibir noticias de Metaculus, informes especiales de pronósticos e invitaciones a eventos.",
@@ -1395,7 +1396,7 @@
   "predictionAutoWithdrawalTitle": "Retiro automático",
   "neverWithdraw": "Nunca retirar",
   "useCustomDuration": "Usar duración personalizada para esta pregunta",
-  "useAccountSettingDescription": "Esto se basa en la configuración del {userForecastExpirationPercent}% de la duración total de la pregunta.",
+  "useAccountSettingDescription": "Esto se basa en la configuración {userForecastExpirationPercent}% de la duración total de la pregunta, mínimo 1 mes.",
   "predictionWithdrawalReminderHelpText": "Recibirás un correo electrónico de notificación recordándote actualizar cuando quede aproximadamente el 5% de la duración.",
   "defaultWithdrawalSettingText": "Por defecto, mis predicciones se retiran después de un % del tiempo de vida de la pregunta",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# predicción} other {# predicciones}} se retirarán pronto",
