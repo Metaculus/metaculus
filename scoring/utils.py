@@ -22,6 +22,7 @@ from django.db.models import (
     Case,
     Count,
     Func,
+    Prefetch,
 )
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
@@ -822,7 +823,7 @@ def update_leaderboard_from_csv_data(
 
 @dataclass
 class Contribution:
-    score: float
+    score: float | None
     coverage: float | None = None
     question: Question | None = None
     post: Post | None = None
@@ -956,7 +957,9 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
+    with_live_coverage: bool = False,
 ) -> list[Contribution]:
+
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
         return get_contribution_comment_insight(user, leaderboard)
 
@@ -964,7 +967,14 @@ def get_contributions(
         return get_contribution_question_writing(user, leaderboard)
 
     # Scoring Leaderboards
-    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
+    questions = leaderboard.get_questions().prefetch_related(
+        "related_posts__post",
+        Prefetch(
+            "user_forecasts",
+            queryset=Forecast.objects.filter(author_id=user.id),
+            to_attr="filtered_user_forecasts",
+        ),
+    )
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
@@ -1018,13 +1028,54 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
-    if "global" not in leaderboard.score_type:
-        contributions += [
-            Contribution(
-                score=None, coverage=None, question=question, post=question.get_post()
-            )
-            for question in questions
-            if question not in scored_question
-        ]
+    if leaderboard.score_type in [
+        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        Leaderboard.ScoreTypes.MANUAL,
+    ]:
+        for question in questions:
+            if question not in scored_question:
+                coverage = None
+                if with_live_coverage:
+                    # coverage is added for questions that the user has predicted
+                    forecast_horizon_start = question.open_time.timestamp()
+                    forecast_horizon_end = question.scheduled_close_time.timestamp()
+                    now = timezone.now().timestamp()
+                    covered = 0
+                    user_forecasts = getattr(question, "filtered_user_forecasts", [])
+                    for forecast in user_forecasts:
+                        forecast_start = max(
+                            forecast.start_time.timestamp(), forecast_horizon_start
+                        )
+                        forecast_end = min(
+                            (
+                                forecast.end_time or question.scheduled_close_time
+                            ).timestamp(),
+                            forecast_horizon_end,
+                            now,
+                        )
+                        covered += max(0, forecast_end - forecast_start)
+                    coverage = covered / (forecast_horizon_end - forecast_horizon_start)
+
+                contribution = Contribution(
+                    score=None,
+                    coverage=coverage or None,
+                    question=question,
+                    post=question.get_post(),
+                )
+                contributions.append(contribution)
+
+    contributions = sorted(
+        contributions,
+        key=lambda c: (
+            bool(c.score),
+            c.score or 0,
+            bool(c.coverage),
+            -c.question.open_time.timestamp(),
+        ),
+        reverse=True,
+    )
 
     return contributions
