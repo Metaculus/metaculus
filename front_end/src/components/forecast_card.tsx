@@ -105,7 +105,7 @@ const ForecastCard: FC<Props> = ({
     if (post.question) {
       const { question } = post;
       const forecastAvailability = getQuestionForecastAvailability(question);
-
+      console.log(question.aggregations.recency_weighted);
       switch (question.type) {
         case QuestionType.Binary:
           return (
