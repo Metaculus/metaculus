@@ -121,6 +121,7 @@ class Leaderboard(TimeStampedModel):
         help_text="""
     <table>
         <tr><td>peer_tournament</td><td> Sum of peer scores. Most likely what you want.</td></tr>
+        <tr><td>default</td><td> Sum of 'Default' scores as determined by each Question's 'default_score_type'</td></tr>
         <tr><td>spot_peer_tournament</td><td> Sum of spot peer scores.</td></tr>
         <tr><td>spot_baseline_tournament</td><td> Sum of spot baseline scores.</td></tr>
         <tr><td>relative_legacy</td><td> Old site scoring.</td></tr>
