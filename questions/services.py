@@ -35,7 +35,8 @@ from questions.utils import (
     get_question_movement_period,
     get_last_forecast_in_the_past,
 )
-from scoring.models import Score, Leaderboard
+from scoring.constants import ScoreTypes, LeaderboardScoreTypes
+from scoring.models import Leaderboard
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
 from utils.cache import cache_per_object
@@ -608,14 +609,14 @@ def unresolve_question(question: Question):
     # are generated
     # scoring
     score_types = [
-        Score.ScoreTypes.BASELINE,
-        Score.ScoreTypes.PEER,
-        Score.ScoreTypes.RELATIVE_LEGACY,
+        ScoreTypes.BASELINE,
+        ScoreTypes.PEER,
+        ScoreTypes.RELATIVE_LEGACY,
     ]
     spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
     if spot_scoring_time:
-        score_types.append(Score.ScoreTypes.SPOT_PEER)
-        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
+        score_types.append(ScoreTypes.SPOT_PEER)
+        score_types.append(ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
@@ -677,8 +678,8 @@ def update_leaderboards_for_question(question: Question):
                 end_time=global_leaderboard_window[1],
             ).exclude(
                 score_type__in=[
-                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
-                    Leaderboard.ScoreTypes.QUESTION_WRITING,
+                    LeaderboardScoreTypes.COMMENT_INSIGHT,
+                    LeaderboardScoreTypes.QUESTION_WRITING,
                 ]
             )
             for leaderboard in global_leaderboards:
