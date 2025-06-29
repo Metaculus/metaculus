@@ -113,7 +113,9 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type)
+    score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
+        "question__default_score_type"
+    )
     qs_filters = {
         "question__in": questions,
         "score_type": score_type,
@@ -139,7 +141,7 @@ def generate_scoring_leaderboard_entries(
         question_id=OuterRef("question_id"),
         user_id=OuterRef("user_id"),
         aggregation_method=OuterRef("aggregation_method"),
-        score_type=LeaderboardScoreTypes.get_base_score(leaderboard.score_type),
+        score_type=score_type,
     )
     if finalize_time:
         archived_scores_subquery = archived_scores_subquery.filter(
@@ -183,6 +185,7 @@ def generate_scoring_leaderboard_entries(
             entry.score /= max(40, entry.contribution_count)
     elif leaderboard.score_type in (
         LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.DEFAULT,
         LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
         LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
     ):
@@ -977,15 +980,19 @@ def get_contributions(
         ),
     )
 
+    score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
+        "question__default_score_type"
+    )
+
     calculated_scores = Score.objects.filter(
         question__in=questions,
         user=user,
-        score_type=LeaderboardScoreTypes.get_base_score(leaderboard.score_type),
+        score_type=score_type,
     ).prefetch_related("question__related_posts__post")
     archived_scores = ArchivedScore.objects.filter(
         question__in=questions,
         user=user,
-        score_type=LeaderboardScoreTypes.get_base_score(leaderboard.score_type),
+        score_type=score_type,
     ).prefetch_related("question__related_posts__post")
 
     if leaderboard.finalize_time:
@@ -1031,6 +1038,7 @@ def get_contributions(
     scored_question = {score.question for score in scores}
     if leaderboard.score_type in [
         LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.DEFAULT,
         LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
         LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
         LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,

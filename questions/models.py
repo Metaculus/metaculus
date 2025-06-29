@@ -9,6 +9,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -69,6 +70,18 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     resolution = models.TextField(null=True, blank=True)
     include_bots_in_aggregates = models.BooleanField(default=False)
     question_weight = models.FloatField(default=1.0)
+    default_score_type = models.CharField(
+        max_length=20,
+        choices=ScoreTypes.choices,
+        default=ScoreTypes.PEER,
+        db_index=True,
+        help_text="""Default score type for this question.
+        Generally, this should be either "peer" or "spot_peer".
+        Determines which score will be most prominently displayed in the UI.
+        Also, for Leaderboards that have a "score type" of "default", this question's
+        default score type will be the one that contributes to the leaderboard.
+        """,
+    )
 
     # description fields
     title = models.CharField(max_length=2000)

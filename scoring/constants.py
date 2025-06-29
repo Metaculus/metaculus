@@ -16,6 +16,7 @@ class ArchivedScoreTypes(models.TextChoices):
 
 class LeaderboardScoreTypes(models.TextChoices):
     PEER_TOURNAMENT = "peer_tournament"
+    DEFAULT = "default"
     SPOT_PEER_TOURNAMENT = "spot_peer_tournament"
     SPOT_BASELINE_TOURNAMENT = "spot_baseline_tournament"
     RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
@@ -29,6 +30,8 @@ class LeaderboardScoreTypes(models.TextChoices):
     @classmethod
     def get_base_score(cls, score_type: str) -> ScoreTypes | None:
         match score_type:
+            case cls.DEFAULT:
+                return None
             case cls.RELATIVE_LEGACY_TOURNAMENT:
                 return ScoreTypes.RELATIVE_LEGACY
             case cls.PEER_GLOBAL:
