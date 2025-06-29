@@ -16,7 +16,7 @@ from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
 from questions.models import Question, UserForecastNotification
 from questions.services import build_question_forecasts
-from scoring.models import Score
+from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
@@ -54,14 +54,14 @@ def resolve_question_and_send_notifications(question_id: int):
 
     # scoring
     score_types = [
-        Score.ScoreTypes.BASELINE,
-        Score.ScoreTypes.PEER,
-        Score.ScoreTypes.RELATIVE_LEGACY,
+        ScoreTypes.BASELINE,
+        ScoreTypes.PEER,
+        ScoreTypes.RELATIVE_LEGACY,
     ]
     spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
     if spot_scoring_time:
-        score_types.append(Score.ScoreTypes.SPOT_PEER)
-        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
+        score_types.append(ScoreTypes.SPOT_PEER)
+        score_types.append(ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         question.resolution,
@@ -120,9 +120,9 @@ def resolve_question_and_send_notifications(question_id: int):
 
         notification_params = user_notification_params[score.user]
 
-        if score.score_type == Score.ScoreTypes.PEER:
+        if score.score_type == ScoreTypes.PEER:
             notification_params.peer_score = score.score
-        if score.score_type == Score.ScoreTypes.BASELINE:
+        if score.score_type == ScoreTypes.BASELINE:
             notification_params.baseline_score = score.score
 
     # Sending notifications

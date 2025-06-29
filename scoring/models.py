@@ -6,6 +6,7 @@ from django.db.models.query import QuerySet, Q
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes, ArchivedScoreTypes, LeaderboardScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -37,14 +38,6 @@ class Score(TimeStampedModel):
 
     # NOTE: we need to use `edited_at` to store the time this is calculated
     # it effects reputation
-
-    class ScoreTypes(models.TextChoices):
-        RELATIVE_LEGACY = "relative_legacy"
-        PEER = "peer"
-        BASELINE = "baseline"
-        SPOT_PEER = "spot_peer"
-        SPOT_BASELINE = "spot_baseline"
-        MANUAL = "manual"
 
     score_type = models.CharField(
         max_length=200, choices=ScoreTypes.choices, db_index=True
@@ -86,10 +79,7 @@ class ArchivedScore(TimeStampedModel):
     score = models.FloatField()
     coverage = models.FloatField(default=0)
 
-    class ScoreTypes(models.TextChoices):
-        RELATIVE_LEGACY = "relative_legacy"
-
-    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+    score_type = models.CharField(max_length=200, choices=ArchivedScoreTypes.choices)
 
     def __str__(self):
         return (
@@ -125,49 +115,9 @@ class Leaderboard(TimeStampedModel):
         related_name="leaderboards",
     )
 
-    class ScoreTypes(models.TextChoices):
-        PEER_TOURNAMENT = "peer_tournament"
-        SPOT_PEER_TOURNAMENT = "spot_peer_tournament"
-        SPOT_BASELINE_TOURNAMENT = "spot_baseline_tournament"
-        RELATIVE_LEGACY_TOURNAMENT = "relative_legacy_tournament"
-        BASELINE_GLOBAL = "baseline_global"
-        PEER_GLOBAL = "peer_global"
-        PEER_GLOBAL_LEGACY = "peer_global_legacy"
-        COMMENT_INSIGHT = "comment_insight"
-        QUESTION_WRITING = "question_writing"
-        MANUAL = "manual"
-
-        @classmethod
-        def get_base_score(cls, score_type: str) -> Score.ScoreTypes:
-            match score_type:
-                case cls.RELATIVE_LEGACY_TOURNAMENT:
-                    return Score.ScoreTypes.RELATIVE_LEGACY
-                case cls.PEER_GLOBAL:
-                    return Score.ScoreTypes.PEER
-                case cls.PEER_GLOBAL_LEGACY:
-                    return Score.ScoreTypes.PEER
-                case cls.PEER_TOURNAMENT:
-                    return Score.ScoreTypes.PEER
-                case cls.SPOT_PEER_TOURNAMENT:
-                    return Score.ScoreTypes.SPOT_PEER
-                case cls.SPOT_BASELINE_TOURNAMENT:
-                    return Score.ScoreTypes.SPOT_BASELINE
-                case cls.BASELINE_GLOBAL:
-                    return Score.ScoreTypes.BASELINE
-                case cls.MANUAL:
-                    return Score.ScoreTypes.MANUAL
-                case cls.COMMENT_INSIGHT:
-                    raise ValueError(
-                        "Comment insight leaderboards do not have base scores"
-                    )
-                case cls.QUESTION_WRITING:
-                    raise ValueError(
-                        "Question Writing leaderboards do not have base scores"
-                    )
-
     score_type = models.CharField(
         max_length=200,
-        choices=ScoreTypes.choices,
+        choices=LeaderboardScoreTypes.choices,
         help_text="""
     <table>
         <tr><td>peer_tournament</td><td> Sum of peer scores. Most likely what you want.</td></tr>
@@ -277,10 +227,10 @@ class Leaderboard(TimeStampedModel):
             related_posts__post__in=Post.objects.filter_for_main_feed()
         )
 
-        if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
+        if self.score_type == LeaderboardScoreTypes.COMMENT_INSIGHT:
             # post must be published
             return questions.filter(related_posts__post__published_at__lt=self.end_time)
-        elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+        elif self.score_type == LeaderboardScoreTypes.QUESTION_WRITING:
             # post must be published, and can't be resolved before the start_time
             # of the leaderboard
             return questions.filter(

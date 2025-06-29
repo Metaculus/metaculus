@@ -134,7 +134,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
             {cp_scores?.spot_baseline_score != null && (
               <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
                 <span className="text-sm font-normal">
-                  {t("communnitySpotBaselineScore")}
+                  {t("communitySpotBaselineScore")}
                 </span>
                 <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
                   {cp_scores.spot_baseline_score.toFixed(1)}
@@ -144,7 +144,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
             {cp_scores?.spot_peer_score != null && (
               <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
                 <span className="text-sm font-normal">
-                  {t("communnitySpotPeerScore")}
+                  {t("communitySpotPeerScore")}
                 </span>
                 <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
                   {cp_scores.spot_peer_score.toFixed(1)}
@@ -154,7 +154,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
             {cp_scores?.relative_legacy_score != null && (
               <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
                 <span className="text-sm font-normal">
-                  {t("communnityRelativeLegacyScore")}
+                  {t("communityRelativeLegacyScore")}
                 </span>
                 <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
                   {cp_scores.relative_legacy_score.toFixed(2)}
@@ -164,7 +164,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
             {cp_scores?.relative_legacy_arvhived_score != null && (
               <div className="box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-olive-800 dark:border-gray-400-dark dark:text-olive-800-dark">
                 <span className="text-sm font-normal">
-                  {t("communnityRelativeLegacyArchivedScore")}
+                  {t("communityRelativeLegacyArchivedScore")}
                 </span>
                 <div className="text-sm font-bold leading-6 text-olive-700 dark:text-olive-700-dark">
                   {cp_scores.relative_legacy_arvhived_score.toFixed(2)}

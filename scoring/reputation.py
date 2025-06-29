@@ -6,6 +6,7 @@ from typing import Sequence
 from django.utils import timezone
 
 from questions.models import Question
+from scoring.constants import ScoreTypes
 from scoring.models import Score
 from users.models import User
 
@@ -33,7 +34,7 @@ def get_reputation_at_time(user: User, time: datetime | None = None) -> Reputati
         time = timezone.now()
     peer_scores = Score.objects.filter(
         user=user,
-        score_type=Score.ScoreTypes.PEER,
+        score_type=ScoreTypes.PEER,
         question__in=Question.objects.filter_public(),
         edited_at__lte=time,
     ).distinct()
@@ -51,7 +52,7 @@ def get_reputations_at_time(
         time = timezone.now()
     peer_scores = Score.objects.filter(
         user__in=users,
-        score_type=Score.ScoreTypes.PEER,
+        score_type=ScoreTypes.PEER,
         question__in=Question.objects.filter_public(),
         edited_at__lte=time,
     ).distinct()
@@ -76,7 +77,7 @@ def get_reputations_during_interval(
     all_peer_scores = (
         Score.objects.filter(
             user__in=users,
-            score_type=Score.ScoreTypes.PEER,
+            score_type=ScoreTypes.PEER,
             question__in=Question.objects.filter_public(),
             edited_at__lte=end,
         )
