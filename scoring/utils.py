@@ -1032,11 +1032,11 @@ def get_contributions(
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
     if leaderboard.score_type in [
-        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
-        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
-        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
-        Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
-        Leaderboard.ScoreTypes.MANUAL,
+        LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        LeaderboardScoreTypes.MANUAL,
     ]:
         for question in questions:
             if question not in scored_question:

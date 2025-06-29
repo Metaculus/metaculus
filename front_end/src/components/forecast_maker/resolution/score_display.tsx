@@ -55,7 +55,7 @@ const ScoreBox: FC<ScoreBoxProps> = ({
       {icon && (
         <FontAwesomeIcon
           icon={icon}
-          className={`text-base leading-none ${iconColorClass}`}
+          className={cn("text-base leading-none", iconColorClass)}
         />
       )}
       <span className="text-sm font-normal">{label}</span>
@@ -73,12 +73,15 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
   const user_scores = question.my_forecasts?.score_data;
   if (!cp_scores && !user_scores) return null;
 
-  type Thingy = {
+  type KeyedScoreBox = {
     key: string;
     scoreBox: React.ReactNode | null;
   };
 
-  function getScoreBox(key: string, forecaster: "user" | "community"): Thingy {
+  function getScoreBox(
+    key: string,
+    forecaster: "user" | "community"
+  ): KeyedScoreBox {
     const toCamelCase = (s: string): string =>
       s.replace(/(^|_)(\w)/g, (_, __, c: string) => c.toUpperCase());
     const sourceKey = (key +
@@ -112,7 +115,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
       ),
     };
   }
-  const allScores: Thingy[] = [
+  const keyedScoreBoxes: KeyedScoreBox[] = [
     getScoreBox("peer", "user"),
     getScoreBox("baseline", "user"),
     getScoreBox("spot_peer", "user"),
@@ -128,13 +131,13 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
     getScoreBox("relative_legacy", "community"),
     getScoreBox("relative_legacy_archived", "community"),
   ];
-  const defaultScores = [];
-  const additionalScores = [];
-  for (const { key, scoreBox } of allScores) {
+  const primaryScoreBoxes = [];
+  const secondaryScoreBoxes = [];
+  for (const { key, scoreBox } of keyedScoreBoxes) {
     if (key === question.default_score_type) {
-      defaultScores.push(scoreBox);
+      primaryScoreBoxes.push(scoreBox);
     } else {
-      additionalScores.push(scoreBox);
+      secondaryScoreBoxes.push(scoreBox);
     }
   }
 
@@ -146,16 +149,16 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
           className
         )}
       >
-        {defaultScores}
+        {primaryScoreBoxes}
       </div>
-      {additionalScores.length > 0 && (
+      {secondaryScoreBoxes.length > 0 && (
         <SectionToggle
           title="Additional Scores"
           defaultOpen={false}
           variant={variant}
         >
           <div className="my-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {additionalScores}
+            {secondaryScoreBoxes}
           </div>
           <div className="mb-4 flex flex-col gap-3 text-base font-normal leading-5 opacity-90">
             <div>
