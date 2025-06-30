@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
@@ -73,9 +74,11 @@ const ContinuousAggregationChart: FC<Props> = ({
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
     if (activeAggregation) {
-      const timestampIndex = activeAggregation.history.findIndex(
-        (item) => item.start_time === selectedTimestamp
-      );
+      const timestampIndex = isNil(selectedTimestamp)
+        ? -1
+        : activeAggregation.history.findLastIndex(
+            (item) => item.start_time <= selectedTimestamp
+          );
       const historyItem = activeAggregation.history[timestampIndex];
 
       if (historyItem) {

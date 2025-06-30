@@ -156,7 +156,7 @@ class LeaderboardEntryAdmin(admin.ModelAdmin):
         "leaderboard__project__slug",
         "leaderboard__project__name_original",
     ]
-    list_display = ["__str__", "leaderboard", "user", "rank", "take", "excluded"]
+    list_display = ["__str__", "user", "rank", "take", "excluded"]
     autocomplete_fields = ["leaderboard", "user"]
     list_filter = [
         AutocompleteFilterFactory("Leaderboard", "leaderboard"),

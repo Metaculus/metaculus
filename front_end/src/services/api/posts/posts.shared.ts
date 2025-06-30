@@ -25,7 +25,7 @@ export type PostsParams = PaginationParams & {
   statuses?: string | string[];
   categories?: string | string[];
   usernames?: string | string[];
-  tags?: string | string[];
+  leaderboard_tags?: string | string[];
   forecaster_id?: string;
   withdrawn?: string;
   not_forecaster_id?: string;
@@ -38,10 +38,9 @@ export type PostsParams = PaginationParams & {
   community?: string;
   for_main_feed?: string;
   ids?: number[];
-  news_type?: string;
+  news_type?: string | string[];
   public_figure?: number;
   curation_status?: string;
-  notebook_type?: string;
   similar_to_post_id?: number;
   default_project_id?: string;
 };
@@ -100,6 +99,9 @@ class PostsApi extends ApiService {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
+      include_descriptions: false,
+      include_cp_history: true,
+      include_movements: true,
     });
 
     return await this.get<PaginatedPayload<PostWithForecasts>>(

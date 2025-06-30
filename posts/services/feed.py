@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
-from posts.models import Notebook, Post
+from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import (
     perform_post_search,
@@ -26,7 +26,7 @@ def get_posts_feed(
     default_project_id: int = None,
     topic: Project = None,
     community: Project = None,
-    tags: list[Project] = None,
+    leaderboard_tags: list[Project] = None,
     categories: list[Project] = None,
     tournaments: list[Project] = None,
     forecast_type: list[str] = None,
@@ -35,9 +35,8 @@ def get_posts_feed(
     access: PostFilterSerializer.Access = None,
     ids: list[int] = None,
     public_figure: Project = None,
-    news_type: Project = None,
+    news_type: list[Project] = None,
     curation_status: Post.CurationStatus = None,
-    notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
     withdrawn: bool = None,
@@ -87,8 +86,8 @@ def get_posts_feed(
     if community:
         qs = qs.filter_projects(community)
 
-    if tags:
-        qs = qs.filter_projects(tags)
+    if leaderboard_tags:
+        qs = qs.filter_projects(leaderboard_tags)
 
     if categories:
         qs = qs.filter_projects(categories)
@@ -110,9 +109,6 @@ def get_posts_feed(
 
     if curation_status:
         qs = qs.filter(curation_status=curation_status)
-
-    if notebook_type:
-        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
@@ -190,6 +186,10 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
+
+        if order_by == PostFilterSerializer.Order.USER_NEXT_WITHDRAW_TIME:
+            qs = qs.annotate_next_withdraw_time(forecaster_id)
+
         if withdrawn is not None:
             qs = qs.annotate_has_active_forecast(forecaster_id).filter(
                 has_active_forecast=not withdrawn
@@ -249,8 +249,13 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
-    if order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE and not (
-        forecaster_id
+    if (
+        order_type
+        in [
+            PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE,
+            PostFilterSerializer.Order.USER_NEXT_WITHDRAW_TIME,
+        ]
+        and not forecaster_id
     ):
         order_type = "created_at"
 
@@ -295,7 +300,12 @@ def get_similar_posts(post: Post):
         lambda: [
             p.pk
             for p in get_posts_feed(
-                similar_to_post_id=post.id, statuses=["open"], for_main_feed=True
+                # Exclude conditional
+                # Since we don't have a compact tile to display here
+                Post.objects.filter(conditional__isnull=True, notebook__isnull=True),
+                similar_to_post_id=post.id,
+                statuses=["open"],
+                for_main_feed=True,
             )[:8]
         ],
         # 24h

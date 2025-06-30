@@ -11,16 +11,18 @@ import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregati
 
 type Props = {
   rowEntry: LeaderboardEntry;
-  withCoverage?: boolean;
+  maxCoverage?: number;
   userId?: number;
   withPrizePool?: boolean;
+  isAdvanced?: boolean;
 };
 
 const TableRow: FC<Props> = ({
   rowEntry,
-  withCoverage = false,
+  maxCoverage,
   userId,
   withPrizePool = true,
+  isAdvanced = false,
 }) => {
   const {
     user,
@@ -30,49 +32,18 @@ const TableRow: FC<Props> = ({
     score,
     excluded,
     coverage,
+    contribution_count,
     take,
     percent_prize,
     prize,
   } = rowEntry;
   const highlight = user?.id === userId || excluded;
   const t = useTranslations();
-
-  if (!withPrizePool) {
-    return (
-      <tr>
-        <Td className="sticky left-0 text-left" highlight={highlight}>
-          {!user && aggregation_method === "recency_weighted" ? (
-            <RecencyWeightedAggregationRankTooltip />
-          ) : (
-            <>
-              {!!medal && (
-                <MedalIcon type={medal} className="mr-2 inline-block size-4" />
-              )}
-              <span className="flex-1 text-center">{rank}</span>
-            </>
-          )}
-        </Td>
-        <Td className="sticky left-0 text-left" highlight={highlight}>
-          <Link
-            href={
-              user
-                ? `/accounts/profile/${user.id}/`
-                : `/faq/#community-prediction`
-            }
-          >
-            {user
-              ? formatUsername(user)
-              : aggregation_method == "recency_weighted"
-                ? t("communityPrediction")
-                : aggregation_method}
-          </Link>
-        </Td>
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {score.toFixed(3)}
-        </Td>
-      </tr>
-    );
-  }
+  const coveragePercent = coverage
+    ? maxCoverage
+      ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
+      : (coverage * 100).toFixed(1) + "%"
+    : "-";
 
   return (
     <tr>
@@ -81,7 +52,9 @@ const TableRow: FC<Props> = ({
           <RecencyWeightedAggregationRankTooltip />
         ) : (
           <>
-            {!!medal && <MedalIcon type={medal} className="size-5" />}
+            {!!medal && (
+              <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+            )}
             <span className="flex-1 text-center">{rank}</span>
           </>
         )}
@@ -104,22 +77,33 @@ const TableRow: FC<Props> = ({
       <Td className="text-right tabular-nums" highlight={highlight}>
         {score.toFixed(3)}
       </Td>
-      {withCoverage && (
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {coverage ? `${(coverage * 100).toFixed(0)}%` : "-"}
-        </Td>
+      {isAdvanced && (
+        <>
+          <Td className="text-right tabular-nums" highlight={highlight}>
+            {contribution_count ? `${contribution_count.toFixed(0)}` : "-"}
+          </Td>
+          <Td className="text-right tabular-nums" highlight={highlight}>
+            {coveragePercent}
+          </Td>
+        </>
       )}
-      <Td className="text-right tabular-nums" highlight={highlight}>
-        {take?.toFixed(3)}
-      </Td>
-      <>
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
-        </Td>
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
-        </Td>
-      </>
+      {withPrizePool && (
+        <>
+          {isAdvanced && (
+            <>
+              <Td className="text-right tabular-nums" highlight={highlight}>
+                {take?.toFixed(3)}
+              </Td>
+              <Td className="text-right tabular-nums" highlight={highlight}>
+                {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
+              </Td>
+            </>
+          )}
+          <Td className="text-right tabular-nums" highlight={highlight}>
+            {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
+          </Td>
+        </>
+      )}
     </tr>
   );
 };

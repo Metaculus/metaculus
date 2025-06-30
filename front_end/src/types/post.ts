@@ -7,7 +7,13 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-import { Community, Tournament } from "./projects";
+import {
+  Community,
+  NewsCategory,
+  Tournament,
+  LeaderboardTag,
+  Category,
+} from "./projects";
 
 export type Resolution =
   | "yes"
@@ -35,20 +41,6 @@ export enum NotebookType {
 }
 
 export type ForecastType = PostForecastType | QuestionType | NotebookType;
-
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-};
-
-export type Tag = {
-  id: number;
-  name: string;
-  slug: string;
-  is_global_leaderboard: boolean;
-};
 
 export type Topic = {
   id: number;
@@ -119,7 +111,6 @@ export type Notebook = {
   created_at: string;
   edited_at: string;
   markdown: string;
-  type: string;
   image_url: string;
 };
 
@@ -131,9 +122,10 @@ type BasePost = {
     default_project: Tournament;
     tournament?: Tournament[];
     question_series?: Tournament[];
-    tag?: Tag[];
+    leaderboard_tag?: LeaderboardTag[];
     community?: Community[];
     index?: Tournament[];
+    news_category?: NewsCategory[];
   };
   title: string;
   short_title: string;

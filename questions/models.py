@@ -2,13 +2,14 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet
+from django.db.models import Count, QuerySet, Q
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -69,6 +70,18 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     resolution = models.TextField(null=True, blank=True)
     include_bots_in_aggregates = models.BooleanField(default=False)
     question_weight = models.FloatField(default=1.0)
+    default_score_type = models.CharField(
+        max_length=20,
+        choices=ScoreTypes.choices,
+        default=ScoreTypes.PEER,
+        db_index=True,
+        help_text="""Default score type for this question.
+        Generally, this should be either "peer" or "spot_peer".
+        Determines which score will be most prominently displayed in the UI.
+        Also, for Leaderboards that have a "score type" of "default", this question's
+        default score type will be the one that contributes to the leaderboard.
+        """,
+    )
 
     # description fields
     title = models.CharField(max_length=2000)
@@ -379,6 +392,39 @@ class ForecastNoSpamManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(author__is_spam=False)
 
+    def active(self):
+        """
+        Returns active forecasts.
+
+        An active forecast is one that:
+        - start_time is in the past
+        - end_time is either None, or in the future
+        - their question is still open (question.actual_close_time is None and
+          question.scheduled_close_time is in the future and question.open_time is in the past)
+        """
+        now = timezone.now()
+
+        # Forecast timing conditions
+        forecast_started = Q(start_time__lte=now)
+        forecast_not_ended = Q(end_time__isnull=True) | Q(end_time__gt=now)
+
+        # Question status conditions
+        question_not_closed = Q(question__actual_close_time__isnull=True)
+        question_still_accepting_forecasts = Q(question__scheduled_close_time__gt=now)
+        question_opened = Q(question__open_time__lte=now)
+
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                forecast_started
+                & forecast_not_ended
+                & question_not_closed
+                & question_still_accepting_forecasts
+                & question_opened
+            )
+        )
+
 
 class Forecast(models.Model):
     # typing
@@ -527,7 +573,7 @@ class AggregateForecast(models.Model):
             models.Index(fields=["method", "question", "-start_time"]),
         ]
 
-    def __repr__(self):
+    def __str__(self):
         from utils.the_math.measures import percent_point_function
 
         pv = self.get_prediction_values()
@@ -578,3 +624,31 @@ class QuestionPost(models.Model):
     class Meta:
         managed = False
         db_table = "questions_question_post"
+
+
+class UserForecastNotification(models.Model):
+    id: int
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    question = models.ForeignKey(
+        Question,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    trigger_time = models.DateTimeField(null=False, db_index=True)
+    email_sent = models.BooleanField(default=False, db_index=True)
+    forecast = models.ForeignKey(
+        Forecast,
+        models.CASCADE,
+        related_name="notifications",
+        null=False,
+    )
+
+    class Meta:
+        unique_together = ("user", "question")

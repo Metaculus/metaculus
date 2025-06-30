@@ -619,6 +619,10 @@ components:
           type: number
           format: float
           description: Probability for a binary outcome
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     ContinuousForecast:
       type: object
@@ -648,7 +652,7 @@ components:
 
             At least 1% of the probability mass must be assigned uniformly within 
             bounds, which means that the CDF must be strictly increasing by at 
-            least 0.01/200 = 0.0005 per step. No two adjacent values of the CDF 
+            least 0.01/200 = 0.00005 per step. No two adjacent values of the CDF 
             can differ by more than 0.59, which is the largest number obtainable 
             via the sliders.
           type: array
@@ -683,6 +687,10 @@ components:
                   weight:
                     type: number
                     format: float
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     MultipleChoiceForecast:
       type: object
@@ -698,6 +706,10 @@ components:
             type: number
             format: float
           description: Probability distribution for multiple categories. Sum of values must equal 1.0.
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     ConditionalForecast:
       type: array
@@ -713,6 +725,10 @@ components:
           probability_yes:
             type: number
             format: float
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     GroupForecast:
       type: array
@@ -1064,8 +1080,16 @@ paths:
           name: with_cp
           schema:
             type: boolean
+            default: false
             example: true
           description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+        - in: query
+          name: include_cp_history
+          schema:
+            type: boolean
+            default: false
+            example: true
+          description: "When this flag is enabled, each post question response will include aggregations with the full history for each method. By default, question aggregations contain an empty history."
         - in: query
           name: include_descriptions
           schema:

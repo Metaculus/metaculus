@@ -19,11 +19,12 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
-import { Category, Post, PostWithForecasts } from "@/types/post";
+import { Post, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
 import {
@@ -133,8 +134,6 @@ const NotebookForm: React.FC<Props> = ({
       categories: categoriesList.map((x) => x.id),
       notebook: {
         markdown: data["markdown"],
-        type:
-          post?.notebook?.type ?? (news_category_id ? "news" : "discussion"),
       },
     };
 

@@ -1,7 +1,9 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
-import { Category, QuestionStatus, Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
+import { Category } from "@/types/projects";
 
 import { ContinuousForecastInputType } from "./charts";
+import { ScoreType } from "./scoring";
 
 export const DefaultInboundOutcomeCount = 200;
 
@@ -26,6 +28,7 @@ export enum QuestionOrder {
   OpenTimeDesc = "-open_time",
   LastPredictionTimeAsc = "user_last_forecasts_date",
   LastPredictionTimeDesc = "-user_last_forecasts_date",
+  UserNextWithdrawTimeAsc = "user_next_withdraw_time",
   DivergenceDesc = "-divergence",
   VotesDesc = "-vote_score",
   CommentCountDesc = "-comment_count",
@@ -94,7 +97,7 @@ export type ScoreData = {
   spot_baseline_score?: number | null;
   spot_peer_score?: number | null;
   relative_legacy_score?: number | null;
-  relative_legacy_arvhived_score?: number | null;
+  relative_legacy_archived_score?: number | null;
   coverage?: number | null;
   weighted_coverage?: number | null;
 };
@@ -243,11 +246,11 @@ export type Question = {
   resolution: Resolution | null;
   include_bots_in_aggregates: boolean;
   question_weight: number;
+  default_score_type: ScoreType;
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;
   unit: string;
-  nr_forecasters: number;
   author_username: string;
   post_id: number;
   display_divergences?: number[][];

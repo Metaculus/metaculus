@@ -10,7 +10,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -37,6 +37,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType, KeyFactor } from "@/types/comment";
+import { ErrorResponse } from "@/types/fetch";
 import {
   PostStatus,
   PostWithForecasts,
@@ -54,6 +55,7 @@ import { canPredictQuestion } from "@/utils/questions/predictions";
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 import { validateComment } from "./validate_comment";
+import { FormError, FormErrorMessage } from "../ui/form_field";
 import LoadingSpinner from "../ui/loading_spiner";
 
 import { SortOption, sortComments } from ".";
@@ -65,6 +67,7 @@ type CommentChildrenTreeProps = {
   postData?: PostWithForecasts;
   lastViewedAt?: string;
   shouldSuggestKeyFactors?: boolean;
+  isSomeChildrenUnread?: boolean;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -75,6 +78,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   postData,
   lastViewedAt,
   shouldSuggestKeyFactors = false,
+  isSomeChildrenUnread = false,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -124,6 +128,8 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                 !childrenExpanded,
               "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
                 childrenExpanded,
+              "border border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
+                isSomeChildrenUnread,
             }
           )}
           onClick={() => {
@@ -165,7 +171,6 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             const isUnread =
               lastViewedAt &&
               new Date(lastViewedAt) < new Date(child.created_at);
-
             const opacityClass =
               treeDepth % 2 === 1
                 ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
@@ -234,7 +239,7 @@ const Comment: FC<CommentProps> = ({
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
+  const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -287,8 +292,8 @@ const Comment: FC<CommentProps> = ({
   const {
     keyFactors,
     setKeyFactors,
-    errorMessage: keyFactorsErrorMessage,
-    setErrorMessage: setKeyFactorsErrorMessage,
+    errors: keyFactorsErrors,
+    setErrors: setKeyFactorsErrors,
     suggestedKeyFactors,
     setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
@@ -310,7 +315,6 @@ const Comment: FC<CommentProps> = ({
       event_label: "fromComment",
     });
 
-    console.log("onAddKeyFactorClick", shouldSuggestKeyFactors);
     clearState();
     if (isKeyfactorsFormOpen) {
       setIsKeyfactorsFormOpen(false);
@@ -323,8 +327,8 @@ const Comment: FC<CommentProps> = ({
 
   const handleSubmit = async () => {
     const result = await submit(keyFactors, suggestedKeyFactors);
-    if (result?.error) {
-      setKeyFactorsErrorMessage(result.error);
+    if (result && "errors" in result) {
+      setKeyFactorsErrors(result.errors);
       return;
     }
     if (result?.comment) {
@@ -411,9 +415,7 @@ const Comment: FC<CommentProps> = ({
         author: user.id,
       });
       if (response && "errors" in response) {
-        const errorMessage =
-          response.errors?.message ?? response.errors?.non_field_errors?.[0];
-        setErrorMessage(errorMessage);
+        setErrorMessage(response.errors as ErrorResponse);
       } else {
         setCommentMarkdown(parsedMarkdown);
         setIsEditing(false);
@@ -548,6 +550,25 @@ const Comment: FC<CommentProps> = ({
       },
     },
   ];
+  const hasUnreadChildren = useCallback(
+    (comment: CommentType): boolean => {
+      if (!lastViewedAt) return false;
+
+      if (new Date(lastViewedAt) < new Date(comment.created_at)) {
+        return true;
+      }
+
+      return (
+        comment.children?.some((child) => hasUnreadChildren(child)) ?? false
+      );
+    },
+    [lastViewedAt]
+  );
+
+  const isSomeChildrenUnread = useMemo(
+    () => hasUnreadChildren(comment),
+    [comment, hasUnreadChildren]
+  );
 
   if (isDeleted) {
     return (
@@ -743,9 +764,10 @@ const Comment: FC<CommentProps> = ({
               )}
             </div>
             {!!errorMessage && isEditing && (
-              <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
-                {errorMessage}
-              </div>
+              <FormErrorMessage
+                errors={errorMessage}
+                containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
+              />
             )}
             {isEditing && (
               <>
@@ -902,9 +924,7 @@ const Comment: FC<CommentProps> = ({
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
           />
-          {keyFactorsErrorMessage && (
-            <p className="text-red-500">{keyFactorsErrorMessage}</p>
-          )}
+          <FormError errors={keyFactorsErrors} />
           <div className="flex w-full items-end gap-3">
             <Button
               variant="secondary"
@@ -941,6 +961,7 @@ const Comment: FC<CommentProps> = ({
           postData={postData}
           lastViewedAt={lastViewedAt}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+          isSomeChildrenUnread={isSomeChildrenUnread}
         />
       )}
       <CommentReportModal
