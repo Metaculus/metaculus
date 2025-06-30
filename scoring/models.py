@@ -316,7 +316,7 @@ class LeaderboardEntry(TimeStampedModel):
         BRONZE = "bronze"
 
     medal = models.CharField(
-        max_length=200, null=True, blank=True, choices=Medals.choices
+        max_length=200, null=True, blank=True, choices=Medals.choices, db_index=True
     )
     percent_prize = models.FloatField(null=True, blank=True)
     prize = models.FloatField(null=True, blank=True)
