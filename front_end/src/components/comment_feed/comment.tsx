@@ -698,7 +698,7 @@ const Comment: FC<CommentProps> = ({
                         height: 24,
                         charWidth: 8.1,
                       })}
-                      contentEditableClassName="editor-comment font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                      contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
                     />
                   )}
@@ -747,7 +747,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"write"}
                   onChange={setCommentMarkdown}
                   withUgcLinks
-                  contentEditableClassName="editor-comment"
                 />
               )}{" "}
               {!isEditing && (
@@ -759,7 +758,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"read"}
                   withUgcLinks
                   withTwitterPreview
-                  contentEditableClassName="editor-comment"
                 />
               )}
             </div>
