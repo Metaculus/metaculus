@@ -22,6 +22,7 @@ from django.db.models import (
     Case,
     Count,
     Func,
+    Prefetch,
 )
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
@@ -33,6 +34,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import (
     ArchivedScore,
     Score,
@@ -68,7 +70,7 @@ def score_question(
         elif question.cp_reveal_time:
             spot_scoring_time = question.cp_reveal_time.timestamp()
     score_types = score_types or [
-        c[0] for c in Score.ScoreTypes.choices if c[0] != Score.ScoreTypes.MANUAL
+        c[0] for c in ScoreTypes.choices if c[0] != ScoreTypes.MANUAL
     ]
 
     previous_scores = Score.objects.filter(
@@ -111,7 +113,9 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    score_type = Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type)
+    score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
+        "question__default_score_type"
+    )
     qs_filters = {
         "question__in": questions,
         "score_type": score_type,
@@ -137,7 +141,7 @@ def generate_scoring_leaderboard_entries(
         question_id=OuterRef("question_id"),
         user_id=OuterRef("user_id"),
         aggregation_method=OuterRef("aggregation_method"),
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        score_type=score_type,
     )
     if finalize_time:
         archived_scores_subquery = archived_scores_subquery.filter(
@@ -173,20 +177,21 @@ def generate_scoring_leaderboard_entries(
         entries[identifier].score += score.score * score.question.question_weight
         entries[identifier].coverage += score.coverage * score.question.question_weight
         entries[identifier].contribution_count += 1
-    if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
+    if leaderboard.score_type == LeaderboardScoreTypes.PEER_GLOBAL:
         for entry in entries.values():
             entry.score /= max(30, entry.coverage)
-    elif leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
+    elif leaderboard.score_type == LeaderboardScoreTypes.PEER_GLOBAL_LEGACY:
         for entry in entries.values():
             entry.score /= max(40, entry.contribution_count)
     elif leaderboard.score_type in (
-        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
-        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
-        Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.DEFAULT,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
     ):
         for entry in entries.values():
             entry.take = max(entry.score, 0) ** 2
-    elif leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
+    elif leaderboard.score_type == LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
         for entry in entries.values():
             entry.coverage /= maximum_coverage
             entry.take = entry.coverage * np.exp(entry.score)
@@ -357,10 +362,10 @@ def generate_project_leaderboard(
 
     leaderboard.project = project
 
-    if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
+    if leaderboard.score_type == LeaderboardScoreTypes.COMMENT_INSIGHT:
         return generate_comment_insight_leaderboard_entries(leaderboard)
     questions = questions or leaderboard.get_questions()
-    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
+    if leaderboard.score_type == LeaderboardScoreTypes.QUESTION_WRITING:
         return generate_question_writing_leaderboard_entries(questions, leaderboard)
     # We have a scoring based leaderboard
     return generate_scoring_leaderboard_entries(questions, leaderboard)
@@ -372,7 +377,7 @@ def assign_ranks(
     include_humans: bool = True,
     include_bots: bool = False,
 ) -> list[LeaderboardEntry]:
-    RelativeLegacy = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+    RelativeLegacy = LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT
     if leaderboard.score_type == RelativeLegacy:
         entries.sort(key=lambda entry: entry.take, reverse=True)
     else:
@@ -552,34 +557,34 @@ def calculate_medals_points_at_time(at_time):
     points_type_expr = Case(
         When(
             leaderboard__score_type__in=[
-                Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
-                Leaderboard.ScoreTypes.PEER_TOURNAMENT,
-                Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
-                Leaderboard.ScoreTypes.SPOT_BASELINE_TOURNAMENT,
+                LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+                LeaderboardScoreTypes.PEER_TOURNAMENT,
+                LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+                LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
             ],
             then=Value(LeaderboardsRanksEntry.RankTypes.TOURNAMENTS_GLOBAL),
         ),
         When(
             leaderboard__score_type__in=[
-                Leaderboard.ScoreTypes.PEER_GLOBAL,
-                Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY,
+                LeaderboardScoreTypes.PEER_GLOBAL,
+                LeaderboardScoreTypes.PEER_GLOBAL_LEGACY,
             ],
             then=Value(LeaderboardsRanksEntry.RankTypes.PEER_GLOBAL),
         ),
         When(
             leaderboard__score_type__in=[
-                Leaderboard.ScoreTypes.BASELINE_GLOBAL,
+                LeaderboardScoreTypes.BASELINE_GLOBAL,
             ],
             then=Value(LeaderboardsRanksEntry.RankTypes.BASELINE_GLOBAL),
         ),
         When(
             leaderboard__score_type__in=[
-                Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+                LeaderboardScoreTypes.COMMENT_INSIGHT,
             ],
             then=Value(LeaderboardsRanksEntry.RankTypes.COMMENTS_GLOBAL),
         ),
         When(
-            leaderboard__score_type__in=[Leaderboard.ScoreTypes.QUESTION_WRITING],
+            leaderboard__score_type__in=[LeaderboardScoreTypes.QUESTION_WRITING],
             then=Value(LeaderboardsRanksEntry.RankTypes.QUESTIONS_GLOBAL),
         ),
     )
@@ -686,7 +691,7 @@ def update_project_leaderboard(
     if not leaderboard:
         raise ValueError("Leaderboard not found")
 
-    if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
+    if leaderboard.score_type == LeaderboardScoreTypes.MANUAL:
         logger.info("%s is manual, not updating", leaderboard.name)
         return list(leaderboard.entries.all().order_by("rank"))
 
@@ -765,7 +770,7 @@ def update_leaderboard_from_csv_data(
     """
     updates a maunal leaderboard directly from a csv file
     """
-    if leaderboard.score_type != Leaderboard.ScoreTypes.MANUAL:
+    if leaderboard.score_type != LeaderboardScoreTypes.MANUAL:
         raise ValueError("Leaderboard is not a manual leaderboard")
 
     reader = csv.DictReader(StringIO(csv_data))
@@ -822,7 +827,7 @@ def update_leaderboard_from_csv_data(
 
 @dataclass
 class Contribution:
-    score: float
+    score: float | None
     coverage: float | None = None
     question: Question | None = None
     post: Post | None = None
@@ -956,25 +961,38 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
+    with_live_coverage: bool = False,
 ) -> list[Contribution]:
-    if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
+
+    if leaderboard.score_type == LeaderboardScoreTypes.COMMENT_INSIGHT:
         return get_contribution_comment_insight(user, leaderboard)
 
-    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
+    if leaderboard.score_type == LeaderboardScoreTypes.QUESTION_WRITING:
         return get_contribution_question_writing(user, leaderboard)
 
     # Scoring Leaderboards
-    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
+    questions = leaderboard.get_questions().prefetch_related(
+        "related_posts__post",
+        Prefetch(
+            "user_forecasts",
+            queryset=Forecast.objects.filter(author_id=user.id),
+            to_attr="filtered_user_forecasts",
+        ),
+    )
+
+    score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
+        "question__default_score_type"
+    )
 
     calculated_scores = Score.objects.filter(
         question__in=questions,
         user=user,
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        score_type=score_type,
     ).prefetch_related("question__related_posts__post")
     archived_scores = ArchivedScore.objects.filter(
         question__in=questions,
         user=user,
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        score_type=score_type,
     ).prefetch_related("question__related_posts__post")
 
     if leaderboard.finalize_time:
@@ -1018,13 +1036,55 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
-    if "global" not in leaderboard.score_type:
-        contributions += [
-            Contribution(
-                score=None, coverage=None, question=question, post=question.get_post()
-            )
-            for question in questions
-            if question not in scored_question
-        ]
+    if leaderboard.score_type in [
+        LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.DEFAULT,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        LeaderboardScoreTypes.MANUAL,
+    ]:
+        for question in questions:
+            if question not in scored_question:
+                coverage = None
+                if with_live_coverage:
+                    # coverage is added for questions that the user has predicted
+                    forecast_horizon_start = question.open_time.timestamp()
+                    forecast_horizon_end = question.scheduled_close_time.timestamp()
+                    now = timezone.now().timestamp()
+                    covered = 0
+                    user_forecasts = getattr(question, "filtered_user_forecasts", [])
+                    for forecast in user_forecasts:
+                        forecast_start = max(
+                            forecast.start_time.timestamp(), forecast_horizon_start
+                        )
+                        forecast_end = min(
+                            (
+                                forecast.end_time or question.scheduled_close_time
+                            ).timestamp(),
+                            forecast_horizon_end,
+                            now,
+                        )
+                        covered += max(0, forecast_end - forecast_start)
+                    coverage = covered / (forecast_horizon_end - forecast_horizon_start)
+
+                contribution = Contribution(
+                    score=None,
+                    coverage=coverage or None,
+                    question=question,
+                    post=question.get_post(),
+                )
+                contributions.append(contribution)
+
+    contributions = sorted(
+        contributions,
+        key=lambda c: (
+            bool(c.score),
+            c.score or 0,
+            bool(c.coverage),
+            -c.question.open_time.timestamp(),
+        ),
+        reverse=True,
+    )
 
     return contributions
