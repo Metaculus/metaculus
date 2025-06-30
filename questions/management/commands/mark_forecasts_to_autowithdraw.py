@@ -92,6 +92,11 @@ def update_standing_forecasts(before_date):
         # ensure trigger time is set at least 2 days from now (this is needed for cases when trigger time is set to 1 week before end_time)
         trigger_time = max(trigger_time, timezone.now() + timedelta(days=2))
 
+        # ensures the trigger time is not after the question closes
+        trigger_time = min(
+            trigger_time, question.scheduled_close_time - timedelta(days=1)
+        )
+
         # Create notification object (will be bulk created later)
         notification = UserForecastNotification(
             user=forecast.author,
