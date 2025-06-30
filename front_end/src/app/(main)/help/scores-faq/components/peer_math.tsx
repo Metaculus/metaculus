@@ -44,6 +44,16 @@ const PeerMath = () => {
         resolved Yes, and for continuous questions it is the value of the
         predicted pdf at the outcome.
       </p>
+      <p>
+        Note: Peer scores of continuous and discrete questions are further
+        divided by 2. This factor was chosen empirically to bring continuous
+        and discrete scores roughly in line with binary and multiple choice
+        scores.
+      </p>
+      <KatexRenderer
+        equation="\text{continuous Peer score} = 100 \times \frac{1}{2} \frac{1}{N} \sum_{i = 1}^N \operatorname{log\ score}(p) - \operatorname{log\ score}(p_i)"
+        inline={false}
+      />
     </StyledDisclosure>
   );
 };
