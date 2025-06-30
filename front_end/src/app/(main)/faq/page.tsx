@@ -220,7 +220,15 @@ export default async function FAQ() {
               </a>
             </li>
             <li>
+              <a href="#reaffirming">
+                What is &quot;Reaffirming&quot; a prediction?
+              </a>
+            </li>
+            <li>
               <a href="#howwithdraw">How can I withdraw my prediction?</a>
+            </li>
+            <li>
+              <a href="#auto-withdrawal">What is prediction auto-withdrawal?</a>
             </li>
             <li>
               <a href="#range-interface">How do I use the range interface?</a>
@@ -235,14 +243,6 @@ export default async function FAQ() {
                 What is the Metaculus Prediction?
               </a>
             </li>
-            <li>
-              <a href="#reaffirming">
-                What is &quot;Reaffirming&quot; a prediction?
-              </a>
-            </li>
-            <li>
-              <a href="#auto-withdrawal">What is prediction auto-withdrawal?</a>
-            </li>
           </ul>
         </div>
         <hr />
@@ -256,6 +256,9 @@ export default async function FAQ() {
             </li>
             <li>
               <a href="#whatmedals">What are medals?</a>
+            </li>
+            <li>
+              <a href="#whatmedalranks">What are medal ranks?</a>
             </li>
           </ul>
         </div>
@@ -2448,6 +2451,44 @@ export default async function FAQ() {
             light, it is beneficial to take it into account.
           </p>
         </div>
+
+
+        <div>
+          <h3
+            id="reaffirming"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is &quot;Reaffirming&quot; a prediction?
+          </h3>
+          <p>
+            Sometimes you haven&apos;t changed your mind on a question, but you
+            still want to record your current forecast. This is called
+            &quot;reaffirming&quot;: predicting the same value you predicted
+            before, now.
+          </p>
+          <p>
+            It is also useful when sorting questions by the age of your latest
+            forecast. Reaffirming a question sends it to the bottom of that
+            list.
+          </p>
+          <p>
+            You can reaffirm a question from the normal forecast interface on
+            the question page, or using a special button in feeds.
+          </p>
+          <Image
+            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
+            alt="Reaffirming a prediction"
+            className="my-4"
+            width={922}
+            height={575}
+          />
+
+          <p>
+            On question groups, reaffirming impacts all subquestions on which
+            you had a forecast, but not the others.
+          </p>
+        </div>
+
         <div>
           <h3
             id="howwithdraw"
@@ -2717,6 +2758,49 @@ export default async function FAQ() {
             height={300}
           />
         </div>
+
+        <div>
+          <h3
+            id="auto-withdrawal"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is prediction auto-withdrawal?
+          </h3>
+          <p>
+            Prediction auto-withdrawal is a feature that automatically{" "}
+            <Link href="/faq/#howwithdraw">withdraws</Link> your forecast after
+            a set amount of time, unless you update or re-affirm it.
+          </p>
+          <p>
+            By default, a prediction will be withdrawn after 10% of the
+            question’s lifetime has passed. You can adjust this percentage in
+            your account <Link href="/accounts/settings/">settings</Link>.
+          </p>
+          <p>
+            When a prediction is withdrawn:
+            <ul className="ml-5 list-disc">
+              <li>
+                Your forecast{" "}
+                <span className="italic">up to the point of withdrawal</span>{" "}
+                still counts toward your score.
+              </li>
+              <li>
+                You’ll receive a reminder email before the withdrawal date.
+              </li>
+              <li>
+                You can re-affirm the forecast later if it still reflects your
+                view — but the time between withdrawal and re-affirmation won’t
+                count toward your score.
+              </li>
+            </ul>
+          </p>
+          <p>
+            This helps reduce the impact of stale forecasts on your accuracy and
+            the community prediction.
+          </p>
+        </div>
+
+
         <div>
           <h3
             id="range-interface"
@@ -2791,9 +2875,7 @@ export default async function FAQ() {
             height={799}
           />
           {/* TODO: add image of Discrete input */}
-        </div>
 
-        <div>
           <h4
             id="out-of-bounds-resolution"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2815,9 +2897,7 @@ export default async function FAQ() {
             Questions can have open or closed boundaries on either end of the
             specified range.
           </p>
-        </div>
 
-        <div>
           <h4
             id="closed-boundaries"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2834,9 +2914,7 @@ export default async function FAQ() {
             Closed boundaries restrict forecasters from assigning probabilities
             outside the specified range.
           </p>
-        </div>
 
-        <div>
           <h4
             id="open-boundaries"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2859,9 +2937,7 @@ export default async function FAQ() {
             weight can also be lowered or increased to adjust the probability
             assigned to an out of bounds resolution.
           </p>
-        </div>
 
-        <div>
           <h4
             id="multiple-components"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -3000,83 +3076,6 @@ export default async function FAQ() {
           </p>
         </div>
 
-        <div>
-          <h3
-            id="reaffirming"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What is &quot;Reaffirming&quot; a prediction?
-          </h3>
-          <p>
-            Sometimes you haven&apos;t changed your mind on a question, but you
-            still want to record your current forecast. This is called
-            &quot;reaffirming&quot;: predicting the same value you predicted
-            before, now.
-          </p>
-          <p>
-            It is also useful when sorting questions by the age of your latest
-            forecast. Reaffirming a question sends it to the bottom of that
-            list.
-          </p>
-          <p>
-            You can reaffirm a question from the normal forecast interface on
-            the question page, or using a special button in feeds.
-          </p>
-          <Image
-            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
-            alt="Reaffirming a prediction"
-            className="my-4"
-            width={922}
-            height={575}
-          />
-
-          <p>
-            On question groups, reaffirming impacts all subquestions on which
-            you had a forecast, but not the others.
-          </p>
-        </div>
-
-        <div>
-          <h3
-            id="auto-withdrawal"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What is prediction auto-withdrawal?
-          </h3>
-          <p>
-            Prediction auto-withdrawal is a feature that automatically{" "}
-            <Link href="/faq/#howwithdraw">withdraws</Link> your forecast after
-            a set amount of time, unless you update or re-affirm it.
-          </p>
-          <p>
-            By default, a prediction will be withdrawn after 10% of the
-            question’s lifetime has passed. You can adjust this percentage in
-            your account <Link href="/accounts/settings/">settings</Link>.
-          </p>
-          <p>
-            When a prediction is withdrawn:
-            <ul className="ml-5 list-disc">
-              <li>
-                Your forecast{" "}
-                <span className="italic">up to the point of withdrawal</span>{" "}
-                still counts toward your score.
-              </li>
-              <li>
-                You’ll receive a reminder email before the withdrawal date.
-              </li>
-              <li>
-                You can re-affirm the forecast later if it still reflects your
-                view — but the time between withdrawal and re-affirmation won’t
-                count toward your score.
-              </li>
-            </ul>
-          </p>
-          <p>
-            This helps reduce the impact of stale forecasts on your accuracy and
-            the community prediction.
-          </p>
-        </div>
-
         <hr />
         <div>
           <h2
@@ -3122,6 +3121,43 @@ export default async function FAQ() {
           <p>
             Learn more in the dedicated{" "}
             <Link href="/help/medals-faq/">Medals FAQ</Link>.
+          </p>
+
+          <h4
+            id="whatmedalranks"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What are medal ranks?
+          </h4>
+          <p>
+            The ranks shown on user profiles below medals are a measure of how
+            that user's achievements compare to all other users in that
+            category.
+          </p>
+          <p>
+            Each user is assigned a score based on which medal they received,
+            and when they received them. Higher tier medals give more points:
+            gold medals give 10 points each, silver medals give 4 each and
+            bronze medals give 1 each. Points also decay by 2× per year.
+            The general formula is:
+          </p>
+          <KatexRenderer equation="
+            \begin{align*}
+            \text{points} &=&
+            1&0 \sum_{\text{gold medals} } &2^{-\text{medal age in years}}
+            \\
+            &&+&
+            4 \sum_{\text{silver medals} } &2^{-\text{medal age in years}}
+            \\
+            &&+&
+            1 \sum_{\text{bronze medals} } &2^{-\text{medal age in years}}
+            \end{align*}
+          " />
+          <p>
+            Then, all Metaculus users are sorted by how many points they have
+            in each medal category, and it’s their rank in that list that is
+            shown in their profile. The “best ever” rank is simply the best
+            rank they have ever reached in the past.
           </p>
         </div>
 
