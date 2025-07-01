@@ -37,7 +37,8 @@ export UV_THREADPOOL_SIZE=2
 
 (
   cd front_end &&
-  npm run pm2-runtime | sed 's/^/[Frontend]: /'
+  npm run pm2-runtime \
+  2>&1 | sed 's/^/[Frontend]: /'
 ) &
 
 # 3) Wait for Gunicorn and Next.js before starting Nginx
