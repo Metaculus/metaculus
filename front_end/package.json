@@ -11,7 +11,8 @@
     "lint:types": "tsc",
     "format": "prettier \"src/**/**.{js,jsx,ts,tsx}\" --write",
     "format:check": "prettier \"src/**/**.{js,jsx,ts,tsx}\" --check",
-    "translations:generate": "node ./scripts/add_missing_translations.mjs"
+    "translations:generate": "node ./scripts/add_missing_translations.mjs",
+    "pm2-runtime": "pm2 list && pm2-runtime start ecosystem.config.js"
   },
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.18",
