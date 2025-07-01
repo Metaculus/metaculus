@@ -5,7 +5,9 @@ from users.models import User
 from utils.dtypes import setdefaults_not_null
 
 
-def create_question(*, question_type: Question.QuestionType, **kwargs) -> Question:
+def create_question(
+    *, question_type: Question.QuestionType | str, **kwargs
+) -> Question:
     """
     Question factory
     """

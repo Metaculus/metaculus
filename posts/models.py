@@ -218,17 +218,17 @@ class PostQuerySet(models.QuerySet):
 
     def annotate_score(self, user_id: int, desc=True):
         subquery = (
-                       Score.objects.filter(user_id=user_id)
-                       .filter(
-                           Q(question__post=OuterRef("pk"))
-                           | Q(question__group__post=OuterRef("pk"))
-                           | Q(question__conditional_yes__post=OuterRef("pk"))
-                           | Q(question__conditional_no__post=OuterRef("pk"))
-                       )
-                       .values("score")
-                       .annotate(agg_score=Max("score") if desc else Min("score"))
-                       .values("agg_score")
-                   )[:1]
+            Score.objects.filter(user_id=user_id)
+            .filter(
+                Q(question__post=OuterRef("pk"))
+                | Q(question__group__post=OuterRef("pk"))
+                | Q(question__conditional_yes__post=OuterRef("pk"))
+                | Q(question__conditional_no__post=OuterRef("pk"))
+            )
+            .values("score")
+            .annotate(agg_score=Max("score") if desc else Min("score"))
+            .values("agg_score")
+        )[:1]
 
         return self.annotate(score=subquery)
 
@@ -240,7 +240,7 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             user_vote=Subquery(
                 Vote.objects.filter(user=user, post=OuterRef("pk")).values("direction")[
-                :1
+                    :1
                 ]
             ),
         )
@@ -338,17 +338,17 @@ class PostQuerySet(models.QuerySet):
                 ~Q(curation_status=Post.CurationStatus.DELETED)
             )
             | (
-                    Q(_user_permission__isnull=False)
-                    & (
-                            (
-                                    Q(default_project_id=site_main_project.pk)
-                                    & Q(curation_status=Post.CurationStatus.PENDING)
-                            )
-                            | Q(
+                Q(_user_permission__isnull=False)
+                & (
+                    (
+                        Q(default_project_id=site_main_project.pk)
+                        & Q(curation_status=Post.CurationStatus.PENDING)
+                    )
+                    | Q(
                         curation_status=Post.CurationStatus.APPROVED,
                         published_at__lte=timezone.now(),
                     )
-                    )
+                )
             )
         )
 
@@ -376,7 +376,7 @@ class PostQuerySet(models.QuerySet):
         return qs
 
     def filter_permission(
-            self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
+        self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
     ):
         """
         Returns posts visible to the user
@@ -429,8 +429,8 @@ class PostQuerySet(models.QuerySet):
             .filter(open_time__lte=timezone.now())
             .filter(
                 (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=timezone.now())
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=timezone.now())
                 )
                 & Q(resolved=False)
             )
@@ -596,7 +596,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             return self.CurationStatus.APPROVED
 
         if now < self.scheduled_close_time and (
-                not self.actual_close_time or now < self.actual_close_time
+            not self.actual_close_time or now < self.actual_close_time
         ):
             return self.PostStatusChange.OPEN
 
@@ -676,8 +676,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             self.resolved = resolutions and all(resolutions)
         elif self.conditional:
             self.resolved = (
-                    self.conditional.condition_child.resolution is not None
-                    and self.conditional.condition.resolution is not None
+                self.conditional.condition_child.resolution is not None
+                and self.conditional.condition.resolution is not None
             )
         else:
             self.resolved = False
@@ -774,7 +774,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.count()
+        self.forecasts_count = self.forecasts.filter_within_question_period().count()
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):

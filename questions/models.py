@@ -392,7 +392,6 @@ class ForecastQuerySet(QuerySet):
     def filter_within_question_period(self):
         """
         Filters forecast which were made within the period when question was active
-        TODO: tests
         """
 
         return self.filter(
@@ -530,6 +529,13 @@ class Forecast(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
+        ]
+        constraints = [
+            # end_time > start_time
+            models.CheckConstraint(
+                check=Q(end_time__isnull=True) | Q(end_time__gt=F("start_time")),
+                name="end_time_after_start_time",
+            ),
         ]
 
     def __str__(self):
