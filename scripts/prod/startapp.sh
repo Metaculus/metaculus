@@ -37,15 +37,7 @@ export UV_THREADPOOL_SIZE=2
 
 (
   cd front_end &&
-  pm2-runtime npm -- start \
-      -i $PM2_INSTANCES \
-      --name frontend \
-      --node-args="--max-old-space-size=${NODE_HEAP_SIZE}" \
-      --max-memory-restart 2280M \
-      --merge-logs \
-      --output /dev/stdout \
-      --error  /dev/stderr \
-  2>&1 | sed 's/^/[Frontend]: /'
+  npm run pm2-runtime | sed 's/^/[Frontend]: /'
 ) &
 
 # 3) Wait for Gunicorn and Next.js before starting Nginx
