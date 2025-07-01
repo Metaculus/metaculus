@@ -40,7 +40,7 @@ export UV_THREADPOOL_SIZE=2
   pm2-runtime npm -- start \
       -i $PM2_INSTANCES \
       --name frontend \
-      --node-args="--max-old-space-size=2560" \
+      --node-args="--max-old-space-size=${NODE_HEAP_SIZE}" \
       --max-memory-restart 2280M \
       --merge-logs \
       --output /dev/stdout \
