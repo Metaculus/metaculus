@@ -112,6 +112,9 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
 
+  const shouldSuggestKeyFactors =
+    user?.should_suggest_keyfactors && !postData?.notebook;
+
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);
 
@@ -459,7 +462,7 @@ const CommentFeed: FC<Props> = ({
               // This is the newly added comment, so we want to suggest key factors
               comment.id === userKeyFactorsComment?.id
             }
-            shouldSuggestKeyFactors={user?.should_suggest_keyfactors}
+            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           />
         ))}
         {comments.length === 0 && !isLoading && (
