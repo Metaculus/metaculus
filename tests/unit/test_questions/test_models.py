@@ -33,7 +33,7 @@ def test_filter_within_question_period(
         scheduled_close_time=datetime_aware(2025, 2, 1),
         actual_close_time=actual_close_time,
     )
-    post = factory_post(author=user1, question=question)
+    factory_post(author=user1, question=question)
 
     f1 = factory_forecast(
         question=question, author=user1, start_time=start_time, end_time=end_time
