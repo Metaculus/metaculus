@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from comments.models import KeyFactor
+from scoring.models import LeaderboardEntry
 from users.models import User, UserCampaignRegistration
 from projects.models import Project
 
@@ -64,7 +65,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
 class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
-    has_key_factors = serializers.SerializerMethodField()
+    should_suggest_keyfactors = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -76,7 +77,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "hide_community_prediction",
             "is_onboarding_complete",
             "registered_campaigns",
-            "has_key_factors",
+            "should_suggest_keyfactors",
             "prediction_expiration_percent",
         )
 
@@ -91,8 +92,11 @@ class UserPrivateSerializer(UserPublicSerializer):
             .all()
         ]
 
-    def get_has_key_factors(self, user: User):
-        return KeyFactor.objects.filter(comment__author=user).exists()
+    def get_should_suggest_keyfactors(self, user: User):
+        return (
+            KeyFactor.objects.filter(comment__author=user).exists()
+            or LeaderboardEntry.objects.filter(user=user, medal=LeaderboardEntry.Medals.GOLD).exists()
+        )
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):

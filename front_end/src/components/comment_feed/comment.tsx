@@ -334,9 +334,9 @@ const Comment: FC<CommentProps> = ({
     if (result?.comment) {
       const newComment = result.comment;
 
-      if (user && !user.has_key_factors) {
-        // Update the user state to have key factors
-        setUser({ ...user, has_key_factors: true });
+      if (user && !user.should_suggest_keyfactors) {
+        // Update the user state so now the user can get suggested key factors
+        setUser({ ...user, should_suggest_keyfactors: true });
       }
 
       const updatedComments = comments.map((comment) =>
@@ -698,7 +698,7 @@ const Comment: FC<CommentProps> = ({
                         height: 24,
                         charWidth: 8.1,
                       })}
-                      contentEditableClassName="editor-comment font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                      contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
                     />
                   )}
@@ -747,7 +747,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"write"}
                   onChange={setCommentMarkdown}
                   withUgcLinks
-                  contentEditableClassName="editor-comment"
                 />
               )}{" "}
               {!isEditing && (
@@ -759,7 +758,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"read"}
                   withUgcLinks
                   withTwitterPreview
-                  contentEditableClassName="editor-comment"
                 />
               )}
             </div>

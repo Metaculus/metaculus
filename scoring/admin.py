@@ -3,7 +3,6 @@ from django.contrib import admin, messages
 
 from projects.models import Project
 from scoring.models import (
-    UserWeight,
     Leaderboard,
     LeaderboardEntry,
     Score,
@@ -12,11 +11,6 @@ from scoring.models import (
     LeaderboardsRanksEntry,
 )
 from scoring.utils import update_project_leaderboard
-
-
-@admin.register(UserWeight)
-class UserWeightAdmin(admin.ModelAdmin):
-    search_fields = ["user"]
 
 
 @admin.register(Score)
