@@ -62,7 +62,7 @@ export function getSliderNumericForecastDataset(
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
   cdf = cdf.map(
     (F, index) =>
-      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e11) / 1e11
+      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e10) / 1e10
   );
 
   return {

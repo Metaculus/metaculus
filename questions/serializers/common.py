@@ -448,14 +448,14 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "continuous_cdf is required for continuous questions"
             )
-        continuous_cdf = np.round(continuous_cdf, 11).tolist()
+        continuous_cdf = np.round(continuous_cdf, 10).tolist()
         errors = ""
         inbound_pmf = np.round(
             [
                 continuous_cdf[i + 1] - continuous_cdf[i]
                 for i in range(len(continuous_cdf) - 1)
             ],
-            10,
+            9,
         )
         inbound_outcome_count = (
             question.inbound_outcome_count
@@ -469,7 +469,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             )
         min_diff = np.round(
             0.01 / inbound_outcome_count,
-            10,
+            9,
         )  # 0.00005 by default
         if not all(inbound_pmf >= min_diff):
             errors += (
