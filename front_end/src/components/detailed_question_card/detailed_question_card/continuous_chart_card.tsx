@@ -164,9 +164,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
   }, []);
-  console.log(question);
-  console.log(getPostDrivenTime(question.actual_close_time));
-  console.log(Date.now());
+
   return (
     <div
       className={cn(

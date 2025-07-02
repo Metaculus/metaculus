@@ -1,18 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { QuestionType, UserForecastHistory } from "@/types/question";
 
-import { getDateMockData } from "./mock_data";
-import NumericTimeline from "../../../components/charts/numeric_timeline";
+import { getDiscreteMockData } from "./mock_data";
 import { metaArgTypes } from "../config";
 
-const ongoingArgs = getDateMockData(false);
-const closedArgs = getDateMockData(true);
-
 const meta = {
-  title: "Date Question Timeline",
+  title: "Discrete Question Timeline",
   component: NumericTimeline,
   argTypes: {
     ...metaArgTypes,
@@ -23,7 +20,11 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+const numericOngoingArgs = getDiscreteMockData(false);
+const closedArgs = getDiscreteMockData(true);
+
 export const Ongoing: Story = {
+  name: "Ongoing",
   render: (args) => {
     const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
     return (
@@ -35,15 +36,16 @@ export const Ongoing: Story = {
     );
   },
   args: {
-    aggregation: ongoingArgs.aggregation,
-    myForecasts: ongoingArgs.my_forecasts as UserForecastHistory,
-    scaling: ongoingArgs.scaling,
+    aggregation: numericOngoingArgs.aggregation,
+    myForecasts: numericOngoingArgs.my_forecasts as UserForecastHistory,
+    scaling: numericOngoingArgs.scaling,
     withZoomPicker: true,
     defaultZoom: TimelineChartZoomOption.All,
-    questionType: QuestionType.Date,
+    questionType: QuestionType.Numeric,
     height: 150,
     actualCloseTime: null,
     simplifiedCursor: true,
+    unit: "$",
   },
 };
 
@@ -119,6 +121,6 @@ export const OngoingEmbedded: Story = {
     isEmbedded: true,
     simplifiedCursor: true,
     isEmptyDomain: true,
-    extraTheme: ongoingArgs.embedTheme,
+    extraTheme: numericOngoingArgs.embedTheme,
   },
 };

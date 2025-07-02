@@ -1,11 +1,6 @@
-import type { Preview } from "@storybook/nextjs";
-import "../src/app/globals.css";
-import "./styles.css";
-import { withThemeByClassName } from "@storybook/addon-themes";
 import localFont from "next/font/local";
-import { ComponentType } from "react";
 
-const sourceSerifPro = localFont({
+export const sourceSerifPro = localFont({
   src: [
     {
       path: "../../public/fonts/SourceSerifPro-Regular.woff2",
@@ -53,7 +48,7 @@ const sourceSerifPro = localFont({
   preload: false,
 });
 
-const inter = localFont({
+export const inter = localFont({
   src: [
     {
       path: "../../public/fonts/inter_18pt-medium.ttf",
@@ -71,7 +66,7 @@ const inter = localFont({
   preload: false,
 });
 
-const interVariable = localFont({
+export const interVariable = localFont({
   src: [
     {
       path: "../../public/fonts/inter_variable.ttf",
@@ -84,39 +79,13 @@ const interVariable = localFont({
   preload: false,
 });
 
-const leagueGothic = localFont({
+export const leagueGothic = localFont({
   src: "../../public/fonts/league_gothic_variable.ttf",
   variable: "--font-league-gothic",
   display: "swap",
   preload: false,
 });
-const preview: Preview = {
-  parameters: {
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
-      },
-    },
-    backgrounds: {
-      options: {
-        dark: { name: "dark", value: "rgb(38, 47, 56)" },
-        light: { name: "light", value: "rgb(255, 255, 255)" },
-      },
-    },
-  },
-  initialGlobals: {
-    backgrounds: { value: "light" },
-  },
-  decorators: [
-    withThemeByClassName({
-      themes: {
-        light: "light",
-        dark: "dark bg-gray-0-dark",
-      },
-      defaultTheme: "light",
-    }),
-  ],
-};
 
-export default preview;
+export const getFontsString = () => {
+  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable}`;
+};

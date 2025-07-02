@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-
-import NumericTimeline from "../../../components/charts/numeric_timeline";
-import { getBinaryMockData } from "./mock_data";
 import { useState } from "react";
+
 import { TimelineChartZoomOption } from "@/types/charts";
 import { QuestionType } from "@/types/question";
+
+import { getBinaryMockData } from "./mock_data";
+import NumericTimeline from "../../../components/charts/numeric_timeline";
+import { metaArgTypes } from "../config";
 
 type Story = StoryObj<typeof meta>;
 const ongoingArgs = getBinaryMockData(false);
@@ -13,24 +15,11 @@ const meta = {
   title: "Binary Question Timeline",
   component: NumericTimeline,
   argTypes: {
-    withZoomPicker: {
-      control: {
-        type: "boolean",
-      },
-    },
-    myForecasts: {
-      control: { type: "select" },
-      options: ["Default", "None"],
-      mapping: {
-        Default: ongoingArgs.my_forecasts,
-        None: null,
-      },
-    },
+    ...metaArgTypes,
   },
 } satisfies Meta<typeof NumericTimeline>;
 
 export const Ongoing: Story = {
-  name: "Ongoing",
   render: (args) => {
     const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
     return (
@@ -73,7 +62,6 @@ export const CpHidden: Story = {
 };
 
 export const Closed: Story = {
-  name: "Closed",
   render: (args) => {
     const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
     return (
@@ -93,7 +81,6 @@ export const Closed: Story = {
 };
 
 export const Resolved: Story = {
-  name: "Resolved",
   render: (args) => {
     const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
     return (
