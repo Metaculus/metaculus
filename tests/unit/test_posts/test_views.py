@@ -14,8 +14,8 @@ from questions.models import Question
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import create_question
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_questions.factories import create_question
 
 
 class TestPostCreate:
@@ -355,7 +355,9 @@ def test_delete_post(user1_client, user1, user2_client):
     response = user1_client.delete(url)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Post.objects.filter(pk=post.pk).exists()
+    assert (
+        Post.objects.get(pk=post.pk).curation_status == Post.CurationStatus.DELETED
+    )
 
 
 def test_post_view_event_api_view(user1, user1_client):
