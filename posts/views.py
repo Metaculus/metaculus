@@ -388,7 +388,9 @@ def post_delete_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    post.delete()
+    post.update_curation_status(Post.CurationStatus.DELETED)
+    post.save(update_fields=["curation_status"])
+
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
