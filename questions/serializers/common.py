@@ -448,7 +448,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "continuous_cdf is required for continuous questions"
             )
-        continuous_cdf = np.round(continuous_cdf, 10).tolist()
+        continuous_cdf = np.round(continuous_cdf, 11).tolist()
         errors = ""
         inbound_pmf = np.round(
             [
