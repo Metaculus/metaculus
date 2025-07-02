@@ -1,4 +1,4 @@
-import type { Preview } from "@storybook/nextjs";
+import type { Preview } from "@storybook/nextjs-vite";
 import "../src/app/globals.css";
 import "./styles.css";
 import { withThemeByClassName } from "@storybook/addon-themes";
@@ -11,7 +11,7 @@ const withAppTheme = (Story: ComponentType, context: any) => {
   const { setTheme } = useAppTheme();
 
   useEffect(() => {
-    setTheme(context.globals.theme === "light" ? "light" : "dark");
+    setTheme(context.globals.theme === "dark" ? "dark" : "light");
   }, [context.globals.theme]);
 
   return <Story />;
@@ -39,7 +39,7 @@ const preview: Preview = {
     withAppTheme,
     withThemeByClassName({
       themes: {
-        light: "light",
+        light: "light bg-gray-0",
         dark: "dark bg-gray-0-dark",
       },
       defaultTheme: "light",

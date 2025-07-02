@@ -34,6 +34,8 @@
     "@mdxeditor/editor": "^3.23.2",
     "@next/third-parties": "15.2.4",
     "@sentry/nextjs": "^9.17.0",
+    "@storybook/addon-themes": "^9.0.14",
+    "@storybook/nextjs-vite": "^9.0.13",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tanstack/react-table": "^8.20.5",
@@ -83,6 +85,7 @@
     "remark": "^15.0.1",
     "sass": "^1.77.6",
     "sharp": "^0.33.5",
+    "storybook": "^9.0.13",
     "strip-markdown": "^6.0.0",
     "stripe": "^17.7.0",
     "tailwind-merge": "^2.5.5",
@@ -91,11 +94,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@storybook/addon-actions": "^9.0.8",
-    "@storybook/addon-console": "^3.0.0",
-    "@storybook/addon-themes": "^9.0.14",
-    "@storybook/nextjs": "^9.0.13",
-    "@storybook/nextjs-vite": "^9.0.13",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.2.4",
     "eslint-config-prettier": "^9.1.0",
@@ -108,7 +106,6 @@
     "prettier": "3.3.1",
     "prettier-plugin-tailwindcss": "0.5.14",
     "server-only": "^0.0.1",
-    "storybook": "^9.0.13",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.8.2"
   },

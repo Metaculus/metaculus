@@ -1,8 +1,5 @@
-html.dark {
-  color-scheme: dark;
-}
-html.light {
-  color-scheme: light;
+.dark .sb-show-main {
+  background-color: rgb(38, 47, 56) !important;
 }
 
 @font-face {

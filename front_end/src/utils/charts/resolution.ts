@@ -25,7 +25,6 @@ export function getResolutionPoint({
   switch (questionType) {
     case QuestionType.Binary: {
       // format data for binary question
-      console.log(resolveTime);
       return {
         y:
           resolution === "no" ? scaling.range_min ?? 0 : scaling.range_max ?? 1,

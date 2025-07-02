@@ -24,8 +24,8 @@ import { TranslationsBannerProvider } from "@/contexts/translations_banner_conte
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { CurrentUser } from "@/types/users";
 import { logError } from "@/utils/core/errors";
-import { getPublicSettings } from "@/utils/public_settings.server";
 import { getFontsString } from "@/utils/fonts";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 config.autoAddCss = false;
 
