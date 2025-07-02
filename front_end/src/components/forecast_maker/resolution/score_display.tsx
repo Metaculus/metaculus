@@ -59,8 +59,9 @@ const ScoreBox: FC<ScoreBoxProps> = ({
       )}
       <span className="text-sm font-normal">{label}</span>
       <div className={`text-sm font-bold leading-6 ${iconColorClass}`}>
-        {value.toFixed(digits)}
-        {label.toLowerCase().includes("coverage") ? "%" : ""}
+        {label.toLowerCase().includes("coverage")
+          ? (value * 100).toFixed(digits) + "%"
+          : value.toFixed(digits)}
       </div>
     </div>
   );
