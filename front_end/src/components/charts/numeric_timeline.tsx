@@ -76,7 +76,16 @@ const NumericTimeline: FC<Props> = ({
     if (!resolution || !resolveTime || isNil(actualCloseTime)) {
       return null;
     }
-
+    console.log(resolveTime);
+    console.log(getUnixTime(resolveTime));
+    console.log(
+      getResolutionPoint({
+        questionType,
+        resolution,
+        resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime / 1000),
+        scaling,
+      })
+    );
     return getResolutionPoint({
       questionType,
       resolution,

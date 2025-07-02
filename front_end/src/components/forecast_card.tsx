@@ -161,6 +161,7 @@ const ForecastCard: FC<Props> = ({
               </div>
             );
           } else {
+            console.log(embedTheme?.chart);
             return (
               <div className="relative flex w-full flex-col">
                 <NumericTimeline
