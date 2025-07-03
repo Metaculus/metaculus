@@ -38,7 +38,6 @@ import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
   Post,
   PostGroupOfQuestionsSubquestionsOrder,
-  PostStatus,
   PostWithForecasts,
 } from "@/types/post";
 import {
@@ -371,9 +370,6 @@ const GroupForm: React.FC<Props> = ({
     );
   };
 
-  const isEditingActivePost =
-    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
-
   /**
    * Shifts an element in an array by a specified number of positions
    */
@@ -464,7 +460,7 @@ const GroupForm: React.FC<Props> = ({
       debouncedHandleFormChange();
     }
   }, [form, mode, debouncedHandleFormChange, subQuestions]);
-  console.log(community_id, defaultProject);
+
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -501,9 +497,7 @@ const GroupForm: React.FC<Props> = ({
             siteMain={siteMain}
             currentProject={currentProject}
             onChange={(project) => {
-              console.log("project", project);
               form.setValue("default_project", project.id);
-              console.log("form", form.getValues());
             }}
           />
         )}
@@ -760,48 +754,46 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                     </div>
-                    {isEditingActivePost && (
-                      <div className="flex flex-row gap-4">
-                        <InputContainer
-                          labelText={t("openTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.open_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.open_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                        <InputContainer
-                          labelText={t("cpRevealTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.cp_reveal_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.cp_reveal_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                      </div>
-                    )}
+                    <div className="flex flex-row gap-4">
+                      <InputContainer
+                        labelText={t("openTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.open_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.open_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                      <InputContainer
+                        labelText={t("cpRevealTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.cp_reveal_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.cp_reveal_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                    </div>
                     {ContinuousQuestionTypes.some(
                       (type) => type === subtype
                     ) && (
@@ -1063,9 +1055,8 @@ const GroupForm: React.FC<Props> = ({
           fields={[
             "scheduled_close_time",
             "scheduled_resolve_time",
-            ...(isEditingActivePost
-              ? (["open_time", "cp_reveal_time"] as const)
-              : []),
+            "open_time",
+            "cp_reveal_time",
           ]}
         />
       </form>

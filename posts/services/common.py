@@ -66,7 +66,7 @@ def update_global_leaderboard_tags(post: Post):
     # leaderboard(s) this is a part of
 
     # Skip if post is not eligible for global leaderboards
-    if any(
+    if not any(
         p
         for p in post.get_related_projects()
         if p.visibility == Project.Visibility.NORMAL

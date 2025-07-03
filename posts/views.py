@@ -255,7 +255,10 @@ def post_create_api_view(request):
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
 
-    should_delete = check_and_handle_post_spam(request.user, post)
+    user_permission = get_post_permission_for_user(post, user=request.user)
+    is_user_admin = user_permission == ObjectPermission.ADMIN
+
+    should_delete = not is_user_admin and check_and_handle_post_spam(request.user, post)
 
     if should_delete:
         post.curation_status = Post.CurationStatus.DELETED
@@ -388,7 +391,9 @@ def post_delete_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    post.delete()
+    post.update_curation_status(Post.CurationStatus.DELETED)
+    post.save(update_fields=["curation_status"])
+
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 

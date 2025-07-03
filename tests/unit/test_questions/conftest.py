@@ -5,6 +5,7 @@ import pytest
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_conditional, create_question
+from tests.unit.utils import datetime_aware
 
 __all__ = [
     "question_binary",
@@ -16,7 +17,10 @@ __all__ = [
 
 @pytest.fixture()
 def question_binary():
-    return create_question(question_type=Question.QuestionType.BINARY)
+    return create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 6, 1),
+    )
 
 
 @pytest.fixture()
@@ -69,10 +73,14 @@ def conditional_1(question_binary, question_numeric):
         condition=question_binary,
         condition_child=question_numeric,
         question_yes=create_question(
-            question_type=Question.QuestionType.NUMERIC, title="If Yes"
+            question_type=Question.QuestionType.NUMERIC,
+            title="If Yes",
+            scheduled_close_time=datetime_aware(2025, 6, 1),
         ),
         question_no=create_question(
-            question_type=Question.QuestionType.NUMERIC, title="If No"
+            question_type=Question.QuestionType.NUMERIC,
+            title="If No",
+            scheduled_close_time=datetime_aware(2025, 6, 1),
         ),
     )
 

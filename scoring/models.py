@@ -14,12 +14,6 @@ GLOBAL_LEADERBOARD_STRING = "Leaderboard"
 GLOBAL_LEADERBOARD_SLUG = "leaderboard"
 
 
-class UserWeight(TimeStampedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    calculated_on = models.DateTimeField(auto_now_add=True)
-    weight = models.FloatField(default=1)
-
-
 class Score(TimeStampedModel):
     # typing
     question_id: int
@@ -322,7 +316,7 @@ class LeaderboardEntry(TimeStampedModel):
         BRONZE = "bronze"
 
     medal = models.CharField(
-        max_length=200, null=True, blank=True, choices=Medals.choices
+        max_length=200, null=True, blank=True, choices=Medals.choices, db_index=True
     )
     percent_prize = models.FloatField(null=True, blank=True)
     prize = models.FloatField(null=True, blank=True)
