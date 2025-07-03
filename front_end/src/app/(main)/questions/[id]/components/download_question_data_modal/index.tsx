@@ -1,29 +1,26 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-import {
-  emailData,
-  getPostZipData,
-  getWhitelistStatus,
-} from "@/app/(main)/questions/actions";
+import { emailData, getPostZipData } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { CheckboxField } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
 import { DataParams, WhitelistStatus } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
-import { isNil } from "lodash";
 
 type SubmissionType = "download" | "email";
 
@@ -35,7 +32,7 @@ const schema = z.object({
   include_comments: z.boolean(),
   include_scores: z.boolean(),
   include_user_data: z.boolean(),
-  include_bots: z.boolean().nullable(),
+  include_bots: z.enum(["default", "true", "false"]).optional(),
   anonymized: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
@@ -65,7 +62,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
     }
     const fetchWhitelistStatus = async () => {
       try {
-        const status = await getWhitelistStatus({
+        const status = await ClientPostsApi.getWhitelistStatus({
           post_id: post.id,
         });
         setWhitelistStatus({ ...status, isLoaded: true });
@@ -93,7 +90,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_comments: false,
       include_scores: false,
       include_user_data: true,
-      include_bots: null,
+      include_bots: undefined,
       anonymized: !whitelistStatus.view_deanonymized_data,
     },
   });
@@ -120,9 +117,18 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   ) => {
     setPendingSubmission(type);
 
+    // Transform include_bots value for API
+    const transformedData = {
+      ...data,
+      include_bots:
+        data.include_bots === "default"
+          ? undefined
+          : data.include_bots === "true",
+    };
+
     const params: DataParams = {
       post_id: post.id,
-      ...data,
+      ...transformedData,
     };
     if (type === "email") {
       try {
@@ -148,6 +154,12 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       }
     }
   };
+
+  const includeBotOptions = [
+    { value: "default", label: t("default") },
+    { value: "true", label: t("yes") },
+    { value: "false", label: t("no") },
+  ];
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-md">
@@ -202,12 +214,33 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
           {whitelistStatus.is_whitelisted && (
             <>
               {include_user_data ? (
-                <CheckboxField
-                  control={control}
-                  name="include_bots"
-                  label={t("includeBots")}
-                  errors={errors.include_bots}
-                />
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium">
+                    {t("includeBots")}
+                  </label>
+                  <Controller
+                    control={control}
+                    name="include_bots"
+                    render={({ field: { value, onChange } }) => (
+                      <select
+                        value={value || "default"}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      >
+                        {includeBotOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  {errors.include_bots && (
+                    <span className="text-sm text-red-500">
+                      {errors.include_bots.message}
+                    </span>
+                  )}
+                </div>
               ) : null}
               {whitelistStatus.view_deanonymized_data && include_user_data ? (
                 <CheckboxField

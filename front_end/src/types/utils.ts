@@ -12,7 +12,7 @@ export type DataParams = {
   user_ids?: number[];
   include_comments?: boolean;
   include_scores?: boolean;
-  include_bots?: boolean | null;
+  include_bots?: boolean;
   include_user_data?: boolean;
   anonymized?: boolean;
 };
