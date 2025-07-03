@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
@@ -23,6 +23,7 @@ import { DataParams, WhitelistStatus } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
+import { isNil } from "lodash";
 
 type SubmissionType = "download" | "email";
 
@@ -34,7 +35,7 @@ const schema = z.object({
   include_comments: z.boolean(),
   include_scores: z.boolean(),
   include_user_data: z.boolean(),
-  include_bots: z.boolean().optional(),
+  include_bots: z.boolean().nullable(),
   anonymized: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
@@ -82,6 +83,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
     formState: { errors },
     handleSubmit,
     reset,
+    watch,
   } = useForm<FormValues>({
     mode: "all",
     resolver: zodResolver(schema),
@@ -91,24 +93,18 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_comments: false,
       include_scores: false,
       include_user_data: true,
-      include_bots: undefined,
+      include_bots: null,
       anonymized: !whitelistStatus.view_deanonymized_data,
     },
   });
 
-  const minimize = useWatch({ control, name: "minimize" });
-  const includeBots = useWatch({ control, name: "include_bots" });
-  const isDownloadDisabled = !minimize || includeBots !== undefined;
+  const { minimize, include_bots, include_user_data } = watch();
+  const isDownloadDisabled = !minimize || !isNil(include_bots);
 
   useEffect(() => {
     if (whitelistStatus.isLoaded) {
       reset({
-        aggregation_methods: [DownloadAggregationMethod.recency_weighted],
-        minimize: true,
-        include_comments: false,
-        include_scores: false,
-        include_user_data: true,
-        include_bots: undefined,
+        ...watch(),
         anonymized: !whitelistStatus.view_deanonymized_data,
       });
     }
@@ -194,7 +190,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
             label={t("includeUserData")}
             errors={errors.include_user_data}
           />
-          {!!control._getWatch("include_user_data") ? (
+          {!!include_user_data ? (
             <CheckboxField
               control={control}
               name="include_comments"
@@ -203,9 +199,9 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
               disabled={isLoggedOut}
             />
           ) : null}
-          {(!!user?.is_superuser || whitelistStatus.is_whitelisted) && (
+          {whitelistStatus.is_whitelisted && (
             <>
-              {!!control._getWatch("include_user_data") ? (
+              {include_user_data ? (
                 <CheckboxField
                   control={control}
                   name="include_bots"
@@ -213,8 +209,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
                   errors={errors.include_bots}
                 />
               ) : null}
-              {whitelistStatus.view_deanonymized_data &&
-              !!control._getWatch("include_user_data") ? (
+              {whitelistStatus.view_deanonymized_data && include_user_data ? (
                 <CheckboxField
                   control={control}
                   name="anonymized"

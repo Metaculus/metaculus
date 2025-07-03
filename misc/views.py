@@ -148,26 +148,12 @@ def sidebar_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_whitelist_status_api_view(request: Request):
-    # return the most permissive whitelist status for the user given the request
-    user = request.user
-    if not user or not user.is_authenticated:
-        return Response(
-            {"is_whitelisted": False, "view_deanonymized_data": False},
-            status=status.HTTP_200_OK,
-        )
-    if user.is_superuser or user.is_staff:
-        # staff users are always whitelisted
-        return Response(
-            {"is_whitelisted": True, "view_deanonymized_data": True},
-            status=status.HTTP_200_OK,
-        )
-
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
 
     is_whitelisted, view_deanonymized_data = get_whitelist_status(
-        user, post_id, project_id
+        request.user, post_id, project_id
     )
 
     return Response(
