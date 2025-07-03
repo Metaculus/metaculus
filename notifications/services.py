@@ -725,6 +725,7 @@ def send_comment_report_notification_to_staff(
         "emails/comment_report.html",
         context={
             "params": {
+                "post_title": comment.on_post.title,
                 "comment": comment,
                 "preview_text": generate_email_comment_preview_text(
                     comment.text, max_chars=300
