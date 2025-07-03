@@ -6,30 +6,21 @@ import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import SidebarQuestionInfo from "./sidebar_question_info";
-import SidebarQuestionTags from "./sidebar_question_tags";
+import SidebarQuestionProjects from "./sidebar_question_projects";
 import QuestionEmbedButton from "../question_embed_button";
+import SidebarContainer from "./sidebar_container";
 
 const NewsMatch = dynamic(() => import("./news_match"));
 const SimilarQuestions = dynamic(() => import("./similar_questions"));
 
-function SidebarContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="self-stretch rounded bg-gray-0 px-3 py-4 @container dark:bg-gray-0-dark xs:px-5">
-      {children}
-    </div>
-  );
-}
-
 type Props = {
   postData: PostWithForecasts;
-  allowModifications: boolean;
   layout?: "mobile" | "desktop";
   questionTitle: string;
 };
 
 const Sidebar: FC<Props> = ({
   postData,
-  allowModifications,
   layout = "desktop",
   questionTitle,
 }) => {
@@ -39,13 +30,7 @@ const Sidebar: FC<Props> = ({
         <SidebarContainer>
           <SidebarQuestionInfo postData={postData} />
         </SidebarContainer>
-        <SidebarContainer>
-          <SidebarQuestionTags
-            postId={postData.id}
-            tagData={postData.projects}
-            allowModifications={allowModifications}
-          />
-        </SidebarContainer>
+        <SidebarQuestionProjects projects={postData.projects} />
 
         {postData.curation_status === PostStatus.APPROVED && (
           <>
@@ -86,13 +71,7 @@ const Sidebar: FC<Props> = ({
         </div>
       </SidebarContainer>
 
-      <SidebarContainer>
-        <SidebarQuestionTags
-          postId={postData.id}
-          tagData={postData.projects}
-          allowModifications={allowModifications}
-        />
-      </SidebarContainer>
+      <SidebarQuestionProjects projects={postData.projects} />
 
       {postData.curation_status === PostStatus.APPROVED && (
         <>

@@ -14,6 +14,7 @@ from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
 from questions.models import AggregationMethod
+from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard, LeaderboardEntry, LeaderboardsRanksEntry
 from scoring.serializers import (
     LeaderboardSerializer,
@@ -287,7 +288,18 @@ def medal_contributions(
         else:
             leaderboard = leaderboards.first()
 
-    contributions = get_contributions(user, leaderboard)
+    with_live_coverage = leaderboard.score_type in [
+        LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        LeaderboardScoreTypes.MANUAL,
+    ]
+    contributions = get_contributions(
+        user,
+        leaderboard,
+        with_live_coverage,
+    )
     leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
     return_data = {

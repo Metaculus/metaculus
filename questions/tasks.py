@@ -16,7 +16,7 @@ from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
 from questions.models import Question, UserForecastNotification
 from questions.services import build_question_forecasts
-from scoring.models import Score
+from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
@@ -54,14 +54,14 @@ def resolve_question_and_send_notifications(question_id: int):
 
     # scoring
     score_types = [
-        Score.ScoreTypes.BASELINE,
-        Score.ScoreTypes.PEER,
-        Score.ScoreTypes.RELATIVE_LEGACY,
+        ScoreTypes.BASELINE,
+        ScoreTypes.PEER,
+        ScoreTypes.RELATIVE_LEGACY,
     ]
     spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
     if spot_scoring_time:
-        score_types.append(Score.ScoreTypes.SPOT_PEER)
-        score_types.append(Score.ScoreTypes.SPOT_BASELINE)
+        score_types.append(ScoreTypes.SPOT_PEER)
+        score_types.append(ScoreTypes.SPOT_BASELINE)
     score_question(
         question,
         question.resolution,
@@ -120,9 +120,9 @@ def resolve_question_and_send_notifications(question_id: int):
 
         notification_params = user_notification_params[score.user]
 
-        if score.score_type == Score.ScoreTypes.PEER:
+        if score.score_type == ScoreTypes.PEER:
             notification_params.peer_score = score.score
-        if score.score_type == Score.ScoreTypes.BASELINE:
+        if score.score_type == ScoreTypes.BASELINE:
             notification_params.baseline_score = score.score
 
     # Sending notifications
@@ -130,16 +130,18 @@ def resolve_question_and_send_notifications(question_id: int):
         NotificationPredictedQuestionResolved.schedule(user, params)
 
 
-@dramatiq.actor(time_limit=5 * 60 * 1000)  # 5 minutes
+@dramatiq.actor
 def check_and_schedule_forecast_widrawal_due_notifications():
     now = timezone.now()
-    one_day_ago = now - timedelta(days=1)
+    one_day_from_now = now + timedelta(days=1)
 
     # Base query for notifications that are due and not sent.
     # Check only the last day to avoid sending notifications for old forecasts
     # when the user might have been unsubscribed.
     due_and_unsent = Q(
-        trigger_time__gte=one_day_ago, trigger_time__lte=now, email_sent=False
+        trigger_time__gte=now,
+        trigger_time__lt=one_day_from_now,
+        email_sent=False,
     )
 
     # Condition for users who have unsubscribed from this type of notification
@@ -155,8 +157,10 @@ def check_and_schedule_forecast_widrawal_due_notifications():
         question__actual_close_time__lte=now
     )
 
+    forecast_alreday_withdrawn = Q(forecast__end_time__lt=now)
+
     all_notifications = UserForecastNotification.objects.filter(due_and_unsent).exclude(
-        user_is_unsubscribed | question_is_closed
+        user_is_unsubscribed | question_is_closed | forecast_alreday_withdrawn
     )
 
     # Group notifications by user and post
@@ -186,7 +190,7 @@ def check_and_schedule_forecast_widrawal_due_notifications():
                     "title": post.title,
                     "url": build_post_url(post.id),
                     "expiration_date": (
-                        notification.forecast.end_time.strftime("%B %d, %Y at %I:%M")
+                        notification.forecast.end_time.strftime("%B %d, %Y at %H:%M %Z")
                         if notification.forecast.end_time
                         else None
                     ),
@@ -194,6 +198,14 @@ def check_and_schedule_forecast_widrawal_due_notifications():
             )
 
         user_notifications[user.email]["notifications"].append(notification)
+
+    # Sort posts by expiration_date, ascending
+    for notification_data in user_notifications.values():
+        notification_data["posts"].sort(
+            key=lambda post: (post["expiration_date"] is None, post["expiration_date"])
+        )
+
+    logging.info(f"Sending {len(user_notifications)} notifications")
 
     # Send batched notifications
     for _, notification_data in user_notifications.items():

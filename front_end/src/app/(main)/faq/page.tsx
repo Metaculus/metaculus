@@ -514,10 +514,9 @@ export default async function FAQ() {
         </p>
 
         <p>
-          Note: to limit administrative costs, tournaments that closed after 1st
-          of June, 2025 no longer give prizes below 50$, and the remaining money
-          is redistributed to forecasters with higher scores. Tournaments that
-          closed before 1st of June, 2025 still do not give prizes below 10$.
+          For more information about how scores are calculated and prizes are
+          awarded, see the tournament scores section of our{" "}
+          <Link href="/help/scores-faq/#tournament-scores">scores FAQ</Link>.
         </p>
 
         <h4 className="text-lg font-semibold">

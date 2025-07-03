@@ -14,11 +14,11 @@ from projects.serializers.common import (
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
-    TagSerializer,
     ProjectUserSerializer,
     TournamentShortSerializer,
     NewsCategorySerialize,
     serialize_project_index_weights,
+    LeaderboardTagSerializer,
 )
 from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
@@ -31,7 +31,6 @@ from projects.services.common import (
     get_project_timeline_data,
 )
 from users.services.common import get_users_by_usernames
-from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
 from utils.tasks import email_data_task
@@ -95,33 +94,10 @@ def categories_list_api_view(request: Request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def tags_list_api_view(request: Request):
-    search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
-        request.query_params.get("search")
-    )
+def leaderboard_tags_list_api_view(request: Request):
+    qs = get_projects_qs().filter_leaderboard_tags()
 
-    def f():
-        qs = get_projects_qs().filter_tags().annotate_posts_count()
-
-        if search_query:
-            qs = qs.filter(name__icontains=search_query)
-        else:
-            qs = qs.order_by("-posts_count")
-
-        qs = qs[0:1000]
-
-        return [
-            {**TagSerializer(obj).data, "posts_count": obj.posts_count}
-            for obj in qs.all()
-        ]
-
-    data = (
-        f()
-        if search_query
-        else cache_get_or_set("tags_list_api_view", f, timeout=3600 * 6)
-    )
-
-    return Response(data)
+    return Response(LeaderboardTagSerializer(qs, many=True).data)
 
 
 @api_view(["GET"])

@@ -68,8 +68,9 @@ const ProjectPickerInput: React.FC<{
     <InputContainer labelText={t("projects")}>
       <Combobox
         immediate
-        onChange={() => {
-          onChange(selectedProject);
+        onChange={(project: TournamentPreview) => {
+          onChange(project);
+          setSelectedProject(project);
         }}
       >
         <div className="relative mt-1">
@@ -114,8 +115,6 @@ const ProjectPickerInput: React.FC<{
                     }
                     value={project}
                     onClick={() => {
-                      setSelectedProject(project);
-                      onChange(project);
                       setQuery("");
                       setFilteredProjects(initialProjects);
                       // we need timeout to blur the combobox after the selection is made

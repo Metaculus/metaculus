@@ -1,15 +1,14 @@
 "use client";
 import { faArrowTrendUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import useAppTheme from "@/hooks/use_app_theme";
 import { SiteStats } from "@/services/api/misc/misc.shared";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import Button from "./button";
+import ClientImage from "./client_image";
 import HeadingDark from "../assets/heading-dark.svg?url";
 import HeadingLight from "../assets/heading-light.svg?url";
 
@@ -19,7 +18,6 @@ type Props = {
 
 const HeadingBlock: FC<Props> = ({ siteStats }) => {
   const t = useTranslations();
-  const { theme } = useAppTheme();
   return (
     <div className="flex flex-col items-center gap-[42px] text-center text-blue-700 dark:text-blue-700-dark lg:flex-row">
       <div className="flex flex-col items-center lg:items-start">
@@ -84,8 +82,9 @@ const HeadingBlock: FC<Props> = ({ siteStats }) => {
         </div>
         <Button href="#contact-us">{t("contactUs")}</Button>
       </div>
-      <Image
-        src={theme === "dark" ? HeadingDark : HeadingLight}
+      <ClientImage
+        lightSrc={HeadingLight}
+        darkSrc={HeadingDark}
         alt="heading"
         width={538}
         height={480}

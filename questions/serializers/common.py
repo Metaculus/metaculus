@@ -66,6 +66,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution",
             "include_bots_in_aggregates",
             "question_weight",
+            "default_score_type",
             "label",
             "unit",
             "open_upper_bound",
@@ -454,7 +455,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 continuous_cdf[i + 1] - continuous_cdf[i]
                 for i in range(len(continuous_cdf) - 1)
             ],
-            10,
+            9,
         )
         inbound_outcome_count = (
             question.inbound_outcome_count
@@ -468,7 +469,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             )
         min_diff = np.round(
             0.01 / inbound_outcome_count,
-            10,
+            9,
         )  # 0.00005 by default
         if not all(inbound_pmf >= min_diff):
             errors += (

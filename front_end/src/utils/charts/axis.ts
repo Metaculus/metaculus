@@ -65,7 +65,10 @@ export function getAxisLeftPadding(
   yLabel?: string | undefined
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
-  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+  const longestLabelLength = Math.min(
+    Math.max(...labels.map((label) => label.length)),
+    12
+  );
   const fontSizeScale = yLabel ? 9 : 8;
   return {
     leftPadding: Math.round(
@@ -81,7 +84,10 @@ export function getAxisRightPadding(
   yLabel?: string | undefined
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
-  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+  const longestLabelLength = Math.min(
+    Math.max(...labels.map((label) => label.length)),
+    12
+  );
   const fontSizeScale = yLabel ? 11 : 9;
   return {
     rightPadding: Math.round(
