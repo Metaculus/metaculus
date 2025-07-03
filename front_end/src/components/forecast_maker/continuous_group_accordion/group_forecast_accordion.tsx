@@ -172,8 +172,7 @@ const GroupForecastAccordion: FC<Props> = ({
             <ContinuousInputWrapper
               option={option}
               copyMenu={
-                openOptions.length > 1 &&
-                option.question.status === QuestionStatus.OPEN ? (
+                openOptions.length > 0 ? (
                   <ForecastMakerGroupCopyMenu
                     option={option}
                     options={openOptions}
@@ -215,6 +214,16 @@ const GroupForecastAccordion: FC<Props> = ({
           >
             <ContinuousInputWrapper
               option={option}
+              copyMenu={
+                openOptions.length > 0 ? (
+                  <ForecastMakerGroupCopyMenu
+                    option={option}
+                    options={openOptions}
+                    handleCopy={handleCopy}
+                    setForcedOpenId={setForcedOpenId}
+                  />
+                ) : undefined
+              }
               canPredict={false}
               isPending={isPending}
               handleChange={handleChange}
@@ -247,6 +256,16 @@ const GroupForecastAccordion: FC<Props> = ({
           >
             <ContinuousInputWrapper
               option={option}
+              copyMenu={
+                openOptions.length > 0 ? (
+                  <ForecastMakerGroupCopyMenu
+                    option={option}
+                    options={openOptions}
+                    handleCopy={handleCopy}
+                    setForcedOpenId={setForcedOpenId}
+                  />
+                ) : undefined
+              }
               canPredict={false}
               isPending={isPending}
               handleChange={handleChange}
