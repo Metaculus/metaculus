@@ -2452,7 +2452,6 @@ export default async function FAQ() {
           </p>
         </div>
 
-
         <div>
           <h3
             id="reaffirming"
@@ -2800,7 +2799,6 @@ export default async function FAQ() {
           </p>
         </div>
 
-
         <div>
           <h3
             id="range-interface"
@@ -3131,17 +3129,18 @@ export default async function FAQ() {
           </h4>
           <p>
             The ranks shown on user profiles below medals are a measure of how
-            that user's achievements compare to all other users in that
+            that user&#39;s achievements compare to all other users in that
             category.
           </p>
           <p>
             Each user is assigned a score based on which medal they received,
             and when they received them. Higher tier medals give more points:
             gold medals give 10 points each, silver medals give 4 each and
-            bronze medals give 1 each. Points also decay by 2× per year.
-            The general formula is:
+            bronze medals give 1 each. Points also decay by 2× per year. The
+            general formula is:
           </p>
-          <KatexRenderer equation="
+          <KatexRenderer
+            equation="
             \begin{align*}
             \text{points} &=&
             1&0 \sum_{\text{gold medals} } &2^{-\text{medal age in years}}
@@ -3152,12 +3151,13 @@ export default async function FAQ() {
             &&+&
             1 \sum_{\text{bronze medals} } &2^{-\text{medal age in years}}
             \end{align*}
-          " />
+          "
+          />
           <p>
-            Then, all Metaculus users are sorted by how many points they have
-            in each medal category, and it’s their rank in that list that is
-            shown in their profile. The “best ever” rank is simply the best
-            rank they have ever reached in the past.
+            Then, all Metaculus users are sorted by how many points they have in
+            each medal category, and it’s their rank in that list that is shown
+            in their profile. The “best ever” rank is simply the best rank they
+            have ever reached in the past.
           </p>
         </div>
 
