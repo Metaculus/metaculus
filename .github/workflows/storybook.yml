@@ -2,6 +2,7 @@ name: Deploy storybook
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   deploy-to-prod:
