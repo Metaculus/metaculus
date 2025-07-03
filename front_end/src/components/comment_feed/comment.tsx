@@ -310,6 +310,15 @@ const Comment: FC<CommentProps> = ({
     onKeyFactorsLoadded,
   });
 
+  const withKeyFactors =
+    comment.author.id === user?.id &&
+    ![
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postData?.status ?? PostStatus.CLOSED) &&
+    !postData?.notebook;
+
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", {
       event_label: "fromComment",
@@ -608,7 +617,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.length > 0 && (
+      {commentKeyFactors.length > 0 && withKeyFactors && (
         <div className="mb-3 mt-1.5 flex flex-col gap-1">
           {commentKeyFactors.map((kf) => (
             <KeyFactorItem
@@ -804,44 +813,39 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {comment.author.id === user?.id &&
-                    ![
-                      PostStatus.CLOSED,
-                      PostStatus.RESOLVED,
-                      PostStatus.PENDING_RESOLUTION,
-                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
-                      <Button
-                        size="xxs"
-                        variant="tertiary"
-                        onClick={onAddKeyFactorClick}
-                        className="relative flex items-center justify-center"
-                      >
-                        <>
-                          <div
-                            className={cn(
-                              "absolute inset-0 flex items-center justify-center",
-                              isLoadingSuggestedKeyFactors && "visible",
-                              !isLoadingSuggestedKeyFactors && "invisible"
-                            )}
-                          >
-                            <LoadingSpinner className="size-4" />
-                          </div>
-                          <div
-                            className={cn(
-                              "flex items-center",
-                              isLoadingSuggestedKeyFactors && "invisible",
-                              !isLoadingSuggestedKeyFactors && "visible"
-                            )}
-                          >
-                            <FontAwesomeIcon
-                              icon={isKeyfactorsFormOpen ? faXmark : faPlus}
-                              className="size-4 p-1"
-                            />
-                            {t("addKeyFactor")}
-                          </div>
-                        </>
-                      </Button>
-                    )}
+                  {withKeyFactors && (
+                    <Button
+                      size="xxs"
+                      variant="tertiary"
+                      onClick={onAddKeyFactorClick}
+                      className="relative flex items-center justify-center"
+                    >
+                      <>
+                        <div
+                          className={cn(
+                            "absolute inset-0 flex items-center justify-center",
+                            isLoadingSuggestedKeyFactors && "visible",
+                            !isLoadingSuggestedKeyFactors && "invisible"
+                          )}
+                        >
+                          <LoadingSpinner className="size-4" />
+                        </div>
+                        <div
+                          className={cn(
+                            "flex items-center",
+                            isLoadingSuggestedKeyFactors && "invisible",
+                            !isLoadingSuggestedKeyFactors && "visible"
+                          )}
+                        >
+                          <FontAwesomeIcon
+                            icon={isKeyfactorsFormOpen ? faXmark : faPlus}
+                            className="size-4 p-1"
+                          />
+                          {t("addKeyFactor")}
+                        </div>
+                      </>
+                    </Button>
+                  )}
 
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton
