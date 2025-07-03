@@ -1,0 +1,24 @@
+name: Deploy storybook PRODUCTION
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-to-prod:
+    runs-on: ubuntu-24.04
+    environment: prod_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Trigger Cloudflare build
+        run: |
+          curl -fsS \
+          -X POST \
+          -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "deployment_trigger": { "type": "ad_hoc" },
+                "branch": "${{ github.ref_name }}",
+                "commit_hash": "${{ github.sha }}"
+              }' \
+          "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/${{ secrets.CLOUDFLARE_PROJECT }}/deployments"
