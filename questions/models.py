@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet, Q
+from django.db.models import Count, QuerySet, Q, F
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
@@ -388,9 +388,31 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
         return f"Group of Questions {self.post}"
 
 
-class ForecastNoSpamManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(author__is_spam=False)
+class ForecastQuerySet(QuerySet):
+    def filter_within_question_period(self):
+        """
+        Filters forecast which were made within the period when question was active
+        """
+
+        return self.filter(
+            (
+                # Has no end time or an end time after question open time
+                Q(end_time__isnull=True)
+                | Q(end_time__gt=F("question__open_time"))
+            )
+            & (
+                # Has a start time earlier than the questions actual close time (if it is set)
+                (
+                    Q(question__actual_close_time__isnull=False)
+                    & Q(start_time__lt=F("question__actual_close_time"))
+                )
+                # or scheduled close time (if actual isn't set)
+                | (
+                    Q(question__actual_close_time__isnull=True)
+                    & Q(start_time__lt=F("question__scheduled_close_time"))
+                )
+            ),
+        )
 
     def active(self):
         """
@@ -424,6 +446,11 @@ class ForecastNoSpamManager(models.Manager):
                 & question_opened
             )
         )
+
+
+class ForecastNoSpamManager(models.Manager.from_queryset(ForecastQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().filter(author__is_spam=False)
 
 
 class Forecast(models.Model):
@@ -502,6 +529,13 @@ class Forecast(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
+        ]
+        constraints = [
+            # end_time > start_time
+            models.CheckConstraint(
+                check=Q(end_time__isnull=True) | Q(end_time__gt=F("start_time")),
+                name="end_time_after_start_time",
+            ),
         ]
 
     def __str__(self):

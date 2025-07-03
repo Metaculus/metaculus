@@ -20,23 +20,44 @@ from tests.unit.test_questions.factories import (
     create_question,
 )
 from tests.unit.test_users.factories import factory_user
+from tests.unit.utils import datetime_aware
 
 
 class TestPostQuerySetAnnotatePredictionsCount:
     def test_question(self, question_binary, user1):
         post = factory_post(author=user1, question=question_binary)
 
-        factory_forecast(question=question_binary, author=user1)
-        factory_forecast(question=question_binary, author=user1)
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 2),
+        )
 
         assert Post.objects.filter(pk=post.id).first().forecasts_count == 2
 
     def test_conditional_questions(self, conditional_1, user1):
         post = factory_post(author=user1, conditional=conditional_1)
 
-        factory_forecast(question=conditional_1.question_yes, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(
+            question=conditional_1.question_yes,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 2),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 3),
+        )
 
         assert Post.objects.filter(pk=post.id).first().forecasts_count == 3
 
@@ -49,12 +70,32 @@ class TestPostQuerySetAnnotatePredictionsCount:
         post1 = factory_post(author=user1, conditional=conditional_1)
         post2 = factory_post(author=user1, question=question_binary)
 
-        factory_forecast(question=conditional_1.question_yes, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(
+            question=conditional_1.question_yes,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
 
-        factory_forecast(question=question_binary, author=user1)
-        factory_forecast(question=question_binary, author=user1)
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
 
         qs = Post.objects.all()
 

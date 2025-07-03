@@ -39,11 +39,12 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const [isChartReady, setIsChartReady] = useState(false);
 
   const aggregation = question.aggregations.recency_weighted;
+  const isCpHidden = !!forecastAvailability?.cpRevealsOn;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
 
   const cursorData = useMemo(() => {
-    if (!!forecastAvailability?.cpRevealsOn) {
+    if (isCpHidden) {
       return {
         timestamp:
           cursorTimestamp ?? question.my_forecasts?.latest?.start_time ?? null,
@@ -64,19 +65,16 @@ const DetailedContinuousChartCard: FC<Props> = ({
       forecast.start_time < question.my_forecasts.latest.start_time
     ) {
       timestamp = question.my_forecasts.latest.start_time;
-
-      return {
-        timestamp,
-        forecasterCount: forecast?.forecaster_count ?? 0,
-        interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
-        center: forecast?.centers?.[0] ?? null,
-        interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
-      };
+    } else {
+      timestamp = forecast?.start_time ?? cursorTimestamp;
     }
 
     return {
-      timestamp: forecast?.start_time ?? cursorTimestamp,
-      forecasterCount: forecast?.forecaster_count ?? 0,
+      timestamp: timestamp,
+      forecasterCount:
+        // If there are no mouseover, we should display total forecasters number,
+        // otherwise - only active during that period
+        (cursorTimestamp ? forecast?.forecaster_count : nrForecasters) ?? 0,
       interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
       center: forecast?.centers?.[0] ?? null,
       interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
@@ -208,7 +206,11 @@ const DetailedContinuousChartCard: FC<Props> = ({
         )}
       >
         <CursorDetailItem
-          title={t("totalForecastersLabel")}
+          title={
+            cursorTimestamp && !isCpHidden
+              ? t("activeForecastersLabel")
+              : t("totalForecastersLabel")
+          }
           content={cursorData.forecasterCount.toString()}
         />
         <CursorDetailItem
