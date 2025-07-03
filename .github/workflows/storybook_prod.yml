@@ -1,4 +1,4 @@
-name: Deploy storybook PRODUCTION
+name: Deploy storybook
 
 on:
   workflow_dispatch:
@@ -16,9 +16,5 @@ jobs:
           -X POST \
           -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
           -H "Content-Type: application/json" \
-          -d '{
-                "deployment_trigger": { "type": "ad_hoc" },
-                "branch": "${{ github.ref_name }}",
-                "commit_hash": "${{ github.sha }}"
-              }' \
+          -F branch=${{ github.ref_name }} \
           "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/${{ secrets.CLOUDFLARE_PROJECT }}/deployments"
