@@ -774,7 +774,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.count()
+        self.forecasts_count = self.forecasts.filter_within_question_period().count()
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):
@@ -818,7 +818,13 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             return []
 
     def get_forecasters(self) -> QuerySet["User"]:
-        return User.objects.filter(forecast__post=self).distinct("pk")
+        return User.objects.filter(
+            Exists(
+                Forecast.objects.filter(
+                    post=self, author=OuterRef("id")
+                ).filter_within_question_period()
+            )
+        )
 
     def get_votes_score(self) -> int:
         return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0
