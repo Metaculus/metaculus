@@ -3152,6 +3152,7 @@ export default async function FAQ() {
             1 \sum_{\text{bronze medals} } &2^{-\text{medal age in years}}
             \end{align*}
           "
+            inline
           />
           <p>
             Then, all Metaculus users are sorted by how many points they have in
