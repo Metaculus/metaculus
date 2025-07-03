@@ -7,14 +7,22 @@ jobs:
   deploy-to-prod:
     runs-on: ubuntu-24.04
     environment: prod_env
+    defaults:
+      run:
+        working-directory: front_end
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Trigger Cloudflare build
-        run: |
-          curl -fsS \
-          -X POST \
-          -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          -F branch=${{ github.ref_name }} \
-          "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/${{ secrets.CLOUDFLARE_PROJECT }}/deployments"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build-storybook
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./storybook-static --project-name=${{ secrets.CLOUDFLARE_PROJECT }} \
+            --branch=${{ github.ref_name }}
