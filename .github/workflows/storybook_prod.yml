@@ -26,6 +26,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: |
-            pages deploy ./front_end/storybook-static \
-            --project-name=${{ secrets.CLOUDFLARE_PROJECT }} \
-            --branch=${{ github.ref_name }}
+            pages deploy ./front_end/storybook-static --project-name=${{ secrets.CLOUDFLARE_PROJECT }} --branch=${{ github.ref_name }}
