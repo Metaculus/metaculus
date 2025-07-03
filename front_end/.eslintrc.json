@@ -2,7 +2,8 @@
   "extends": [
     "plugin:prettier/recommended",
     "next/core-web-vitals",
-    "next/typescript"
+    "next/typescript",
+    "plugin:storybook/recommended"
   ],
   "rules": {
     "@typescript-eslint/no-non-null-assertion": "error",
