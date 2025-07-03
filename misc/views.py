@@ -109,10 +109,11 @@ def get_bulletins(request):
 @permission_classes([AllowAny])
 def get_site_stats(request):
     now_year = datetime.now().year
+    public_questions = Question.objects.filter_public()
     stats = {
-        "predictions": Forecast.objects.count(),
-        "questions": Question.objects.count(),
-        "resolved_questions": Question.objects.filter(
+        "predictions": Forecast.objects.filter(question__in=public_questions).count(),
+        "questions": public_questions.count(),
+        "resolved_questions": public_questions.filter(
             actual_resolve_time__isnull=False
         ).count(),
         "years_of_predictions": now_year - 2015 + 1,
