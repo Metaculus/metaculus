@@ -252,7 +252,8 @@ function sanitizeHtml(markdown: string) {
   // decode gt and lt to < and >, so MDXEditor can render it properly
   markdown = markdown.replace(/&lt;/g, "<");
   markdown = markdown.replace(/&gt;/g, ">");
-
+  // also decode &amp; to &
+  markdown = markdown.replace(/\\&amp;/g, "&");
   return markdown;
 }
 
