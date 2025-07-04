@@ -6,10 +6,12 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import ExampleContinuousInput from "@/components/forecast_maker/continuous_input/example_continuous_input";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import {
   DefaultInboundOutcomeCount,
   QuestionDraft,
@@ -62,6 +64,7 @@ const NumericQuestionInput: React.FC<{
   draftKey,
 }) => {
   const t = useTranslations();
+  const { DEBUG } = usePublicSettings();
   const [errors, setError] = useState<string[]>([]);
   const [min, setMin] = useState(
     questionType !== QuestionType.Discrete ||
@@ -554,6 +557,103 @@ const NumericQuestionInput: React.FC<{
 
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
+            NOTE: timeline to be removed. For demo purposes only:
+            <NumericTimeline
+              aggregation={{
+                history: [
+                  {
+                    start_time: 1751303566.822108,
+                    end_time: 1751304445.570179,
+                    forecaster_count: 1,
+                    interval_lower_bounds: [0.5],
+                    centers: [0.666],
+                    interval_upper_bounds: [0.833],
+                  },
+                  {
+                    start_time: 1751304445.570179,
+                    end_time: 1751304896.931686,
+                    forecaster_count: 2,
+                    interval_lower_bounds: [0.514],
+                    centers: [0.723],
+                    interval_upper_bounds: [0.927],
+                  },
+                  {
+                    start_time: 1751304896.931686,
+                    end_time: 1751310678.88108,
+                    forecaster_count: 3,
+                    interval_lower_bounds: [0.383],
+                    centers: [0.656],
+                    interval_upper_bounds: [0.905],
+                  },
+                ],
+                latest: {
+                  start_time: 1751495432.499511,
+                  end_time: 1752001662.982,
+                  forecaster_count: 31,
+                  interval_lower_bounds: [0.349],
+                  centers: [0.481],
+                  interval_upper_bounds: [0.622],
+                  forecast_values: [
+                    0.036, 0.037, 0.038, 0.039, 0.04, 0.041, 0.042, 0.043,
+                    0.044, 0.045, 0.046, 0.048, 0.049, 0.05, 0.052, 0.053,
+                    0.054, 0.056, 0.057, 0.059, 0.061, 0.062, 0.064, 0.066,
+                    0.068, 0.07, 0.072, 0.074, 0.076, 0.078, 0.08, 0.083, 0.085,
+                    0.088, 0.09, 0.093, 0.096, 0.099, 0.102, 0.105, 0.108,
+                    0.111, 0.115, 0.118, 0.122, 0.125, 0.129, 0.133, 0.137,
+                    0.141, 0.145, 0.149, 0.154, 0.158, 0.163, 0.167, 0.172,
+                    0.177, 0.182, 0.187, 0.192, 0.197, 0.203, 0.208, 0.214,
+                    0.219, 0.225, 0.231, 0.237, 0.244, 0.25, 0.257, 0.264,
+                    0.271, 0.278, 0.286, 0.294, 0.302, 0.311, 0.32, 0.329,
+                    0.339, 0.349, 0.359, 0.369, 0.38, 0.391, 0.401, 0.412,
+                    0.423, 0.434, 0.444, 0.455, 0.466, 0.476, 0.487, 0.497,
+                    0.508, 0.518, 0.529, 0.539, 0.55, 0.56, 0.571, 0.581, 0.591,
+                    0.601, 0.611, 0.621, 0.63, 0.639, 0.648, 0.657, 0.665,
+                    0.673, 0.681, 0.689, 0.697, 0.705, 0.712, 0.719, 0.726,
+                    0.733, 0.739, 0.746, 0.752, 0.758, 0.765, 0.77, 0.776,
+                    0.782, 0.788, 0.793, 0.798, 0.804, 0.809, 0.814, 0.819,
+                    0.824, 0.829, 0.833, 0.838, 0.842, 0.847, 0.851, 0.855,
+                    0.859, 0.863, 0.867, 0.871, 0.875, 0.878, 0.882, 0.885,
+                    0.889, 0.892, 0.895, 0.899, 0.902, 0.905, 0.908, 0.91,
+                    0.913, 0.915, 0.917, 0.919, 0.921, 0.923, 0.925, 0.927,
+                    0.929, 0.931, 0.933, 0.935, 0.936, 0.938, 0.94, 0.941,
+                    0.943, 0.944, 0.946, 0.947, 0.949, 0.95, 0.951, 0.953,
+                    0.954, 0.955, 0.957, 0.958, 0.959, 0.96, 0.961, 0.962,
+                    0.963, 0.964, 0.965, 0.966, 0.967, 0.968, 0.969,
+                  ],
+                  means: null,
+                  histogram: null,
+                },
+                score_data: {},
+                movement: null,
+              }}
+              aggregationIndex={0}
+              myForecasts={{
+                history: [],
+                latest: null,
+                score_data: {},
+              }}
+              defaultZoom={"all"}
+              withZoomPicker={true}
+              height={150}
+              cursorTimestamp={null}
+              onCursorChange={() => {}}
+              onChartReady={() => {}}
+              questionType={question.type}
+              actualCloseTime={1753484340000}
+              scaling={question.scaling}
+              extraTheme={undefined}
+              resolution={null}
+              resolveTime={null}
+              hideCP={false}
+              isEmptyDomain={false}
+              openTime={1751302800000}
+              unit={question.unit}
+              tickFontSize={undefined}
+              nonInteractive={undefined}
+              inboundOutcomeCount={question.inbound_outcome_count}
+              isEmbedded={undefined}
+              simplifiedCursor={true}
+            />
             Example input chart:
             <ExampleContinuousInput question={question} />
           </>

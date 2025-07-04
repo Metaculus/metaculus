@@ -297,6 +297,7 @@ export function generateTimestampXScale(
 function minimumSignificantRounding(values: number[]): number[] {
   const roundedValues: number[] = [];
   function sigfigRound(val: number, sigfigs: number): number {
+    if (val === 0) return 0; // Special case for zero
     const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
     return Math.round(val * divisor) / divisor;
   }
@@ -456,27 +457,54 @@ export function generateScale({
 
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
-  if (displayType === QuestionType.Discrete) {
-    // Discrete Scaling
-    // Try and label as many ticks as possible
-    // Ticks line up with the middle of the buckets
-    const tickCount =
-      forceTickCount ??
-      inbound_outcome_count +
+  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+    // every value gets a tick and fit as many labels as possible
+    const tickCount = forceTickCount
+      ? Math.min(forceTickCount, inbound_outcome_count)
+      : inbound_outcome_count +
         (question?.open_lower_bound ? 1 : 0) +
         (question?.open_upper_bound ? 1 : 0);
 
-    const bucketCount = tickCount - 2;
-    const halfBucket = 0.5 / bucketCount;
+    const halfBucket = 0.5 / inbound_outcome_count;
     const tickStart = question?.open_lower_bound ? -halfBucket : halfBucket;
     const tickEnd = 1 + (question?.open_upper_bound ? halfBucket : -halfBucket);
 
-    minorTicks = range(tickStart, tickEnd + 1e-4, 1 / bucketCount).map(
+    minorTicks = range(tickStart, tickEnd + 1e-4, 1 / tickCount).map(
       (x) => Math.round(x * 10000) / 10000
     );
 
     const step =
-      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / bucketCount;
+      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
+    majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
+      (x) => Math.round(x * 10000) / 10000
+    );
+    majorTicks.push(minorTicks.at(-1) ?? 1);
+  } else if (
+    displayType === QuestionType.Discrete &&
+    direction === "vertical"
+  ) {
+    // expect to have a foreced tick count, and never include
+    // out of bounds values
+    const tickCount = forceTickCount
+      ? Math.min(forceTickCount, inbound_outcome_count)
+      : inbound_outcome_count;
+
+    const halfBucket = 0.5 / inbound_outcome_count;
+    const tickStart = halfBucket;
+    const tickEnd = 1 - halfBucket;
+
+    minorTicks = range(0, tickCount).map((i) => {
+      // round to the nearest outcome value
+      const x =
+        Math.round((i / (tickCount - 1)) * (inbound_outcome_count - 1)) /
+        (inbound_outcome_count - 1);
+      return (
+        Math.round((tickStart + (tickEnd - tickStart) * x) * 10000) / 10000
+      );
+    });
+
+    const step =
+      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
       (x) => Math.round(x * 10000) / 10000
     );
@@ -644,94 +672,94 @@ export function generateScale({
     );
   }
 
-  // if (direction === "horizontal") {
-  //   // Debugging - do not remove
-  //   console.log(
-  //     "\n displayType",
-  //     displayType,
-  //     "\n axisLength",
-  //     axisLength,
-  //     "\n direction",
-  //     direction,
-  //     "\n domain",
-  //     domain,
-  //     "\n zoomedDomain",
-  //     zoomedDomain,
-  //     "\n scaling",
-  //     scaling,
-  //     "\n unit",
-  //     unit,
-  //     "\n shortLabels",
-  //     shortLabels,
-  //     "\n adjustLabels",
-  //     adjustLabels,
-  //     "\n inboundOutcomeCount",
-  //     inboundOutcomeCount,
-  //     "\n question",
-  //     question,
-  //     "\n forceTickCount",
-  //     forceTickCount,
-  //     "\n alwaysShowTicks",
-  //     alwaysShowTicks,
-  //     "\n",
-  //     "\n domainMin",
-  //     domainMin,
-  //     "\n domainMax",
-  //     domainMax,
-  //     "\n domainScaling",
-  //     domainScaling,
-  //     "\n rangeMin",
-  //     rangeMin,
-  //     "\n rangeMax",
-  //     rangeMax,
-  //     "\n zeroPoint",
-  //     zeroPoint,
-  //     "\n inbound_outcome_count",
-  //     inbound_outcome_count,
-  //     "\n rangeScaling",
-  //     rangeScaling,
-  //     "\n zoomedDomainMin",
-  //     zoomedDomainMin,
-  //     "\n zoomedDomainMax",
-  //     zoomedDomainMax,
-  //     "\n",
-  //     "\n maxLabelCount",
-  //     maxLabelCount,
-  //     // "\n zoomedRange",
-  //     // zoomedRange,
-  //     // "\n minorRes",
-  //     // minorRes,
-  //     // "\n majorRes",
-  //     // majorRes,
-  //     // "\n minorTickInterval",
-  //     // minorTickInterval,
-  //     // "\n tickStart",
-  //     // tickStart,
-  //     // "\n tickEnd",
-  //     // tickEnd,
-  //     // "\n unscaledTargets",
-  //     // unscaledTargets,
-  //     // "\n scaledTargets",
-  //     // scaledTargets,
-  //     // "\n roundedScaledTargets",
-  //     // roundedScaledTargets,
-  //     // "\n minorTicksPerMajorInterval",
-  //     // minorTicksPerMajorInterval,
-  //     // "\n majorTickStart",
-  //     // majorTickStart,
-  //     // "\n majorTickInterval",
-  //     // majorTickInterval,
-  //     "\n minorTicks",
-  //     minorTicks,
-  //     "\n majorTicks",
-  //     majorTicks,
-  //     "\n",
-  //     "\n discreteValueOptions:",
-  //     discreteValueOptions,
-  //     "\n tick labels:",
-  //     minorTicks.map((x) => tickFormat(x))
-  //   );
-  // }
+  if (!true && displayType === "numeric" && direction === "vertical") {
+    // Debugging - do not remove
+    console.log(
+      "\n displayType",
+      displayType,
+      "\n axisLength",
+      axisLength,
+      "\n direction",
+      direction,
+      "\n domain",
+      domain,
+      "\n zoomedDomain",
+      zoomedDomain,
+      "\n scaling",
+      scaling,
+      "\n unit",
+      unit,
+      "\n shortLabels",
+      shortLabels,
+      "\n adjustLabels",
+      adjustLabels,
+      "\n inboundOutcomeCount",
+      inboundOutcomeCount,
+      "\n question",
+      question,
+      "\n forceTickCount",
+      forceTickCount,
+      "\n alwaysShowTicks",
+      alwaysShowTicks,
+      "\n",
+      "\n domainMin",
+      domainMin,
+      "\n domainMax",
+      domainMax,
+      "\n domainScaling",
+      domainScaling,
+      "\n rangeMin",
+      rangeMin,
+      "\n rangeMax",
+      rangeMax,
+      "\n zeroPoint",
+      zeroPoint,
+      "\n inbound_outcome_count",
+      inbound_outcome_count,
+      "\n rangeScaling",
+      rangeScaling,
+      "\n zoomedDomainMin",
+      zoomedDomainMin,
+      "\n zoomedDomainMax",
+      zoomedDomainMax,
+      "\n",
+      "\n maxLabelCount",
+      maxLabelCount,
+      // "\n zoomedRange",
+      // zoomedRange,
+      // "\n minorRes",
+      // minorRes,
+      // "\n majorRes",
+      // majorRes,
+      // "\n minorTickInterval",
+      // minorTickInterval,
+      // "\n tickStart",
+      // tickStart,
+      // "\n tickEnd",
+      // tickEnd,
+      // "\n unscaledTargets",
+      // unscaledTargets,
+      // "\n scaledTargets",
+      // scaledTargets,
+      // "\n roundedScaledTargets",
+      // roundedScaledTargets,
+      // "\n minorTicksPerMajorInterval",
+      // minorTicksPerMajorInterval,
+      // "\n majorTickStart",
+      // majorTickStart,
+      // "\n majorTickInterval",
+      // majorTickInterval,
+      "\n minorTicks",
+      minorTicks,
+      "\n majorTicks",
+      majorTicks,
+      "\n",
+      "\n discreteValueOptions:",
+      discreteValueOptions,
+      "\n tick labels:",
+      minorTicks.map((x) => tickFormat(x))
+    );
+  }
 
   return {
     ticks: minorTicks,
