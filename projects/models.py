@@ -39,9 +39,6 @@ class ProjectsQuerySet(models.QuerySet):
             )
         )
 
-    def filter_news(self):
-        return self.filter(type=Project.ProjectTypes.NEWS_CATEGORY)
-
     def filter_tags(self):
         return self.filter(type=Project.ProjectTypes.TAG)
 

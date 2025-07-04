@@ -34,6 +34,23 @@ const ChoiceOption: FC<Props> = ({
   labelClassName,
   actual_resolve_time,
 }) => {
+  const resolutionWords = String(displayedResolution)?.split(" ");
+  const adjustedResolution = resolutionWords.length
+    ? resolutionWords
+        .map((word, index) => {
+          const outOfBoundsResolution = ["above", "below"].includes(
+            resolutionWords[0]?.toLowerCase() ?? ""
+          );
+          if (
+            (outOfBoundsResolution && index === 0) ||
+            (!outOfBoundsResolution && index === 1)
+          ) {
+            return word + "\n";
+          }
+          return word;
+        })
+        .join(" ")
+    : resolution;
   return (
     <div
       key={`choice-option-${choice}`}
@@ -70,7 +87,7 @@ const ChoiceOption: FC<Props> = ({
       ) : (
         <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
           <ResolutionIcon />
-          {displayedResolution ?? resolution}
+          <div className="whitespace-pre text-right">{adjustedResolution}</div>
         </div>
       )}
     </div>

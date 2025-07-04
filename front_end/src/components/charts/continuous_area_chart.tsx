@@ -38,6 +38,7 @@ import {
   interpolateYValue,
 } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -821,7 +822,7 @@ export function getContinuousAreaChartData({
   const latest = question.aggregations.recency_weighted.latest;
   const userForecast = question.my_forecasts?.latest;
 
-  if (latest && !latest.end_time) {
+  if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
@@ -835,7 +836,7 @@ export function getContinuousAreaChartData({
       cdf: userForecastOverride.cdf,
       type: "user" as ContinuousAreaType,
     });
-  } else if (!!userForecast && !userForecast.end_time) {
+  } else if (!!userForecast && isForecastActive(userForecast)) {
     chartData.push({
       pmf: cdfToPmf(userForecast.forecast_values),
       cdf: userForecast.forecast_values,

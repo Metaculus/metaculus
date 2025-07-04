@@ -6,6 +6,22 @@
   --baseBgActive: theme("colors.gray.300.DEFAULT");
   --baseBorder: theme("colors.gray.500.DEFAULT");
   --baseBase: theme("colors.gray.100.DEFAULT");
+
+  .react-tweet-theme {
+    --tweet-container-margin: 0 !important;
+  }
+  .tweets-wrapper {
+    @apply grid auto-cols-fr grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2.5;
+    & > p {
+      @apply m-0;
+    }
+    .react-tweet-theme {
+      @apply !max-w-full;
+    }
+    & > *:last-child:nth-child(2n + 1) {
+      @apply col-span-full;
+    }
+  }
 }
 
 .mdxeditor-popup-container {
