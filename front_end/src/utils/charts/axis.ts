@@ -6,7 +6,7 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
-import { isNil, min, range, uniq } from "lodash";
+import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
@@ -309,6 +309,10 @@ function minimumSignificantRounding(values: number[]): number[] {
       const nextValue = values[i + 1];
       let digits = 1;
       let candidate: number;
+      if (isNil(prevValue) || isNil(nextValue)) {
+        roundedValues.push(value);
+        return;
+      }
       while (true) {
         candidate = sigfigRound(value, digits);
         if (
