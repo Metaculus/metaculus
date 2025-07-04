@@ -89,6 +89,8 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
+  const showInTheNewsMainSortOption = isLargeScreen || isNil(user);
+
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
@@ -107,7 +109,7 @@ const MainFeedFilters: FC<Props> = ({
             },
           ]
         : []),
-      ...(isLargeScreen || isNil(user)
+      ...(showInTheNewsMainSortOption
         ? [
             {
               value: QuestionOrder.NewsHotness,
@@ -129,8 +131,11 @@ const MainFeedFilters: FC<Props> = ({
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+      ...(!showInTheNewsMainSortOption
+        ? [{ value: QuestionOrder.NewsHotness, label: t("inTheNews") }]
+        : []),
     ],
-    [t]
+    [showInTheNewsMainSortOption, t]
   );
 
   const onOrderChange = (
