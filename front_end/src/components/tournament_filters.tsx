@@ -37,6 +37,7 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.CloseTimeAsc,
   QuestionOrder.ScoreDesc,
   QuestionOrder.ScoreAsc,
+  QuestionOrder.NewsHotness,
 ];
 const RESOLVED_STATUS_FILTERS = [QuestionOrder.HotAsc];
 const FORECASTER_ID_FILTERS = [

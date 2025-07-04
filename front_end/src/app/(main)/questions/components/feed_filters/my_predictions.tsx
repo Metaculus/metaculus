@@ -73,6 +73,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ScoreDesc, label: t("bestScores") },
       { value: QuestionOrder.ScoreAsc, label: t("worstScores") },
+      { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
     [t]
   );
@@ -131,6 +132,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         QuestionOrder.CloseTimeAsc,
         QuestionOrder.LastPredictionTimeAsc,
         QuestionOrder.UserNextWithdrawTimeAsc,
+        QuestionOrder.NewsHotness,
       ].includes(order)
     ) {
       setFilterParam(POST_STATUS_FILTER, "open", false);
