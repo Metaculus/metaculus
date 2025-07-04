@@ -24,9 +24,6 @@ const ProjectLeaderboardClient = ({
 }: Props) => {
   const t = useTranslations();
 
-  const hasAdvancedView =
-    leaderboardDetails.score_type === "relative_legacy_tournament" ||
-    !!leaderboardDetails.prize_pool;
   const [isAdvanced, setIsAdvanced] = useState(false);
 
   const advancedToggleElement = (
@@ -48,7 +45,7 @@ const ProjectLeaderboardClient = ({
       variant={isQuestionSeries ? "primary" : "gold"}
       detailElement={(isOpen) => {
         if (!isOpen) return null;
-        return hasAdvancedView ? advancedToggleElement : null;
+        return advancedToggleElement;
       }}
     >
       {!!leaderboardDetails.prize_pool && (

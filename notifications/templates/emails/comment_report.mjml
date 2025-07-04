@@ -22,6 +22,10 @@
                         <a href="{{ params.comment_url }}">(link)</a>
                     </div>
                     <div>
+                        <b>Post:</b>
+                        <a href="{{ params.comment_url }}">{{ params.post_title }}</a>
+                    </div>
+                    <div>
                         <b>Reason:</b>
                         <span>{{ params.reason }}</span>
                     </div>

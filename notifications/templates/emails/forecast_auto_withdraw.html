@@ -144,12 +144,12 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with recipient_username=recipient.username %} Hello {{ recipient_username }}, {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with recipient_username=recipient.username %} Hi {{ recipient_username }}, {% endblocktrans %}</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Your predictions on these questions have almost run their duration and will be automatically withdrawn if you do not update them: {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} We automatically <a href="https://www.metaculus.com/faq/#auto-withdrawal" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">withdraw forecasts</a> to reduce the influence of stale predictions on your score and on the Community Prediction. <br> Your {{ number_of_posts }} predictions will be auto-withdrawn unless updated or <a href="https://www.metaculus.com/faq/#reaffirming" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">reaffirmed</a>. {% endblocktrans %}</div>
                       </td>
                     </tr> {% for post in posts_data %} <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
@@ -157,7 +157,7 @@
                       </td>
                     </tr> {% endfor %} <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Keep your predictions up to date to get good scores! {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Your predictions up until withdrawal still count toward your score. You can adjust or turn off auto-withdrawal in <a href="{{ account_settings_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings</a>. {% endblocktrans %}</div>
                       </td>
                     </tr>
                     <tr>
@@ -167,7 +167,7 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:12px;line-height:24px;text-align:left;color:#666666;">{% blocktrans with account_settings_url=account_settings_url %} If you no longer wish to receive this type of email, you can unsubscribe here. You can also manage your notification settings on your Metaculus <a href="{{ account_settings_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings</a> page. {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:12px;line-height:24px;text-align:left;color:#666666;">{% blocktrans with account_settings_url=account_settings_url %} You can manage your notification settings on your Metaculus <a href="{{ account_settings_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings</a> page. {% endblocktrans %}</div>
                       </td>
                     </tr>
                   </tbody>

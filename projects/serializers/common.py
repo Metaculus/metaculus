@@ -7,19 +7,13 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
-from scoring.models import GLOBAL_LEADERBOARD_STRING
 from users.serializers import UserPublicSerializer
 
 
-class TagSerializer(serializers.ModelSerializer):
-    is_global_leaderboard = serializers.SerializerMethodField()
-
+class LeaderboardTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "type", "is_global_leaderboard")
-
-    def get_is_global_leaderboard(self, obj: Project) -> bool:
-        return obj.name.endswith(GLOBAL_LEADERBOARD_STRING)
+        fields = ("id", "name", "slug", "type")
 
 
 class NewsCategorySerialize(serializers.ModelSerializer):
@@ -31,7 +25,7 @@ class NewsCategorySerialize(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "description", "type")
+        fields = ("id", "name", "slug", "emoji", "description", "type")
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -93,8 +87,8 @@ class TournamentSerializer(TournamentShortSerializer):
 
 def serialize_project(obj: Project):
     match obj.type:
-        case obj.ProjectTypes.TAG:
-            serializer = TagSerializer
+        case obj.ProjectTypes.LEADERBOARD_TAG:
+            serializer = LeaderboardTagSerializer
         case obj.ProjectTypes.TOPIC:
             serializer = TopicSerializer
         case obj.ProjectTypes.CATEGORY:
@@ -112,7 +106,7 @@ def serialize_project(obj: Project):
         case obj.ProjectTypes.COMMUNITY:
             serializer = CommunitySerializer
         case _:
-            serializer = TagSerializer
+            serializer = LeaderboardTagSerializer
 
     return serializer(obj).data
 

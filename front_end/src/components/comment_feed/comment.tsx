@@ -10,7 +10,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -67,6 +67,7 @@ type CommentChildrenTreeProps = {
   postData?: PostWithForecasts;
   lastViewedAt?: string;
   shouldSuggestKeyFactors?: boolean;
+  isSomeChildrenUnread?: boolean;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -77,6 +78,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   postData,
   lastViewedAt,
   shouldSuggestKeyFactors = false,
+  isSomeChildrenUnread = false,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -126,6 +128,8 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                 !childrenExpanded,
               "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
                 childrenExpanded,
+              "border border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
+                isSomeChildrenUnread,
             }
           )}
           onClick={() => {
@@ -167,7 +171,6 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             const isUnread =
               lastViewedAt &&
               new Date(lastViewedAt) < new Date(child.created_at);
-
             const opacityClass =
               treeDepth % 2 === 1
                 ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
@@ -307,6 +310,15 @@ const Comment: FC<CommentProps> = ({
     onKeyFactorsLoadded,
   });
 
+  const withKeyFactors =
+    comment.author.id === user?.id &&
+    ![
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postData?.status ?? PostStatus.CLOSED) &&
+    !postData?.notebook;
+
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", {
       event_label: "fromComment",
@@ -331,9 +343,9 @@ const Comment: FC<CommentProps> = ({
     if (result?.comment) {
       const newComment = result.comment;
 
-      if (user && !user.has_key_factors) {
-        // Update the user state to have key factors
-        setUser({ ...user, has_key_factors: true });
+      if (user && !user.should_suggest_keyfactors) {
+        // Update the user state so now the user can get suggested key factors
+        setUser({ ...user, should_suggest_keyfactors: true });
       }
 
       const updatedComments = comments.map((comment) =>
@@ -547,6 +559,25 @@ const Comment: FC<CommentProps> = ({
       },
     },
   ];
+  const hasUnreadChildren = useCallback(
+    (comment: CommentType): boolean => {
+      if (!lastViewedAt) return false;
+
+      if (new Date(lastViewedAt) < new Date(comment.created_at)) {
+        return true;
+      }
+
+      return (
+        comment.children?.some((child) => hasUnreadChildren(child)) ?? false
+      );
+    },
+    [lastViewedAt]
+  );
+
+  const isSomeChildrenUnread = useMemo(
+    () => hasUnreadChildren(comment),
+    [comment, hasUnreadChildren]
+  );
 
   if (isDeleted) {
     return (
@@ -586,7 +617,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.length > 0 && (
+      {commentKeyFactors.length > 0 && withKeyFactors && (
         <div className="mb-3 mt-1.5 flex flex-col gap-1">
           {commentKeyFactors.map((kf) => (
             <KeyFactorItem
@@ -676,7 +707,7 @@ const Comment: FC<CommentProps> = ({
                         height: 24,
                         charWidth: 8.1,
                       })}
-                      contentEditableClassName="editor-comment font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                      contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
                     />
                   )}
@@ -725,7 +756,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"write"}
                   onChange={setCommentMarkdown}
                   withUgcLinks
-                  contentEditableClassName="editor-comment"
                 />
               )}{" "}
               {!isEditing && (
@@ -737,7 +767,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"read"}
                   withUgcLinks
                   withTwitterPreview
-                  contentEditableClassName="editor-comment"
                 />
               )}
             </div>
@@ -784,44 +813,39 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {comment.author.id === user?.id &&
-                    ![
-                      PostStatus.CLOSED,
-                      PostStatus.RESOLVED,
-                      PostStatus.PENDING_RESOLUTION,
-                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
-                      <Button
-                        size="xxs"
-                        variant="tertiary"
-                        onClick={onAddKeyFactorClick}
-                        className="relative flex items-center justify-center"
-                      >
-                        <>
-                          <div
-                            className={cn(
-                              "absolute inset-0 flex items-center justify-center",
-                              isLoadingSuggestedKeyFactors && "visible",
-                              !isLoadingSuggestedKeyFactors && "invisible"
-                            )}
-                          >
-                            <LoadingSpinner className="size-4" />
-                          </div>
-                          <div
-                            className={cn(
-                              "flex items-center",
-                              isLoadingSuggestedKeyFactors && "invisible",
-                              !isLoadingSuggestedKeyFactors && "visible"
-                            )}
-                          >
-                            <FontAwesomeIcon
-                              icon={isKeyfactorsFormOpen ? faXmark : faPlus}
-                              className="size-4 p-1"
-                            />
-                            {t("addKeyFactor")}
-                          </div>
-                        </>
-                      </Button>
-                    )}
+                  {withKeyFactors && (
+                    <Button
+                      size="xxs"
+                      variant="tertiary"
+                      onClick={onAddKeyFactorClick}
+                      className="relative flex items-center justify-center"
+                    >
+                      <>
+                        <div
+                          className={cn(
+                            "absolute inset-0 flex items-center justify-center",
+                            isLoadingSuggestedKeyFactors && "visible",
+                            !isLoadingSuggestedKeyFactors && "invisible"
+                          )}
+                        >
+                          <LoadingSpinner className="size-4" />
+                        </div>
+                        <div
+                          className={cn(
+                            "flex items-center",
+                            isLoadingSuggestedKeyFactors && "invisible",
+                            !isLoadingSuggestedKeyFactors && "visible"
+                          )}
+                        >
+                          <FontAwesomeIcon
+                            icon={isKeyfactorsFormOpen ? faXmark : faPlus}
+                            className="size-4 p-1"
+                          />
+                          {t("addKeyFactor")}
+                        </div>
+                      </>
+                    </Button>
+                  )}
 
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton
@@ -939,6 +963,7 @@ const Comment: FC<CommentProps> = ({
           postData={postData}
           lastViewedAt={lastViewedAt}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+          isSomeChildrenUnread={isSomeChildrenUnread}
         />
       )}
       <CommentReportModal

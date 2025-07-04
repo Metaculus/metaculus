@@ -162,7 +162,10 @@ class TranslatedModel(models.Model):
 
         all_update_fields_localised = []
         for field_name in all_update_fields:
-            val = getattr(self, field_name)
+            # Using getattr(self, field_name) will return you the content not from field_name,
+            # but from the field_name of the current language selected.
+            # The proper way of getting "original" field value is through the __dict__
+            val = self.__dict__[field_name]
             if val is not None:
                 default_field_name = build_supported_localized_fieldname(
                     field_name, default_language

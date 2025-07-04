@@ -25,7 +25,7 @@ export type PostsParams = PaginationParams & {
   statuses?: string | string[];
   categories?: string | string[];
   usernames?: string | string[];
-  tags?: string | string[];
+  leaderboard_tags?: string | string[];
   forecaster_id?: string;
   withdrawn?: string;
   not_forecaster_id?: string;

@@ -7,6 +7,7 @@ from .models import Bulletin, SidebarItem
 
 @admin.register(Bulletin)
 class BulletinAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "bulletin_start", "bulletin_end"]
     search_fields = ["bulletin_start", "bulletin_end", "text"]
 
 

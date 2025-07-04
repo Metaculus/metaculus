@@ -121,6 +121,7 @@ const NumericQuestionInput: React.FC<{
     resolution: "",
     include_bots_in_aggregates: false,
     question_weight: 1.0,
+    default_score_type: "peer",
     forecasts: {
       timestamps: [],
       nr_forecasters: [],

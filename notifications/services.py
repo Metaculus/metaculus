@@ -725,6 +725,7 @@ def send_comment_report_notification_to_staff(
         "emails/comment_report.html",
         context={
             "params": {
+                "post_title": comment.on_post.title,
                 "comment": comment,
                 "preview_text": generate_email_comment_preview_text(
                     comment.text, max_chars=300
@@ -747,12 +748,13 @@ def send_forecast_autowidrawal_notification(
 ):
     send_email_with_template(
         to=user.email,
-        subject=_(f"You have {len(posts_data)} predictions that need updating"),
+        subject=_(f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"),
         template_name="emails/forecast_auto_withdraw.html",
         context={
             "recipient": user,
             "posts_data": posts_data,
             "account_settings_url": account_settings_url,
+            "number_of_posts": len(posts_data),
         },
         use_async=False,
     )

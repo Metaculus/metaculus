@@ -266,7 +266,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
                 name="bio"
                 defaultValue={profile.bio}
                 errors={state?.errors}
-                className="w-full"
+                className="w-full xl:w-[470px]"
               />
             </div>
           </div>
