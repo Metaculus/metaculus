@@ -89,7 +89,8 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
-  const showInTheNewsMainSortOption = isLargeScreen || isNil(user);
+  const mainSortNewsVisible = isLargeScreen || isNil(user);
+  const mainSortNewVisible = isLargeScreen || !isNil(user);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
@@ -101,7 +102,7 @@ const MainFeedFilters: FC<Props> = ({
         value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
-      ...(isLargeScreen || !isNil(user)
+      ...(mainSortNewVisible
         ? [
             {
               value: QuestionOrder.OpenTimeDesc,
@@ -109,7 +110,7 @@ const MainFeedFilters: FC<Props> = ({
             },
           ]
         : []),
-      ...(showInTheNewsMainSortOption
+      ...(mainSortNewsVisible
         ? [
             {
               value: QuestionOrder.NewsHotness,
@@ -131,11 +132,14 @@ const MainFeedFilters: FC<Props> = ({
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
-      ...(!showInTheNewsMainSortOption
+      ...(!mainSortNewVisible
+        ? [{ value: QuestionOrder.OpenTimeDesc, label: t("new") }]
+        : []),
+      ...(!mainSortNewsVisible
         ? [{ value: QuestionOrder.NewsHotness, label: t("inTheNews") }]
         : []),
     ],
-    [showInTheNewsMainSortOption, t]
+    [mainSortNewVisible, mainSortNewsVisible, t]
   );
 
   const onOrderChange = (
