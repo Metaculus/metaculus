@@ -192,7 +192,6 @@ function sanitizeHtml(markdown: string) {
     search: blockquoteSpaceRegex,
     placeholderName: "BLOCKQUOTE_SPACE",
   });
-
   markdown = blockquoteProcessed;
 
   // pre-process embedded JSX as otherwise it will be removed by DOMPurify
@@ -253,7 +252,7 @@ function sanitizeHtml(markdown: string) {
   markdown = markdown.replace(/&lt;/g, "<");
   markdown = markdown.replace(/&gt;/g, ">");
   // also decode &amp; to &
-  markdown = markdown.replace(/\\&amp;/g, "&");
+  markdown = markdown.replace(/&amp;/g, "&");
   return markdown;
 }
 
