@@ -287,7 +287,8 @@ def get_posts_feed(
         if not order_desc:
             raise ValidationError("Ascending is not supported for “In the news” order")
 
-        qs = qs.annotate_news_hotness()
+        # Annotate news hotness and exclude notebooks
+        qs = qs.annotate_news_hotness().filter(notebook__isnull=True)
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 

@@ -408,6 +408,7 @@ export function getDropdownSortOptions(
           },
         ]
       : []),
+    { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
   ];
 }
 
