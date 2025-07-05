@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/auth_context";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
-import { DataParams, WhitelistStatus } from "@/types/utils";
+import { DataParams } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
 
 import AggregationMethodsPicker from "./aggregation_methods_picker";
@@ -54,7 +54,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
     is_whitelisted: false,
     view_deanonymized_data: false,
     isLoaded: false,
-  } as WhitelistStatus & { isLoaded: boolean });
+  });
 
   useEffect(() => {
     if (!isOpen || whitelistStatus.isLoaded) {
@@ -105,7 +105,12 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
         anonymized: !whitelistStatus.view_deanonymized_data,
       });
     }
-  }, [whitelistStatus.isLoaded, whitelistStatus.view_deanonymized_data, reset]);
+  }, [
+    whitelistStatus.isLoaded,
+    whitelistStatus.view_deanonymized_data,
+    watch,
+    reset,
+  ]);
 
   const [pendingSubmission, setPendingSubmission] =
     useState<SubmissionType | null>(null);
