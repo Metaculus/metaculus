@@ -39,17 +39,11 @@ const ScoreBox: FC<ScoreBoxProps> = ({
         ? "text-olive-700 dark:text-olive-700-dark"
         : "text-gray-700 dark:text-gray-700-dark";
 
-  const boxTextColor =
-    color === "olive"
-      ? "text-olive-800 dark:text-olive-800-dark"
-      : "text-gray-700 dark:text-gray-700-dark";
-
   return (
     <div
-      className={cn(
-        boxTextColor,
-        "box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center dark:border-gray-400-dark"
-      )}
+      className={
+        "box flex flex-col items-center justify-center gap-1 border border-gray-400 p-2.5 text-center text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark"
+      }
     >
       {icon && (
         <FontAwesomeIcon
@@ -109,7 +103,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
           label={label}
           value={value}
           icon={icon}
-          color={forecaster === "user" ? "gray" : "olive"}
+          color={forecaster === "user" ? "orange" : "olive"}
           digits={key.includes("relative_legacy") ? 2 : 1}
         />
       ),
