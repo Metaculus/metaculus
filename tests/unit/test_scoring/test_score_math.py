@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from scipy.stats.mstats import gmean
 
 from datetime import datetime, timedelta
 
@@ -10,10 +11,11 @@ from scoring.score_math import (
     get_geometric_means,
     evaluate_forecasts_baseline_accuracy,
     evaluate_forecasts_baseline_spot_forecast,
-    evaluate_forecasts_legacy_relative,
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
 )
+
+QT = Question.QuestionType
 
 
 def dt(d=None):
@@ -28,46 +30,36 @@ def dts(d=None):
     return dt(d).timestamp()
 
 
-def f(q=None, v=None, s=None, e=None):
+def F(q=None, v=None, s=None, e=None):
     # Create a Forecast object with basic values
     # q: Question Type
     # v: forecast values
     # s: start time (days after 2020-01-01)
     # e: end time (days after 2020-01-01)
-    forecast = Forecast(
-        start_time=dt(s),
-        end_time=None if e is None else dt(e),
-    )
-    qt = q or Question.QuestionType.BINARY
-    if qt == Question.QuestionType.BINARY:
-        forecast.probability_yes = v or 0.5
-    elif qt == Question.QuestionType.MULTIPLE_CHOICE:
-        forecast.probability_yes_per_category = v or [0.2, 0.3, 0.5]
-    else:
-        forecast.continuous_cdf = v or list(np.linspace(0, 1, 201))
+    forecast = Forecast(start_time=dt(s), end_time=None if e is None else dt(e))
+    match (q or QT.BINARY):
+        case QT.BINARY:
+            forecast.probability_yes = v or 0.5
+        case QT.MULTIPLE_CHOICE:
+            forecast.probability_yes_per_category = v or [0.2, 0.3, 0.5]
+        case QT.NUMERIC:
+            forecast.continuous_cdf = v or list(np.linspace(0, 1, 201))
     return forecast
 
 
-def a(p: list[float] | None = None, n: int = 0, t: int | None = None):
+def A(p: list[float] | None = None, n: int = 0, t: int | None = None):
     # Create an AggregationEntry object with basic values
     # p: pmf
     # n: number of forecasters
     # t: time (days after 2020-01-01)
-    return AggregationEntry(
-        pmf=p or [0.5, 0.5],
-        num_forecasters=n,
-        timestamp=dts(t),
-    )
+    return AggregationEntry(pmf=p or [0.5, 0.5], num_forecasters=n, timestamp=dts(t))
 
 
-def s(v=None, c=None):
+def S(v=None, c=None):
     # Create a ForecastScore object with basic values
     # v: score value
     # c: coverage
-    return ForecastScore(
-        score=v or 0,
-        coverage=c if c is not None else 1,
-    )
+    return ForecastScore(score=v or 0, coverage=c if c is not None else 1)
 
 
 class TestScoreMath:
@@ -77,34 +69,31 @@ class TestScoreMath:
         [
             # Trivial
             ([], []),
-            ([f()], [a()]),
+            ([F()], [A()]),
             # number of forecasters
-            ([f()] * 2, [a(n=2)]),
-            ([f()] * 100, [a(n=100)]),
+            ([F()] * 2, [A(n=2)]),
+            ([F()] * 100, [A(n=100)]),
             # maths
-            ([f(v=0.7), f(v=0.8), f(v=0.9)], [a(p=[0.18171206, 0.79581144], n=3)]),
+            ([F(v=0.7), F(v=0.8), F(v=0.9)], [A(p=[0.18171206, 0.79581144], n=3)]),
             # start times
-            ([f(), f(s=1)], [a(), a(t=1, n=2)]),
-            ([f(), f(s=1), f(s=2)], [a(), a(t=1, n=2), a(t=2, n=3)]),
-            ([f(), f(), f(s=1)], [a(n=2), a(t=1, n=3)]),
+            ([F(), F(s=1)], [A(), A(t=1, n=2)]),
+            ([F(), F(s=1), F(s=2)], [A(), A(t=1, n=2), A(t=2, n=3)]),
+            ([F(), F(), F(s=1)], [A(n=2), A(t=1, n=3)]),
             # end times
-            ([f(), f(e=1)], [a(n=2), a(t=1, n=0)]),
-            ([f(), f(s=1, e=2)], [a(), a(t=1, n=2), a(t=2)]),
+            ([F(), F(e=1)], [A(n=2), A(t=1, n=0)]),
+            ([F(), F(s=1, e=2)], [A(), A(t=1, n=2), A(t=2)]),
             # numeric
             (
-                [
-                    f(q=Question.QuestionType.NUMERIC),
-                    f(q=Question.QuestionType.NUMERIC),
-                ],
-                [a(p=[0] + [1 / 200] * 200 + [0], n=2)],
+                [F(q=QT.NUMERIC), F(q=QT.NUMERIC)],
+                [A(p=[0] + [1 / 200] * 200 + [0], n=2)],
             ),
             (
                 [
-                    f(q=Question.QuestionType.NUMERIC, v=[0.2, 0.5, 0.8]),
-                    f(q=Question.QuestionType.NUMERIC, v=[0.4, 0.6, 0.8]),
-                    f(q=Question.QuestionType.NUMERIC, v=[0.6, 0.7, 0.8]),
+                    F(q=QT.NUMERIC, v=[0.2, 0.5, 0.8]),
+                    F(q=QT.NUMERIC, v=[0.4, 0.6, 0.8]),
+                    F(q=QT.NUMERIC, v=[0.6, 0.7, 0.8]),
                 ],
-                [a(p=[0.36342412, 0.18171206, 0.18171206, 0.2], n=3)],
+                [A(p=[0.36342412, 0.18171206, 0.18171206, 0.2], n=3)],
             ),
         ],
     )
@@ -123,26 +112,50 @@ class TestScoreMath:
         [
             # Trivial
             ([], {}, []),
-            ([f()], {}, [s()]),
-            ([f()] * 100, {}, [s()] * 100),
+            ([F()], {}, [S()]),
+            ([F()] * 100, {}, [S()] * 100),
             # coverage
-            ([f(s=3)], {}, [s(c=0.7)]),
-            ([f(s=5)], {}, [s(c=0.5)]),
-            ([f(s=7)], {}, [s(c=0.3)]),
-            ([f(s=1), f(s=7)], {}, [s(c=0.9), s(c=0.3)]),
-            ([f(e=3)], {}, [s(c=0.3)]),
-            ([f(s=5, e=8)], {}, [s(c=0.3)]),
+            ([F(s=3)], {}, [S(c=0.7)]),
+            ([F(s=5)], {}, [S(c=0.5)]),
+            ([F(s=7)], {}, [S(c=0.3)]),
+            ([F(s=1), F(s=7)], {}, [S(c=0.9), S(c=0.3)]),
+            ([F(e=3)], {}, [S(c=0.3)]),
+            ([F(s=5, e=8)], {}, [S(c=0.3)]),
             # early resolver
-            ([f()], {"actual_close_time": dts(5)}, [s(c=0.5)]),
-            ([f(s=5)], {"actual_close_time": dts(5)}, [s(c=0)]),  # forecasted too late
+            ([F()], {"actual_close_time": dts(5)}, [S(c=0.5)]),
+            ([F(s=5)], {"actual_close_time": dts(5)}, [S(c=0)]),  # forecasted too late
             # maths
-            ([f(v=0.9)], {}, [s(v=84.79969066)]),
-            ([f(v=0.1)], {}, [s(v=-232.19280949)]),
-            ([f(v=0.9)], {"resolution_bucket": 0}, [s(v=-232.19280949)]),
-            ([f(v=0.9, s=5)], {}, [s(v=84.79969066 / 2, c=0.5)]),  # half coverage
-            ([f(v=2 ** (-1 / 2))], {}, [s(v=50)]),
-            ([f(v=2 ** (-3 / 2))], {}, [s(v=-50)]),
-            # TODO: numeric
+            ([F(v=0.9)], {}, [S(v=84.79969066)]),
+            ([F(v=0.1)], {}, [S(v=-232.19280949)]),
+            ([F(v=0.9)], {"resolution_bucket": 0}, [S(v=-232.19280949)]),
+            ([F(v=0.9, s=5)], {}, [S(v=84.79969066 / 2, c=0.5)]),  # half coverage
+            ([F(v=2 ** (-1 / 2))], {}, [S(v=50)]),
+            ([F(v=2 ** (-3 / 2))], {}, [S(v=-50)]),
+            # numeric
+            (
+                [F(q=QT.NUMERIC)],
+                {"resolution_bucket": 150, "question_type": QT.NUMERIC},
+                [S()],
+            ),
+            (
+                [F(q=QT.NUMERIC, v=np.linspace(0.05, 0.95, 201).tolist())],
+                {
+                    "resolution_bucket": 150,
+                    "question_type": QT.NUMERIC,
+                    "open_bounds_count": 2,
+                },
+                [S()],
+            ),
+            (
+                [F(q=QT.NUMERIC, v=[0, np.e / 2, 1])],
+                {"question_type": QT.NUMERIC},
+                [S(v=50)],
+            ),
+            (
+                [F(q=QT.NUMERIC, v=[0, 1 / (np.e * 2), 1])],
+                {"question_type": QT.NUMERIC},
+                [S(v=-50)],
+            ),
         ],
     )
     def test_evaluate_forecasts_baseline_accuracy(self, forecasts, args, expected):
@@ -152,7 +165,7 @@ class TestScoreMath:
             "forecast_horizon_start": dts(),
             "actual_close_time": dts(10),
             "forecast_horizon_end": dts(10),
-            "question_type": Question.QuestionType.BINARY,
+            "question_type": QT.BINARY,
             "open_bounds_count": 0,
         } | args
         result = evaluate_forecasts_baseline_accuracy(**args)
@@ -160,3 +173,252 @@ class TestScoreMath:
         for rs, es in zip(result, expected):
             assert round(rs.score, 8) == round(es.score, 8)
             assert round(rs.coverage, 8) == round(es.coverage, 8)
+
+    @pytest.mark.parametrize(
+        "forecasts, args,  expected",
+        [
+            # Trivial
+            ([], {}, []),
+            ([F()], {}, [S()]),
+            ([F()] * 100, {}, [S()] * 100),
+            # coverage
+            ([F(s=3)], {}, [S(c=1)]),
+            ([F(s=5)], {}, [S(c=1)]),
+            ([F(s=7)], {}, [S(c=1)]),
+            ([F(s=1), F(s=7)], {}, [S(c=1), S(c=1)]),
+            ([F(e=3)], {}, [S(c=0)]),
+            ([F(s=5, e=8)], {}, [S(c=0)]),
+            ([F(s=5, e=8)], {"spot_forecast_timestamp": dts(6)}, [S(c=1)]),
+            # early resolver
+            ([F()], {"spot_forecast_timestamp": dts(5)}, [S(c=1)]),
+            ([F(s=6)], {"spot_forecast_timestamp": dts(5)}, [S(c=0)]),
+            # maths
+            ([F(v=0.9)], {}, [S(v=84.79969066)]),
+            ([F(v=0.1)], {}, [S(v=-232.19280949)]),
+            ([F(v=0.9)], {"resolution_bucket": 0}, [S(v=-232.19280949)]),
+            ([F(v=0.9, s=5)], {}, [S(v=84.79969066, c=1)]),
+            ([F(v=2 ** (-1 / 2))], {}, [S(v=50)]),
+            ([F(v=2 ** (-3 / 2))], {}, [S(v=-50)]),
+            # numeric
+            (
+                [F(q=QT.NUMERIC)],
+                {"resolution_bucket": 150, "question_type": QT.NUMERIC},
+                [S()],
+            ),
+            (
+                [F(q=QT.NUMERIC, v=np.linspace(0.05, 0.95, 201).tolist())],
+                {
+                    "resolution_bucket": 150,
+                    "question_type": QT.NUMERIC,
+                    "open_bounds_count": 2,
+                },
+                [S()],
+            ),
+            (
+                [F(q=QT.NUMERIC, v=[0, np.e / 2, 1])],
+                {"question_type": QT.NUMERIC},
+                [S(v=50)],
+            ),
+            (
+                [F(q=QT.NUMERIC, v=[0, 1 / (np.e * 2), 1])],
+                {"question_type": QT.NUMERIC},
+                [S(v=-50)],
+            ),
+        ],
+    )
+    def test_evaluate_forecasts_baseline_spot_forecast(self, forecasts, args, expected):
+        args = {
+            "forecasts": forecasts,
+            "resolution_bucket": 1,
+            "spot_forecast_timestamp": dts(10),
+            "question_type": QT.BINARY,
+            "open_bounds_count": 0,
+        } | args
+        result = evaluate_forecasts_baseline_spot_forecast(**args)
+        assert len(result) == len(expected)
+        for rs, es in zip(result, expected):
+            assert round(rs.score, 8) == round(es.score, 8)
+            assert round(rs.coverage, 8) == round(es.coverage, 8)
+
+    @pytest.mark.parametrize(
+        "forecasts, args,  expected",
+        [
+            # Trivial
+            ([], {}, []),
+            ([F()], {}, [S()]),
+            ([F()] * 100, {}, [S()] * 100),
+            # coverage
+            ([F(s=3)], {}, [S(c=0.7)]),
+            ([F(s=5)], {}, [S(c=0.5)]),
+            ([F(s=7)], {}, [S(c=0.3)]),
+            ([F(s=1), F(s=7)], {}, [S(c=0.9), S(c=0.3)]),
+            #
+            # TODO: neglectable bug exists where the last forecast is withdrawn, it will
+            # receive coverage as if it was never withdrawn, but will also inherently
+            # have a peer score of 0 during that interval, so it doesn't really matter
+            # ([F(e=3)], {}, [S(c=0.3)]),
+            # ([F(s=5, e=8)], {}, [S(c=0.3)]),
+            # ([F(e=3), F(e=7)], {}, [S(c=0.3), S(c=0.7)]),
+            # ([F(e=5), F(s=2, e=7)], {}, [S(c=0.5), S(c=0.5)]),
+            #
+            ([F(), F(s=4, e=6)], {}, [S(c=1), S(c=0.2)]),
+            ([F(e=5), F(s=5), F(s=2)], {}, [S(c=0.5), S(c=0.5), S(c=0.8)]),
+            # early resolver
+            ([F()], {"actual_close_time": dts(5)}, [S(c=0.5)]),
+            ([F(s=5)], {"actual_close_time": dts(5)}, [S(c=0)]),  # forecasted too late
+            # maths
+            ([F(v=0.9)], {}, [S()]),
+            ([F(v=0.9), F(v=0.9)], {}, [S(), S()]),
+            (
+                [F(v=0.1), F(v=0.9)],
+                {},
+                [S(v=100 * np.log(0.1 / 0.9)), S(v=100 * np.log(0.9 / 0.1))],
+            ),
+            (
+                [F(v=0.4), F(v=0.6)],
+                {},
+                [S(v=100 * np.log(0.4 / 0.6)), S(v=100 * np.log(0.6 / 0.4))],
+            ),
+            (
+                [F(v=0.1), F(v=0.5), F(v=0.9)],
+                {},
+                [
+                    S(v=100 * np.log(0.1 / gmean([0.5, 0.9]))),
+                    S(v=100 * np.log(0.5 / gmean([0.1, 0.9]))),
+                    S(v=100 * np.log(0.9 / gmean([0.1, 0.5]))),
+                ],
+            ),
+            (
+                [F(v=0.1), F(v=0.3), F(v=0.6), F(v=0.9)],
+                {},
+                [
+                    S(v=100 * np.log(0.1 / gmean([0.3, 0.6, 0.9]))),
+                    S(v=100 * np.log(0.3 / gmean([0.1, 0.6, 0.9]))),
+                    S(v=100 * np.log(0.6 / gmean([0.1, 0.3, 0.9]))),
+                    S(v=100 * np.log(0.9 / gmean([0.1, 0.3, 0.6]))),
+                ],
+            ),
+            (
+                [F(v=0.1), F(v=0.5), F(s=5, v=0.9)],
+                {},
+                [
+                    S(
+                        v=100
+                        * (
+                            0.5 * np.log(0.1 / 0.5)
+                            + 0.5 * np.log(0.1 / gmean([0.5, 0.9]))
+                        )
+                    ),
+                    S(
+                        v=100
+                        * (
+                            0.5 * np.log(0.5 / 0.1)
+                            + 0.5 * np.log(0.5 / gmean([0.1, 0.9]))
+                        )
+                    ),
+                    S(v=100 * (0.5 * 0 + 0.5 * np.log(0.9 / gmean([0.1, 0.5]))), c=0.5),
+                ],
+            ),
+            # TODO: add tests with base forecasts different from forecasts
+        ],
+    )
+    def test_evaluate_forecasts_peer_accuracy(self, forecasts, args, expected):
+        args = {
+            "forecasts": forecasts,
+            "base_forecasts": [],  # no base forecasts -> just takes forecasts
+            "resolution_bucket": 1,
+            "forecast_horizon_start": dts(),
+            "actual_close_time": dts(10),
+            "forecast_horizon_end": dts(10),
+            "question_type": QT.BINARY,
+            "geometric_means": [],  # gets calculated from base_forecasts
+        } | args
+        result = evaluate_forecasts_peer_accuracy(**args)
+        assert len(result) == len(expected)
+        for rs, es in zip(result, expected):
+            assert round(rs.score, 8) == round(es.score, 8)
+            assert round(rs.coverage, 8) == round(es.coverage, 8)
+
+    @pytest.mark.parametrize(
+        "forecasts, args,  expected",
+        [
+            # Trivial
+            ([], {}, []),
+            ([F()], {}, [S()]),
+            ([F()] * 100, {}, [S()] * 100),
+            # coverage
+            ([F(s=3)], {}, [S(c=1)]),
+            ([F(s=5)], {}, [S(c=1)]),
+            ([F(s=7)], {}, [S(c=1)]),
+            ([F(s=1), F(s=7)], {}, [S(c=1), S(c=1)]),
+            ([F(e=3)], {}, [S(c=0)]),
+            ([F(s=5, e=8)], {}, [S(c=0)]),
+            ([F(s=5, e=8)], {"spot_forecast_timestamp": dts(6)}, [S(c=1)]),
+            # early resolver
+            ([F()], {"spot_forecast_timestamp": dts(5)}, [S(c=1)]),
+            ([F(s=6)], {"spot_forecast_timestamp": dts(5)}, [S(c=0)]),
+            # maths
+            ([F(v=0.9)], {}, [S()]),
+            ([F(v=0.9), F(v=0.9)], {}, [S(), S()]),
+            (
+                [F(v=0.1), F(v=0.9)],
+                {},
+                [S(v=100 * np.log(0.1 / 0.9)), S(v=100 * np.log(0.9 / 0.1))],
+            ),
+            (
+                [F(v=0.4), F(v=0.6)],
+                {},
+                [S(v=100 * np.log(0.4 / 0.6)), S(v=100 * np.log(0.6 / 0.4))],
+            ),
+            (
+                [F(v=0.1), F(v=0.5), F(v=0.9)],
+                {},
+                [
+                    S(v=100 * np.log(0.1 / gmean([0.5, 0.9]))),
+                    S(v=100 * np.log(0.5 / gmean([0.1, 0.9]))),
+                    S(v=100 * np.log(0.9 / gmean([0.1, 0.5]))),
+                ],
+            ),
+            (
+                [F(v=0.1), F(v=0.3), F(v=0.6), F(v=0.9)],
+                {},
+                [
+                    S(v=100 * np.log(0.1 / gmean([0.3, 0.6, 0.9]))),
+                    S(v=100 * np.log(0.3 / gmean([0.1, 0.6, 0.9]))),
+                    S(v=100 * np.log(0.6 / gmean([0.1, 0.3, 0.9]))),
+                    S(v=100 * np.log(0.9 / gmean([0.1, 0.3, 0.6]))),
+                ],
+            ),
+            (
+                [F(v=0.1), F(v=0.5), F(s=5, v=0.9)],
+                {},
+                [
+                    S(v=100 * np.log(0.1 / gmean([0.5, 0.9]))),
+                    S(v=100 * np.log(0.5 / gmean([0.1, 0.9]))),
+                    S(v=100 * np.log(0.9 / gmean([0.1, 0.5]))),
+                ],
+            ),
+            (
+                [F(v=0.1), F(v=0.5), F(e=5, v=0.9)],
+                {},
+                [S(v=100 * np.log(0.1 / 0.5)), S(v=100 * np.log(0.5 / 0.1)), S(c=0)],
+            ),
+            # TODO: add tests with base forecasts different from forecasts
+        ],
+    )
+    def test_evaluate_forecasts_peer_spot_forecast(self, forecasts, args, expected):
+        args = {
+            "forecasts": forecasts,
+            "base_forecasts": [],  # no base forecasts -> just takes forecasts
+            "resolution_bucket": 1,
+            "spot_forecast_timestamp": dts(10),
+            "question_type": QT.BINARY,
+            "geometric_means": [],  # gets calculated from base_forecasts
+        } | args
+        result = evaluate_forecasts_peer_spot_forecast(**args)
+        assert len(result) == len(expected)
+        for rs, es in zip(result, expected):
+            assert round(rs.score, 8) == round(es.score, 8)
+            assert round(rs.coverage, 8) == round(es.coverage, 8)
+
+    # TODO: add unit testing for evaluate_forecasts_legacy_relative
