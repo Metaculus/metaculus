@@ -67,6 +67,8 @@ export default async function QuestionCreator(props: Props) {
     ? communitiesResponse.results[0]
     : undefined;
 
+  const shouldUseDraftValue = mode === "create" && isNil(post);
+
   const componentProps = {
     post,
     mode,
@@ -75,6 +77,7 @@ export default async function QuestionCreator(props: Props) {
     allCategories,
     tournaments,
     siteMain,
+    shouldUseDraftValue,
   };
   let component = undefined;
 

@@ -169,6 +169,7 @@
   "absoluteLogScore": "Absolute Log Score",
   "brierScore": "Brier Score",
   "yes": "yes",
+  "default": "default",
   "Yes": "Yes",
   "no": "no",
   "fanGraphFirstQuartileLabel": "25th percentile",
