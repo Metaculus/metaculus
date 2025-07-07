@@ -84,7 +84,9 @@ class PostAdmin(CustomTranslationAdmin):
 
     def should_update_translations(self, obj):
         is_private = obj.default_project.default_permission is None
-        return not is_private and obj.curation_status == Post.CurationStatus.APPROVED
+        is_approved = obj.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_actions(self, request):
         actions = super().get_actions(request)
