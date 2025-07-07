@@ -9,38 +9,28 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   onClick: MouseEventHandler<HTMLButtonElement>;
-  combined?: boolean;
+  all?: boolean;
   className?: string;
 };
 
-const ReaffirmButton: FC<Props> = ({
-  onClick,
-  combined = false,
-  className,
-}) => {
+const ReaffirmButton: FC<Props> = ({ onClick, all = false, className }) => {
   const t = useTranslations();
   const { reaffirmStatus } = useCardReaffirmContext();
 
   const ReaffirmElement = (
-    <span
-      className={cn("inline-flex items-center gap-1 underline", {
-        lowercase: combined,
-      })}
-    >
-      {combined && "("}
-      {t("reaffirm")}
+    <span className={cn("inline-flex items-center gap-1")}>
+      {all ? t("reaffirmAll") : t("reaffirm")}
       {reaffirmStatus === "loading" && <LoadingSpinner size="sm" />}
       {reaffirmStatus === "completed" && (
         <FontAwesomeIcon icon={faCircleCheck} size="sm" />
       )}
-      {combined && ")"}
     </span>
   );
 
   return (
     <button
       className={cn(
-        "text-orange-800 hover:text-orange-600 dark:text-orange-800-dark dark:hover:text-orange-600-dark",
+        "rounded-full border border-orange-700 px-2 py-0.5 text-orange-700 hover:border-orange-600 hover:text-orange-600 dark:border-orange-700 dark:text-orange-700-dark dark:hover:border-orange-600-dark dark:hover:text-orange-600-dark",
         className
       )}
       onClick={(e) => {
