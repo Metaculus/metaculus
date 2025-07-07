@@ -1,19 +1,20 @@
 import { isNil, round } from "lodash";
 import React, { FC, useCallback } from "react";
 
-import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
+import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
+import QuestionCPMovement from "@/components/cp_movement";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
 } from "@/components/forecast_maker/forecast_expiration";
+import MyPredictionChip from "@/components/my_prediction_chip";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
-import PredictionChip from "@/components/prediction_chip";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -123,21 +124,23 @@ const QuestionContinuousTile: FC<Props> = ({
 
   return (
     <div className="flex justify-between">
-      <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
-        <PredictionChip
-          question={question}
-          status={curationStatus as PostStatus}
-          showUserForecast
-          hideCP={hideCP}
-          onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-          canPredict={canPredict}
-          showWeeklyMovement
-          enforceCPDisplay
-        />
-
-        <ForecastersCounter forecasters={forecasters} className="p-1" />
-      </div>
-      <div className="relative my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
+      {question.type === QuestionType.Binary && (
+        <div className="mr-8 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
+          <BinaryCPBar question={question} size="sm" />
+          <QuestionCPMovement
+            question={question}
+            className="mx-auto max-w-[110px]"
+            size={"xs"}
+          />
+          <MyPredictionChip
+            question={question}
+            showUserForecast
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            canPredict={canPredict}
+          />
+        </div>
+      )}
+      <div className="relative my-1 h-24 w-2/3 min-w-24 flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericTimeline
             nonInteractive={true}

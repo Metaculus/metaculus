@@ -67,7 +67,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
       >
         <Link href={getPostLink(post)} className="block px-5 py-4 no-underline">
           {!hideTitle && (
-            <h4 className="relative mb-3 mt-0 text-base font-medium text-gray-800 dark:text-gray-800-dark">
+            <h4 className="relative mb-4 mt-0 text-base font-medium text-gray-800 dark:text-gray-800-dark">
               {title}
             </h4>
           )}

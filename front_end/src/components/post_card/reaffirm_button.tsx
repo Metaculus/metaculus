@@ -19,7 +19,7 @@ const ReaffirmButton: FC<Props> = ({ onClick, all = false, className }) => {
 
   const ReaffirmElement = (
     <span className={cn("inline-flex items-center gap-1")}>
-      {all ? t("reaffirmAll") : t("reaffirm")}
+      <span>{all ? t("reaffirmAll") : t("reaffirm")}</span>
       {reaffirmStatus === "loading" && <LoadingSpinner size="sm" />}
       {reaffirmStatus === "completed" && (
         <FontAwesomeIcon icon={faCircleCheck} size="sm" />
