@@ -79,17 +79,20 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           {canPredict && !!onReaffirm && (
             <ReaffirmButton
               onClick={onReaffirm}
-              combined
-              className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
+              className="resize-label flex py-0.5 text-left text-sm leading-4"
+              all
             />
           )}
         </div>
       )}
       {!otherItemsCount && canPredict && !!onReaffirm && (
-        <ReaffirmButton
-          onClick={onReaffirm}
-          className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
-        />
+        <div>
+          <ReaffirmButton
+            onClick={onReaffirm}
+            className="resize-label flex py-0.5 text-left text-sm leading-4"
+            all
+          />
+        </div>
       )}
     </div>
   );
