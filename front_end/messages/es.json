@@ -1410,5 +1410,6 @@
   "returnToHomePage": "Volver a la página de inicio",
   "LeaderboardTagDisclaimer": "Vea todas las preguntas que cuentan para esta clasificación <link>aquí</link>",
   "activeForecastersLabel": "Pronosticadores Activos",
+  "default": "predeterminado",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
