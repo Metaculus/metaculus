@@ -140,7 +140,7 @@ const QuestionContinuousTile: FC<Props> = ({
           />
         </div>
       )}
-      <div className="relative my-1 h-24 w-2/3 min-w-24 flex-1 overflow-visible">
+      <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericTimeline
             nonInteractive={true}

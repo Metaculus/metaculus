@@ -38,7 +38,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
     sm: 50,
     md: 66,
   }[size];
-  const radius = (width - strokeWidth / 2) / 2;
+  const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
   const center = {
     x: width / 2,
@@ -153,7 +153,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
         </span>
         <span
           className={cn("font-normal uppercase", {
-            "text-[9px] leading-[10px]": size === "sm",
+            "text-[9px] leading-[9px]": size === "sm",
             "leading text-xs uppercase": size === "md",
           })}
         >
