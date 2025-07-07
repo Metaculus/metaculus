@@ -16,9 +16,11 @@ type Props = {
 const MovementIcon = ({
   direction,
   iconClassName,
+  size,
 }: {
   direction: MovementDirection;
   iconClassName?: string;
+  size?: "xs" | "sm";
 }) => {
   switch (direction) {
     case MovementDirection.UP:
@@ -42,9 +44,27 @@ const MovementIcon = ({
         />
       );
     case MovementDirection.EXPANDED:
-      return <span className="mr-1 align-text-bottom text-[10px]">←→</span>;
+      return (
+        <span
+          className={cn("mr-1 align-text-bottom", {
+            "text-[8px]": size === "xs",
+            "text-[10px]": size === "sm",
+          })}
+        >
+          ←→
+        </span>
+      );
     case MovementDirection.CONTRACTED:
-      return <span className="mr-1 align-text-bottom text-[10px]">→←</span>;
+      return (
+        <span
+          className={cn("mr-1 align-text-bottom", {
+            "text-[8px]": size === "xs",
+            "text-[10px]": size === "sm",
+          })}
+        >
+          →←
+        </span>
+      );
   }
 };
 
