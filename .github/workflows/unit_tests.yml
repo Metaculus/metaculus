@@ -1,4 +1,4 @@
-name: Run Backend Unit Tests
+name: Run Unit Tests
 
 on:
   workflow_dispatch:
