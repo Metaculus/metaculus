@@ -20,6 +20,7 @@ type Props = {
   className?: string;
   presentation?: "forecasterView" | "consumerView";
   threshold?: number;
+  size?: "xs" | "sm";
 };
 
 const QuestionCPMovement: FC<Props> = ({
@@ -27,6 +28,7 @@ const QuestionCPMovement: FC<Props> = ({
   className,
   presentation,
   threshold = 0.01,
+  size = "sm",
 }) => {
   const t = useTranslations();
 
@@ -44,22 +46,33 @@ const QuestionCPMovement: FC<Props> = ({
   return (
     <PeriodMovement
       direction={movement.direction}
-      message={t(getMovementPeriodMessage(Number(movement.period)), {
-        value: formatValueUnit(
-          movementComponents.amount.toString(),
-          question?.type === QuestionType.Binary &&
-            presentation == "consumerView"
-            ? "%"
-            : movementComponents.unit
-        ),
+      message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
+        value: () => {
+          return question?.type === QuestionType.Binary ? (
+            <>
+              <strong className="whitespace-nowrap">
+                {movementComponents.amount.toString()}
+              </strong>
+              {presentation == "consumerView"
+                ? "%"
+                : ` ${movementComponents.unit}`}
+            </>
+          ) : (
+            formatValueUnit(
+              movementComponents.amount.toString(),
+              movementComponents.unit
+            )
+          );
+        },
       })}
       className={cn("text-xs", className)}
       iconClassName="text-xs"
+      size={size}
     />
   );
 };
 
-export function getMovementPeriodMessage(period: number): TranslationKey {
+function getMovementPeriodMessage(period: number): TranslationKey {
   if (period <= 60 * 60) return "CPMovementHourChangeLabel";
   if (period <= 24 * 60 * 60) return "CPMovementDayChangeLabel";
 
@@ -138,7 +151,7 @@ export function getMovementComponents(
         ? isNil(question.unit)
           ? question.type
           : " " + question.unit
-        : " " + t("percentagePoints");
+        : " " + t("percentagePointsShort");
     const amount =
       question.type === QuestionType.Numeric
         ? abbreviatedNumber(round(cpMovement.movement, 1)) // for numeric questions we receive already scaled value

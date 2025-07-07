@@ -8,14 +8,13 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  variant?: "sm" | "md";
+  size?: "sm" | "md";
 };
 
-const BinaryCPBar: FC<Props> = ({ question, variant = "md" }) => {
+const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
   const t = useTranslations();
   const questionCP =
     question.aggregations.recency_weighted.latest?.centers?.[0];
-  // TODO: should we show it everywhere?
   if (question.type !== QuestionType.Binary) {
     return null;
   }
@@ -26,19 +25,19 @@ const BinaryCPBar: FC<Props> = ({ question, variant = "md" }) => {
   const strokeWidth = {
     sm: 8,
     md: 12,
-  }[variant];
+  }[size];
   const strokeCursorWidth = {
     sm: 11,
     md: 17,
-  }[variant];
+  }[size];
   const width = {
     sm: 85,
     md: 112,
-  }[variant];
+  }[size];
   const height = {
     sm: 50,
     md: 66,
-  }[variant];
+  }[size];
   const radius = (width - strokeWidth / 2) / 2;
   const arcAngle = Math.PI * 1.1;
   const center = {
@@ -73,7 +72,11 @@ const BinaryCPBar: FC<Props> = ({ question, variant = "md" }) => {
   const gradientEndY = center.y + radius * Math.sin(endAngle);
 
   return (
-    <div className="relative flex min-w-[200px] max-w-[200px] items-center justify-center">
+    <div
+      className={cn("relative flex items-center justify-center", {
+        "min-w-[200px] max-w-[200px]": size === "md",
+      })}
+    >
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
@@ -142,16 +145,16 @@ const BinaryCPBar: FC<Props> = ({ question, variant = "md" }) => {
       >
         <span
           className={cn("text-lg font-bold", {
-            "leading-[24px]": variant === "sm",
-            "leading-8": variant === "md",
+            "leading-[24px]": size === "sm",
+            "leading-8": size === "md",
           })}
         >
           {!isNil(questionCP) && cpPercentage}%
         </span>
         <span
           className={cn("font-normal uppercase", {
-            "text-[9px] leading-[10px]": variant === "sm",
-            "leading text-xs uppercase": variant === "md",
+            "text-[9px] leading-[10px]": size === "sm",
+            "leading text-xs uppercase": size === "md",
           })}
         >
           {t("chance")}

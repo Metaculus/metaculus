@@ -60,14 +60,14 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
             borderVariant
           ],
           {
-            blue: "border-blue-500 dark:border-blue-600",
+            blue: "border-blue-400 dark:border-blue-400",
             purple: "border-purple-500 dark:border-purple-500",
           }[borderColor]
         )}
       >
-        <Link href={getPostLink(post)} className="block p-4 no-underline">
+        <Link href={getPostLink(post)} className="block px-5 py-4 no-underline">
           {!hideTitle && (
-            <h4 className="relative mb-3 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
+            <h4 className="relative mb-3 mt-0 text-base font-medium text-gray-800 dark:text-gray-800-dark">
               {title}
             </h4>
           )}
