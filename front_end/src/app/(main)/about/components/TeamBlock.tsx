@@ -56,12 +56,11 @@ const people: Person[] = [
   },
   {
     name: "Abhimanyu Pallavi Sudhir",
-    position:
-      "Principles of Intelligent Behavior in Biological and Social Systems (PIBBSS) Fellow",
+    position: "Research Fellow",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
     introduction:
-      "I am interested in three things: (1) economics/AI analogies and market-dynamics/bounded-rationality analogies (2) information markets and scalable oversight, both for generally improving epistemics and for AI alignment (3) thermodynamics.",
+      "Abhimanyu focuses on three primary research areas: (1) exploring analogies between economics and AI systems, particularly examining market dynamics and bounded rationality frameworks, (2) developing information markets and scalable oversight mechanisms to enhance epistemic processes and advance AI alignment, and (3) investigating applications of thermodynamics to these domains.",
   },
   {
     userId: 126463,
