@@ -39,7 +39,7 @@ const CommentStatus: FC<Props> = ({ unreadCount, totalCount, url }) => {
     <Button
       variant="text"
       className={cn(
-        "gap-2 rounded-xs border-none bg-gray-200 px-2.5 py-1 text-xs font-normal text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark",
+        "h-6 gap-1 rounded-xs border-none bg-gray-200 px-2 py-1 text-xs font-normal text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark md:gap-2 md:px-2.5",
         {
           "text-gray-500 dark:text-gray-500-dark": !totalCount,
         }
@@ -89,29 +89,31 @@ const CommentStatus: FC<Props> = ({ unreadCount, totalCount, url }) => {
         )}
       </span>
       {/* Small screens version. */}
-      <span className="block align-middle md:hidden">
-        {user && unreadCount > 0 ? (
-          <span className="text-gray-500 dark:text-gray-500-dark">
-            {t.rich("unreadWithTotalCountXs", {
-              unread_count_formatted: unreadCountFormatted,
-              total_count_formatted: totalCountFormatted,
-              purple: (obj) => (
-                <span className="text-purple-700 dark:text-purple-700-dark">
-                  {obj}
-                </span>
-              ),
-            })}
-          </span>
-        ) : (
-          <span
-            className={cn("text-gray-700  dark:text-gray-700-dark", {
-              "text-gray-500 dark:text-gray-500-dark": !totalCount,
-            })}
-          >
-            {totalCountFormatted}
-          </span>
-        )}
-      </span>
+      {totalCount > 0 && (
+        <span className="block align-middle md:hidden">
+          {user && unreadCount > 0 ? (
+            <span className="text-gray-500 dark:text-gray-500-dark">
+              {t.rich("unreadWithTotalCountXs", {
+                unread_count_formatted: unreadCountFormatted,
+                total_count_formatted: totalCountFormatted,
+                purple: (obj) => (
+                  <span className="text-purple-700 dark:text-purple-700-dark">
+                    {obj}
+                  </span>
+                ),
+              })}
+            </span>
+          ) : (
+            <span
+              className={cn("text-gray-700  dark:text-gray-700-dark", {
+                "text-gray-500 dark:text-gray-500-dark": !totalCount,
+              })}
+            >
+              {totalCountFormatted}
+            </span>
+          )}
+        </span>
+      )}
     </Button>
   );
 };

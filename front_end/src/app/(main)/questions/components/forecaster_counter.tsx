@@ -25,7 +25,7 @@ const ForecastersCounter: FC<Props> = ({ forecasters }) => {
   );
 
   return (
-    <div className="flex flex-row items-center gap-2 truncate px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark">
+    <div className="flex flex-row items-center gap-1.5 truncate px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2">
       <FontAwesomeIcon
         icon={faUsers}
         className="text-gray-400 dark:text-gray-400-dark"
@@ -37,6 +37,7 @@ const ForecastersCounter: FC<Props> = ({ forecasters }) => {
           count_formatted: forecastersFormatted,
         })}
       </span>
+      {/* Small screens version */}
       <span className="block align-middle md:hidden">
         {forecastersFormatted}
       </span>

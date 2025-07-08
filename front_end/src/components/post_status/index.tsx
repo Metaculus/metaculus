@@ -71,15 +71,16 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
   }
 
   return (
-    <div className="flex flex-row items-center gap-2 truncate px-1.5 text-gray-700 dark:text-gray-700-dark">
+    <div className="flex h-6 flex-row items-center gap-2 truncate rounded-xs bg-gray-200 px-1.5 text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark md:bg-none">
       <PostStatusIcon
         status={status}
         published_at={post.published_at}
         scheduled_close_time={scheduled_close_time}
         resolution={resolution}
       />
+      {/* Large screens version */}
       <span
-        className="whitespace-nowrap text-xs font-normal"
+        className="hidden whitespace-nowrap text-xs font-normal md:block"
         suppressHydrationWarning
       >
         {statusText}
