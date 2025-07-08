@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
 from posts.models import Post
@@ -139,15 +140,21 @@ def export_data_for_questions(
     if not (is_whitelisted or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
+    if is_whitelisted or is_staff:
+        questions_with_revealed_cp = questions
+    else:
+        questions_with_revealed_cp = questions.filter(
+            Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
+        )
     if not aggregation_methods or (
         aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
     ):
         aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions)
+            AggregateForecast.objects.filter(question__in=questions_with_revealed_cp)
         ).order_by("question_id", "start_time")
     else:
         aggregate_forecasts = []
-        for question in questions:
+        for question in questions_with_revealed_cp:
             aggregation_dict = get_aggregation_history(
                 question,
                 aggregation_methods,
