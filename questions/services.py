@@ -1101,6 +1101,10 @@ def calculate_period_movement_for_questions(
                 or last_agg
             )
 
+            # This is possible if question has gaps the in forecasting timeline
+            if not last_agg or not first_agg:
+                continue
+
             agg_id_map[question] = (first_agg.id, last_agg.id)
 
         # 3) Bulk‐fetch full forecasts for just those IDs
@@ -1125,7 +1129,7 @@ def calculate_period_movement_for_questions(
 
 
 @sentry_sdk.trace
-@cache_per_object(timeout=60 * 10)
+#@cache_per_object(timeout=60 * 10)
 def calculate_movement_for_questions(
     questions: Iterable[Question],
 ) -> dict[Question, QuestionMovement | None]:
