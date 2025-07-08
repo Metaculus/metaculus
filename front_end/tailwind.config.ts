@@ -64,6 +64,9 @@ const config: Config = {
       spacing: {
         header: "3rem",
       },
+      borderRadius: {
+        xs: "2px",
+      },
     },
   },
   plugins: [
