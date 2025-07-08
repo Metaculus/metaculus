@@ -1464,10 +1464,10 @@ export default async function FAQ() {
         <p>
           Only Metaculus Administrators can resolve questions. Binary questions
           can resolve <strong>Yes</strong>, <strong>No</strong>,{" "}
-          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</Link>.
+          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annulled</Link>.
           Range questions can resolve to a specific value, an out-of-bounds
           value,{" "}
-          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</Link>.
+          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annulled</Link>.
         </p>
 
         <h3
