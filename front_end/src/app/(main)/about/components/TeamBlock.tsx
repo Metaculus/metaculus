@@ -56,8 +56,7 @@ const people: Person[] = [
   },
   {
     name: "Abhimanyu Pallavi Sudhir",
-    position:
-      "Research Fellow",
+    position: "Research Fellow",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
     introduction:
