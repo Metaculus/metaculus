@@ -16,10 +16,7 @@ type Props = {
 
 const QuestionHeaderInfo: FC<Props> = ({ post }) => {
   const resolutionData = extractPostResolution(post);
-  let newCommentsCount = post.comment_count ? post.comment_count : 0;
-  if (post.unread_comment_count !== undefined) {
-    newCommentsCount = post.unread_comment_count;
-  }
+
   return (
     <div className="my-2 flex items-center justify-between gap-3 border-b border-t border-blue-500 font-medium dark:border-gray-500">
       <div className="flex items-center gap-2">
@@ -28,7 +25,8 @@ const QuestionHeaderInfo: FC<Props> = ({ post }) => {
         <PostStatus post={post} resolution={resolutionData} />
 
         <CommentStatus
-          newCommentsCount={newCommentsCount}
+          totalCount={post.comment_count ?? 0}
+          unreadCount={post.unread_comment_count ?? 0}
           url={getPostLink(post)}
         />
         {(post.group_of_questions ||
