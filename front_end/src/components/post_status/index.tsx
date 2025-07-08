@@ -71,7 +71,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
   }
 
   return (
-    <div className="flex h-6 flex-row items-center gap-2 truncate rounded-xs bg-gray-200 px-1.5 text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark md:bg-none">
+    <div className="flex h-6 flex-row items-center gap-2 truncate rounded-xs bg-gray-200 px-1.5 text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark md:bg-transparent dark:md:bg-transparent">
       <PostStatusIcon
         status={status}
         published_at={post.published_at}

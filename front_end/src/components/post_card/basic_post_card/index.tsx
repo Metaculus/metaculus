@@ -52,17 +52,17 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "rounded bg-gray-0 dark:bg-gray-0-dark",
+          "rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
           {
-            blue: "border-blue-400 dark:border-blue-400",
-            purple: "border-purple-500 dark:border-purple-500",
+            blue: "border-blue-400 dark:border-blue-400-dark",
+            purple: "border-purple-500 dark:border-purple-500-dark",
           }[borderColor]
         )}
       >
-        <Link href={getPostLink(post)} className="block px-5 py-4 no-underline">
+        <Link href={getPostLink(post)} className="block no-underline">
           {!hideTitle && (
             <h4 className="relative mb-4 mt-0 text-base font-medium text-gray-800 dark:text-gray-800-dark">
               {title}
@@ -70,8 +70,8 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           )}
           {children}
         </Link>
-        <div className="flex items-center justify-between rounded-ee rounded-es border-t border-blue-400  px-2 py-0.5 font-medium dark:border-blue-400-dark max-lg:flex-1">
-          <div className="flex items-center gap-3">
+        <div className="mt-4 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
+          <div className="flex items-center gap-1.5 md:gap-2">
             <PostVoter post={post} />
             <CommentStatus
               totalCount={post.comment_count ?? 0}
