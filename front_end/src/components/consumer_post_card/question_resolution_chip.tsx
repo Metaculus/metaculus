@@ -41,7 +41,9 @@ const QuestionResolutionChip: FC<Props> = ({
           <span>
             {unit ? formatedResolution.replace(unit, "") : formatedResolution}
           </span>
-          {unit && <span className="font-normal">{unit}</span>}
+          {successfullyResolved && unit && (
+            <span className="font-normal">{unit}</span>
+          )}
         </span>
       </div>
     </div>
