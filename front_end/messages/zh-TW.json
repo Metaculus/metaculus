@@ -235,7 +235,6 @@
   "questionsLeft": "{count, plural, =1 {1 個問題剩餘} other {{count} 個問題剩餘} }",
   "commentsWithCount": "{count, plural, =0 {沒有評論} =1 {評論} other {評論} }",
   "unreadWithCount": "{count, plural, =0 {沒有未讀} other {未讀} }",
-  "forecastersWithCount": "{count, plural, =1 {預測者} other {預測者} }",
   "or": "或",
   "signupInviteUsers": "邀請用戶",
   "signupInviteUsersDescription": "輸入您想邀請的用戶的電子郵件地址，並用換行符分隔。他們將收到邀請註冊的電子郵件。",

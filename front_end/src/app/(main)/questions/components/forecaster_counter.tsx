@@ -1,26 +1,45 @@
+import { faUsers } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import React, { FC } from "react";
 
-import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 type Props = {
   forecasters?: number;
-  className?: string;
 };
 
-const ForecastersCounter: FC<Props> = ({ forecasters, className }) => {
+const ForecastersCounter: FC<Props> = ({ forecasters }) => {
   const t = useTranslations();
+
   if (!forecasters) {
     return null;
   }
+
+  const forecastersFormatted = abbreviatedNumber(
+    forecasters,
+    2,
+    false,
+    undefined,
+    3
+  );
+
   return (
-    <div
-      className={cn(
-        "text-xs text-gray-600-dark dark:text-gray-600-dark",
-        className
-      )}
-    >
-      {forecasters} {t("forecastersWithCount", { count: forecasters })}
+    <div className="flex flex-row items-center gap-2 truncate px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark">
+      <FontAwesomeIcon
+        icon={faUsers}
+        className="text-gray-400 dark:text-gray-400-dark"
+      />
+      {/* Large screens version */}
+      <span className="hidden align-middle md:block">
+        {t("forecastersWithCount", {
+          count: forecasters,
+          count_formatted: forecastersFormatted,
+        })}
+      </span>
+      <span className="block align-middle md:hidden">
+        {forecastersFormatted}
+      </span>
     </div>
   );
 };

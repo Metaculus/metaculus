@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
@@ -77,8 +78,8 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
               unreadCount={post.unread_comment_count ?? 0}
               url={getPostLink(post)}
             />
-
             <PostStatus post={post} resolution={resolutionData} />
+            <ForecastersCounter forecasters={post.nr_forecasters} />
           </div>
           <div className="hidden lg:inline-flex">
             <PostDefaultProject defaultProject={defaultProject} />

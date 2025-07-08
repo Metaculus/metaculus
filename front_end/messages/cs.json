@@ -192,7 +192,6 @@
   "relativeLog": "Relativní logaritmus",
   "unreadAll": "vše nepřečtené",
   "commentsWithCount": "{count, plural, =0 { žádné komentáře } =1 { komentář } other { komentáře } }",
-  "forecastersWithCount": "{count, plural, =1 {prognostik} other {prognostici} }",
   "or": "nebo",
   "registrationHeadingPrediction": "Dejte svým predikcím váhu",
   "registrationHeadingSite": "Vytvořit Metaculus účet",

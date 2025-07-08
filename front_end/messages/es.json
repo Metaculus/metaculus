@@ -199,7 +199,6 @@
   "relativeLog": "Log Relativo",
   "unreadAll": "todo no leído",
   "commentsWithCount": "{count, plural, =0 {sin comentarios} =1 {comentario} other {comentarios} }",
-  "forecastersWithCount": "{count, plural, =1 {pronosticador} other {pronosticadores} }",
   "or": "o",
   "registrationHeadingPrediction": "Haz que tu predicción cuente",
   "registrationHeadingSite": "Crea una Cuenta en Metaculus",

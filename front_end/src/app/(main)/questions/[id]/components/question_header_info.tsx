@@ -31,10 +31,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post }) => {
         />
         {(post.group_of_questions ||
           post.question?.type === QuestionType.MultipleChoice) && (
-          <ForecastersCounter
-            forecasters={post.nr_forecasters}
-            className="text-center !text-sm !text-gray-900 dark:!text-gray-900-dark"
-          />
+          <ForecastersCounter forecasters={post.nr_forecasters} />
         )}
       </div>
     </div>

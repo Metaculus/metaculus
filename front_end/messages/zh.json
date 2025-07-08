@@ -198,7 +198,6 @@
   "relativeLog": "相對對數",
   "unreadAll": "全部未讀",
   "commentsWithCount": "{count, plural, =0 {無評論} =1 {評論} other {評論} }",
-  "forecastersWithCount": "{count, plural, =1 {预报员} other {预报员} }",
   "or": "或",
   "registrationHeadingPrediction": "讓你的預測有價值",
   "registrationHeadingSite": "創建 Metaculus 帳號",
