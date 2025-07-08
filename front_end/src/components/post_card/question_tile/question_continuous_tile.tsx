@@ -5,15 +5,13 @@ import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
-import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
-import QuestionCPMovement from "@/components/cp_movement";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
 } from "@/components/forecast_maker/forecast_expiration";
-import MyPredictionChip from "@/components/my_prediction_chip";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import PredictionInfo from "@/components/post_card/question_tile/prediction_info";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
@@ -126,15 +124,8 @@ const QuestionContinuousTile: FC<Props> = ({
     <div className="flex justify-between">
       {question.type === QuestionType.Binary && (
         <div className="mr-8 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
-          <BinaryCPBar question={question} size="sm" />
-          <QuestionCPMovement
+          <PredictionInfo
             question={question}
-            className="mx-auto max-w-[110px]"
-            size={"xs"}
-          />
-          <MyPredictionChip
-            question={question}
-            showUserForecast
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
           />

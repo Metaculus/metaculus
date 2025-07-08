@@ -30,7 +30,7 @@ const ReaffirmButton: FC<Props> = ({ onClick, all = false, className }) => {
   return (
     <button
       className={cn(
-        "rounded-full border border-orange-700 px-2 py-0.5 text-orange-700 hover:border-orange-600 hover:text-orange-600 dark:border-orange-700 dark:text-orange-700-dark dark:hover:border-orange-600-dark dark:hover:text-orange-600-dark",
+        "rounded-full border border-orange-700 px-2 py-0.5 text-orange-700 hover:border-orange-600 hover:text-orange-600 dark:border-orange-700-dark dark:text-orange-700-dark dark:hover:border-orange-600-dark dark:hover:text-orange-600-dark",
         className
       )}
       onClick={(e) => {
