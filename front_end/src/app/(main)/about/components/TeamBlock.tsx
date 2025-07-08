@@ -41,21 +41,25 @@ const people: Person[] = [
   {
     name: "Alex Costea",
     position: "Research Engineer",
-    imgSrc: "https://metaculus-media.s3.us-west-2.amazonaws.com/alex-costea-modified.webp",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/alex-costea-modified.webp",
     introduction:
       "Alex Costea is a Research Engineer at Metaculus, developing the PRISM-CC project. His passion lies in bridging the gap between technology and societal systems. Prior to Metaculus, he worked as a Software Engineer for SAP, developing e-commerce solutions for large multi-national corporations. He received a Bachelor's degree in Sociology from the University of Amsterdam. In his free time, he enjoys learning new things and creating various projects, software and otherwise.",
   },
-    {
+  {
     name: "Jordan Rubin",
     position: "Quantitative Finance Executive",
-    imgSrc: "https://metaculus-media.s3.us-west-2.amazonaws.com/jordan-rubin-modified.webp",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/jordan-rubin-modified.webp",
     introduction:
       "Jordan is on garden leave after building the systematic buy-side alpha capture business at Two Sigma Investments. He currently blogs at FUTURE TOKENS on Substack. Jordan received a BS/BA degree in Economics from Wharton School at University of Pennsylvania. As advisor to Metaculus, he focuses on commercialization and monetization.",
   },
-      {
+  {
     name: "Abhimanyu Pallavi Sudhir",
-    position: "Principles of Intelligent Behavior in Biological and Social Systems (PIBBSS) Fellow",
-    imgSrc: "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
+    position:
+      "Principles of Intelligent Behavior in Biological and Social Systems (PIBBSS) Fellow",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
     introduction:
       "I am interested in three things: (1) economics/AI analogies and market-dynamics/bounded-rationality analogies (2) information markets and scalable oversight, both for generally improving epistemics and for AI alignment (3) thermodynamics.",
   },
