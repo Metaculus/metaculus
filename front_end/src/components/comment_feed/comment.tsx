@@ -278,14 +278,16 @@ const Comment: FC<CommentProps> = ({
     suggestKeyFactorsOnFirstRender && shouldSuggestKeyFactors
   );
 
-  const onKeyFactorsLoadded = () => {
-    setIsKeyfactorsFormOpen(true);
+  const onKeyFactorsLoadded = (keyFactorsLoaded: boolean) => {
+    setIsKeyfactorsFormOpen(keyFactorsLoaded);
     setLoadKeyFactors(false);
-    setTimeout(() => {
-      if (keyFactorFormRef.current) {
-        scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
-      }
-    }, 200);
+    if (keyFactorsLoaded) {
+      setTimeout(() => {
+        if (keyFactorFormRef.current) {
+          scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
+        }
+      }, 200);
+    }
   };
 
   const { comments, setComments } = useCommentsFeed();
