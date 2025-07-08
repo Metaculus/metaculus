@@ -73,7 +73,7 @@ const PostStatusIcon: FC<Props> = ({
     if (status === PostStatus.PENDING) {
       return (
         <>
-          <path d="" className="fill-olive-500" />
+          <path d="" className="fill-olive-500 dark:fill-olive-500-dark" />
           <circle
             r="10"
             strokeWidth="1"
@@ -96,14 +96,26 @@ const PostStatusIcon: FC<Props> = ({
     if (showClock) {
       return (
         <>
-          <path d="" className="fill-olive-500" />
+          <path d="" className="fill-olive-500 dark:fill-olive-500-dark" />
           <circle
-            className={cn("stroke-blue-700 stroke-1", {
-              "fill-gray-300 opacity-75": status === PostStatus.CLOSED,
-            })}
+            className={cn(
+              "stroke-blue-700 stroke-1 dark:stroke-blue-700-dark",
+              {
+                "fill-gray-300 opacity-75": status === PostStatus.CLOSED,
+              }
+            )}
           />
-          <line x1="0" y1="0" className="stroke-blue-700 stroke-1" />
-          <circle cx="0" cy="0" r="1" className="fill-blue-700" />
+          <line
+            x1="0"
+            y1="0"
+            className="stroke-blue-700 stroke-1 dark:stroke-blue-700-dark"
+          />
+          <circle
+            cx="0"
+            cy="0"
+            r="1"
+            className="fill-blue-700 dark:fill-blue-700-dark"
+          />
         </>
       );
     }
