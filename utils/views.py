@@ -149,7 +149,7 @@ def validate_data_request(request: Request, **kwargs):
         (Q(post=post) if post else Q())
         | (Q(project_id__in=project_ids) if project_ids else Q())
         | Q(project__isnull=True, post__isnull=True),
-        user=user,
+        user_id=user.id or 0,
     )
     is_whitelisted = user.is_authenticated and whitelistings.exists()
     serializer_context = {
