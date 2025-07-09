@@ -71,7 +71,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
               <FontAwesomeIcon
                 icon={faEllipsis}
                 size="xs"
-                className="resize-ellipsis"
+                className="resize-ellipsis w-[10px]"
               />
             </div>
             <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-normal leading-4">
