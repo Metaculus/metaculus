@@ -1410,5 +1410,10 @@
   "LeaderboardTagDisclaimer": "Vea todas las preguntas que cuentan para esta clasificación <link>aquí</link>",
   "activeForecastersLabel": "Pronosticadores Activos",
   "default": "predeterminado",
+  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {comentarios} =1 {comentario} other {comentarios} }",
+  "unreadWithTotalCount": "<purple>({unread_count_formatted} sin leer)</purple> {total_count_formatted} en total",
+  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
+  "forecastersWithCount": "{count_formatted} {count, plural, =1 {pronosticador} other {pronosticadores} }",
+  "percentagePointsShort": "pp",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

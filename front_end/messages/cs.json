@@ -1410,5 +1410,10 @@
   "LeaderboardTagDisclaimer": "Podívejte se na všechny otázky, které se započítávají do tohoto žebříčku <link>zde</link>",
   "activeForecastersLabel": "Aktivní předpovědci",
   "default": "výchozí",
+  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {komentářů} =1 {komentář} other {komentářů} }",
+  "unreadWithTotalCount": "<purple>({unread_count_formatted} nepřečtených)</purple> {total_count_formatted} celkem",
+  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
+  "forecastersWithCount": "{count_formatted} {count, plural, =1 {prognostik} other {prognostiků} }",
+  "percentagePointsShort": "pb",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

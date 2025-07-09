@@ -1408,5 +1408,10 @@
   "LeaderboardTagDisclaimer": "Veja todas as perguntas que contam para este ranking <link>aqui</link>",
   "activeForecastersLabel": "Previsores Ativos",
   "default": "padrão",
+  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {comentários} =1 {comentário} other {comentários} }",
+  "unreadWithTotalCount": "<purple>({unread_count_formatted} não lido)</purple> {total_count_formatted} no total",
+  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
+  "forecastersWithCount": "{count_formatted} {count, plural, =1 {previsor} other {previsores} }",
+  "percentagePointsShort": "pp",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }
