@@ -15,9 +15,15 @@ type Props = {
   url: string;
   unreadCount: number;
   totalCount: number;
+  className?: string;
 };
 
-const CommentStatus: FC<Props> = ({ unreadCount, totalCount, url }) => {
+const CommentStatus: FC<Props> = ({
+  unreadCount,
+  totalCount,
+  url,
+  className,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const unreadCountFormatted = abbreviatedNumber(
@@ -39,10 +45,11 @@ const CommentStatus: FC<Props> = ({ unreadCount, totalCount, url }) => {
     <Button
       variant="text"
       className={cn(
-        "h-6 gap-1 rounded-xs border-none bg-gray-200 px-2 py-1 text-xs font-normal text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark md:gap-2 md:px-2.5",
+        "border-nonepx-2 h-6 gap-1 rounded-xs border-none py-1 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2 md:px-2.5",
         {
           "text-gray-500 dark:text-gray-500-dark": !totalCount,
-        }
+        },
+        className
       )}
       href={url + "#comments"}
     >

@@ -1138,6 +1138,7 @@
   "sendBackToReview": "Send back to review",
   "forecastRevealed": "Forecast revealed",
   "closedForForecastingDescription": "This question is closed for forecasting. Latest Community prediction is displayed.",
+  "closedForForecastingShortDescription": "This question is closed for forecasting.",
   "invalidQuestionType": "Invalid question type",
   "invalidQuestionStatus": "Question status should be open or upcoming",
   "chance": "chance",
