@@ -435,16 +435,12 @@ class ForecastQuerySet(QuerySet):
         question_still_accepting_forecasts = Q(question__scheduled_close_time__gt=now)
         question_opened = Q(question__open_time__lte=now)
 
-        return (
-            super()
-            .get_queryset()
-            .filter(
-                forecast_started
-                & forecast_not_ended
-                & question_not_closed
-                & question_still_accepting_forecasts
-                & question_opened
-            )
+        return self.filter(
+            forecast_started
+            & forecast_not_ended
+            & question_not_closed
+            & question_still_accepting_forecasts
+            & question_opened
         )
 
 
