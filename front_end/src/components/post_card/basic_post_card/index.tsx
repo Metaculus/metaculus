@@ -77,6 +77,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
               totalCount={post.comment_count ?? 0}
               unreadCount={post.unread_comment_count ?? 0}
               url={getPostLink(post)}
+              className="bg-gray-200 dark:bg-gray-200-dark"
             />
             <PostStatus post={post} resolution={resolutionData} />
             <ForecastersCounter forecasters={post.nr_forecasters} />
