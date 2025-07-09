@@ -123,24 +123,22 @@ const QuestionContinuousTile: FC<Props> = ({
 
   return (
     <div className="flex justify-between">
-      {question.type === QuestionType.Binary && (
-        <div className="mr-8 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
+      <div className="mr-4 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px] md:mr-6">
+        {question.type === QuestionType.Binary && (
           <PredictionBinaryInfo
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
           />
-        </div>
-      )}
-      {question.type === QuestionType.Numeric && (
-        <div className="mr-8 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
+        )}
+        {question.type === QuestionType.Numeric && (
           <PredictionContinuousInfo
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
           />
-        </div>
-      )}
+        )}
+      </div>
       <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericTimeline
