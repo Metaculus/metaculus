@@ -99,6 +99,16 @@ const PostApprovalModal: FC<{
     setSubmitErrors(undefined);
     // TODO: refactor to use react-hook-form and zod validation
     if (!post.notebook) {
+      if (
+        !approvalData.published_at ||
+        !approvalData.open_time ||
+        !approvalData.cp_reveal_time ||
+        !approvalData.scheduled_close_time ||
+        !approvalData.scheduled_resolve_time
+      ) {
+        setSubmitErrors(new Error("All fields are required."));
+        return;
+      }
       if (isAfter(approvalData.published_at, approvalData.open_time)) {
         setSubmitErrors(new Error("Publish Time cannot be after Open Time."));
       }
@@ -172,6 +182,8 @@ const PostApprovalModal: FC<{
       default_project.type == TournamentType.Tournament &&
       forecasting_end_date &&
       close_date &&
+      scheduled_close_time &&
+      scheduled_resolve_time &&
       isAfter(new Date(scheduled_close_time), new Date(forecasting_end_date)) &&
       !isAfter(new Date(scheduled_resolve_time), new Date(close_date))
     ) {
@@ -205,7 +217,7 @@ const PostApprovalModal: FC<{
               <span>
                 {t("postPublishTime")}
                 <div className="text-xs italic text-gray-500 dark:text-gray-500-dark">
-                  {initial_published_at
+                  {initial_published_at && approvalData.published_at
                     ? isEqual(initial_published_at, approvalData.published_at)
                       ? t("initialValueByWriter")
                       : t("initialValueByWriterOverwrite")
@@ -226,7 +238,7 @@ const PostApprovalModal: FC<{
                 {t("openTime")}
                 <div className="text-xs italic text-gray-500 dark:text-gray-500-dark">
                   {post.question
-                    ? initial_open_time
+                    ? initial_open_time && approvalData.open_time
                       ? isEqual(initial_open_time, approvalData.open_time)
                         ? t("initialValueByWriter")
                         : t("initialValueByWriterOverwrite")
@@ -249,7 +261,7 @@ const PostApprovalModal: FC<{
                 {t("cpRevealTime")}
                 <div className="text-xs italic text-gray-500 dark:text-gray-500-dark">
                   {post.question
-                    ? initial_cp_reveal_time
+                    ? initial_cp_reveal_time && approvalData.cp_reveal_time
                       ? isEqual(
                           initial_cp_reveal_time,
                           approvalData.cp_reveal_time
@@ -275,7 +287,8 @@ const PostApprovalModal: FC<{
                 {t("closingTime")}
                 <div className="text-xs italic text-gray-500 dark:text-gray-500-dark">
                   {post.question
-                    ? initial_scheduled_close_time
+                    ? initial_scheduled_close_time &&
+                      approvalData.scheduled_close_time
                       ? isEqual(
                           initial_scheduled_close_time,
                           approvalData.scheduled_close_time
@@ -301,7 +314,8 @@ const PostApprovalModal: FC<{
                 {t("resolvingTime")}
                 <div className="text-xs italic text-gray-500 dark:text-gray-500-dark">
                   {post.question
-                    ? initial_scheduled_resolve_time
+                    ? initial_scheduled_resolve_time &&
+                      approvalData.scheduled_resolve_time
                       ? isEqual(
                           initial_scheduled_resolve_time,
                           approvalData.scheduled_resolve_time

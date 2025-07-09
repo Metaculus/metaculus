@@ -46,11 +46,11 @@ export type PostsParams = PaginationParams & {
 };
 
 export type ApprovePostParams = {
-  published_at: string;
-  open_time: string;
-  cp_reveal_time: string;
-  scheduled_close_time: string;
-  scheduled_resolve_time: string;
+  published_at: string | undefined;
+  open_time: string | undefined;
+  cp_reveal_time: string | undefined;
+  scheduled_close_time: string | undefined;
+  scheduled_resolve_time: string | undefined;
 };
 
 export type BoostDirection = 1 | -1;
