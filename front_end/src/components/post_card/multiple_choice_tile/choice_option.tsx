@@ -57,14 +57,17 @@ const ChoiceOption: FC<Props> = ({
       className="flex h-auto flex-row items-center self-start sm:self-stretch"
     >
       {!hideIcon && (
-        <div className="py-0.5 pr-1.5">
-          <ChoiceIcon color={color} className="resize-icon" />
+        <div className="py-0.5 pr-3">
+          <ChoiceIcon
+            color={color}
+            className="resize-icon size-3 rounded-full"
+          />
         </div>
       )}
 
       <div
         className={cn(
-          "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark",
+          "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-normal leading-4 text-gray-900 dark:text-gray-900-dark",
           { "pl-1.5}": !hideIcon },
           labelClassName
         )}

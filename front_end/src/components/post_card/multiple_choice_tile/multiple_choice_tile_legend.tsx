@@ -38,7 +38,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
-    <div className="embed-gap flex flex-col gap-2" ref={ref}>
+    <div className="embed-gap flex flex-col gap-2.5" ref={ref}>
       {visibleChoices.map(
         ({
           choice,
