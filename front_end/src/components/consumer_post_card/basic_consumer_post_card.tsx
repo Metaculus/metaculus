@@ -31,13 +31,8 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
             variant="inline"
           />
         )}
-      <Link
-        href={getPostLink(post)}
-        className={
-          "flex flex-col items-center gap-2.5 overflow-hidden rounded border border-blue-400 bg-gray-0 p-6 pt-5 no-underline @container dark:border-blue-400-dark dark:bg-gray-0-dark"
-        }
-      >
-        <div className="flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
+      <div className="relative flex flex-col items-center gap-2.5 overflow-hidden rounded border border-blue-400 bg-gray-0 p-6 pt-5 no-underline @container dark:border-blue-400-dark dark:bg-gray-0-dark">
+        <div className="z-10 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
           <CommentStatus
             totalCount={post.comment_count ?? 0}
             unreadCount={post.unread_comment_count ?? 0}
@@ -45,13 +40,21 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
           />
           <ForecastersCounter forecasters={post.nr_forecasters} />
         </div>
-        <div className="flex flex-col items-center gap-5">
+        <div
+          className={
+            "flex w-full flex-col items-center gap-2.5 overflow-hidden no-underline @container"
+          }
+        >
           <h4 className="m-0 max-w-xl text-center text-base font-medium @[500px]:text-left">
             {title}
           </h4>
           {children}
         </div>
-      </Link>
+        <Link
+          href={getPostLink(post)}
+          className="absolute top-0 z-0 h-full w-full @container"
+        ></Link>
+      </div>
     </div>
   );
 };
