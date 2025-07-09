@@ -11,7 +11,8 @@ import {
   forecastExpirationToDate,
 } from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
-import PredictionInfo from "@/components/post_card/question_tile/prediction_info";
+import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
+import PredictionContinuousInfo from "@/components/post_card/question_tile/prediction_continuous_info";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
@@ -124,7 +125,16 @@ const QuestionContinuousTile: FC<Props> = ({
     <div className="flex justify-between">
       {question.type === QuestionType.Binary && (
         <div className="mr-8 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
-          <PredictionInfo
+          <PredictionBinaryInfo
+            question={question}
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            canPredict={canPredict}
+          />
+        </div>
+      )}
+      {question.type === QuestionType.Numeric && (
+        <div className="mr-8 inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
+          <PredictionContinuousInfo
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}

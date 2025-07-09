@@ -21,13 +21,13 @@ const QuestionResolutionChip: FC<Props> = ({
         className={cn(
           "flex w-fit flex-col items-center rounded-[10px] border border-purple-500 px-4 py-2.5 dark:border-purple-500",
           {
-            "bg-gray-300 dark:bg-gray-300-dark": !successfullyResolved,
+            "border-gray-300 dark:border-gray-300-dark": !successfullyResolved,
           }
         )}
       >
         {successfullyResolved && (
           <span className="text-xs font-normal uppercase leading-4 text-purple-700 dark:text-purple-700-dark">
-            {t("result")}
+            {t("resolved")}
           </span>
         )}
         <span

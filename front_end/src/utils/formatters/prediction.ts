@@ -220,7 +220,8 @@ function displayValue(
  */
 export function getPredictionDisplayValue(
   value: number | null | undefined,
-  params: PredictionDisplayValueParams
+  params: PredictionDisplayValueParams,
+  displayRangeUnits: boolean = true
 ): string {
   const { range, ...displayValueParams } = params;
   const { emptyLabel = "..." } = displayValueParams;
@@ -238,8 +239,18 @@ export function getPredictionDisplayValue(
       return emptyLabel;
     }
 
-    const lowerDisplay = displayValue(lowerX, displayValueParams);
-    const upperDisplay = displayValue(upperX, displayValueParams);
+    const lowerDisplay = displayValue(
+      lowerX,
+      displayRangeUnits
+        ? displayValueParams
+        : { ...displayValueParams, unit: undefined }
+    );
+    const upperDisplay = displayValue(
+      upperX,
+      displayRangeUnits
+        ? displayValueParams
+        : { ...displayValueParams, unit: undefined }
+    );
 
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }

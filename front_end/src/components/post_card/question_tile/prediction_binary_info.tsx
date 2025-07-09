@@ -16,7 +16,11 @@ type Props = {
   canPredict?: boolean;
 };
 
-const PredictionInfo: FC<Props> = ({ question, onReaffirm, canPredict }) => {
+const PredictionBinaryInfo: FC<Props> = ({
+  question,
+  onReaffirm,
+  canPredict,
+}) => {
   const locale = useLocale();
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
@@ -59,4 +63,4 @@ const PredictionInfo: FC<Props> = ({ question, onReaffirm, canPredict }) => {
   );
 };
 
-export default PredictionInfo;
+export default PredictionBinaryInfo;
