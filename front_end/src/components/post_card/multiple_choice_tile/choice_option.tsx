@@ -51,15 +51,23 @@ const ChoiceOption: FC<Props> = ({
         })
         .join(" ")
     : resolution;
+
+  const hasValue = !isNil(values.at(-1));
+
   return (
     <div
       key={`choice-option-${choice}`}
-      className="flex h-auto flex-row items-center self-start sm:self-stretch"
+      className={cn(
+        "flex h-auto flex-row items-center self-stretch text-gray-900 dark:text-gray-900-dark",
+        {
+          "text-gray-800 dark:text-gray-800-dark": !hasValue,
+        }
+      )}
     >
       {!hideIcon && (
         <div className="py-0.5 pr-3">
           <ChoiceIcon
-            color={color}
+            color={hasValue ? color : undefined}
             className="resize-icon size-3 rounded-full"
           />
         </div>
@@ -67,15 +75,22 @@ const ChoiceOption: FC<Props> = ({
 
       <div
         className={cn(
-          "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-normal leading-4 text-gray-900 dark:text-gray-900-dark",
-          { "pl-1.5}": !hideIcon },
+          "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-normal leading-4",
+          { "pl-1.5": !hideIcon },
           labelClassName
         )}
       >
         {choice}
       </div>
       {isNil(resolution) ? (
-        <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
+        <div
+          className={cn(
+            "resize-label py-0.5 pr-1.5 text-right text-sm font-normal leading-4",
+            {
+              "opacity-30": !hasValue,
+            }
+          )}
+        >
           {getPredictionDisplayValue(values.at(-1), {
             questionType: questionType ?? QuestionType.Binary,
             scaling: scaling ?? {
@@ -84,12 +99,12 @@ const ChoiceOption: FC<Props> = ({
               zero_point: null,
             },
             actual_resolve_time: actual_resolve_time ?? null,
-            emptyLabel: "?",
+            emptyLabel: "N/A",
           })}
         </div>
       ) : (
-        <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
-          <ResolutionIcon />
+        <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-normal leading-4">
+          <ResolutionIcon className="text-purple-800 dark:text-purple-800-dark" />
           <div className="whitespace-pre text-right">{adjustedResolution}</div>
         </div>
       )}

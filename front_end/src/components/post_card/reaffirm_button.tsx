@@ -18,7 +18,7 @@ const ReaffirmButton: FC<Props> = ({ onClick, all = false, className }) => {
   const { reaffirmStatus } = useCardReaffirmContext();
 
   const ReaffirmElement = (
-    <span className={cn("inline-flex items-center gap-1")}>
+    <span className={cn("inline-flex items-center gap-1 text-xs")}>
       <span>{all ? t("reaffirmAll") : t("reaffirm")}</span>
       {reaffirmStatus === "loading" && <LoadingSpinner size="sm" />}
       {reaffirmStatus === "completed" && (

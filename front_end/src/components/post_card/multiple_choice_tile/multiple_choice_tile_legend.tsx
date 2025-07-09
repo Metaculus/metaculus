@@ -65,16 +65,18 @@ const MultipleChoiceTileLegend: FC<Props> = ({
         )
       )}
       {otherItemsCount > 0 && (
-        <div className="flex flex-row text-gray-600 dark:text-gray-600-dark">
-          <div className="self-center py-0 pr-1.5 text-center">
-            <FontAwesomeIcon
-              icon={faEllipsis}
-              size="xl"
-              className="resize-ellipsis"
-            />
-          </div>
-          <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-            {t("otherWithCount", { count: otherItemsCount })}
+        <div className="flex flex-row items-center justify-between text-gray-600 dark:text-gray-600-dark">
+          <div className="flex flex-row items-center">
+            <div className="self-center py-0 pr-3.5 text-center">
+              <FontAwesomeIcon
+                icon={faEllipsis}
+                size="xs"
+                className="resize-ellipsis"
+              />
+            </div>
+            <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-normal leading-4">
+              {t("otherWithCount", { count: otherItemsCount })}
+            </div>
           </div>
           {canPredict && !!onReaffirm && (
             <ReaffirmButton
