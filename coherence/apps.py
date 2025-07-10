@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class QuestionLinksConfig(AppConfig):
+class CoherenceConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'question_links'
+    name = 'coherence'

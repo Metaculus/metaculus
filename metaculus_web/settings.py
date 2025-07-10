@@ -80,7 +80,7 @@ INSTALLED_APPS = [
     "notifications",
     "fab_management",
     "django_select2",
-    "question_links",
+    "coherence"
 ]
 
 MIDDLEWARE = [
