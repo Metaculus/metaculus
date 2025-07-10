@@ -15,15 +15,17 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import { parseQuestionId } from "@/utils/questions/helpers";
 
+type SearchedQuestionType = "parent" | "child" | "default";
+
 type Props = {
-  isParentQuestion: boolean;
+  searchedQuestionType: SearchedQuestionType;
   onQuestionChange: (question: QuestionWithForecasts) => void;
   title?: string;
   disabled?: boolean;
 };
 
-const ConditionalQuestionPicker: FC<Props> = ({
-  isParentQuestion,
+const QuestionPicker: FC<Props> = ({
+  searchedQuestionType,
   onQuestionChange,
   title,
   disabled,
@@ -38,17 +40,18 @@ const ConditionalQuestionPicker: FC<Props> = ({
   const filters = useMemo(() => {
     return {
       search,
-      forecast_type: isParentQuestion
-        ? [QuestionType.Binary]
-        : [
-            QuestionType.Binary,
-            QuestionType.Numeric,
-            QuestionType.Discrete,
-            QuestionType.Date,
-          ],
+      forecast_type:
+        searchedQuestionType === "parent"
+          ? [QuestionType.Binary]
+          : [
+              QuestionType.Binary,
+              QuestionType.Numeric,
+              QuestionType.Discrete,
+              QuestionType.Date,
+            ],
       statuses: [PostStatus.OPEN, PostStatus.UPCOMING],
     };
-  }, [isParentQuestion, search]);
+  }, [searchedQuestionType, search]);
 
   const handleSearch = useDebouncedCallback(async (filters: PostsParams) => {
     try {
@@ -85,6 +88,17 @@ const ConditionalQuestionPicker: FC<Props> = ({
     handleSearch(filters);
   }, [filters]);
 
+  function getQuestionTitle(questionType: SearchedQuestionType): string {
+    switch (questionType) {
+      case "parent":
+        return t("parentInputDescription");
+      case "child":
+        return t("childInputDescription");
+      case "default":
+        return "Select Question";
+    }
+  }
+
   return (
     <div>
       <Button onClick={() => setIsOpen(true)} disabled={disabled}>
@@ -107,9 +121,7 @@ const ConditionalQuestionPicker: FC<Props> = ({
               placeholder={t("questionSearchPlaceholder")}
             />
             <span className="mt-1 px-1 text-xs normal-case text-gray-700 dark:text-gray-700-dark">
-              {isParentQuestion
-                ? t("parentInputDescription")
-                : t("childInputDescription")}
+              {getQuestionTitle(searchedQuestionType)}
             </span>
             <div className="mt-2 flex min-h-[400px] flex-1 flex-col gap-2 overflow-y-scroll md:max-h-[400px]">
               {isLoading ? (
@@ -170,4 +182,4 @@ const ConditionalQuestionPicker: FC<Props> = ({
   );
 };
 
-export default ConditionalQuestionPicker;
+export default QuestionPicker;
