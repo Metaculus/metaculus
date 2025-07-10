@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { coherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
 import ServerCommentsApi from "@/services/api/comments/comments.server";
 import {
   CommentReportReason,
@@ -315,4 +316,15 @@ export async function getPostZipData(params: DataParams) {
 
 export async function emailData(params: DataParams) {
   return await ServerPostsApi.emailData(params);
+}
+
+export async function createCoherenceLink() {
+  try {
+    console.log("In actions.ts doing createCoherenceLink");
+    return await coherenceLinksApiClass.createCoherenceLink(null);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
 }
