@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 
 # Create your views here.
-@api_view(["GET"])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def create_link_api_view(request):
     return Response({"content" : "Hello world"})
