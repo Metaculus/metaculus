@@ -150,7 +150,10 @@ def export_data_for_questions(
         aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
     ):
         aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions_with_revealed_cp)
+            AggregateForecast.objects.filter(
+                question__in=questions_with_revealed_cp,
+                start_time__lte=timezone.now(),
+            )
         ).order_by("question_id", "start_time")
     else:
         aggregate_forecasts = []
@@ -167,6 +170,7 @@ def export_data_for_questions(
                     else question.include_bots_in_aggregates
                 ),
                 histogram=True,
+                include_future=kwargs.get("include_future", False),
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)

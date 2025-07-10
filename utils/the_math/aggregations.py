@@ -415,6 +415,7 @@ def get_user_forecast_history(
     forecasts: list[Forecast],
     minimize: bool = False,
     cutoff: datetime | None = None,
+    include_future: bool = True,
 ) -> list[ForecastSet]:
     timesteps = set()
     for forecast in forecasts:
@@ -490,6 +491,7 @@ def get_aggregation_history(
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,
+    include_future: bool = True,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
@@ -507,8 +509,16 @@ def get_aggregation_history(
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
 
+    if include_future:
+        cutoff = question.actual_close_time
+    else:
+        cutoff = min(
+            django_timezone.now(), question.actual_close_time or django_timezone.now()
+        )
     forecast_history = get_user_forecast_history(
-        forecasts, minimize, cutoff=question.actual_close_time
+        forecasts,
+        minimize,
+        cutoff=cutoff,
     )
 
     for method in aggregation_methods:
