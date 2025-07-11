@@ -22,6 +22,8 @@ type Props = {
   onQuestionChange: (question: QuestionWithForecasts) => void;
   title?: string;
   disabled?: boolean;
+  divClassName?: string;
+  buttonClassName?: string;
 };
 
 const QuestionPicker: FC<Props> = ({
@@ -29,6 +31,8 @@ const QuestionPicker: FC<Props> = ({
   onQuestionChange,
   title,
   disabled,
+  divClassName,
+  buttonClassName,
 }) => {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
@@ -100,8 +104,12 @@ const QuestionPicker: FC<Props> = ({
   }
 
   return (
-    <div>
-      <Button onClick={() => setIsOpen(true)} disabled={disabled}>
+    <div className={divClassName}>
+      <Button
+        onClick={() => setIsOpen(true)}
+        disabled={disabled}
+        className={buttonClassName}
+      >
         {t("pickQuestion")}
       </Button>
       {isOpen && (

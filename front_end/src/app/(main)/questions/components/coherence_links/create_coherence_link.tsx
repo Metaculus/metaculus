@@ -1,9 +1,11 @@
 import { FC, useState } from "react";
 
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
+import QuestionPicker from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import { Post } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   post: Post;
@@ -22,6 +24,8 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState<Directions>("positive");
   const [strength, setStrength] = useState<Strengths>("medium");
+  const [otherQuestion, setOtherQuestion] =
+    useState<QuestionWithForecasts | null>(null);
 
   const directionMenuItems = directionOptions.map((it) => ({
     id: it,
@@ -47,6 +51,10 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
     setIsFirstQuestion(!isFirstQuestion);
   }
 
+  async function otherQuestionSelected(question: QuestionWithForecasts) {
+    setOtherQuestion(question);
+  }
+
   if (cancelled) return null;
 
   return (
@@ -69,11 +77,24 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
             >
               <Button>{strength}</Button>
             </DropdownMenu>{" "}
-            causal impact on another question.
+            causal impact on{" "}
+            <QuestionPicker
+              searchedQuestionType={"default"}
+              onQuestionChange={otherQuestionSelected}
+              divClassName={"inline-block"}
+              buttonClassName={"inline-block"}
+            ></QuestionPicker>{" "}
+            <b>{otherQuestion?.title}</b>.
           </div>
         ) : (
           <div>
-            Another question has a{" "}
+            <QuestionPicker
+              searchedQuestionType={"default"}
+              onQuestionChange={otherQuestionSelected}
+              divClassName={"inline-block"}
+              buttonClassName={"inline-block"}
+            ></QuestionPicker>{" "}
+            <b>{otherQuestion?.title}</b> has a{" "}
             <DropdownMenu
               items={directionMenuItems}
               itemClassName={"inline-block"}
