@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { createCoherenceLink } from "@/app/(main)/questions/actions";
+import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
+import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { Post } from "@/types/post";
@@ -18,12 +19,10 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const t = useTranslations();
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
-  const [content, setContent] = useState<string>("");
+  const [newLinksCount, setNewLinksCount] = useState(0);
 
-  async function buttonClick() {
-    const result = await createCoherenceLink();
-    setContent(JSON.stringify(result));
-    console.log("I was clicked!", result);
+  async function addLink() {
+    setNewLinksCount(newLinksCount + 1);
   }
 
   return (
@@ -35,9 +34,18 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         className="-mt-4"
       >
         <div id={"question-links"}>
-          <button onClick={buttonClick}>Click me!</button>
-          <div>{content}</div>
+          {Array.from({ length: newLinksCount }, (_, index) => (
+            <CreateCoherenceLink
+              post={post}
+              key={index}
+              linkKey={index}
+            ></CreateCoherenceLink>
+          ))}
         </div>
+        <br />
+        <Button onClick={addLink} className={"w-32"}>
+          Link a question
+        </Button>
       </ExpandableContent>
     </SectionToggle>
   );
