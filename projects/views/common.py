@@ -11,6 +11,7 @@ from posts.serializers import serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
+    ProjectSerializer,
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
@@ -190,6 +191,26 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
     )
 
     return Response(serialize_posts_many_forecast_flow(posts, user))
+
+
+@api_view(["PATCH"])
+def project_update_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    serializer = ProjectSerializer(
+        obj,
+        data=request.data,
+        partial=True,
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
 
 
 @api_view(["GET"])

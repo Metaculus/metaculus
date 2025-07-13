@@ -10,6 +10,41 @@ from projects.serializers.communities import CommunitySerializer
 from users.serializers import UserPublicSerializer
 
 
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = (
+            "created_at",
+            "edited_at",
+            "id",
+            "type",
+            "bot_leaderboard_status",
+            "name",
+            "slug",
+            "subtitle",
+            "description",
+            "header_image",
+            "header_logo",
+            "emoji",
+            "order",
+            "prize_pool",
+            "start_date",
+            "close_date",
+            "forecasting_end_date",
+            "meta_description",
+            "default_permission",
+            "visibility",
+            "show_on_homepage",
+            "show_on_services_page",
+            "forecasts_flow_enabled",
+        )
+        read_only_fields = (
+            "created_at",
+            "edited_at",
+            "id",
+        )
+
+
 class LeaderboardTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
