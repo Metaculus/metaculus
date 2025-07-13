@@ -14,7 +14,17 @@ urlpatterns = [
         "projects/tournaments/<str:slug>/forecast-flow-posts/",
         views.tournament_forecast_flow_posts_api_view,
     ),
-    path("projects/<int:project_id>/update/", views.project_update_api_view),
+    path("projects/create/", views.project_create_api_view, name="project-create"),
+    path(
+        "projects/<int:project_id>/delete/",
+        views.project_delete_api_view,
+        name="project-delete",
+    ),
+    path(
+        "projects/<int:project_id>/update/",
+        views.project_update_api_view,
+        name="project-update",
+    ),
     path(
         "projects/<int:project_id>/members/",
         views.project_members_api_view,

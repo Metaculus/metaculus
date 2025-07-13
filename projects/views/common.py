@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -191,6 +191,30 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
     )
 
     return Response(serialize_posts_many_forecast_flow(posts, user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_create_api_view(request: Request):
+    serializer = ProjectSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_delete_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    obj.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["PATCH"])
