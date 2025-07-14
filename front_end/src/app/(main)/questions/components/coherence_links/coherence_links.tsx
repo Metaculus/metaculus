@@ -6,10 +6,12 @@ import { FC, useEffect, useState } from "react";
 
 import { getCoherenceLinksForQuestion } from "@/app/(main)/questions/actions";
 import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
+import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
+import { CoherenceLinksGroup } from "@/types/coherence";
 import { Post } from "@/types/post";
 
 type Props = {
@@ -23,7 +25,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
   const [newLinksCount, setNewLinksCount] = useState(0);
-  const [coherenceLinks, setCoherenceLinks] = useState<string>("");
+  const [coherenceLinks, setCoherenceLinks] =
+    useState<CoherenceLinksGroup | null>(null);
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
@@ -35,13 +38,13 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
     console.log("Page update");
     if (!post.question) return;
     const coherenceLinks = await getCoherenceLinksForQuestion(post.question);
-    console.log(coherenceLinks);
-    setCoherenceLinks(JSON.stringify(coherenceLinks));
+    if ("errors" in coherenceLinks) setCoherenceLinks(null);
+    else setCoherenceLinks(coherenceLinks);
   }
 
   useEffect(() => {
     updatePage().then(() => {});
-  });
+  }, []);
 
   return (
     <SectionToggle title={"Question Links"} defaultOpen={true}>
@@ -51,7 +54,9 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         collapseLabel={collapseLabel}
         className="-mt-4"
       >
-        {coherenceLinks}
+        {Array.from(coherenceLinks?.data ?? [], (link, index) => (
+          <DisplayCoherenceLink key={index} link={link}></DisplayCoherenceLink>
+        ))}
         <div id={"question-links"}>
           {Array.from({ length: newLinksCount }, (_, index) => (
             <CreateCoherenceLink

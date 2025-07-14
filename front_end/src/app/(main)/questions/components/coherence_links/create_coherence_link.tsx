@@ -5,6 +5,7 @@ import { createCoherenceLink } from "@/app/(main)/questions/actions";
 import QuestionPicker from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
+import { Directions, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionWithForecasts } from "@/types/question";
 
@@ -14,10 +15,7 @@ type Props = {
 };
 
 const directionOptions = ["positive", "negative"];
-type Directions = (typeof directionOptions)[number];
-
 const strengthOptions = ["low", "medium", "high"];
-type Strengths = (typeof strengthOptions)[number];
 
 export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);

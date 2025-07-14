@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CoherenceLinksGroup } from "@/types/coherence";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 class CoherenceLinksApiClass extends ApiService {
@@ -6,7 +7,7 @@ class CoherenceLinksApiClass extends ApiService {
     return await this.post(`/coherence/create-link/`, body);
   }
 
-  async getCoherenceLinksForQuestion<T>(id: number): Promise<T> {
+  async getCoherenceLinksForQuestion(id: number): Promise<CoherenceLinksGroup> {
     return await this.get(`/coherence/get-links/${id}`);
   }
 }
