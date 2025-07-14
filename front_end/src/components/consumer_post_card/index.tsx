@@ -4,18 +4,17 @@ import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import BasicConsumerPostCard from "@/components/consumer_post_card/basic_consumer_post_card";
-import ConsumerPredictionInfo from "@/components/consumer_post_card/prediction_info";
+import GroupForecastCard from "@/components/consumer_post_card/group_forecast_card";
 import PostCardErrorBoundary from "@/components/post_card/error_boundary";
 import HideCPProvider from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
-  getGroupForecastAvailability,
-  getQuestionForecastAvailability,
-} from "@/utils/questions/forecastAvailability";
-import {
   isGroupOfQuestionsPost,
+  isMultipleChoicePost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
+
+import ConsumerQuestionTile from "./consumer_question_tile";
 
 type BorderVariant = "regular" | "highlighted";
 type BorderColor = "blue" | "purple";
@@ -33,16 +32,17 @@ const ConsumerPostCard: FC<PropsWithChildren<Props>> = ({
   forCommunityFeed,
 }) => {
   const t = useTranslations();
-  const forecastAvailability = getPostForecastAvailability(post);
 
   return (
     <PostCardErrorBoundary>
       <BasicConsumerPostCard post={post} forCommunityFeed={forCommunityFeed}>
         <HideCPProvider post={post}>
-          <ConsumerPredictionInfo
-            post={post}
-            forecastAvailability={forecastAvailability}
-          />
+          {isQuestionPost(post) && !isMultipleChoicePost(post) && (
+            <ConsumerQuestionTile question={post.question} />
+          )}
+          {(isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) && (
+            <GroupForecastCard post={post} />
+          )}
           {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(
             post.status
           ) && (
@@ -55,14 +55,5 @@ const ConsumerPostCard: FC<PropsWithChildren<Props>> = ({
     </PostCardErrorBoundary>
   );
 };
-
-function getPostForecastAvailability(post: PostWithForecasts) {
-  if (isQuestionPost(post)) {
-    return getQuestionForecastAvailability(post.question);
-  } else if (isGroupOfQuestionsPost(post)) {
-    return getGroupForecastAvailability(post.group_of_questions.questions);
-  }
-  return null;
-}
 
 export default ConsumerPostCard;

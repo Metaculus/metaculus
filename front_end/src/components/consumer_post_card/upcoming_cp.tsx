@@ -3,25 +3,26 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import "@github/relative-time-element";
+import cn from "@/utils/core/cn";
 
 type Props = {
   cpRevealsOn: string;
+  className?: string;
 };
 
-const UpcomingCP: FC<Props> = ({ cpRevealsOn }) => {
+const UpcomingCP: FC<Props> = ({ cpRevealsOn, className }) => {
   const t = useTranslations();
   const locale = useLocale();
   return (
-    <div className="flex min-w-[200px] max-w-[200px] flex-col items-center gap-0">
-      <span className="text-xs font-normal leading-4 text-purple-700 dark:text-purple-700-dark">
-        {t("forecastRevealed")}{" "}
-      </span>
+    <div
+      className={cn(
+        "w-full text-center text-sm font-normal text-gray-600 dark:text-gray-600-dark",
+        className
+      )}
+    >
+      <span>{t("cpRevealed")} </span>
       {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
-      <relative-time
-        datetime={cpRevealsOn}
-        lang={locale}
-        className="text-base font-medium leading-6 text-purple-800 dark:text-purple-800-dark"
-      >
+      <relative-time datetime={cpRevealsOn} lang={locale} className="leading-6">
         {intlFormatDistance(cpRevealsOn, new Date(), {
           locale,
         })}

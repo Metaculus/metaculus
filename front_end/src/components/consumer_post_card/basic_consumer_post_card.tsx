@@ -42,10 +42,10 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
         </div>
         <div
           className={
-            "flex w-full flex-col items-center gap-2.5 overflow-hidden no-underline @container"
+            "flex w-full flex-col items-center gap-5 overflow-hidden no-underline @container"
           }
         >
-          <h4 className="m-0 max-w-xl text-center text-base font-medium @[500px]:text-left">
+          <h4 className="m-0 max-w-xl text-center text-lg font-medium">
             {title}
           </h4>
           {children}

@@ -154,7 +154,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
         <span
           className={cn("font-normal uppercase", {
             "text-[9px] leading-[9px]": size === "sm",
-            "leading text-xs uppercase": size === "md",
+            "text-xs uppercase leading-none": size === "md",
           })}
         >
           {t("chance")}

@@ -7,12 +7,14 @@ type Props = {
   formatedResolution: string;
   successfullyResolved: boolean;
   unit?: string;
+  presentation?: "forecasterView" | "consumerView";
 };
 
 const QuestionResolutionChip: FC<Props> = ({
   formatedResolution,
   successfullyResolved,
   unit,
+  presentation = "forecasterView",
 }) => {
   const t = useTranslations();
   return (
@@ -27,7 +29,7 @@ const QuestionResolutionChip: FC<Props> = ({
       >
         {successfullyResolved && (
           <span className="text-xs font-normal uppercase leading-4 text-purple-700 dark:text-purple-700-dark">
-            {t("resolved")}
+            {presentation === "forecasterView" ? t("resolved") : t("result")}
           </span>
         )}
         <span
