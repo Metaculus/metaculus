@@ -22,8 +22,9 @@ import ServerQuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/api/questions/questions.server";
-import { NotebookPost, PostSubscription } from "@/types/post";
+import { NotebookPost, Post, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
+import { Question, QuestionWithForecasts } from "@/types/question";
 import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 import { ApiError } from "@/utils/core/errors";
@@ -318,10 +319,22 @@ export async function emailData(params: DataParams) {
   return await ServerPostsApi.emailData(params);
 }
 
-export async function createCoherenceLink() {
+export async function createCoherenceLink(
+  post: Post,
+  question1: Question,
+  question2: Question,
+  direction: string,
+  strength: string
+) {
   try {
     console.log("In actions.ts doing createCoherenceLink");
-    return await coherenceLinksApiClass.createCoherenceLink(null);
+    return await coherenceLinksApiClass.createCoherenceLink({
+      post: post,
+      question1: question1,
+      question2: question2,
+      direction: direction,
+      strength: strength,
+    });
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,

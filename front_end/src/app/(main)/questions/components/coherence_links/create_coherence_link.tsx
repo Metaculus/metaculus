@@ -6,7 +6,7 @@ import QuestionPicker from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import { Post } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { Question, QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   post: Post;
@@ -19,8 +19,7 @@ type Directions = (typeof directionOptions)[number];
 const strengthOptions = ["low", "medium", "high"];
 type Strengths = (typeof strengthOptions)[number];
 
-export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
-  const [content, setContent] = useState<string>("");
+export const CreateCoherenceLink: FC<Props> = ({ post }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState<Directions>("positive");
@@ -39,9 +38,31 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
     onClick: () => setStrength(it as Strengths),
   }));
 
-  async function buttonClick() {
-    const result = await createCoherenceLink();
-    setContent(JSON.stringify(result));
+  async function saveQuestion() {
+    //Todo: handle groups of questions
+    let question1: Question | null;
+    let question2: Question | null;
+
+    if (isFirstQuestion) {
+      question1 = post?.question ?? null;
+      question2 = otherQuestion ?? null;
+    } else {
+      question1 = otherQuestion ?? null;
+      question2 = post?.question ?? null;
+    }
+
+    //Todo: handle type safety
+    const result = await createCoherenceLink(
+      post,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      question1!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      question2!,
+      direction,
+      strength
+    );
+    console.log(result);
+    await cancelLink();
   }
 
   async function cancelLink() {
@@ -129,8 +150,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
       </div>
       <Button onClick={swapFormat}>Swap</Button>
       <Button onClick={cancelLink}>Cancel</Button>
-      <Button onClick={buttonClick}>Save</Button>
-      <div>{content}</div>
+      <Button onClick={saveQuestion}>Save</Button>
     </div>
   );
 };

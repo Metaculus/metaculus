@@ -1,5 +1,6 @@
 "use client";
 
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
@@ -7,6 +8,7 @@ import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
+import { useAuth } from "@/contexts/auth_context";
 import { Post } from "@/types/post";
 
 type Props = {
@@ -20,6 +22,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
   const [newLinksCount, setNewLinksCount] = useState(0);
+  const { user } = useAuth();
+  const isLoggedIn = !isNil(user);
 
   async function addLink() {
     setNewLinksCount(newLinksCount + 1);
@@ -43,9 +47,11 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
           ))}
         </div>
         <br />
-        <Button onClick={addLink} className={"w-32"}>
-          Link a question
-        </Button>
+        {isLoggedIn && (
+          <Button onClick={addLink} className={"w-32"}>
+            Link a question
+          </Button>
+        )}
       </ExpandableContent>
     </SectionToggle>
   );
