@@ -22,7 +22,7 @@ const CookiesModal: FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   const { cookiesConsent, setIsBannerVisible } = useCookiesContext();
 
   const showMarketeingOption = false;
-  const showPreferencesOption = false;
+  const showPreferencesOption = true;
 
   const [cookiesUISettings, setCookiesUISettings] = useState<CookiesSettings>({
     ...(cookiesConsent || {
