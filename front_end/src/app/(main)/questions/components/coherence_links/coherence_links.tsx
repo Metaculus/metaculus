@@ -55,7 +55,11 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         className="-mt-4"
       >
         {Array.from(coherenceLinks?.data ?? [], (link, index) => (
-          <DisplayCoherenceLink key={index} link={link}></DisplayCoherenceLink>
+          <DisplayCoherenceLink
+            key={index}
+            link={link}
+            post={post}
+          ></DisplayCoherenceLink>
         ))}
         <div id={"question-links"}>
           {Array.from({ length: newLinksCount }, (_, index) => (

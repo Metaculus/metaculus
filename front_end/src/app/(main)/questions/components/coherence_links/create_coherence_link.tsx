@@ -86,72 +86,75 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   if (cancelled) return null;
 
   return (
-    <div>
+    <>
       <div>
-        {isFirstQuestion ? (
-          <div>
-            This question has a{" "}
-            <DropdownMenu
-              items={directionMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{direction}</Button>
-            </DropdownMenu>{" "}
-            <DropdownMenu
-              items={strengthMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{strength}</Button>
-            </DropdownMenu>{" "}
-            causal impact on{" "}
-            <QuestionPicker
-              searchedQuestionType={"default"}
-              onQuestionChange={otherQuestionSelected}
-              divClassName={"inline-block"}
-              buttonClassName={"inline-block"}
-            ></QuestionPicker>{" "}
-            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
-              <b>{otherQuestion?.title}</b>
-            </Link>
-            .
-          </div>
-        ) : (
-          <div>
-            <QuestionPicker
-              searchedQuestionType={"default"}
-              onQuestionChange={otherQuestionSelected}
-              divClassName={"inline-block"}
-              buttonClassName={"inline-block"}
-            ></QuestionPicker>{" "}
-            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
-              <b>{otherQuestion?.title}</b>
-            </Link>{" "}
-            has a{" "}
-            <DropdownMenu
-              items={directionMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{direction}</Button>
-            </DropdownMenu>{" "}
-            <DropdownMenu
-              items={strengthMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{strength}</Button>
-            </DropdownMenu>{" "}
-            causal impact on this question.
-          </div>
-        )}
+        <div>
+          {isFirstQuestion ? (
+            <div>
+              This question has a{" "}
+              <DropdownMenu
+                items={directionMenuItems}
+                itemClassName={"inline-block"}
+                innerDivClassName={"inline-block"}
+              >
+                <Button>{direction}</Button>
+              </DropdownMenu>{" "}
+              <DropdownMenu
+                items={strengthMenuItems}
+                itemClassName={"inline-block"}
+                innerDivClassName={"inline-block"}
+              >
+                <Button>{strength}</Button>
+              </DropdownMenu>{" "}
+              causal impact on{" "}
+              <QuestionPicker
+                searchedQuestionType={"default"}
+                onQuestionChange={otherQuestionSelected}
+                divClassName={"inline-block"}
+                buttonClassName={"inline-block"}
+              ></QuestionPicker>{" "}
+              <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+                <b>{otherQuestion?.title}</b>
+              </Link>
+              .
+            </div>
+          ) : (
+            <div>
+              <QuestionPicker
+                searchedQuestionType={"default"}
+                onQuestionChange={otherQuestionSelected}
+                divClassName={"inline-block"}
+                buttonClassName={"inline-block"}
+              ></QuestionPicker>{" "}
+              <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+                <b>{otherQuestion?.title}</b>
+              </Link>{" "}
+              has a{" "}
+              <DropdownMenu
+                items={directionMenuItems}
+                itemClassName={"inline-block"}
+                innerDivClassName={"inline-block"}
+              >
+                <Button>{direction}</Button>
+              </DropdownMenu>{" "}
+              <DropdownMenu
+                items={strengthMenuItems}
+                itemClassName={"inline-block"}
+                innerDivClassName={"inline-block"}
+              >
+                <Button>{strength}</Button>
+              </DropdownMenu>{" "}
+              causal impact on this question.
+            </div>
+          )}
+        </div>
+        <Button onClick={swapFormat}>Swap</Button>
+        <Button onClick={cancelLink}>Cancel</Button>
+        <Button onClick={saveQuestion} disabled={!otherQuestion}>
+          Save
+        </Button>
       </div>
-      <Button onClick={swapFormat}>Swap</Button>
-      <Button onClick={cancelLink}>Cancel</Button>
-      <Button onClick={saveQuestion} disabled={!otherQuestion}>
-        Save
-      </Button>
-    </div>
+      <br />
+    </>
   );
 };
