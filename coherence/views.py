@@ -1,9 +1,13 @@
+from itertools import chain
+
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from coherence.serializers import CoherenceLinkSerializer
+from questions.models import Question
 
 
 @api_view(["POST"])
@@ -21,4 +25,12 @@ def create_link_api_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_links_for_question(request, pk):
-    return Response({"content": "temp"})
+    question = get_object_or_404(Question, pk=pk)
+    links_as_q1 = question.coherence_links_as_q1.filter(user=request.user)
+    links_as_q2 = question.coherence_links_as_q2.filter(user=request.user)
+
+    links_to_data = []
+    for link in chain(links_as_q1, links_as_q2):
+        links_to_data.append(CoherenceLinkSerializer(link).data)
+
+    return Response({"size": len(links_to_data), "data": links_to_data})
