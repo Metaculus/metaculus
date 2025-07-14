@@ -1,10 +1,12 @@
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
-import ContinuousCPBar from "@/components/consumer_post_card/continuous_cp_bar";
-import QuestionCPMovement from "@/components/cp_movement";
+import ContinuousCPBar from "@/components/consumer_post_card/consumer_question_tile/continuous_cp_bar";
+import QuestionContinuousResolutionChip from "@/components/consumer_post_card/question_continuous_resolution_chip";
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionWithForecasts } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -15,25 +17,45 @@ const ConsumerContinuousTile: FC<Props> = ({
   question,
   forecastAvailability,
 }) => {
-  const isClosed = question.status === QuestionStatus.CLOSED;
+  const locale = useLocale();
+
   const latest = question.aggregations.recency_weighted.latest;
   const communityPredictionDisplayValue = latest
     ? getPredictionDisplayValue(latest.centers?.[0], {
         questionType: question.type,
         scaling: question.scaling,
         actual_resolve_time: question.actual_resolve_time ?? null,
+        unit: question.unit,
       })
     : null;
+
+  // Resolved/Annulled/Ambiguous
+  if (question.resolution) {
+    const formatedResolution = formatResolution({
+      resolution: question.resolution,
+      questionType: question.type,
+      scaling: question.scaling,
+      locale,
+      unit: question.unit,
+      actual_resolve_time: question.actual_resolve_time ?? null,
+      completeBounds: true,
+      longBounds: true,
+    });
+    return (
+      <QuestionContinuousResolutionChip
+        formatedResolution={formatedResolution}
+        formattedCP={communityPredictionDisplayValue}
+      />
+    );
+  }
 
   return (
     <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
       <ContinuousCPBar
         communityPredictionDisplayValue={communityPredictionDisplayValue}
-        unit={question.unit}
-        isClosed={isClosed}
+        isClosed={question.status === QuestionStatus.CLOSED}
+        forecastAvailability={forecastAvailability}
       />
-
-      <QuestionCPMovement question={question} presentation="consumerView" />
     </div>
   );
 };

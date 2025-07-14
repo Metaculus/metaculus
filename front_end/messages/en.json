@@ -1132,6 +1132,8 @@
   "questionsResolved": "Questions resolved",
   "winnersAnnounced": "Winners announced",
   "closedForForecasting": "Closed for forecasting",
+  "latestEstimate": "Latest estimate",
+  "currentEstimate": "Current estimate",
   "markdownHelp": "Markdown help",
   "sourceMode": "Source mode",
   "deleteRejectPostDescription": "Are you sure you want to {destructiveAction} this question?",

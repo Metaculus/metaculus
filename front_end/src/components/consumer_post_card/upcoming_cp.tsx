@@ -14,12 +14,7 @@ const UpcomingCP: FC<Props> = ({ cpRevealsOn, className }) => {
   const t = useTranslations();
   const locale = useLocale();
   return (
-    <div
-      className={cn(
-        "w-full text-center text-sm font-normal text-gray-600 dark:text-gray-600-dark",
-        className
-      )}
-    >
+    <div className={cn("w-full text-center", className)}>
       <span>{t("cpRevealed")} </span>
       {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
       <relative-time datetime={cpRevealsOn} lang={locale} className="leading-6">

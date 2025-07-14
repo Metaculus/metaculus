@@ -56,7 +56,7 @@ const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
       {!isNil(forecastAvailability?.cpRevealsOn) && (
         <UpcomingCP
           cpRevealsOn={forecastAvailability.cpRevealsOn}
-          className="mt-4"
+          className="mt-4 text-sm font-normal text-gray-600 dark:text-gray-600-dark"
         />
       )}
     </div>
