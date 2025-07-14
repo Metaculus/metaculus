@@ -131,7 +131,11 @@ const QuestionContinuousTile: FC<Props> = ({
             canPredict={canPredict}
           />
         )}
-        {question.type === QuestionType.Numeric && (
+        {[
+          QuestionType.Numeric,
+          QuestionType.Discrete,
+          QuestionType.Date,
+        ].includes(question.type) && (
           <PredictionContinuousInfo
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}

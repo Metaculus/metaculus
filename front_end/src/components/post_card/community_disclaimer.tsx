@@ -63,7 +63,7 @@ const CommunityDisclaimer: FC<PropsWithChildren<Props>> = ({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 border border-blue-500 bg-blue-300 px-3 py-2.5 dark:border-blue-500-dark dark:bg-blue-300-dark",
+        "flex flex-col gap-1 border border-blue-400 bg-blue-300 px-3 py-2.5 dark:border-blue-400-dark dark:bg-blue-300-dark",
         {
           "mx-2 -mb-1 rounded-t sm:mx-4": variant === "inline",
           rounded: variant === "standalone",
