@@ -331,6 +331,7 @@ export async function createCoherenceLink(
       question2: question2.id,
       direction: direction[0],
       strength: strength[0],
+      type: "c",
     });
   } catch (err) {
     return {
