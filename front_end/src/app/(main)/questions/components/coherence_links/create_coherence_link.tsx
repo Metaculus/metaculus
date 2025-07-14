@@ -53,7 +53,6 @@ export const CreateCoherenceLink: FC<Props> = ({ post }) => {
 
     //Todo: handle type safety
     const result = await createCoherenceLink(
-      post,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       question1!,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
