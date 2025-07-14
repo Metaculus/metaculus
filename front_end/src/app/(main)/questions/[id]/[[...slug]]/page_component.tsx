@@ -4,6 +4,7 @@ import { FC } from "react";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
+import { CoherenceLinks } from "@/app/(main)/questions/components/coherence_links/coherence_links";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
@@ -36,8 +37,6 @@ import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
-import QuestionLink from "@/app/(main)/experiments/elections/components/electoral_consequences/question_link";
-import { CoherenceLinks } from "@/app/(main)/questions/components/coherence_links/coherence_links";
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
 );

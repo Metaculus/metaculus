@@ -17,3 +17,8 @@ def create_link_api_view(request):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_links_for_question(request, pk):
+    return Response({"content": "temp"})

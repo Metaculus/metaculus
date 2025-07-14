@@ -10,7 +10,7 @@ import { Question, QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   post: Post;
-  linkKey: number;
+  linkCreated: () => Promise<void>;
 };
 
 const directionOptions = ["positive", "negative"];
@@ -19,7 +19,7 @@ type Directions = (typeof directionOptions)[number];
 const strengthOptions = ["low", "medium", "high"];
 type Strengths = (typeof strengthOptions)[number];
 
-export const CreateCoherenceLink: FC<Props> = ({ post }) => {
+export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState<Directions>("positive");
@@ -62,6 +62,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post }) => {
     );
     console.log(result);
     await cancelLink();
+    await linkCreated();
   }
 
   async function cancelLink() {

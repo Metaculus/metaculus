@@ -326,13 +326,24 @@ export async function createCoherenceLink(
   strength: string
 ) {
   try {
-    console.log("In actions.ts doing createCoherenceLink");
     return await coherenceLinksApiClass.createCoherenceLink({
       question1: question1.id,
       question2: question2.id,
       direction: direction[0],
       strength: strength[0],
     });
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}
+
+export async function getCoherenceLinksForQuestion(question: Question) {
+  try {
+    return await coherenceLinksApiClass.getCoherenceLinksForQuestion(
+      question.id
+    );
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
