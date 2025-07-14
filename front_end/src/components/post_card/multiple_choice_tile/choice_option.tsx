@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import React, { FC } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
-import ResolutionIcon from "@/components/icons/resolution";
+import ChoiceResolutionIcon from "@/components/choice_resolution_icon";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
@@ -17,7 +17,6 @@ type Props = {
   resolution?: Resolution | null;
   questionType?: QuestionType;
   scaling?: Scaling;
-  hideIcon?: boolean;
   labelClassName?: string;
   actual_resolve_time?: string | null;
 };
@@ -30,7 +29,6 @@ const ChoiceOption: FC<Props> = ({
   resolution,
   questionType,
   scaling,
-  hideIcon,
   labelClassName,
   actual_resolve_time,
 }) => {
@@ -43,7 +41,10 @@ const ChoiceOption: FC<Props> = ({
           );
           if (
             (outOfBoundsResolution && index === 0) ||
-            (!outOfBoundsResolution && index === 1)
+            (!outOfBoundsResolution &&
+              index === 1 &&
+              // A small adjustment to keep date resolutions in one line
+              String(displayedResolution).length > 15)
           ) {
             return word + "\n";
           }
@@ -64,19 +65,16 @@ const ChoiceOption: FC<Props> = ({
         }
       )}
     >
-      {!hideIcon && (
-        <div className="py-0.5 pr-3">
-          <ChoiceIcon
-            color={hasValue ? color : undefined}
-            className="resize-icon size-3 rounded-full"
-          />
-        </div>
-      )}
+      <div className="py-0.5 pr-3">
+        <ChoiceIcon
+          color={hasValue ? color : undefined}
+          className="resize-icon size-3 rounded-full"
+        />
+      </div>
 
       <div
         className={cn(
           "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-normal leading-4",
-          { "pl-1.5": !hideIcon },
           labelClassName
         )}
       >
@@ -85,7 +83,7 @@ const ChoiceOption: FC<Props> = ({
       {isNil(resolution) ? (
         <div
           className={cn(
-            "resize-label py-0.5 pr-1.5 text-right text-sm font-normal leading-4",
+            "resize-label w-full py-0.5 pr-1.5 text-right text-sm font-normal leading-4",
             {
               "opacity-30": !hasValue,
             }
@@ -103,8 +101,10 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-normal leading-4">
-          <ResolutionIcon className="text-purple-800 dark:text-purple-800-dark" />
+        <div className="resize-label flex items-center gap-0.5 whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-medium leading-4">
+          <ChoiceResolutionIcon
+            color={questionType === QuestionType.Date ? color : undefined}
+          />
           <div className="whitespace-pre text-right">{adjustedResolution}</div>
         </div>
       )}

@@ -194,16 +194,14 @@ export const FanGraphMultipleChoiceTile: FC<
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
-      <div className="resize-container">
+    <div className="MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8 md:grid md:grid-cols-2">
+      <div className="resize-container w-full">
         <MultipleChoiceTileLegend
           ref={ref}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           hideCP={hideCP}
           questionType={groupType}
-          hideChoiceIcon
-          optionLabelClassName="text-olive-800 dark:text-olive-800-dark"
           canPredict={canPredict && canReaffirm}
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
         />

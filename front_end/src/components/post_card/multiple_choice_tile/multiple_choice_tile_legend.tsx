@@ -14,7 +14,6 @@ type Props = {
   visibleChoicesCount: number;
   questionType?: QuestionType;
   hideCP?: boolean;
-  hideChoiceIcon?: boolean;
   optionLabelClassName?: string;
   onReaffirm?: () => void;
   canPredict?: boolean;
@@ -26,7 +25,6 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   visibleChoicesCount,
   hideCP,
   questionType,
-  hideChoiceIcon,
   optionLabelClassName,
   onReaffirm,
   canPredict = false,
@@ -58,7 +56,6 @@ const MultipleChoiceTileLegend: FC<Props> = ({
             displayedResolution={displayedResolution}
             questionType={questionType}
             scaling={scaling}
-            hideIcon={hideChoiceIcon}
             labelClassName={optionLabelClassName}
             actual_resolve_time={actual_resolve_time}
           />
@@ -67,14 +64,14 @@ const MultipleChoiceTileLegend: FC<Props> = ({
       {otherItemsCount > 0 && (
         <div className="flex flex-row items-center justify-between text-gray-600 dark:text-gray-600-dark">
           <div className="flex flex-row items-center">
-            <div className="self-center py-0 pr-3.5 text-center">
+            <div className="self-center py-0 pr-3.5 text-center leading-none">
               <FontAwesomeIcon
                 icon={faEllipsis}
                 size="xs"
                 className="resize-ellipsis w-[10px]"
               />
             </div>
-            <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-normal leading-4">
+            <div className="resize-label whitespace-nowrap py-0.5 pr-1.5 text-left text-sm font-normal leading-4">
               {t("otherWithCount", { count: otherItemsCount })}
             </div>
           </div>

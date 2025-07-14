@@ -42,7 +42,9 @@ export function getForecastPctDisplayValue(
     return "?";
   }
 
-  return `${Math.round(Number(value) * 1000) / 10}%`;
+  const percent = Number((Number(value) * 100).toFixed(1));
+
+  return `${percent}%`;
 }
 
 export function getForecastNumericDisplayValue(
