@@ -20,6 +20,16 @@ import {
 
 const STORAGE_KEY = "all_cookies_consent";
 
+// Simple cookie utility function
+function setCookie(name: string, value: string, days: number = 365) {
+  if (typeof window === "undefined") return;
+
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+}
+
 export type CookiesSettings = {
   necessary: boolean;
   preferences: boolean;
@@ -109,6 +119,7 @@ function CookiesProvider({ children }: { children: ReactNode }) {
 
   const saveCookiesConsent = (newConsent: CookiesSettings) => {
     safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(newConsent));
+    setCookie(STORAGE_KEY, JSON.stringify(newConsent));
 
     submitCookiebotConsent(newConsent);
 
