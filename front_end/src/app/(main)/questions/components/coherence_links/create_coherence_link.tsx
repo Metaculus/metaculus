@@ -58,7 +58,8 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
       question1,
       question2,
       direction,
-      strength
+      strength,
+      "causal"
     );
     console.log(result);
     await cancelLink();

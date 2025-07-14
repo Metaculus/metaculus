@@ -323,15 +323,16 @@ export async function createCoherenceLink(
   question1: Question,
   question2: Question,
   direction: string,
-  strength: string
+  strength: string,
+  type: string
 ) {
   try {
     return await coherenceLinksApiClass.createCoherenceLink({
       question1: question1.id,
       question2: question2.id,
-      direction: direction[0],
-      strength: strength[0],
-      type: "c",
+      direction,
+      strength,
+      type,
     });
   } catch (err) {
     return {
