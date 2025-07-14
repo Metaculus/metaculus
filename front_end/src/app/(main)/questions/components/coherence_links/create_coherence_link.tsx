@@ -39,24 +39,24 @@ export const CreateCoherenceLink: FC<Props> = ({ post }) => {
   }));
 
   async function saveQuestion() {
-    //Todo: handle groups of questions
     let question1: Question | null;
     let question2: Question | null;
 
     if (isFirstQuestion) {
-      question1 = post?.question ?? null;
-      question2 = otherQuestion ?? null;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      question1 = post.question!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      question2 = otherQuestion!;
     } else {
-      question1 = otherQuestion ?? null;
-      question2 = post?.question ?? null;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      question1 = otherQuestion!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      question2 = post.question!;
     }
 
-    //Todo: handle type safety
     const result = await createCoherenceLink(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      question1!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      question2!,
+      question1,
+      question2,
       direction,
       strength
     );
@@ -149,7 +149,9 @@ export const CreateCoherenceLink: FC<Props> = ({ post }) => {
       </div>
       <Button onClick={swapFormat}>Swap</Button>
       <Button onClick={cancelLink}>Cancel</Button>
-      <Button onClick={saveQuestion}>Save</Button>
+      <Button onClick={saveQuestion} disabled={!otherQuestion}>
+        Save
+      </Button>
     </div>
   );
 };
