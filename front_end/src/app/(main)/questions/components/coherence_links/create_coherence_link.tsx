@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FC, useState } from "react";
 
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
@@ -55,6 +56,13 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
     setOtherQuestion(question);
   }
 
+  function getQuestionHyperlink(
+    question: QuestionWithForecasts | null
+  ): string {
+    if (!question) return "";
+    return `/questions/${question.post_id}`;
+  }
+
   if (cancelled) return null;
 
   return (
@@ -84,7 +92,10 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
               divClassName={"inline-block"}
               buttonClassName={"inline-block"}
             ></QuestionPicker>{" "}
-            <b>{otherQuestion?.title}</b>.
+            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+              <b>{otherQuestion?.title}</b>
+            </Link>
+            .
           </div>
         ) : (
           <div>
@@ -94,7 +105,10 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkKey }) => {
               divClassName={"inline-block"}
               buttonClassName={"inline-block"}
             ></QuestionPicker>{" "}
-            <b>{otherQuestion?.title}</b> has a{" "}
+            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+              <b>{otherQuestion?.title}</b>
+            </Link>{" "}
+            has a{" "}
             <DropdownMenu
               items={directionMenuItems}
               itemClassName={"inline-block"}
