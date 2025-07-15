@@ -32,3 +32,11 @@ class CoherenceLink(TimeStampedModel):
     direction = models.CharField(max_length=16, choices=Direction.choices)
     strength = models.CharField(max_length=16, choices=Strength.choices)
     type = models.CharField(max_length=16, choices=LinkType.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "question1", "question2"],
+                name="unique_user_question_pair",
+            ),
+        ]
