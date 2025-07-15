@@ -213,3 +213,7 @@ a {
     min-height: -webkit-fill-available;
   }
 }
+
+#CookiebotWidget {
+  display: none !important;
+}
