@@ -97,7 +97,9 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
             question.
           </div>
         )}
-        <Button onClick={deleteLink} className={"mt-3"}>Delete</Button>
+        <Button onClick={deleteLink} className={"mt-3"}>
+          Delete
+        </Button>
       </div>
     </div>
   );

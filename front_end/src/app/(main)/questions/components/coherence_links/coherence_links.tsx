@@ -61,7 +61,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         collapseLabel={collapseLabel}
         className="-mt-4"
       >
-        <div ref={toggleOpenRef} >
+        <div ref={toggleOpenRef}>
           <div>
             {Array.from(coherenceLinks?.data ?? [], (link, index) => (
               <DisplayCoherenceLink
