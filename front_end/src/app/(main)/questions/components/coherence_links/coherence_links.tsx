@@ -61,23 +61,26 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         collapseLabel={collapseLabel}
         className="-mt-4"
       >
-        <div ref={toggleOpenRef}>
-          <br />
-          {Array.from(coherenceLinks?.data ?? [], (link, index) => (
-            <DisplayCoherenceLink
-              key={index}
-              link={link}
-              post={post}
-              compact={false}
-            ></DisplayCoherenceLink>
-          ))}
+        <div ref={toggleOpenRef} >
+          <div>
+            {Array.from(coherenceLinks?.data ?? [], (link, index) => (
+              <DisplayCoherenceLink
+                key={index}
+                link={link}
+                post={post}
+                compact={false}
+              ></DisplayCoherenceLink>
+            ))}
+          </div>
 
-          {(!coherenceLinks || coherenceLinks.size === 0) &&
-            newLinksCount === 0 && (
-              <div>You haven&rsquo;t linked another question yet.</div>
-            )}
+          <div className={"m-4"}>
+            {(!coherenceLinks || coherenceLinks.size === 0) &&
+              newLinksCount === 0 && (
+                <div>You haven&rsquo;t linked another question yet.</div>
+              )}
+          </div>
 
-          <div id={"question-links"}>
+          <div>
             {Array.from({ length: newLinksCount }, (_, index) => (
               <CreateCoherenceLink
                 post={post}
@@ -86,12 +89,13 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               ></CreateCoherenceLink>
             ))}
           </div>
-          <br />
-          {isLoggedIn && (
-            <Button onClick={addLink} className={"w-32"}>
-              Link a question
-            </Button>
-          )}
+          <div className={"m-2"}>
+            {isLoggedIn && (
+              <Button onClick={addLink} className={"w-32"}>
+                Link a question
+              </Button>
+            )}
+          </div>
         </div>
       </ExpandableContent>
     </SectionToggle>

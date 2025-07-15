@@ -83,76 +83,76 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   if (cancelled) return null;
 
   return (
-    <>
-      <div className={"bg-gray-100-dark p-4"}>
-        <div>
-          {isFirstQuestion ? (
-            <div>
-              This question has a{" "}
-              <DropdownMenu
-                items={directionMenuItems}
-                itemClassName={"inline-block"}
-                innerDivClassName={"inline-block"}
-              >
-                <Button>{direction}</Button>
-              </DropdownMenu>{" "}
-              <DropdownMenu
-                items={strengthMenuItems}
-                itemClassName={"inline-block"}
-                innerDivClassName={"inline-block"}
-              >
-                <Button>{strength}</Button>
-              </DropdownMenu>{" "}
-              causal impact on{" "}
-              <QuestionPicker
-                searchedQuestionType={"coherence"}
-                onQuestionChange={otherQuestionSelected}
-                divClassName={"inline-block"}
-                buttonClassName={"inline-block"}
-              ></QuestionPicker>{" "}
-              <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
-                <b>{otherQuestion?.title}</b>
-              </Link>
-              .
-            </div>
-          ) : (
-            <div>
-              <QuestionPicker
-                searchedQuestionType={"coherence"}
-                onQuestionChange={otherQuestionSelected}
-                divClassName={"inline-block"}
-                buttonClassName={"inline-block"}
-              ></QuestionPicker>{" "}
-              <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
-                <b>{otherQuestion?.title}</b>
-              </Link>{" "}
-              has a{" "}
-              <DropdownMenu
-                items={directionMenuItems}
-                itemClassName={"inline-block"}
-                innerDivClassName={"inline-block"}
-              >
-                <Button>{direction}</Button>
-              </DropdownMenu>{" "}
-              <DropdownMenu
-                items={strengthMenuItems}
-                itemClassName={"inline-block"}
-                innerDivClassName={"inline-block"}
-              >
-                <Button>{strength}</Button>
-              </DropdownMenu>{" "}
-              causal impact on this question.
-            </div>
-          )}
-        </div>
-        <br />
-        <Button onClick={swapFormat}>Swap</Button>
-        <Button onClick={cancelLink}>Cancel</Button>
+    <div className={"m-2 bg-gray-100-dark p-4"}>
+      <div>
+        {isFirstQuestion ? (
+          <div>
+            This question has a{" "}
+            <DropdownMenu
+              items={directionMenuItems}
+              itemClassName={"inline-block"}
+              innerDivClassName={"inline-block"}
+            >
+              <Button>{direction}</Button>
+            </DropdownMenu>{" "}
+            <DropdownMenu
+              items={strengthMenuItems}
+              itemClassName={"inline-block"}
+              innerDivClassName={"inline-block"}
+            >
+              <Button>{strength}</Button>
+            </DropdownMenu>{" "}
+            causal impact on{" "}
+            <QuestionPicker
+              searchedQuestionType={"coherence"}
+              onQuestionChange={otherQuestionSelected}
+              divClassName={"inline-block"}
+            ></QuestionPicker>{" "}
+            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+              <b>{otherQuestion?.title}</b>
+            </Link>
+            .
+          </div>
+        ) : (
+          <div>
+            <QuestionPicker
+              searchedQuestionType={"coherence"}
+              onQuestionChange={otherQuestionSelected}
+              divClassName={"inline-block"}
+            ></QuestionPicker>{" "}
+            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+              <b>{otherQuestion?.title}</b>
+            </Link>{" "}
+            has a{" "}
+            <DropdownMenu
+              items={directionMenuItems}
+              itemClassName={"inline-block"}
+              innerDivClassName={"inline-block"}
+            >
+              <Button>{direction}</Button>
+            </DropdownMenu>{" "}
+            <DropdownMenu
+              items={strengthMenuItems}
+              itemClassName={"inline-block"}
+              innerDivClassName={"inline-block"}
+            >
+              <Button>{strength}</Button>
+            </DropdownMenu>{" "}
+            causal impact on this question.
+          </div>
+        )}
+      </div>
+      <div className={"mt-3"}>
+        <Button onClick={swapFormat} className={"mr-2"}>
+          Swap
+        </Button>
+        <Button onClick={cancelLink} className={"mr-2"}>
+          Cancel
+        </Button>
         <Button onClick={saveQuestion} disabled={!otherQuestion}>
           Save
         </Button>
       </div>
-      <br />
-    </>
+    </div>
   );
 };

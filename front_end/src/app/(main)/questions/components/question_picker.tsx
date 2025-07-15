@@ -23,7 +23,6 @@ type Props = {
   title?: string;
   disabled?: boolean;
   divClassName?: string;
-  buttonClassName?: string;
 };
 
 const QuestionPicker: FC<Props> = ({
@@ -32,7 +31,6 @@ const QuestionPicker: FC<Props> = ({
   title,
   disabled,
   divClassName,
-  buttonClassName,
 }) => {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
@@ -106,11 +104,7 @@ const QuestionPicker: FC<Props> = ({
 
   return (
     <div className={divClassName}>
-      <Button
-        onClick={() => setIsOpen(true)}
-        disabled={disabled}
-        className={buttonClassName}
-      >
+      <Button onClick={() => setIsOpen(true)} disabled={disabled}>
         {t("pickQuestion")}
       </Button>
       {isOpen && (

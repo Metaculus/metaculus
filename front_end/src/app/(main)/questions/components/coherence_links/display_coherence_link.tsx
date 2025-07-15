@@ -74,7 +74,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
     );
 
   return (
-    <>
+    <div className={"m-2"}>
       <div className={"bg-gray-100-dark p-4"}>
         {isFirstQuestion ? (
           <div>
@@ -97,10 +97,8 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
             question.
           </div>
         )}
-        <br />
-        <Button onClick={deleteLink}>Delete</Button>
+        <Button onClick={deleteLink} className={"mt-3"}>Delete</Button>
       </div>
-      <br />
-    </>
+    </div>
   );
 };
