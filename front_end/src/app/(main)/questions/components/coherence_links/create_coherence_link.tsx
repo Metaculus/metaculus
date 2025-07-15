@@ -52,14 +52,13 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
       question2 = post.question!;
     }
 
-    const result = await createCoherenceLink(
+    await createCoherenceLink(
       question1,
       question2,
       direction,
       strength,
       "causal"
     );
-    console.log(result);
     await cancelLink();
     await linkCreated();
   }
@@ -77,7 +76,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   }
 
   function getQuestionHyperlink(
-    question: QuestionWithForecasts | null
+    question: Question | null
   ): string {
     if (!question) return "";
     return `/questions/${question.post_id}`;

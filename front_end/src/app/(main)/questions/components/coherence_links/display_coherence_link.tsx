@@ -43,6 +43,11 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
     );
   }, [otherQuestionID]);
 
+  function getQuestionHyperlink(question: Question | null): string {
+    if (!question) return "";
+    return `/questions/${question.post_id}`;
+  }
+
   if (!otherQuestion) return null;
 
   return (
@@ -53,7 +58,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
             This question has a <StrengthComponent strength={link.strength} />{" "}
             <DirectionComponent direction={link.direction} /> {link.type} impact
             impact on{" "}
-            <Link href={`/questions/${otherQuestionID}`} target="_blank">
+            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
               <b>{otherQuestion.title}</b>
             </Link>
             .
@@ -61,7 +66,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
         ) : (
           <div>
             The question{" "}
-            <Link href={`/questions/${otherQuestionID}`} target="_blank">
+            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
               <b>{otherQuestion.title}</b>
             </Link>{" "}
             has a <StrengthComponent strength={link.strength} />{" "}
