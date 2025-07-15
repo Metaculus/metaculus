@@ -75,9 +75,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
     setOtherQuestion(question);
   }
 
-  function getQuestionHyperlink(
-    question: Question | null
-  ): string {
+  function getQuestionHyperlink(question: Question | null): string {
     if (!question) return "";
     return `/questions/${question.post_id}`;
   }
@@ -107,7 +105,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
               </DropdownMenu>{" "}
               causal impact on{" "}
               <QuestionPicker
-                searchedQuestionType={"default"}
+                searchedQuestionType={"coherence"}
                 onQuestionChange={otherQuestionSelected}
                 divClassName={"inline-block"}
                 buttonClassName={"inline-block"}
@@ -120,7 +118,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
           ) : (
             <div>
               <QuestionPicker
-                searchedQuestionType={"default"}
+                searchedQuestionType={"coherence"}
                 onQuestionChange={otherQuestionSelected}
                 divClassName={"inline-block"}
                 buttonClassName={"inline-block"}

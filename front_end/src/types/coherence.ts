@@ -8,6 +8,7 @@ export type CoherenceLink = {
   direction: Directions;
   strength: Strengths;
   type: LinkType;
+  id: number;
 };
 
 export type CoherenceLinksGroup = {

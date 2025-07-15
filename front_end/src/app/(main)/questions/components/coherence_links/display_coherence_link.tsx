@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 
+import { deleteCoherenceLink } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CoherenceLink, Directions, Strengths } from "@/types/coherence";
@@ -36,6 +37,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
   const isFirstQuestion = link.question1 === post.question?.id;
   const otherQuestionID = isFirstQuestion ? link.question2 : link.question1;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
+  const [canceled, setCanceled] = useState<boolean>(false);
 
   useEffect(() => {
     ClientPostsApi.getQuestion(otherQuestionID).then((question) =>
@@ -48,7 +50,12 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
     return `/questions/${question.post_id}`;
   }
 
-  if (!otherQuestion) return null;
+  async function deleteLink() {
+    setCanceled(true);
+    await deleteCoherenceLink(link);
+  }
+
+  if (!otherQuestion || canceled) return null;
 
   return (
     <>
@@ -75,7 +82,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
           </div>
         )}
         <br />
-        <Button>Delete</Button>
+        <Button onClick={deleteLink}>Delete</Button>
       </div>
       <br />
     </>

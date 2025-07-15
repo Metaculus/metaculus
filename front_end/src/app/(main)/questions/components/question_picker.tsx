@@ -15,7 +15,7 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import { parseQuestionId } from "@/utils/questions/helpers";
 
-type SearchedQuestionType = "parent" | "child" | "default";
+type SearchedQuestionType = "parent" | "child" | "coherence";
 
 type Props = {
   searchedQuestionType: SearchedQuestionType;
@@ -45,7 +45,8 @@ const QuestionPicker: FC<Props> = ({
     return {
       search,
       forecast_type:
-        searchedQuestionType === "parent"
+        searchedQuestionType === "parent" ||
+        searchedQuestionType === "coherence"
           ? [QuestionType.Binary]
           : [
               QuestionType.Binary,
@@ -98,7 +99,7 @@ const QuestionPicker: FC<Props> = ({
         return t("parentInputDescription");
       case "child":
         return t("childInputDescription");
-      case "default":
+      case "coherence":
         return "Select Question";
     }
   }

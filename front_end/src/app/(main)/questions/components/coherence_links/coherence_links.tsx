@@ -40,7 +40,6 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   }
 
   async function updatePage() {
-    console.log("Page update");
     if (!post.question) return;
     const coherenceLinks = await getCoherenceLinksForQuestion(post.question);
     if ("errors" in coherenceLinks) setCoherenceLinks(null);

@@ -10,5 +10,9 @@ class CoherenceLinksApiClass extends ApiService {
   async getCoherenceLinksForQuestion(id: number): Promise<CoherenceLinksGroup> {
     return await this.get(`/coherence/get-links/${id}`);
   }
+
+  async deleteCoherenceLink(id: number) {
+    return await this.delete(`/coherence/delete/${id}`);
+  }
 }
 export const coherenceLinksApiClass = new CoherenceLinksApiClass(serverFetcher);
