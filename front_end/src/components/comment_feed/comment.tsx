@@ -278,14 +278,16 @@ const Comment: FC<CommentProps> = ({
     suggestKeyFactorsOnFirstRender && shouldSuggestKeyFactors
   );
 
-  const onKeyFactorsLoadded = () => {
-    setIsKeyfactorsFormOpen(true);
+  const onKeyFactorsLoadded = (keyFactorsLoaded: boolean) => {
+    setIsKeyfactorsFormOpen(keyFactorsLoaded);
     setLoadKeyFactors(false);
-    setTimeout(() => {
-      if (keyFactorFormRef.current) {
-        scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
-      }
-    }, 200);
+    if (keyFactorsLoaded) {
+      setTimeout(() => {
+        if (keyFactorFormRef.current) {
+          scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
+        }
+      }, 200);
+    }
   };
 
   const { comments, setComments } = useCommentsFeed();
@@ -310,14 +312,16 @@ const Comment: FC<CommentProps> = ({
     onKeyFactorsLoadded,
   });
 
-  const withKeyFactors =
+  const canListKeyFactors = !postData?.notebook;
+
+  const canAddKeyFactors =
     comment.author.id === user?.id &&
     ![
       PostStatus.CLOSED,
       PostStatus.RESOLVED,
       PostStatus.PENDING_RESOLUTION,
     ].includes(postData?.status ?? PostStatus.CLOSED) &&
-    !postData?.notebook;
+    canListKeyFactors;
 
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", {
@@ -617,7 +621,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.length > 0 && withKeyFactors && (
+      {commentKeyFactors.length > 0 && canListKeyFactors && (
         <div className="mb-3 mt-1.5 flex flex-col gap-1">
           {commentKeyFactors.map((kf) => (
             <KeyFactorItem
@@ -813,7 +817,7 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {withKeyFactors && (
+                  {canAddKeyFactors && (
                     <Button
                       size="xxs"
                       variant="tertiary"

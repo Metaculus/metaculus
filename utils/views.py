@@ -167,6 +167,7 @@ def validate_data_request(request: Request, **kwargs):
     include_comments = params.get("include_comments", False)
     include_scores = params.get("include_scores", True)
     include_user_data = params.get("include_user_data", False)
+    include_future = params.get("include_future", False)
 
     user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
@@ -221,6 +222,7 @@ def validate_data_request(request: Request, **kwargs):
         "user_ids": user_ids,
         "include_bots": include_bots,
         "anonymized": anonymized,
+        "include_future": include_future,
     }
 
 
