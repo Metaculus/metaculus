@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { PredictionSuccessLinks } from "@/components/forecast_maker/forecast_maker_question/prediction_success_links";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
@@ -39,6 +40,7 @@ const PredictionSuccessBox: FC<PredictionSuccessBoxProps> = ({
           </span>
         </span>
       </h4>
+      <PredictionSuccessLinks post={post}></PredictionSuccessLinks>
       <div className="mx-1 flex flex-wrap items-center justify-center gap-2">
         <PostSubscribeButton post={post} />
 

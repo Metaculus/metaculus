@@ -68,6 +68,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               key={index}
               link={link}
               post={post}
+              compact={false}
             ></DisplayCoherenceLink>
           ))}
 

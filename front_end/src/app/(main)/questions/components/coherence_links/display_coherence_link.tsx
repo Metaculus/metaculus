@@ -11,6 +11,7 @@ import { Question } from "@/types/question";
 type Props = {
   link: CoherenceLink;
   post: Post;
+  compact: boolean;
 };
 
 const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
@@ -33,7 +34,7 @@ const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
   }
 };
 
-export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
+export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   const isFirstQuestion = link.question1 === post.question?.id;
   const otherQuestionID = isFirstQuestion ? link.question2 : link.question1;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
@@ -56,6 +57,21 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
   }
 
   if (!otherQuestion || canceled) return null;
+
+  if (compact)
+    return (
+      <div>
+        <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+          <b>{otherQuestion.title}</b>
+        </Link>
+        <Button
+          onClick={deleteLink}
+          className={"ml-1 border-none !bg-inherit p-1 text-sm underline"}
+        >
+          (unlink)
+        </Button>
+      </div>
+    );
 
   return (
     <>
