@@ -11,26 +11,71 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('questions', '0028_forecast_end_time_after_start_time'),
+        ("questions", "0028_forecast_end_time_after_start_time"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CoherenceLink',
+            name="CoherenceLink",
             fields=[
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
-                ('edited_at', models.DateTimeField(editable=False, null=True)),
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('direction', models.CharField(choices=[('positive', 'Positive'), ('negative', 'Negative')], max_length=16)),
-                ('strength', models.CharField(choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')], max_length=16)),
-                ('type', models.CharField(choices=[('causal', 'Causal')], max_length=16)),
-                ('question1', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='coherence_links_as_q1', to='questions.question')),
-                ('question2', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='coherence_links_as_q2', to='questions.question')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='coherence_links', to=settings.AUTH_USER_MODEL)),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, editable=False
+                    ),
+                ),
+                ("edited_at", models.DateTimeField(editable=False, null=True)),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "direction",
+                    models.CharField(
+                        choices=[("positive", "Positive"), ("negative", "Negative")],
+                        max_length=16,
+                    ),
+                ),
+                (
+                    "strength",
+                    models.CharField(
+                        choices=[
+                            ("low", "Low"),
+                            ("medium", "Medium"),
+                            ("high", "High"),
+                        ],
+                        max_length=16,
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(choices=[("causal", "Causal")], max_length=16),
+                ),
+                (
+                    "question1",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="coherence_links_as_q1",
+                        to="questions.question",
+                    ),
+                ),
+                (
+                    "question2",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="coherence_links_as_q2",
+                        to="questions.question",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="coherence_links",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

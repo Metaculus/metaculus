@@ -24,6 +24,7 @@ def create_link_api_view(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_links_for_question_api_view(request, pk):
@@ -37,12 +38,15 @@ def get_links_for_question_api_view(request, pk):
 
     return Response({"size": len(links_to_data), "data": links_to_data})
 
+
 @api_view(["DELETE"])
 def delete_link_api_view(request, pk):
     link = get_object_or_404(CoherenceLink, pk=pk)
 
     if request.user.id != link.user.id:
-        raise PermissionDenied("You don't have permission to delete this coherence link")
+        raise PermissionDenied(
+            "You don't have permission to delete this coherence link"
+        )
 
     # TODO: add a `deleted` status? is this necessary?
     link.delete()
