@@ -64,7 +64,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
           <div>
             This question has a <StrengthComponent strength={link.strength} />{" "}
             <DirectionComponent direction={link.direction} /> {link.type} impact
-            impact on{" "}
+            on{" "}
             <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
               <b>{otherQuestion.title}</b>
             </Link>
