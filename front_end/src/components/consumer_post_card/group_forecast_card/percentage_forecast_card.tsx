@@ -41,7 +41,7 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
             questionType: QuestionType.Binary,
             scaling: choice.scaling,
             actual_resolve_time: choice.actual_resolve_time ?? null,
-            emptyLabel: "?",
+            emptyLabel: "Upcoming",
           }
         );
         const isChoiceClosed = choice.closeTime

@@ -16,16 +16,16 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
     <div className="flex w-full flex-col gap-2">
       {children}
       {otherItemsCount > 0 && (
-        <div className="flex flex-row items-center text-gray-600 dark:text-gray-600-dark">
-          <div className="self-center py-0 pr-1.5 text-center">
+        <div className="flex flex-row items-center gap-2 rounded-lg border border-gray-300 px-2.5 py-1 font-medium text-gray-500 dark:border-gray-300-dark dark:text-gray-500-dark">
+          <div className="self-center text-center">
             <FontAwesomeIcon
               icon={faEllipsis}
               size="xl"
-              className="resize-ellipsis"
+              className="resize-ellipsis opacity-45"
             />
           </div>
-          <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-            {t("and")} {t("otherWithCount", { count: otherItemsCount })}
+          <div className="resize-label whitespace-nowrap text-left text-sm  leading-4">
+            {t("otherWithCount", { count: otherItemsCount })}
           </div>
         </div>
       )}

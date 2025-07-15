@@ -39,6 +39,7 @@ const ForecastChoiceBar: FC<Props> = ({
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
   const mounted = useMounted();
+  const isCpRevealed = !isNaN(progress);
 
   const isResolutionSuccessful = isSuccessfullyResolved(resolution);
   return (
@@ -51,15 +52,22 @@ const ForecastChoiceBar: FC<Props> = ({
             isResolutionSuccessful,
           "border-2 border-gray-400 text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark":
             !isNil(resolution) && !isResolutionSuccessful,
+          "border-gray-300 text-gray-800 dark:border-gray-300-dark dark:text-gray-800-dark":
+            !isCpRevealed,
         }
       )}
     >
       <span className="z-10 line-clamp-1 max-w-[85%]">{choiceLabel}</span>
-      <span className="z-10 text-nowrap">
+      <span
+        className={cn("z-10 text-nowrap", {
+          "text-xs font-normal text-gray-700 opacity-50 dark:text-gray-700-dark":
+            !isCpRevealed,
+        })}
+      >
         {displayedResolution ? (
           <>
             {isResolutionSuccessful && (
-              <span className="font-medium capitalize text-purple-600 dark:text-purple-600-dark">
+              <span className="font-normal capitalize text-purple-800 dark:text-purple-800-dark">
                 {t("result")}:{" "}
               </span>
             )}
@@ -81,37 +89,44 @@ const ForecastChoiceBar: FC<Props> = ({
         )}
       </span>
 
-      <div
-        className={"absolute -inset-[1px] z-0 h-8 rounded-lg border"}
-        style={{
-          display: resolution ? "none" : "block",
-          width:
-            progress < 3 ? "3%" : `calc(${progress}% + ${WIDTH_ADJUSTMENT}px)`,
-          background: (() => {
-            if (resolution) {
-              return "transparent";
-            } else if (isClosed) {
+      {isCpRevealed && (
+        <div
+          className={"absolute -inset-[1px] z-0 h-8 rounded-lg border"}
+          style={{
+            display: resolution ? "none" : "block",
+            width:
+              progress < 3
+                ? "3%"
+                : `calc(${progress}% + ${WIDTH_ADJUSTMENT}px)`,
+            background: (() => {
+              if (resolution) {
+                return "transparent";
+              } else if (isClosed) {
+                return addOpacityToHex(
+                  mounted
+                    ? getThemeColor(METAC_COLORS.gray["500"])
+                    : METAC_COLORS.gray["500"].DEFAULT,
+                  0.3
+                );
+              }
               return addOpacityToHex(
-                mounted
-                  ? getThemeColor(METAC_COLORS.gray["500"])
-                  : METAC_COLORS.gray["500"].DEFAULT,
-                0.5
+                mounted ? getThemeColor(color) : color.DEFAULT,
+                0.3
               );
-            }
-            return addOpacityToHex(
-              mounted ? getThemeColor(color) : color.DEFAULT,
-              0.3
-            );
-          })(),
-          borderColor: isClosed
-            ? mounted
-              ? getThemeColor(METAC_COLORS.gray["500"])
-              : METAC_COLORS.gray["500"].DEFAULT
-            : mounted
-              ? getThemeColor(color)
-              : color.DEFAULT,
-        }}
-      ></div>
+            })(),
+            borderColor: isClosed
+              ? addOpacityToHex(
+                  mounted
+                    ? getThemeColor(METAC_COLORS.gray["500"])
+                    : METAC_COLORS.gray["500"].DEFAULT,
+                  0.5
+                )
+              : mounted
+                ? getThemeColor(color)
+                : color.DEFAULT,
+          }}
+        ></div>
+      )}
     </div>
   );
 };
