@@ -12,7 +12,7 @@ import CookiesModal from "./cookies_modal";
 const CookiesBanner: FC = () => {
   const t = useTranslations();
   const {
-    saveCookiesConsent,
+    submitCookieConsent,
     isBannerVisible,
     isModalOpen,
     openModal,
@@ -46,7 +46,7 @@ const CookiesBanner: FC = () => {
                 <Button
                   className="whitespace-nowrap"
                   onClick={() =>
-                    saveCookiesConsent({
+                    submitCookieConsent({
                       necessary: true,
                       preferences: false,
                       statistics: false,
@@ -62,7 +62,7 @@ const CookiesBanner: FC = () => {
                 className="whitespace-nowrap"
                 variant="primary"
                 onClick={() =>
-                  saveCookiesConsent({
+                  submitCookieConsent({
                     necessary: true,
                     preferences: true,
                     statistics: true,
@@ -79,7 +79,7 @@ const CookiesBanner: FC = () => {
       <CookiesModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        onSubmit={saveCookiesConsent}
+        onSubmit={submitCookieConsent}
       />
     </>
   );

@@ -16,6 +16,7 @@ import {
   getCookiebotConsent,
   useCookiebotBannerListenersHook,
   submitCookiebotConsent,
+  isCookiebotAvailable,
 } from "./cookiebot";
 
 const STORAGE_KEY = "all_cookies_consent";
@@ -39,7 +40,7 @@ export type CookiesSettings = {
 
 type CookiesContextType = {
   cookiesConsent: CookiesSettings | null;
-  saveCookiesConsent: (settings: CookiesSettings) => void;
+  submitCookieConsent: (settings: CookiesSettings) => void;
   isModalOpen: boolean;
   isBannerVisible: boolean;
   setIsBannerVisible: (visible: boolean) => void;
@@ -57,7 +58,7 @@ export const useCookiesContext = () => {
   return context;
 };
 
-function onConsentUpdated(cookiesConsent: CookiesSettings | null) {
+function updateAnalyticsForConsent(cookiesConsent: CookiesSettings | null) {
   posthog.set_config({
     persistence: cookiesConsent?.statistics ? "localStorage+cookie" : "memory",
   });
@@ -95,12 +96,10 @@ function CookiesProvider({ children }: { children: ReactNode }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useCookiebotBannerListenersHook(() => {
-    // If the user has interacted with the banner, we need to update state on our side too
-    const newConsent = getSavedCookiesConsent();
-    setIsBannerVisible(false);
-    setConsentGiven(newConsent);
-    onConsentUpdated(newConsent);
+  useCookiebotBannerListenersHook((newConsent) => {
+    if (newConsent) {
+      onCookiesConsentUpdated(newConsent);
+    }
   });
 
   useEffect(() => {
@@ -117,17 +116,25 @@ function CookiesProvider({ children }: { children: ReactNode }) {
     }, 1500);
   }, []);
 
-  const saveCookiesConsent = (newConsent: CookiesSettings) => {
+  const onCookiesConsentUpdated = (newConsent: CookiesSettings | null) => {
     safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(newConsent));
     setCookie(STORAGE_KEY, JSON.stringify(newConsent));
 
-    submitCookiebotConsent(newConsent);
-
     closeModal();
     setConsentGiven(newConsent);
-    onConsentUpdated(newConsent);
+    updateAnalyticsForConsent(newConsent);
     setIsBannerVisible(false);
     router.refresh();
+  };
+
+  const submitCookieConsent = (newConsent: CookiesSettings) => {
+    // If Cookiebot is available, we don't need to call onCookiesConsentUpdated, as it gets
+    // called by the useCookiebotBannerListenersHook hook.
+    if (isCookiebotAvailable()) {
+      submitCookiebotConsent(newConsent);
+    } else {
+      onCookiesConsentUpdated(newConsent);
+    }
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -135,7 +142,7 @@ function CookiesProvider({ children }: { children: ReactNode }) {
 
   const contextValue: CookiesContextType = {
     cookiesConsent,
-    saveCookiesConsent,
+    submitCookieConsent,
     isBannerVisible,
     setIsBannerVisible,
     isModalOpen,

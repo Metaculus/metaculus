@@ -17,6 +17,10 @@ export function getCookiebotConsent(): CookiesSettings | null {
   };
 }
 
+export function isCookiebotAvailable() {
+  return typeof window !== "undefined" && !!window.Cookiebot;
+}
+
 export function submitCookiebotConsent(settings: CookiesSettings) {
   if (typeof window === "undefined" || !window.Cookiebot?.submitCustomConsent) {
     return;
@@ -46,14 +50,14 @@ export function showCookiebotBanner() {
 }
 
 export const useCookiebotBannerListenersHook = (
-  onCookiebotConsentUpdated?: () => void
+  onCookiebotConsentUpdated?: (newConsent: CookiesSettings | null) => void
 ) => {
   useEffect(() => {
     window.CookiebotCallback_OnAccept = function () {
-      onCookiebotConsentUpdated?.();
+      onCookiebotConsentUpdated?.(getCookiebotConsent());
     };
     window.CookiebotCallback_OnDecline = function () {
-      onCookiebotConsentUpdated?.();
+      onCookiebotConsentUpdated?.(getCookiebotConsent());
     };
   }, []);
 };
