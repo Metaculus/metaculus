@@ -13,6 +13,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { CoherenceLinksGroup } from "@/types/coherence";
 import { Post } from "@/types/post";
+import { QuestionType } from "@/types/question";
 
 type Props = {
   post: Post;
@@ -50,6 +51,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
     updatePage().then(() => {});
   }, []);
 
+  if (post.question?.type !== QuestionType.Binary) return null;
+
   return (
     <SectionToggle title={"Question Links"} defaultOpen={true}>
       <ExpandableContent
@@ -67,6 +70,12 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               post={post}
             ></DisplayCoherenceLink>
           ))}
+
+          {(!coherenceLinks || coherenceLinks.size === 0) &&
+            newLinksCount === 0 && (
+              <div>You haven&rsquo;t linked another question yet.</div>
+            )}
+
           <div id={"question-links"}>
             {Array.from({ length: newLinksCount }, (_, index) => (
               <CreateCoherenceLink
