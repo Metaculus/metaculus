@@ -10,11 +10,11 @@ class CoherenceLinkSerializer(serializers.ModelSerializer):
             "question2",
             "direction",
             "strength",
-            "user",
-            "id",
             "type",
         ]
-        read_only_fields = ["user", "id"]
 
-    def create(self, validated_data):
-        return CoherenceLink.objects.create(**validated_data)
+
+def serialize_coherence_link(link: CoherenceLink):
+    serialized_data = CoherenceLinkSerializer(link).data
+    serialized_data["id"] = link.id
+    return serialized_data

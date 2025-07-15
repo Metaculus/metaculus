@@ -8,7 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from coherence.models import CoherenceLink
-from coherence.serializers import CoherenceLinkSerializer
+from coherence.serializers import CoherenceLinkSerializer, serialize_coherence_link
+from coherence.services import create_coherence_link
 from questions.models import Question
 
 
@@ -18,9 +19,10 @@ def create_link_api_view(request):
     serializer = CoherenceLinkSerializer(data=request.data)
 
     if serializer.is_valid():
-        coherence_link = serializer.save(user=request.user)
-        response_serializer = CoherenceLinkSerializer(coherence_link)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        data = serializer.validated_data
+        coherence_link = create_coherence_link(**data, user=request.user)
+        response_serializer = serialize_coherence_link(coherence_link)
+        return Response(response_serializer, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -34,7 +36,7 @@ def get_links_for_question_api_view(request, pk):
 
     links_to_data = []
     for link in chain(links_as_q1, links_as_q2):
-        links_to_data.append(CoherenceLinkSerializer(link).data)
+        links_to_data.append(serialize_coherence_link(link))
 
     return Response({"size": len(links_to_data), "data": links_to_data})
 
