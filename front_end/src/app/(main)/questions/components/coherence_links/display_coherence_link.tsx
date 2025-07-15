@@ -3,7 +3,7 @@ import { FC, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { CoherenceLink } from "@/types/coherence";
+import { CoherenceLink, Directions, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
 
@@ -11,6 +11,27 @@ type Props = {
   link: CoherenceLink;
   post: Post;
 };
+
+const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
+  switch (direction) {
+    case "positive":
+      return <span className={"text-green-400"}>positive</span>;
+    case "negative":
+      return <span className={"text-red-400"}>negative</span>;
+  }
+};
+
+const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
+  switch (strength) {
+    case "high":
+      return <span className={"font-black"}>high</span>;
+    case "medium":
+      return <span className={"font-medium"}>medium</span>;
+    case "low":
+      return <span className={"font-thin"}>low</span>;
+  }
+};
+
 export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
   const isFirstQuestion = link.question1 === post.question?.id;
   const otherQuestionID = isFirstQuestion ? link.question2 : link.question1;
@@ -29,7 +50,8 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
       <div>
         {isFirstQuestion ? (
           <div>
-            This question has a {link.strength} {link.direction} {link.type}{" "}
+            This question has a <StrengthComponent strength={link.strength} />{" "}
+            <DirectionComponent direction={link.direction} /> {link.type} impact
             impact on{" "}
             <Link href={`/questions/${otherQuestionID}`} target="_blank">
               <b>{otherQuestion.title}</b>
@@ -42,7 +64,8 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
             <Link href={`/questions/${otherQuestionID}`} target="_blank">
               <b>{otherQuestion.title}</b>
             </Link>{" "}
-            has a {link.strength} {link.direction} {link.type} impact on this
+            has a <StrengthComponent strength={link.strength} />{" "}
+            <DirectionComponent direction={link.direction} /> {link.type} impact
             question.
           </div>
         )}
