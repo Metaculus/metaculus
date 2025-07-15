@@ -87,7 +87,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
 
   return (
     <>
-      <div>
+      <div className={"bg-gray-100-dark p-4"}>
         <div>
           {isFirstQuestion ? (
             <div>
@@ -148,6 +148,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
             </div>
           )}
         </div>
+        <br />
         <Button onClick={swapFormat}>Swap</Button>
         <Button onClick={cancelLink}>Cancel</Button>
         <Button onClick={saveQuestion} disabled={!otherQuestion}>

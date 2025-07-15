@@ -47,7 +47,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
 
   return (
     <>
-      <div>
+      <div className={"bg-gray-100-dark p-4"}>
         {isFirstQuestion ? (
           <div>
             This question has a <StrengthComponent strength={link.strength} />{" "}
@@ -69,6 +69,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post }) => {
             question.
           </div>
         )}
+        <br />
         <Button>Delete</Button>
       </div>
       <br />
