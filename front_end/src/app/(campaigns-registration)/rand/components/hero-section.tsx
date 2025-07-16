@@ -6,13 +6,13 @@ import { EmailRegistrationForm } from "./email-registration-form";
 
 export const Hero: FC = () => {
   return (
-    <div className="mt-14 flex w-full max-w-6xl flex-col items-center justify-center rounded-lg bg-white p-8 dark:bg-blue-100-dark md:mt-0 md:p-12 lg:mt-8 lg:p-16">
+    <div className="mt-14 flex w-full max-w-7xl flex-col items-center justify-center rounded-lg bg-white p-6 dark:bg-blue-100-dark sm:p-10 md:p-12 lg:mt-16 lg:p-16">
       {/* Main Content Container */}
-      <div className="flex w-full max-w-6xl flex-col items-center justify-center gap-2 lg:flex-row lg:gap-12">
-        {/* Hero Text Section */}
+      <div className="flex w-full max-w-7xl flex-col items-center justify-center gap-0 lg:flex-row lg:gap-12">
+        {/* Hero Text Section - Expanded to take more space */}
         <div className="flex w-full flex-col items-center text-center lg:w-1/2 lg:items-start lg:text-left">
           {/* Logos Section */}
-          <div className="pointer-events-none mb-4 flex items-center justify-center gap-4 md:gap-8 lg:justify-start">
+          <div className="pointer-events-none mb-3 mt-2 flex items-center justify-center gap-4 sm:mb-6 md:gap-8 lg:justify-start">
             {/* Metaculus M Logo */}
             <div
               className="flex aspect-square w-16 flex-shrink-0 items-center justify-center bg-blue-800 dark:bg-blue-950 sm:w-20 md:w-24"
@@ -59,16 +59,63 @@ export const Hero: FC = () => {
             </div>
           </div>
 
-          <p className="text-base font-light leading-relaxed text-gray-800 dark:text-gray-800-dark sm:text-lg md:text-xl lg:mb-0">
-            Join our forecasting tournament in partnership with the RAND
-            Corporation. Open to university students - test your predictive
-            skills and help advance the science of forecasting.
+          {/* Main Headline */}
+          <h1 className="mb-1 text-lg font-bold text-blue-800 dark:text-blue-200 sm:mb-4 sm:text-2xl md:text-3xl lg:text-left lg:text-4xl lg:leading-tight">
+            Predict the Future. Inform public policy. $10,000 in prizes.
+          </h1>
+
+          {/* Main Description */}
+          <p className="mb-1 text-sm font-normal leading-relaxed text-gray-700 dark:text-gray-700-dark sm:mb-4 sm:text-lg md:text-xl">
+            Metaculus and the RAND Corporation are launching a{" "}
+            <strong>national forecasting tournament</strong> for university
+            students.
+          </p>
+
+          <p className="mb-1 text-sm font-normal leading-relaxed text-gray-700 dark:text-gray-700-dark sm:mb-4 sm:text-lg">
+            Make forecasts on key policy questions, and help decision-makers see
+            what&apos;s coming next.
+          </p>
+
+          <p className="mb-1 text-base font-semibold text-blue-800 dark:text-blue-200 sm:mb-4 sm:text-xl">
+            Tournament begins October 1, 2025.
           </p>
         </div>
 
-        {/* Email Registration Form Section */}
-        <div className="flex w-full items-center justify-center lg:w-1/2">
-          <div className="w-full max-w-md">
+        {/* Right Column: Why Join + Email Registration Form */}
+        <div className="flex w-full flex-col-reverse items-center justify-center space-y-8 md:flex-col lg:w-1/2 ">
+          {/* Why Join Section */}
+          <div className="w-full">
+            <h2 className="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200 sm:text-xl">
+              Why join:
+            </h2>
+
+            <ul className="space-y-3 text-sm text-gray-800 dark:text-gray-800-dark sm:text-base">
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600"></span>
+                $10,000 prize pool
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600"></span>
+                Opportunities to publish
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600"></span>
+                Potential roles as a RAND Pro Forecaster
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600"></span>
+                Strengthen skills and build a track record for future employers
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600"></span>
+                Connect with and compete against student forecasters from around
+                the country
+              </li>
+            </ul>
+          </div>
+
+          {/* Email Registration Form */}
+          <div className="w-full">
             <EmailRegistrationForm />
           </div>
         </div>

@@ -69,27 +69,35 @@ export const EmailRegistrationForm: FC = () => {
   }
 
   return (
-    <div className="w-full rounded bg-white dark:bg-blue-100-dark">
-      <div className="mb-4 text-center">
-        <p className="text-balance text-sm text-olive-700 dark:text-olive-600-dark md:text-base">
-          Get notified when the tournament begins and receive exclusive updates.
+    <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-700 p-8 dark:bg-blue-950">
+      <div className="text-center">
+        <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
+          Reserve your spot now to get forecasting resources and a heads-up when
+          the tournament launches.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <InputContainer labelText="Email Address">
+        <InputContainer
+          labelText="Email Address"
+          className="[&_label]:!text-white/90 dark:[&_label]:!text-gray-200 [&_span]:!text-white/90 dark:[&_span]:!text-gray-200"
+        >
           <Input
             type="email"
             placeholder="Enter your email address"
-            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 font-normal dark:border-gray-700-dark"
+            className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
             disabled={isLoading}
             {...register("email")}
           />
-          <FormError errors={errors} name="email" />
+          <FormError
+            errors={errors}
+            name="email"
+            className="[&>div>span]:!font-normal [&>div>span]:!text-red-500 [&_span]:!font-normal [&_span]:!text-red-500"
+          />
         </InputContainer>
 
         {error && (
-          <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
+          <div className="text-sm font-normal !text-red-500">{error}</div>
         )}
 
         <Button
@@ -110,8 +118,11 @@ export const EmailRegistrationForm: FC = () => {
       </form>
 
       {user && (
-        <p className="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">
-          Logged in as <strong>{user.username}</strong>
+        <p className="mt-3 text-center text-xs text-white/70 dark:text-gray-400">
+          Logged in as{" "}
+          <strong className="text-white/90 dark:text-gray-200">
+            {user.username}
+          </strong>
         </p>
       )}
     </div>
