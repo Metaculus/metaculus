@@ -96,7 +96,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
 
           const scaledChoiceValue = !isNil(rawChoiceValue)
             ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
-            : 0;
+            : NaN;
 
           const relativeWidth = !isNil(resolution)
             ? 100
@@ -134,6 +134,8 @@ function calculateRelativeWidth({
   maxScaledValue: number;
   minScaledValue: number;
 }) {
+  if (isNaN(scaledChoiceValue)) return scaledChoiceValue;
+
   if (maxScaledValue === 0 && minScaledValue < 0) {
     if (scaledChoiceValue === 0) {
       return 100;
