@@ -1,5 +1,7 @@
 "use client";
 
+import { faCheck, faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -32,10 +34,10 @@ export function ConfirmationHandler() {
         } else {
           setState("error");
           setErrorMessage(
-            result.error || "Failed to confirm registration. Please try again."
+            result.error || "Failed to confirm email. Please try again."
           );
         }
-      } catch {
+      } catch (error) {
         setState("error");
         setErrorMessage("An unexpected error occurred. Please try again.");
       }
@@ -98,7 +100,12 @@ export function ConfirmationHandler() {
       <div className="flex flex-col items-center text-center">
         {state === "loading" && (
           <>
-            <div className="mb-6 h-16 w-16 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+            <div className="mb-6 flex h-16 w-16 items-center justify-center">
+              <FontAwesomeIcon
+                icon={faSpinner}
+                className="h-8 w-8 animate-spin text-blue-600"
+              />
+            </div>
             <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-900-dark">
               Confirming your registration...
             </h1>
@@ -111,19 +118,10 @@ export function ConfirmationHandler() {
         {state === "success" && (
           <>
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-              <svg
+              <FontAwesomeIcon
+                icon={faCheck}
                 className="h-8 w-8 text-green-600 dark:text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+              />
             </div>
             <h1 className="mb-4 text-2xl font-bold text-green-600 dark:text-green-400">
               Email Confirmed!
@@ -142,19 +140,10 @@ export function ConfirmationHandler() {
         {(state === "error" || state === "invalid") && (
           <>
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-              <svg
+              <FontAwesomeIcon
+                icon={faXmark}
                 className="h-8 w-8 text-red-600 dark:text-red-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              />
             </div>
             <h1 className="mb-4 text-2xl font-bold text-red-600 dark:text-red-400">
               Confirmation Failed
