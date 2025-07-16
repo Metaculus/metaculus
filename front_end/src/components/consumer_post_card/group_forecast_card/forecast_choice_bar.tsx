@@ -47,7 +47,7 @@ const ForecastChoiceBar: FC<Props> = ({
       className={cn(
         "relative flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-blue-400 bg-transparent px-2.5 py-1 text-base font-medium leading-6 text-gray-800 dark:border-blue-400-dark dark:text-gray-800-dark",
         {
-          "border-0": !isBordered,
+          "border-transparent": !isBordered,
           "text-purple-800 dark:text-purple-800-dark": isResolutionSuccessful,
           "border-2 border-gray-400 text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark":
             !isNil(resolution) && !isResolutionSuccessful,

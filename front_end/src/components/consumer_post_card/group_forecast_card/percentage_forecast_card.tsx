@@ -1,4 +1,4 @@
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -23,6 +23,7 @@ type Props = {
 const PercentageForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
+  const t = useTranslations();
   if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) {
     return null;
   }
@@ -41,7 +42,7 @@ const PercentageForecastCard: FC<Props> = ({ post }) => {
             questionType: QuestionType.Binary,
             scaling: choice.scaling,
             actual_resolve_time: choice.actual_resolve_time ?? null,
-            emptyLabel: "Upcoming",
+            emptyLabel: t("Upcoming"),
           }
         );
         const isChoiceClosed = choice.closeTime

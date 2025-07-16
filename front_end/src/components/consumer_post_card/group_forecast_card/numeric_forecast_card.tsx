@@ -1,5 +1,5 @@
 import { isNil } from "lodash";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -19,6 +19,7 @@ type Props = {
 const NumericForecastCard: FC<Props> = ({ post }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
+  const t = useTranslations();
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
@@ -89,13 +90,14 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               questionType: QuestionType.Numeric,
               scaling: normalizedScaling,
               actual_resolve_time: actual_resolve_time ?? null,
-              emptyLabel: "?",
+              emptyLabel: t("Upcoming"),
             }
           );
-          const scaledChoiceValue = scaleInternalLocation(
-            rawChoiceValue ?? 0,
-            normalizedScaling
-          );
+
+          const scaledChoiceValue = !isNil(rawChoiceValue)
+            ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
+            : 0;
+
           const relativeWidth = !isNil(resolution)
             ? 100
             : calculateRelativeWidth({
