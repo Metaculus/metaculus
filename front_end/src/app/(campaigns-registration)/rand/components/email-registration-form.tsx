@@ -16,12 +16,15 @@ import { submitToZapierWebhook } from "../actions";
 import { SuccessMessage } from "./success-message";
 
 const emailRegistrationSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  // TEMPORARILY REMOVED FOR TESTING - TODO: Re-enable for production
-  // .refine(
-  //   (email) => email.toLowerCase().endsWith(".edu"),
-  //   "Please use a university email address ending in .edu"
-  // ),
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .refine((email) => {
+      const lowerEmail = email.toLowerCase();
+      return (
+        lowerEmail.endsWith(".edu") || lowerEmail.endsWith("@metaculus.com")
+      );
+    }, "Please use a university email address ending in .edu"),
 });
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
@@ -47,7 +50,11 @@ export const EmailRegistrationForm: FC = () => {
     setError(undefined);
 
     try {
-      const result = await submitToZapierWebhook(data.email, user?.username);
+      const result = await submitToZapierWebhook(
+        data.email,
+        user?.username,
+        user?.email
+      );
 
       if (result.success) {
         setSubmittedEmail(data.email);
@@ -84,7 +91,7 @@ export const EmailRegistrationForm: FC = () => {
         >
           <Input
             type="email"
-            placeholder="Enter your email address"
+            placeholder="Enter your university .edu email address"
             className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
             disabled={isLoading}
             {...register("email")}
@@ -118,12 +125,28 @@ export const EmailRegistrationForm: FC = () => {
       </form>
 
       {user && (
-        <p className="mt-3 text-center text-xs text-white/70 dark:text-gray-400">
-          Logged in as{" "}
-          <strong className="text-white/90 dark:text-gray-200">
-            {user.username}
-          </strong>
-        </p>
+        <div className="my-0 text-center text-xs text-white/70 dark:text-gray-400">
+          <p className="mb-1">
+            Logged in as{" "}
+            <strong className="text-white/90 dark:text-gray-200">
+              {user.username}
+            </strong>
+            {user.email && (
+              <>
+                {" "}
+                (
+                <strong className="text-white/90 dark:text-gray-200">
+                  {user.email}
+                </strong>
+                )
+              </>
+            )}
+          </p>
+          <p className="text-xs">
+            Sign up with your .edu email to participate. You can still use this
+            account for the tournament.
+          </p>
+        </div>
       )}
     </div>
   );

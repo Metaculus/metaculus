@@ -37,7 +37,7 @@ export function ConfirmationHandler() {
             result.error || "Failed to confirm email. Please try again."
           );
         }
-      } catch (error) {
+      } catch {
         setState("error");
         setErrorMessage("An unexpected error occurred. Please try again.");
       }

@@ -7,7 +7,8 @@ export type ZapierSubmissionResult = {
 
 export async function submitToZapierWebhook(
   email: string,
-  username?: string
+  username?: string,
+  userEmail?: string
 ): Promise<ZapierSubmissionResult> {
   try {
     const webhookUrl = process.env.RAND_ZAPIER_WEBHOOK_URL;
@@ -28,6 +29,7 @@ export async function submitToZapierWebhook(
       body: JSON.stringify({
         email,
         username: username || null,
+        userEmail: userEmail || null,
         timestamp: new Date().toISOString(),
         source: "rand_landing_page",
       }),
