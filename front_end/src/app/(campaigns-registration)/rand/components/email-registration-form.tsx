@@ -29,12 +29,17 @@ const emailRegistrationSchema = z.object({
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
 
+type SubmissionState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; email: string }
+  | { status: "error"; message: string };
+
 export const EmailRegistrationForm: FC = () => {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [submittedEmail, setSubmittedEmail] = useState<string>("");
-  const [error, setError] = useState<string | undefined>();
+  const [submissionState, setSubmissionState] = useState<SubmissionState>({
+    status: "idle",
+  });
 
   const {
     register,
@@ -46,8 +51,7 @@ export const EmailRegistrationForm: FC = () => {
   });
 
   const onSubmit = async (data: EmailRegistrationSchema) => {
-    setIsLoading(true);
-    setError(undefined);
+    setSubmissionState({ status: "loading" });
 
     try {
       const result = await submitToZapierWebhook(
@@ -57,26 +61,29 @@ export const EmailRegistrationForm: FC = () => {
       );
 
       if (result.success) {
-        setSubmittedEmail(data.email);
-        setIsSuccess(true);
+        setSubmissionState({ status: "success", email: data.email });
         reset();
       } else {
-        setError(result.error || "Failed to submit registration");
+        setSubmissionState({
+          status: "error",
+          message: result.error || "Failed to submit registration",
+        });
       }
     } catch (e) {
       logError(e);
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
+      setSubmissionState({
+        status: "error",
+        message: "An unexpected error occurred. Please try again.",
+      });
     }
   };
 
-  if (isSuccess) {
-    return <SuccessMessage email={submittedEmail} />;
+  if (submissionState.status === "success") {
+    return <SuccessMessage email={submissionState.email} />;
   }
 
   return (
-    <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-700 p-8 dark:bg-blue-950">
+    <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-700 p-6 dark:bg-blue-950 md:p-8">
       <div className="text-center">
         <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
           Reserve your spot now to get forecasting resources and a heads-up when
@@ -87,33 +94,35 @@ export const EmailRegistrationForm: FC = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <InputContainer
           labelText="Email Address"
-          className="[&_label]:!text-white/90 dark:[&_label]:!text-gray-200 [&_span]:!text-white/90 dark:[&_span]:!text-gray-200"
+          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
         >
           <Input
             type="email"
             placeholder="Enter your university .edu email address"
             className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
-            disabled={isLoading}
+            disabled={submissionState.status === "loading"}
             {...register("email")}
           />
           <FormError
             errors={errors}
             name="email"
-            className="[&>div>span]:!font-normal [&>div>span]:!text-red-500 [&_span]:!font-normal [&_span]:!text-red-500"
+            className="!text-red-300 dark:!text-red-400"
           />
         </InputContainer>
 
-        {error && (
-          <div className="text-sm font-normal !text-red-500">{error}</div>
+        {submissionState.status === "error" && (
+          <div className="text-sm font-normal !text-red-300 dark:!text-red-400">
+            {submissionState.message}
+          </div>
         )}
 
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={submissionState.status === "loading"}
           className="w-full"
           variant="primary"
         >
-          {isLoading ? (
+          {submissionState.status === "loading" ? (
             <div className="flex items-center justify-center">
               <LoadingSpinner className="mr-2 h-4 w-4" />
               Submitting...

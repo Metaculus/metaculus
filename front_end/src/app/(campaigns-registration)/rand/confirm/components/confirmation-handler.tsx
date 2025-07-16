@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { confirmEmailRegistration } from "../actions";
+import { confirmEmailRegistration } from "../../actions";
 
 type ConfirmationState = "loading" | "success" | "error" | "invalid";
 
