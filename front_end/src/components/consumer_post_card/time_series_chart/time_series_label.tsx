@@ -12,12 +12,14 @@ type Props = {
   isTickLabel?: boolean;
   labelVisibilityMap: boolean[];
   widthPerLabel?: number;
+  allQuestionsEmpty?: boolean;
 };
 
 const TimeSeriesLabel: FC<Props & any> = ({
   isTickLabel = false,
   labelVisibilityMap,
   widthPerLabel,
+  allQuestionsEmpty = false,
   ...props
 }) => {
   const { datum, y, dy, scale, ...rest } = props;
@@ -50,7 +52,10 @@ const TimeSeriesLabel: FC<Props & any> = ({
         style={{
           fontSize: shouldTrancateText ? 12 : 14,
           fontFamily: "var(--font-inter-variable)",
-          fill: ({ datum }: any) => getLabelColor(datum),
+          fill: ({ datum }: any) =>
+            datum.isEmpty
+              ? getThemeColor(METAC_COLORS.gray["700"])
+              : getLabelColor(datum),
         }}
         text={() => textLines.join("\n")}
       />
@@ -59,7 +64,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
 
   return (
     <g>
-      {(datum.isClosed || datum.resolution) && (
+      {(datum.isClosed || datum.resolution) && !datum.isEmpty && (
         <VictoryLabel
           datum={datum}
           y={scale.y(datum.y)}
@@ -84,7 +89,15 @@ const TimeSeriesLabel: FC<Props & any> = ({
       <VictoryLabel
         datum={datum}
         y={scale.y(datum.y)}
-        dy={["no", "yes"].includes(datum.resolution as string) ? -8 : -5}
+        dy={
+          datum.isEmpty
+            ? allQuestionsEmpty
+              ? 0
+              : 60
+            : ["no", "yes"].includes(datum.resolution as string)
+              ? -8
+              : -5
+        }
         {...rest}
         className="font-inter"
         style={{
@@ -92,7 +105,10 @@ const TimeSeriesLabel: FC<Props & any> = ({
           fontWeight: 700,
           lineHeight: "24px",
           fontFamily: "var(--font-inter-variable)",
-          fill: ({ datum }: any) => getLabelColor(datum),
+          fill: ({ datum }: any) =>
+            datum.isEmpty
+              ? getThemeColor(METAC_COLORS.gray["500"])
+              : getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>
           labelVisibilityMap[index] ? `${datum.label}` : ""

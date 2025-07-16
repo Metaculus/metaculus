@@ -45,7 +45,7 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
             "flex w-full flex-col items-center gap-5 overflow-hidden no-underline @container"
           }
         >
-          <h4 className="m-0 max-w-xl text-center text-lg font-medium">
+          <h4 className="m-0 max-w-xl text-center text-base font-medium md:text-lg">
             {title}
           </h4>
           {children}
