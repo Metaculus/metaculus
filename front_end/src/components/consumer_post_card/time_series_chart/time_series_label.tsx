@@ -76,7 +76,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
             labelVisibilityMap[index]
               ? datum.isClosed
                 ? t("pending").toUpperCase()
-                : t("result").toUpperCase()
+                : t("resolved").toUpperCase()
               : ""
           }
         />
