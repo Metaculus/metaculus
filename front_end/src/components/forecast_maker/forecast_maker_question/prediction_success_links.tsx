@@ -23,7 +23,7 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
   }
 
   useEffect(() => {
-    updatePage().then(() => {});
+    void updatePage();
   }, []);
 
   if (!coherenceLinks || coherenceLinks.size === 0) return null;

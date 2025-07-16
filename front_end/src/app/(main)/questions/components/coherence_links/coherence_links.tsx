@@ -48,7 +48,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   }
 
   useEffect(() => {
-    updatePage().then(() => {});
+    void updatePage();
   }, []);
 
   if (post.question?.type !== QuestionType.Binary) return null;

@@ -39,17 +39,16 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   async function saveQuestion() {
     let question1: Question | null;
     let question2: Question | null;
+    const postQuestion = post.question;
+
+    if (!postQuestion || !otherQuestion) return;
 
     if (isFirstQuestion) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      question1 = post.question!;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      question2 = otherQuestion!;
+      question1 = postQuestion;
+      question2 = otherQuestion;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      question1 = otherQuestion!;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      question2 = post.question!;
+      question1 = otherQuestion;
+      question2 = postQuestion;
     }
 
     await createCoherenceLink(
