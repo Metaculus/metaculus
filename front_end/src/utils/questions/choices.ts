@@ -14,6 +14,7 @@ import {
   formatResolution,
 } from "@/utils/formatters/resolution";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 export function generateChoiceItemsFromMultipleChoiceForecast(
   question: QuestionWithMultipleChoiceForecasts,
@@ -23,9 +24,10 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     preselectedQuestionId?: number;
     locale?: string;
     preserveOrder?: boolean;
+    showNoResolutions?: boolean;
   }
 ): ChoiceItem[] {
-  const { activeCount, preserveOrder } = config ?? {};
+  const { activeCount, preserveOrder, showNoResolutions = true } = config ?? {};
 
   const latest = question.aggregations.recency_weighted.latest;
 
@@ -108,9 +110,18 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,
-      resolution: question.resolution,
+      resolution:
+        showNoResolutions ||
+        question.resolution === choice ||
+        isUnsuccessfullyResolved(question.resolution)
+          ? question.resolution
+          : null,
       displayedResolution: !!question.resolution
-        ? formatMultipleChoiceResolution(question.resolution, choice)
+        ? formatMultipleChoiceResolution(
+            question.resolution,
+            choice,
+            showNoResolutions
+          )
         : null,
       aggregationTimestamps: sortedAggregationTimestamps,
       aggregationValues: aggregationValues,

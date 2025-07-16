@@ -74,6 +74,7 @@ function generateChoiceItems(
   if (isMultipleChoicePost(post)) {
     return generateChoiceItemsFromMultipleChoiceForecast(post.question, {
       activeCount: visibleChoicesCount,
+      showNoResolutions: false,
     });
   }
   if (isGroupOfQuestionsPost(post)) {
