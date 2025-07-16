@@ -1,17 +1,18 @@
 from datetime import timedelta
 
 from django.contrib import admin
-from django.utils.html import format_html
-from django.urls import reverse
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
+from django.urls import reverse
+from django.utils.html import format_html
+from sql_util.aggregates import SubqueryAggregate
 
+from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
 from users.services.spam_detection import (
     CONFIDENCE_THRESHOLD,
     check_profile_data_for_spam,
     send_deactivation_email,
 )
-from questions.models import Forecast
 
 
 class LastLoginFilter(admin.SimpleListFilter):
@@ -48,20 +49,19 @@ class AuthoredPostsFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return [("0", "No Posts"), ("1-3", "1-3 Posts"), ("3+", ">3 Posts")]
 
-    def queryset(self, request, queryset):
+    def queryset(self, request, qs):
+        qs = qs.annotate(
+            authored_posts_count=SubqueryAggregate("posts", aggregate=Count)
+        )
+
         if self.value() == "0":
-            return queryset.annotate(authored_posts_count=Count("posts")).filter(
-                authored_posts_count=0
-            )
+            return qs.filter(authored_posts_count=0)
         if self.value() == "1-3":
-            return queryset.annotate(authored_posts_count=Count("posts")).filter(
-                authored_posts_count__gt=0, authored_posts_count__lte=3
-            )
+            return qs.filter(authored_posts_count__gt=0, authored_posts_count__lte=3)
         if self.value() == "3+":
-            return queryset.annotate(authored_posts_count=Count("posts")).filter(
-                authored_posts_count__gt=3
-            )
-        return queryset
+            return qs.filter(authored_posts_count__gt=3)
+
+        return qs
 
 
 class AuthoredCommentsFilter(admin.SimpleListFilter):
@@ -71,16 +71,17 @@ class AuthoredCommentsFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return [("0", "No Comments"), ("1+", "Has Comments")]
 
-    def queryset(self, request, queryset):
+    def queryset(self, request, qs):
+        qs = qs.annotate(
+            authored_comments_count=SubqueryAggregate("comment", aggregate=Count)
+        )
+
         if self.value() == "0":
-            return queryset.annotate(authored_comments_count=Count("comment")).filter(
-                authored_comments_count=0
-            )
+            return qs.filter(authored_comments_count=0)
         if self.value() == "1+":
-            return queryset.annotate(authored_comments_count=Count("comment")).filter(
-                authored_comments_count__gt=0
-            )
-        return queryset
+            return qs.filter(authored_comments_count__gt=0)
+
+        return qs
 
 
 class ForecastedFilter(admin.SimpleListFilter):
@@ -159,8 +160,8 @@ class UserAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.annotate(
-            authored_posts_count=Count("posts"),
-            authored_comments_count=Count("comment"),
+            authored_posts_count=SubqueryAggregate("posts", aggregate=Count),
+            authored_comments_count=SubqueryAggregate("comment", aggregate=Count),
             forecasted=Exists(Forecast.all_objects.filter(author=OuterRef("pk"))),
         )
         return qs
