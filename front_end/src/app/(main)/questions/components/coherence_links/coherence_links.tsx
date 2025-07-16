@@ -4,13 +4,13 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
-import { getCoherenceLinksForQuestion } from "@/app/(main)/questions/actions";
 import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
 import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
+import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
 import { CoherenceLinksGroup } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -42,7 +42,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
 
   async function updatePage() {
     if (!post.question) return;
-    const coherenceLinks = await getCoherenceLinksForQuestion(post.question);
+    const coherenceLinks =
+      await ClientCoherenceLinksApi.getCoherenceLinksForQuestion(post.question);
     if ("errors" in coherenceLinks) setCoherenceLinks(null);
     else setCoherenceLinks(coherenceLinks);
   }

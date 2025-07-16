@@ -22,7 +22,7 @@ import ServerQuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/api/questions/questions.server";
-import { CoherenceLink, CoherenceLinksGroup } from "@/types/coherence";
+import { CoherenceLink } from "@/types/coherence";
 import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { Question } from "@/types/question";
@@ -335,20 +335,6 @@ export async function createCoherenceLink(
       strength,
       type,
     });
-  } catch (err) {
-    return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
-    };
-  }
-}
-
-export async function getCoherenceLinksForQuestion(
-  question: Question
-): Promise<CoherenceLinksGroup | { errors: unknown }> {
-  try {
-    return await coherenceLinksApiClass.getCoherenceLinksForQuestion(
-      question.id
-    );
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,

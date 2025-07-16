@@ -9,7 +9,7 @@ urlpatterns = [
         name="coherence-create-link",
     ),
     path(
-        "coherence/get-links/<int:pk>",
+        "coherence/get-links/<int:pk>/",
         views.get_links_for_question_api_view,
         name="get-links-for-question",
     ),

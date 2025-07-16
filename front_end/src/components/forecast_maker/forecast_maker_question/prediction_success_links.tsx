@@ -2,8 +2,8 @@
 
 import { FC, useEffect, useState } from "react";
 
-import { getCoherenceLinksForQuestion } from "@/app/(main)/questions/actions";
 import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
+import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
 import { CoherenceLinksGroup } from "@/types/coherence";
 import { PostWithForecasts } from "@/types/post";
 
@@ -17,7 +17,8 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
 
   async function updatePage() {
     if (!post.question) return;
-    const coherenceLinks = await getCoherenceLinksForQuestion(post.question);
+    const coherenceLinks =
+      await ClientCoherenceLinksApi.getCoherenceLinksForQuestion(post.question);
     if ("errors" in coherenceLinks) setCoherenceLinks(null);
     else setCoherenceLinks(coherenceLinks);
   }
