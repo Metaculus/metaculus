@@ -16,6 +16,7 @@ type Props = {
   unreadCount: number;
   totalCount: number;
   className?: string;
+  compact?: boolean;
 };
 
 const CommentStatus: FC<Props> = ({
@@ -23,6 +24,7 @@ const CommentStatus: FC<Props> = ({
   totalCount,
   url,
   className,
+  compact = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -68,36 +70,9 @@ const CommentStatus: FC<Props> = ({
           })}
         />
       )}
-      {/* Large screens version */}
-      <span className="hidden align-middle md:block">
-        {user && unreadCount > 0 ? (
-          <span className="text-gray-500 dark:text-gray-500-dark">
-            {t.rich("unreadWithTotalCount", {
-              unread_count_formatted: unreadCountFormatted,
-              total_count_formatted: totalCountFormatted,
-              purple: (obj) => (
-                <span className="text-purple-700 dark:text-purple-700-dark">
-                  {obj}
-                </span>
-              ),
-            })}
-          </span>
-        ) : (
-          <span
-            className={cn("text-gray-700  dark:text-gray-700-dark", {
-              "text-gray-500 dark:text-gray-500-dark": !totalCount,
-            })}
-          >
-            {t.rich("totalCommentsCount", {
-              total_count: totalCount,
-              total_count_formatted: totalCountFormatted,
-            })}
-          </span>
-        )}
-      </span>
-      {/* Small screens version. */}
-      {totalCount > 0 && (
-        <span className="block align-middle md:hidden">
+      {/* Compact version - just shows numbers */}
+      {compact && totalCount > 0 && (
+        <span className="align-middle">
           {user && unreadCount > 0 ? (
             <span className="text-gray-500 dark:text-gray-500-dark">
               {t.rich("unreadWithTotalCountXs", {
@@ -117,6 +92,35 @@ const CommentStatus: FC<Props> = ({
               })}
             >
               {totalCountFormatted}
+            </span>
+          )}
+        </span>
+      )}
+      {/* Full version - shows descriptive text */}
+      {!compact && (
+        <span className="align-middle">
+          {user && unreadCount > 0 ? (
+            <span className="text-gray-500 dark:text-gray-500-dark">
+              {t.rich("unreadWithTotalCount", {
+                unread_count_formatted: unreadCountFormatted,
+                total_count_formatted: totalCountFormatted,
+                purple: (obj) => (
+                  <span className="text-purple-700 dark:text-purple-700-dark">
+                    {obj}
+                  </span>
+                ),
+              })}
+            </span>
+          ) : (
+            <span
+              className={cn("text-gray-700  dark:text-gray-700-dark", {
+                "text-gray-500 dark:text-gray-500-dark": !totalCount,
+              })}
+            >
+              {t.rich("totalCommentsCount", {
+                total_count: totalCount,
+                total_count_formatted: totalCountFormatted,
+              })}
             </span>
           )}
         </span>

@@ -20,18 +20,59 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({ post }) => {
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
 
+  // Edge case: if default_project is longer than 15 characters and there are unread messages
+  const hasUnreadMessages = (post.unread_comment_count ?? 0) > 0;
+  const hasLongProjectName = !!(
+    defaultProject?.name && defaultProject.name.length > 15
+  );
+  const shouldUseCompactPostStatus = hasLongProjectName && hasUnreadMessages;
+
   return (
     <div className="mt-4 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
       <div className="flex items-center gap-1.5 md:gap-2">
         <PostVoter post={post} />
+
+        {/* CommentStatus - compact on small screens, full on large screens */}
         <CommentStatus
           totalCount={post.comment_count ?? 0}
           unreadCount={post.unread_comment_count ?? 0}
           url={getPostLink(post)}
-          className="bg-gray-200 dark:bg-gray-200-dark"
+          className="bg-gray-200 dark:bg-gray-200-dark md:hidden"
+          compact={true}
         />
-        <PostStatus post={post} resolution={resolutionData} />
-        <ForecastersCounter forecasters={post.nr_forecasters} />
+        <CommentStatus
+          totalCount={post.comment_count ?? 0}
+          unreadCount={post.unread_comment_count ?? 0}
+          url={getPostLink(post)}
+          className="hidden bg-gray-200 dark:bg-gray-200-dark md:flex"
+          compact={false}
+        />
+
+        {/* PostStatus - compact on small screens, full on large screens (with edge case) */}
+        <PostStatus
+          post={post}
+          resolution={resolutionData}
+          compact={true}
+          className="md:hidden"
+        />
+        <PostStatus
+          post={post}
+          resolution={resolutionData}
+          compact={shouldUseCompactPostStatus}
+          className="hidden md:flex"
+        />
+
+        {/* ForecastersCounter - compact on small screens, full on large screens */}
+        <ForecastersCounter
+          forecasters={post.nr_forecasters}
+          compact={true}
+          className="md:hidden"
+        />
+        <ForecastersCounter
+          forecasters={post.nr_forecasters}
+          compact={false}
+          className="hidden md:flex"
+        />
       </div>
       <div className="hidden lg:inline-flex">
         <PostDefaultProject defaultProject={defaultProject} />
