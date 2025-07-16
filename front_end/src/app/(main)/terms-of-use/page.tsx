@@ -847,67 +847,82 @@ export default async function TermsOfUse() {
         Reporting Copyright and Other Intellectual Property Violations
       </h2>
       <p className="mb-4">
-        Metaculus respects the intellectual property rights of others and takes
-        the protection of copyrights and other intellectual property seriously.
-        Only the intellectual property rights owner or person authorized to act
-        on behalf of the owner can report potentially infringing content. If you
-        believe your work has been infringed through the Service, please notify
-        us at Metaculus, Inc., Attention: Copyright Agent, 1112 Montana Avenue
-        Suite 464, Santa Monica, CA, US 90403, or at the email address{" "}
-        <a
-          href="mailto:copyright@metaculus.com"
-          className="text-blue-600 hover:underline"
-        >
-          copyright@metaculus.com
-        </a>{" "}
-        and provide the following information:
+        Metaculus, Inc. respects the intellectual property rights of others. Per
+        the DMCA, we will respond expeditiously to claims of copyright
+        infringement on the Site if submitted to our Copyright Agent as
+        described below. Upon receipt of a notice alleging copyright
+        infringement, We will take whatever action it deems appropriate within
+        its sole discretion, including removal of the allegedly infringing
+        materials and termination of access for repeat infringers of
+        copyright-protected content.
+      </p>
+      <p className="mb-4">
+        If you believe that your intellectual property rights have been violated
+        by us or by a third party who has uploaded materials to our website,
+        please provide the following information to the designated Copyright
+        Agent listed below:
       </p>
       <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
         <li>
-          Your contact information, including name, address, telephone number,
-          and e-mail address;
+          A description of the copyrighted work or other intellectual property
+          that you claim has been infringed;
         </li>
         <li>
-          A description of the copyrighted work you claim has been infringed;
+          A description of where the material that you claim is infringing is
+          located on the Site;
         </li>
         <li>
-          A reasonably specific description of where the allegedly infringing
-          material is located on the Service (including, e.g., the URL);
+          An address, telephone number, and email address where we can contact
+          you and, if different, an email address where the alleged infringing
+          party, if not we, can contact you;
         </li>
         <li>
-          A statement by you that you have a good-faith belief that the
-          allegedly infringing material is not authorized by the copyright
-          owner, its agent, or the law;
-        </li>
-        <li>Your electronic or physical signature;</li>
-        <li>
-          A statement by you, made under penalty of perjury, that the
-          information in your notice is accurate and that you are the copyright
-          owner or authorized to act on the copyright owner&apos;s behalf; and
+          A statement that you have a good-faith belief that the use is not
+          authorized by the copyright owner or other intellectual property
+          rights owner, by its agent, or by law;
         </li>
         <li>
-          Information reasonably sufficient to permit us to contact the
-          complaining party.
+          A statement by you under penalty of perjury that the information in
+          your notice is accurate and that you are the copyright or intellectual
+          property owner or are authorized to act on the owner&apos;s behalf;
         </li>
+        <li>Your electronic or physical signature.</li>
       </ul>
       <p className="mb-4">
-        NOTE: This contact information is for inquiries regarding potential
-        copyright and other infringement only.
+        Metaculus, Inc. may request additional information before removing any
+        allegedly infringing material. In the event we remove the allegedly
+        infringing materials, we will immediately notify the person responsible
+        for posting such materials that we removed or disabled access to the
+        materials. We may also provide the responsible person with your email
+        address so that the person may respond to your allegations.
       </p>
       <p className="mb-4">
-        It is often difficult to determine if your intellectual property rights
-        have been violated or if legal requirements to remove the allegedly
-        infringing content have been met. We may request additional information
-        before we remove any infringing material. If a dispute develops as to
-        the correct owner of the rights in question, we reserve the right to
-        remove your content along with that of the alleged infringer pending
-        resolution of the matter.
+        Pursuant to 17 U.S.C. 512(c). Metaculus, Inc. designated Copyright Agent
+        is:
       </p>
       <p className="mb-4">
-        Metaculus will provide you with notice if your materials have been
-        removed based on a third party complaint of alleged infringement of the
-        third party&apos;s intellectual property rights.
+        Jonathan Bailey
+        <br />
+        CopyByte
+        <br />
+        3157 Gentilly Blvd Suite # 2254
+        <br />
+        New Orleans, LA 70122
+        <br />
+        Phone:{" "}
+        <a href="tel:1-504-356-4555" className="text-blue-600 hover:underline">
+          1-504-356-4555
+        </a>
+        <br />
+        Email:{" "}
+        <a
+          href="mailto:metaculus-dmca@copybyte.com"
+          className="text-blue-600 hover:underline"
+        >
+          metaculus-dmca@copybyte.com
+        </a>
       </p>
+
       <p className="mb-4">
         IF YOU KNOWINGLY MISREPRESENT THAT MATERIAL IS OR IS NOT INFRINGING, YOU
         MAY BE SUBJECT TO CIVIL PENALTIES. THESE INCLUDE MONETARY DAMAGES, COURT
