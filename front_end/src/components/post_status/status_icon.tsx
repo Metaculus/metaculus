@@ -101,7 +101,8 @@ const PostStatusIcon: FC<Props> = ({
             className={cn(
               "stroke-blue-700 stroke-1 dark:stroke-blue-700-dark",
               {
-                "fill-gray-300 opacity-75": status === PostStatus.CLOSED,
+                "fill-gray-300 opacity-75 dark:fill-gray-300-dark":
+                  status === PostStatus.CLOSED,
               }
             )}
           />

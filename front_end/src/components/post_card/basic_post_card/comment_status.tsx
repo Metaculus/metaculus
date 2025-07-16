@@ -17,6 +17,7 @@ type Props = {
   totalCount: number;
   className?: string;
   compact?: boolean;
+  variant?: "default" | "gray";
 };
 
 const CommentStatus: FC<Props> = ({
@@ -25,6 +26,7 @@ const CommentStatus: FC<Props> = ({
   url,
   className,
   compact = false,
+  variant = "default",
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -55,20 +57,29 @@ const CommentStatus: FC<Props> = ({
       )}
       href={url + "#comments"}
     >
-      {totalCount > 0 ? (
+      {variant === "gray" ? (
         <FontAwesomeIcon
           icon={faSolidComment}
-          className={cn("text-blue-500 dark:text-blue-500-dark", {
-            "text-purple-600 dark:text-purple-600-dark": unreadCount > 0,
-          })}
+          className="text-gray-400 dark:text-gray-400-dark"
         />
       ) : (
-        <FontAwesomeIcon
-          icon={faRegularComment}
-          className={cn("text-gray-700  dark:text-gray-700-dark", {
-            "text-gray-500 dark:text-gray-500-dark": !totalCount,
-          })}
-        />
+        <>
+          {totalCount > 0 ? (
+            <FontAwesomeIcon
+              icon={faSolidComment}
+              className={cn("text-blue-500 dark:text-blue-500-dark", {
+                "text-purple-600 dark:text-purple-600-dark": unreadCount > 0,
+              })}
+            />
+          ) : (
+            <FontAwesomeIcon
+              icon={faRegularComment}
+              className={cn("text-gray-700  dark:text-gray-700-dark", {
+                "text-gray-500 dark:text-gray-500-dark": !totalCount,
+              })}
+            />
+          )}
+        </>
       )}
       {/* Compact version - just shows numbers */}
       {compact && totalCount > 0 && (
@@ -115,6 +126,7 @@ const CommentStatus: FC<Props> = ({
             <span
               className={cn("text-gray-700  dark:text-gray-700-dark", {
                 "text-gray-500 dark:text-gray-500-dark": !totalCount,
+                "text-gray-700 dark:text-gray-700-dark": variant === "gray",
               })}
             >
               {t.rich("totalCommentsCount", {

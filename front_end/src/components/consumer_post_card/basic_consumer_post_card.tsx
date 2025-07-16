@@ -37,6 +37,7 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
             totalCount={post.comment_count ?? 0}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
+            variant="gray"
           />
           <ForecastersCounter forecasters={post.nr_forecasters} />
         </div>
