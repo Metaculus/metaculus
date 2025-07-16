@@ -216,7 +216,7 @@ type CommentProps = {
   postData?: PostWithForecasts;
   lastViewedAt?: string;
   isCollapsed?: boolean;
-  suggestKeyFactorsOnFirstRender?: boolean;
+  isCommentJustCreated?: boolean;
   shouldSuggestKeyFactors?: boolean;
 };
 
@@ -229,7 +229,7 @@ const Comment: FC<CommentProps> = ({
   lastViewedAt,
   isCollapsed = false,
   handleCommentPin,
-  suggestKeyFactorsOnFirstRender = false,
+  isCommentJustCreated = false,
   shouldSuggestKeyFactors = false,
 }) => {
   const t = useTranslations();
@@ -273,13 +273,16 @@ const Comment: FC<CommentProps> = ({
   }, [comment.key_factors]);
 
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
+  const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
+    useState(isCommentJustCreated);
 
   const [loadKeyFactors, setLoadKeyFactors] = useState(
-    suggestKeyFactorsOnFirstRender && shouldSuggestKeyFactors
+    isCommentJustCreated && shouldSuggestKeyFactors
   );
 
   const onKeyFactorsLoadded = (keyFactorsLoaded: boolean) => {
-    setIsKeyfactorsFormOpen(keyFactorsLoaded);
+    setIsKeyfactorsFormOpen(keyFactorsLoaded || !suggestKeyFactorsFirstRender);
+    setSuggestKeyFactorsFirstRender(false);
     setLoadKeyFactors(false);
     if (keyFactorsLoaded) {
       setTimeout(() => {

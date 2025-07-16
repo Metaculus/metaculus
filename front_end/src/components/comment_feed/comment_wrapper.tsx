@@ -73,7 +73,7 @@ export const CommentWrapper: FC<Props> = ({
         postData={postData}
         lastViewedAt={postData?.last_viewed_at}
         isCollapsed={isCollapsed}
-        suggestKeyFactorsOnFirstRender={suggestKeyFactorsOnFirstRender}
+        isCommentJustCreated={suggestKeyFactorsOnFirstRender}
         shouldSuggestKeyFactors={shouldSuggestKeyFactors}
       />
     </div>
