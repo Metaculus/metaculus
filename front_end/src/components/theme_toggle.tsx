@@ -9,7 +9,6 @@ const ThemeToggle: FC = () => {
   const mounted = useMounted();
 
   const { theme, setTheme } = useAppTheme();
-
   const switchTheme = () => {
     if (theme === "dark") {
       setTheme("light");

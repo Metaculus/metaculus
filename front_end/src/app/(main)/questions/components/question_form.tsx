@@ -27,11 +27,12 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
-import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
+import { Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   ContinuousQuestionType,
@@ -285,6 +286,7 @@ type Props = {
   mode: "create" | "edit";
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const QuestionForm: FC<Props> = ({
@@ -296,6 +298,7 @@ const QuestionForm: FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -376,7 +379,9 @@ const QuestionForm: FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(questionType);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(questionType);
+        }
       }
       router.push(getPostLink(resp.post));
     } catch (e) {
@@ -457,7 +462,7 @@ const QuestionForm: FC<Props> = ({
   }
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       // Explicitly convert to the ExtendedQuestionDraft type
       saveQuestionDraft(questionType, {
@@ -467,7 +472,7 @@ const QuestionForm: FC<Props> = ({
         type: formData.type as unknown as QuestionType,
       } as Partial<ExtendedQuestionDraft>);
     }
-  }, [form, mode, questionType, optionsList, categoriesList]);
+  }, [form, shouldUseDraftValue, questionType, optionsList, categoriesList]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -562,7 +567,7 @@ const QuestionForm: FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create" && !isDraftMounted.current) {
+    if (shouldUseDraftValue && !isDraftMounted.current) {
       const draft = getQuestionDraft(questionType);
       if (draft) {
         setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
@@ -589,12 +594,12 @@ const QuestionForm: FC<Props> = ({
   // update draft when form values change
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -714,7 +719,7 @@ const QuestionForm: FC<Props> = ({
 
         {ContinuousQuestionTypes.some((type) => type === questionType) && (
           <NumericQuestionInput
-            draftKey={mode === "edit" ? undefined : questionType}
+            draftKey={shouldUseDraftValue ? questionType : undefined}
             questionType={questionType as ContinuousQuestionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}

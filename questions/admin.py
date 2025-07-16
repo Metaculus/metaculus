@@ -6,7 +6,8 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
-from questions.types import AggregationMethod
+from posts.models import Post
+from questions.constants import ResolutionType
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -15,9 +16,9 @@ from questions.models import (
     Forecast,
 )
 from questions.services import build_question_forecasts
+from questions.types import AggregationMethod
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
-from questions.constants import ResolutionType
 
 
 @admin.register(Question)
@@ -82,10 +83,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         return format_html('<a href="{}">View Forecasts</a>', url)
 
     def should_update_translations(self, obj):
-        is_private = (
-            obj.related_posts.first().post.default_project.default_permission is None
-        )
-        return not is_private
+        post = obj.get_post()
+        is_private = post.default_project.default_permission is None
+        is_approved = post.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -189,8 +191,11 @@ class ConditionalAdmin(admin.ModelAdmin):
         return actions
 
     def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
-        return not is_private
+        post = obj.post
+        is_private = post.default_project.default_permission is None
+        is_approved = post.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -222,8 +227,11 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
         return actions
 
     def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
-        return not is_private
+        post = obj.post
+        is_private = post.default_project.default_permission is None
+        is_approved = post.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)

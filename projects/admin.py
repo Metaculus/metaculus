@@ -125,25 +125,48 @@ class PostInlineBase(admin.TabularInline):
         project = self.get_project(obj)
         questions = self.get_post(obj).get_questions()
 
-        if not project.close_date:
-            return None
+        finalize_time = (
+            project.primary_leaderboard.finalize_time
+            if project.primary_leaderboard
+            else None
+        )
+        finalize_time = finalize_time or project.close_date
+        if not finalize_time:
+            return True
 
-        return not any(q.scheduled_close_time > project.close_date for q in questions)
+        return not any(
+            q.scheduled_close_time > finalize_time
+            for q in questions
+            if q.scheduled_close_time
+        )
 
-    closes_before.short_description = "Closes Before"
+    closes_before.short_description = format_html(
+        "Closes Before<br>Leaderboard Finalizes"
+    )
     closes_before.boolean = True
 
-    def resolves_before(self, obj):
+    def resolved_before(self, obj):
         project = self.get_project(obj)
         questions = self.get_post(obj).get_questions()
 
-        if not project.close_date:
-            return None
+        finalize_time = (
+            project.primary_leaderboard.finalize_time
+            if project.primary_leaderboard
+            else None
+        )
+        finalize_time = finalize_time or project.close_date
+        if not finalize_time:
+            return True
 
-        return not any(q.scheduled_resolve_time > project.close_date for q in questions)
+        return not any(
+            (q.actual_resolve_time and q.actual_resolve_time > finalize_time)
+            for q in questions
+        )
 
-    resolves_before.short_description = "Resolves Before"
-    resolves_before.boolean = True
+    resolved_before.short_description = format_html(
+        "Resolved Before<br>Leaderboard Finalizes<br>(or hasn't resolved yet)"
+    )
+    resolved_before.boolean = True
 
 
 class PostDefaultProjectInline(PostInlineBase):
@@ -154,13 +177,13 @@ class PostDefaultProjectInline(PostInlineBase):
         "curation_status",
         "published_at",
         "closes_before",
-        "resolves_before",
+        "resolved_before",
     )
     readonly_fields = (
         "title_link",
         "published_at",
         "closes_before",
-        "resolves_before",
+        "resolved_before",
     )
     can_delete = False
     verbose_name = "Post with this as Default Project (determines permissions)"
@@ -218,7 +241,7 @@ class PostProjectInline(PostInlineBase):
         "published_at",
         "default_project",
         "closes_before",
-        "resolves_before",
+        "resolved_before",
         "remove_from_project",
     )
     readonly_fields = (
@@ -227,7 +250,7 @@ class PostProjectInline(PostInlineBase):
         "published_at",
         "default_project",
         "closes_before",
-        "resolves_before",
+        "resolved_before",
     )
     can_delete = False  # this is a hack to rename the "delete" checkbox
     verbose_name = "Post with this as a Secondary Project (no permission effects)"
@@ -377,7 +400,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         # Force visibility states for such project types
         if obj.type in (
             Project.ProjectTypes.CATEGORY,
-            Project.ProjectTypes.TAG,
+            Project.ProjectTypes.LEADERBOARD_TAG,
             Project.ProjectTypes.TOPIC,
             Project.ProjectTypes.PERSONAL_PROJECT,
         ):
@@ -717,12 +740,14 @@ class ProjectAdmin(CustomTranslationAdmin):
                     if latest_resolving_time
                     else question.actual_resolve_time
                 )
-            else:
+            elif question.scheduled_resolve_time:
                 latest_resolving_time = (
                     max(latest_resolving_time, question.scheduled_resolve_time)
                     if latest_resolving_time
                     else question.scheduled_resolve_time
                 )
+            else:
+                continue
         return latest_resolving_time
 
     latest_resolving_time.short_description = "Latest Resolving Time (Expected)"

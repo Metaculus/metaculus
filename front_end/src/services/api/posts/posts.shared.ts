@@ -12,7 +12,7 @@ import {
   PredictionFlowPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { DataParams, Require } from "@/types/utils";
+import { DataParams, Require, WhitelistStatus } from "@/types/utils";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -25,7 +25,7 @@ export type PostsParams = PaginationParams & {
   statuses?: string | string[];
   categories?: string | string[];
   usernames?: string | string[];
-  tags?: string | string[];
+  leaderboard_tags?: string | string[];
   forecaster_id?: string;
   withdrawn?: string;
   not_forecaster_id?: string;
@@ -46,11 +46,11 @@ export type PostsParams = PaginationParams & {
 };
 
 export type ApprovePostParams = {
-  published_at: string;
-  open_time: string;
-  cp_reveal_time: string;
-  scheduled_close_time: string;
-  scheduled_resolve_time: string;
+  published_at: string | undefined;
+  open_time: string | undefined;
+  cp_reveal_time: string | undefined;
+  scheduled_close_time: string | undefined;
+  scheduled_resolve_time: string | undefined;
 };
 
 export type BoostDirection = 1 | -1;
@@ -207,6 +207,16 @@ class PostsApi extends ApiService {
 
     return await this.get<Blob>(
       `/posts/${postId}/download-data/${queryParams}`
+    );
+  }
+
+  async getWhitelistStatus(params: {
+    post_id?: number;
+    project_id?: number;
+  }): Promise<WhitelistStatus> {
+    const queryParams = encodeQueryParams(params);
+    return await this.get<WhitelistStatus>(
+      `/get-whitelist-status/${queryParams}`
     );
   }
 }

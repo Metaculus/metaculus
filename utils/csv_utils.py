@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
 from posts.models import Post
@@ -124,6 +125,7 @@ def export_data_for_questions(
     user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
+    include_future: bool = False,
     **kwargs,
 ) -> bytes:
     user = User.objects.get(id=user_id) if user_id is not None else None
@@ -139,15 +141,32 @@ def export_data_for_questions(
     if not (is_whitelisted or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
+    if is_whitelisted or is_staff:
+        questions_with_revealed_cp = questions
+    else:
+        questions_with_revealed_cp = questions.filter(
+            Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
+        )
     if not aggregation_methods or (
         aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
     ):
-        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions)
-        ).order_by("question_id", "start_time")
+        aggregate_forecasts: list[AggregateForecast] = list(
+            AggregateForecast.objects.filter(
+                Q() if include_future else Q(start_time__lte=timezone.now()),
+                question__in=questions_with_revealed_cp,
+            ).order_by("question_id", "start_time")
+        )
+        if not include_future:
+            # remove end_time from any live aggregate forecasts
+            for aggregate_forecast in aggregate_forecasts:
+                if (
+                    aggregate_forecast.end_time
+                    and aggregate_forecast.end_time > timezone.now()
+                ):
+                    aggregate_forecast.end_time = None
     else:
         aggregate_forecasts = []
-        for question in questions:
+        for question in questions_with_revealed_cp:
             aggregation_dict = get_aggregation_history(
                 question,
                 aggregation_methods,
@@ -160,6 +179,7 @@ def export_data_for_questions(
                     else question.include_bots_in_aggregates
                 ),
                 histogram=True,
+                include_future=include_future,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)
@@ -492,9 +512,9 @@ def generate_data(
     for comment in comments or []:
         row = [comment.on_post_id]
         if anonymized:
-            row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
+            row.append(hashlib.sha256(str(comment.author_id).encode()).hexdigest())
         else:
-            row.extend([forecast.author_id, username_dict[forecast.author_id]])
+            row.extend([comment.author_id, username_dict[comment.author_id]])
         row.extend(
             [
                 comment.parent_id,

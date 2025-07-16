@@ -24,6 +24,7 @@ class User(TimeStampedModel, AbstractUser):
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False, db_index=True)
     is_spam = models.BooleanField(default=False, db_index=True)
+    check_for_spam = models.BooleanField(default=True)
 
     old_usernames = models.JSONField(default=list, null=False, editable=False)
 
@@ -55,7 +56,9 @@ class User(TimeStampedModel, AbstractUser):
         models.CharField(max_length=200), blank=True, default=list
     )
     hide_community_prediction = models.BooleanField(default=False)
-    prediction_expiration_percent = models.IntegerField(default=10, null=True, blank=True)
+    prediction_expiration_percent = models.IntegerField(
+        default=10, null=True, blank=True
+    )
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)

@@ -278,14 +278,16 @@ const Comment: FC<CommentProps> = ({
     suggestKeyFactorsOnFirstRender && shouldSuggestKeyFactors
   );
 
-  const onKeyFactorsLoadded = () => {
-    setIsKeyfactorsFormOpen(true);
+  const onKeyFactorsLoadded = (keyFactorsLoaded: boolean) => {
+    setIsKeyfactorsFormOpen(keyFactorsLoaded);
     setLoadKeyFactors(false);
-    setTimeout(() => {
-      if (keyFactorFormRef.current) {
-        scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
-      }
-    }, 200);
+    if (keyFactorsLoaded) {
+      setTimeout(() => {
+        if (keyFactorFormRef.current) {
+          scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
+        }
+      }, 200);
+    }
   };
 
   const { comments, setComments } = useCommentsFeed();
@@ -309,6 +311,17 @@ const Comment: FC<CommentProps> = ({
     postId: comment.on_post_data?.id,
     onKeyFactorsLoadded,
   });
+
+  const canListKeyFactors = !postData?.notebook;
+
+  const canAddKeyFactors =
+    comment.author.id === user?.id &&
+    ![
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postData?.status ?? PostStatus.CLOSED) &&
+    canListKeyFactors;
 
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", {
@@ -334,9 +347,9 @@ const Comment: FC<CommentProps> = ({
     if (result?.comment) {
       const newComment = result.comment;
 
-      if (user && !user.has_key_factors) {
-        // Update the user state to have key factors
-        setUser({ ...user, has_key_factors: true });
+      if (user && !user.should_suggest_keyfactors) {
+        // Update the user state so now the user can get suggested key factors
+        setUser({ ...user, should_suggest_keyfactors: true });
       }
 
       const updatedComments = comments.map((comment) =>
@@ -608,7 +621,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.length > 0 && (
+      {commentKeyFactors.length > 0 && canListKeyFactors && (
         <div className="mb-3 mt-1.5 flex flex-col gap-1">
           {commentKeyFactors.map((kf) => (
             <KeyFactorItem
@@ -698,7 +711,7 @@ const Comment: FC<CommentProps> = ({
                         height: 24,
                         charWidth: 8.1,
                       })}
-                      contentEditableClassName="editor-comment font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                      contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
                     />
                   )}
@@ -747,7 +760,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"write"}
                   onChange={setCommentMarkdown}
                   withUgcLinks
-                  contentEditableClassName="editor-comment"
                 />
               )}{" "}
               {!isEditing && (
@@ -759,7 +771,6 @@ const Comment: FC<CommentProps> = ({
                   mode={"read"}
                   withUgcLinks
                   withTwitterPreview
-                  contentEditableClassName="editor-comment"
                 />
               )}
             </div>
@@ -806,44 +817,39 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {comment.author.id === user?.id &&
-                    ![
-                      PostStatus.CLOSED,
-                      PostStatus.RESOLVED,
-                      PostStatus.PENDING_RESOLUTION,
-                    ].includes(postData?.status ?? PostStatus.CLOSED) && (
-                      <Button
-                        size="xxs"
-                        variant="tertiary"
-                        onClick={onAddKeyFactorClick}
-                        className="relative flex items-center justify-center"
-                      >
-                        <>
-                          <div
-                            className={cn(
-                              "absolute inset-0 flex items-center justify-center",
-                              isLoadingSuggestedKeyFactors && "visible",
-                              !isLoadingSuggestedKeyFactors && "invisible"
-                            )}
-                          >
-                            <LoadingSpinner className="size-4" />
-                          </div>
-                          <div
-                            className={cn(
-                              "flex items-center",
-                              isLoadingSuggestedKeyFactors && "invisible",
-                              !isLoadingSuggestedKeyFactors && "visible"
-                            )}
-                          >
-                            <FontAwesomeIcon
-                              icon={isKeyfactorsFormOpen ? faXmark : faPlus}
-                              className="size-4 p-1"
-                            />
-                            {t("addKeyFactor")}
-                          </div>
-                        </>
-                      </Button>
-                    )}
+                  {canAddKeyFactors && (
+                    <Button
+                      size="xxs"
+                      variant="tertiary"
+                      onClick={onAddKeyFactorClick}
+                      className="relative flex items-center justify-center"
+                    >
+                      <>
+                        <div
+                          className={cn(
+                            "absolute inset-0 flex items-center justify-center",
+                            isLoadingSuggestedKeyFactors && "visible",
+                            !isLoadingSuggestedKeyFactors && "invisible"
+                          )}
+                        >
+                          <LoadingSpinner className="size-4" />
+                        </div>
+                        <div
+                          className={cn(
+                            "flex items-center",
+                            isLoadingSuggestedKeyFactors && "invisible",
+                            !isLoadingSuggestedKeyFactors && "visible"
+                          )}
+                        >
+                          <FontAwesomeIcon
+                            icon={isKeyfactorsFormOpen ? faXmark : faPlus}
+                            className="size-4 p-1"
+                          />
+                          {t("addKeyFactor")}
+                        </div>
+                      </>
+                    </Button>
+                  )}
 
                   {isCmmButtonVisible && !isMobileScreen && (
                     <CmmToggleButton

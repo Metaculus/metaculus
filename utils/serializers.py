@@ -187,7 +187,7 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
             raise serializers.ValidationError(
                 f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
             )
-        if not user.is_staff:
+        if not user or not user.is_staff:
             methods = [
                 method
                 for method in methods

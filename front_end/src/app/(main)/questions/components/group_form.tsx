@@ -36,16 +36,15 @@ import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
-  Category,
   Post,
   PostGroupOfQuestionsSubquestionsOrder,
-  PostStatus,
   PostWithForecasts,
 } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   DefaultInboundOutcomeCount,
@@ -122,6 +121,7 @@ type Props = {
   allCategories: Category[];
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const GroupForm: React.FC<Props> = ({
@@ -133,6 +133,7 @@ const GroupForm: React.FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -280,7 +281,9 @@ const GroupForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(draftKey);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(draftKey);
+        }
       }
 
       router.push(getPostLink(resp.post));
@@ -371,9 +374,6 @@ const GroupForm: React.FC<Props> = ({
     );
   };
 
-  const isEditingActivePost =
-    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
-
   /**
    * Shifts an element in an array by a specified number of positions
    */
@@ -405,7 +405,7 @@ const GroupForm: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         setCategoriesList(draft.categories ?? []);
@@ -433,7 +433,7 @@ const GroupForm: React.FC<Props> = ({
   }, []);
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       saveQuestionDraft(draftKey, {
         ...formData,
@@ -441,7 +441,7 @@ const GroupForm: React.FC<Props> = ({
         subQuestions: subQuestions,
       });
     }
-  }, [form, mode, categoriesList, subQuestions, draftKey]);
+  }, [form, shouldUseDraftValue, categoriesList, subQuestions, draftKey]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -451,19 +451,19 @@ const GroupForm: React.FC<Props> = ({
   // update draft when form values changes
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   // update draft when subquestions state changes
   useEffect(() => {
-    if (mode === "create" && isDraftMounted.current) {
+    if (shouldUseDraftValue && isDraftMounted.current) {
       debouncedHandleFormChange();
     }
-  }, [form, mode, debouncedHandleFormChange, subQuestions]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange, subQuestions]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -758,53 +758,51 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                     </div>
-                    {isEditingActivePost && (
-                      <div className="flex flex-row gap-4">
-                        <InputContainer
-                          labelText={t("openTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.open_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.open_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                        <InputContainer
-                          labelText={t("cpRevealTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.cp_reveal_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.cp_reveal_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                      </div>
-                    )}
+                    <div className="flex flex-row gap-4">
+                      <InputContainer
+                        labelText={t("openTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.open_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.open_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                      <InputContainer
+                        labelText={t("cpRevealTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.cp_reveal_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.cp_reveal_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                    </div>
                     {ContinuousQuestionTypes.some(
                       (type) => type === subtype
                     ) && (
                       <NumericQuestionInput
-                        draftKey={mode === "edit" ? undefined : draftKey}
+                        draftKey={shouldUseDraftValue ? draftKey : undefined}
                         questionType={
                           subtype as (typeof ContinuousQuestionTypes)[number]
                         }
@@ -1061,9 +1059,8 @@ const GroupForm: React.FC<Props> = ({
           fields={[
             "scheduled_close_time",
             "scheduled_resolve_time",
-            ...(isEditingActivePost
-              ? (["open_time", "cp_reveal_time"] as const)
-              : []),
+            "open_time",
+            "cp_reveal_time",
           ]}
         />
       </form>
