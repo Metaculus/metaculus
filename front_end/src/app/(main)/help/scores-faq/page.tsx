@@ -676,7 +676,7 @@ export default async function ScoresFAQ() {
               Best possible Peer score on Metaculus
             </td>
             <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-              +996
+              +691
             </td>
             <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
               +408
@@ -687,7 +687,7 @@ export default async function ScoresFAQ() {
               Worst possible Peer score on Metaculus
             </td>
             <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-              -996
+              -691
             </td>
             <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
               -408
