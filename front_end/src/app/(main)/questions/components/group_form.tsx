@@ -871,40 +871,49 @@ const GroupForm: React.FC<Props> = ({
                         : t("collapse")}
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === 0}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, -1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, -1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronUp} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === subQuestions.length - 1}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, 1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, 1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronDown} />
-                    </Button>
+                    {form.watch("subquestions_order") ===
+                      PostGroupOfQuestionsSubquestionsOrder.MANUAL && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="tertiary"
+                          disabled={index === 0}
+                          onClick={() => {
+                            setSubQuestions(
+                              shiftArrayElement(subQuestions, index, -1).map(
+                                (q, idx) => ({ ...q, group_rank: idx })
+                              )
+                            );
+                            setCollapsedSubQuestions(
+                              shiftArrayElement(
+                                collapsedSubQuestions,
+                                index,
+                                -1
+                              )
+                            );
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faChevronUp} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="tertiary"
+                          disabled={index === subQuestions.length - 1}
+                          onClick={() => {
+                            setSubQuestions(
+                              shiftArrayElement(subQuestions, index, 1).map(
+                                (q, idx) => ({ ...q, group_rank: idx })
+                              )
+                            );
+                            setCollapsedSubQuestions(
+                              shiftArrayElement(collapsedSubQuestions, index, 1)
+                            );
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faChevronDown} />
+                        </Button>
+                      </>
+                    )}
                   </div>
 
                   <Button
