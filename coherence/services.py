@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from coherence.models import Strength, Direction, LinkType, CoherenceLink
+from coherence.models import CoherenceLink
 from users.models import User
 
 
@@ -9,9 +9,9 @@ def create_coherence_link(
     user: User = None,
     question1: dict = None,
     question2: dict = None,
-    direction: list[Direction] = None,
-    strength: list[Strength] = None,
-    type: list[LinkType] = None,
+    direction: list[CoherenceLink.Direction] = None,
+    strength: list[CoherenceLink.Strength] = None,
+    type: list[CoherenceLink.LinkType] = None,
 ):
 
     with transaction.atomic():
