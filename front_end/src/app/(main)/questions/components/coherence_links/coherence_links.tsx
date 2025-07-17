@@ -40,13 +40,11 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
     setNewLinksCount(newLinksCount + 1);
   }
 
-  async function updatePage() {
-    if (!post.question) return;
-    const coherenceLinks =
-      await ClientCoherenceLinksApi.getCoherenceLinksForQuestion(post.question);
-    if ("errors" in coherenceLinks) setCoherenceLinks(null);
-    else setCoherenceLinks(coherenceLinks);
-  }
+  const updatePage = async () => {
+    ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
+      .then((links) => setCoherenceLinks(links))
+      .catch((error) => console.log(error));
+  };
 
   useEffect(() => {
     void updatePage();

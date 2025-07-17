@@ -15,17 +15,11 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
   const [coherenceLinks, setCoherenceLinks] =
     useState<CoherenceLinksGroup | null>(null);
 
-  async function updatePage() {
-    if (!post.question) return;
-    const coherenceLinks =
-      await ClientCoherenceLinksApi.getCoherenceLinksForQuestion(post.question);
-    if ("errors" in coherenceLinks) setCoherenceLinks(null);
-    else setCoherenceLinks(coherenceLinks);
-  }
-
   useEffect(() => {
-    void updatePage();
-  }, []);
+    ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
+      .then((links) => setCoherenceLinks(links))
+      .catch((error) => console.log(error));
+  }, [post]);
 
   if (!coherenceLinks || coherenceLinks.size === 0) return null;
 
