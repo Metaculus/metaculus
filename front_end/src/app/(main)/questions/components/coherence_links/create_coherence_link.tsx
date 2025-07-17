@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
@@ -27,15 +28,16 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   const [strength, setStrength] = useState(Strengths.Medium);
   const [otherQuestion, setOtherQuestion] =
     useState<QuestionWithForecasts | null>(null);
+  const t = useTranslations();
 
   const directionMenuItems = directionOptions.map((it) => ({
     id: it,
-    name: it,
+    name: t(it),
     onClick: () => setDirection(it as Directions),
   }));
   const strengthMenuItems = strengthOptions.map((it) => ({
     id: it,
-    name: it,
+    name: t(it),
     onClick: () => setStrength(it as Strengths),
   }));
 
@@ -82,76 +84,56 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   return (
     <div className={"m-2 bg-gray-100-dark p-4"}>
       <div>
-        {isFirstQuestion ? (
-          <div>
-            This question has a{" "}
-            <DropdownMenu
-              items={directionMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{direction}</Button>
-            </DropdownMenu>{" "}
-            <DropdownMenu
-              items={strengthMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{strength}</Button>
-            </DropdownMenu>{" "}
-            causal impact on{" "}
-            <QuestionPicker
-              searchedQuestionType={SearchedQuestionType.Coherence}
-              onQuestionChange={otherQuestionSelected}
-              divClassName={"inline-block"}
-            ></QuestionPicker>{" "}
-            {otherQuestion && (
-              <Link href={getPostLink(otherQuestion)} target="_blank">
-                <b>{otherQuestion.title}</b>
-              </Link>
-            )}
-            .
-          </div>
-        ) : (
-          <div>
-            <QuestionPicker
-              searchedQuestionType={SearchedQuestionType.Coherence}
-              onQuestionChange={otherQuestionSelected}
-              divClassName={"inline-block"}
-            ></QuestionPicker>{" "}
-            {otherQuestion && (
-              <Link href={getPostLink(otherQuestion)} target="_blank">
-                <b>{otherQuestion.title}</b>
-              </Link>
-            )}{" "}
-            has a{" "}
-            <DropdownMenu
-              items={directionMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{direction}</Button>
-            </DropdownMenu>{" "}
-            <DropdownMenu
-              items={strengthMenuItems}
-              itemClassName={"inline-block"}
-              innerDivClassName={"inline-block"}
-            >
-              <Button>{strength}</Button>
-            </DropdownMenu>{" "}
-            causal impact on this question.
-          </div>
+        {t.rich(
+          isFirstQuestion
+            ? "thisQuestionCausesOtherQuestion"
+            : "otherQuestionCausesThisQuestion",
+          {
+            strength: () => (
+              <DropdownMenu
+                items={strengthMenuItems}
+                itemClassName={"inline-block"}
+                innerDivClassName={"inline-block"}
+              >
+                <Button>{t(strength)}</Button>
+              </DropdownMenu>
+            ),
+            direction: () => (
+              <DropdownMenu
+                items={directionMenuItems}
+                itemClassName={"inline-block"}
+                innerDivClassName={"inline-block"}
+              >
+                <Button>{t(direction)}</Button>
+              </DropdownMenu>
+            ),
+            linkType: () => <span>{t("causal")}</span>,
+            otherQuestion: () => (
+              <span>
+                <QuestionPicker
+                  searchedQuestionType={SearchedQuestionType.Coherence}
+                  onQuestionChange={otherQuestionSelected}
+                  divClassName={"inline-block"}
+                ></QuestionPicker>{" "}
+                {otherQuestion && (
+                  <Link href={getPostLink(otherQuestion)} target="_blank">
+                    <b>{otherQuestion.title}</b>
+                  </Link>
+                )}
+              </span>
+            ),
+          }
         )}
       </div>
       <div className={"mt-3"}>
         <Button onClick={swapFormat} className={"mr-2"}>
-          Swap
+          {t("swap")}
         </Button>
         <Button onClick={cancelLink} className={"mr-2"}>
-          Cancel
+          {t("cancel")}
         </Button>
         <Button onClick={saveQuestion} disabled={!otherQuestion}>
-          Save
+          {t("save")}
         </Button>
       </div>
     </div>

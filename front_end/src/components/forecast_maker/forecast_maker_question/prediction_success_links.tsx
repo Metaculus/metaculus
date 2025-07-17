@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
 import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
@@ -14,6 +15,7 @@ interface Props {
 export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
   const [coherenceLinks, setCoherenceLinks] =
     useState<CoherenceLinksGroup | null>(null);
+  const t = useTranslations();
 
   useEffect(() => {
     ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
@@ -25,7 +27,7 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
 
   return (
     <div>
-      Don&#39;t forget to update the following linked questions:
+      {t("updateLinksRequest")}
       {Array.from(coherenceLinks?.data ?? [], (link, index) => (
         <DisplayCoherenceLink
           key={index}

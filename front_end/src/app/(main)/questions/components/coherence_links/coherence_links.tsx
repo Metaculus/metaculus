@@ -53,7 +53,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   if (post.question?.type !== QuestionType.Binary) return null;
 
   return (
-    <SectionToggle title={"Question Links"} defaultOpen={true}>
+    <SectionToggle title={t("questionLinks")} defaultOpen={true}>
       <ExpandableContent
         maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
         expandLabel={expandLabel}
@@ -74,9 +74,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
 
           <div className={"m-4"}>
             {(!coherenceLinks || coherenceLinks.size === 0) &&
-              newLinksCount === 0 && (
-                <div>You haven&rsquo;t linked another question yet.</div>
-              )}
+              newLinksCount === 0 && <div>{t("noQuestionsLinked")}</div>}
           </div>
 
           <div>
@@ -91,7 +89,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
           <div className={"m-2"}>
             {isLoggedIn && (
               <Button onClick={addLink} className={"w-32"}>
-                Link a question
+                {t("linkQuestion")}
               </Button>
             )}
           </div>
