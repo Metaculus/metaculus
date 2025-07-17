@@ -176,7 +176,7 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions.map((x) => {
+    const groupData = subQuestions.map((x, idx) => {
       const subquestionData = {
         id: x.id,
         type: subtype,
@@ -186,7 +186,7 @@ const GroupForm: React.FC<Props> = ({
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
         cp_reveal_time: x.cp_reveal_time,
-        group_rank: x.group_rank,
+        group_rank: idx,
       };
 
       if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
