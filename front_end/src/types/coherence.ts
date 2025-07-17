@@ -1,13 +1,21 @@
-export type Directions = "positive" | "negative";
-export type Strengths = "low" | "medium" | "high";
-export type LinkType = "causal";
-
+export enum Directions {
+  Positive = "positive",
+  Negative = "negative",
+}
+export enum Strengths {
+  Low = "low",
+  Medium = "medium",
+  High = "high",
+}
+export enum LinkTypes {
+  Causal = "causal",
+}
 export type CoherenceLink = {
   question1: number;
   question2: number;
   direction: Directions;
   strength: Strengths;
-  type: LinkType;
+  type: LinkTypes;
   id: number;
 };
 

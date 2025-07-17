@@ -39,7 +39,7 @@ import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
-import QuestionPicker from "./question_picker";
+import QuestionPicker, { SearchedQuestionType } from "./question_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -260,7 +260,7 @@ const ConditionalForm: React.FC<{
               });
             }}
             title={t("selectParentQuestion")}
-            searchedQuestionType={"parent"}
+            searchedQuestionType={SearchedQuestionType.Parent}
             disabled={isLive && mode !== "create"}
           />
           <FormErrorMessage
@@ -291,7 +291,7 @@ const ConditionalForm: React.FC<{
               });
             }}
             title={t("selectChildQuestion")}
-            searchedQuestionType={"child"}
+            searchedQuestionType={SearchedQuestionType.Child}
             disabled={isLive && mode !== "create"}
           />
           <FormErrorMessage

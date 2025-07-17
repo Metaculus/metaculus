@@ -2,10 +2,12 @@ import Link from "next/link";
 import { FC, useState } from "react";
 
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
-import QuestionPicker from "@/app/(main)/questions/components/question_picker";
+import QuestionPicker, {
+  SearchedQuestionType,
+} from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
-import { Directions, Strengths } from "@/types/coherence";
+import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
@@ -15,14 +17,14 @@ type Props = {
   linkCreated: () => Promise<void>;
 };
 
-const directionOptions = ["positive", "negative"];
-const strengthOptions = ["low", "medium", "high"];
+const directionOptions = [Directions.Positive, Directions.Negative];
+const strengthOptions = [Strengths.Low, Strengths.Medium, Strengths.High];
 
 export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
-  const [direction, setDirection] = useState<Directions>("positive");
-  const [strength, setStrength] = useState<Strengths>("medium");
+  const [direction, setDirection] = useState(Directions.Positive);
+  const [strength, setStrength] = useState(Strengths.Medium);
   const [otherQuestion, setOtherQuestion] =
     useState<QuestionWithForecasts | null>(null);
 
@@ -57,7 +59,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
       question2,
       direction,
       strength,
-      "causal"
+      LinkTypes.Causal
     );
     await cancelLink();
     await linkCreated();
@@ -99,7 +101,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
             </DropdownMenu>{" "}
             causal impact on{" "}
             <QuestionPicker
-              searchedQuestionType={"coherence"}
+              searchedQuestionType={SearchedQuestionType.Coherence}
               onQuestionChange={otherQuestionSelected}
               divClassName={"inline-block"}
             ></QuestionPicker>{" "}
@@ -113,7 +115,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
         ) : (
           <div>
             <QuestionPicker
-              searchedQuestionType={"coherence"}
+              searchedQuestionType={SearchedQuestionType.Coherence}
               onQuestionChange={otherQuestionSelected}
               divClassName={"inline-block"}
             ></QuestionPicker>{" "}

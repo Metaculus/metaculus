@@ -17,20 +17,20 @@ type Props = {
 
 const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
   switch (direction) {
-    case "positive":
+    case Directions.Positive:
       return <span className={"text-green-400"}>positive</span>;
-    case "negative":
+    case Directions.Negative:
       return <span className={"text-red-400"}>negative</span>;
   }
 };
 
 const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
   switch (strength) {
-    case "high":
+    case Strengths.High:
       return <span className={"font-black"}>high</span>;
-    case "medium":
+    case Strengths.Medium:
       return <span className={"font-medium"}>medium</span>;
-    case "low":
+    case Strengths.Low:
       return <span className={"font-thin"}>low</span>;
   }
 };
