@@ -1,3 +1,4 @@
+import "server-only";
 import { ApiService } from "@/services/api/api_service";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
@@ -10,6 +11,6 @@ class ServerCoherenceLinksApiClass extends ApiService {
     return await this.delete(`/coherence/delete/${id}`);
   }
 }
-export const coherenceLinksApiClass = new ServerCoherenceLinksApiClass(
+export const CoherenceLinksApiClass = new ServerCoherenceLinksApiClass(
   serverFetcher
 );

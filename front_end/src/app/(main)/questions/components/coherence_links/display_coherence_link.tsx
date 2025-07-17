@@ -7,6 +7,7 @@ import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CoherenceLink, Directions, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 
 type Props = {
   link: CoherenceLink;
@@ -46,11 +47,6 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
     );
   }, [otherQuestionID]);
 
-  function getQuestionHyperlink(question: Question | null): string {
-    if (!question) return "";
-    return `/questions/${question.post_id}`;
-  }
-
   async function deleteLink() {
     setCanceled(true);
     await deleteCoherenceLink(link);
@@ -61,7 +57,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   if (compact)
     return (
       <div>
-        <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+        <Link href={getPostLink(otherQuestion)} target="_blank">
           <b>{otherQuestion.title}</b>
         </Link>
         <Button
@@ -81,7 +77,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
             This question has a <StrengthComponent strength={link.strength} />{" "}
             <DirectionComponent direction={link.direction} /> {link.type} impact
             on{" "}
-            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+            <Link href={getPostLink(otherQuestion)} target="_blank">
               <b>{otherQuestion.title}</b>
             </Link>
             .
@@ -89,7 +85,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
         ) : (
           <div>
             The question{" "}
-            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
+            <Link href={getPostLink(otherQuestion)} target="_blank">
               <b>{otherQuestion.title}</b>
             </Link>{" "}
             has a <StrengthComponent strength={link.strength} />{" "}

@@ -8,6 +8,7 @@ import DropdownMenu from "@/components/ui/dropdown_menu";
 import { Directions, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionWithForecasts } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 
 type Props = {
   post: Post;
@@ -74,11 +75,6 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
     setOtherQuestion(question);
   }
 
-  function getQuestionHyperlink(question: Question | null): string {
-    if (!question) return "";
-    return `/questions/${question.post_id}`;
-  }
-
   if (cancelled) return null;
 
   return (
@@ -107,9 +103,11 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
               onQuestionChange={otherQuestionSelected}
               divClassName={"inline-block"}
             ></QuestionPicker>{" "}
-            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
-              <b>{otherQuestion?.title}</b>
-            </Link>
+            {otherQuestion && (
+              <Link href={getPostLink(otherQuestion)} target="_blank">
+                <b>{otherQuestion.title}</b>
+              </Link>
+            )}
             .
           </div>
         ) : (
@@ -119,9 +117,11 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
               onQuestionChange={otherQuestionSelected}
               divClassName={"inline-block"}
             ></QuestionPicker>{" "}
-            <Link href={getQuestionHyperlink(otherQuestion)} target="_blank">
-              <b>{otherQuestion?.title}</b>
-            </Link>{" "}
+            {otherQuestion && (
+              <Link href={getPostLink(otherQuestion)} target="_blank">
+                <b>{otherQuestion.title}</b>
+              </Link>
+            )}{" "}
             has a{" "}
             <DropdownMenu
               items={directionMenuItems}

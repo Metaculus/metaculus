@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { coherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
+import { CoherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
 import ServerCommentsApi from "@/services/api/comments/comments.server";
 import {
   CommentReportReason,
@@ -328,7 +328,7 @@ export async function createCoherenceLink(
   type: string
 ) {
   try {
-    return await coherenceLinksApiClass.createCoherenceLink({
+    return await CoherenceLinksApiClass.createCoherenceLink({
       question1: question1.id,
       question2: question2.id,
       direction,
@@ -344,7 +344,7 @@ export async function createCoherenceLink(
 
 export async function deleteCoherenceLink(link: CoherenceLink) {
   try {
-    return await coherenceLinksApiClass.deleteCoherenceLink(link.id);
+    return await CoherenceLinksApiClass.deleteCoherenceLink(link.id);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
