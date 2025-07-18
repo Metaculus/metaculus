@@ -5,7 +5,7 @@ from typing import cast, Iterable
 
 import sentry_sdk
 from django.db import transaction
-from django.db.models import Q, QuerySet, Subquery, OuterRef
+from django.db.models import Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -1101,6 +1101,10 @@ def calculate_period_movement_for_questions(
                 or last_agg
             )
 
+            # This is possible if question has gaps the in forecasting timeline
+            if not last_agg or not first_agg:
+                continue
+
             agg_id_map[question] = (first_agg.id, last_agg.id)
 
         # 3) Bulk‐fetch full forecasts for just those IDs
@@ -1162,3 +1166,18 @@ def handle_question_open(question: Question):
 
     # Handle question on followed projects subscriptions
     notify_project_subscriptions_question_open(question)
+
+
+def get_forecasts_per_user(question: Question) -> dict[int, int]:
+    """
+    Return a mapping of user_id -> number-of-forecasts for question,
+    restricted to forecasts that were live during the question’s active period
+    """
+    qs = (
+        Forecast.objects.filter(question=question)
+        .filter_within_question_period()
+        .values("author_id")
+        .annotate(ct=Count("id"))
+    )
+
+    return {row["author_id"]: row["ct"] for row in qs}

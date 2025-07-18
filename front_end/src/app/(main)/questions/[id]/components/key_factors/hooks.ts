@@ -56,7 +56,7 @@ export const useKeyFactors = ({
           setSuggestedKeyFactors(
             suggested.map((text) => ({ text, selected: false }))
           );
-          onKeyFactorsLoadded?.(true);
+          onKeyFactorsLoadded?.(suggested.length !== 0);
         })
         .catch(() => {
           onKeyFactorsLoadded?.(false);

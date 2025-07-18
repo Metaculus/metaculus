@@ -33,9 +33,9 @@
                     </a>
                     {% endif %}
 
-                    {% blocktrans with resolution=notification.resolution coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score %}
+                    {% blocktrans with resolution=notification.resolution coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score forecasts_count=notification.forecasts_count %}
                     Just resolved to <b>{{resolution}}</b>.
-                    You made {{notification.forecasts_count}} predictions,
+                    You made {{forecasts_count}} predictions,
                     covering {{coverage}}% of the question lifetime.
                     You received a Peer score of {{peer_score}} and a baseline score of {{baseline_score}}.
                     {% endblocktrans %}

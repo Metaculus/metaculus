@@ -383,10 +383,9 @@ export default async function FAQ() {
 
         <p>
           Second, Metaculus aggregates the forecasts into a community prediction
-          based on the
-          <a href="https://en.wikipedia.org/wiki/Median"> median</a>of user
-          forecasts weighted by recency. Surprisingly, the Community Prediction
-          is often{" "}
+          based on the <a href="https://en.wikipedia.org/wiki/Median">median</a>{" "}
+          of user forecasts weighted by recency. Surprisingly, the Community
+          Prediction is often
           <Link href="/questions/track-record/">
             better than any individual predictor
           </Link>
@@ -924,7 +923,7 @@ export default async function FAQ() {
           <li>Users are welcome comment on any question.</li>
           <li>
             Comments and questions can use{" "}
-            <Link href="/help/markdown/">markdown formatting</Link>
+            <Link href="/help/markdown/">markdown formatting</Link>.
           </li>
           <li>
             Metaculus aims at a high level of discourse. Comments should be on
@@ -934,7 +933,7 @@ export default async function FAQ() {
             offensive, derogatory, or harassing are not tolerated, as well as
             those that are explicitly commercial advertising or those that are
             in some way unlawful. See the Metaculus{" "}
-            <Link href="/terms-of-use/">terms of use</Link>for more
+            <Link href="/terms-of-use/">terms of use</Link> for more.
           </li>
           <li>
             You can ping other users using &quot;@username&quot;, which will
@@ -2775,24 +2774,21 @@ export default async function FAQ() {
             question’s lifetime has passed. You can adjust this percentage in
             your account <Link href="/accounts/settings/">settings</Link>.
           </p>
-          <p>
-            When a prediction is withdrawn:
-            <ul className="ml-5 list-disc">
-              <li>
-                Your forecast{" "}
-                <span className="italic">up to the point of withdrawal</span>{" "}
-                still counts toward your score.
-              </li>
-              <li>
-                You’ll receive a reminder email before the withdrawal date.
-              </li>
-              <li>
-                You can re-affirm the forecast later if it still reflects your
-                view — but the time between withdrawal and re-affirmation won’t
-                count toward your score.
-              </li>
-            </ul>
-          </p>
+          <p>When a prediction is withdrawn:</p>
+          <ul className="ml-5 list-disc">
+            <li>
+              Your forecast{" "}
+              <span className="italic">up to the point of withdrawal</span>{" "}
+              still counts toward your score.
+            </li>
+            <li>You’ll receive a reminder email before the withdrawal date.</li>
+            <li>
+              You can re-affirm the forecast later if it still reflects your
+              view — but the time between withdrawal and re-affirmation won’t
+              count toward your score.
+            </li>
+          </ul>
+
           <p>
             This helps reduce the impact of stale forecasts on your accuracy and
             the community prediction.
@@ -3443,7 +3439,7 @@ export default async function FAQ() {
               , and share posts you like.
             </li>
             <li>
-              <a href="mailto:support@metaculus.com">Contact us</a>for other
+              <a href="mailto:support@metaculus.com">Contact us</a> for other
               ideas.
             </li>
           </ol>
@@ -3458,7 +3454,7 @@ export default async function FAQ() {
           </h3>
           <p>
             Of course, if you wish to close your account, please email your
-            request to
+            request to{" "}
             <a href="mailto:closemyaccount@metaculus.com">
               closemyaccount@metaculus.com
             </a>
