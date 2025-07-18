@@ -15,18 +15,26 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import { parseQuestionId } from "@/utils/questions/helpers";
 
+export enum SearchedQuestionType {
+  Parent = "parent",
+  Child = "child",
+  Coherence = "coherence",
+}
+
 type Props = {
-  isParentQuestion: boolean;
+  searchedQuestionType: SearchedQuestionType;
   onQuestionChange: (question: QuestionWithForecasts) => void;
   title?: string;
   disabled?: boolean;
+  divClassName?: string;
 };
 
-const ConditionalQuestionPicker: FC<Props> = ({
-  isParentQuestion,
+const QuestionPicker: FC<Props> = ({
+  searchedQuestionType,
   onQuestionChange,
   title,
   disabled,
+  divClassName,
 }) => {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
@@ -38,17 +46,19 @@ const ConditionalQuestionPicker: FC<Props> = ({
   const filters = useMemo(() => {
     return {
       search,
-      forecast_type: isParentQuestion
-        ? [QuestionType.Binary]
-        : [
-            QuestionType.Binary,
-            QuestionType.Numeric,
-            QuestionType.Discrete,
-            QuestionType.Date,
-          ],
+      forecast_type:
+        searchedQuestionType === SearchedQuestionType.Parent ||
+        searchedQuestionType === SearchedQuestionType.Coherence
+          ? [QuestionType.Binary]
+          : [
+              QuestionType.Binary,
+              QuestionType.Numeric,
+              QuestionType.Discrete,
+              QuestionType.Date,
+            ],
       statuses: [PostStatus.OPEN, PostStatus.UPCOMING],
     };
-  }, [isParentQuestion, search]);
+  }, [searchedQuestionType, search]);
 
   const handleSearch = useDebouncedCallback(async (filters: PostsParams) => {
     try {
@@ -85,8 +95,19 @@ const ConditionalQuestionPicker: FC<Props> = ({
     handleSearch(filters);
   }, [filters]);
 
+  function getQuestionTitle(questionType: SearchedQuestionType): string {
+    switch (questionType) {
+      case SearchedQuestionType.Parent:
+        return t("parentInputDescription");
+      case SearchedQuestionType.Child:
+        return t("childInputDescription");
+      case SearchedQuestionType.Coherence:
+        return "Select Question";
+    }
+  }
+
   return (
-    <div>
+    <div className={divClassName}>
       <Button onClick={() => setIsOpen(true)} disabled={disabled}>
         {t("pickQuestion")}
       </Button>
@@ -107,9 +128,7 @@ const ConditionalQuestionPicker: FC<Props> = ({
               placeholder={t("questionSearchPlaceholder")}
             />
             <span className="mt-1 px-1 text-xs normal-case text-gray-700 dark:text-gray-700-dark">
-              {isParentQuestion
-                ? t("parentInputDescription")
-                : t("childInputDescription")}
+              {getQuestionTitle(searchedQuestionType)}
             </span>
             <div className="mt-2 flex min-h-[400px] flex-1 flex-col gap-2 overflow-y-scroll md:max-h-[400px]">
               {isLoading ? (
@@ -170,4 +189,4 @@ const ConditionalQuestionPicker: FC<Props> = ({
   );
 };
 
-export default ConditionalQuestionPicker;
+export default QuestionPicker;
