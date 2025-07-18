@@ -15,13 +15,10 @@ type Props = {
 };
 
 const AwaitedPostsFeed: FC<Props> = async ({ filters, type, isCommunity }) => {
-  const { results: questions } = await ServerPostsApi.getPostsWithCP({
-    ...filters,
-    limit:
-      (!isNaN(Number(filters.page)) ? Number(filters.page) : 1) *
-      POSTS_PER_PAGE,
-  });
+  return <div>Paginated Post Feed</div>;
 
+  // If I comment this below, the page loads fine.
+  const questions = [];
   return (
     <PaginatedPostsFeed
       filters={filters}
