@@ -4,7 +4,11 @@ import React, { FC } from "react";
 
 import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithForecasts, UserForecast } from "@/types/question";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  UserForecast,
+} from "@/types/question";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
@@ -59,8 +63,11 @@ const MyPredictionChip: FC<Props> = ({
     return (
       <div
         className={cn(
-          "flex flex-row items-center justify-center border-t-[0.5px] border-gray-400 pt-2.5 text-center text-xs text-orange-800 dark:border-gray-400-dark dark:text-orange-800-dark",
-          className
+          "flex flex-row items-center justify-center gap-1.5 border-t-[0.5px] border-gray-400 pt-2.5 text-center text-xs text-orange-800 dark:border-gray-400-dark dark:text-orange-800-dark",
+          className,
+          {
+            "flex-col": question.type === QuestionType.Date,
+          }
         )}
       >
         <div>
@@ -82,7 +89,6 @@ const MyPredictionChip: FC<Props> = ({
               onClick={() => {
                 onReaffirm(latest);
               }}
-              className="ml-1.5"
             />
           )}
       </div>
