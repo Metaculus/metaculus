@@ -91,10 +91,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cpCursorElement = useMemo(() => {
-    // if (forecastAvailability?.cpRevealsOn) {
-    //   return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
-    // }
-
     if (forecastAvailability?.isEmpty) {
       return t("noForecastsYet");
     }
@@ -106,6 +102,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     const displayValue = getPredictionDisplayValue(cursorData?.center, {
       questionType: question.type,
       scaling: question.scaling,
+      // TODO: add range if needed
       // range:
       //   !isNil(cursorData?.interval_lower_bound) &&
       //   !isNil(cursorData?.interval_upper_bound)
@@ -216,7 +213,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           openTime={getPostDrivenTime(question.open_time)}
           unit={question.unit}
           inboundOutcomeCount={question.inbound_outcome_count}
-          simplifiedCursor={question.type !== QuestionType.Binary || !!user}
+          simplifiedCursor={question.type !== QuestionType.Binary || !user}
           forecastAvailability={forecastAvailability}
           cursorTooltip={
             question.type === QuestionType.Binary && !user
@@ -226,33 +223,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
           isConsumerView={isConsumerView}
         />
       </div>
-      {/* <div
-        className={cn(
-          "my-3 flex flex-col items-center justify-center gap-x-4 gap-y-2 xs:flex-row xs:flex-wrap xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
-          { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
-        )}
-      >
-        <CursorDetailItem
-          title={
-            cursorTimestamp && !isCpHidden
-              ? t("activeForecastersLabel")
-              : t("totalForecastersLabel")
-          }
-          content={cursorData.forecasterCount.toString()}
-        />
-        <CursorDetailItem
-          title={t("communityPredictionLabel")}
-          content={cpCursorElement}
-          variant="prediction"
-        />
-        {!!question.my_forecasts?.history.length && (
-          <CursorDetailItem
-            title={t("myPrediction")}
-            content={userCursorElement}
-            variant="my-prediction"
-          />
-        )}
-      </div> */}
     </div>
   );
 };
