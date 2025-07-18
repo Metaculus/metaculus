@@ -22,10 +22,10 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({ post }) => {
 
   // Edge case: if default_project is longer than 15 characters and there are unread messages
   const hasUnreadMessages = (post.unread_comment_count ?? 0) > 0;
-  const hasLongProjectName = !!(
-    defaultProject?.name && defaultProject.name.length > 15
-  );
-  const shouldUseCompactPostStatus = hasLongProjectName && hasUnreadMessages;
+  const projectNameLength = defaultProject?.name.length ?? 0;
+
+  const shouldUseCompactPostStatus =
+    projectNameLength >= 30 || (hasUnreadMessages && projectNameLength > 15);
 
   return (
     <div className="mt-4 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
