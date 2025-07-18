@@ -50,7 +50,7 @@ const PredictionBinaryInfo: FC<Props> = ({
       <BinaryCPBar question={question} size="sm" />
       <QuestionCPMovement
         question={question}
-        className="mx-auto max-w-[110px]"
+        className="mx-auto max-w-[110px] text-center"
         size={"xs"}
       />
       <MyPredictionChip

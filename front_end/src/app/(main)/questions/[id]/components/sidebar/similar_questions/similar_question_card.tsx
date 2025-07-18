@@ -28,11 +28,15 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
               "flex-col": isGroup,
             })}
           >
-            <h4 className="my-0 font-medium leading-6 text-gray-800 dark:text-gray-800-dark">
+            <h4 className="my-0 flex-1 font-medium leading-6 text-gray-800 dark:text-gray-800-dark">
               {post.title}
             </h4>
 
-            <SimilarPredictionChip post={post} />
+            <div
+              className={cn({ "w-full": isGroup, "max-w-[100px]": !isGroup })}
+            >
+              <SimilarPredictionChip post={post} />
+            </div>
           </div>
 
           <ForecastersCounter
