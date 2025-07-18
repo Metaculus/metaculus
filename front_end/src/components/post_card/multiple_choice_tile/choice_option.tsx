@@ -65,7 +65,7 @@ const ChoiceOption: FC<Props> = ({
         }
       )}
     >
-      <div className="py-0.5 pr-3">
+      <div className="pr-3">
         <ChoiceIcon
           color={hasValue ? color : undefined}
           className="resize-icon size-3 rounded-full"
@@ -74,7 +74,7 @@ const ChoiceOption: FC<Props> = ({
 
       <div
         className={cn(
-          "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-normal leading-4",
+          "resize-label line-clamp-2 w-full pr-1.5 text-left text-sm font-normal leading-4",
           labelClassName
         )}
       >
@@ -83,10 +83,11 @@ const ChoiceOption: FC<Props> = ({
       {isNil(resolution) ? (
         <div
           className={cn(
-            "resize-label w-full py-0.5 pr-1.5 text-right text-sm font-normal leading-4",
+            "resize-label w-full pr-1.5 text-right text-sm font-normal",
             {
               "opacity-30": !hasValue,
-            }
+            },
+            "leading-0"
           )}
         >
           {getPredictionDisplayValue(values.at(-1), {
@@ -101,7 +102,7 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label flex items-center gap-0.5 whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-medium leading-4">
+        <div className="resize-label leading-0 flex items-center gap-0.5 whitespace-nowrap  px-1.5 text-right text-sm font-medium">
           <ChoiceResolutionIcon
             color={questionType === QuestionType.Date ? color : undefined}
           />

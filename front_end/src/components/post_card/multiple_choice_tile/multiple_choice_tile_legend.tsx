@@ -71,14 +71,14 @@ const MultipleChoiceTileLegend: FC<Props> = ({
                 className="resize-ellipsis w-[10px]"
               />
             </div>
-            <div className="resize-label whitespace-nowrap py-0.5 pr-1.5 text-left text-sm font-normal leading-4">
+            <div className="resize-label whitespace-nowrap pr-1.5 text-left text-sm font-normal leading-4">
               {t("otherWithCount", { count: otherItemsCount })}
             </div>
           </div>
           {canPredict && !!onReaffirm && (
             <ReaffirmButton
               onClick={onReaffirm}
-              className="resize-label flex py-0.5 text-left text-sm leading-4"
+              className="resize-label flex text-left text-sm leading-4"
               all
             />
           )}
@@ -88,7 +88,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
         <div>
           <ReaffirmButton
             onClick={onReaffirm}
-            className="resize-label flex py-0.5 text-left text-sm leading-4"
+            className="resize-label flex text-left text-sm leading-4"
             all
           />
         </div>

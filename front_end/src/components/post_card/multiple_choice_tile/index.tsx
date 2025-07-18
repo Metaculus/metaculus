@@ -28,6 +28,7 @@ import {
   Scaling,
 } from "@/types/question";
 import { CurrentUser } from "@/types/users";
+import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
@@ -38,6 +39,7 @@ type BaseProps = {
   hideCP?: boolean;
   chartHeight?: number;
   canPredict?: boolean;
+  showChart?: boolean;
 };
 
 type QuestionProps = {
@@ -86,6 +88,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   hideCP,
   forecastAvailability,
   canPredict,
+  showChart = true,
 }) => {
   const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
@@ -116,7 +119,14 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8 md:grid md:grid-cols-2">
+    <div
+      className={cn(
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
+        {
+          "md:grid md:grid-cols-2": showChart,
+        }
+      )}
+    >
       <div className="resize-container w-full">
         {isResolvedView ? (
           <PredictionChip question={question} status={PostStatus.RESOLVED} />
@@ -132,7 +142,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
           />
         )}
       </div>
-      {!isResolvedView && (
+      {showChart && !isResolvedView && (
         <div className="relative w-full">
           <MultipleChoiceChart
             timestamps={timestamps}
@@ -173,6 +183,7 @@ export const FanGraphMultipleChoiceTile: FC<
   chartHeight,
   groupType,
   canPredict,
+  showChart = true,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -194,7 +205,14 @@ export const FanGraphMultipleChoiceTile: FC<
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8 md:grid md:grid-cols-2">
+    <div
+      className={cn(
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
+        {
+          "md:grid md:grid-cols-2": showChart,
+        }
+      )}
+    >
       <div className="resize-container w-full">
         <MultipleChoiceTileLegend
           ref={ref}
@@ -206,15 +224,17 @@ export const FanGraphMultipleChoiceTile: FC<
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
         />
       </div>
-      <div className="w-full">
-        <FanChart
-          group={group}
-          height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-          pointSize={8}
-          hideCP={hideCP}
-          withTooltip={false}
-        />
-      </div>
+      {showChart && (
+        <div className="w-full">
+          <FanChart
+            group={group}
+            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+            pointSize={8}
+            hideCP={hideCP}
+            withTooltip={false}
+          />
+        </div>
+      )}
     </div>
   );
 };
