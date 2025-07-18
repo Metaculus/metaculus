@@ -1,4 +1,11 @@
 {
+  "cookiesSettings": "Cookies settings",
+  "cookiesPreferencesDescription": "You get the best experience on our website.",
+  "cookiesStatisticsDescription": "We use cookies to collect information about how you use our website.",
+  "cookiesMarketingDescription": "We use cookies to show you personalized content and ads.",
+  "statistics": "Statistics",
+  "preferences": "Preferences",
+  "marketing": "Marketing",
   "withdrawingSoon": "Withdrawing soon",
   "createArticle": "+ Create Article",
   "newsletterFormHeading": "Join Our Newsletter",
