@@ -639,7 +639,6 @@ const ContinuousAreaChart: FC<Props> = ({
               },
               tickLabels: {
                 fontSize: 10,
-                color: "red",
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
                   index === 0
