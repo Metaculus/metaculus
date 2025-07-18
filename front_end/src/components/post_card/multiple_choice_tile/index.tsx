@@ -121,7 +121,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   return (
     <div
       className={cn(
-        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-5 md:gap-8",
         {
           "md:grid md:grid-cols-2": showChart,
         }

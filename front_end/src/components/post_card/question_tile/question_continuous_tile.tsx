@@ -119,7 +119,7 @@ const QuestionContinuousTile: FC<Props> = ({
   );
 
   return (
-    <div className="flex justify-between gap-4 md:gap-8">
+    <div className="flex justify-between gap-6 md:gap-8">
       <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
         {question.type === QuestionType.Binary && (
           <PredictionBinaryInfo
