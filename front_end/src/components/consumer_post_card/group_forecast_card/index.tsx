@@ -48,7 +48,9 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
     post.group_of_questions &&
     checkGroupOfQuestionsPostType(post, QuestionType.Date)
   ) {
-    return <DateForecastCard questionsGroup={post.group_of_questions} />;
+    return (
+      <DateForecastCard post={post} questionsGroup={post.group_of_questions} />
+    );
   }
 
   return null;

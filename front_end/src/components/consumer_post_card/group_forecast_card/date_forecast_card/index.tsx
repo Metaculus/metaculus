@@ -11,12 +11,13 @@ import {
   VictoryScatter,
 } from "victory";
 
+import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { ChoiceItem } from "@/types/choices";
-import { PostGroupOfQuestions } from "@/types/post";
+import { PostGroupOfQuestions, PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
   QuestionWithNumericForecasts,
@@ -36,6 +37,7 @@ import PredictionSymbol from "./prediction_symbol";
 import ScatterLabel from "./scatter_label";
 
 type Props = {
+  post: PostWithForecasts;
   questionsGroup: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   height?: number;
 };
@@ -44,7 +46,11 @@ const TICK_LABEL_INDEXES = [0, 4, 8];
 const SMALL_CHART_WIDTH = 400;
 const TICKS_ARRAY = Array.from({ length: 9 }, (_, i) => 0.04 + (i * 0.92) / 8);
 
-const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
+const DateForecastCard: FC<Props> = ({
+  post,
+  questionsGroup,
+  height = 100,
+}) => {
   const { questions } = questionsGroup;
   const locale = useLocale();
   const t = useTranslations();
@@ -79,7 +85,8 @@ const DateForecastCard: FC<Props> = ({ questionsGroup, height = 100 }) => {
   };
 
   if (points.length === 0) {
-    return null;
+    // Render empty state taken from the Numeric representation
+    return <NumericForecastCard post={post} />;
   }
 
   return (
