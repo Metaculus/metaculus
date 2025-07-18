@@ -1417,5 +1417,8 @@
   "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
   "forecastersWithCount": "{count_formatted} {count, plural, =1 {预测者} other {预测者} }",
   "percentagePointsShort": "百分点",
+  "latestEstimate": "最新估计",
+  "currentEstimate": "当前估计",
+  "closedForForecastingShortDescription": "此问题已关闭预测。",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

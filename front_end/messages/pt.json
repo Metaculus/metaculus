@@ -1413,5 +1413,8 @@
   "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
   "forecastersWithCount": "{count_formatted} {count, plural, =1 {previsor} other {previsores} }",
   "percentagePointsShort": "pp",
+  "latestEstimate": "Estimação mais recente",
+  "currentEstimate": "Estimativa atual",
+  "closedForForecastingShortDescription": "Esta pergunta está fechada para previsão.",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

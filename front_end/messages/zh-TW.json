@@ -1412,5 +1412,8 @@
   "forecastersWithCount": "{count_formatted} {count, plural, =1 {位預測者} other {位預測者} }",
   "percentagePointsShort": "百分點",
   "CPMovementChangeLabel": "{value} 本{period}",
+  "latestEstimate": "最新估計",
+  "currentEstimate": "當前估計",
+  "closedForForecastingShortDescription": "此問題已關閉預測。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
