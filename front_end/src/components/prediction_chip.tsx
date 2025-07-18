@@ -84,7 +84,6 @@ const PredictionChip: FC<Props> = ({
               onClick={() => {
                 onReaffirm(latest);
               }}
-              combined
             />
           )}
         </p>

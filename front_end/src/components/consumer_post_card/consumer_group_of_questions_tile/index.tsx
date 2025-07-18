@@ -29,4 +29,4 @@ const ConsumerGroupOfQuestionsTile: FC<Props> = ({ post }) => {
   return <GroupForecastCard post={post} />;
 };
 
-export default ConsumerGroupOfQuestionsTile; 
+export default ConsumerGroupOfQuestionsTile;
