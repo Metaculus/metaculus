@@ -62,9 +62,9 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
       >
         <div ref={toggleOpenRef}>
           <div>
-            {Array.from(coherenceLinks?.data ?? [], (link, index) => (
+            {Array.from(coherenceLinks?.data ?? [], (link) => (
               <DisplayCoherenceLink
-                key={index}
+                key={link.id}
                 link={link}
                 post={post}
                 compact={false}
