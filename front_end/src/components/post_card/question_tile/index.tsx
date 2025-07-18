@@ -28,7 +28,6 @@ type Props = {
   authorUsername: string;
   curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
-  forecasters?: number;
   showChart?: boolean;
   canPredict?: boolean;
 };
@@ -38,7 +37,6 @@ const QuestionTile: FC<Props> = ({
   curationStatus,
   authorUsername,
   hideCP,
-  forecasters,
   canPredict,
   showChart,
 }) => {

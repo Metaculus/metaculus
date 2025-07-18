@@ -55,7 +55,6 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed }) => {
                 authorUsername={post.author_username}
                 curationStatus={post.status}
                 hideCP={hideCP}
-                forecasters={internalPost.nr_forecasters}
                 canPredict={canPredict}
               />
             )}
