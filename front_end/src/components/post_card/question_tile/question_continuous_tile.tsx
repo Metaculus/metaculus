@@ -54,6 +54,7 @@ const QuestionContinuousTile: FC<Props> = ({
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
+    isClosed: question.status === QuestionStatus.CLOSED,
   });
 
   // generate data to submit based on user forecast and question type
@@ -171,7 +172,7 @@ const QuestionContinuousTile: FC<Props> = ({
             />
             <ForecastAvailabilityChartOverflow
               forecastAvailability={forecastAvailability}
-              className="pl-3 text-xs md:text-sm"
+              className="text-xs text-gray-700 dark:text-gray-700-dark"
             />
           </>
         )}
