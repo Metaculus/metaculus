@@ -22,19 +22,25 @@ const SimilarPredictionChip: FC<Props> = ({ post }) => {
 
   if (isQuestionPost(post)) {
     return (
-      <QuestionTile
-        question={post.question}
-        curationStatus={post.curation_status}
-        authorUsername={post.author_username}
-        hideCP={hideCP}
-        canPredict={false}
-        showChart={false}
-      />
+      <div className="max-w-[100px]">
+        <QuestionTile
+          question={post.question}
+          curationStatus={post.curation_status}
+          authorUsername={post.author_username}
+          hideCP={hideCP}
+          canPredict={false}
+          showChart={false}
+        />
+      </div>
     );
   }
 
   if (isGroupOfQuestionsPost(post)) {
-    return <GroupOfQuestionsTile post={post} showChart={false} />;
+    return (
+      <div className="w-full">
+        <GroupOfQuestionsTile post={post} showChart={false} />
+      </div>
+    );
   }
 };
 

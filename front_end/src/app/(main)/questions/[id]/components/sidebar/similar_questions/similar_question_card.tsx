@@ -32,11 +32,7 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
               {post.title}
             </h4>
 
-            <div
-              className={cn({ "w-full": isGroup, "max-w-[100px]": !isGroup })}
-            >
-              <SimilarPredictionChip post={post} />
-            </div>
+            <SimilarPredictionChip post={post} />
           </div>
 
           <ForecastersCounter
