@@ -5,11 +5,10 @@ import { FC, memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
-import FanChart from "@/components/charts/fan_chart";
+import FanChartNew from "@/components/charts/fan_chart_new";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import ConditionalTile from "@/components/conditional_tile";
 import DetailedMultipleChoiceChartCard from "@/components/detailed_question_card/detailed_question_card/multiple_choice_chart_card";
-import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionChip from "@/components/prediction_chip";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
@@ -72,11 +71,12 @@ const ForecastCard: FC<Props> = ({
       switch (post.group_of_questions.graph_type) {
         case GroupOfQuestionsGraphType.FanGraph: {
           return (
-            <FanChart
+            <FanChartNew
               group={post.group_of_questions}
               height={chartHeight}
               withTooltip={!nonInteractive}
               extraTheme={embedTheme?.chart}
+              isEmbedded={!isNil(embedTheme)}
             />
           );
         }
@@ -134,10 +134,8 @@ const ForecastCard: FC<Props> = ({
                 tickFontSize={9}
                 isEmbedded={!isNil(embedTheme)}
                 simplifiedCursor={!isNil(embedTheme)}
-              />
-              <ForecastAvailabilityChartOverflow
+                questionStatus={question.status}
                 forecastAvailability={forecastAvailability}
-                className="justify-end pr-10 text-xs md:text-sm"
               />
             </div>
           );
@@ -192,10 +190,8 @@ const ForecastCard: FC<Props> = ({
                   simplifiedCursor={true}
                   isEmbedded={!isNil(embedTheme)}
                   inboundOutcomeCount={question.inbound_outcome_count}
-                />
-                <ForecastAvailabilityChartOverflow
                   forecastAvailability={forecastAvailability}
-                  className="justify-end pr-10 text-xs md:text-sm"
+                  questionStatus={question.status}
                 />
               </div>
             );

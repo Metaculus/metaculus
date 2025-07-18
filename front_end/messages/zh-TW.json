@@ -1408,5 +1408,6 @@
   "LeaderboardTagDisclaimer": "查看此排行榜中計算在內的所有問題，請點擊<link>這裡</link>",
   "activeForecastersLabel": "活躍預測者",
   "default": "預設",
+  "hiddenUntil": "隱藏直到",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

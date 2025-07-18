@@ -2,19 +2,23 @@
 
 import { getUnixTime } from "date-fns";
 import { isNil } from "lodash";
-import React, { FC, useCallback, useMemo } from "react";
+import { useLocale } from "next-intl";
+import React, { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { TimelineChartZoomOption } from "@/types/charts";
-import { Resolution } from "@/types/post";
+import { Resolution, QuestionStatus } from "@/types/post";
 import {
   AggregateForecastHistory,
+  ForecastAvailability,
   QuestionType,
   Scaling,
   UserForecastHistory,
 } from "@/types/question";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { buildNumericChartData } from "./helpers";
 import NumericChart from "./numeric_chart";
@@ -44,6 +48,10 @@ type Props = {
   inboundOutcomeCount?: number | null;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
+  forecastAvailability?: ForecastAvailability;
+  questionStatus?: QuestionStatus;
+  cursorTooltip?: ReactNode;
+  isConsumerView?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -57,6 +65,7 @@ const NumericTimeline: FC<Props> = ({
   onCursorChange,
   onChartReady,
   questionType,
+  questionStatus,
   actualCloseTime,
   scaling,
   extraTheme,
@@ -71,19 +80,32 @@ const NumericTimeline: FC<Props> = ({
   inboundOutcomeCount,
   isEmbedded,
   simplifiedCursor,
+  forecastAvailability,
+  cursorTooltip,
+  isConsumerView,
 }) => {
+  const locale = useLocale();
   const resolutionPoint = useMemo(() => {
     if (!resolution || !resolveTime || isNil(actualCloseTime)) {
       return null;
     }
-
+    const lastAggregation = aggregation.latest;
     return getResolutionPoint({
+      lastAggregation,
       questionType,
       resolution,
       resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime / 1000),
       scaling,
+      size: 5,
     });
-  }, [actualCloseTime, questionType, resolution, resolveTime, scaling]);
+  }, [
+    actualCloseTime,
+    questionType,
+    resolution,
+    resolveTime,
+    scaling,
+    aggregation.latest,
+  ]);
 
   const getCursorValue = useCallback(
     (value: number) => {
@@ -134,7 +156,13 @@ const NumericTimeline: FC<Props> = ({
       inboundOutcomeCount,
     ]
   );
-
+  const formattedResolution = formatResolution({
+    resolution,
+    questionType,
+    locale,
+    scaling,
+    actual_resolve_time: resolveTime ?? null,
+  });
   return (
     <NumericChart
       buildChartData={buildChartData}
@@ -152,6 +180,16 @@ const NumericTimeline: FC<Props> = ({
       nonInteractive={nonInteractive}
       isEmbedded={isEmbedded}
       simplifiedCursor={simplifiedCursor}
+      yLabel={unit?.length && unit.length > 3 ? unit : undefined}
+      forecastAvailability={forecastAvailability}
+      questionStatus={questionStatus}
+      resolution={
+        isNil(resolution) || isUnsuccessfullyResolved(resolution)
+          ? null
+          : formattedResolution
+      }
+      cursorTooltip={cursorTooltip}
+      isConsumerView={isConsumerView}
     />
   );
 };

@@ -83,6 +83,7 @@ export function getAxisRightPadding(
   labelsFontSize: number,
   yLabel?: string | undefined
 ) {
+  const SCATTER_POINT_PADDING = 5;
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.min(
     Math.max(...labels.map((label) => label.length)),
@@ -90,9 +91,9 @@ export function getAxisRightPadding(
   );
   const fontSizeScale = yLabel ? 11 : 9;
   return {
-    rightPadding: Math.round(
-      (longestLabelLength * labelsFontSize * fontSizeScale) / 10
-    ),
+    rightPadding:
+      Math.round((longestLabelLength * labelsFontSize * fontSizeScale) / 10) +
+      SCATTER_POINT_PADDING,
     MIN_RIGHT_PADDING: 35,
   };
 }
@@ -176,11 +177,11 @@ export function generateYDomain({
       zoomedYDomain =
         distanceToZero < distanceToOne
           ? [0, Math.min(1, maxValue + zoomDomainPadding)]
-          : [Math.max(0, minValue - zoomDomainPadding), 1];
+          : [Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)), 1];
     }
   } else {
     zoomedYDomain = [
-      Math.max(0, minValue - zoomDomainPadding),
+      Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)),
       Math.min(1, maxValue + zoomDomainPadding),
     ];
   }
@@ -296,7 +297,6 @@ type GenerateScaleParams = {
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
   unit?: string;
-  forcedTickCount?: number;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
   shortLabels?: boolean;

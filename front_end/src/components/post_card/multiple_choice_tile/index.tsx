@@ -4,8 +4,8 @@ import { isNil } from "lodash";
 import React, { FC, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import FanChart from "@/components/charts/fan_chart";
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import FanChartNew from "@/components/charts/fan_chart_new";
+import NewMultipleChoiceChart from "@/components/charts/new_multiple_choice_chart";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
@@ -134,7 +134,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
       </div>
       {!isResolvedView && (
         <div className="relative w-full">
-          <MultipleChoiceChart
+          <NewMultipleChoiceChart
             timestamps={timestamps}
             actualCloseTime={actualCloseTime}
             choiceItems={choices}
@@ -142,12 +142,8 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
             extraTheme={chartTheme}
             defaultZoom={defaultChartZoom}
             withZoomPicker={withZoomPicker}
-            questionType={groupType}
             scaling={scaling}
-            isEmptyDomain={
-              !!forecastAvailability?.isEmpty ||
-              !!forecastAvailability?.cpRevealsOn
-            }
+            forecastAvailability={forecastAvailability}
             openTime={openTime}
             hideCP={hideCP}
           />
@@ -209,7 +205,7 @@ export const FanGraphMultipleChoiceTile: FC<
         />
       </div>
       <div className="w-full">
-        <FanChart
+        <FanChartNew
           group={group}
           height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
           pointSize={8}

@@ -1413,5 +1413,6 @@
   "LeaderboardTagDisclaimer": "查看所有计入此排行榜的问题 <link>在这里</link>",
   "activeForecastersLabel": "活跃预测者",
   "default": "默认",
+  "hiddenUntil": "隐藏直到",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

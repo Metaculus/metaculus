@@ -5,7 +5,7 @@ import React, { FC, useEffect } from "react";
 
 import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
-import FanChart from "@/components/charts/fan_chart";
+import FanChartNew from "@/components/charts/fan_chart_new";
 import { useHideCP } from "@/contexts/cp_context";
 import {
   GroupOfQuestionsGraphType,
@@ -95,7 +95,7 @@ const DetailedGroupCard: FC<Props> = ({
     case GroupOfQuestionsGraphType.FanGraph:
       return (
         <>
-          <FanChart
+          <FanChartNew
             group={post.group_of_questions}
             yLabel={t("communityPredictionLabel")}
             hideCP={hideCP}

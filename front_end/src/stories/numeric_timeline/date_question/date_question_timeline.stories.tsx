@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 
 import { TimelineChartZoomOption } from "@/types/charts";
+import { QuestionStatus } from "@/types/post";
 import { QuestionType, UserForecastHistory } from "@/types/question";
 
 import { getDateMockData } from "./mock_data";
@@ -44,6 +45,7 @@ export const Ongoing: Story = {
     height: 150,
     actualCloseTime: null,
     simplifiedCursor: true,
+    questionStatus: QuestionStatus.OPEN,
   },
 };
 
@@ -81,6 +83,7 @@ export const Closed: Story = {
     ...Ongoing.args,
     aggregation: closedArgs.aggregation,
     actualCloseTime: closedArgs.actualCloseTime,
+    questionStatus: QuestionStatus.CLOSED,
   },
 };
 
@@ -99,6 +102,7 @@ export const Resolved: Story = {
     ...Closed.args,
     resolution: closedArgs.resolution,
     resolveTime: closedArgs.actualResolveTime,
+    questionStatus: QuestionStatus.RESOLVED,
   },
 };
 
