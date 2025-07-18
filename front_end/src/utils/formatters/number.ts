@@ -49,7 +49,8 @@ export function abbreviatedNumber(
   val: number | string,
   sigfigs = 3,
   trailingZeros: boolean = false,
-  scaling?: Scaling
+  scaling?: Scaling,
+  minThousandsPow: number = 4
 ) {
   val = +val;
   if (!val) {
@@ -74,7 +75,7 @@ export function abbreviatedNumber(
     suffix = "M";
     val /= 1e6;
     leadingNumbers = pow - 5;
-  } else if (pow >= 4) {
+  } else if (pow >= minThousandsPow) {
     suffix = "k";
     val /= 1e3;
     leadingNumbers = pow - 2;

@@ -2,7 +2,7 @@ import "./styles.scss";
 
 import { isNil, round } from "lodash";
 import { useLocale } from "next-intl";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import {
   LineSegment,
   VictoryAxis,
@@ -28,9 +28,11 @@ import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getContinuousGroupScaling } from "@/utils/questions/helpers";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
+import UpcomingCP from "../upcoming_cp";
 import TimeSeriesLabel from "./time_series_label";
 
 type Props = {
@@ -56,6 +58,40 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
     true
   );
 
+  const allQuestionsEmpty = adjustedChartData.every((datum) => datum.isEmpty);
+
+  // Forecast availabilities map
+  const questionAvailabilities = useMemo(
+    () =>
+      questions.map((question) => getQuestionForecastAvailability(question)),
+    [questions]
+  );
+
+  // Show upcoming label if any empty questions have cpRevealsOn
+  const shouldShowCPLabel = useMemo(() => {
+    return questionAvailabilities.some(
+      (availability) => availability.isEmpty && availability.cpRevealsOn
+    );
+  }, [questionAvailabilities]);
+
+  // Get the earliest CP reveal time from empty questions
+  const earliestCPRevealTime = useMemo(() => {
+    if (!shouldShowCPLabel) return null;
+
+    const cpRevealTimes = questionAvailabilities
+      .filter(
+        (availability) =>
+          availability.isEmpty && !isNil(availability.cpRevealsOn)
+      )
+      .map((availability) => availability.cpRevealsOn as string);
+
+    if (cpRevealTimes.length === 0) return null;
+
+    return cpRevealTimes.reduce((earliest, current) => {
+      return new Date(current) < new Date(earliest) ? current : earliest;
+    });
+  }, [shouldShowCPLabel, questionAvailabilities]);
+
   if (chartData.length === 0) {
     return null;
   }
@@ -65,7 +101,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
-          height={height}
+          height={allQuestionsEmpty ? 46 : height}
           theme={chartTheme}
           padding={{
             left: 0,
@@ -92,8 +128,10 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
           <VictoryAxis
             style={{
               axis: {
-                stroke: getThemeColor(METAC_COLORS.blue["300"]),
-                strokeDasharray: "4, 4",
+                stroke: allQuestionsEmpty
+                  ? "transparent"
+                  : getThemeColor(METAC_COLORS.blue["300"]),
+                strokeDasharray: allQuestionsEmpty ? "none" : "4, 4",
               },
               ticks: {
                 stroke: "transparent",
@@ -110,8 +148,10 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
               ticks: { stroke: "transparent" },
               tickLabels: { fill: "none" },
               grid: {
-                stroke: getThemeColor(METAC_COLORS.blue["300"]),
-                strokeDasharray: "4, 4",
+                stroke: allQuestionsEmpty
+                  ? "transparent"
+                  : getThemeColor(METAC_COLORS.blue["300"]),
+                strokeDasharray: allQuestionsEmpty ? "none" : "4, 4",
               },
             }}
             gridComponent={<LineSegment />}
@@ -127,6 +167,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                   isTickLabel={true}
                   labelVisibilityMap={tickLabelVisibilityMap}
                   widthPerLabel={widthPerLabel}
+                  allQuestionsEmpty={allQuestionsEmpty}
                 />
               }
             />
@@ -135,6 +176,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 <TimeSeriesLabel
                   isTickLabel={false}
                   labelVisibilityMap={barLabelVisibilityMap}
+                  allQuestionsEmpty={allQuestionsEmpty}
                 />
               }
               style={{
@@ -145,26 +187,42 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 },
                 data: {
                   fill: ({ datum }) =>
-                    datum.resolution
-                      ? getThemeColor(
-                          ["no", "yes"].includes(datum.resolution as string)
-                            ? METAC_COLORS.purple["400"]
-                            : METAC_COLORS.purple["500"]
-                        )
-                      : datum.isClosed
-                        ? getThemeColor(METAC_COLORS.gray["500"])
-                        : getThemeColor(METAC_COLORS.blue["400"]),
+                    datum.isEmpty
+                      ? "transparent"
+                      : datum.resolution
+                        ? getThemeColor(
+                            ["no", "yes"].includes(datum.resolution as string)
+                              ? METAC_COLORS.purple["400"]
+                              : METAC_COLORS.purple["500"]
+                          )
+                        : datum.isClosed
+                          ? getThemeColor(METAC_COLORS.gray["500"])
+                          : getThemeColor(METAC_COLORS.blue["400"]),
                   display: "block",
                   strokeLinejoin: "round",
                   strokeWidth: ({ datum }) =>
-                    ["no", "yes"].includes(datum.resolution as string) ? 0 : 5,
+                    datum.isEmpty
+                      ? 0
+                      : ["no", "yes"].includes(datum.resolution as string)
+                        ? 0
+                        : 5,
                   width: ({ datum }) =>
-                    ["no", "yes"].includes(datum.resolution as string) ? 2 : 16,
+                    datum.isEmpty
+                      ? 0
+                      : ["no", "yes"].includes(datum.resolution as string)
+                        ? 2
+                        : 16,
                 },
               }}
             />
           </VictoryGroup>
         </VictoryChart>
+      )}
+      {shouldShowCPLabel && earliestCPRevealTime && (
+        <UpcomingCP
+          cpRevealsOn={earliestCPRevealTime}
+          className="mt-5 text-sm font-normal text-gray-500 dark:text-gray-500-dark"
+        />
       )}
     </div>
   );
@@ -179,15 +237,15 @@ function buildChartData(
   label: string;
   isClosed: boolean;
   resolution: Resolution | null;
+  isEmpty: boolean;
 }[] {
   const scaling = getContinuousGroupScaling(questions);
   return [...questions]
-    .filter(
-      (question) =>
-        !isUnsuccessfullyResolved(question.resolution) &&
-        !isNil(question.aggregations.recency_weighted.latest?.centers?.[0])
-    )
+    .filter((question) => !isUnsuccessfullyResolved(question.resolution))
     .map((question) => {
+      const latest_centers =
+        question.aggregations.recency_weighted.latest?.centers?.[0];
+      const hasData = !isNil(latest_centers);
       const resolutionPoint = question.resolution
         ? getResolutionPosition({
             question,
@@ -207,31 +265,32 @@ function buildChartData(
           })
         : null;
 
-      const point = getOptionPoint(
-        {
-          value:
-            question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
-          optionScaling: question.scaling,
-          questionScaling: scaling,
-        },
-        question.type === QuestionType.Binary
-      );
+      const point = hasData
+        ? getOptionPoint(
+            {
+              value: latest_centers ?? 0,
+              optionScaling: question.scaling,
+              questionScaling: scaling,
+            },
+            question.type === QuestionType.Binary
+          )
+        : 0.5; // Default position for empty state
 
       return {
         x: question.label,
         y: !isNil(resolutionPoint) ? resolutionPoint : point,
         label: !isNil(formatedResolution)
           ? formatedResolution
-          : getPredictionDisplayValue(
-              question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
-              {
+          : hasData
+            ? getPredictionDisplayValue(latest_centers ?? 0, {
                 questionType: question.type,
                 scaling: question.scaling,
                 actual_resolve_time: null,
-              }
-            ),
+              })
+            : "?",
         isClosed: question.status === QuestionStatus.CLOSED,
         resolution: question.resolution,
+        isEmpty: !hasData,
       };
     });
 }
@@ -266,6 +325,7 @@ function adjustLabelsForDisplay(
     label: string;
     isClosed: boolean;
     resolution: Resolution | null;
+    isEmpty: boolean;
   }>,
   chartWidth: number,
   isBarLabel?: boolean
@@ -277,7 +337,9 @@ function adjustLabelsForDisplay(
     ...datum.map((item) => {
       let adjustedLabel = isBarLabel ? item.label : item.x;
       if (isBarLabel) {
-        if (item.isClosed) {
+        if (item.isEmpty) {
+          adjustedLabel = "?";
+        } else if (item.isClosed) {
           adjustedLabel = "closed";
         } else if (item.resolution) {
           adjustedLabel = "resolved";
@@ -344,6 +406,7 @@ function adjustChartData(
     label: string;
     isClosed: boolean;
     resolution: Resolution | null;
+    isEmpty: boolean;
   }[],
   chartWidth: number
 ) {

@@ -1,5 +1,5 @@
 "use client";
-import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
@@ -17,6 +17,7 @@ type Props = {
   commentArea?: boolean;
   upChevronClassName?: string;
   downChevronClassName?: string;
+  voteClassName?: string;
 };
 
 const Voter: FC<Props> = ({
@@ -29,6 +30,7 @@ const Voter: FC<Props> = ({
   commentArea,
   upChevronClassName,
   downChevronClassName,
+  voteClassName,
 }) => {
   return (
     <div
@@ -78,9 +80,13 @@ const Voter: FC<Props> = ({
       </Button>
       {!!votes != null && votes !== 0 && (
         <span
-          className={cn("text-gray-900 dark:text-gray-900-dark", {
-            "font-bold": !!userVote,
-          })}
+          className={cn(
+            "text-gray-900 dark:text-gray-900-dark",
+            {
+              "font-bold": !!userVote,
+            },
+            voteClassName
+          )}
         >
           {votes}
         </span>
@@ -99,11 +105,11 @@ const Voter: FC<Props> = ({
             <FontAwesomeIcon
               icon={faChevronDown}
               className={cn(
-                `rounded-full from-salmon-400/50 p-1 text-salmon-500 group-hover:from-salmon-400/75 group-hover:to-blue-100 dark:from-salmon-400-dark/50 dark:to-blue-100-dark dark:text-salmon-500-dark dark:group-hover:from-salmon-400-dark/75 dark:group-hover:to-blue-100-dark  ${
-                  commentArea
-                    ? "rounded-none bg-gradient-to-l"
-                    : "rounded-full bg-gradient-to-b"
-                }`,
+                "rounded-full from-salmon-400/50 p-1 text-salmon-500 group-hover:from-salmon-400/75 group-hover:to-blue-100 dark:from-salmon-400-dark/50 dark:to-blue-100-dark dark:text-salmon-500-dark dark:group-hover:from-salmon-400-dark/75 dark:group-hover:to-blue-100-dark",
+                {
+                  "rounded-none bg-gradient-to-l": commentArea,
+                  "rounded-full bg-gradient-to-b": !commentArea,
+                },
                 downChevronClassName
               )}
             />
@@ -111,11 +117,11 @@ const Voter: FC<Props> = ({
             <FontAwesomeIcon
               icon={faChevronDown}
               className={cn(
-                `rounded-full p-1 text-blue-700/50 group-hover:from-salmon-400/25 group-hover:to-blue-100 group-hover:text-salmon-700 dark:text-blue-700-dark dark:group-hover:from-salmon-400-dark/25 dark:group-hover:to-blue-100-dark dark:group-hover:text-salmon-700-dark  ${
-                  commentArea
-                    ? "rounded-none bg-gradient-to-l"
-                    : "rounded-full bg-gradient-to-b"
-                }`,
+                "rounded-full p-1 text-blue-700/50 group-hover:from-salmon-400/25 group-hover:to-blue-100 group-hover:text-salmon-700 dark:text-blue-700-dark dark:group-hover:from-salmon-400-dark/25 dark:group-hover:to-blue-100-dark dark:group-hover:text-salmon-700-dark",
+                {
+                  "rounded-none bg-gradient-to-l": commentArea,
+                  "rounded-full bg-gradient-to-b": !commentArea,
+                },
                 downChevronClassName
               )}
             />
