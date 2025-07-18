@@ -1411,5 +1411,6 @@
   "LeaderboardTagDisclaimer": "Podívejte se na všechny otázky, které se započítávají do tohoto žebříčku <link>zde</link>",
   "activeForecastersLabel": "Aktivní předpovědci",
   "default": "výchozí",
+  "hiddenUntil": "Skryto do",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
