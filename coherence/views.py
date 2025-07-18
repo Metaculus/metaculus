@@ -48,7 +48,5 @@ def delete_link_api_view(request, pk):
             "You don't have permission to delete this coherence link"
         )
 
-    # TODO: add a `deleted` status? is this necessary?
     link.delete()
-
     return Response(status=status.HTTP_204_NO_CONTENT)

@@ -38,5 +38,9 @@ class CoherenceLink(TimeStampedModel):
                 Least("question1", "question2"),
                 Greatest("question1", "question2"),
                 name="unique_user_question_pair",
-            )
+            ),
+            models.CheckConstraint(
+                check=~models.Q(question1=models.F("question2")),
+                name="different_questions",
+            ),
         ]
