@@ -8,6 +8,7 @@ import {
 } from "date-fns";
 import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
+import { number } from "zod";
 
 import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
 import {
@@ -301,6 +302,8 @@ function minimumSignificantRounding(values: number[]): number[] {
     const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
     return Math.round(val * divisor) / divisor;
   }
+  // TODO: more intelligent ordering for rounded tick value selection
+  // TODO: add dextrous rounding reflecting sig fig cost algorithm
   values.forEach((value, i) => {
     if (i === 0 || i === values.length - 1) {
       roundedValues.push(value);
@@ -315,11 +318,7 @@ function minimumSignificantRounding(values: number[]): number[] {
       }
       while (true) {
         candidate = sigfigRound(value, digits);
-        if (
-          candidate - prevValue > 0.8 * (value - prevValue) &&
-          sigfigRound(nextValue, digits) - candidate >=
-            0.9 * (nextValue - value)
-        ) {
+        if (Math.abs((value - candidate) / (value - prevValue)) < 0.2) {
           break;
         }
         digits += 1;
@@ -328,6 +327,48 @@ function minimumSignificantRounding(values: number[]): number[] {
     }
   });
   return roundedValues;
+}
+
+function getSigFigCost(value: number, logarithmic: boolean = false): number {
+  const absValue = Math.abs(value);
+  // take the length of mantissa of the exponential rounded
+  // to 7 digits to avoid floating point precision issues
+  const mantissa = absValue
+    .toExponential(7)
+    .replace(/e.*$/, "")
+    .replace(".", "")
+    .replace(/^0+|0+$/g, "");
+  if (mantissa === "0") {
+    return 0;
+  }
+  if (mantissa === "1") {
+    return 0.5;
+  }
+  // TODO: consider discounting 25 and 75 more than 20, 40, 60, 80
+  // but less than plain 50
+  const lastDigit = mantissa.at(-1);
+  if (!logarithmic) {
+    if (mantissa === "5") {
+      return 0.8;
+    }
+    // discount if the mantissa ends with a 5 by 0.5
+    if (lastDigit === "5") {
+      return mantissa.length - 0.5;
+    }
+    // discount if the mantissa ends with a 2, 4, 6, or 8 by 0.2
+    if (["2", "4", "6", "8"].includes(lastDigit ?? "")) {
+      return mantissa.length - 0.2;
+    }
+  } else {
+    if (mantissa === "3") {
+      return 0.8;
+    }
+    // discount if the mantissa ends with a 3 or 5
+    if (["3", "5"].includes(lastDigit ?? "")) {
+      return mantissa.length - 0.5;
+    }
+  }
+  return mantissa.length;
 }
 
 /**
@@ -345,14 +386,10 @@ function findOptimalTickCount(
   let bestTickCount = maxTicks;
   let bestAvgDigits = Infinity;
   for (let i = maxTicks; i >= minTicks; i--) {
-    const tickInterval = (rangeMax - rangeMin) / (i - 1);
-    const tickValues = range(0, i).map((j) => rangeMin + j * tickInterval);
-    const roundedValues = minimumSignificantRounding(tickValues);
-    const significantDigits = roundedValues.map(
-      (val) => Math.floor(Math.log10(Math.abs(val))) + 1
-    );
-    const avgDigits =
-      significantDigits.reduce((sum, digits) => sum + digits, 0) / i;
+    const stepSize = (rangeMax - rangeMin) / (i - 1);
+    const tickValues = range(0, i).map((j) => rangeMin + j * stepSize);
+    const sigFigCosts = tickValues.map((value) => getSigFigCost(value));
+    const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
     if (avgDigits < bestAvgDigits) {
       bestAvgDigits = avgDigits;
       bestTickCount = i;
@@ -452,7 +489,7 @@ export function generateScale({
   } else if (axisLength < 500) {
     maxLabelCount = direction === "horizontal" ? 6 : 11;
   } else if (axisLength < 800) {
-    maxLabelCount = direction === "horizontal" ? 6 : 21;
+    maxLabelCount = direction === "horizontal" ? 7 : 21;
   } else if (axisLength < 1200) {
     maxLabelCount = direction === "horizontal" ? 11 : 21;
   } else {
@@ -463,6 +500,7 @@ export function generateScale({
   let minorTicks: number[] = [];
   if (displayType === QuestionType.Discrete && direction === "horizontal") {
     // every value gets a tick and fit as many labels as possible
+    // TODO: choose tick spacing based on label length as well
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
       : inbound_outcome_count +
@@ -474,13 +512,13 @@ export function generateScale({
     const tickEnd = 1 + (question?.open_upper_bound ? halfBucket : -halfBucket);
 
     minorTicks = range(tickStart, tickEnd + 1e-4, 1 / tickCount).map(
-      (x) => Math.round(x * 10000) / 10000
+      (x) => Math.round(x * 100000) / 100000
     );
 
     const step =
       Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 10000) / 10000
+      (x) => Math.round(x * 100000) / 100000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (
@@ -503,14 +541,14 @@ export function generateScale({
         Math.round((i / (tickCount - 1)) * (inbound_outcome_count - 1)) /
         (inbound_outcome_count - 1);
       return (
-        Math.round((tickStart + (tickEnd - tickStart) * x) * 10000) / 10000
+        Math.round((tickStart + (tickEnd - tickStart) * x) * 100000) / 100000
       );
     });
 
     const step =
       Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 10000) / 10000
+      (x) => Math.round(x * 100000) / 100000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
@@ -520,19 +558,14 @@ export function generateScale({
     // of significant digits in the tick labels
     const majorTickCount = forceTickCount
       ? forceTickCount
-      : findOptimalTickCount(
-          rangeMin,
-          rangeMax,
-          Math.ceil(maxLabelCount / 2),
-          maxLabelCount
-        );
+      : findOptimalTickCount(rangeMin, rangeMax, 4, maxLabelCount);
     majorTicks = range(0, majorTickCount).map(
       (i) =>
         Math.round(
           (zoomedDomainMin +
             (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            10000
-        ) / 10000
+            100000
+        ) / 100000
     );
     const minorTicksPerMajor = findOptimalTickCount(
       rangeMin,
@@ -542,14 +575,14 @@ export function generateScale({
     );
     const minorTickCount = forceTickCount
       ? forceTickCount
-      : (majorTickCount - 1) * minorTicksPerMajor;
-    minorTicks = range(0, minorTickCount + 1).map(
+      : (majorTickCount - 1) * minorTicksPerMajor + 1;
+    minorTicks = range(0, minorTickCount).map(
       (i) =>
         Math.round(
           (zoomedDomainMin +
-            (i / minorTickCount) * (zoomedDomainMax - zoomedDomainMin)) *
-            10000
-        ) / 10000
+            (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
+            100000
+        ) / 100000
     );
   } else {
     // Logarithmic Scaling
@@ -557,35 +590,55 @@ export function generateScale({
     // values that have the fewest significant digits
     // Then, minor ticks are spaced evenly in real space, showcasing the
     // strength of the logarithmic scaling
+    const minLabelCount = forceTickCount ?? Math.ceil(maxLabelCount / 2) + 1;
+    console.log({ minLabelCount, maxLabelCount });
+    let bestTicks: number[] = [];
+    let bestAvgDigits = Infinity;
+    for (let i = maxLabelCount; i >= minLabelCount; i--) {
+      const unscaledTargets = Array.from(
+        { length: i },
+        (_, j) =>
+          zoomedDomainMin +
+          ((zoomedDomainMax - zoomedDomainMin) * (j * 1)) / (i - 1)
+      );
+      // const scaledTargets = [100, 1000, 10000, 100000, 1000000];
+      const scaledTargets = unscaledTargets.map((x) =>
+        scaleInternalLocation(x, rangeScaling)
+      );
+      const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
+      const sigFigCosts = roundedScaledTargets.map((x) =>
+        getSigFigCost(x, true)
+      );
+      const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
+      if (avgDigits < bestAvgDigits) {
+        bestAvgDigits = avgDigits;
+        bestTicks = roundedScaledTargets;
+      }
+      console.log(avgDigits, roundedScaledTargets, scaledTargets);
+    }
+
+    majorTicks = bestTicks.map(
+      (x) =>
+        Math.round(unscaleNominalLocation(x, rangeScaling) * 100000) / 100000
+    );
+
     const tickCount = forceTickCount
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
-    const unscaledTargets = Array.from(
-      { length: maxLabelCount },
-      (_, i) =>
-        zoomedDomainMin +
-        ((zoomedDomainMax - zoomedDomainMin) * (i * 1)) / (maxLabelCount - 1)
-    );
-    const scaledTargets = unscaledTargets.map((x) =>
-      scaleInternalLocation(x, rangeScaling)
-    );
-    const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
-    majorTicks = roundedScaledTargets.map(
-      (x) => Math.round(unscaleNominalLocation(x, rangeScaling) * 10000) / 10000
-    );
-
     const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
     minorTicks = majorTicks.map((x) => x);
-    // Logarithmic Scaling
-    range(0, roundedScaledTargets.length - 1).forEach((i) => {
-      const prevMajor = roundedScaledTargets.at(i) ?? 0;
-      const nextMajor = roundedScaledTargets.at(i + 1) ?? 1;
+    range(0, bestTicks.length - 1).forEach((i) => {
+      const prevMajor = bestTicks.at(i) ?? 0;
+      const nextMajor = bestTicks.at(i + 1) ?? 1;
       const step = (nextMajor - prevMajor) / minorTicksPerMajorInterval;
       for (let j = 0; j < minorTicksPerMajorInterval - 1; j++) {
         const newMinorTick = prevMajor + (j + 1) * step;
         minorTicks.push(unscaleNominalLocation(newMinorTick, rangeScaling));
       }
     });
+    if (true && displayType === "numeric" && direction === "horizontal") {
+      console.log("hello");
+    }
   }
 
   const conditionallyShowUnit = (value: string, idx?: number): string => {
@@ -618,7 +671,10 @@ export function generateScale({
   }
 
   function tickFormat(x: number, idx?: number) {
-    if (alwaysShowTicks || majorTicks.includes(Math.round(x * 10000) / 10000)) {
+    if (
+      alwaysShowTicks ||
+      majorTicks.includes(Math.round(x * 100000) / 100000)
+    ) {
       if (displayType === QuestionType.Discrete) {
         return conditionallyShowUnit(
           getPredictionDisplayValue(x, {
@@ -676,7 +732,7 @@ export function generateScale({
     );
   }
 
-  if (!true && displayType === "numeric" && direction === "vertical") {
+  if (!true && displayType === "numeric" && direction === "horizontal") {
     // Debugging - do not remove
     console.log(
       "\n displayType",

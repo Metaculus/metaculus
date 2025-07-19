@@ -567,7 +567,8 @@ const NumericQuestionInput: React.FC<{
         )}
 
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
-          <>
+          <div style={{ width: 700 }}>
+            {/* width set to match default contianer width on question page */}
             NOTE: timeline to be removed. For demo purposes only:
             <NumericTimeline
               aggregation={{
@@ -620,7 +621,7 @@ const NumericQuestionInput: React.FC<{
             />
             Example input chart:
             <ExampleContinuousInput question={question} />
-          </>
+          </div>
         )}
       </div>
     </div>
