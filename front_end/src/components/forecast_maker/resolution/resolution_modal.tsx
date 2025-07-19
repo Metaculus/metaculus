@@ -262,7 +262,9 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               className="bg-transparent pl-1"
               max={currentDateTime}
               defaultValue={watch("actualResolveTime")}
-              onChange={(val) => setValue("actualResolveTime", val)}
+              onChange={(val) =>
+                setValue("actualResolveTime", val ?? currentDateTime)
+              }
             />
           </label>
           <div className="flex justify-center">

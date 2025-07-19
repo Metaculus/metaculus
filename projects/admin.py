@@ -134,7 +134,11 @@ class PostInlineBase(admin.TabularInline):
         if not finalize_time:
             return True
 
-        return not any(q.scheduled_close_time > finalize_time for q in questions)
+        return not any(
+            q.scheduled_close_time > finalize_time
+            for q in questions
+            if q.scheduled_close_time
+        )
 
     closes_before.short_description = format_html(
         "Closes Before<br>Leaderboard Finalizes"
@@ -736,12 +740,14 @@ class ProjectAdmin(CustomTranslationAdmin):
                     if latest_resolving_time
                     else question.actual_resolve_time
                 )
-            else:
+            elif question.scheduled_resolve_time:
                 latest_resolving_time = (
                     max(latest_resolving_time, question.scheduled_resolve_time)
                     if latest_resolving_time
                     else question.scheduled_resolve_time
                 )
+            else:
+                continue
         return latest_resolving_time
 
     latest_resolving_time.short_description = "Latest Resolving Time (Expected)"

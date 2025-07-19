@@ -498,7 +498,7 @@
   "forJournalists": "Pro novináře",
   "trackRecord": "Historie úspěchů",
   "medals": "Medaile",
-  "theJournal": "Časopis",
+  "theJournal": "Archiv časopisů",
   "account": "Účet",
   "settings": "Nastavení",
   "shortTitle": "Krátký název",
@@ -1410,5 +1410,6 @@
   "returnToHomePage": "Vrátit se na hlavní stránku",
   "LeaderboardTagDisclaimer": "Podívejte se na všechny otázky, které se započítávají do tohoto žebříčku <link>zde</link>",
   "activeForecastersLabel": "Aktivní předpovědci",
+  "default": "výchozí",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

@@ -1,9 +1,9 @@
-from datetime import timedelta
 import logging
+from datetime import timedelta
+
 import dramatiq
+from django.db.models import Q
 from django.utils import timezone
-from django.db.models import Q, OuterRef, Count
-from sql_util.aggregates import SubqueryAggregate
 
 from notifications.constants import MailingTags
 from notifications.services import (
@@ -15,7 +15,7 @@ from notifications.services import (
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
 from questions.models import Question, UserForecastNotification
-from questions.services import build_question_forecasts
+from questions.services import build_question_forecasts, get_forecasts_per_user
 from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
@@ -73,21 +73,15 @@ def resolve_question_and_send_notifications(question_id: int):
 
     scores = (
         question.scores.filter(user__isnull=False)
-        .annotate(
-            forecasts_count=SubqueryAggregate(
-                "question__user_forecasts",
-                filter=Q(author=OuterRef("user")),
-                aggregate=Count,
-            )
-        )
         # Exclude users with disabled notifications
         .exclude(
             user__unsubscribed_mailing_tags__contains=[
                 MailingTags.FORECASTED_QUESTION_RESOLUTION
             ]
-        )
-        .select_related("user")
+        ).select_related("user")
     )
+    user_forecasts_count_map = get_forecasts_per_user(question)
+
     user_notification_params: dict[
         User, NotificationPredictedQuestionResolved.ParamsType
     ] = {}
@@ -108,12 +102,14 @@ def resolve_question_and_send_notifications(question_id: int):
     # Send notifications
     for score in scores:
         if score.user not in user_notification_params:
+            forecasts_count = user_forecasts_count_map.get(score.user_id) or 0
+
             user_notification_params[score.user] = (
                 NotificationPredictedQuestionResolved.ParamsType(
                     post=NotificationPostParams.from_post(question.get_post()),
                     question=NotificationQuestionParams.from_question(question),
                     resolution=question.resolution,
-                    forecasts_count=score.forecasts_count,
+                    forecasts_count=forecasts_count,
                     coverage=score.coverage,
                 )
             )
