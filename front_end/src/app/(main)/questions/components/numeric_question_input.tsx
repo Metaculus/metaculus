@@ -6,13 +6,11 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
-import NumericTimeline from "@/components/charts/numeric_timeline";
 import ExampleContinuousInput from "@/components/forecast_maker/continuous_input/example_continuous_input";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import {
-  AggregationMethod,
   DefaultInboundOutcomeCount,
   QuestionDraft,
   QuestionWithNumericForecasts,
@@ -569,56 +567,6 @@ const NumericQuestionInput: React.FC<{
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <div style={{ width: 700 }}>
             {/* width set to match default contianer width on question page */}
-            NOTE: timeline to be removed. For demo purposes only:
-            <NumericTimeline
-              aggregation={{
-                history: [
-                  {
-                    start_time: 1751303566.822108,
-                    end_time: 1751304445.570179,
-                    forecaster_count: 1,
-                    interval_lower_bounds: [0.5],
-                    centers: [0.666],
-                    interval_upper_bounds: [0.833],
-                    question_id: 1,
-                    forecast_values: [],
-                    method: AggregationMethod.recency_weighted,
-                    means: [],
-                    histogram: [],
-                  },
-                ],
-                latest: undefined,
-                score_data: {},
-                movement: null,
-              }}
-              aggregationIndex={0}
-              myForecasts={{
-                history: [],
-                latest: undefined,
-                score_data: {},
-              }}
-              defaultZoom={undefined}
-              withZoomPicker={true}
-              height={150}
-              cursorTimestamp={null}
-              onCursorChange={() => {}}
-              onChartReady={() => {}}
-              questionType={question.type}
-              actualCloseTime={1753484340000}
-              scaling={question.scaling}
-              extraTheme={undefined}
-              resolution={null}
-              resolveTime={null}
-              hideCP={false}
-              isEmptyDomain={false}
-              openTime={1751302800000}
-              unit={question.unit}
-              tickFontSize={undefined}
-              nonInteractive={undefined}
-              inboundOutcomeCount={question.inbound_outcome_count}
-              isEmbedded={undefined}
-              simplifiedCursor={true}
-            />
             Example input chart:
             <ExampleContinuousInput question={question} />
           </div>
