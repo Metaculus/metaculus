@@ -1,7 +1,7 @@
 "use client";
 import { faEllipsis, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { round } from "lodash";
+import { isNil, round } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, {
@@ -101,24 +101,26 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   const { id: postId, user_permission: permission } = post;
 
-  const prevForecastValuesMap = useMemo(
+  const currentForecastValuesMap = useMemo(
     () =>
       questions.reduce<Record<number, number | null>>((acc, question) => {
         const latest = question.my_forecasts?.latest;
+        if (!latest || !isForecastActive(latest)) {
+          return { ...acc, [question.id]: null };
+        }
         return {
           ...acc,
-          [question.id]: latest
-            ? extractPrevBinaryForecastValue(latest.forecast_values[1])
-            : null,
+          [question.id]: extractPrevBinaryForecastValue(
+            latest.forecast_values[1]
+          ),
         };
       }, {}),
     [questions]
   );
   const hasUserForecast = useMemo(
-    () => Object.values(prevForecastValuesMap).some((v) => v !== null),
-    [prevForecastValuesMap]
+    () => Object.values(questions).some((q) => !isNil(q.my_forecasts?.latest)),
+    [questions]
   );
-
   const hasSomeActiveUserForecasts = useMemo(
     () => questions.some((q) => isOpenQuestionPredicted(q)),
     [questions]
@@ -156,7 +158,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions({
       questions,
-      prevForecastValuesMap,
+      currentForecastValuesMap,
       post,
       onPredictionSubmit,
       userPredictionExpirationPercent:
@@ -187,7 +189,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     setQuestionOptions(
       generateChoiceOptions({
         questions,
-        prevForecastValuesMap,
+        currentForecastValuesMap,
         permission,
         post,
         onPredictionSubmit,
@@ -197,7 +199,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, [
     permission,
-    prevForecastValuesMap,
+    currentForecastValuesMap,
     questions,
     post,
     onPredictionSubmit,
@@ -234,10 +236,10 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       prev.map((prevQuestion) => ({
         ...prevQuestion,
         isDirty: false,
-        forecast: prevForecastValuesMap[prevQuestion.id] ?? null,
+        forecast: currentForecastValuesMap[prevQuestion.id] ?? null,
       }))
     );
-  }, [prevForecastValuesMap]);
+  }, [currentForecastValuesMap]);
   const handleForecastChange = useCallback((id: number, forecast: number) => {
     setQuestionOptions((prev) =>
       prev.map((prevQuestion) => {
@@ -471,14 +473,14 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
 function generateChoiceOptions({
   questions,
-  prevForecastValuesMap,
+  currentForecastValuesMap,
   permission,
   post,
   onPredictionSubmit,
   userPredictionExpirationPercent,
 }: {
   questions: QuestionWithNumericForecasts[];
-  prevForecastValuesMap: Record<number, number | null>;
+  currentForecastValuesMap: Record<number, number | null>;
   permission?: ProjectPermissions;
   post?: Post;
   onPredictionSubmit?: () => void;
@@ -510,7 +512,7 @@ function generateChoiceOptions({
       name: question.label,
       communityForecast:
         latest && isForecastActive(latest) ? latest.centers?.[0] ?? null : null,
-      forecast: prevForecastValuesMap[question.id] ?? null,
+      forecast: currentForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
