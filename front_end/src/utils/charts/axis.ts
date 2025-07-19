@@ -8,7 +8,6 @@ import {
 } from "date-fns";
 import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
-import { number } from "zod";
 
 import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
 import {
