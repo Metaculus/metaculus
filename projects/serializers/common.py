@@ -141,7 +141,9 @@ def serialize_project_index_weights(project: Project):
     posts_map = {
         x["id"]: x
         for x in serialize_post_many(
-            {x.question.get_post_id() for x in qs}, with_cp=True
+            {x.question.get_post_id() for x in qs},
+            with_cp=True,
+            include_cp_history=True,
         )
     }
 

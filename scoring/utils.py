@@ -288,8 +288,10 @@ def generate_question_writing_leaderboard_entries(
         if post:
             forecaster_ids_for_post[post].update(forecasters)
 
-    exclusions = MedalExclusionRecord.objects.all().select_related("user")
-    exclusion_dict = defaultdict(list)
+    exclusions: QuerySet[MedalExclusionRecord] = (
+        MedalExclusionRecord.objects.all().select_related("user")
+    )
+    exclusion_dict: dict[User, list[MedalExclusionRecord]] = defaultdict(list)
     for exclusion in exclusions:
         exclusion_dict[exclusion.user].append(exclusion)
 
@@ -303,9 +305,9 @@ def generate_question_writing_leaderboard_entries(
             excluded = False
             for exclusion in exclusion_dict.get(author, []):
                 # exclusion not applicable if post not published during exclusion period
-                if (post.published_at < exclusion.start_time) or (
-                    exclusion.end_time and post.published_at > exclusion.end_time
-                ):
+                if (
+                    exclusion.start_time and post.published_at < exclusion.start_time
+                ) or (exclusion.end_time and post.published_at > exclusion.end_time):
                     continue
                 if (
                     (exclusion.project_id is None and exclusion.leaderboard_id is None)
@@ -923,7 +925,7 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
         excluded = False
         for exclusion in exclusions:
             # exclusion not applicable if post not published during exclusion period
-            if (post.published_at < exclusion.start_time) or (
+            if (exclusion.start_time and post.published_at < exclusion.start_time) or (
                 exclusion.end_time and post.published_at > exclusion.end_time
             ):
                 continue

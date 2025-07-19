@@ -1,12 +1,20 @@
 "use client";
+
+import dynamic from "next/dynamic";
 import { FC } from "react";
 
-import MainFeedFilters from "@/app/(main)/questions/components/feed_filters/main";
 import MyQuestionsAndPostsFilters from "@/app/(main)/questions/components/feed_filters/my_questions_and_posts";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { FeedType } from "@/constants/posts_feed";
 
 import MyPredictionsFilters from "./my_predictions";
+
+const MainFeedFilters = dynamic(
+  () => import("@/app/(main)/questions/components/feed_filters/main"),
+  {
+    ssr: false,
+  }
+);
 
 type Props = { withProjectFilters?: boolean };
 

@@ -121,6 +121,7 @@ type Props = {
   allCategories: Category[];
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const GroupForm: React.FC<Props> = ({
@@ -132,6 +133,7 @@ const GroupForm: React.FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -279,7 +281,9 @@ const GroupForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(draftKey);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(draftKey);
+        }
       }
 
       router.push(getPostLink(resp.post));
@@ -401,7 +405,7 @@ const GroupForm: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         setCategoriesList(draft.categories ?? []);
@@ -429,7 +433,7 @@ const GroupForm: React.FC<Props> = ({
   }, []);
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       saveQuestionDraft(draftKey, {
         ...formData,
@@ -437,7 +441,7 @@ const GroupForm: React.FC<Props> = ({
         subQuestions: subQuestions,
       });
     }
-  }, [form, mode, categoriesList, subQuestions, draftKey]);
+  }, [form, shouldUseDraftValue, categoriesList, subQuestions, draftKey]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -447,19 +451,19 @@ const GroupForm: React.FC<Props> = ({
   // update draft when form values changes
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   // update draft when subquestions state changes
   useEffect(() => {
-    if (mode === "create" && isDraftMounted.current) {
+    if (shouldUseDraftValue && isDraftMounted.current) {
       debouncedHandleFormChange();
     }
-  }, [form, mode, debouncedHandleFormChange, subQuestions]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange, subQuestions]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -798,7 +802,7 @@ const GroupForm: React.FC<Props> = ({
                       (type) => type === subtype
                     ) && (
                       <NumericQuestionInput
-                        draftKey={mode === "edit" ? undefined : draftKey}
+                        draftKey={shouldUseDraftValue ? draftKey : undefined}
                         questionType={
                           subtype as (typeof ContinuousQuestionTypes)[number]
                         }
@@ -867,40 +871,49 @@ const GroupForm: React.FC<Props> = ({
                         : t("collapse")}
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === 0}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, -1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, -1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronUp} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === subQuestions.length - 1}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, 1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, 1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronDown} />
-                    </Button>
+                    {form.watch("subquestions_order") ===
+                      PostGroupOfQuestionsSubquestionsOrder.MANUAL && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="tertiary"
+                          disabled={index === 0}
+                          onClick={() => {
+                            setSubQuestions(
+                              shiftArrayElement(subQuestions, index, -1).map(
+                                (q, idx) => ({ ...q, group_rank: idx })
+                              )
+                            );
+                            setCollapsedSubQuestions(
+                              shiftArrayElement(
+                                collapsedSubQuestions,
+                                index,
+                                -1
+                              )
+                            );
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faChevronUp} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="tertiary"
+                          disabled={index === subQuestions.length - 1}
+                          onClick={() => {
+                            setSubQuestions(
+                              shiftArrayElement(subQuestions, index, 1).map(
+                                (q, idx) => ({ ...q, group_rank: idx })
+                              )
+                            );
+                            setCollapsedSubQuestions(
+                              shiftArrayElement(collapsedSubQuestions, index, 1)
+                            );
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faChevronDown} />
+                        </Button>
+                      </>
+                    )}
                   </div>
 
                   <Button

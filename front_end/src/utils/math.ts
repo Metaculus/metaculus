@@ -198,6 +198,9 @@ export function nominalLocationToCdfLocation(
     throw new Error("range_min and range_max must be defined");
   }
   if (zero_point !== null) {
+    if (location === zero_point) {
+      return zero_point < range_min ? -1e-7 : 1 + 1e-7; // avoid log(0)
+    }
     const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     return (
       (Math.log(
