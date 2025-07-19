@@ -14,6 +14,11 @@ urlpatterns = [
         name="project-leaderboard",
     ),
     path(
+        "leaderboards/project/<int:project_id>/update/",
+        views.update_project_leaderboard_api_view,
+        name="update_project-leaderboard",
+    ),
+    path(
         "medals/",
         views.user_medals,
         name="user-medals",

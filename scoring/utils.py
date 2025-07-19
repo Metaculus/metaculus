@@ -698,7 +698,7 @@ def update_project_leaderboard(
         return list(leaderboard.entries.all().order_by("rank"))
 
     if not force_update and leaderboard.finalized:
-        logger.warning("%s is already finalized, not updating", leaderboard.name)
+        logger.warning("%s is already finalized, not updating", str(leaderboard))
         return list(leaderboard.entries.all().order_by("rank"))
 
     # new entries
