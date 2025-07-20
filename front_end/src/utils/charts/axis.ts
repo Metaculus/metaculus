@@ -481,8 +481,6 @@ export function generateScale({
   let maxLabelCount: number;
   if (displayType === QuestionType.Discrete && direction === "horizontal") {
     maxLabelCount = Math.min(33, inbound_outcome_count + 2);
-  } else if (axisLength < 100) {
-    maxLabelCount = direction === "horizontal" ? 2 : 3;
   } else if (axisLength < 150) {
     maxLabelCount = direction === "horizontal" ? 3 : 5;
   } else if (axisLength < 300) {
