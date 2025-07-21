@@ -1314,7 +1314,7 @@ export default function ScoresFAQ() {
                 Melhor pontuação de pares em Metaculus
               </td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-                +996
+                +691
               </td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
                 +408
@@ -1325,7 +1325,7 @@ export default function ScoresFAQ() {
                 Pior possível Pista em Metaculus
               </td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
-                -996
+                -691
               </td>
               <td className="px-4 py-2 text-center text-xs font-light md:text-sm">
                 -408
