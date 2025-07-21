@@ -180,6 +180,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           onCursorChange={handleCursorChange}
           onChartReady={handleChartReady}
           questionType={question.type}
+          questionStatus={question.status}
           actualCloseTime={getPostDrivenTime(question.actual_close_time)}
           scaling={question.scaling}
           defaultZoom={
@@ -197,6 +198,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           unit={question.unit}
           inboundOutcomeCount={question.inbound_outcome_count}
           simplifiedCursor={question.type !== QuestionType.Binary}
+          forecastAvailability={forecastAvailability}
         />
       </div>
       <div
