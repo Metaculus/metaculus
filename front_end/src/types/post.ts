@@ -112,6 +112,7 @@ export type Notebook = {
   edited_at: string;
   markdown: string;
   image_url: string;
+  markdown_summary: string;
 };
 
 type BasePost = {
