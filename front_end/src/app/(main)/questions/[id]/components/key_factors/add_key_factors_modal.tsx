@@ -113,6 +113,11 @@ export const AddKeyFactorsForm = ({
 }) => {
   const t = useTranslations();
 
+  const totalKeyFactorsLimitReached =
+    keyFactors.length +
+      suggestedKeyFactors.filter((kf) => kf.selected).length >=
+    Math.min(factorsLimit, FACTORS_PER_COMMENT);
+
   return (
     <div className="flex w-full flex-col gap-4">
       {suggestedKeyFactors.length > 0 && (
@@ -130,6 +135,7 @@ export const AddKeyFactorsForm = ({
                 variant={keyFactor.selected ? "primary" : "tertiary"}
                 size="xs"
                 className="h-fit w-fit"
+                disabled={totalKeyFactorsLimitReached && !keyFactor.selected}
                 onClick={() => {
                   setSuggestedKeyFactors(
                     suggestedKeyFactors.map((kf) =>
@@ -183,7 +189,7 @@ export const AddKeyFactorsForm = ({
             setKeyFactors([...keyFactors, ""]);
           }}
           disabled={
-            keyFactors.length >= Math.min(factorsLimit, FACTORS_PER_COMMENT) ||
+            totalKeyFactorsLimitReached ||
             keyFactors.at(-1) === "" ||
             !isNil(limitError)
           }
