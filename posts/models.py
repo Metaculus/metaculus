@@ -484,6 +484,7 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
 class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
+    markdown_summary = models.TextField(blank=True, default="")
 
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"
