@@ -3,7 +3,7 @@
 import { getUnixTime } from "date-fns";
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -50,6 +50,8 @@ type Props = {
   simplifiedCursor?: boolean;
   forecastAvailability?: ForecastAvailability;
   questionStatus?: QuestionStatus;
+  cursorTooltip?: ReactNode;
+  isConsumerView?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -79,6 +81,8 @@ const NumericTimeline: FC<Props> = ({
   isEmbedded,
   simplifiedCursor,
   forecastAvailability,
+  cursorTooltip,
+  isConsumerView,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -177,6 +181,8 @@ const NumericTimeline: FC<Props> = ({
           ? null
           : formattedResolution
       }
+      cursorTooltip={cursorTooltip}
+      isConsumerView={isConsumerView}
     />
   );
 };
