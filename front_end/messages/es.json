@@ -1422,10 +1422,5 @@
   "mainGraphTypeDescription": "Elija \"Gráfico de Abanico\" si las subpreguntas están ordenadas (como años) y \"Líneas de Tiempo Alternas\" si no están ordenadas (como partidos políticos).",
   "fanGraph": "Gráfico de Abanico",
   "toggledTimelines": "Líneas de Tiempo Alternas",
-  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {comentarios} =1 {comentario} other {comentarios} }",
-  "unreadWithTotalCount": "<purple>({unread_count_formatted} sin leer)</purple> {total_count_formatted} en total",
-  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
-  "forecastersWithCount": "{count_formatted} {count, plural, =1 {pronosticador} other {pronosticadores} }",
-  "percentagePointsShort": "pp",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

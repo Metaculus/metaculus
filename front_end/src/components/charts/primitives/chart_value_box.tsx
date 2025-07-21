@@ -1,10 +1,11 @@
 "use client";
+import { isNil } from "lodash";
+import { FC, useEffect, useRef, useState } from "react";
+
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
-import { isNil } from "lodash";
-import { FC, useEffect, useRef, useState } from "react";
 
 const ChartValueBox: FC<{
   x?: number | null;

@@ -176,11 +176,11 @@ export function generateYDomain({
       zoomedYDomain =
         distanceToZero < distanceToOne
           ? [0, Math.min(1, maxValue + zoomDomainPadding)]
-          : [Math.max(0, minValue - zoomDomainPadding), 1];
+          : [Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)), 1];
     }
   } else {
     zoomedYDomain = [
-      Math.max(0, minValue - zoomDomainPadding),
+      Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)),
       Math.min(1, maxValue + zoomDomainPadding),
     ];
   }
@@ -407,7 +407,6 @@ type GenerateScaleParams = {
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
   unit?: string;
-  forcedTickCount?: number;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
   shortLabels?: boolean;
