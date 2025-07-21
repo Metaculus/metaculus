@@ -71,6 +71,7 @@ type Props = {
   forceAutoZoom?: boolean;
 };
 
+// TODO: replace with new group chart
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
   actualCloseTime,
