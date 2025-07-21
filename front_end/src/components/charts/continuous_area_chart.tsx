@@ -1,13 +1,7 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, {
-  FC,
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useLocale } from "next-intl";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -47,16 +41,15 @@ import {
 } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
+import { formatResolution } from "@/utils/formatters/resolution";
 import {
   cdfToPmf,
   computeQuartilesFromCDF,
   unscaleNominalLocation,
 } from "@/utils/math";
 
-import LineCursorPoints from "./primitives/line_cursor_points";
 import ChartValueBox from "./primitives/chart_value_box";
-import { formatResolution } from "@/utils/formatters/resolution";
-import { useLocale } from "next-intl";
+import LineCursorPoints from "./primitives/line_cursor_points";
 
 type ContinuousAreaColor = "orange" | "green" | "gray";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
@@ -79,7 +72,6 @@ const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 const CURSOR_POINT_OFFSET = 5;
 const CURSOR_CHART_EXTENSION = 10;
-const RESOLUTION_CHIP_OFFSET = 10;
 
 type Props = {
   question: Question | GraphingQuestionProps;
@@ -94,6 +86,8 @@ type Props = {
   shortLabels?: boolean;
   alignChartTabs?: boolean;
   forceTickCount?: number; // is used on feed page
+  withResolutionChip?: boolean;
+  withTodayLine?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -108,7 +102,9 @@ const ContinuousAreaChart: FC<Props> = ({
   hideLabels = false,
   shortLabels = false,
   alignChartTabs,
-  forceTickCount,
+  // forceTickCount, // TODO: uncomment this after scale helper changes
+  withResolutionChip = true,
+  withTodayLine = true,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -214,7 +210,7 @@ const ContinuousAreaChart: FC<Props> = ({
         shortLabels,
         adjustLabels: true,
         question: question,
-        // forceTickCount, // TODO: implement this after scale helper changes
+        // forceTickCount, // TODO: uncomment this after scale helper changes
       }),
     [chartWidth, question, xDomain, shortLabels]
   );
@@ -723,7 +719,7 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           )}
           {/* Resolution chip */}
-          {resolutionPoint && (
+          {resolutionPoint && withResolutionChip && (
             <VictoryScatter
               data={[
                 {
@@ -749,7 +745,7 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
 
           {/* Today's date line for date questions */}
-          {question.type === QuestionType.Date && (
+          {question.type === QuestionType.Date && withTodayLine && (
             <VictoryLine
               data={[
                 {
@@ -777,20 +773,22 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
-          {question.type === QuestionType.Date && todayLabelPosition && (
-            <VictoryPortal>
-              <VictoryLabel
-                x={todayLabelPosition.x}
-                y={todayLabelPosition.y}
-                text="Today"
-                style={{
-                  fill: getThemeColor(METAC_COLORS.gray["500"]),
-                  fontSize: 12,
-                }}
-                textAnchor="middle"
-              />
-            </VictoryPortal>
-          )}
+          {question.type === QuestionType.Date &&
+            todayLabelPosition &&
+            withTodayLine && (
+              <VictoryPortal>
+                <VictoryLabel
+                  x={todayLabelPosition.x}
+                  y={todayLabelPosition.y}
+                  text="Today"
+                  style={{
+                    fill: getThemeColor(METAC_COLORS.gray["500"]),
+                    fontSize: 12,
+                  }}
+                  textAnchor="middle"
+                />
+              </VictoryPortal>
+            )}
 
           {/* Manually render cursor component when cursor is on edge */}
           {!isNil(cursorEdge) && (

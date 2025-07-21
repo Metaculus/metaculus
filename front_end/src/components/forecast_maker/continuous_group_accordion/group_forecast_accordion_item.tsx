@@ -168,6 +168,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         hideLabels
                         hideCP={!showCP}
                         question={question}
+                        withResolutionChip={false}
+                        withTodayLine={false}
                       />
                     </div>
                   </div>

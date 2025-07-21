@@ -3,13 +3,11 @@ import { FloatingPortal } from "@floating-ui/react";
 import { isNil, merge } from "lodash";
 import {
   FC,
-  Fragment,
   memo,
   ReactNode,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import {
@@ -46,7 +44,7 @@ import {
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { QuestionStatus, Resolution } from "@/types/post";
+import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {

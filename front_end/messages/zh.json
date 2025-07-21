@@ -1424,10 +1424,5 @@
   "mainGraphTypeDescription": "如果子问题是有序的（如年份），请选择“扇形图”；如果是无序的（如政党），请选择“切换时间线”。",
   "fanGraph": "扇形图",
   "toggledTimelines": "切换时间线",
-  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {条评论} =1 {条评论} other {条评论} }",
-  "unreadWithTotalCount": "<purple>({unread_count_formatted} 未读)</purple> {total_count_formatted} 总数",
-  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
-  "forecastersWithCount": "{count_formatted} {count, plural, =1 {预测者} other {预测者} }",
-  "percentagePointsShort": "百分点",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
