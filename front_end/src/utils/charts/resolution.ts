@@ -25,7 +25,7 @@ export function getResolutionPoint({
   resolveTime: number;
   scaling: Scaling;
   inboundOutcomeCount?: number | null;
-  lastAggregation: AggregateForecast | undefined;
+  lastAggregation?: AggregateForecast;
   size?: number;
 }): LinePoint | null {
   if (isUnsuccessfullyResolved(resolution)) {
