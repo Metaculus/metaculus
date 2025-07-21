@@ -27,7 +27,7 @@ import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-const HEIGHT = 100;
+const HEIGHT = 90;
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -164,20 +164,23 @@ const QuestionContinuousTile: FC<Props> = ({
               openTime={getPostDrivenTime(question.open_time)}
               unit={question.unit}
               tickFontSize={9}
+              questionStatus={question.status}
+              forecastAvailability={forecastAvailability}
             />
           ) : (
-            <ContinuousAreaChart
-              data={continuousAreaChartData}
-              height={HEIGHT}
-              question={question}
-              hideCP={hideCP}
-            />
+            <>
+              <ContinuousAreaChart
+                data={continuousAreaChartData}
+                height={HEIGHT}
+                question={question}
+                hideCP={hideCP}
+              />
+              <ForecastAvailabilityChartOverflow
+                forecastAvailability={forecastAvailability}
+                className="pl-3 text-xs md:text-sm"
+              />
+            </>
           )}
-
-          <ForecastAvailabilityChartOverflow
-            forecastAvailability={forecastAvailability}
-            className="pl-3 text-xs md:text-sm"
-          />
         </div>
       )}
     </div>
