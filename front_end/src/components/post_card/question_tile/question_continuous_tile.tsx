@@ -51,6 +51,7 @@ const QuestionContinuousTile: FC<Props> = ({
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
+    isClosed: question.status === QuestionStatus.CLOSED,
   });
 
   // generate data to submit based on user forecast and question type

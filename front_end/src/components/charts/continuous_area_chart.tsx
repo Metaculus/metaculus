@@ -1,6 +1,13 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Tuple,
   VictoryArea,
@@ -13,6 +20,7 @@ import {
   VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
+  VictoryLabel,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -39,9 +47,16 @@ import {
 } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
-import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
+import {
+  cdfToPmf,
+  computeQuartilesFromCDF,
+  unscaleNominalLocation,
+} from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
+import ChartValueBox from "./primitives/chart_value_box";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { useLocale } from "next-intl";
 
 type ContinuousAreaColor = "orange" | "green" | "gray";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
@@ -64,6 +79,7 @@ const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 const CURSOR_POINT_OFFSET = 5;
 const CURSOR_CHART_EXTENSION = 10;
+const RESOLUTION_CHIP_OFFSET = 10;
 
 type Props = {
   question: Question | GraphingQuestionProps;
@@ -77,6 +93,7 @@ type Props = {
   hideLabels?: boolean;
   shortLabels?: boolean;
   alignChartTabs?: boolean;
+  forceTickCount?: number; // is used on feed page
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -91,7 +108,9 @@ const ContinuousAreaChart: FC<Props> = ({
   hideLabels = false,
   shortLabels = false,
   alignChartTabs,
+  forceTickCount,
 }) => {
+  const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
@@ -122,7 +141,7 @@ const ContinuousAreaChart: FC<Props> = ({
           question,
         })
       );
-      if (componentCdfs) {
+      if (componentCdfs && componentCdfs.length > 1) {
         for (const componentCdf of componentCdfs) {
           chartData.push(
             generateNumericAreaGraph({
@@ -184,6 +203,7 @@ const ContinuousAreaChart: FC<Props> = ({
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
   }, [data, graphType, question.type, charts]);
+
   const xScale = useMemo(
     () =>
       generateScale({
@@ -194,6 +214,7 @@ const ContinuousAreaChart: FC<Props> = ({
         shortLabels,
         adjustLabels: true,
         question: question,
+        // forceTickCount, // TODO: implement this after scale helper changes
       }),
     [chartWidth, question, xDomain, shortLabels]
   );
@@ -220,7 +241,13 @@ const ContinuousAreaChart: FC<Props> = ({
           inboundOutcomeCount: question.inbound_outcome_count,
         })
       : null;
-
+  const formattedResolution = formatResolution({
+    resolution: question.resolution,
+    questionType: question.type,
+    locale,
+    scaling: question.scaling,
+    actual_resolve_time: null,
+  });
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
@@ -427,6 +454,25 @@ const ContinuousAreaChart: FC<Props> = ({
       }}
     />
   );
+  const todayLabelPosition = useMemo(() => {
+    const visibleChartLength = chartWidth - 2 * horizontalPadding;
+    const point = {
+      x:
+        horizontalPadding +
+        ((chartWidth - 2 * horizontalPadding) *
+          (unscaleNominalLocation(
+            Math.floor(Date.now() / 1000),
+            question.scaling
+          ) -
+            xDomain[0])) /
+          (xDomain[1] - xDomain[0]),
+      y: 0,
+    };
+    if (point.x < 0 || point.x > visibleChartLength) {
+      return null;
+    }
+    return point;
+  }, [chartWidth, horizontalPadding, question.scaling, xDomain]);
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -474,7 +520,7 @@ const ContinuousAreaChart: FC<Props> = ({
                             case "orange":
                               return getThemeColor(
                                 METAC_COLORS.orange[
-                                  chart.type === "user" ? "700" : "400"
+                                  chart.type === "user" ? "500" : "400"
                                 ]
                               );
                             case "green":
@@ -505,7 +551,7 @@ const ContinuousAreaChart: FC<Props> = ({
                           case "orange":
                             return getThemeColor(
                               METAC_COLORS.orange[
-                                chart.type === "user" ? "700" : "400"
+                                chart.type === "user" ? "500" : "400"
                               ]
                             );
                           case "green":
@@ -539,7 +585,7 @@ const ContinuousAreaChart: FC<Props> = ({
                             return getThemeColor(
                               METAC_COLORS.orange[
                                 chart.type === "user"
-                                  ? "800"
+                                  ? "500"
                                   : chart.type === "user_components"
                                     ? "500"
                                     : "200"
@@ -554,31 +600,12 @@ const ContinuousAreaChart: FC<Props> = ({
                         }
                       })(),
                       strokeDasharray:
-                        chart.color === "orange" ? "2,2" : undefined,
+                        chart.type === "user_previous" ? "2,2" : undefined,
                     },
                   }}
                 />
               ))
             : null}
-          {resolutionPoint && (
-            <VictoryScatter
-              data={[
-                {
-                  x: resolutionPoint.y,
-                  y: 0,
-                  symbol: "diamond",
-                  size: 4,
-                },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
-                  fill: "none",
-                  strokeWidth: 2.5,
-                },
-              }}
-            />
-          )}
           {(graphType === "cdf" || question.type === QuestionType.Discrete) && (
             // Prevent Y axis being cut off in edge cases
             <VictoryPortal>
@@ -586,7 +613,11 @@ const ContinuousAreaChart: FC<Props> = ({
                 dependentAxis
                 style={{
                   tickLabels: { padding: 2 },
-                  ticks: { strokeWidth: 1 },
+                  ticks: { stroke: "transparent" },
+                  axis: {
+                    stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                    strokeWidth: 1,
+                  },
                 }}
                 tickValues={yScale.ticks}
                 tickFormat={yScale.tickFormat}
@@ -598,8 +629,17 @@ const ContinuousAreaChart: FC<Props> = ({
             tickValues={xScale.ticks}
             tickFormat={hideLabels ? () => "" : xScale.tickFormat}
             style={{
-              ticks: { strokeWidth: 1 },
+              ticks: {
+                strokeWidth: 1,
+                stroke: "transparent",
+              },
+              axis: {
+                stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                strokeWidth: 1,
+              },
               tickLabels: {
+                fontSize: 10,
+                color: "red",
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
                   // except for discrete questions, whose first and last ticks are not
@@ -613,7 +653,30 @@ const ContinuousAreaChart: FC<Props> = ({
               },
             }}
           />
-
+          {/* Horizontal line */}
+          {charts.map((chart, index) => (
+            <VictoryLine
+              key={`line-${index}`}
+              data={[
+                { x: 0, y: 0 },
+                { x: 1, y: 0 },
+              ]}
+              style={{
+                data: {
+                  stroke: (() => {
+                    switch (chart.color) {
+                      case "orange":
+                        return getThemeColor(METAC_COLORS.orange["800"]);
+                      case "gray":
+                        return getThemeColor(METAC_COLORS.gray["500"]);
+                      default:
+                        return undefined;
+                    }
+                  })(),
+                },
+              }}
+            />
+          ))}
           {charts.map((chart, k) =>
             chart.verticalLines.map((line, index) => (
               <VictoryLine
@@ -627,19 +690,109 @@ const ContinuousAreaChart: FC<Props> = ({
                     stroke: (() => {
                       switch (chart.color) {
                         case "orange":
-                          return getThemeColor(METAC_COLORS.orange["800"]);
+                          return getThemeColor(METAC_COLORS.orange["700"]);
                         case "gray":
                           return getThemeColor(METAC_COLORS.gray["500"]);
                         default:
                           return undefined;
                       }
                     })(),
-                    strokeDasharray: "2,1",
+                    strokeDasharray: "2,2",
                   },
                 }}
               />
             ))
           )}
+          {/* Resolution point */}
+          {resolutionPoint && (
+            <VictoryScatter
+              data={[
+                {
+                  x: resolutionPoint.y,
+                  y: 0,
+                  symbol: "diamond",
+                  size: 4,
+                },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: getThemeColor(METAC_COLORS.gray["200"]),
+                  strokeWidth: 2.5,
+                },
+              }}
+            />
+          )}
+          {/* Resolution chip */}
+          {resolutionPoint && (
+            <VictoryScatter
+              data={[
+                {
+                  x: resolutionPoint.y,
+                  y: 0,
+                  symbol: "diamond",
+                  size: 4,
+                },
+              ]}
+              dataComponent={
+                <VictoryPortal>
+                  <ChartValueBox
+                    rightPadding={0}
+                    chartWidth={chartWidth}
+                    isCursorActive={false}
+                    isDistributionChip={true}
+                    colorOverride={METAC_COLORS.purple["800"]}
+                    resolution={formattedResolution}
+                  />
+                </VictoryPortal>
+              }
+            />
+          )}
+
+          {/* Today's date line for date questions */}
+          {question.type === QuestionType.Date && (
+            <VictoryLine
+              data={[
+                {
+                  x: unscaleNominalLocation(
+                    Math.floor(Date.now() / 1000),
+                    question.scaling
+                  ),
+                  y: 0,
+                },
+                {
+                  x: unscaleNominalLocation(
+                    Math.floor(Date.now() / 1000),
+                    question.scaling
+                  ),
+                  y: yDomain[1] * 0.9,
+                },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.blue["700"]),
+                  strokeDasharray: "4,4",
+                  strokeWidth: 1,
+                  opacity: 0.5,
+                },
+              }}
+            />
+          )}
+          {question.type === QuestionType.Date && todayLabelPosition && (
+            <VictoryPortal>
+              <VictoryLabel
+                x={todayLabelPosition.x}
+                y={todayLabelPosition.y}
+                text="Today"
+                style={{
+                  fill: getThemeColor(METAC_COLORS.gray["500"]),
+                  fontSize: 12,
+                }}
+                textAnchor="middle"
+              />
+            </VictoryPortal>
+          )}
+
           {/* Manually render cursor component when cursor is on edge */}
           {!isNil(cursorEdge) && (
             <LineCursorPoints
