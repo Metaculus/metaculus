@@ -100,7 +100,14 @@ const NumericTimeline: FC<Props> = ({
       scaling,
       size: 5,
     });
-  }, [actualCloseTime, questionType, resolution, resolveTime, scaling]);
+  }, [
+    actualCloseTime,
+    questionType,
+    resolution,
+    resolveTime,
+    scaling,
+    aggregation.latest,
+  ]);
 
   const getCursorValue = useCallback(
     (value: number) => {

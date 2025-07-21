@@ -83,6 +83,7 @@ export function getAxisRightPadding(
   labelsFontSize: number,
   yLabel?: string | undefined
 ) {
+  const SCATTER_POINT_PADDING = 5;
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.min(
     Math.max(...labels.map((label) => label.length)),
@@ -90,9 +91,9 @@ export function getAxisRightPadding(
   );
   const fontSizeScale = yLabel ? 11 : 9;
   return {
-    rightPadding: Math.round(
-      (longestLabelLength * labelsFontSize * fontSizeScale) / 10
-    ),
+    rightPadding:
+      Math.round((longestLabelLength * labelsFontSize * fontSizeScale) / 10) +
+      SCATTER_POINT_PADDING,
     MIN_RIGHT_PADDING: 35,
   };
 }

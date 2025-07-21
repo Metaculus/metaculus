@@ -4,24 +4,26 @@ import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import GroupPredictionsTooltip from "@/components/charts/primitives/group_predictions_tooltip";
+import NewMultipleChoiceChart from "@/components/charts/new_multiple_choice_chart";
+import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { QuestionType, Scaling } from "@/types/question";
+import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 import ChoicesLegend from "./choices_legend";
 
-const MAX_VISIBLE_CHECKBOXES = 6;
+const MAX_VISIBLE_CHECKBOXES = 3;
 
 type Props = {
   choiceItems: ChoiceItem[];
-  tooltipDate: string;
+  tooltipTitle?: string;
   tooltipChoices: ChoiceTooltipItem[];
   tooltipUserChoices?: ChoiceTooltipItem[];
   forecastersCount?: number | null;
+  userCursorIndex?: number;
   onChoiceItemsUpdate: (choiceItems: ChoiceItem[]) => void;
   timestamps: number[];
   onCursorChange?: (value: number, format: TickFormat) => void;
@@ -29,7 +31,6 @@ type Props = {
   actualCloseTime?: number | null;
   isClosed?: boolean;
   hideCP?: boolean;
-  isEmptyDomain?: boolean;
 
   title?: string;
   yLabel?: string;
@@ -42,13 +43,15 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
   className?: string;
+  forecastAvailability?: ForecastAvailability;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
   choiceItems,
-  tooltipDate,
+  tooltipTitle,
   tooltipChoices,
   tooltipUserChoices,
+  userCursorIndex,
   onChoiceItemsUpdate,
   timestamps,
   onCursorChange,
@@ -56,7 +59,6 @@ const MultiChoicesChartView: FC<Props> = ({
   actualCloseTime,
   isClosed,
   hideCP,
-  isEmptyDomain,
 
   title,
   yLabel,
@@ -69,6 +71,7 @@ const MultiChoicesChartView: FC<Props> = ({
   chartTheme,
   embedMode = false,
   className,
+  forecastAvailability,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -156,36 +159,69 @@ const MultiChoicesChartView: FC<Props> = ({
         {...getReferenceProps()}
         className={"relative"}
       >
-        <MultipleChoiceChart
-          actualCloseTime={actualCloseTime}
-          timestamps={timestamps}
-          choiceItems={choiceItems}
-          hideCP={hideCP}
-          yLabel={embedMode ? undefined : yLabel}
-          onChartReady={handleChartReady}
-          onCursorChange={onCursorChange}
-          questionType={questionType}
-          scaling={scaling}
-          isClosed={isClosed}
-          extraTheme={chartTheme}
-          height={normalizedChartHeight}
-          withZoomPicker
-          defaultZoom={
-            defaultZoom
-              ? defaultZoom
-              : user
-                ? TimelineChartZoomOption.All
-                : TimelineChartZoomOption.TwoMonths
-          }
-          isEmptyDomain={isEmptyDomain}
-          openTime={openTime}
-          forceAutoZoom={isInteracted.current}
-          chartTitle={!embedMode ? title : undefined}
-        />
+        {questionType === QuestionType.MultipleChoice ? (
+          <NewMultipleChoiceChart
+            actualCloseTime={actualCloseTime}
+            timestamps={timestamps}
+            choiceItems={choiceItems}
+            hideCP={hideCP}
+            yLabel={embedMode ? undefined : yLabel}
+            onChartReady={handleChartReady}
+            onCursorChange={onCursorChange}
+            scaling={scaling}
+            isClosed={isClosed}
+            extraTheme={chartTheme}
+            height={normalizedChartHeight}
+            withZoomPicker
+            defaultZoom={
+              defaultZoom
+                ? defaultZoom
+                : user
+                  ? TimelineChartZoomOption.All
+                  : TimelineChartZoomOption.TwoMonths
+            }
+            openTime={openTime}
+            forceAutoZoom={isInteracted.current}
+            isEmbedded={embedMode}
+            forecastAvailability={forecastAvailability}
+            userCursorIndex={userCursorIndex}
+            chartTitle={!embedMode ? title : undefined}
+          />
+        ) : (
+          // TODO: replace with new group chart
+          <MultipleChoiceChart
+            actualCloseTime={actualCloseTime}
+            timestamps={timestamps}
+            choiceItems={choiceItems}
+            hideCP={hideCP}
+            yLabel={embedMode ? undefined : yLabel}
+            onChartReady={handleChartReady}
+            onCursorChange={onCursorChange}
+            questionType={questionType}
+            scaling={scaling}
+            isClosed={isClosed}
+            extraTheme={chartTheme}
+            height={normalizedChartHeight}
+            withZoomPicker
+            defaultZoom={
+              defaultZoom
+                ? defaultZoom
+                : user
+                  ? TimelineChartZoomOption.All
+                  : TimelineChartZoomOption.TwoMonths
+            }
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={openTime}
+            forceAutoZoom={isInteracted.current}
+          />
+        )}
       </div>
 
       {withLegend && (
-        <div className="mt-3" ref={legendContainerRef}>
+        <div className="mt-3 md:pl-2.5" ref={legendContainerRef}>
           <ChoicesLegend
             choices={choiceItems}
             onChoiceChange={handleChoiceChange}
@@ -199,13 +235,13 @@ const MultiChoicesChartView: FC<Props> = ({
       {isTooltipActive && !!tooltipChoices.length && (
         <FloatingPortal>
           <div
-            className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
+            className="pointer-events-none z-[100] rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
           >
-            <GroupPredictionsTooltip
-              title={tooltipDate}
+            <MCPredictionsTooltip
+              title={tooltipTitle}
               communityPredictions={tooltipChoices}
               userPredictions={tooltipUserChoices}
             />

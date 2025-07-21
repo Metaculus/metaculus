@@ -72,6 +72,7 @@ type Props = {
   chartTitle?: string;
 };
 
+// TODO: replace with new group chart
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
   actualCloseTime,

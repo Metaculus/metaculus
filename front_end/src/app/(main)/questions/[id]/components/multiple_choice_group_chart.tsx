@@ -268,9 +268,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       chartHeight={chartHeight}
       withLegend={withLegend}
       defaultZoom={defaultZoom}
-      isEmptyDomain={
-        !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
-      }
+      forecastAvailability={forecastAvailability}
       className={className}
     />
   );

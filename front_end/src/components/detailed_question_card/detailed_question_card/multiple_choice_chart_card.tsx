@@ -168,26 +168,25 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
+      questionType={question.type}
+      tooltipTitle={question.group_variable}
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
+      userCursorIndex={userCursorIndex}
       choiceItems={choiceItems}
       hideCP={hideCP}
       timestamps={timestamps}
       forecastersCount={forecastersCount}
-      tooltipDate={tooltipDate}
       onCursorChange={handleCursorChange}
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
       title={t("forecastTimelineHeading")}
-      yLabel={t("communityPredictionLabel")}
       chartTheme={chartTheme}
       embedMode={embedMode}
       chartHeight={chartHeight}
       defaultZoom={defaultZoom}
-      isEmptyDomain={
-        !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
-      }
+      forecastAvailability={forecastAvailability}
       openTime={openTime}
     />
   );
