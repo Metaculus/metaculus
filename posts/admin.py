@@ -50,6 +50,7 @@ class PostAdmin(CustomTranslationAdmin):
         "export_selected_posts_data_anonymized",
         "update_translations",
         "rebuild_aggregation_history",
+        "mark_as_deleted",
     ]
 
     def hotness_explanation(self, obj):
@@ -127,6 +128,16 @@ class PostAdmin(CustomTranslationAdmin):
         for post in queryset:
             for question in post.get_questions():
                 build_question_forecasts(question)
+
+    def mark_as_deleted(self, request, queryset: QuerySet[Post]):
+        updated = 0
+        for post in queryset:
+            post.curation_status = Post.CurationStatus.DELETED
+            post.save()
+            updated += 1
+        self.message_user(request, f"Marked {updated} post(s) as DELETED.")
+
+    mark_as_deleted.short_description = "Mark as DELETED"
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
