@@ -9,7 +9,12 @@ import {
 import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
-import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
+import {
+  Scale,
+  ScaleDirection,
+  TimelineChartZoomOption,
+  YDomain,
+} from "@/types/charts";
 import {
   DefaultInboundOutcomeCount,
   GraphingQuestionProps,
@@ -403,7 +408,7 @@ function findOptimalTickCount(
 type GenerateScaleParams = {
   displayType: QuestionType;
   axisLength: number;
-  direction?: "horizontal" | "vertical";
+  direction?: ScaleDirection;
   domain?: Tuple<number>;
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
@@ -440,7 +445,7 @@ type GenerateScaleParams = {
 export function generateScale({
   displayType,
   axisLength,
-  direction = "horizontal",
+  direction = ScaleDirection.Horizontal,
   domain = [0, 1],
   zoomedDomain = [0, 1],
   scaling = null,
@@ -495,7 +500,10 @@ export function generateScale({
   // determine the number of ticks to label
   // based on the axis length and direction
   let maxLabelCount: number;
-  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+  if (
+    displayType === QuestionType.Discrete &&
+    direction === ScaleDirection.Horizontal
+  ) {
     // get last label width to determine the number of labels
     const lastLabel = getPredictionDisplayValue(
       1 - 0.5 / inbound_outcome_count,
@@ -514,23 +522,28 @@ export function generateScale({
       lastLabel.length ? axisLength / (12 * lastLabel.length) : 15,
       inbound_outcome_count + openBoundCount
     );
+  } else if (axisLength < 100) {
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 2 : 3;
   } else if (axisLength < 150) {
-    maxLabelCount = direction === "horizontal" ? 3 : 5;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 3 : 5;
   } else if (axisLength < 300) {
-    maxLabelCount = direction === "horizontal" ? 5 : 6;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 5 : 6;
   } else if (axisLength < 500) {
-    maxLabelCount = direction === "horizontal" ? 6 : 11;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 6 : 11;
   } else if (axisLength < 800) {
-    maxLabelCount = direction === "horizontal" ? 7 : 21;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 7 : 21;
   } else if (axisLength < 1200) {
-    maxLabelCount = direction === "horizontal" ? 11 : 21;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 11 : 21;
   } else {
-    maxLabelCount = direction === "horizontal" ? 21 : 26;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 21 : 26;
   }
 
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
-  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+  if (
+    displayType === QuestionType.Discrete &&
+    direction === ScaleDirection.Horizontal
+  ) {
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
       : inbound_outcome_count + openBoundCount;
@@ -553,7 +566,7 @@ export function generateScale({
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (
     displayType === QuestionType.Discrete &&
-    direction === "vertical"
+    direction === ScaleDirection.Vertical
   ) {
     // expect to have a foreced tick count, and never include
     // out of bounds values
@@ -652,7 +665,16 @@ export function generateScale({
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
     const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
-    minorTicks = majorTicks.map((x) => x);
+    minorTicks = forceTickCount
+      ? Array.from(
+          { length: forceTickCount },
+          (_, i) =>
+            zoomedDomainMin +
+            (i * ((zoomedDomainMax - zoomedDomainMin) * 10000)) /
+              (forceTickCount - 1) /
+              10000
+        )
+      : majorTicks.map((x) => x);
     range(0, bestTicks.length - 1).forEach((i) => {
       const prevMajor = bestTicks.at(i) ?? 0;
       const nextMajor = bestTicks.at(i + 1) ?? 1;

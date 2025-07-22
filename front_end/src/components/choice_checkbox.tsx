@@ -33,6 +33,7 @@ const ChoiceCheckbox: FC<Props> = ({
       label={label}
       color={color}
       className={className}
+      isSolidIcon
     />
   );
 };

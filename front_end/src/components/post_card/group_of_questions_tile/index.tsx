@@ -4,7 +4,7 @@ import { FC, useMemo } from "react";
 
 import {
   MultipleChoiceTile,
-  FanGraphMultipleChoiceTile,
+  FanGraphTile,
 } from "@/components/post_card/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
@@ -64,7 +64,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ post, showChart }) => {
   switch (graph_type) {
     case GroupOfQuestionsGraphType.FanGraph: {
       return (
-        <FanGraphMultipleChoiceTile
+        <FanGraphTile
           choices={choices}
           visibleChoicesCount={VISIBLE_CHOICES_COUNT}
           group={post.group_of_questions}
@@ -72,6 +72,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ post, showChart }) => {
           canPredict={canPredict}
           hideCP={hideCP}
           showChart={showChart}
+          optionsLimit={10}
         />
       );
     }
