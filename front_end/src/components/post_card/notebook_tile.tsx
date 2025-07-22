@@ -21,11 +21,14 @@ const NotebookTile: FC<Props> = ({ post }) => {
       {!!width && (
         <MarkdownEditor
           mode="read"
-          markdown={getMarkdownSummary({
-            markdown: notebook.markdown,
-            width,
-            height: 80,
-          })}
+          markdown={
+            notebook.markdown_summary ||
+            getMarkdownSummary({
+              markdown: notebook.markdown,
+              width,
+              height: 80,
+            })
+          }
           contentEditableClassName="!m-0 *:m-0 line-clamp-2 !text-sm !text-gray-800 !dark:text-gray-800-dark"
           withUgcLinks
         />
