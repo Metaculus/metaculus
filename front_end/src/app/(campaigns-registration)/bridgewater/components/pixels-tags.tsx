@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { FC, useEffect } from "react";
 
-import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+import { getCookiesConsentStatistics } from "@/contexts/cookies_context";
 
 import {
   fbPixelTrackPage,
@@ -13,13 +13,10 @@ import {
 } from "./pixel-apis";
 
 export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
-  const consent =
-    typeof window !== "undefined"
-      ? getAnalyticsCookieConsentGiven()
-      : "undecided";
+  const consent = getCookiesConsentStatistics();
 
   useEffect(() => {
-    if (consent !== "yes" || !pixelID) return;
+    if (!consent || !pixelID) return;
 
     fbPixelInit(pixelID);
     fbPixelTrackPage();
@@ -61,13 +58,10 @@ export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
 export const LinkedInInsightTag: FC<{ partnerID?: string }> = ({
   partnerID,
 }) => {
-  const consent =
-    typeof window !== "undefined"
-      ? getAnalyticsCookieConsentGiven()
-      : "undecided";
+  const consent = getCookiesConsentStatistics();
 
   useEffect(() => {
-    if (consent !== "yes" || !partnerID) return;
+    if (!consent || !partnerID) return;
 
     lnkdnInitAndTrack();
   }, [consent, partnerID]);
@@ -108,13 +102,10 @@ export const LinkedInInsightTag: FC<{ partnerID?: string }> = ({
 };
 
 export const RedditPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
-  const consent =
-    typeof window !== "undefined"
-      ? getAnalyticsCookieConsentGiven()
-      : "undecided";
+  const consent = getCookiesConsentStatistics();
 
   useEffect(() => {
-    if (consent !== "yes" || !pixelID) return;
+    if (!consent || !pixelID) return;
 
     redditPixelInitAndTrack(pixelID);
   }, [consent, pixelID]);

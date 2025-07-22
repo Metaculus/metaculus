@@ -14,6 +14,7 @@ import PublicSettingsScript from "@/components/public_settings_script";
 import AppThemeProvider from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
+import CookiesProvider from "@/contexts/cookies_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
@@ -84,9 +85,44 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Add the Cookiebot script if the ID is set */}
+        {!!publicSettings.PUBLIC_COOKIEBOT_ID && (
+          <>
+            <Script
+              id="CookiebotCallback_OnDialogDisplay"
+              strategy="beforeInteractive"
+            >
+              {`
+                  CookiebotCallback_OnDialogDisplay = function () {
+                    // This is a hack to hide the banner right before it is displayed. We only need to do it once, when the
+                    // page loads but there is no other way to do so besides this callback which is called
+                    // whenever the banner is displayed.
+                    // But we do want to be able to display the banner again if the user clicks on the advanced,
+                    // settings button, so we need to guard the hide call.
+                    if (!window.CookiebotFirsttimeHide) {
+                      window.CookiebotFirsttimeHide = true;
+                      window.Cookiebot.hide();
+                    }
+                  };
+              `}
+            </Script>
+            <Script
+              id="Cookiebot"
+              src="https://consent.cookiebot.com/uc.js"
+              data-cbid={publicSettings.PUBLIC_COOKIEBOT_ID}
+              strategy="beforeInteractive"
+            />
+          </>
+        )}
+
         <PublicSettingsScript publicSettings={publicSettings} />
         {/* Set default consent mode before GA loads */}
-        <Script id="default-consent" strategy="beforeInteractive">
+        <Script
+          id="default-consent"
+          strategy="beforeInteractive"
+          type="text/plain"
+          data-cookieconsent="statistics"
+        >
           {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){ 
@@ -99,33 +135,38 @@ export default async function RootLayout({
             `}
         </Script>
       </head>
-      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+      <body
+        className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark"
+        suppressHydrationWarning
+      >
         <PolyfillProvider>
-          <CSPostHogProvider locale={locale}>
-            <AppThemeProvider>
-              <NextIntlClientProvider messages={messages}>
-                <AuthProvider user={user} locale={locale}>
-                  <PublicSettingsProvider settings={publicSettings}>
-                    <ModalProvider>
-                      <NavigationProvider>
-                        <GlobalSearchProvider>
-                          <TranslationsBannerProvider>
-                            <NextTopLoader
-                              showSpinner={false}
-                              color={METAC_COLORS.blue["500"].DEFAULT}
-                            />
-                            {children}
-                            <GlobalModals />
-                            <Toaster />
-                          </TranslationsBannerProvider>
-                        </GlobalSearchProvider>
-                      </NavigationProvider>
-                    </ModalProvider>
-                  </PublicSettingsProvider>
-                </AuthProvider>
-              </NextIntlClientProvider>
-            </AppThemeProvider>
-          </CSPostHogProvider>
+          <CookiesProvider>
+            <CSPostHogProvider locale={locale}>
+              <AppThemeProvider>
+                <NextIntlClientProvider messages={messages}>
+                  <AuthProvider user={user} locale={locale}>
+                    <PublicSettingsProvider settings={publicSettings}>
+                      <ModalProvider>
+                        <NavigationProvider>
+                          <GlobalSearchProvider>
+                            <TranslationsBannerProvider>
+                              <NextTopLoader
+                                showSpinner={false}
+                                color={METAC_COLORS.blue["500"].DEFAULT}
+                              />
+                              {children}
+                              <GlobalModals />
+                              <Toaster />
+                            </TranslationsBannerProvider>
+                          </GlobalSearchProvider>
+                        </NavigationProvider>
+                      </ModalProvider>
+                    </PublicSettingsProvider>
+                  </AuthProvider>
+                </NextIntlClientProvider>
+              </AppThemeProvider>
+            </CSPostHogProvider>
+          </CookiesProvider>
         </PolyfillProvider>
       </body>
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (

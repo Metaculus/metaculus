@@ -7,9 +7,11 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useCookiesContext } from "@/contexts/cookies_context";
+
 const Footer: FC = () => {
   const t = useTranslations();
-
+  const { openModal: openCookiesModal } = useCookiesContext();
   return (
     <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-gray-0">
       <div className="flex min-w-72 max-w-96 flex-1 justify-evenly px-4 pb-0 pt-4">
@@ -105,6 +107,15 @@ const Footer: FC = () => {
         >
           {t("termsOfUse")}
         </a>
+
+        <span
+          className=" my-1 inline cursor-pointer border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
+          onClick={() => {
+            openCookiesModal();
+          }}
+        >
+          {t("cookiesSettings")}
+        </span>
       </div>
 
       <div className="mt-3 flex w-full items-center justify-around bg-gray-600-dark py-0.5 sm:py-1">

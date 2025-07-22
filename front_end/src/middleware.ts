@@ -10,6 +10,8 @@ import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+import { hasCookiePreferencesConsent } from "./utils/cookiebot.server";
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -78,9 +80,12 @@ export async function middleware(request: NextRequest) {
   });
 
   if (locale_in_url && locale_in_url !== local_in_cookie) {
-    response.cookies.set("NEXT_LOCALE", locale_in_url, {
-      maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
-    });
+    // Only set the locale cookie if preferences consent is given
+    if (hasCookiePreferencesConsent(request)) {
+      response.cookies.set("NEXT_LOCALE", locale_in_url, {
+        maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+      });
+    }
   }
 
   if (deleteCookieToken) {
