@@ -61,13 +61,6 @@ def _compute_hotness_approval_score(post: Post) -> float:
 
 
 def _compute_hotness_relevant_news(post: Post) -> float:
-    # Include questions with actual close time in the past 7 days, so that when the "open" filter is unselected
-    # you see actually trending stuff that resolved instead of a bunch of old outdated stuff.
-    if post.actual_close_time and timezone.now() - post.actual_close_time > timedelta(
-        days=7
-    ):
-        return 0
-
     qs = PostArticle.objects.filter(post=post)
 
     return sum(
