@@ -1,6 +1,7 @@
 from django.db import models
 from pgvector.django import VectorField
 
+from posts.models import Post
 from projects.models import Project
 from users.models import User
 from utils.models import TimeStampedModel
@@ -26,7 +27,7 @@ class ITNArticle(TimeStampedModel):
 
 class PostArticle(TimeStampedModel):
     article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)
-    post = models.ForeignKey("posts.Post", on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
     distance = models.FloatField(null=False, db_index=True)
 
     class Meta:
@@ -66,7 +67,7 @@ class WhitelistUser(TimeStampedModel):
         "whitelisted for all data.",
     )
     post = models.ForeignKey(
-        "posts.Post",
+        Post,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
@@ -131,7 +132,7 @@ class SidebarItem(TimeStampedModel):
     )
 
     post = models.ForeignKey(
-        "posts.Post",
+        Post,
         null=True,
         blank=True,
         on_delete=models.PROTECT,

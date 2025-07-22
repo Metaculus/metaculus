@@ -23,7 +23,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
 
-from misc.models import PostArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import (
@@ -252,6 +251,8 @@ class PostQuerySet(models.QuerySet):
         )
 
     def annotate_news_hotness(self):
+        from misc.models import PostArticle
+
         per_article = (
             PostArticle.objects.filter(post_id=OuterRef("pk"))
             .annotate(
