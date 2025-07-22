@@ -46,6 +46,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "rebuild_aggregation_history",
         "trigger_scoring",
         "trigger_scoring_with_all_aggregations",
+        "mark_post_as_deleted",
     ]
     list_filter = [
         "type",
@@ -170,6 +171,18 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     trigger_scoring_with_all_aggregations.short_description = (
         "Trigger Scoring (Includes ALL Aggregations) (does nothing if not resolved)"
     )
+
+    def mark_post_as_deleted(self, request, queryset: QuerySet[Question]):
+        updated = 0
+        for obj in queryset:
+            post = obj.get_post()
+            if post is not None:
+                post.curation_status = Post.CurationStatus.DELETED
+                post.save()
+                updated += 1
+        self.message_user(request, f"Marked {updated} post(s) as DELETED.")
+
+    mark_post_as_deleted.short_description = "Mark post as DELETED"
 
 
 @admin.register(Conditional)
