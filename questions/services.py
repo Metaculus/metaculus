@@ -205,9 +205,7 @@ def update_question(question: Question, **kwargs) -> Question:
     return question
 
 
-def create_group_of_questions(
-    *, title: str = None, questions: list[dict], **kwargs
-) -> GroupOfQuestions:
+def create_group_of_questions(*, questions: list[dict], **kwargs) -> GroupOfQuestions:
     obj = GroupOfQuestions(**kwargs)
 
     obj.full_clean()
@@ -237,6 +235,7 @@ def update_group_of_questions(
             "description",
             "group_variable",
             "subquestions_order",
+            "graph_type",
         ],
         data=kwargs,
     )
