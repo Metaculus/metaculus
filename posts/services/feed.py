@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Iterable
 
 from django.db.models import Q
@@ -289,6 +290,14 @@ def get_posts_feed(
 
         # Annotate news hotness and exclude notebooks
         qs = qs.annotate_news_hotness().filter(notebook__isnull=True)
+
+        # Include questions with actual close time in the past 7 days,
+        # so that when the "open" filter is unselected you see
+        # actually trending stuff that resolved instead of a bunch of old outdated stuff
+        qs = qs.filter(
+            Q(actual_close_time__isnull=True)
+            | Q(actual_close_time__gte=timezone.now() - timedelta(days=7))
+        )
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
