@@ -7,7 +7,7 @@ class CoherenceLinksApi extends ApiService {
     if (!post.question)
       throw new Error("Post doesn't have only one associated question");
     const question = post.question;
-    return await this.get(`/coherence/get-links/${question.id}`);
+    return await this.get(`/coherence/links/${question.id}/`);
   }
 }
 
