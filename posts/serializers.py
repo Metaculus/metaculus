@@ -169,6 +169,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         VOTES = "vote_score"
         COMMENT_COUNT = "comment_count"
         FORECASTS_COUNT = "forecasts_count"
+        FORECASTERS_COUNT = "forecasters_count"
         SCHEDULED_CLOSE_TIME = "scheduled_close_time"
         SCHEDULED_RESOLVE_TIME = "scheduled_resolve_time"
         USER_LAST_FORECASTS_DATE = "user_last_forecasts_date"
