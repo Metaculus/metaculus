@@ -1,7 +1,6 @@
 import datetime
 import logging
 import time
-from datetime import timedelta
 
 from django.db.models import Prefetch
 from django.utils import timezone
