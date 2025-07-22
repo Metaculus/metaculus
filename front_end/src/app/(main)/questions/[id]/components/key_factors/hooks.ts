@@ -22,7 +22,7 @@ export type SuggestedKeyFactor = {
 };
 
 type UseKeyFactorsProps = {
-  user_id: number;
+  user_id: number | undefined;
   commentId?: number;
   postId?: number;
   suggestKeyFactors?: boolean;
@@ -172,9 +172,17 @@ export const useKeyFactors = ({
 
 export const getKeyFactorsLimits = (
   combinedKeyFactors: KeyFactor[],
-  user_id: number,
+  user_id: number | undefined,
   commentId?: number
 ) => {
+  if (isNil(user_id)) {
+    return {
+      userPostFactors: [],
+      userCommentFactors: [],
+      factorsLimit: 0,
+    };
+  }
+
   const postFactors = combinedKeyFactors.filter(
     (kf) => kf.author.id === user_id
   );
@@ -182,9 +190,12 @@ export const getKeyFactorsLimits = (
     ? combinedKeyFactors.filter((kf) => kf.comment_id === commentId)
     : [];
 
-  const factorsLimit = commentId
+  const commentLimit = commentId
     ? FACTORS_PER_COMMENT - commentFactors.length
-    : FACTORS_PER_QUESTION - postFactors.length;
+    : FACTORS_PER_COMMENT;
+  const postLimit = FACTORS_PER_QUESTION - postFactors.length;
+
+  const factorsLimit = Math.min(commentLimit, postLimit);
 
   return {
     userPostFactors: postFactors,

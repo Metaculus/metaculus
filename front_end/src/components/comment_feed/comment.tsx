@@ -298,21 +298,26 @@ const Comment: FC<CommentProps> = ({
     clearState,
   } = useKeyFactors({
     suggestKeyFactors: loadKeyFactors,
-    user_id: comment.author.id,
+    user_id: user?.id,
     commentId: comment.id,
     postId: comment.on_post_data?.id,
     onKeyFactorsLoadded,
   });
 
   const canListKeyFactors = !postData?.notebook;
+  const questionNotClosed = ![
+    PostStatus.CLOSED,
+    PostStatus.RESOLVED,
+    PostStatus.PENDING_RESOLUTION,
+  ].includes(postData?.status ?? PostStatus.CLOSED);
+
+  const limitNotReached = factorsLimit > 0;
+  const isCommentAuthor = comment.author.id === user?.id;
 
   const canAddKeyFactors =
-    comment.author.id === user?.id &&
-    ![
-      PostStatus.CLOSED,
-      PostStatus.RESOLVED,
-      PostStatus.PENDING_RESOLUTION,
-    ].includes(postData?.status ?? PostStatus.CLOSED) &&
+    isCommentAuthor &&
+    questionNotClosed &&
+    limitNotReached &&
     canListKeyFactors;
 
   const onAddKeyFactorClick = () => {
