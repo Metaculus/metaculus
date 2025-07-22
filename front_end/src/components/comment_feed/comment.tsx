@@ -45,7 +45,7 @@ import {
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { getCommentIdToFocusOn, parseUserMentions } from "@/utils/comments";
+import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 import { formatUsername } from "@/utils/formatters/users";
@@ -62,6 +62,7 @@ import { SortOption, sortComments } from ".";
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   expandedChildren?: boolean;
+  forceExpandedChildren?: boolean;
   treeDepth: number;
   sort: SortOption;
   postData?: PostWithForecasts;
@@ -73,6 +74,7 @@ type CommentChildrenTreeProps = {
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   commentChildren,
   expandedChildren = false,
+  forceExpandedChildren = false,
   treeDepth,
   sort,
   postData,
@@ -84,24 +86,8 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   const sortedCommentChildren = sortComments([...commentChildren], sort);
 
   const [childrenExpanded, setChildrenExpanded] = useState(
-    expandedChildren && treeDepth < 5
+    (expandedChildren && treeDepth < 5) || forceExpandedChildren
   );
-
-  useEffect(() => {
-    const commentIdToFocusOn = getCommentIdToFocusOn();
-
-    if (commentIdToFocusOn) {
-      const shouldExpand = hasCommentInTree(
-        sortedCommentChildren,
-        Number(commentIdToFocusOn)
-      );
-
-      if (shouldExpand) {
-        setChildrenExpanded(true);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -198,6 +184,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                   postData={postData}
                   lastViewedAt={lastViewedAt}
                   shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+                  forceExpandedChildren={forceExpandedChildren}
                 />
               </div>
             );
@@ -216,8 +203,9 @@ type CommentProps = {
   postData?: PostWithForecasts;
   lastViewedAt?: string;
   isCollapsed?: boolean;
-  suggestKeyFactorsOnFirstRender?: boolean;
+  isCommentJustCreated?: boolean;
   shouldSuggestKeyFactors?: boolean;
+  forceExpandedChildren?: boolean;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -229,8 +217,9 @@ const Comment: FC<CommentProps> = ({
   lastViewedAt,
   isCollapsed = false,
   handleCommentPin,
-  suggestKeyFactorsOnFirstRender = false,
+  isCommentJustCreated = false,
   shouldSuggestKeyFactors = false,
+  forceExpandedChildren = false,
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
@@ -273,13 +262,16 @@ const Comment: FC<CommentProps> = ({
   }, [comment.key_factors]);
 
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
+  const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
+    useState(isCommentJustCreated);
 
   const [loadKeyFactors, setLoadKeyFactors] = useState(
-    suggestKeyFactorsOnFirstRender && shouldSuggestKeyFactors
+    isCommentJustCreated && shouldSuggestKeyFactors
   );
 
   const onKeyFactorsLoadded = (keyFactorsLoaded: boolean) => {
-    setIsKeyfactorsFormOpen(keyFactorsLoaded);
+    setIsKeyfactorsFormOpen(keyFactorsLoaded || !suggestKeyFactorsFirstRender);
+    setSuggestKeyFactorsFirstRender(false);
     setLoadKeyFactors(false);
     if (keyFactorsLoaded) {
       setTimeout(() => {
@@ -306,21 +298,26 @@ const Comment: FC<CommentProps> = ({
     clearState,
   } = useKeyFactors({
     suggestKeyFactors: loadKeyFactors,
-    user_id: comment.author.id,
+    user_id: user?.id,
     commentId: comment.id,
     postId: comment.on_post_data?.id,
     onKeyFactorsLoadded,
   });
 
   const canListKeyFactors = !postData?.notebook;
+  const questionNotClosed = ![
+    PostStatus.CLOSED,
+    PostStatus.RESOLVED,
+    PostStatus.PENDING_RESOLUTION,
+  ].includes(postData?.status ?? PostStatus.CLOSED);
+
+  const limitNotReached = factorsLimit > 0;
+  const isCommentAuthor = comment.author.id === user?.id;
 
   const canAddKeyFactors =
-    comment.author.id === user?.id &&
-    ![
-      PostStatus.CLOSED,
-      PostStatus.RESOLVED,
-      PostStatus.PENDING_RESOLUTION,
-    ].includes(postData?.status ?? PostStatus.CLOSED) &&
+    isCommentAuthor &&
+    questionNotClosed &&
+    limitNotReached &&
     canListKeyFactors;
 
   const onAddKeyFactorClick = () => {
@@ -613,6 +610,7 @@ const Comment: FC<CommentProps> = ({
             postData={postData}
             lastViewedAt={lastViewedAt}
             shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+            forceExpandedChildren={forceExpandedChildren}
           />
         )}
       </div>
@@ -962,6 +960,7 @@ const Comment: FC<CommentProps> = ({
         <CommentChildrenTree
           commentChildren={comment.children}
           expandedChildren={!onProfile && !comment.is_pinned}
+          forceExpandedChildren={!onProfile && forceExpandedChildren}
           treeDepth={treeDepth + 1}
           sort={sort}
           postData={postData}
@@ -987,16 +986,6 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
-}
-
-function hasCommentInTree(comments: CommentType[], targetId: number): boolean {
-  for (const comment of comments) {
-    if (comment.id === targetId) return true;
-    if (comment.children && comment.children.length > 0) {
-      if (hasCommentInTree(comment.children, targetId)) return true;
-    }
-  }
-  return false;
 }
 
 function updateCommentKeyFactors(

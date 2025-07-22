@@ -33,8 +33,14 @@ export const CommentWrapper: FC<Props> = ({
   const isUnread =
     last_viewed_at && new Date(last_viewed_at) < new Date(comment.created_at);
   const match = window.location.hash.match(/#comment-(\d+)/);
+  const commentToFocusOn = match ? Number(match[1]) : null;
+  const isFocusedCommentInTree = commentToFocusOn
+    ? hasCommentInTree(comment.children, commentToFocusOn)
+    : false;
   const [isCollapsed, setIsCollapsed] = useState(
-    isCommentCollapsed(comment, match)
+    isFocusedCommentInTree
+      ? false
+      : isCommentCollapsed(comment, commentToFocusOn)
   );
 
   const { is_pinned } = comment;
@@ -73,8 +79,9 @@ export const CommentWrapper: FC<Props> = ({
         postData={postData}
         lastViewedAt={postData?.last_viewed_at}
         isCollapsed={isCollapsed}
-        suggestKeyFactorsOnFirstRender={suggestKeyFactorsOnFirstRender}
+        isCommentJustCreated={suggestKeyFactorsOnFirstRender}
         shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+        forceExpandedChildren={isFocusedCommentInTree}
       />
     </div>
   );
@@ -82,14 +89,13 @@ export const CommentWrapper: FC<Props> = ({
 
 function isCommentCollapsed(
   comment: CommentType,
-  match: RegExpMatchArray | null
+  commentToFocusOn: null | number
 ) {
   // Don't collapse pinned comments
   if (comment.is_pinned) return false;
-
-  if (match) {
-    const focus_comment_id = Number(match[1]);
-    if (focus_comment_id === comment.id) {
+  // Don't collapse if parent of children comment hash is in the link
+  if (commentToFocusOn) {
+    if (commentToFocusOn === comment.id) {
       return false;
     }
   }
@@ -99,4 +105,14 @@ function isCommentCollapsed(
   }
 
   return !isNil(comment.vote_score) && comment.vote_score <= -3;
+}
+
+function hasCommentInTree(comments: CommentType[], targetId: number): boolean {
+  for (const comment of comments) {
+    if (comment.id === targetId) return true;
+    if (comment.children && comment.children.length > 0) {
+      if (hasCommentInTree(comment.children, targetId)) return true;
+    }
+  }
+  return false;
 }

@@ -327,6 +327,8 @@ def evaluate_question(
     forecast_horizon_start = question.open_time.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
+    if spot_forecast_timestamp:
+        spot_forecast_timestamp = min(spot_forecast_timestamp, actual_close_time)
 
     # We need all user forecasts to calculated GeoMean even
     # if we're only scoring some or none of the users

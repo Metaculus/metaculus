@@ -5,7 +5,7 @@ from typing import cast, Iterable
 
 import sentry_sdk
 from django.db import transaction
-from django.db.models import Q, QuerySet, Subquery, OuterRef
+from django.db.models import Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -205,9 +205,7 @@ def update_question(question: Question, **kwargs) -> Question:
     return question
 
 
-def create_group_of_questions(
-    *, title: str = None, questions: list[dict], **kwargs
-) -> GroupOfQuestions:
+def create_group_of_questions(*, questions: list[dict], **kwargs) -> GroupOfQuestions:
     obj = GroupOfQuestions(**kwargs)
 
     obj.full_clean()
@@ -237,6 +235,7 @@ def update_group_of_questions(
             "description",
             "group_variable",
             "subquestions_order",
+            "graph_type",
         ],
         data=kwargs,
     )
@@ -652,6 +651,13 @@ def close_question(question: Question, actual_close_time: datetime | None = None
     update_global_leaderboard_tags(post)
     post.save()
 
+    # Cancel notifications which have a trigger time after the new actual_close_time
+    # or for forecasts with an end_time after the new actual_close_time
+    UserForecastNotification.objects.filter(question=question).filter(
+        Q(trigger_time__gt=question.actual_close_time)
+        | Q(forecast__end_time__gt=question.actual_close_time)
+    ).delete()
+
 
 def update_leaderboards_for_question(question: Question):
     post = question.get_post()
@@ -861,6 +867,15 @@ def update_forecast_notification(
             forecast.end_time or start_time
         )  # If end_time is None, same case as duration 0 -> no notification
         total_lifetime = end_time - start_time
+
+        if (
+            forecast.end_time is not None
+            and question.scheduled_close_time is not None
+            and forecast.end_time >= question.scheduled_close_time
+        ):
+            # If the forecast.end_time is after the question.scheduled_close_time,
+            # don't create a notification
+            return
 
         # Determine trigger time based on lifetime
         if total_lifetime < timedelta(hours=8):
@@ -1166,3 +1181,18 @@ def handle_question_open(question: Question):
 
     # Handle question on followed projects subscriptions
     notify_project_subscriptions_question_open(question)
+
+
+def get_forecasts_per_user(question: Question) -> dict[int, int]:
+    """
+    Return a mapping of user_id -> number-of-forecasts for question,
+    restricted to forecasts that were live during the question’s active period
+    """
+    qs = (
+        Forecast.objects.filter(question=question)
+        .filter_within_question_period()
+        .values("author_id")
+        .annotate(ct=Count("id"))
+    )
+
+    return {row["author_id"]: row["ct"] for row in qs}
