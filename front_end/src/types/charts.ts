@@ -89,3 +89,8 @@ export enum EmbedChartType {
   Timeline = "timeline",
   Current = "current",
 }
+
+export enum ScaleDirection {
+  Horizontal = "horizontal",
+  Vertical = "vertical",
+}

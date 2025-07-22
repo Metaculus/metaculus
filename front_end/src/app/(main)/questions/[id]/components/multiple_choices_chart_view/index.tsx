@@ -3,8 +3,8 @@ import { FloatingPortal } from "@floating-ui/react";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import NewMultipleChoiceChart from "@/components/charts/new_multiple_choice_chart";
 import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -23,7 +23,6 @@ type Props = {
   tooltipChoices: ChoiceTooltipItem[];
   tooltipUserChoices?: ChoiceTooltipItem[];
   forecastersCount?: number | null;
-  userCursorIndex?: number;
   onChoiceItemsUpdate: (choiceItems: ChoiceItem[]) => void;
   timestamps: number[];
   onCursorChange?: (value: number, format: TickFormat) => void;
@@ -31,7 +30,7 @@ type Props = {
   actualCloseTime?: number | null;
   isClosed?: boolean;
   hideCP?: boolean;
-
+  cursorTimestamp?: number | null;
   title?: string;
   yLabel?: string;
   questionType?: QuestionType;
@@ -51,7 +50,7 @@ const MultiChoicesChartView: FC<Props> = ({
   tooltipTitle,
   tooltipChoices,
   tooltipUserChoices,
-  userCursorIndex,
+  cursorTimestamp,
   onChoiceItemsUpdate,
   timestamps,
   onCursorChange,
@@ -160,7 +159,7 @@ const MultiChoicesChartView: FC<Props> = ({
         className={"relative"}
       >
         {questionType === QuestionType.MultipleChoice ? (
-          <NewMultipleChoiceChart
+          <MultipleChoiceChart
             actualCloseTime={actualCloseTime}
             timestamps={timestamps}
             choiceItems={choiceItems}
@@ -184,15 +183,14 @@ const MultiChoicesChartView: FC<Props> = ({
             forceAutoZoom={isInteracted.current}
             isEmbedded={embedMode}
             forecastAvailability={forecastAvailability}
-            userCursorIndex={userCursorIndex}
             chartTitle={!embedMode ? title : undefined}
           />
         ) : (
-          // TODO: replace with new group chart
-          <MultipleChoiceChart
+          <GroupChart
             actualCloseTime={actualCloseTime}
             timestamps={timestamps}
             choiceItems={choiceItems}
+            cursorTimestamp={cursorTimestamp}
             hideCP={hideCP}
             yLabel={embedMode ? undefined : yLabel}
             onChartReady={handleChartReady}

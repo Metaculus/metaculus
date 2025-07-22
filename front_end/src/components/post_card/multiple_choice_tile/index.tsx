@@ -4,8 +4,9 @@ import { isNil } from "lodash";
 import React, { FC, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import FanChartNew from "@/components/charts/fan_chart_new";
-import NewMultipleChoiceChart from "@/components/charts/new_multiple_choice_chart";
+import FanChart from "@/components/charts/fan_chart";
+import GroupChart from "@/components/charts/group_chart";
+import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
@@ -40,6 +41,7 @@ type BaseProps = {
   chartHeight?: number;
   canPredict?: boolean;
   showChart?: boolean;
+  optionsLimit?: number;
 };
 
 type QuestionProps = {
@@ -144,19 +146,36 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
       </div>
       {showChart && !isResolvedView && (
         <div className="relative w-full">
-          <NewMultipleChoiceChart
-            timestamps={timestamps}
-            actualCloseTime={actualCloseTime}
-            choiceItems={choices}
-            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-            extraTheme={chartTheme}
-            defaultZoom={defaultChartZoom}
-            withZoomPicker={withZoomPicker}
-            scaling={scaling}
-            forecastAvailability={forecastAvailability}
-            openTime={openTime}
-            hideCP={hideCP}
-          />
+          {isNil(group) ? (
+            <MultipleChoiceChart
+              timestamps={timestamps}
+              actualCloseTime={actualCloseTime}
+              choiceItems={choices}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
+              scaling={scaling}
+              forecastAvailability={forecastAvailability}
+              openTime={openTime}
+              hideCP={hideCP}
+            />
+          ) : (
+            <GroupChart
+              questionType={groupType}
+              timestamps={timestamps}
+              actualCloseTime={actualCloseTime}
+              choiceItems={choices}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
+              scaling={scaling}
+              // forecastAvailability={forecastAvailability}
+              openTime={openTime}
+              hideCP={hideCP}
+            />
+          )}
           <ForecastAvailabilityChartOverflow
             forecastAvailability={forecastAvailability}
             className="text-xs lg:text-sm"
@@ -167,11 +186,9 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   );
 };
 
-type FanGraphMultipleChoiceTileProps = BaseProps & GroupProps;
+type FanGraphTileProps = BaseProps & GroupProps;
 
-export const FanGraphMultipleChoiceTile: FC<
-  FanGraphMultipleChoiceTileProps
-> = ({
+export const FanGraphTile: FC<FanGraphTileProps> = ({
   group,
   choices,
   visibleChoicesCount,
@@ -180,6 +197,7 @@ export const FanGraphMultipleChoiceTile: FC<
   groupType,
   canPredict,
   showChart = true,
+  optionsLimit,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -222,12 +240,13 @@ export const FanGraphMultipleChoiceTile: FC<
       </div>
       {showChart && (
         <div className="w-full">
-          <FanChartNew
+          <FanChart
             group={group}
             height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-            pointSize={8}
+            pointSize={9}
             hideCP={hideCP}
             withTooltip={false}
+            optionsLimit={optionsLimit}
           />
         </div>
       )}

@@ -17,6 +17,7 @@ import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { QuestionStatus } from "@/types/post";
 import {
   ForecastAvailability,
   QuestionType,

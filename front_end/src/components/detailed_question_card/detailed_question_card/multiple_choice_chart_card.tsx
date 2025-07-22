@@ -73,7 +73,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     [choiceItems]
   );
 
-  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+  const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
 
   const aggregationCursorIndex = useMemo(() => {
@@ -172,7 +172,6 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       tooltipTitle={question.group_variable}
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
-      userCursorIndex={userCursorIndex}
       choiceItems={choiceItems}
       hideCP={hideCP}
       timestamps={timestamps}

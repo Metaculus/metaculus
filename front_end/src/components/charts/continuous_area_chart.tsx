@@ -26,6 +26,7 @@ import {
   ContinuousAreaHoverState,
   ContinuousAreaType,
   Line,
+  ScaleDirection,
 } from "@/types/charts";
 import {
   GraphingQuestionProps,
@@ -205,7 +206,7 @@ const ContinuousAreaChart: FC<Props> = ({
       generateScale({
         displayType: question.type,
         axisLength: chartWidth,
-        direction: "horizontal",
+        direction: ScaleDirection.Horizontal,
         domain: xDomain,
         shortLabels,
         adjustLabels: true,
@@ -219,7 +220,7 @@ const ContinuousAreaChart: FC<Props> = ({
       generateScale({
         displayType: QuestionType.Binary,
         axisLength: height - BOTTOM_PADDING - paddingTop,
-        direction: "vertical",
+        direction: ScaleDirection.Vertical,
         domain: yDomain,
         zoomedDomain: yDomain,
         adjustLabels: true,

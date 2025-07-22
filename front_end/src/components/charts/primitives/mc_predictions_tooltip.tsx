@@ -26,7 +26,7 @@ const MCPredictionsTooltip: FC<Props> = ({
       <thead>
         <tr className="border-b border-gray-300 dark:border-gray-300-dark">
           <th
-            className="px-3 pb-2 pt-2.5 text-left text-xs font-normal"
+            className="max-w-[150px] truncate px-3 pb-2 pt-2.5 text-left text-xs font-normal"
             colSpan={2}
           >
             {title}
@@ -34,7 +34,6 @@ const MCPredictionsTooltip: FC<Props> = ({
           <td className={"px-1.5 py-1 text-center"}>
             <FontAwesomeIcon
               icon={faUserGroup}
-              size="xs"
               className="align-middle text-olive-700 dark:text-olive-700-dark"
             />
           </td>
@@ -49,7 +48,7 @@ const MCPredictionsTooltip: FC<Props> = ({
           ({ color, choiceLabel, valueElement }, idx) => (
             <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
               {!!color && (
-                <td className="py-1 pl-3">
+                <td className="w-6 py-1 pl-3">
                   <ChoiceIcon color={color} />
                 </td>
               )}

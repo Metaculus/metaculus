@@ -52,6 +52,7 @@ import {
   getAxisRightPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
+import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
 
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
@@ -368,7 +369,7 @@ const NumericChart: FC<Props> = ({
           textClassName="pl-0"
           style={{
             paddingRight: isEmbedded ? 10 : maxRightPadding,
-            paddingLeft: isEmbedded ? maxLeftPadding : 10,
+            paddingLeft: isEmbedded ? maxLeftPadding : 0,
             paddingTop: withZoomPicker ? 24 : 0,
           }}
         />
@@ -615,31 +616,5 @@ const CursorChip: FC<{
     </g>
   );
 };
-
-function findLastIndexBefore(line: Line, timestamp: number): number {
-  if (!line.length) return -1;
-
-  let left = 0;
-  let right = line.length - 1;
-
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-    const point = line[mid];
-    if (!point) return -1;
-
-    if (point.x <= timestamp) {
-      if (
-        mid === line.length - 1 ||
-        (line[mid + 1]?.x ?? Infinity) > timestamp
-      ) {
-        return mid;
-      }
-      left = mid + 1;
-    } else {
-      right = mid - 1;
-    }
-  }
-  return -1;
-}
 
 export default memo(NumericChart);

@@ -19,7 +19,7 @@ const ContinuousForecastIcon = (props: SVGProps<SVGSVGElement>) => (
       d="M10.25 1L10.25 17C10.25 17.1381 10.1381 17.25 10 17.25C9.86193 17.25 9.75 17.1381 9.75 17L9.75 1C9.75 0.861929 9.86193 0.75 10 0.75C10.1381 0.75 10.25 0.861929 10.25 1Z"
       fill="#384F38"
       stroke="#384F38"
-      stroke-width="0.5"
+      strokeWidth="0.5"
     />
   </svg>
 );

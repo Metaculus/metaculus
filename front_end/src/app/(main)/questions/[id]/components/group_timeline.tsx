@@ -59,7 +59,7 @@ type Props = QuestionsDataProps & {
  * - group data, which will automatically apply sorting based on group post configuration
  * - raw questions list (specifically useful for rendering conditional post timeline)
  */
-const MultipleChoiceGroupChart: FC<Props> = ({
+const GroupTimeline: FC<Props> = ({
   questions,
   group,
   actualCloseTime,
@@ -134,7 +134,7 @@ const MultipleChoiceGroupChart: FC<Props> = ({
     setChoiceItems(generateList(questions, group, preselectedQuestionId));
   }, [questions, preselectedQuestionId, generateList, group]);
 
-  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+  const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
@@ -247,13 +247,14 @@ const MultipleChoiceGroupChart: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
+      cursorTimestamp={cursorTimestamp}
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
+      tooltipTitle={group?.group_variable}
       forecastersCount={forecastersCount}
       choiceItems={choiceItems}
       hideCP={hideCP}
       timestamps={timestamps}
-      tooltipDate={tooltipDate}
       onCursorChange={handleCursorChange}
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
@@ -262,7 +263,6 @@ const MultipleChoiceGroupChart: FC<Props> = ({
       questionType={groupType}
       scaling={scaling}
       title={t("forecastTimelineHeading")}
-      yLabel={t("communityPredictionLabel")}
       chartTheme={chartTheme}
       embedMode={embedMode}
       chartHeight={chartHeight}
@@ -310,4 +310,4 @@ function getQuestionTooltipLabel({
   });
 }
 
-export default MultipleChoiceGroupChart;
+export default GroupTimeline;
