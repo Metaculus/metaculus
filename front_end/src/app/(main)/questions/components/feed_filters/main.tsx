@@ -130,6 +130,10 @@ const MainFeedFilters: FC<Props> = ({
         value: QuestionOrder.PredictionCountDesc,
         label: t("mostPredictions"),
       },
+      {
+        value: QuestionOrder.ForecastersCountDesc,
+        label: t("mostForecasters"),
+      },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
       ...(!mainSortNewVisible
