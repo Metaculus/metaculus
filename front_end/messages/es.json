@@ -1417,9 +1417,6 @@
   "toggledTimelines": "Líneas de Tiempo Alternas",
   "positive": "positivo",
   "negative": "negativo",
-  "low": "bajo",
-  "medium": "medio",
-  "high": "alto",
   "causal": "causal",
   "thisQuestionCausesOtherQuestion": "Esta pregunta tiene un impacto <strength></strength> <direction></direction> <linkType></linkType> en <otherQuestion></otherQuestion>.",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tiene un impacto <strength></strength> <direction></direction> <linkType></linkType> en esta pregunta.",
@@ -1429,5 +1426,8 @@
   "noQuestionsLinked": "Aún no has vinculado otra pregunta.",
   "questionLinks": "Enlaces de Preguntas",
   "linkQuestion": "Vincular una pregunta",
+  "low": "pequeño",
+  "medium": "mediano",
+  "high": "grande",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

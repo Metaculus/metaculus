@@ -1413,9 +1413,6 @@
   "returnToHomePage": "Return to Home page",
   "positive" : "positive",
   "negative": "negative",
-  "low" : "low",
-  "medium": "medium",
-  "high" : "high",
   "causal" : "causal",
   "thisQuestionCausesOtherQuestion" : "This question has a <strength></strength> <direction></direction> <linkType></linkType> impact on <otherQuestion></otherQuestion>.",
   "otherQuestionCausesThisQuestion" : "<otherQuestion></otherQuestion> has a <strength></strength> <direction></direction> <linkType></linkType> impact on this question.",
@@ -1424,5 +1421,8 @@
   "unlink" : "unlink",
   "noQuestionsLinked" : "You haven't linked another question yet.",
   "questionLinks" : "Question Links",
-  "linkQuestion": "Link a question"
+  "linkQuestion": "Link a question",
+  "low" : "small",
+  "medium" : "medium",
+  "high" : "large"
 }

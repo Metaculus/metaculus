@@ -1417,9 +1417,6 @@
   "toggledTimelines": "Přepínané časové osy",
   "positive": "pozitivní",
   "negative": "negativní",
-  "low": "nízký",
-  "medium": "střední",
-  "high": "vysoký",
   "causal": "příčinný",
   "thisQuestionCausesOtherQuestion": "Tato otázka má <strength></strength> <direction></direction> <linkType></linkType> dopad na <otherQuestion></otherQuestion>.",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <strength></strength> <direction></direction> <linkType></linkType> dopad na tuto otázku.",
@@ -1429,5 +1426,8 @@
   "noQuestionsLinked": "Ještě jste nepropojili žádnou další otázku.",
   "questionLinks": "Odkazy na otázky",
   "linkQuestion": "Propojit otázku",
+  "low": "malý",
+  "medium": "střední",
+  "high": "velký",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

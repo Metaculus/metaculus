@@ -1419,9 +1419,6 @@
   "toggledTimelines": "切换时间线",
   "positive": "正面",
   "negative": "负面",
-  "low": "低",
-  "medium": "中",
-  "high": "高",
   "causal": "因果",
   "thisQuestionCausesOtherQuestion": "该问题对<otherQuestion></otherQuestion>有<direction></direction><strength></strength><linkType></linkType>影响。",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<direction></direction><strength></strength><linkType></linkType>影响。",
@@ -1431,5 +1428,8 @@
   "noQuestionsLinked": "你还没有链接其他问题。",
   "questionLinks": "问题链接",
   "linkQuestion": "链接问题",
+  "low": "小",
+  "medium": "中",
+  "high": "大",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
