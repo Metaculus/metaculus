@@ -476,11 +476,44 @@ export function generateScale({
     zero_point: zeroPoint,
   };
   const [zoomedDomainMin, zoomedDomainMax] = zoomedDomain;
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    displayType === QuestionType.Discrete &&
+    inbound_outcome_count &&
+    !isNil(rangeMin) &&
+    !isNil(rangeMax)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        rangeMin + ((rangeMax - rangeMin) * (i + 0.5)) / inbound_outcome_count
+      );
+    }
+  }
+  const openBoundCount =
+    (question?.open_lower_bound ? 1 : 0) + (question?.open_upper_bound ? 1 : 0);
   // determine the number of ticks to label
   // based on the axis length and direction
   let maxLabelCount: number;
   if (displayType === QuestionType.Discrete && direction === "horizontal") {
-    maxLabelCount = Math.min(33, inbound_outcome_count + 2);
+    // get last label width to determine the number of labels
+    const lastLabel = getPredictionDisplayValue(
+      1 - 0.5 / inbound_outcome_count,
+      {
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 3,
+        actual_resolve_time: null,
+        dateFormatString: shortLabels ? "yyyy" : undefined,
+        adjustLabels,
+        skipQuartilesBorders: false,
+        discreteValueOptions,
+      }
+    );
+    maxLabelCount = Math.min(
+      lastLabel.length ? axisLength / (12 * lastLabel.length) : 15,
+      inbound_outcome_count + openBoundCount
+    );
   } else if (axisLength < 150) {
     maxLabelCount = direction === "horizontal" ? 3 : 5;
   } else if (axisLength < 300) {
@@ -498,24 +531,22 @@ export function generateScale({
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
   if (displayType === QuestionType.Discrete && direction === "horizontal") {
-    // every value gets a tick and fit as many labels as possible
-    // TODO: choose tick spacing based on label length as well
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
-      : inbound_outcome_count +
-        (question?.open_lower_bound ? 1 : 0) +
-        (question?.open_upper_bound ? 1 : 0);
+      : inbound_outcome_count + openBoundCount;
 
     const halfBucket = 0.5 / inbound_outcome_count;
     const tickStart = question?.open_lower_bound ? -halfBucket : halfBucket;
     const tickEnd = 1 + (question?.open_upper_bound ? halfBucket : -halfBucket);
 
-    minorTicks = range(tickStart, tickEnd + 1e-4, 1 / tickCount).map(
-      (x) => Math.round(x * 100000) / 100000
-    );
-
+    minorTicks = range(
+      tickStart,
+      tickEnd + 1e-4,
+      1 / (tickCount - openBoundCount)
+    ).map((x) => Math.round(x * 100000) / 100000);
     const step =
-      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
+      Math.max(1, Math.ceil((tickCount - openBoundCount) / maxLabelCount)) /
+      (tickCount - openBoundCount);
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
       (x) => Math.round(x * 100000) / 100000
     );
@@ -647,20 +678,6 @@ export function generateScale({
 
     return value;
   };
-  let discreteValueOptions: number[] | undefined = undefined;
-  if (
-    displayType === QuestionType.Discrete &&
-    inbound_outcome_count &&
-    !isNil(rangeMin) &&
-    !isNil(rangeMax)
-  ) {
-    discreteValueOptions = [];
-    for (let i = 0; i < inbound_outcome_count; i++) {
-      discreteValueOptions.push(
-        rangeMin + ((rangeMax - rangeMin) * (i + 0.5)) / inbound_outcome_count
-      );
-    }
-  }
 
   function tickFormat(x: number, idx?: number) {
     if (
