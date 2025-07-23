@@ -1,3 +1,4 @@
+import { Select } from "@headlessui/react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
@@ -7,7 +8,6 @@ import QuestionPicker, {
   SearchedQuestionType,
 } from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
-import DropdownMenu from "@/components/ui/dropdown_menu";
 import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionWithForecasts } from "@/types/question";
@@ -29,17 +29,6 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   const [otherQuestion, setOtherQuestion] =
     useState<QuestionWithForecasts | null>(null);
   const t = useTranslations();
-
-  const directionMenuItems = directionOptions.map((it) => ({
-    id: it,
-    name: t(it),
-    onClick: () => setDirection(it as Directions),
-  }));
-  const strengthMenuItems = strengthOptions.map((it) => ({
-    id: it,
-    name: t(it),
-    onClick: () => setStrength(it as Strengths),
-  }));
 
   async function saveQuestion() {
     let question1: Question | null;
@@ -90,22 +79,42 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
             : "otherQuestionCausesThisQuestion",
           {
             strength: () => (
-              <DropdownMenu
-                items={strengthMenuItems}
-                itemClassName={"inline-block"}
-                innerDivClassName={"inline-block"}
+              <Select
+                value={strength}
+                onChange={(event) => {
+                  setStrength(event.target.value as Strengths);
+                }}
+                className="select-arrow ml-1 mr-1 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-2 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
               >
-                <Button>{t(strength)}</Button>
-              </DropdownMenu>
+                {strengthOptions.map((option) => (
+                  <option
+                    key={option}
+                    value={option}
+                    className={"bg-gray-0 dark:bg-gray-0-dark"}
+                  >
+                    {t(option)}
+                  </option>
+                ))}
+              </Select>
             ),
             direction: () => (
-              <DropdownMenu
-                items={directionMenuItems}
-                itemClassName={"inline-block"}
-                innerDivClassName={"inline-block"}
+              <Select
+                value={direction}
+                onChange={(event) => {
+                  setDirection(event.target.value as Directions);
+                }}
+                className="select-arrow ml-1 mr-1 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-2 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
               >
-                <Button>{t(direction)}</Button>
-              </DropdownMenu>
+                {directionOptions.map((option) => (
+                  <option
+                    key={option}
+                    value={option}
+                    className={"bg-gray-0 dark:bg-gray-0-dark"}
+                  >
+                    {t(option)}
+                  </option>
+                ))}
+              </Select>
             ),
             linkType: () => <span>{t("causal")}</span>,
             otherQuestion: () => (
