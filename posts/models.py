@@ -263,7 +263,11 @@ class PostQuerySet(models.QuerySet):
                         F("created_at"),
                         function="POWER",
                         template=(
-                            "POWER(2, ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float/7))"
+                            "CASE "
+                            "WHEN ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float) <= 3.5 "
+                            "THEN 1 "
+                            "ELSE POWER(((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float / 3.5), 2) "
+                            "END"
                         ),
                         output_field=FloatField(),
                     )
