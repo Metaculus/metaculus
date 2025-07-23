@@ -11,7 +11,6 @@ import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
 } from "@/components/forecast_maker/forecast_expiration";
-import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousQuestionTypes } from "@/constants/questions";
@@ -171,15 +170,12 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               defaultZoom={defaultChartZoom}
               withZoomPicker={withZoomPicker}
               scaling={scaling}
-              // forecastAvailability={forecastAvailability}
+              forecastAvailability={forecastAvailability}
+              forceShowLinePoints={true}
               openTime={openTime}
               hideCP={hideCP}
             />
           )}
-          <ForecastAvailabilityChartOverflow
-            forecastAvailability={forecastAvailability}
-            className="text-xs lg:text-sm"
-          />
         </div>
       )}
     </div>

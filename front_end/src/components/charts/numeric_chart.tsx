@@ -305,7 +305,7 @@ const NumericChart: FC<Props> = ({
     () => !!chartWidth && !!xScale.ticks.length && yScale.ticks.length,
     [chartWidth, xScale.ticks.length, yScale.ticks.length]
   );
-  // TODO: this should work as excpected once we merge ticks generation refactor
+
   const yScaleTicks = useMemo(() => {
     if (yScale.ticks.length >= 5 && chartWidth < 300) {
       return [

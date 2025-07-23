@@ -53,6 +53,7 @@ import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
+import GroupResolutionPoint from "./primitives/group_resolution_point";
 
 type Props = {
   timestamps: number[];
@@ -76,12 +77,13 @@ type Props = {
   isEmbedded?: boolean;
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
+  forceShowLinePoints?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
 const TICK_FONT_SIZE = 10;
-const POINT_SIZE = 4.5;
+const POINT_SIZE = 9;
 
 const GroupChart: FC<Props> = ({
   timestamps,
@@ -105,6 +107,7 @@ const GroupChart: FC<Props> = ({
   isEmbedded,
   cursorTimestamp,
   forecastAvailability,
+  forceShowLinePoints = false,
 }) => {
   const t = useTranslations();
   const {
@@ -167,6 +170,27 @@ const GroupChart: FC<Props> = ({
       forceAutoZoom,
     ]
   );
+  const filteredLines = useMemo(() => {
+    return graphs.map(({ line, active }) => {
+      const lastLineX = line.at(-1)?.x;
+      if (!active || !lastLineX) return null;
+      let filteredLine =
+        !isNil(cursorTimestamp) && lastLineX > cursorTimestamp
+          ? line.filter(({ x }) => x <= cursorTimestamp)
+          : line;
+      if (!isNil(cursorTimestamp) && lastLineX > cursorTimestamp) {
+        filteredLine = [
+          ...filteredLine,
+          {
+            x: cursorTimestamp,
+            y: filteredLine.at(-1)?.y ?? null,
+          },
+        ];
+      }
+      return filteredLine;
+    });
+  }, [graphs, cursorTimestamp]);
+
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
@@ -190,8 +214,11 @@ const GroupChart: FC<Props> = ({
   useEffect(() => {
     if (!prevWidth && chartWidth && onChartReady) {
       onChartReady();
+      if (onCursorChange) {
+        onCursorChange(Number(xDomain[1]) ?? 0, xScale.tickFormat);
+      }
     }
-  }, [onChartReady, prevWidth, chartWidth]);
+  }, [onChartReady, prevWidth, chartWidth, onCursorChange, xDomain, xScale]);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -243,26 +270,6 @@ const GroupChart: FC<Props> = ({
       }}
     />
   );
-  const filteredLines = useMemo(() => {
-    return graphs.map(({ line, active }) => {
-      const lastLineX = line.at(-1)?.x;
-      if (!active || !lastLineX) return null;
-      let filteredLine =
-        cursorTimestamp && lastLineX > cursorTimestamp
-          ? line.filter(({ x }) => x <= cursorTimestamp)
-          : line;
-      if (cursorTimestamp && lastLineX > cursorTimestamp) {
-        filteredLine = [
-          ...filteredLine,
-          {
-            x: cursorTimestamp,
-            y: filteredLine.at(-1)?.y ?? null,
-          },
-        ];
-      }
-      return filteredLine;
-    });
-  }, [graphs, cursorTimestamp]);
   return (
     <div>
       <ChartContainer
@@ -357,6 +364,7 @@ const GroupChart: FC<Props> = ({
               orientation={"left"}
               axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
+
             {/* X axis */}
             <VictoryPortal>
               <VictoryAxis
@@ -376,40 +384,36 @@ const GroupChart: FC<Props> = ({
                   axis: {
                     stroke: "transparent",
                   },
+                  tickLabels: {
+                    fontFamily: LABEL_FONT_FAMILY,
+                    padding: 5,
+                    fontSize: tickLabelFontSize,
+                    fill: getThemeColor(METAC_COLORS.gray["700"]),
+                  },
                 }}
               />
             </VictoryPortal>
-
-            {/* Lines */}
-            {graphs.map(({ color, active, highlighted }, index) => {
-              const filteredLine = filteredLines[index];
-              const point = filteredLine?.at(-1);
-              if (!active || !filteredLine || isHighlightActive || !point)
-                return null;
-
-              return (
-                <VictoryScatter
-                  key={`group-line-point-${index}`}
-                  data={[point]}
+            {/* Background line */}
+            {graphs.map(({ line, color, active }, index) =>
+              active ? (
+                <VictoryLine
+                  key={`group-bg-line-${index}`}
+                  data={line}
                   style={{
                     data: {
                       stroke: getThemeColor(color),
-                      strokeOpacity: !isHighlightActive
-                        ? 1
-                        : highlighted
-                          ? 1
-                          : 0.3,
-                      strokeWidth: 2,
-                      fill: getThemeColor(color),
+                      strokeOpacity: 0.2,
+                      strokeWidth: 1.5,
                     },
                   }}
+                  interpolation="stepAfter"
                 />
-              );
-            })}
+              ) : null
+            )}
+            {/* Main line */}
             {graphs.map(({ color, active, highlighted }, index) => {
               const filteredLine = filteredLines[index];
               if (!active || !filteredLine) return null;
-
               return (
                 <VictoryLine
                   key={`group-main-line-${index}`}
@@ -429,21 +433,49 @@ const GroupChart: FC<Props> = ({
                 />
               );
             })}
-            {graphs.map(({ line, color, active }, index) =>
-              active ? (
-                <VictoryLine
-                  key={`group-bg-line-${index}`}
-                  data={line}
-                  style={{
-                    data: {
-                      stroke: getThemeColor(color),
-                      strokeOpacity: 0.2,
-                      strokeWidth: 1.5,
-                    },
-                  }}
-                  interpolation="stepAfter"
-                />
-              ) : null
+            {/* Line cursor points */}
+            {graphs.map(
+              (
+                { color, active, line, highlighted, resolutionPoint },
+                index
+              ) => {
+                const filteredLine = filteredLines[index];
+                const point = onCursorChange
+                  ? filteredLine?.at(-1)
+                  : { x: Number(xDomain[1]), y: line?.at(-1)?.y ?? 0 };
+                console.log(point);
+                if (
+                  !active ||
+                  !filteredLine ||
+                  !point ||
+                  !!resolutionPoint ||
+                  (!forceShowLinePoints &&
+                    (isHighlightActive ||
+                      !isCursorActive ||
+                      (cursorTimestamp && point.x < cursorTimestamp)))
+                ) {
+                  return null;
+                }
+
+                return (
+                  <VictoryScatter
+                    key={`group-line-point-${index}`}
+                    data={[point]}
+                    style={{
+                      data: {
+                        stroke: getThemeColor(color),
+                        strokeOpacity: !isHighlightActive
+                          ? 1
+                          : highlighted
+                            ? 1
+                            : 0.3,
+                        strokeWidth: 2,
+                        fill: getThemeColor(color),
+                      },
+                    }}
+                  />
+                );
+              }
             )}
             {/* Highlighted line area */}
             {graphs.map(({ area, color, highlighted, active }, index) =>
@@ -472,6 +504,9 @@ const GroupChart: FC<Props> = ({
                     {
                       x: resolutionPoint?.x,
                       y: resolutionPoint?.y,
+                      x1: resolutionPoint?.x1,
+                      y1: resolutionPoint?.y1,
+                      text: resolutionPoint?.text,
                       symbol: "diamond",
                       size: POINT_SIZE,
                     },
@@ -483,6 +518,14 @@ const GroupChart: FC<Props> = ({
                       strokeWidth: 2.5,
                     },
                   }}
+                  dataComponent={
+                    <GroupResolutionPoint
+                      pointColor={getThemeColor(color)}
+                      pointSize={POINT_SIZE}
+                      chartWidth={chartWidth}
+                      chartRightPadding={maxRightPadding}
+                    />
+                  }
                 />
               );
             })}
@@ -510,7 +553,7 @@ const GroupChart: FC<Props> = ({
       <ForecastAvailabilityChartOverflow
         forecastAvailability={forecastAvailability}
         className="pl-0 text-xs lg:text-sm"
-        textClassName="!max-w-[300px] pl-0"
+        textClassName="!max-w-[300px] pl-0 text-gray-700 dark:text-gray-700-dark"
       />
     </div>
   );
@@ -730,8 +773,8 @@ function buildChartData({
           y0: item?.area?.at(-1)?.y0 ?? null,
         });
       }
-
       if (!isNil(resolution)) {
+        const lastLineItem = item.line.at(-1);
         const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
         if (
           ["yes", "no", "below_lower_bound", "above_upper_bound"].includes(
@@ -743,10 +786,11 @@ function buildChartData({
           switch (resolution) {
             case "no":
               text = "No";
+              break;
             case "yes":
               text = "Yes";
           }
-          const lastLineItem = item.line.at(-1);
+
           item.resolutionPoint = {
             x: resolveTime,
             y:
@@ -764,6 +808,8 @@ function buildChartData({
             y: scaling
               ? unscaleNominalLocation(Number(resolution), scaling)
               : Number(resolution) ?? 0,
+            x1: lastLineItem?.x,
+            y1: lastLineItem?.y ?? undefined,
           };
         } else if (
           typeof resolution === "string" &&
@@ -781,6 +827,8 @@ function buildChartData({
             item.resolutionPoint = {
               x: dateResolution.x,
               y: dateResolution.y ?? 0,
+              x1: lastLineItem?.x,
+              y1: lastLineItem?.y ?? undefined,
             };
           }
         }
@@ -831,6 +879,7 @@ function buildChartData({
 
 // Define a custom "X" symbol function
 const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
+  const { getThemeColor } = useAppTheme();
   const { x, y, datum, size, style } = props;
   if (
     typeof x !== "number" ||
@@ -869,9 +918,9 @@ const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
     <circle
       cx={x}
       cy={y}
-      r={size}
+      r={size / 2 + 1}
       stroke={stroke}
-      fill={"none"}
+      fill={getThemeColor(METAC_COLORS.gray["200"])}
       strokeWidth={2}
     />
   );
