@@ -176,6 +176,7 @@ const QuestionContinuousTile: FC<Props> = ({
                 height={HEIGHT}
                 question={question}
                 hideCP={hideCP}
+                forceTickCount={3}
               />
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}

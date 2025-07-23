@@ -214,6 +214,7 @@ const MultiChoicesChartView: FC<Props> = ({
             }
             openTime={openTime}
             forceAutoZoom={isInteracted.current}
+            forecastAvailability={forecastAvailability}
           />
         )}
       </div>

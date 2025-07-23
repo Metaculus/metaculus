@@ -100,7 +100,6 @@ const FanChart: FC<Props> = ({
   isEmbedded = false,
   optionsLimit,
 }) => {
-  console.log(pointSize);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();

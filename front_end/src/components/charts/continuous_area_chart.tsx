@@ -103,7 +103,7 @@ const ContinuousAreaChart: FC<Props> = ({
   hideLabels = false,
   shortLabels = false,
   alignChartTabs,
-  // forceTickCount, // TODO: uncomment this after scale helper changes
+  forceTickCount,
   withResolutionChip = true,
   withTodayLine = true,
 }) => {
@@ -211,9 +211,10 @@ const ContinuousAreaChart: FC<Props> = ({
         shortLabels,
         adjustLabels: true,
         question: question,
-        // forceTickCount, // TODO: uncomment this after scale helper changes
+        forceTickCount,
+        alwaysShowTicks: !isNil(forceTickCount),
       }),
-    [chartWidth, question, xDomain, shortLabels]
+    [chartWidth, question, xDomain, shortLabels, forceTickCount]
   );
   const yScale = useMemo(
     () =>
