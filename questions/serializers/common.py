@@ -281,6 +281,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "description",
             "group_variable",
             "subquestions_order",
+            "graph_type"
         )
 
     def validate_questions(self, data: list[str]):
