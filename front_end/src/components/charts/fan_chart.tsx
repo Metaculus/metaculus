@@ -87,6 +87,7 @@ type Props = {
   hideCP?: boolean;
   isEmbedded?: boolean;
   optionsLimit?: number;
+  forFeedPage?: boolean;
 };
 
 const FanChart: FC<Props> = ({
@@ -99,6 +100,7 @@ const FanChart: FC<Props> = ({
   hideCP,
   isEmbedded = false,
   optionsLimit,
+  forFeedPage,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -129,7 +131,10 @@ const FanChart: FC<Props> = ({
     yScale,
     yDomain,
     emptyPoints,
-  } = useMemo(() => buildChartData({ options, height }), [height, options]);
+  } = useMemo(
+    () => buildChartData({ options, height, forFeedPage }),
+    [height, options, forFeedPage]
+  );
 
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
@@ -397,9 +402,11 @@ type FanGraphPoint = {
 function buildChartData({
   options,
   height,
+  forFeedPage,
 }: {
   options: FanOption[];
   height: number;
+  forFeedPage?: boolean;
 }) {
   // we expect fan graph to be rendered only for group questions, that expect some options
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -524,7 +531,7 @@ function buildChartData({
     scaling: scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
-    forceTickCount: 5,
+    forceTickCount: forFeedPage ? 3 : 5,
     alwaysShowTicks: true,
   });
 

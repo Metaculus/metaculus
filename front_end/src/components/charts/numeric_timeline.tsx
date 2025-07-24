@@ -52,6 +52,7 @@ type Props = {
   questionStatus?: QuestionStatus;
   cursorTooltip?: ReactNode;
   isConsumerView?: boolean;
+  forFeedPage?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -83,6 +84,7 @@ const NumericTimeline: FC<Props> = ({
   forecastAvailability,
   cursorTooltip,
   isConsumerView,
+  forFeedPage,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -137,7 +139,7 @@ const NumericTimeline: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
-        forceYTickCount: 5,
+        forceYTickCount: forFeedPage ? 3 : 5,
         alwaysShowYTicks: true,
         inboundOutcomeCount,
       }),
@@ -154,6 +156,7 @@ const NumericTimeline: FC<Props> = ({
       openTime,
       unit,
       inboundOutcomeCount,
+      forFeedPage,
     ]
   );
   const formattedResolution = formatResolution({

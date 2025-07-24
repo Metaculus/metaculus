@@ -84,6 +84,7 @@ type Props = {
   forceAutoZoom?: boolean;
   isEmbedded?: boolean;
   forecastAvailability?: ForecastAvailability;
+  forFeedPage?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -109,6 +110,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forceAutoZoom,
   isEmbedded,
   forecastAvailability,
+  forFeedPage,
 }) => {
   const questionKey = useMemo(() => v4(), []);
   const t = useTranslations();
@@ -155,6 +157,7 @@ const MultipleChoiceChart: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         forceAutoZoom,
+        forFeedPage,
       }),
     [
       timestamps,
@@ -170,6 +173,7 @@ const MultipleChoiceChart: FC<Props> = ({
       isEmptyDomain,
       openTime,
       forceAutoZoom,
+      forFeedPage,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
@@ -519,6 +523,7 @@ function buildChartData({
   hideCP,
   isAggregationsEmpty,
   openTime,
+  forFeedPage,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -533,6 +538,7 @@ function buildChartData({
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
+  forFeedPage?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -733,20 +739,20 @@ function buildChartData({
     minValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
     maxValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
   });
-
+  console.log(forFeedPage);
   const yScale = generateScale({
     displayType: QuestionType.MultipleChoice,
     axisLength: height,
     direction: ScaleDirection.Vertical,
     scaling: scaling,
     domain: originalYDomain,
-    forceTickCount: 5,
+    forceTickCount: forFeedPage ? 3 : 5,
     alwaysShowTicks: true,
   });
 
   return {
     xScale,
-    yScale: { ...yScale, ticks: [0, 0.25, 0.5, 0.75, 1] },
+    yScale: { ...yScale },
     graphs,
     userScatters,
     xDomain,
