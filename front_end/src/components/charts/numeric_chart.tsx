@@ -297,6 +297,15 @@ const NumericChart: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
+      <svg style={{ height: 0 }}>
+        <defs>
+          <linearGradient id="cpGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="20%" stopColor="green" />
+            <stop offset="80%" stopColor="red" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <ChartContainer
         ref={chartContainerRef}
         height={height}
@@ -395,6 +404,7 @@ const NumericChart: FC<Props> = ({
                 data={area}
                 style={{
                   data: {
+                    fill: "url(#cpGradient)",
                     opacity: 0.3,
                   },
                 }}
