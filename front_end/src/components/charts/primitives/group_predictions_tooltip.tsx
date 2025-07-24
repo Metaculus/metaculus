@@ -5,6 +5,7 @@ import { FC, ReactNode } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceTooltipItem } from "@/types/choices";
+import cn from "@/utils/core/cn";
 
 type Props = {
   title: string;
@@ -25,21 +26,29 @@ const GroupPredictionsTooltip: FC<Props> = ({
     !userPredictions.every((choice) => choice.valueElement === "?");
 
   return (
-    <table className="w-max">
+    <table className="w-max px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark">
       <thead>
         <tr className="border-b border-gray-300 dark:border-gray-300-dark">
-          <th className="px-1.5 py-1 text-left text-sm font-bold" colSpan={2}>
+          <th
+            className="px-1.5 py-2 pl-3 text-left text-xs font-normal text-gray-700 dark:text-gray-700-dark"
+            colSpan={2}
+          >
             {title}
           </th>
-          <td className="px-1.5 py-1 text-center">
+          <td className="px-1.5 py-2 text-center">
             <FontAwesomeIcon
               icon={faUserGroup}
               size="sm"
-              className="align-middle text-olive-700 dark:text-olive-700-dark"
+              className={cn(
+                "align-middle text-olive-700 dark:text-olive-700-dark",
+                {
+                  "pr-3": !containUserChoices,
+                }
+              )}
             />
           </td>
           {containUserChoices && (
-            <td className="px-1.5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
+            <td className="px-1.5 py-2 pr-3 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
               {t("me")}
             </td>
           )}
@@ -50,19 +59,28 @@ const GroupPredictionsTooltip: FC<Props> = ({
           ({ color, choiceLabel, valueElement }, idx) => (
             <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
               {!!color && (
-                <td className="px-1.5 py-1">
+                <td className="px-1.5 py-1 pl-3">
                   <ChoiceIcon color={color} />
                 </td>
               )}
               <th
-                className="px-1.5 py-1 text-left text-sm font-bold"
+                className={cn(
+                  "px-1.5 py-1 text-left font-normal text-gray-600 dark:text-gray-600-dark",
+                  {
+                    "font-medium text-gray-800 dark:text-gray-800-dark":
+                      choiceLabel.toLowerCase() === "median",
+                    "pl-3": !color,
+                  }
+                )}
                 colSpan={color ? 1 : 2}
               >
                 {choiceLabel}
               </th>
-              <td className="px-1.5 py-1 text-right text-sm">{valueElement}</td>
+              <td className="px-1.5 py-1 text-center text-xs text-olive-800 dark:text-olive-800-dark">
+                {valueElement}
+              </td>
               {containUserChoices && (
-                <td className="px-1.5 py-1 text-right text-sm">
+                <td className="px-1.5 py-1 pr-3 text-center text-xs text-orange-800 dark:text-orange-800-dark">
                   {userPredictions?.find(
                     (item) => item.choiceLabel === choiceLabel
                   )?.valueElement || "?"}

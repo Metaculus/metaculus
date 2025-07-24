@@ -26,6 +26,7 @@ const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
   const { y1, y2 } = datum;
   const y1Scaled = scale.y(y1);
   const y2Scaled = scale.y(y2);
+  const RADIUS = 5;
   return (
     <>
       {y1 !== undefined && y2 !== undefined && (
@@ -42,7 +43,7 @@ const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
         <circle
           cx={x}
           cy={y}
-          r={3}
+          r={RADIUS}
           fill={getThemeColor(METAC_COLORS.gray["0"])}
           stroke={getThemeColor(METAC_COLORS.orange["700"])}
           strokeWidth={2}
@@ -51,8 +52,8 @@ const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
 
       {symbol === "x" && (
         <polygon
-          points={`${x - 3},${y - 3} ${x + 3},${y + 3} ${x},${y} ${x - 3},${y + 3} ${x + 3},${y - 3} ${x},${y}`}
-          r={3}
+          points={`${x - RADIUS},${y - RADIUS} ${x + RADIUS},${y + RADIUS} ${x},${y} ${x - RADIUS},${y + RADIUS} ${x + RADIUS},${y - RADIUS} ${x},${y}`}
+          r={RADIUS}
           fill={getThemeColor(METAC_COLORS.gray["0"])}
           stroke={getThemeColor(METAC_COLORS.orange["700"])}
           strokeWidth={2}

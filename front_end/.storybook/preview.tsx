@@ -5,7 +5,9 @@ import { withThemeByClassName } from "@storybook/addon-themes";
 import React, { ComponentType, useEffect } from "react";
 import { getFontsString } from "../src/utils/fonts";
 import { ThemeProvider } from "next-themes";
+import { NextIntlClientProvider } from "next-intl";
 import useAppTheme from "../src/hooks/use_app_theme";
+import defaultMessages from "../messages/en.json";
 
 const withAppTheme = (Story: ComponentType, context: any) => {
   const { setTheme } = useAppTheme();
@@ -45,11 +47,13 @@ const preview: Preview = {
       defaultTheme: "light",
     }),
     (Story: ComponentType) => (
-      <ThemeProvider>
-        <div className={`${getFontsString()} font-sans`}>
-          <Story />
-        </div>
-      </ThemeProvider>
+      <NextIntlClientProvider locale="en" messages={defaultMessages}>
+        <ThemeProvider>
+          <div className={`${getFontsString()} font-sans`}>
+            <Story />
+          </div>
+        </ThemeProvider>
+      </NextIntlClientProvider>
     ),
   ],
 };

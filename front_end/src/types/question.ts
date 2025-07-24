@@ -353,6 +353,7 @@ export type AggregationQuestion = {
   id: number;
   label: string | null;
   scaling: Scaling;
+  status: QuestionStatus;
   open_lower_bound: boolean | null;
   open_upper_bound: boolean | null;
   inbound_outcome_count: number | null;
