@@ -161,7 +161,7 @@ def test_compute_hotness_relevant_news(post_binary_public):
             post=post_binary_public, article=factory_itn_article(), distance=0.1
         )
 
-    assert _compute_hotness_relevant_news(post_binary_public) == 2.5
+    assert _compute_hotness_relevant_news(post_binary_public) == 0.125
 
 
 @freeze_time("2025-04-18")
@@ -204,7 +204,7 @@ def test_compute_post_hotness(user1):
     # Add ITN article
     PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
 
-    assert compute_post_hotness(post) == 118.5
+    assert compute_post_hotness(post) == 110.9
 
 
 @freeze_time("2025-04-18")
@@ -231,11 +231,11 @@ def test_handle_post_boost(user1):
 @pytest.mark.parametrize(
     "psql_now,expected_hotness",
     [
-        [datetime_aware(2025, 4, 14, 12), 10],
+        [datetime_aware(2025, 4, 14, 12), 0.5],
         # 7 days from now
-        [datetime_aware(2025, 4, 18), 2.5],
+        [datetime_aware(2025, 4, 18), 0.125],
         # 14 days from now
-        [datetime_aware(2025, 4, 25), 0.625],
+        [datetime_aware(2025, 4, 25), 0.03125],
     ],
 )
 def test_post_annotate_news_hotness(post_binary_public, psql_now, expected_hotness):
