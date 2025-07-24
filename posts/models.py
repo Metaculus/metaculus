@@ -17,6 +17,8 @@ from django.db.models import (
     Value,
     Func,
     FloatField,
+    Case,
+    When,
 )
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
@@ -275,9 +277,12 @@ class PostQuerySet(models.QuerySet):
         )
 
         return self.annotate(
-            news_hotness=Coalesce(
-                Subquery(per_article, output_field=FloatField()),
-                Value(0.0),
+            news_hotness=Case(
+                When(notebook_id__isnull=False, then=Value(0.0)),
+                default=Coalesce(
+                    Subquery(per_article, output_field=FloatField()), Value(0.0)
+                ),
+                output_field=FloatField(),
             )
         )
 
