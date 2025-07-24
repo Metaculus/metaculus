@@ -15,7 +15,13 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
-import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
+import {
+  Post,
+  PostStatus,
+  ProjectPermissions,
+  QuestionStatus,
+} from "@/types/post";
+import { getPostEditLink } from "@/utils/navigation";
 
 type Props = {
   post: Post;
@@ -29,6 +35,12 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
   const isUpcoming = post.question?.status === QuestionStatus.UPCOMING;
   const isAdmin = [ProjectPermissions.ADMIN].includes(post.user_permission);
   const isCurator = [ProjectPermissions.CURATOR].includes(post.user_permission);
+  const allowEdit =
+    isAdmin ||
+    ([ProjectPermissions.CURATOR, ProjectPermissions.CREATOR].includes(
+      post.user_permission
+    ) &&
+      post.curation_status !== PostStatus.APPROVED);
 
   const [confirmModalOpen, setConfirmModalOpen] = useState<{
     open: boolean;
@@ -82,70 +94,87 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     return "#";
   };
 
-  const menuItems: MenuItemProps[] = [];
-  if (!post.notebook) {
-    menuItems.push({
-      id: "downloadQuestionData",
-      name: t("downloadQuestionData"),
-      onClick: openDownloadModal,
-    });
-  }
-  if (user?.is_superuser) {
-    menuItems.unshift(
-      ...[
-        {
-          id: "boost",
-          name: t("boost"),
-          onClick: () => {
-            changePostActivity(1);
+  const menuItems: MenuItemProps[] = [
+    // Include if user has permissions to edit
+    ...(allowEdit
+      ? [
+          {
+            id: "edit",
+            name: t("edit"),
+            link: getPostEditLink(post),
           },
-        },
-        {
-          id: "bury",
-          name: t("bury"),
-          onClick: () => {
-            changePostActivity(-1);
+        ]
+      : []),
+
+    // Include if user is a superuser
+    ...(user?.is_superuser
+      ? [
+          {
+            id: "boost",
+            name: t("boost"),
+            onClick: () => changePostActivity(1),
           },
-        },
-        {
-          id: "duplicate",
-          name: t("duplicate"),
-          link: createDuplicateLink(post),
-        },
-        {
-          id: "viewInDjangoAdmin",
-          name: t("viewInDjangoAdmin"),
-          link: `/admin/posts/post/${post.id}/change`,
-        },
-      ]
-    );
-  }
+          {
+            id: "bury",
+            name: t("bury"),
+            onClick: () => changePostActivity(-1),
+          },
+          {
+            id: "duplicate",
+            name: t("duplicate"),
+            link: createDuplicateLink(post),
+          },
+          {
+            id: "viewInDjangoAdmin",
+            name: t("viewInDjangoAdmin"),
+            link: `/admin/posts/post/${post.id}/change`,
+          },
+        ]
+      : []),
 
-  if (isUpcoming && (isAdmin || isCurator)) {
-    menuItems.unshift({
-      id: "sendBackToReview",
-      name: t("sendBackToReview"),
-      onClick: () => {
-        setConfirmModalOpen({
-          open: true,
-          type: "sendBackToReview",
-        });
-      },
-    });
-  }
+    // Include if upcoming and user is admin or curator
+    ...(isUpcoming && (isAdmin || isCurator)
+      ? [
+          {
+            id: "sendBackToReview",
+            name: t("sendBackToReview"),
+            onClick: () => {
+              setConfirmModalOpen({
+                open: true,
+                type: "sendBackToReview",
+              });
+            },
+          },
+        ]
+      : []),
 
-  if (isAdmin) {
-    menuItems.unshift({
-      id: "deleteQuestion",
-      name: t("delete"),
-      onClick: () => {
-        setConfirmModalOpen({
-          open: true,
-          type: "delete",
-        });
-      },
-    });
-  }
+    // Include if post does not have a notebook
+    ...(!post.notebook
+      ? [
+          {
+            id: "downloadQuestionData",
+            name: t("downloadQuestionData"),
+            onClick: openDownloadModal,
+          },
+        ]
+      : []),
+
+    // Include if user is admin
+    ...(isAdmin
+      ? [
+          {
+            id: "deleteQuestion",
+            name: t("delete"),
+            onClick: () => {
+              setConfirmModalOpen({
+                open: true,
+                type: "delete",
+              });
+            },
+          },
+        ]
+      : []),
+  ];
 
   if (!menuItems.length) {
     return null;

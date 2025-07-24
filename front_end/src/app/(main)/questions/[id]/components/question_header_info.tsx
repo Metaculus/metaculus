@@ -4,7 +4,6 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
 
@@ -17,22 +16,53 @@ type Props = {
 const QuestionHeaderInfo: FC<Props> = ({ post }) => {
   const resolutionData = extractPostResolution(post);
 
+  // TODO: should we re-use this in Post Tiles?
+
   return (
-    <div className="my-2 flex items-center justify-between gap-3 border-b border-t border-blue-500 font-medium dark:border-gray-500">
+    <div className="mt-4 flex items-center justify-between gap-3 font-medium">
       <div className="flex items-center gap-2">
-        <PostVoter post={post} questionPage />
+        <PostVoter post={post} />
 
-        <PostStatus post={post} resolution={resolutionData} />
-
+        {/* CommentStatus - compact on small screens, full on large screens */}
         <CommentStatus
           totalCount={post.comment_count ?? 0}
           unreadCount={post.unread_comment_count ?? 0}
           url={getPostLink(post)}
+          className="bg-gray-200 dark:bg-gray-200-dark md:hidden"
+          compact={true}
         />
-        {(post.group_of_questions ||
-          post.question?.type === QuestionType.MultipleChoice) && (
-          <ForecastersCounter forecasters={post.nr_forecasters} />
-        )}
+        <CommentStatus
+          totalCount={post.comment_count ?? 0}
+          unreadCount={post.unread_comment_count ?? 0}
+          url={getPostLink(post)}
+          className="hidden bg-gray-200 dark:bg-gray-200-dark md:flex"
+          compact={false}
+        />
+
+        {/* PostStatus - compact on small screens, full on large screens (with edge case) */}
+        <PostStatus
+          post={post}
+          resolution={resolutionData}
+          compact={true}
+          className="md:hidden"
+        />
+        <PostStatus
+          post={post}
+          resolution={resolutionData}
+          className="hidden md:flex"
+        />
+
+        {/* ForecastersCounter - compact on small screens, full on large screens */}
+        <ForecastersCounter
+          forecasters={post.nr_forecasters}
+          compact={true}
+          className="md:hidden"
+        />
+        <ForecastersCounter
+          forecasters={post.nr_forecasters}
+          compact={false}
+          className="hidden md:flex"
+        />
       </div>
     </div>
   );
