@@ -159,7 +159,7 @@ def test_compute_hotness_relevant_news(post_binary_public):
             post=post_binary_public, article=factory_itn_article(), distance=0.1
         )
 
-    assert _compute_hotness_relevant_news(post_binary_public) == 5
+    assert _compute_hotness_relevant_news(post_binary_public) == 0.25
 
 
 @freeze_time("2025-04-18")
@@ -202,7 +202,7 @@ def test_compute_post_hotness(user1):
     # Add ITN article
     PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
 
-    assert compute_post_hotness(post) == 131
+    assert compute_post_hotness(post) == 123.4
 
 
 @freeze_time("2025-04-18")
