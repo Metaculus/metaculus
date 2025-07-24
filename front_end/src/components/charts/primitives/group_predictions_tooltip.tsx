@@ -14,7 +14,7 @@ type Props = {
   FooterRow?: ReactNode;
 };
 
-const NewGroupPredictionsTooltip: FC<Props> = ({
+const GroupPredictionsTooltip: FC<Props> = ({
   title,
   communityPredictions,
   userPredictions,
@@ -95,4 +95,4 @@ const NewGroupPredictionsTooltip: FC<Props> = ({
   );
 };
 
-export default NewGroupPredictionsTooltip;
+export default GroupPredictionsTooltip;

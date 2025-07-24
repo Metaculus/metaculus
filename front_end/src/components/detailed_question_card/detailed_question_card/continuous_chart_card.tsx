@@ -99,15 +99,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
     const displayValue = getPredictionDisplayValue(cursorData?.center, {
       questionType: question.type,
       scaling: question.scaling,
-      // TODO: add range if needed
-      // range:
-      //   !isNil(cursorData?.interval_lower_bound) &&
-      //   !isNil(cursorData?.interval_upper_bound)
-      //     ? [
-      //         cursorData?.interval_lower_bound as number,
-      //         cursorData?.interval_upper_bound as number,
-      //       ]
-      //     : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,

@@ -30,7 +30,7 @@ import { unscaleNominalLocation } from "@/utils/math";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
-import NewGroupPredictionsTooltip from "./new_group_predictions_tooltip";
+import GroupPredictionsTooltip from "./group_predictions_tooltip";
 
 const TOOLTIP_PADDING = 10;
 
@@ -172,7 +172,7 @@ const ChartFanTooltip: FC<Props> = ({
               : y - height - TOOLTIP_PADDING,
         }}
       >
-        <NewGroupPredictionsTooltip
+        <GroupPredictionsTooltip
           title={activeItem.question.label}
           communityPredictions={communityPredictions}
           userPredictions={userPredictions}
