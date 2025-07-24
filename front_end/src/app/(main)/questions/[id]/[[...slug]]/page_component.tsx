@@ -105,28 +105,27 @@ const IndividualQuestionPage: FC<{
                         post={postData}
                         questionTitle={questionTitle}
                       />
-                      {!isConditionalPost(postData) && (
-                        <div className="flex items-center justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2">
-                          <div>
+                      <div className="flex items-stretch justify-between gap-2 xs:gap-4 sm:gap-8">
+                        <div className="flex flex-col">
+                          {isConditionalPost(postData) ? (
+                            <ConditionalTile
+                              post={postData}
+                              withNavigation
+                              withCPRevealBtn
+                            />
+                          ) : (
                             <h1 className="m-0 text-3xl leading-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl">
                               {postData.title}
                             </h1>
-                          </div>
-                          {isQuestionPost(postData) && (
-                            <div>
-                              <QuestionHeaderCPStatus post={postData} />
-                            </div>
                           )}
+                          <QuestionHeaderInfo post={postData} />
                         </div>
-                      )}
-                      {isConditionalPost(postData) && (
-                        <ConditionalTile
-                          post={postData}
-                          withNavigation
-                          withCPRevealBtn
-                        />
-                      )}
-                      <QuestionHeaderInfo post={postData} />
+                        {isQuestionPost(postData) && (
+                          <div>
+                            <QuestionHeaderCPStatus post={postData} />
+                          </div>
+                        )}
+                      </div>
                     </div>
                     {isQuestionPost(postData) && (
                       <DetailedQuestionCard post={postData} />

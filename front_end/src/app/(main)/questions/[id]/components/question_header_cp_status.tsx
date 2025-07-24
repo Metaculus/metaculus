@@ -3,9 +3,7 @@ import React, { FC } from "react";
 
 import QuestionResolutionStatus from "@/app/(main)/questions/[id]/components/question_resolution_status";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
-import QuestionCPMovement, {
-  QuestionCPMovementWithChip,
-} from "@/components/cp_movement";
+import { QuestionCPMovementWithChip } from "@/components/cp_movement";
 import PredictionContinuousInfo from "@/components/post_card/question_tile/prediction_continuous_info";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
@@ -43,7 +41,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({ post }) => {
           <BinaryCPBar question={question} size="lg" />
           <QuestionCPMovementWithChip
             question={question}
-            className="mx-auto text-center"
+            className="mx-auto pb-1 text-center"
             size={"sm"}
             // Just to show % instead of pp
             presentation="consumerView"

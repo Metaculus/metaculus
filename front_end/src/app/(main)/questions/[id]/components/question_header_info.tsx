@@ -19,7 +19,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post }) => {
   // TODO: should we re-use this in Post Tiles?
 
   return (
-    <div className="mt-4 flex items-center justify-between gap-3 font-medium">
+    <div className="mt-auto flex items-center justify-between gap-3 pt-4 font-medium">
       <div className="flex items-center gap-2">
         <PostVoter post={post} />
 
