@@ -1418,5 +1418,9 @@
   "latestEstimate": "Nejnovější odhad",
   "currentEstimate": "Aktuální odhad",
   "closedForForecastingShortDescription": "Tato otázka je uzavřena pro prognózy.",
+  "mainGraphType": "Hlavní typ grafu",
+  "mainGraphTypeDescription": "Zvolte „Vějířový graf“, pokud jsou podotázky seřazeny (například roky) a „Přepínané časové osy“, pokud nejsou seřazeny (například politické strany).",
+  "fanGraph": "Vějířový graf",
+  "toggledTimelines": "Přepínané časové osy",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

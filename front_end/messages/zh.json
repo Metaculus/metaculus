@@ -1420,5 +1420,9 @@
   "latestEstimate": "最新估计",
   "currentEstimate": "当前估计",
   "closedForForecastingShortDescription": "此问题已关闭预测。",
+  "mainGraphType": "主要图表类型",
+  "mainGraphTypeDescription": "如果子问题是有序的（如年份），请选择“扇形图”；如果是无序的（如政党），请选择“切换时间线”。",
+  "fanGraph": "扇形图",
+  "toggledTimelines": "切换时间线",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

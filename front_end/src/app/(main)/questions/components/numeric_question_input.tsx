@@ -565,10 +565,11 @@ const NumericQuestionInput: React.FC<{
         )}
 
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
-          <>
+          <div style={{ width: 700 }}>
+            {/* width set to match default contianer width on question page */}
             Example input chart:
             <ExampleContinuousInput question={question} />
-          </>
+          </div>
         )}
       </div>
     </div>

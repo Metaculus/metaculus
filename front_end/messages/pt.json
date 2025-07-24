@@ -1416,5 +1416,9 @@
   "latestEstimate": "Estimação mais recente",
   "currentEstimate": "Estimativa atual",
   "closedForForecastingShortDescription": "Esta pergunta está fechada para previsão.",
+  "mainGraphType": "Tipo de Gráfico Principal",
+  "mainGraphTypeDescription": "Escolha \"Gráfico de Leque\" se as subquestões estiverem ordenadas (como anos) e \"Linhas do Tempo Alternadas\" se não estiverem ordenadas (como partidos políticos).",
+  "fanGraph": "Gráfico de Leque",
+  "toggledTimelines": "Linhas do Tempo Alternadas",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }
