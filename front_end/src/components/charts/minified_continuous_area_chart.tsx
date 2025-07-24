@@ -8,6 +8,7 @@ import {
   VictoryBar,
   VictoryChart,
   VictoryContainer,
+  VictoryLine,
   VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
@@ -56,7 +57,6 @@ const HORIZONTAL_PADDING = 10;
 type Props = {
   question: Question | GraphingQuestionProps;
   data: ContinuousAreaGraphInput;
-  graphType?: ContinuousAreaGraphType;
   height?: number;
   width?: number;
   extraTheme?: VictoryThemeDefinition;
@@ -70,7 +70,6 @@ type Props = {
 const MinifiedContinuousAreaChart: FC<Props> = ({
   question,
   data,
-  graphType = "pmf",
   height = 150,
   width = undefined,
   extraTheme,
@@ -101,7 +100,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
         generateNumericAreaGraph({
           pmf,
           cdf,
-          graphType,
+          graphType: "pmf",
           type: datum.type,
           question,
         })
@@ -112,7 +111,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
             generateNumericAreaGraph({
               pmf: cdfToPmf(componentCdf),
               cdf: componentCdf,
-              graphType,
+              graphType: "pmf",
               type: "user_components",
               question,
             })
@@ -121,7 +120,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
       }
     }
     return chartData;
-  }, [data, graphType, hideCP, question]);
+  }, [data, hideCP, question]);
   // TODO: add cp median line
   //   const cpMedian = useMemo(() => {
   //     const cp = charts.find((chart) => chart.type === "community");
@@ -135,19 +134,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     yDomain: Tuple<number>;
   }>(() => {
     if (question.type !== QuestionType.Discrete) {
-      if (graphType === "cdf") {
-        return {
-          xDomain: [0, 1],
-          yDomain: [0, 1],
-        };
-      }
-
       const maxValue = Math.max(
         ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
       );
       return {
         xDomain: [0, 1],
-        yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
+        yDomain: [0.001, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
     const xDomain: Tuple<number> = [
@@ -162,19 +154,13 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
         1
       ),
     ];
-    if (graphType === "cdf") {
-      return {
-        xDomain: xDomain,
-        yDomain: [0, 1],
-      };
-    }
 
     const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
       xDomain: xDomain,
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType, question.type, charts]);
+  }, [data, question.type, charts]);
 
   const xScale = useMemo(
     () =>
@@ -216,11 +202,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
       : null;
 
   const horizontalPadding = useMemo(() => {
-    if (
-      alignChartTabs ||
-      graphType === "cdf" ||
-      question.type === QuestionType.Discrete
-    ) {
+    if (alignChartTabs || question.type === QuestionType.Discrete) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -231,7 +213,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type, alignChartTabs]);
+  }, [yScale, question.type, alignChartTabs]);
 
   const barWidth = useMemo(() => {
     if (question.type !== QuestionType.Discrete) {
@@ -348,6 +330,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               axis: {
                 stroke: getThemeColor(METAC_COLORS.gray["300"]),
                 strokeWidth: 1,
+                strokeDasharray: "4, 4",
               },
               tickLabels: {
                 fontSize: 10,
@@ -358,9 +341,37 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                     : index === ticks.length - 1
                       ? "end"
                       : "middle",
+                fill: getThemeColor(METAC_COLORS.gray["500"]),
+                fontFamily: "Inter",
               },
             }}
           />
+          {charts.map((chart, k) =>
+            chart.verticalLines.map((line, index) =>
+              index === 1 && chart.color !== "orange" ? (
+                <VictoryLine
+                  key={`${k}-${index}`}
+                  data={[
+                    { x: line.x, y: 0 },
+                    { x: line.x, y: line.y },
+                  ]}
+                  style={{
+                    data: {
+                      stroke: (() => {
+                        switch (chart.color) {
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["500"]);
+                          default:
+                            return getThemeColor(METAC_COLORS.olive["900"]);
+                        }
+                      })(),
+                      strokeWidth: 1.5,
+                    },
+                  }}
+                />
+              ) : null
+            )
+          )}
           {/* Resolution point */}
           {resolutionPoint && (
             <VictoryScatter
