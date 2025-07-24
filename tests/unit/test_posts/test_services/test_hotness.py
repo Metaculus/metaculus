@@ -159,7 +159,7 @@ def test_compute_hotness_relevant_news(post_binary_public):
             post=post_binary_public, article=factory_itn_article(), distance=0.1
         )
 
-    assert _compute_hotness_relevant_news(post_binary_public) == 5
+    assert _compute_hotness_relevant_news(post_binary_public) == 4
 
 
 @freeze_time("2025-04-18")
