@@ -1,9 +1,10 @@
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { SemanticName } from "rc-slider/lib/interface";
 import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
 
+import { Rectangle } from "@/components/icons/rectangle";
 import Slider from "@/components/sliders/slider";
 import cn from "@/utils/core/cn";
 
@@ -11,7 +12,7 @@ const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
 export const BINARY_MIN_VALUE = 10 ** -BINARY_FORECAST_PRECISION * 100;
 export const BINARY_MAX_VALUE = 100 - BINARY_MIN_VALUE;
-const THRESHOLD = 7;
+const THRESHOLD = 11;
 
 type Props = {
   forecast: number | null;
@@ -67,7 +68,7 @@ const BinarySlider: FC<Props> = ({
 
   return (
     <>
-      <div className={cn("group relative mx-6 mt-8 h-16", className)}>
+      <div className={cn("group relative mt-9 py-5", className)}>
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
@@ -84,6 +85,7 @@ const BinarySlider: FC<Props> = ({
                     <MarkArrow
                       value={communityForecast}
                       isNear={isNearCommunityForecast}
+                      disabled={disabled}
                     />
                   ),
                 }
@@ -114,20 +116,39 @@ const BinarySlider: FC<Props> = ({
   );
 };
 
-const MarkArrow: FC<{ value: number; isNear: boolean }> = ({
+const MarkArrow: FC<{ value: number; isNear: boolean; disabled: boolean }> = ({
   value,
   isNear,
+  disabled,
 }) => {
   // Add isNear prop
   const t = useTranslations();
   return (
     <div
-      className={`absolute flex -translate-x-1/2 ${isNear ? "translate-y-[-36px]" : "translate-y-[-24px]"} flex-col items-center gap-0 whitespace-nowrap text-sm font-bold text-gray-700 transition-transform duration-150 dark:text-gray-700-dark`}
+      className={cn("absolute -translate-x-1/2", {
+        "translate-y-[-36px]": isNear,
+        "translate-y-[-20px]": !isNear,
+      })}
     >
-      <span>
-        {t("community")}: {`${Math.round(1000 * value) / 10}%`}
-      </span>
-      <FontAwesomeIcon icon={faChevronDown} />
+      <div
+        className={cn(
+          "whitespace-nowrap rounded-full bg-olive-800 px-2 py-1 text-xs font-medium capitalize text-olive-100 transition-transform duration-150 dark:bg-olive-800-dark dark:text-olive-100-dark",
+          {
+            "bg-gray-700 dark:bg-gray-700-dark": disabled,
+          }
+        )}
+      >
+        {t("community")}:{" "}
+        <span className="font-bold">{`${Math.round(1000 * value) / 10}%`}</span>
+      </div>
+      <Rectangle
+        className={cn(
+          "mx-auto -mt-[1px] fill-olive-800 dark:fill-olive-800-dark",
+          {
+            "fill-gray-700 dark:fill-gray-700-dark": disabled,
+          }
+        )}
+      />
     </div>
   );
 };
