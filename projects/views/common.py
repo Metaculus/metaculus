@@ -31,6 +31,7 @@ from projects.services.common import (
     get_site_main_project,
     get_project_timeline_data,
 )
+from questions.models import Question
 from users.services.common import get_users_by_usernames
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
@@ -207,12 +208,14 @@ def project_create_api_view(request: Request):
 @permission_classes([IsAdminUser])
 def project_delete_api_view(request: Request, project_id: int):
     qs = get_projects_qs(user=request.user)
-    obj = get_object_or_404(qs, pk=project_id)
+    obj: Project = get_object_or_404(qs, pk=project_id)
 
     # Check permissions
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_edit_project(permission, raise_exception=True)
 
+    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Post.objects.filter(default_project=obj).delete()
     obj.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
