@@ -1,3 +1,5 @@
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
@@ -27,6 +29,9 @@ type Props = {
   title?: string;
   disabled?: boolean;
   divClassName?: string;
+  initialSearch?: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const QuestionPicker: FC<Props> = ({
@@ -35,11 +40,18 @@ const QuestionPicker: FC<Props> = ({
   title,
   disabled,
   divClassName,
+  initialSearch = "",
+  isOpen: externalIsOpen,
+  onOpenChange,
 }) => {
   const t = useTranslations();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
+
+  // Use external isOpen state if provided, otherwise use internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
   const [posts, setPosts] = useState<
     (PostWithForecasts | QuestionWithForecasts)[]
   >([]);
@@ -82,6 +94,8 @@ const QuestionPicker: FC<Props> = ({
           });
           setPosts(posts);
         }
+      } else {
+        setPosts([]);
       }
     } catch (error) {
       logError(error);
@@ -95,6 +109,11 @@ const QuestionPicker: FC<Props> = ({
     handleSearch(filters);
   }, [filters]);
 
+  // Update search when initialSearch changes
+  useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
+
   function getQuestionTitle(questionType: SearchedQuestionType): string {
     switch (questionType) {
       case SearchedQuestionType.Parent:
@@ -102,45 +121,85 @@ const QuestionPicker: FC<Props> = ({
       case SearchedQuestionType.Child:
         return t("childInputDescription");
       case SearchedQuestionType.Coherence:
-        return "Select Question";
+        return "";
+      default:
+        return "";
     }
+  }
+
+  function getEmptyStateMessage(): string {
+    return search
+      ? t("noResults")
+      : "Enter a question ID or search for a question to get started";
   }
 
   return (
     <div className={divClassName}>
-      <Button onClick={() => setIsOpen(true)} disabled={disabled}>
+      <Button
+        onClick={() => setIsOpen(true)}
+        disabled={disabled}
+        variant="secondary"
+        size="sm"
+        className="my-1 px-2 py-1.5"
+      >
         {t("pickQuestion")}
       </Button>
       {isOpen && (
         <BaseModal
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
-          label={title}
-          className="h-full w-full max-w-3xl px-3 md:h-auto"
+          isImmersive={true}
+          className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 md:m-auto md:h-auto md:max-w-3xl md:rounded md:p-5"
         >
-          <div className="flex h-[calc(100%-50px)] w-full flex-col md:h-auto">
-            <SearchInput
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-              }}
-              onErase={() => setSearch("")}
-              placeholder={t("questionSearchPlaceholder")}
-            />
-            <span className="mt-1 px-1 text-xs normal-case text-gray-700 dark:text-gray-700-dark">
-              {getQuestionTitle(searchedQuestionType)}
-            </span>
-            <div className="mt-2 flex min-h-[400px] flex-1 flex-col gap-2 overflow-y-scroll md:max-h-[400px]">
-              {isLoading ? (
-                <LoadingIndicator />
-              ) : (
-                <>
-                  {posts.length === 0 && !!search ? (
-                    <div className="text-center text-gray-500">
-                      {t("noResults")}
+          <div className="flex h-full flex-col bg-white dark:bg-gray-0-dark md:bg-transparent">
+            {/* Header for mobile */}
+            <div className="flex items-center justify-between px-4 py-3 md:hidden">
+              <h2 className="text-xl font-medium leading-7">
+                {title || t("pickQuestion")}
+              </h2>
+              <Button
+                onClick={() => setIsOpen(false)}
+                className="rounded-full border border-blue-400 bg-blue-100 p-2 dark:border-blue-400-dark dark:bg-blue-100-dark"
+              >
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  className="h-4 w-4 text-blue-700 dark:text-blue-700-dark"
+                />
+              </Button>
+            </div>
+
+            {/* Content area */}
+            <div className="flex flex-1 flex-col px-4 pb-4 md:p-0">
+              <SearchInput
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                }}
+                onErase={() => setSearch("")}
+                placeholder={t("questionSearchPlaceholder")}
+                className="mb-2"
+              />
+              {getQuestionTitle(searchedQuestionType) && (
+                <span className="mb-3 px-1 text-xs normal-case text-gray-700 dark:text-gray-700-dark">
+                  {getQuestionTitle(searchedQuestionType)}
+                </span>
+              )}
+
+              {/* Results area */}
+              <div className="flex-1 overflow-y-auto">
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <LoadingIndicator />
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="text-gray-500 dark:text-gray-400">
+                      {getEmptyStateMessage()}
                     </div>
-                  ) : (
-                    posts.map((post) =>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {posts.map((post) =>
                       "type" in post ? (
                         <div
                           key={post.id}
@@ -177,10 +236,10 @@ const QuestionPicker: FC<Props> = ({
                           <PostCard post={post} />
                         </div>
                       )
-                    )
-                  )}
-                </>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </BaseModal>

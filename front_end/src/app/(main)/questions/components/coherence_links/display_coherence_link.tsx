@@ -1,3 +1,5 @@
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
@@ -20,9 +22,17 @@ const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
   const t = useTranslations();
   switch (direction) {
     case Directions.Positive:
-      return <span className={"text-green-400"}>{t("positive")}</span>;
+      return (
+        <span className={"font-bold text-olive-700 dark:text-olive-700-dark"}>
+          {t("positive")}
+        </span>
+      );
     case Directions.Negative:
-      return <span className={"text-red-400"}>{t("negative")}</span>;
+      return (
+        <span className={"font-bold text-salmon-600 dark:text-salmon-600-dark"}>
+          {t("negative")}
+        </span>
+      );
   }
 };
 
@@ -30,11 +40,11 @@ const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
   const t = useTranslations();
   switch (strength) {
     case Strengths.High:
-      return <span className={"font-black"}>{t("high")}</span>;
+      return <span className={"font-bold"}>{t("high")}</span>;
     case Strengths.Medium:
-      return <span className={"font-medium"}>{t("medium")}</span>;
+      return <span className={"font-bold"}>{t("medium")}</span>;
     case Strengths.Low:
-      return <span className={"font-thin"}>{t("low")}</span>;
+      return <span className={"font-bold"}>{t("low")}</span>;
   }
 };
 
@@ -66,7 +76,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
         </Link>
         <Button
           onClick={deleteLink}
-          className={"ml-1 border-none !bg-inherit p-1 text-sm underline"}
+          className={"border-none !bg-inherit p-1 text-sm underline"}
         >
           ({t("unlink")})
         </Button>
@@ -74,31 +84,36 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
     );
 
   return (
-    <div className={"m-2"}>
-      <div className={"bg-gray-100-dark p-4"}>
-        <div>
-          {t.rich(
-            isFirstQuestion
-              ? "thisQuestionCausesOtherQuestion"
-              : "otherQuestionCausesThisQuestion",
-            {
-              strength: () => <StrengthComponent strength={link.strength} />,
-              direction: () => (
-                <DirectionComponent direction={link.direction} />
-              ),
-              linkType: () => <span>{t("causal")}</span>,
-              otherQuestion: () => (
-                <Link href={getPostLink(otherQuestion)} target="_blank">
-                  <b>{otherQuestion.title}</b>
-                </Link>
-              ),
-            }
-          )}
-        </div>
-        <Button onClick={deleteLink} className={"mt-3"}>
-          {t("delete")}
-        </Button>
+    <div className={"rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"}>
+      <div>
+        {t.rich(
+          isFirstQuestion
+            ? "thisQuestionCausesOtherQuestion"
+            : "otherQuestionCausesThisQuestion",
+          {
+            strength: () => <StrengthComponent strength={link.strength} />,
+            direction: () => <DirectionComponent direction={link.direction} />,
+            linkType: () => <span>{t("causal")}</span>,
+            otherQuestion: () => (
+              <Link
+                href={getPostLink(otherQuestion)}
+                target="_blank"
+                className="font-normal text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
+              >
+                {otherQuestion.title}
+              </Link>
+            ),
+          }
+        )}
       </div>
+      <Button
+        onClick={deleteLink}
+        className="mt-3 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
+        variant="tertiary"
+      >
+        <FontAwesomeIcon icon={faTrash} />
+        Delete
+      </Button>
     </div>
   );
 };

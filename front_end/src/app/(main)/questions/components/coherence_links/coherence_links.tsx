@@ -1,5 +1,7 @@
 "use client";
 
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
@@ -19,7 +21,7 @@ type Props = {
   post: Post;
 };
 
-const MAX_COLLAPSED_HEIGHT = 256;
+const MAX_COLLAPSED_HEIGHT = 9999;
 
 export const CoherenceLinks: FC<Props> = ({ post }) => {
   const t = useTranslations();
@@ -60,39 +62,35 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         collapseLabel={collapseLabel}
         className="-mt-4"
       >
-        <div ref={toggleOpenRef}>
-          <div>
-            {Array.from(coherenceLinks?.data ?? [], (link) => (
-              <DisplayCoherenceLink
-                key={link.id}
-                link={link}
-                post={post}
-                compact={false}
-              ></DisplayCoherenceLink>
-            ))}
-          </div>
+        <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
+          {Array.from(coherenceLinks?.data ?? [], (link) => (
+            <DisplayCoherenceLink
+              key={link.id}
+              link={link}
+              post={post}
+              compact={false}
+            ></DisplayCoherenceLink>
+          ))}
 
-          <div className={"m-4"}>
-            {(!coherenceLinks || coherenceLinks.size === 0) &&
-              newLinksCount === 0 && <div>{t("noQuestionsLinked")}</div>}
-          </div>
+          {Array.from({ length: newLinksCount }, (_, index) => (
+            <CreateCoherenceLink
+              post={post}
+              key={index}
+              linkCreated={updatePage}
+            ></CreateCoherenceLink>
+          ))}
 
-          <div>
-            {Array.from({ length: newLinksCount }, (_, index) => (
-              <CreateCoherenceLink
-                post={post}
-                key={index}
-                linkCreated={updatePage}
-              ></CreateCoherenceLink>
-            ))}
-          </div>
-          <div className={"m-2"}>
-            {isLoggedIn && (
-              <Button onClick={addLink} className={"w-32"}>
-                {t("linkQuestion")}
-              </Button>
+          {(!coherenceLinks || coherenceLinks.size === 0) &&
+            newLinksCount === 0 && (
+              <div className="pt-2 opacity-50">{t("noQuestionsLinked")}</div>
             )}
-          </div>
+
+          {isLoggedIn && (
+            <Button onClick={addLink} variant="tertiary" className="self-start">
+              <FontAwesomeIcon icon={faPlus} className="size-4" />
+              {t("linkQuestion")}
+            </Button>
+          )}
         </div>
       </ExpandableContent>
     </SectionToggle>
