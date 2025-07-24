@@ -60,13 +60,15 @@ def _compute_hotness_approval_score(post: Post) -> float:
 
 
 def _compute_hotness_relevant_news(post: Post) -> float:
-    related_article = PostArticle.objects.filter(post=post).order_by("distance").first()
+    qs = PostArticle.objects.filter(post=post)
 
-    if not related_article:
-        return 0
-
-    return decay(
-        20 * max(0, 0.5 - related_article.distance), related_article.created_at
+    return sum(
+        [
+            decay(
+                20 * max(0, 0.5 - related_article.distance), related_article.created_at
+            )
+            for related_article in qs
+        ]
     )
 
 
