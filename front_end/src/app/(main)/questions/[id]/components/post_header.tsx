@@ -54,7 +54,7 @@ export default function PostHeader({
           </div>
         )}
       </div>
-      <PostStatusBox post={post} className="mt-4" />
+      <PostStatusBox post={post} className="rounded" />
     </div>
   );
 }
