@@ -17,6 +17,8 @@ from django.db.models import (
     Value,
     Func,
     FloatField,
+    Case,
+    When,
 )
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
@@ -251,31 +253,34 @@ class PostQuerySet(models.QuerySet):
         )
 
     def annotate_news_hotness(self):
-        # prepare a subquery for the single nearest PostArticle
         from misc.models import PostArticle
 
-        nearest = PostArticle.objects.filter(post_id=OuterRef("pk")).order_by(
-            "distance"
+        per_article = (
+            PostArticle.objects.filter(post_id=OuterRef("pk"))
+            .annotate(
+                contribution=(
+                    Greatest(Value(0.5) - F("distance"), Value(0.0))
+                    / Func(
+                        F("created_at"),
+                        function="POWER",
+                        template=(
+                            "POWER(2, ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float/7))"
+                        ),
+                        output_field=FloatField(),
+                    )
+                )
+            )
+            .values("post_id")
+            .annotate(hotness_sum=Sum("contribution", output_field=FloatField()))
+            .values("hotness_sum")
         )
 
         return self.annotate(
-            news_distance=Coalesce(
-                Subquery(nearest.values("distance")[:1]), Value(1.0)
-            ),
-            news_created_at=Subquery(nearest.values("created_at")[:1]),
-        ).annotate(
-            news_hotness=Coalesce(
-                20
-                * Greatest(Value(0.5) - F("news_distance"), Value(0.0))
-                / Func(
-                    F("news_created_at"),
-                    function="POWER",
-                    template=(
-                        "POWER(2, ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float/7))"
-                    ),
-                    output_field=FloatField(),
+            news_hotness=Case(
+                When(notebook_id__isnull=False, then=Value(0.0)),
+                default=Coalesce(
+                    Subquery(per_article, output_field=FloatField()), Value(0.0)
                 ),
-                Value(0.0),
                 output_field=FloatField(),
             )
         )
