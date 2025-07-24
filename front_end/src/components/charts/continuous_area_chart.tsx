@@ -610,7 +610,10 @@ const ContinuousAreaChart: FC<Props> = ({
               <VictoryAxis
                 dependentAxis
                 style={{
-                  tickLabels: { padding: 2 },
+                  tickLabels: {
+                    padding: 2,
+                    fill: getThemeColor(METAC_COLORS.gray["700"]),
+                  },
                   ticks: { stroke: "transparent" },
                   axis: {
                     stroke: getThemeColor(METAC_COLORS.gray["300"]),
@@ -637,6 +640,7 @@ const ContinuousAreaChart: FC<Props> = ({
               },
               tickLabels: {
                 fontSize: 10,
+                fill: getThemeColor(METAC_COLORS.gray["700"]),
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
                   // except for discrete questions, whose first and last ticks are not
