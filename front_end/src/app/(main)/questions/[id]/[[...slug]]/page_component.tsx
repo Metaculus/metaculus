@@ -4,6 +4,7 @@ import { FC } from "react";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
+import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_header_cp_status";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
@@ -105,12 +106,16 @@ const IndividualQuestionPage: FC<{
                         questionTitle={questionTitle}
                       />
                       {!isConditionalPost(postData) && (
-                        <div className="flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2">
-                          <h1 className="m-0 text-3xl leading-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl">
-                            {postData.title}
-                          </h1>
-                          {postData.resolved && !!postData.question && (
-                            <QuestionResolutionStatus post={postData} />
+                        <div className="flex items-center justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2">
+                          <div>
+                            <h1 className="m-0 text-3xl leading-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl">
+                              {postData.title}
+                            </h1>
+                          </div>
+                          {isQuestionPost(postData) && (
+                            <div>
+                              <QuestionHeaderCPStatus post={postData} />
+                            </div>
                           )}
                         </div>
                       )}

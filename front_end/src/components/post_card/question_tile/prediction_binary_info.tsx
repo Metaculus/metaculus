@@ -14,12 +14,14 @@ type Props = {
   question: QuestionWithNumericForecasts;
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
+  showMyPrediction?: boolean;
 };
 
 const PredictionBinaryInfo: FC<Props> = ({
   question,
   onReaffirm,
   canPredict,
+  showMyPrediction,
 }) => {
   const locale = useLocale();
 
@@ -53,12 +55,14 @@ const PredictionBinaryInfo: FC<Props> = ({
         className="mx-auto max-w-[110px] text-center"
         size={"xs"}
       />
-      <MyPredictionChip
-        question={question}
-        showUserForecast
-        onReaffirm={onReaffirm}
-        canPredict={canPredict}
-      />
+      {showMyPrediction && (
+        <MyPredictionChip
+          question={question}
+          showUserForecast
+          onReaffirm={onReaffirm}
+          canPredict={canPredict}
+        />
+      )}
     </>
   );
 };

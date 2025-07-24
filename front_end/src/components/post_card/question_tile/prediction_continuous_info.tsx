@@ -14,12 +14,14 @@ type Props = {
   question: QuestionWithNumericForecasts;
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
+  showMyPrediction?: boolean;
 };
 
 const PredictionContinuousInfo: FC<Props> = ({
   question,
   onReaffirm,
   canPredict,
+  showMyPrediction,
 }) => {
   const locale = useLocale();
 
@@ -55,12 +57,14 @@ const PredictionContinuousInfo: FC<Props> = ({
           size={"xs"}
         />
       </div>
-      <MyPredictionChip
-        question={question}
-        showUserForecast
-        onReaffirm={onReaffirm}
-        canPredict={canPredict}
-      />
+      {showMyPrediction && (
+        <MyPredictionChip
+          question={question}
+          showUserForecast
+          onReaffirm={onReaffirm}
+          canPredict={canPredict}
+        />
+      )}
     </>
   );
 };

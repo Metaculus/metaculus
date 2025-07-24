@@ -11,6 +11,7 @@ type Props = {
   className?: string;
   iconClassName?: string;
   size?: "xs" | "sm";
+  chip?: string | ReactNode;
 };
 
 const MovementIcon = ({
@@ -74,6 +75,7 @@ const PeriodMovement: FC<Props> = ({
   className,
   iconClassName,
   size = "sm",
+  chip,
 }) => {
   const noChange = !direction || direction == MovementDirection.UNCHANGED;
   return (
@@ -92,8 +94,31 @@ const PeriodMovement: FC<Props> = ({
           "text-xs": size === "sm",
         })}
       >
-        {!noChange && (
-          <MovementIcon iconClassName={iconClassName} direction={direction} />
+        {!!chip ? (
+          <span
+            className={cn("rounded-xs px-1.5 py-0.5", {
+              "bg-salmon-200 dark:bg-salmon-200-dark":
+                direction === MovementDirection.DOWN,
+              "bg-olive-300 dark:bg-olive-300-dark":
+                direction === MovementDirection.UP,
+              "bg-gray-200 dark:bg-gray-200-dark": ![
+                MovementDirection.UP,
+                MovementDirection.DOWN,
+              ].includes(direction),
+            })}
+          >
+            {!noChange && (
+              <MovementIcon
+                iconClassName={iconClassName}
+                direction={direction}
+              />
+            )}
+            {chip}
+          </span>
+        ) : (
+          !noChange && (
+            <MovementIcon iconClassName={iconClassName} direction={direction} />
+          )
         )}
         {message}
       </span>

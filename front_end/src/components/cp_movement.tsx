@@ -21,6 +21,7 @@ type Props = {
   presentation?: "forecasterView" | "consumerView";
   threshold?: number;
   size?: "xs" | "sm";
+  showChip?: boolean;
 };
 
 const QuestionCPMovement: FC<Props> = ({
@@ -64,6 +65,52 @@ const QuestionCPMovement: FC<Props> = ({
             )
           );
         },
+      })}
+      className={cn("text-xs", className)}
+      iconClassName="text-xs"
+      size={size}
+    />
+  );
+};
+
+export const QuestionCPMovementWithChip: FC<Props> = ({
+  question,
+  className,
+  threshold = 0.01,
+  size = "sm",
+}) => {
+  const t = useTranslations();
+
+  const movement = question.aggregations?.recency_weighted?.movement;
+
+  if (!movement || !movement.divergence || movement.divergence < threshold) {
+    return null;
+  }
+  const movementComponents = getMovementComponents(question, movement, t);
+
+  if (!movementComponents) {
+    return null;
+  }
+
+  return (
+    <PeriodMovement
+      direction={movement.direction}
+      chip={
+        question?.type === QuestionType.Binary ? (
+          <>
+            <strong className="whitespace-nowrap">
+              {movementComponents.amount.toString()}%
+            </strong>
+          </>
+        ) : (
+          formatValueUnit(
+            movementComponents.amount.toString(),
+            movementComponents.unit
+          )
+        )
+      }
+      message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
+        value: () => <></>,
       })}
       className={cn("text-xs", className)}
       iconClassName="text-xs"
