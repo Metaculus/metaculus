@@ -259,8 +259,7 @@ class PostQuerySet(models.QuerySet):
             PostArticle.objects.filter(post_id=OuterRef("pk"))
             .annotate(
                 contribution=(
-                    20
-                    * Greatest(Value(0.5) - F("distance"), Value(0.0))
+                    Greatest(Value(0.5) - F("distance"), Value(0.0))
                     / Func(
                         F("created_at"),
                         function="POWER",
