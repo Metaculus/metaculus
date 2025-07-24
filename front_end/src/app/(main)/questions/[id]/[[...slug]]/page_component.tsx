@@ -99,8 +99,11 @@ const IndividualQuestionPage: FC<{
                         className="mb-4 block sm:hidden"
                       />
                     )}
-                    <PostHeader post={postData} questionTitle={questionTitle} />
                     <div>
+                      <PostHeader
+                        post={postData}
+                        questionTitle={questionTitle}
+                      />
                       {!isConditionalPost(postData) && (
                         <div className="flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2">
                           <h1 className="m-0 text-3xl leading-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl">
