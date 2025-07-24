@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -7,23 +8,37 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  size?: "sm" | "md";
 };
 
-const BinaryCPBar: FC<Props> = ({ question }) => {
+const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
   const t = useTranslations();
   const questionCP =
     question.aggregations.recency_weighted.latest?.centers?.[0];
-  if (question.type !== QuestionType.Binary || !questionCP) {
+  if (question.type !== QuestionType.Binary) {
     return null;
   }
   const isClosed = question.status === QuestionStatus.CLOSED;
-  const cpPercentage = Math.round(questionCP * 1000) / 10;
+  const cpPercentage = Math.round((questionCP ?? 0) * 1000) / 10;
 
   // SVG configurations
-  const strokeWidth = 12;
-  const width = 112;
-  const height = 66;
-  const radius = (width - strokeWidth / 2) / 2;
+  const strokeWidth = {
+    sm: 8,
+    md: 12,
+  }[size];
+  const strokeCursorWidth = {
+    sm: 11,
+    md: 17,
+  }[size];
+  const width = {
+    sm: 85,
+    md: 112,
+  }[size];
+  const height = {
+    sm: 50,
+    md: 66,
+  }[size];
+  const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
   const center = {
     x: width / 2,
@@ -46,7 +61,7 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
   });
   const { textColor, strokeColor, progressColor } = getColorStyles(
     cpPercentage,
-    isClosed
+    isClosed || isNil(questionCP)
   );
 
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
@@ -57,7 +72,11 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
   const gradientEndY = center.y + radius * Math.sin(endAngle);
 
   return (
-    <div className="relative flex min-w-[200px] max-w-[200px] items-center justify-center">
+    <div
+      className={cn("relative flex items-center justify-center", {
+        "min-w-[200px] max-w-[200px]": size === "md",
+      })}
+    >
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
@@ -114,7 +133,7 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
             className={strokeColor}
-            strokeWidth="17"
+            strokeWidth={strokeCursorWidth}
           />
         )}
       </svg>
@@ -124,8 +143,22 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
           textColor
         )}
       >
-        <span className="text-2xl font-bold leading-8">{cpPercentage}%</span>
-        <span className="leading text-xs uppercase">{t("chance")}</span>
+        <span
+          className={cn("text-lg font-bold", {
+            "leading-[24px]": size === "sm",
+            "leading-8": size === "md",
+          })}
+        >
+          {!isNil(questionCP) && cpPercentage}%
+        </span>
+        <span
+          className={cn("font-normal uppercase", {
+            "text-[9px] leading-[9px]": size === "sm",
+            "text-xs uppercase leading-none": size === "md",
+          })}
+        >
+          {t("chance")}
+        </span>
       </div>
     </div>
   );
@@ -161,8 +194,8 @@ function describeArc({
   };
 }
 
-function getColorStyles(percentage: number, isClosed: boolean) {
-  if (isClosed) {
+function getColorStyles(percentage: number, isInactive: boolean) {
+  if (isInactive) {
     return {
       textColor: `text-gray-600 dark:text-gray-600-dark`,
       strokeColor: `stroke-gray-600 dark:stroke-gray-600-dark`,

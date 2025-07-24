@@ -10,14 +10,17 @@ type Props = {
   message: string | ReactNode;
   className?: string;
   iconClassName?: string;
+  size?: "xs" | "sm";
 };
 
 const MovementIcon = ({
   direction,
   iconClassName,
+  size,
 }: {
   direction: MovementDirection;
   iconClassName?: string;
+  size?: "xs" | "sm";
 }) => {
   switch (direction) {
     case MovementDirection.UP:
@@ -41,9 +44,27 @@ const MovementIcon = ({
         />
       );
     case MovementDirection.EXPANDED:
-      return <span className="mr-1 align-text-bottom text-[10px]">←→</span>;
+      return (
+        <span
+          className={cn("mr-1 align-text-bottom", {
+            "text-[8px]": size === "xs",
+            "text-[10px]": size === "sm",
+          })}
+        >
+          ←→
+        </span>
+      );
     case MovementDirection.CONTRACTED:
-      return <span className="mr-1 align-text-bottom text-[10px]">→←</span>;
+      return (
+        <span
+          className={cn("mr-1 align-text-bottom", {
+            "text-[8px]": size === "xs",
+            "text-[10px]": size === "sm",
+          })}
+        >
+          →←
+        </span>
+      );
   }
 };
 
@@ -52,13 +73,14 @@ const PeriodMovement: FC<Props> = ({
   message,
   className,
   iconClassName,
+  size = "sm",
 }) => {
   const noChange = !direction || direction == MovementDirection.UNCHANGED;
   return (
     <div className={cn("flex gap-1", className)}>
       <span
-        className={cn("font-medium leading-4", {
-          "text-salmon-600 dark:text-salmon-600-dark":
+        className={cn("font-normal leading-4", {
+          "text-salmon-700 dark:text-salmon-700-dark":
             direction === MovementDirection.DOWN,
           "text-olive-700 dark:text-olive-700-dark":
             direction == MovementDirection.UP,
@@ -66,6 +88,8 @@ const PeriodMovement: FC<Props> = ({
             MovementDirection.UP,
             MovementDirection.DOWN,
           ].includes(direction),
+          "text-[10px]": size === "xs",
+          "text-xs": size === "sm",
         })}
       >
         {!noChange && (

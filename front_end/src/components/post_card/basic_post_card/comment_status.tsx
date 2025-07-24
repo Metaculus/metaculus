@@ -13,52 +13,130 @@ import { abbreviatedNumber } from "@/utils/formatters/number";
 
 type Props = {
   url: string;
-  newCommentsCount: number;
-  commentColor?: "blue" | "purple";
+  unreadCount: number;
+  totalCount: number;
+  className?: string;
+  compact?: boolean;
+  variant?: "default" | "gray";
 };
 
 const CommentStatus: FC<Props> = ({
-  newCommentsCount,
+  unreadCount,
+  totalCount,
   url,
-  commentColor = "blue",
+  className,
+  compact = false,
+  variant = "default",
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const formattedCount = abbreviatedNumber(newCommentsCount, 2, false);
+  const unreadCountFormatted = abbreviatedNumber(
+    unreadCount,
+    2,
+    false,
+    undefined,
+    3
+  );
+  const totalCountFormatted = abbreviatedNumber(
+    totalCount,
+    2,
+    false,
+    undefined,
+    3
+  );
 
   return (
     <Button
       variant="text"
-      className="bg-gradient-to-b hover:from-blue-300 hover:to-blue-100 dark:hover:from-blue-300-dark dark:hover:to-blue-100-dark"
+      className={cn(
+        "border-nonepx-2 h-6 gap-1 rounded-xs border-none py-1 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2 md:px-2.5",
+        {
+          "text-gray-500 dark:text-gray-500-dark": !totalCount,
+        },
+        className
+      )}
       href={url + "#comments"}
     >
-      {newCommentsCount > 0 ? (
+      {variant === "gray" ? (
         <FontAwesomeIcon
           icon={faSolidComment}
-          size="lg"
-          className={cn(
-            {
-              blue: "text-blue-500 dark:text-blue-500-dark",
-              purple: "text-purple-500 dark:text-purple-500",
-            }[commentColor]
-          )}
+          className="text-gray-400 dark:text-gray-400-dark"
         />
       ) : (
-        <FontAwesomeIcon
-          icon={faRegularComment}
-          size="lg"
-          className="text-gray-400"
-        />
+        <>
+          {totalCount > 0 ? (
+            <FontAwesomeIcon
+              icon={faSolidComment}
+              className={cn("text-blue-500 dark:text-blue-500-dark", {
+                "text-purple-600 dark:text-purple-600-dark": unreadCount > 0,
+              })}
+            />
+          ) : (
+            <FontAwesomeIcon
+              icon={faRegularComment}
+              className={cn("text-gray-700  dark:text-gray-700-dark", {
+                "text-gray-500 dark:text-gray-500-dark": !totalCount,
+              })}
+            />
+          )}
+        </>
       )}
-      {/* Large screens version */}
-      <span className="hidden align-middle md:block">
-        {`${newCommentsCount ? `${formattedCount} ` : ""}` +
-          t(user ? "unreadWithCount" : "commentsWithCount", {
-            count: formattedCount,
-          })}
-      </span>
-      {/* Small screens version */}
-      <span className="block align-middle md:hidden">{formattedCount}</span>
+      {/* Compact version - just shows numbers */}
+      {compact && totalCount > 0 && (
+        <span className="align-middle">
+          {user && unreadCount > 0 ? (
+            <span className="text-gray-500 dark:text-gray-500-dark">
+              {t.rich("unreadWithTotalCountXs", {
+                unread_count_formatted: unreadCountFormatted,
+                total_count_formatted: totalCountFormatted,
+                purple: (obj) => (
+                  <span className="text-purple-700 dark:text-purple-700-dark">
+                    {obj}
+                  </span>
+                ),
+              })}
+            </span>
+          ) : (
+            <span
+              className={cn("text-gray-700  dark:text-gray-700-dark", {
+                "text-gray-500 dark:text-gray-500-dark": !totalCount,
+              })}
+            >
+              {totalCountFormatted}
+            </span>
+          )}
+        </span>
+      )}
+      {/* Full version - shows descriptive text */}
+      {!compact && (
+        <span className="align-middle">
+          {user && unreadCount > 0 ? (
+            <span className="text-gray-500 dark:text-gray-500-dark">
+              {t.rich("unreadWithTotalCount", {
+                unread_count_formatted: unreadCountFormatted,
+                total_count_formatted: totalCountFormatted,
+                purple: (obj) => (
+                  <span className="text-purple-700 dark:text-purple-700-dark">
+                    {obj}
+                  </span>
+                ),
+              })}
+            </span>
+          ) : (
+            <span
+              className={cn("text-gray-700  dark:text-gray-700-dark", {
+                "text-gray-500 dark:text-gray-500-dark": !totalCount,
+                "text-gray-700 dark:text-gray-700-dark": variant === "gray",
+              })}
+            >
+              {t.rich("totalCommentsCount", {
+                total_count: totalCount,
+                total_count_formatted: totalCountFormatted,
+              })}
+            </span>
+          )}
+        </span>
+      )}
     </Button>
   );
 };
