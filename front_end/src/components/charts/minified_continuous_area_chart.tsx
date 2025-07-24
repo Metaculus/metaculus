@@ -121,14 +121,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     }
     return chartData;
   }, [data, hideCP, question]);
-  // TODO: add cp median line
-  //   const cpMedian = useMemo(() => {
-  //     const cp = charts.find((chart) => chart.type === "community");
-  //     if (!cp) {
-  //       return null;
-  //     }
-  //     return cp.verticalLines.find((line) => line.x === 0.5);
-  //   }, [charts]);
+
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;

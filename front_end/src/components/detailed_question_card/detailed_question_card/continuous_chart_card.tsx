@@ -5,7 +5,6 @@ import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
-// import CPRevealTime from "@/components/cp_reveal_time";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ForecastAvailability, Question, QuestionType } from "@/types/question";
@@ -18,8 +17,6 @@ import {
   getUserPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
-
-// import CursorDetailItem from "./numeric_cursor_item";
 
 type Props = {
   question: Question;
@@ -102,15 +99,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
     const displayValue = getPredictionDisplayValue(cursorData?.center, {
       questionType: question.type,
       scaling: question.scaling,
-      // TODO: add range if needed
-      // range:
-      //   !isNil(cursorData?.interval_lower_bound) &&
-      //   !isNil(cursorData?.interval_upper_bound)
-      //     ? [
-      //         cursorData?.interval_lower_bound as number,
-      //         cursorData?.interval_upper_bound as number,
-      //       ]
-      //     : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
