@@ -78,6 +78,7 @@ type Props = {
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
+  forFeedPage?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -108,6 +109,7 @@ const GroupChart: FC<Props> = ({
   cursorTimestamp,
   forecastAvailability,
   forceShowLinePoints = false,
+  forFeedPage,
 }) => {
   const t = useTranslations();
   const {
@@ -152,6 +154,7 @@ const GroupChart: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         forceAutoZoom,
+        forFeedPage,
       }),
     [
       timestamps,
@@ -168,6 +171,7 @@ const GroupChart: FC<Props> = ({
       isEmptyDomain,
       openTime,
       forceAutoZoom,
+      forFeedPage,
     ]
   );
   const filteredLines = useMemo(() => {
@@ -596,6 +600,7 @@ function buildChartData({
   isAggregationsEmpty,
   openTime,
   forceAutoZoom,
+  forFeedPage,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -611,6 +616,7 @@ function buildChartData({
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
+  forFeedPage?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -870,7 +876,7 @@ function buildChartData({
     scaling: scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
-    forceTickCount: 5,
+    forceTickCount: forFeedPage ? 3 : 5,
     alwaysShowTicks: true,
   });
 

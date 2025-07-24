@@ -158,6 +158,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forecastAvailability={forecastAvailability}
               openTime={openTime}
               hideCP={hideCP}
+              forFeedPage
             />
           ) : (
             <GroupChart
@@ -174,6 +175,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forceShowLinePoints={true}
               openTime={openTime}
               hideCP={hideCP}
+              forFeedPage
             />
           )}
         </div>
@@ -243,6 +245,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
             hideCP={hideCP}
             withTooltip={false}
             optionsLimit={optionsLimit}
+            forFeedPage
           />
         </div>
       )}

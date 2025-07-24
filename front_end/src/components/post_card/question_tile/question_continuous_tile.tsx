@@ -168,6 +168,7 @@ const QuestionContinuousTile: FC<Props> = ({
               tickFontSize={9}
               questionStatus={question.status}
               forecastAvailability={forecastAvailability}
+              forFeedPage
             />
           ) : (
             <>
