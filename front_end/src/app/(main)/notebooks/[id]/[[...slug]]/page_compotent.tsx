@@ -15,7 +15,6 @@ import {
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
-import PostHeader from "@/app/(main)/questions/[id]/components/question_header";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
