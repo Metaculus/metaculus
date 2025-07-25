@@ -54,6 +54,7 @@ const PredictionBinaryInfo: FC<Props> = ({
         question={question}
         className="mx-auto max-w-[110px] text-center"
         size={"xs"}
+        boldValueUnit={true}
       />
       {showMyPrediction && (
         <MyPredictionChip

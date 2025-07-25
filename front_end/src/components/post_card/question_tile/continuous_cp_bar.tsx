@@ -11,9 +11,10 @@ import {
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  size?: "md" | "lg";
 };
 
-const ContinuousCPBar: FC<Props> = ({ question }) => {
+const ContinuousCPBar: FC<Props> = ({ question, size = "md" }) => {
   const latest = question.aggregations.recency_weighted.latest;
 
   if (!latest) {
@@ -53,9 +54,21 @@ const ContinuousCPBar: FC<Props> = ({ question }) => {
         }
       )}
     >
-      <div className="text-sm font-bold">{centerLabel}</div>
+      <div
+        className={cn("text-sm font-bold", {
+          "mb-1 text-base": size === "lg",
+        })}
+      >
+        {centerLabel}
+      </div>
       {!isNil(intervalLabel) && (
-        <div className="text-xs font-normal">{intervalLabel}</div>
+        <div
+          className={cn("text-xs font-normal", {
+            "text-sm": size === "lg",
+          })}
+        >
+          {intervalLabel}
+        </div>
       )}
     </div>
   );

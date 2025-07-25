@@ -52,9 +52,11 @@ const PredictionContinuousInfo: FC<Props> = ({
       <div className="flex flex-col gap-1">
         <ContinuousCPBar question={question} />
         <QuestionCPMovement
-          question={{ ...question, unit: "" }}
+          question={question}
+          unit={""}
           className="mx-auto max-w-[110px]"
           size={"xs"}
+          boldValueUnit={true}
         />
       </div>
       {showMyPrediction && (

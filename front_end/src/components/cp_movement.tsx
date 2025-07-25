@@ -18,99 +18,51 @@ import PeriodMovement from "./period_movement";
 type Props = {
   question: QuestionWithForecasts;
   className?: string;
-  presentation?: "forecasterView" | "consumerView";
+  // Unit override
+  unit?: string;
   threshold?: number;
   size?: "xs" | "sm";
-  showChip?: boolean;
+  variant?: "message" | "chip";
+  boldValueUnit?: boolean;
 };
 
-const QuestionCPMovement: FC<Props> = ({
-  question,
-  className,
-  presentation,
-  threshold = 0.01,
-  size = "sm",
-}) => {
-  const t = useTranslations();
-
-  const movement = question.aggregations?.recency_weighted?.movement;
-
-  if (!movement || !movement.divergence || movement.divergence < threshold) {
-    return null;
-  }
-  const movementComponents = getMovementComponents(question, movement, t);
-
-  if (!movementComponents) {
-    return null;
-  }
-
-  return (
-    <PeriodMovement
-      direction={movement.direction}
-      message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
-        value: () => {
-          return question?.type === QuestionType.Binary ? (
-            <>
-              <strong className="whitespace-nowrap">
-                {movementComponents.amount.toString()}
-              </strong>
-              {presentation == "consumerView"
-                ? "%"
-                : ` ${movementComponents.unit}`}
-            </>
-          ) : (
-            formatValueUnit(
-              movementComponents.amount.toString(),
-              movementComponents.unit
-            )
-          );
-        },
-      })}
-      className={cn("text-xs", className)}
-      iconClassName="text-xs"
-      size={size}
-    />
-  );
-};
-
-export const QuestionCPMovementWithChip: FC<Props> = ({
+export const QuestionCPMovement: FC<Props> = ({
   question,
   className,
   threshold = 0.01,
   size = "sm",
+  variant = "message",
+  boldValueUnit = false,
+  unit: unitOverride,
 }) => {
   const t = useTranslations();
+  const movement = question?.aggregations?.recency_weighted?.movement;
 
-  const movement = question.aggregations?.recency_weighted?.movement;
-
-  if (!movement || !movement.divergence || movement.divergence < threshold) {
+  if (!movement || !movement.divergence || movement.divergence < threshold)
     return null;
-  }
-  const movementComponents = getMovementComponents(question, movement, t);
 
-  if (!movementComponents) {
-    return null;
-  }
+  const mc = getMovementComponents(question, movement, t);
+
+  if (!mc) return null;
+
+  const unit = unitOverride ?? mc.unit;
+  const amount = mc.amount.toString();
+
+  const maybeBold = (n: React.ReactNode) =>
+    boldValueUnit ? <strong className="whitespace-nowrap">{n}</strong> : n;
+
+  const valueNode =
+    variant === "message" ? maybeBold(formatValueUnit(amount, unit)) : <></>;
+
+  const chip =
+    variant === "chip" ? maybeBold(formatValueUnit(amount, unit)) : undefined;
 
   return (
     <PeriodMovement
       direction={movement.direction}
-      chip={
-        question?.type === QuestionType.Binary ? (
-          <>
-            <strong className="whitespace-nowrap">
-              {movementComponents.amount.toString()}%
-            </strong>
-          </>
-        ) : (
-          formatValueUnit(
-            movementComponents.amount.toString(),
-            movementComponents.unit
-          )
-        )
-      }
+      chip={chip}
       message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
-        value: () => <></>,
+        value: () => valueNode,
       })}
       className={cn("text-xs", className)}
       iconClassName="text-xs"

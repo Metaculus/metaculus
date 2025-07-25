@@ -8,7 +8,7 @@ type Props = {
   successfullyResolved: boolean;
   unit?: string;
   presentation?: "forecasterView" | "consumerView";
-  size?: "md" | "lg" | "auto";
+  size?: "md" | "lg";
 };
 
 const QuestionResolutionChip: FC<Props> = ({
@@ -27,7 +27,6 @@ const QuestionResolutionChip: FC<Props> = ({
           {
             "border-gray-300 dark:border-gray-300-dark": !successfullyResolved,
             "px-5 py-3": size === "lg",
-            "lg:px-5 lg:py-3": size === "auto",
           }
         )}
       >
@@ -37,7 +36,6 @@ const QuestionResolutionChip: FC<Props> = ({
               "text-xs font-normal uppercase leading-4 text-purple-700 dark:text-purple-700-dark",
               {
                 "text-base": size === "lg",
-                "lg:text-base": size === "auto",
               }
             )}
           >
@@ -50,7 +48,6 @@ const QuestionResolutionChip: FC<Props> = ({
             {
               "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
               "text-2xl": size === "lg",
-              "lg:text-2xl": size === "auto",
             }
           )}
         >

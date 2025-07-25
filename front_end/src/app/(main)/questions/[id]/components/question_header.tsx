@@ -38,7 +38,7 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
                 {post.title}
               </h1>
               <div className="lg:hidden">
-                <QuestionHeaderCPStatus post={post} size="sm" />
+                <QuestionHeaderCPStatus post={post} size="md" />
               </div>
             </div>
           )}

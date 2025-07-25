@@ -1,11 +1,11 @@
 "use client";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
-import { QuestionCPMovementWithChip } from "@/components/cp_movement";
-import PredictionContinuousInfo from "@/components/post_card/question_tile/prediction_continuous_info";
+import QuestionCPMovement from "@/components/cp_movement";
+import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -14,12 +14,13 @@ import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   post: PostWithForecasts;
-  size: "sm" | "lg";
+  size: "md" | "lg";
 };
 
 const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
   const question = post.question as QuestionWithForecasts;
   const locale = useLocale();
+  const t = useTranslations();
 
   /*
    * TODO: maybe make a universal component with Feed Tiles?
@@ -43,7 +44,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
         formatedResolution={formatedResolution}
         successfullyResolved={successfullyResolved}
         unit={question.unit}
-        size="auto"
+        size={size}
       />
     );
   }
@@ -53,30 +54,45 @@ const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
     case QuestionType.Discrete:
     case QuestionType.Date:
       return (
-        <PredictionContinuousInfo
-          question={question}
-          canPredict={false}
-          showMyPrediction={false}
-        />
+        <div
+          className={cn("flex w-max flex-col", {
+            "max-w-[200px] gap-4": size === "lg",
+            "max-w-[130px] gap-3": size === "md",
+          })}
+        >
+          <div>
+            <div className="mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block">
+              {t("communityPredictionLabel")}
+            </div>
+            <ContinuousCPBar question={question} size={size} />
+          </div>
+          <QuestionCPMovement
+            question={question}
+            className="mx-auto"
+            size={"sm"}
+            unit={size === "md" ? "" : undefined}
+            boldValueUnit={true}
+          />
+        </div>
       );
     case QuestionType.Binary:
       return (
         <div
           className={cn("flex flex-col gap-5", {
             "gap-5": size === "lg",
-            "gap-3": size === "sm",
+            "gap-3": size === "md",
           })}
         >
           <BinaryCPBar question={question} size={size} />
-          <QuestionCPMovementWithChip
+          <QuestionCPMovement
             question={question}
             className={cn("mx-auto pb-1 text-center", {
-              "w-max max-w-[120px]": size === "sm",
+              "w-max max-w-[120px]": size === "md",
             })}
             size={"sm"}
             // Just to show % instead of pp
-            presentation="consumerView"
-            showChip={true}
+            unit={"%"}
+            variant={"chip"}
           />
         </div>
       );
