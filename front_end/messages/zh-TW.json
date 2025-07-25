@@ -1420,12 +1420,13 @@
   "swap": "交換",
   "updateLinksRequest": "不要忘記更新以下連結的問題：",
   "unlink": "取消連結",
-  "noQuestionsLinked": "你尚未連結其他問題。",
   "linkQuestion": "新增問題連結",
   "low": "小",
   "medium": "中",
   "high": "大",
   "questionLinksPrivate": "問題連結（私人）",
   "mostForecasters": "大多數預測者",
+  "noQuestionsLinkedP1": "您尚未鏈接任何問題",
+  "noQuestionsLinkedP2": "Metaculus 上是否有其他問題會影響這個問題？在這裡連結它們，以改善 Metaculus 的集體理解，並獲得提醒以幫助您保持預測一致。您的連結是私密的，但將對社群合計有所貢獻。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

@@ -1425,12 +1425,13 @@
   "swap": "交换",
   "updateLinksRequest": "别忘了更新以下相关问题：",
   "unlink": "取消链接",
-  "noQuestionsLinked": "你还没有链接其他问题。",
   "linkQuestion": "添加问题链接",
   "low": "小",
   "medium": "中",
   "high": "大",
   "questionLinksPrivate": "问题链接（私密）",
   "mostForecasters": "大多数预测者",
+  "noQuestionsLinkedP1": "您尚未链接任何问题",
+  "noQuestionsLinkedP2": "Metaculus 上是否有其他问题会影响此问题？在这里链接它们以提高 Metaculus 的集体理解，并获取提醒以帮助您保持预测一致。您的链接是私密的，但会对社区汇总作出贡献。",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

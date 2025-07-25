@@ -59,46 +59,57 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   if (post.question?.type !== QuestionType.Binary) return null;
 
   return (
-    <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
-      <ExpandableContent
-        maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
-        expandLabel={expandLabel}
-        collapseLabel={collapseLabel}
-        className="-mt-4"
-      >
-        <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
-          {Array.from(coherenceLinks?.data ?? [], (link) => (
-            <DisplayCoherenceLink
-              key={link.id}
-              link={link}
-              post={post}
-              compact={false}
-            ></DisplayCoherenceLink>
-          ))}
+    isLoggedIn && (
+      <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
+        <ExpandableContent
+          maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
+          expandLabel={expandLabel}
+          collapseLabel={collapseLabel}
+          className="-mt-4"
+        >
+          <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
+            {Array.from(coherenceLinks?.data ?? [], (link) => (
+              <DisplayCoherenceLink
+                key={link.id}
+                link={link}
+                post={post}
+                compact={false}
+              ></DisplayCoherenceLink>
+            ))}
 
-          {Array.from(newLinks, (id) => (
-            <CreateCoherenceLink
-              post={post}
-              key={id}
-              linkCreated={updatePage}
-              linkKey={id}
-              deleteLink={deleteLink}
-            ></CreateCoherenceLink>
-          ))}
+            {Array.from(newLinks, (id) => (
+              <CreateCoherenceLink
+                post={post}
+                key={id}
+                linkCreated={updatePage}
+                linkKey={id}
+                deleteLink={deleteLink}
+              ></CreateCoherenceLink>
+            ))}
 
-          {(!coherenceLinks || coherenceLinks.size === 0) &&
-            newLinks?.length === 0 && (
-              <div className="pt-2 opacity-50">{t("noQuestionsLinked")}</div>
-            )}
+            <div className="flex flex-col items-center justify-between pb-8 pt-6">
+              {(!coherenceLinks || coherenceLinks.size === 0) &&
+                newLinks?.length === 0 && (
+                  <>
+                    <span>{t("noQuestionsLinkedP1")}</span>
+                    <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
+                      {t("noQuestionsLinkedP2")}
+                    </span>
+                  </>
+                )}
 
-          {isLoggedIn && (
-            <Button onClick={addLink} variant="tertiary" className="self-start">
-              <FontAwesomeIcon icon={faPlus} className="size-4" />
-              {t("linkQuestion")}
-            </Button>
-          )}
-        </div>
-      </ExpandableContent>
-    </SectionToggle>
+              <Button
+                onClick={addLink}
+                variant="tertiary"
+                className="mx-auto mt-4 self-start"
+              >
+                <FontAwesomeIcon icon={faPlus} className="size-4" />
+                {t("linkQuestion")}
+              </Button>
+            </div>
+          </div>
+        </ExpandableContent>
+      </SectionToggle>
+    )
   );
 };

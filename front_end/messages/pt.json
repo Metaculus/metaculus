@@ -1421,12 +1421,13 @@
   "swap": "Trocar",
   "updateLinksRequest": "Não se esqueça de atualizar as seguintes perguntas vinculadas:",
   "unlink": "desvincular",
-  "noQuestionsLinked": "Você ainda não vinculou outra pergunta.",
   "linkQuestion": "Adicionar Link da Pergunta",
   "low": "pequeno",
   "medium": "médio",
   "high": "grande",
   "questionLinksPrivate": "Links de Pergunta (Privado)",
   "mostForecasters": "A maioria dos Previsores",
+  "noQuestionsLinkedP1": "Você ainda não vinculou nenhuma pergunta",
+  "noQuestionsLinkedP2": "Existem outras perguntas no Metaculus que têm impacto nesta pergunta? Vincule-as aqui para melhorar a compreensão coletiva do Metaculus e receba lembretes para ajudar a manter suas previsões consistentes. Seus links são privados, mas contribuirão para um agregado da comunidade.",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }
