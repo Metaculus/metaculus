@@ -378,7 +378,13 @@ const MultipleChoiceChart: FC<Props> = ({
             />
             <VictoryAxis
               tickValues={xScale.ticks}
-              tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
+              tickFormat={
+                isCursorActive ||
+                !!forecastAvailability?.isEmpty ||
+                !!forecastAvailability?.cpRevealsOn
+                  ? () => ""
+                  : xScale.tickFormat
+              }
               tickLabelComponent={
                 <VictoryPortal>
                   <XTickLabel
@@ -394,6 +400,9 @@ const MultipleChoiceChart: FC<Props> = ({
                 },
                 axis: {
                   stroke: "transparent",
+                },
+                tickLabels: {
+                  fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
               }}
             />
@@ -481,7 +490,7 @@ const MultipleChoiceChart: FC<Props> = ({
       <ForecastAvailabilityChartOverflow
         forecastAvailability={forecastAvailability}
         className="pl-0 text-xs lg:text-sm"
-        textClassName="!max-w-[300px] pl-0"
+        textClassName="!max-w-[300px] pl-0 text-gray-700 dark:text-gray-700-dark"
       />
     </div>
   );
@@ -739,7 +748,7 @@ function buildChartData({
     minValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
     maxValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
   });
-  console.log(forFeedPage);
+
   const yScale = generateScale({
     displayType: QuestionType.MultipleChoice,
     axisLength: height,
