@@ -34,7 +34,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
         {(!!chartTitle || !!zoom) && (
           <div className="mb-2.5 flex w-full md:mb-5">
             {!!chartTitle && (
-              <div className="text-base text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
+              <div className="text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
                 {chartTitle}
               </div>
             )}
