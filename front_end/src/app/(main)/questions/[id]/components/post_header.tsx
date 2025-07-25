@@ -7,19 +7,11 @@ import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_statu
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_header_cp_status";
 import QuestionHeaderInfo from "@/app/(main)/questions/[id]/components/question_header_info";
 import ConditionalTile from "@/components/conditional_tile";
-import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions/";
-import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { isConditionalPost, isQuestionPost } from "@/utils/questions/helpers";
 
-export default function PostHeader({
-  post,
-  questionTitle,
-}: {
-  post: PostWithForecasts;
-  questionTitle: string;
-}) {
+export default function PostHeader({ post }: { post: PostWithForecasts }) {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
 
