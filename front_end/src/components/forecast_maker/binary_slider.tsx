@@ -51,7 +51,7 @@ const BinarySlider: FC<Props> = ({
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
-  const [isNearCommunityForecast, setIsNearCommunityForecast] = useState(true);
+  const [isNearCommunityForecast, setIsNearCommunityForecast] = useState(false);
 
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const communityBubbleRef = useRef<HTMLDivElement>(null);
