@@ -23,6 +23,7 @@ interface DropdownMenuProps extends React.PropsWithChildren {
   itemClassName?: string;
   className?: string;
   onClose?: () => void;
+  innerDivClassName?: string;
 }
 
 const defaultButton = (
@@ -111,9 +112,16 @@ export default function DropdownMenu({
   itemClassName,
   className,
   onClose,
+  innerDivClassName,
 }: DropdownMenuProps) {
   return (
-    <Menu as="div" className="relative text-gray-900 dark:text-gray-900-dark">
+    <Menu
+      as="div"
+      className={cn(
+        "relative text-gray-900 dark:text-gray-900-dark",
+        innerDivClassName
+      )}
+    >
       {({ open }) => (
         <InnerMenuContent
           open={open}
