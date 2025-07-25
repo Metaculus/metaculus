@@ -2,7 +2,14 @@ import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { SemanticName } from "rc-slider/lib/interface";
-import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
+import React, {
+  CSSProperties,
+  FC,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Rectangle } from "@/components/icons/rectangle";
 import Slider from "@/components/sliders/slider";
@@ -12,7 +19,7 @@ const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
 export const BINARY_MIN_VALUE = 10 ** -BINARY_FORECAST_PRECISION * 100;
 export const BINARY_MAX_VALUE = 100 - BINARY_MIN_VALUE;
-const THRESHOLD = 11;
+const COLLISION_BUFFER = 10; // pixels
 
 type Props = {
   forecast: number | null;
@@ -44,12 +51,46 @@ const BinarySlider: FC<Props> = ({
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
+  const [isNearCommunityForecast, setIsNearCommunityForecast] = useState(true);
+
+  const sliderContainerRef = useRef<HTMLDivElement>(null);
+  const communityBubbleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isInputFocused) {
       setInputValue(inputDisplayValue);
     }
   }, [inputDisplayValue, isInputFocused]);
+
+  // Calculate physical collision between slider handle and community bubble
+  useEffect(() => {
+    if (
+      !communityForecast ||
+      !sliderContainerRef.current ||
+      !communityBubbleRef.current
+    ) {
+      setIsNearCommunityForecast(false);
+      return;
+    }
+
+    const sliderRect = sliderContainerRef.current.getBoundingClientRect();
+    const markRect = communityBubbleRef.current.getBoundingClientRect();
+
+    // Calculate slider handle position (approximate based on slider value)
+    const sliderProgress =
+      (sliderValue - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE);
+    const handleX = sliderRect.left + sliderRect.width * sliderProgress;
+
+    // Calculate community bubble center position
+    const bubbleX = markRect.left + markRect.width / 2;
+
+    // Check if they're too close (considering handle width and bubble width)
+    const handleWidth = 20;
+    const distance = Math.abs(handleX - bubbleX);
+    const minDistance = handleWidth / 2 + markRect.width / 2 + COLLISION_BUFFER;
+
+    setIsNearCommunityForecast(distance < minDistance);
+  }, [sliderValue, communityForecast]);
 
   const handleSliderForecastChange = useCallback(
     (value: number) => {
@@ -61,14 +102,12 @@ const BinarySlider: FC<Props> = ({
     [onBecomeDirty, onChange]
   );
 
-  const isNearCommunityForecast =
-    communityForecast !== null &&
-    communityForecast !== undefined &&
-    Math.abs(sliderValue - communityForecast * 100) <= THRESHOLD;
-
   return (
     <>
-      <div className={cn("group relative mt-9 py-5", className)}>
+      <div
+        className={cn("group relative mt-9 py-5", className)}
+        ref={sliderContainerRef}
+      >
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
@@ -86,6 +125,7 @@ const BinarySlider: FC<Props> = ({
                       value={communityForecast}
                       isNear={isNearCommunityForecast}
                       disabled={disabled}
+                      ref={communityBubbleRef}
                     />
                   ),
                 }
@@ -116,15 +156,14 @@ const BinarySlider: FC<Props> = ({
   );
 };
 
-const MarkArrow: FC<{ value: number; isNear: boolean; disabled: boolean }> = ({
-  value,
-  isNear,
-  disabled,
-}) => {
-  // Add isNear prop
+const MarkArrow = React.forwardRef<
+  HTMLDivElement,
+  { value: number; isNear: boolean; disabled: boolean }
+>(({ value, isNear, disabled }, ref) => {
   const t = useTranslations();
   return (
     <div
+      ref={ref}
       className={cn("absolute -translate-x-1/2", {
         "translate-y-[-36px]": isNear,
         "translate-y-[-20px]": !isNear,
@@ -151,6 +190,8 @@ const MarkArrow: FC<{ value: number; isNear: boolean; disabled: boolean }> = ({
       />
     </div>
   );
-};
+});
+
+MarkArrow.displayName = "MarkArrow";
 
 export default BinarySlider;
