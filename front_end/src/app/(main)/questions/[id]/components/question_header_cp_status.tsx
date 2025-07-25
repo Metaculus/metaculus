@@ -43,7 +43,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
         formatedResolution={formatedResolution}
         successfullyResolved={successfullyResolved}
         unit={question.unit}
-        size="lg"
+        size="lg:auto"
       />
     );
   }
