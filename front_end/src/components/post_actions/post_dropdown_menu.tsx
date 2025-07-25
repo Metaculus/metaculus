@@ -25,9 +25,10 @@ import { getPostEditLink } from "@/utils/navigation";
 
 type Props = {
   post: Post;
+  button?: React.ReactNode;
 };
 
-export const PostDropdownMenu: FC<Props> = ({ post }) => {
+export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const router = useRouter();
@@ -199,13 +200,17 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
         post={post}
       />
       <DropdownMenu items={menuItems}>
-        <Button
-          variant="secondary"
-          className="rounded border-0"
-          presentationType="icon"
-        >
-          <FontAwesomeIcon icon={faEllipsis} className="text-lg" />
-        </Button>
+        {button ? (
+          button
+        ) : (
+          <Button
+            variant="secondary"
+            className="rounded border-0"
+            presentationType="icon"
+          >
+            <FontAwesomeIcon icon={faEllipsis} className="text-lg" />
+          </Button>
+        )}
       </DropdownMenu>
     </>
   );

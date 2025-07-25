@@ -77,7 +77,7 @@ const IndividualNotebookPage: FC<{
             />
           )}
 
-        <PostHeader post={postData} questionTitle={questionTitle} />
+        <PostHeader post={postData} />
 
         <h1
           id={NOTEBOOK_TITLE}
