@@ -28,7 +28,7 @@ const MovementIcon = ({
       return (
         <FontAwesomeIcon
           className={cn(
-            "mr-1 text-olive-700 dark:text-olive-700-dark",
+            "mr-1 text-inherit text-olive-700 dark:text-olive-700-dark",
             iconClassName
           )}
           icon={faArrowUp}
@@ -38,7 +38,7 @@ const MovementIcon = ({
       return (
         <FontAwesomeIcon
           className={cn(
-            "mr-1 text-salmon-600 dark:text-salmon-600-dark",
+            "mr-1 text-inherit text-salmon-600 dark:text-salmon-600-dark",
             iconClassName
           )}
           icon={faArrowDown}
@@ -111,13 +111,18 @@ const PeriodMovement: FC<Props> = ({
               <MovementIcon
                 iconClassName={iconClassName}
                 direction={direction}
+                size={size}
               />
             )}
             {chip}
           </span>
         ) : (
           !noChange && (
-            <MovementIcon iconClassName={iconClassName} direction={direction} />
+            <MovementIcon
+              iconClassName={iconClassName}
+              direction={direction}
+              size={size}
+            />
           )
         )}
         {message}

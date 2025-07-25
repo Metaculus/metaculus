@@ -4,6 +4,7 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
 
@@ -11,15 +12,21 @@ import ForecastersCounter from "../../components/forecaster_counter";
 
 type Props = {
   post: PostWithForecasts;
+  className?: string;
 };
 
-const QuestionHeaderInfo: FC<Props> = ({ post }) => {
+const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
   const resolutionData = extractPostResolution(post);
 
   // TODO: should we re-use this in Post Tiles?
 
   return (
-    <div className="mt-auto flex items-center justify-between gap-3 pt-4 font-medium">
+    <div
+      className={cn(
+        "mt-auto flex items-center justify-between gap-3 font-medium",
+        className
+      )}
+    >
       <div className="flex items-center gap-2">
         <PostVoter post={post} />
 

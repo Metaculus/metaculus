@@ -7,12 +7,14 @@ import { QuestionCPMovementWithChip } from "@/components/cp_movement";
 import PredictionContinuousInfo from "@/components/post_card/question_tile/prediction_continuous_info";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import cn from "@/utils/core/cn";
 
 type Props = {
   post: PostWithForecasts;
+  size: "sm" | "lg";
 };
 
-const QuestionHeaderCPStatus: FC<Props> = ({ post }) => {
+const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
   const question = post.question as QuestionWithForecasts;
 
   if (post.resolved) {
@@ -37,11 +39,18 @@ const QuestionHeaderCPStatus: FC<Props> = ({ post }) => {
       );
     case QuestionType.Binary:
       return (
-        <div className="flex flex-col gap-5">
-          <BinaryCPBar question={question} size="lg" />
+        <div
+          className={cn("flex flex-col gap-5", {
+            "gap-5": size === "lg",
+            "gap-3": size === "sm",
+          })}
+        >
+          <BinaryCPBar question={question} size={size} />
           <QuestionCPMovementWithChip
             question={question}
-            className="mx-auto pb-1 text-center"
+            className={cn("mx-auto pb-1 text-center", {
+              "w-max max-w-[120px]": size === "sm",
+            })}
             size={"sm"}
             // Just to show % instead of pp
             presentation="consumerView"

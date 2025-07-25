@@ -34,9 +34,9 @@ import NotebookRedirect from "../components/notebook_redirect";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
-import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
 );
@@ -92,7 +92,7 @@ const IndividualQuestionPage: FC<{
                   </div>
                 )}
                 <div className="relative z-10 flex w-full flex-col gap-4">
-                  <section className="flex w-[48rem] max-w-full flex-col gap-5 rounded border-transparent bg-gray-0 px-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8">
+                  <section className="flex w-[48rem] max-w-full flex-col gap-5 rounded border-transparent bg-gray-0 p-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8">
                     {isCommunityQuestion && (
                       <CommunityDisclaimer
                         project={postData.projects.default_project}
@@ -100,33 +100,7 @@ const IndividualQuestionPage: FC<{
                         className="mb-4 block sm:hidden"
                       />
                     )}
-                    <div>
-                      <PostHeader
-                        post={postData}
-                        questionTitle={questionTitle}
-                      />
-                      <div className="flex items-stretch justify-between gap-2 xs:gap-4 sm:gap-8">
-                        <div className="flex flex-col">
-                          {isConditionalPost(postData) ? (
-                            <ConditionalTile
-                              post={postData}
-                              withNavigation
-                              withCPRevealBtn
-                            />
-                          ) : (
-                            <h1 className="m-0 text-3xl leading-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl">
-                              {postData.title}
-                            </h1>
-                          )}
-                          <QuestionHeaderInfo post={postData} />
-                        </div>
-                        {isQuestionPost(postData) && (
-                          <div>
-                            <QuestionHeaderCPStatus post={postData} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <PostHeader post={postData} questionTitle={questionTitle} />
                     {isQuestionPost(postData) && (
                       <DetailedQuestionCard post={postData} />
                     )}
