@@ -1424,10 +1424,10 @@
   "updateLinksRequest": "Nezapomeňte aktualizovat následující propojené otázky:",
   "unlink": "zrušit propojení",
   "noQuestionsLinked": "Ještě jste nepropojili žádnou další otázku.",
-  "questionLinks": "Odkazy na otázky",
   "linkQuestion": "Přidat odkaz na otázku",
   "low": "malý",
   "medium": "střední",
   "high": "velký",
+  "questionLinksPrivate": "Odkazy na otázky (Soukromé)",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

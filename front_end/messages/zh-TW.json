@@ -1421,10 +1421,10 @@
   "updateLinksRequest": "不要忘記更新以下連結的問題：",
   "unlink": "取消連結",
   "noQuestionsLinked": "你尚未連結其他問題。",
-  "questionLinks": "問題連結",
   "linkQuestion": "新增問題連結",
   "low": "小",
   "medium": "中",
   "high": "大",
+  "questionLinksPrivate": "問題連結（私人）",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

@@ -55,7 +55,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   if (post.question?.type !== QuestionType.Binary) return null;
 
   return (
-    <SectionToggle title={t("questionLinks")} defaultOpen={true}>
+    <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
       <ExpandableContent
         maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
         expandLabel={expandLabel}

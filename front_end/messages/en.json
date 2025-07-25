@@ -1420,7 +1420,7 @@
   "updateLinksRequest" : "Don't forget to update the following linked questions:",
   "unlink" : "unlink",
   "noQuestionsLinked" : "You haven't linked another question yet.",
-  "questionLinks" : "Question Links",
+  "questionLinksPrivate" : "Question Links (Private)",
   "linkQuestion": "Add Question Link",
   "low" : "small",
   "medium" : "medium",

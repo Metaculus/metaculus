@@ -1426,10 +1426,10 @@
   "updateLinksRequest": "别忘了更新以下相关问题：",
   "unlink": "取消链接",
   "noQuestionsLinked": "你还没有链接其他问题。",
-  "questionLinks": "问题链接",
   "linkQuestion": "添加问题链接",
   "low": "小",
   "medium": "中",
   "high": "大",
+  "questionLinksPrivate": "问题链接（私密）",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

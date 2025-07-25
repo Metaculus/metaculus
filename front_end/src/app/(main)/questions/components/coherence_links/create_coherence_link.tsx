@@ -31,7 +31,7 @@ const StyledSelect: FC<{
   <Select
     value={value}
     onChange={(event) => onChange(event.target.value)}
-    className="select-arrow rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
+    className="select-arrow h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
   >
     {options.map((option) => (
       <option
@@ -156,9 +156,6 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
                       openPickerWithQuestion();
                     }}
                   >
-                    <span className="text-xs font-normal tabular-nums text-blue-700 dark:text-blue-700-dark">
-                      {otherQuestion.id}
-                    </span>
                     <span className="max-w-[220px] truncate text-sm font-medium text-gray-900 dark:text-gray-900-dark">
                       {otherQuestion.title}
                     </span>
@@ -166,7 +163,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        clearOtherQuestion();
+                        void clearOtherQuestion();
                       }}
                       className="flex-shrink-0 rounded-sm p-1 transition-colors"
                     >

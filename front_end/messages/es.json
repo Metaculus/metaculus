@@ -1424,10 +1424,10 @@
   "updateLinksRequest": "No olvides actualizar las siguientes preguntas vinculadas:",
   "unlink": "desvincular",
   "noQuestionsLinked": "Aún no has vinculado otra pregunta.",
-  "questionLinks": "Enlaces de Preguntas",
   "linkQuestion": "Agregar Enlace de Pregunta",
   "low": "pequeño",
   "medium": "mediano",
   "high": "grande",
+  "questionLinksPrivate": "Enlaces de preguntas (Privado)",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
