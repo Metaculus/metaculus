@@ -34,7 +34,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
         {(!!chartTitle || !!zoom) && (
           <div className="mb-2.5 flex w-full md:mb-5">
             {!!chartTitle && (
-              <div className="text-base font-normal text-blue-900 dark:text-gray-900-dark">
+              <div className="text-base text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
                 {chartTitle}
               </div>
             )}
@@ -51,7 +51,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                       {({ selected, hover }) => (
                         <button
                           className={cn(
-                            "ChartZoomButton rounded px-1.5 py-1 text-sm font-medium leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark",
+                            "ChartZoomButton rounded px-1 py-0.5 text-xs font-medium leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:px-1.5 md:py-1 md:text-sm",
                             {
                               "text-gray-800 dark:text-gray-800-dark": selected,
                             },
