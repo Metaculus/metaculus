@@ -27,19 +27,23 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const t = useTranslations();
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
-  const [newLinksCount, setNewLinksCount] = useState(0);
+  const [newLinks, setNewLinks] = useState<number[]>([]);
   const [coherenceLinks, setCoherenceLinks] =
     useState<CoherenceLinksGroup | null>(null);
   const toggleOpenRef = useCallback((element: HTMLElement | null) => {
     if (element) {
-      setNewLinksCount(0);
+      setNewLinks([]);
     }
   }, []);
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
   async function addLink() {
-    setNewLinksCount(newLinksCount + 1);
+    setNewLinks([...newLinks, (newLinks?.at(-1) ?? -1) + 1]);
+  }
+
+  async function deleteLink(key: number) {
+    setNewLinks(newLinks.filter((current) => current !== key));
   }
 
   const updatePage = async () => {
@@ -72,16 +76,18 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
             ></DisplayCoherenceLink>
           ))}
 
-          {Array.from({ length: newLinksCount }, (_, index) => (
+          {Array.from(newLinks, (id) => (
             <CreateCoherenceLink
               post={post}
-              key={index}
+              key={id}
               linkCreated={updatePage}
+              linkKey={id}
+              deleteLink={deleteLink}
             ></CreateCoherenceLink>
           ))}
 
           {(!coherenceLinks || coherenceLinks.size === 0) &&
-            newLinksCount === 0 && (
+            newLinks?.length === 0 && (
               <div className="pt-2 opacity-50">{t("noQuestionsLinked")}</div>
             )}
 

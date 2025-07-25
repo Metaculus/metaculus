@@ -15,7 +15,9 @@ import { Question, QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   post: Post;
+  linkKey: number;
   linkCreated: () => Promise<void>;
+  deleteLink: (key: number) => Promise<void>;
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
@@ -45,7 +47,12 @@ const StyledSelect: FC<{
   </Select>
 );
 
-export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
+export const CreateCoherenceLink: FC<Props> = ({
+  post,
+  linkCreated,
+  linkKey,
+  deleteLink,
+}) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState(Directions.Positive);
@@ -83,6 +90,7 @@ export const CreateCoherenceLink: FC<Props> = ({ post, linkCreated }) => {
   }
 
   async function cancelLink() {
+    await deleteLink(linkKey);
     setCancelled(true);
   }
 
