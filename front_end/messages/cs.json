@@ -1414,7 +1414,7 @@
   "unreadWithTotalCount": "<purple>({unread_count_formatted} nepřečtených)</purple> {total_count_formatted} celkem",
   "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
   "forecastersWithCount": "{count_formatted} {count, plural, =1 {prognostik} other {prognostiků} }",
-  "percentagePointsShort": "pb",
+  "percentagePointsShort": "pp",
   "latestEstimate": "Nejnovější odhad",
   "currentEstimate": "Aktuální odhad",
   "closedForForecastingShortDescription": "Tato otázka je uzavřena pro prognózy.",

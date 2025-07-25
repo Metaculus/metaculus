@@ -19,6 +19,7 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -566,11 +567,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   return (
     <>
-      {predictionMessage && (
-        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {predictionMessage}
-        </div>
-      )}
+      <ForecastPredictionMessage predictionMessage={predictionMessage} />
       <GroupForecastAccordion
         options={groupOptions}
         groupVariable={groupVariable}

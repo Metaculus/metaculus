@@ -8,7 +8,7 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 };
 
 const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
@@ -25,18 +25,22 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
   const strokeWidth = {
     sm: 8,
     md: 12,
+    lg: 12,
   }[size];
   const strokeCursorWidth = {
     sm: 11,
     md: 17,
+    lg: 17,
   }[size];
   const width = {
     sm: 85,
     md: 112,
+    lg: 140,
   }[size];
   const height = {
     sm: 50,
     md: 66,
+    lg: 83,
   }[size];
   const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
@@ -147,6 +151,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
           className={cn("text-lg font-bold", {
             "leading-[24px]": size === "sm",
             "leading-8": size === "md",
+            "text-3xl leading-[40px]": size === "lg",
           })}
         >
           {!isNil(questionCP) && cpPercentage}%
@@ -155,6 +160,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
           className={cn("font-normal uppercase", {
             "text-[9px] leading-[9px]": size === "sm",
             "text-xs uppercase leading-none": size === "md",
+            "leading-none": size === "lg",
           })}
         >
           {t("chance")}

@@ -14,12 +14,14 @@ type Props = {
   question: QuestionWithNumericForecasts;
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
+  showMyPrediction?: boolean;
 };
 
 const PredictionContinuousInfo: FC<Props> = ({
   question,
   onReaffirm,
   canPredict,
+  showMyPrediction,
 }) => {
   const locale = useLocale();
 
@@ -50,17 +52,21 @@ const PredictionContinuousInfo: FC<Props> = ({
       <div className="flex flex-col gap-1">
         <ContinuousCPBar question={question} />
         <QuestionCPMovement
-          question={{ ...question, unit: "" }}
+          question={question}
+          unit={""}
           className="mx-auto max-w-[110px]"
           size={"xs"}
+          boldValueUnit={true}
         />
       </div>
-      <MyPredictionChip
-        question={question}
-        showUserForecast
-        onReaffirm={onReaffirm}
-        canPredict={canPredict}
-      />
+      {showMyPrediction && (
+        <MyPredictionChip
+          question={question}
+          showUserForecast
+          onReaffirm={onReaffirm}
+          canPredict={canPredict}
+        />
+      )}
     </>
   );
 };

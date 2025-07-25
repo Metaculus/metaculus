@@ -1,9 +1,17 @@
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { SemanticName } from "rc-slider/lib/interface";
-import { CSSProperties, FC, useCallback, useEffect, useState } from "react";
+import React, {
+  CSSProperties,
+  FC,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import { Rectangle } from "@/components/icons/rectangle";
 import Slider from "@/components/sliders/slider";
 import cn from "@/utils/core/cn";
 
@@ -11,7 +19,7 @@ const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
 export const BINARY_MIN_VALUE = 10 ** -BINARY_FORECAST_PRECISION * 100;
 export const BINARY_MAX_VALUE = 100 - BINARY_MIN_VALUE;
-const THRESHOLD = 7;
+const COLLISION_BUFFER = 10; // pixels
 
 type Props = {
   forecast: number | null;
@@ -43,12 +51,46 @@ const BinarySlider: FC<Props> = ({
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
+  const [isNearCommunityForecast, setIsNearCommunityForecast] = useState(false);
+
+  const sliderContainerRef = useRef<HTMLDivElement>(null);
+  const communityBubbleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isInputFocused) {
       setInputValue(inputDisplayValue);
     }
   }, [inputDisplayValue, isInputFocused]);
+
+  // Calculate physical collision between slider handle and community bubble
+  useEffect(() => {
+    if (
+      !communityForecast ||
+      !sliderContainerRef.current ||
+      !communityBubbleRef.current
+    ) {
+      setIsNearCommunityForecast(false);
+      return;
+    }
+
+    const sliderRect = sliderContainerRef.current.getBoundingClientRect();
+    const markRect = communityBubbleRef.current.getBoundingClientRect();
+
+    // Calculate slider handle position (approximate based on slider value)
+    const sliderProgress =
+      (sliderValue - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE);
+    const handleX = sliderRect.left + sliderRect.width * sliderProgress;
+
+    // Calculate community bubble center position
+    const bubbleX = markRect.left + markRect.width / 2;
+
+    // Check if they're too close (considering handle width and bubble width)
+    const handleWidth = 20;
+    const distance = Math.abs(handleX - bubbleX);
+    const minDistance = handleWidth / 2 + markRect.width / 2 + COLLISION_BUFFER;
+
+    setIsNearCommunityForecast(distance < minDistance);
+  }, [sliderValue, communityForecast]);
 
   const handleSliderForecastChange = useCallback(
     (value: number) => {
@@ -60,14 +102,12 @@ const BinarySlider: FC<Props> = ({
     [onBecomeDirty, onChange]
   );
 
-  const isNearCommunityForecast =
-    communityForecast !== null &&
-    communityForecast !== undefined &&
-    Math.abs(sliderValue - communityForecast * 100) <= THRESHOLD;
-
   return (
     <>
-      <div className={cn("group relative mx-6 mt-8 h-16", className)}>
+      <div
+        className={cn("group relative mt-9 py-5", className)}
+        ref={sliderContainerRef}
+      >
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
@@ -84,6 +124,8 @@ const BinarySlider: FC<Props> = ({
                     <MarkArrow
                       value={communityForecast}
                       isNear={isNearCommunityForecast}
+                      disabled={disabled}
+                      ref={communityBubbleRef}
                     />
                   ),
                 }
@@ -114,22 +156,42 @@ const BinarySlider: FC<Props> = ({
   );
 };
 
-const MarkArrow: FC<{ value: number; isNear: boolean }> = ({
-  value,
-  isNear,
-}) => {
-  // Add isNear prop
+const MarkArrow = React.forwardRef<
+  HTMLDivElement,
+  { value: number; isNear: boolean; disabled: boolean }
+>(({ value, isNear, disabled }, ref) => {
   const t = useTranslations();
   return (
     <div
-      className={`absolute flex -translate-x-1/2 ${isNear ? "translate-y-[-36px]" : "translate-y-[-24px]"} flex-col items-center gap-0 whitespace-nowrap text-sm font-bold text-gray-700 transition-transform duration-150 dark:text-gray-700-dark`}
+      ref={ref}
+      className={cn("absolute -translate-x-1/2", {
+        "translate-y-[-36px]": isNear,
+        "translate-y-[-20px]": !isNear,
+      })}
     >
-      <span>
-        {t("community")}: {`${Math.round(1000 * value) / 10}%`}
-      </span>
-      <FontAwesomeIcon icon={faChevronDown} />
+      <div
+        className={cn(
+          "whitespace-nowrap rounded-full bg-olive-800 px-2 py-1 text-xs font-medium capitalize text-olive-100 transition-transform duration-150 dark:bg-olive-800-dark dark:text-olive-100-dark",
+          {
+            "bg-gray-700 dark:bg-gray-700-dark": disabled,
+          }
+        )}
+      >
+        {t("community")}:{" "}
+        <span className="font-bold">{`${Math.round(1000 * value) / 10}%`}</span>
+      </div>
+      <Rectangle
+        className={cn(
+          "mx-auto -mt-[1px] fill-olive-800 dark:fill-olive-800-dark",
+          {
+            "fill-gray-700 dark:fill-gray-700-dark": disabled,
+          }
+        )}
+      />
     </div>
   );
-};
+});
+
+MarkArrow.displayName = "MarkArrow";
 
 export default BinarySlider;

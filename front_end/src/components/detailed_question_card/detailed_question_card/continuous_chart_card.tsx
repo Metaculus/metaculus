@@ -197,35 +197,39 @@ const DetailedContinuousChartCard: FC<Props> = ({
           unit={question.unit}
           inboundOutcomeCount={question.inbound_outcome_count}
           simplifiedCursor={question.type !== QuestionType.Binary}
+          title={t("forecastTimelineHeading")}
         />
       </div>
-      <div
-        className={cn(
-          "my-3 flex flex-col items-center justify-center gap-x-4 gap-y-2 xs:flex-row xs:flex-wrap xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
-          { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
-        )}
-      >
-        <CursorDetailItem
-          title={
-            cursorTimestamp && !isCpHidden
-              ? t("activeForecastersLabel")
-              : t("totalForecastersLabel")
-          }
-          content={cursorData.forecasterCount.toString()}
-        />
-        <CursorDetailItem
-          title={t("communityPredictionLabel")}
-          content={cpCursorElement}
-          variant="prediction"
-        />
-        {!!question.my_forecasts?.history.length && (
+      {/** Hidden block, we might want it back in the future **/}
+      {false && (
+        <div
+          className={cn(
+            "my-3 flex flex-col items-center justify-center gap-x-4 gap-y-2 xs:flex-row xs:flex-wrap xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
+            { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
+          )}
+        >
           <CursorDetailItem
-            title={t("myPrediction")}
-            content={userCursorElement}
-            variant="my-prediction"
+            title={
+              cursorTimestamp && !isCpHidden
+                ? t("activeForecastersLabel")
+                : t("totalForecastersLabel")
+            }
+            content={cursorData.forecasterCount.toString()}
           />
-        )}
-      </div>
+          <CursorDetailItem
+            title={t("communityPredictionLabel")}
+            content={cpCursorElement}
+            variant="prediction"
+          />
+          {!!question.my_forecasts?.history.length && (
+            <CursorDetailItem
+              title={t("myPrediction")}
+              content={userCursorElement}
+              variant="my-prediction"
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };
