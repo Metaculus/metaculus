@@ -6,25 +6,22 @@ import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import QuestionCPMovement from "@/components/cp_movement";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
-import { PostWithForecasts, QuestionStatus } from "@/types/post";
+import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { formatResolution } from "@/utils/formatters/resolution";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
-  post: PostWithForecasts;
+  question: QuestionWithForecasts;
   size: "md" | "lg";
 };
 
-const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
-  const question = post.question as QuestionWithForecasts;
+const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
   const locale = useLocale();
   const t = useTranslations();
-
-  /*
-   * TODO: maybe make a universal component with Feed Tiles?
-   * */
+  const forecastAvailability = getQuestionForecastAvailability(question);
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -54,26 +51,30 @@ const QuestionHeaderCPStatus: FC<Props> = ({ post, size }) => {
     case QuestionType.Discrete:
     case QuestionType.Date:
       return (
-        <div
-          className={cn("flex w-max flex-col", {
-            "max-w-[200px] gap-4": size === "lg",
-            "max-w-[130px] gap-3": size === "md",
-          })}
-        >
-          <div>
-            <div className="mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block">
-              {t("communityPredictionLabel")}
+        !forecastAvailability.isEmpty && (
+          <div
+            className={cn("flex w-max flex-col", {
+              "max-w-[200px] gap-4": size === "lg",
+              "max-w-[130px] gap-3": size === "md",
+            })}
+          >
+            <div>
+              <div className="mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block">
+                {question.status === QuestionStatus.CLOSED
+                  ? t("closed")
+                  : t("communityPredictionLabel")}
+              </div>
+              <ContinuousCPBar question={question} size={size} />
             </div>
-            <ContinuousCPBar question={question} size={size} />
+            <QuestionCPMovement
+              question={question}
+              className="mx-auto"
+              size={"sm"}
+              unit={size === "md" ? "" : undefined}
+              boldValueUnit={true}
+            />
           </div>
-          <QuestionCPMovement
-            question={question}
-            className="mx-auto"
-            size={"sm"}
-            unit={size === "md" ? "" : undefined}
-            boldValueUnit={true}
-          />
-        </div>
+        )
       );
     case QuestionType.Binary:
       return (
