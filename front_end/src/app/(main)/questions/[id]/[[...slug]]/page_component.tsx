@@ -31,9 +31,9 @@ import { cachedGetPost } from "./utils/get_post";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import NotebookRedirect from "../components/notebook_redirect";
-import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import QuestionHeaderInfo from "../components/question_header_info";
+import PostHeader from "../components/question_header";
+import QuestionHeader from "../components/question_header";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
@@ -100,7 +100,7 @@ const IndividualQuestionPage: FC<{
                         className="mb-4 block sm:hidden"
                       />
                     )}
-                    <PostHeader post={postData} questionTitle={questionTitle} />
+                    <QuestionHeader post={postData} />
                     {isQuestionPost(postData) && (
                       <DetailedQuestionCard post={postData} />
                     )}

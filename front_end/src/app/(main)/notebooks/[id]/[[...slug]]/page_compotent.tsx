@@ -14,7 +14,8 @@ import {
   NOTEBOOK_CONTENT_SECTION,
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
-import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
+import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import PostHeader from "@/app/(main)/questions/[id]/components/question_header";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
@@ -77,7 +78,7 @@ const IndividualNotebookPage: FC<{
             />
           )}
 
-        <PostHeader post={postData} />
+        <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
 
         <h1
           id={NOTEBOOK_TITLE}

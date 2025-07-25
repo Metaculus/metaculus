@@ -22,8 +22,6 @@ type Props = {
 const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
   const resolutionData = extractPostResolution(post);
 
-  // TODO: should we re-use this in Post Tiles?
-
   return (
     <div
       className={cn(

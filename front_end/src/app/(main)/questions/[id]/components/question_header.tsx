@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useEffect } from "react";
+import { FC, useEffect } from "react";
 
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_header_cp_status";
@@ -11,7 +11,7 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import { PostWithForecasts } from "@/types/post";
 import { isConditionalPost, isQuestionPost } from "@/utils/questions/helpers";
 
-export default function PostHeader({ post }: { post: PostWithForecasts }) {
+const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
 
@@ -21,7 +21,7 @@ export default function PostHeader({ post }: { post: PostWithForecasts }) {
         setBannerIsVisible(true);
       }, 0);
     }
-  }, [post, locale]);
+  }, [post, locale, setBannerIsVisible]);
 
   return (
     <div>
@@ -52,4 +52,6 @@ export default function PostHeader({ post }: { post: PostWithForecasts }) {
       </div>
     </div>
   );
-}
+};
+
+export default QuestionHeader;
