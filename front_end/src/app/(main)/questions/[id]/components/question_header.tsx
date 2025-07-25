@@ -38,12 +38,14 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
               <h1 className="m-0 pr-4 text-xl leading-tight text-blue-800 dark:text-blue-800-dark lg:pr-0 lg:text-3xl">
                 {post.title}
               </h1>
-              <div className="lg:hidden">
-                <QuestionHeaderCPStatus
-                  question={post.question as QuestionWithForecasts}
-                  size="md"
-                />
-              </div>
+              {isQuestionPost(post) && (
+                <div className="lg:hidden">
+                  <QuestionHeaderCPStatus
+                    question={post.question as QuestionWithForecasts}
+                    size="md"
+                  />
+                </div>
+              )}
             </div>
           )}
           <QuestionHeaderInfo post={post} className="order-0 lg:order-1" />
