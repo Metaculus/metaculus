@@ -10,7 +10,7 @@ import { getNumericMockData } from "./mock_data";
 import { metaArgTypes } from "../config";
 
 const meta = {
-  title: "Numeric Question Timeline",
+  title: "Numeric Timeline/Numeric Question",
   component: NumericTimeline,
   argTypes: {
     ...metaArgTypes,

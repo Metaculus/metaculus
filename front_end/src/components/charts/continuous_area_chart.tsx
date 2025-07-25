@@ -725,30 +725,33 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           )}
           {/* Resolution chip */}
-          {resolutionPoint && withResolutionChip && (
-            <VictoryScatter
-              data={[
-                {
-                  x: resolutionPoint.y,
-                  y: 0,
-                  symbol: "diamond",
-                  size: 4,
-                },
-              ]}
-              dataComponent={
-                <VictoryPortal>
-                  <ChartValueBox
-                    rightPadding={0}
-                    chartWidth={chartWidth}
-                    isCursorActive={false}
-                    isDistributionChip={true}
-                    colorOverride={METAC_COLORS.purple["800"]}
-                    resolution={formattedResolution}
-                  />
-                </VictoryPortal>
-              }
-            />
-          )}
+          {resolutionPoint &&
+            withResolutionChip &&
+            (question.type === QuestionType.Discrete ||
+              question.type === QuestionType.Numeric) && (
+              <VictoryScatter
+                data={[
+                  {
+                    x: resolutionPoint.y,
+                    y: 0,
+                    symbol: "diamond",
+                    size: 4,
+                  },
+                ]}
+                dataComponent={
+                  <VictoryPortal>
+                    <ChartValueBox
+                      rightPadding={0}
+                      chartWidth={chartWidth}
+                      isCursorActive={false}
+                      isDistributionChip={true}
+                      colorOverride={METAC_COLORS.purple["800"]}
+                      resolution={formattedResolution}
+                    />
+                  </VictoryPortal>
+                }
+              />
+            )}
 
           {/* Today's date line for date questions */}
           {question.type === QuestionType.Date && withTodayLine && (

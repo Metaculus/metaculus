@@ -13,7 +13,7 @@ const ongoingArgs = getDateMockData(false);
 const closedArgs = getDateMockData(true);
 
 const meta = {
-  title: "Date Question Timeline",
+  title: "Numeric Timeline/Date Question",
   component: NumericTimeline,
   argTypes: {
     ...metaArgTypes,

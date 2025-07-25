@@ -13,7 +13,7 @@ type Story = StoryObj<typeof meta>;
 const ongoingArgs = getBinaryMockData(false);
 const closedArgs = getBinaryMockData(true);
 const meta = {
-  title: "Binary Question Timeline",
+  title: "Numeric Timeline/Binary Question",
   component: NumericTimeline,
   argTypes: {
     ...metaArgTypes,
