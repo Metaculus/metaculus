@@ -415,7 +415,10 @@ def approve_post(
 
     # Automatically update secondary and default project forecasting end date
     for project in post.get_related_projects():
-        if project.type == Project.ProjectTypes.TOURNAMENT:
+        if project.type in [
+            Project.ProjectTypes.TOURNAMENT,
+            Project.ProjectTypes.QUESTION_SERIES,
+        ]:
             move_project_forecasting_end_date(project, post)
 
     post.update_pseudo_materialized_fields()
