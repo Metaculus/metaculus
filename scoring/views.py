@@ -1,7 +1,7 @@
 import numpy as np
 from django.db.models import Q, Count
 from django.views.decorators.cache import cache_page
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -173,14 +173,20 @@ def update_project_leaderboard_api_view(request: Request, project_id: int):
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_edit_project(permission, raise_exception=True)
 
-    leaderboard_id = request.data.get("leaderboard_id")
+    leaderboard_id = serializers.IntegerField(
+        allow_null=True, required=False
+    ).run_validation(request.data.get("leaderboard_id"))
     leaderboard = (
         get_object_or_404(Leaderboard.objects.all(), pk=leaderboard_id)
         if leaderboard_id
         else None
     )
-    force_update = request.data.get("force_update", "false").lower() == "true"
-    force_finalize = request.data.get("force_finalize", "false").lower() == "true"
+    force_update = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("force_update")
+    )
+    force_finalize = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("force_finalize")
+    )
     update_project_leaderboard(
         project=obj,
         leaderboard=leaderboard,

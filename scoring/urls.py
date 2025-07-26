@@ -16,7 +16,7 @@ urlpatterns = [
     path(
         "leaderboards/project/<int:project_id>/update/",
         views.update_project_leaderboard_api_view,
-        name="update_project-leaderboard",
+        name="update-project-leaderboard",
     ),
     path(
         "medals/",
