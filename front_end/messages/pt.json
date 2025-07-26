@@ -1413,5 +1413,6 @@
   "mainGraphTypeDescription": "Escolha \"Gráfico de Leque\" se as subquestões estiverem ordenadas (como anos) e \"Linhas do Tempo Alternadas\" se não estiverem ordenadas (como partidos políticos).",
   "fanGraph": "Gráfico de Leque",
   "toggledTimelines": "Linhas do Tempo Alternadas",
+  "mostForecasters": "A maioria dos Previsores",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

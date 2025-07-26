@@ -1415,5 +1415,6 @@
   "mainGraphTypeDescription": "Elija \"Gráfico de Abanico\" si las subpreguntas están ordenadas (como años) y \"Líneas de Tiempo Alternas\" si no están ordenadas (como partidos políticos).",
   "fanGraph": "Gráfico de Abanico",
   "toggledTimelines": "Líneas de Tiempo Alternas",
+  "mostForecasters": "La mayoría de los pronosticadores",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
