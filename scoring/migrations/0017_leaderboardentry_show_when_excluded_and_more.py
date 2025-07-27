@@ -3,6 +3,14 @@
 from django.db import migrations, models
 
 
+def migrate(apps, schema_editor):
+    # all Aggregation LeaderboardEntries should have show_when_excluded set to True
+    LeaderboardEntry = apps.get_model("scoring", "LeaderboardEntry")
+    LeaderboardEntry.objects.filter(aggregation_method__isnull=False).update(
+        show_when_excluded=True
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -26,4 +34,5 @@ class Migration(migrations.Migration):
                 help_text="If true, users excluded by this record will still appear in leaderboards.\n        <br>They will still be excluded from taking ranks and prizes.",
             ),
         ),
+        migrations.RunPython(migrate, migrations.RunPython.noop),
     ]

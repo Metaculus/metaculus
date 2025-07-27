@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
 
@@ -33,6 +34,7 @@ const LeaderboardTable: FC<Props> = ({
   const t = useTranslations();
   const { activeCategoryKey } = useLeaderboardMobileTabBar();
   const isLargeScreen = useBreakpoint("sm");
+  const { user: currentUser } = useAuth();
 
   const categoryUrl = `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
@@ -83,6 +85,14 @@ const LeaderboardTable: FC<Props> = ({
           </tr>
           {!!entriesToDisplay.length ? (
             entriesToDisplay.map((entry) => {
+              // only show entries that are not excluded or if advanced mode is on
+              // or if the current user is staff
+              if (
+                entry.excluded &&
+                !(currentUser?.is_staff || entry.show_when_excluded)
+              ) {
+                return null;
+              }
               let navigationUrl: string;
               if (cardSized) {
                 // on combined global leaderboard all table row links to the category page
@@ -93,16 +103,6 @@ const LeaderboardTable: FC<Props> = ({
                   : `/questions/track-record`;
               }
               if (entry.user && entry.user.id === userEntry?.user?.id) {
-                return (
-                  <UserLeaderboardRow
-                    key={`user-leaderboard-row-${entry.user.id}`}
-                    userEntry={userEntry}
-                    year={year}
-                    duration={duration}
-                    category={category}
-                    scoreType={leaderboardDetails.score_type}
-                  />
-                );
               } else {
                 return (
                   <LeaderboardRow
