@@ -1413,5 +1413,6 @@
   "fanGraph": "扇形圖",
   "toggledTimelines": "切換時間線",
   "mostForecasters": "大多數預測者",
+  "unfinalizedPrizeTooltip": "本賽事正在進行中。隨著更多問題的解決，分數和獎品將會改變。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

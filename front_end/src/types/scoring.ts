@@ -99,6 +99,7 @@ type BaseLeaderboardDetails = {
   start_time: string;
   end_time: string | null;
   finalize_time: string;
+  finalized: boolean;
   prize_pool: number | null;
   max_coverage?: number;
 };

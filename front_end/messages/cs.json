@@ -1416,5 +1416,6 @@
   "fanGraph": "Vějířový graf",
   "toggledTimelines": "Přepínané časové osy",
   "mostForecasters": "Většina předpovědníků",
+  "unfinalizedPrizeTooltip": "Tento turnaj stále probíhá. Skóre a ceny se mohou změnit, jakmile se vyřeší více otázek.",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

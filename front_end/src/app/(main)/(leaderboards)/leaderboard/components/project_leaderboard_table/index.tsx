@@ -8,6 +8,7 @@ import { LeaderboardDetails } from "@/types/scoring";
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
+import UnfinalizedPrizeTooltip from "../prize_unfinalized_tooltip";
 
 type Props = {
   leaderboardDetails: LeaderboardDetails;
@@ -77,7 +78,13 @@ const ProjectLeaderboardTable: FC<Props> = ({
                     </TableHeader>
                   </>
                 )}
-                <TableHeader className=" text-right">{t("prize")}</TableHeader>
+                <TableHeader className=" text-right">
+                  {leaderboardDetails.finalized ? (
+                    t("prize")
+                  ) : (
+                    <UnfinalizedPrizeTooltip />
+                  )}
+                </TableHeader>
               </>
             )}
           </tr>

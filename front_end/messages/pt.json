@@ -1414,5 +1414,6 @@
   "fanGraph": "Gráfico de Leque",
   "toggledTimelines": "Linhas do Tempo Alternadas",
   "mostForecasters": "A maioria dos Previsores",
+  "unfinalizedPrizeTooltip": "Este torneio está em andamento. As pontuações e prêmios vão mudar à medida que mais perguntas forem resolvidas.",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }
