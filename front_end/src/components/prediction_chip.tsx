@@ -105,6 +105,7 @@ const PredictionChip: FC<Props> = ({
     if (!communityPredictionDisplayValue) {
       return null;
     }
+
     return (
       <>
         <Chip
@@ -134,7 +135,6 @@ const PredictionChip: FC<Props> = ({
 
   const latest = question.aggregations.recency_weighted.latest;
   let communityPredictionDisplayValue: string | null = null;
-
   if (predictionOverride) {
     communityPredictionDisplayValue = getPredictionDisplayValue(
       predictionOverride,
