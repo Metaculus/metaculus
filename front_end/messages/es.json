@@ -1416,5 +1416,6 @@
   "fanGraph": "Gráfico de Abanico",
   "toggledTimelines": "Líneas de Tiempo Alternas",
   "mostForecasters": "La mayoría de los pronosticadores",
+  "unfinalizedPrizeTooltip": "Este torneo está en curso. Las puntuaciones y los premios cambiarán a medida que se resuelvan más preguntas.",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

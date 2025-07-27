@@ -1418,5 +1418,6 @@
   "fanGraph": "扇形图",
   "toggledTimelines": "切换时间线",
   "mostForecasters": "大多数预测者",
+  "unfinalizedPrizeTooltip": "此锦标赛正在进行中。随着更多问题的解决，分数和奖金会发生变化。",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
