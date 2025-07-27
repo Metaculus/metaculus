@@ -103,6 +103,16 @@ const LeaderboardTable: FC<Props> = ({
                   : `/questions/track-record`;
               }
               if (entry.user && entry.user.id === userEntry?.user?.id) {
+                return (
+                  <UserLeaderboardRow
+                    key={`user-leaderboard-row-${entry.user.id}`}
+                    userEntry={userEntry}
+                    year={year}
+                    duration={duration}
+                    category={category}
+                    scoreType={leaderboardDetails.score_type}
+                  />
+                );
               } else {
                 return (
                   <LeaderboardRow
