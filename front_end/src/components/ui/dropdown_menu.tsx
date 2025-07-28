@@ -113,7 +113,7 @@ function InnerMenuContent({
                         setActiveItems(item.items);
                       }
 
-                      if (!isNil(item.onClick)) item.onClick();
+                      if (!isNil(item.onClick)) item.onClick(e);
                     }}
                   >
                     {item.name}
