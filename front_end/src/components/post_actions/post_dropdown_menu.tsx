@@ -230,7 +230,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
         onClose={closeDownloadModal}
         post={post}
       />
-      <DropdownMenu items={menuItems}>
+      <DropdownMenu
+        items={menuItems}
+        className="divide-y divide-gray-300 border-gray-300 dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark"
+        itemClassName="px-3 py-2"
+      >
         {button ? (
           button
         ) : (
