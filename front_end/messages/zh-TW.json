@@ -1412,5 +1412,6 @@
   "mainGraphTypeDescription": "如果子問題是有序的（如年份），請選擇「扇形圖」；如果子問題是無序的（如政黨），請選擇「切換時間線」。",
   "fanGraph": "扇形圖",
   "toggledTimelines": "切換時間線",
+  "mostForecasters": "大多數預測者",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

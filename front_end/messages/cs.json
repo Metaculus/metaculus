@@ -1415,5 +1415,6 @@
   "mainGraphTypeDescription": "Zvolte „Vějířový graf“, pokud jsou podotázky seřazeny (například roky) a „Přepínané časové osy“, pokud nejsou seřazeny (například politické strany).",
   "fanGraph": "Vějířový graf",
   "toggledTimelines": "Přepínané časové osy",
+  "mostForecasters": "Většina předpovědníků",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
