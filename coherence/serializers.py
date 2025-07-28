@@ -5,6 +5,7 @@ from .models import CoherenceLink
 class CoherenceLinkSerializer(serializers.ModelSerializer):
     question1_id = serializers.IntegerField(required=True)
     question2_id = serializers.IntegerField(required=True)
+
     class Meta:
         model = CoherenceLink
         fields = [
