@@ -110,6 +110,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   const menuItems: MenuItemProps[] = [
     // Mobile menu items
     // TODO: check for Notebooks
+    // TODO: notebooks mobile design voter
     ...(!isLargeScreen
       ? [
           {
