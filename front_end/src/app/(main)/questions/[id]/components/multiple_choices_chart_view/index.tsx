@@ -1,6 +1,5 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
-import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
@@ -51,7 +50,6 @@ const MultiChoicesChartView: FC<Props> = ({
   tooltipChoices,
   tooltipUserChoices,
   onChoiceItemsUpdate,
-  forecastersCount,
   timestamps,
   onCursorChange,
   openTime,
@@ -73,7 +71,6 @@ const MultiChoicesChartView: FC<Props> = ({
   className,
 }) => {
   const { user } = useAuth();
-  const t = useTranslations();
   const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
