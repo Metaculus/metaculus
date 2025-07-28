@@ -32,7 +32,6 @@ import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import PostHeader from "../components/question_header";
 import QuestionHeader from "../components/question_header";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
@@ -97,7 +96,7 @@ const IndividualQuestionPage: FC<{
                       <CommunityDisclaimer
                         project={postData.projects.default_project}
                         variant="standalone"
-                        className="mb-4 block sm:hidden"
+                        className="block sm:hidden"
                       />
                     )}
                     <QuestionHeader post={postData} />

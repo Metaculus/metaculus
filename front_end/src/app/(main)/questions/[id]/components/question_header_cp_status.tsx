@@ -92,6 +92,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
             question={question}
             className="mx-auto"
             size={"sm"}
+            // Hide unit on small sizes
             unit={size === "md" ? "" : undefined}
             boldValueUnit={true}
           />
@@ -106,13 +107,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
           "gap-3": size === "md",
         })}
       >
-        <BinaryCPBar question={question} size={size} />
+        <BinaryCPBar question={question} size={size === "lg" ? "lg" : "sm"} />
         <QuestionCPMovement
           question={question}
           className={cn("mx-auto pb-1 text-center", {
             "w-max max-w-[120px]": size === "md",
           })}
-          size={"sm"}
+          size="sm"
           // Just to show % instead of pp
           unit={"%"}
           variant={"chip"}

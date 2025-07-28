@@ -1,6 +1,5 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
@@ -160,12 +159,6 @@ const MultiChoicesChartView: FC<Props> = ({
           <>
             {!!title && (
               <h3 className="m-0 text-base font-normal leading-5">{title}</h3>
-            )}
-            {!isNil(forecastersCount) && (
-              <div className="ml-auto text-sm">
-                {t("totalForecastersLabel") + " "}
-                <strong>{forecastersCount}</strong>
-              </div>
             )}
           </>
         )}
