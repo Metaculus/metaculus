@@ -322,7 +322,7 @@ const MultipleChoiceChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke: getThemeColor(resolutionPoint.color ?? color),
-                    fill: getThemeColor(resolutionPoint.color ?? color),
+                    fill: "none",
                     strokeWidth: 2.5,
                   },
                 }}
