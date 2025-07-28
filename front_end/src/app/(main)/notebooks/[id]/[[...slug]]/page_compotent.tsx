@@ -114,9 +114,9 @@ const IndividualNotebookPage: FC<{
               })}
             </span>
           </div>
-          <div className="flex flex-col items-center justify-end gap-1 sm:flex-row">
+          <div className="flex items-center justify-end gap-1">
             <PostVoter
-              className="w-full justify-end sm:mr-3 sm:w-auto"
+              className="justify-end sm:mr-3 sm:w-auto"
               post={postData}
               questionPage
             />
@@ -127,12 +127,11 @@ const IndividualNotebookPage: FC<{
                     <div className="mr-2 hidden lg:block">
                       <PostSubscribeButton />
                     </div>
-                    <div className="lg:hidden">
-                      <PostSubscribeButton mini />
-                    </div>
                   </>
                 )}
-                <SharePostMenu questionTitle={questionTitle} />
+                <div className="hidden lg:block">
+                  <SharePostMenu questionTitle={questionTitle} />
+                </div>
                 <PostDropdownMenu post={postData} />
               </PostSubscriptionProvider>
             </div>
