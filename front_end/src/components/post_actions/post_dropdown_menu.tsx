@@ -14,6 +14,7 @@ import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { useShareMenuItems } from "@/hooks/use_share_menu_items";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
@@ -51,6 +52,8 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     questionId: post.question?.id,
     includeEmbedOnSmallScreens: false, // Don't include embed on small screens in dropdown
   });
+
+  const { isSubscribed, toggleSubscription } = usePostSubscriptionContext();
 
   const [confirmModalOpen, setConfirmModalOpen] = useState<{
     open: boolean;
@@ -114,6 +117,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
             name: t("share"),
             className: "capitalize",
             items: shareMenuItems,
+          },
+          {
+            id: "subscription",
+            name: isSubscribed ? t("followingButton") : t("followButton"),
+            onClick: toggleSubscription,
           },
         ]
       : []),
