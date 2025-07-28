@@ -321,8 +321,8 @@ const MultipleChoiceChart: FC<Props> = ({
                 ]}
                 style={{
                   data: {
-                    stroke: getThemeColor(color),
-                    fill: "none",
+                    stroke: getThemeColor(resolutionPoint.color ?? color),
+                    fill: getThemeColor(resolutionPoint.color ?? color),
                     strokeWidth: 2.5,
                   },
                 }}
@@ -387,6 +387,7 @@ export type ChoiceGraph = {
   resolutionPoint?: {
     x?: number;
     y: number;
+    color?: ThemeColor;
   };
   choice: string;
   color: ThemeColor;
@@ -573,9 +574,9 @@ function buildChartData({
       const item: ChoiceGraph = {
         choice,
         color,
-        line: line,
-        area: area,
-        scatter: scatter,
+        line,
+        area,
+        scatter,
         active,
         highlighted,
       };
@@ -593,34 +594,31 @@ function buildChartData({
 
       if (!isNil(resolution)) {
         const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
-        if (resolution === choice) {
-          // multiple choice case
-          item.resolutionPoint = {
-            x: resolveTime,
-            y: 1,
-          };
-        }
+        const resolvedChoice = choiceItems.find((c) => c.choice === resolution);
+        const resolvedColor = resolvedChoice?.color ?? color;
 
-        if (
+        let yValue: number | null = null;
+
+        if (resolution === choice) {
+          yValue = 1;
+        } else if (
           ["yes", "no", "below_lower_bound", "above_upper_bound"].includes(
             resolution as string
           )
         ) {
-          // binary group and out of borders cases
-          item.resolutionPoint = {
-            x: resolveTime,
-            y:
-              resolution === "no" || resolution === "below_lower_bound" ? 0 : 1,
-          };
+          yValue =
+            resolution === "no" || resolution === "below_lower_bound" ? 0 : 1;
+        } else if (isFinite(Number(resolution))) {
+          yValue = scaling
+            ? unscaleNominalLocation(Number(resolution), scaling)
+            : Number(resolution);
         }
 
-        if (isFinite(Number(resolution))) {
-          // continuous group case
+        if (yValue !== null) {
           item.resolutionPoint = {
             x: resolveTime,
-            y: scaling
-              ? unscaleNominalLocation(Number(resolution), scaling)
-              : Number(resolution) ?? 0,
+            y: yValue,
+            color: resolvedColor,
           };
         }
       }
@@ -657,7 +655,7 @@ function buildChartData({
     displayType: questionType,
     axisLength: height,
     direction: "vertical",
-    scaling: scaling,
+    scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
   });
