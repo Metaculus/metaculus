@@ -50,7 +50,8 @@ const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
       <BinaryCPBar question={question as QuestionWithNumericForecasts} />
       <QuestionCPMovement
         question={question}
-        presentation="consumerView"
+        unit={"%"}
+        boldValueUnit={true}
         className="mt-3"
       />
       {!isNil(forecastAvailability?.cpRevealsOn) && (

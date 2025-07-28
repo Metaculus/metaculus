@@ -44,6 +44,7 @@ type Props = {
   inboundOutcomeCount?: number | null;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
+  title?: string;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -71,6 +72,7 @@ const NumericTimeline: FC<Props> = ({
   inboundOutcomeCount,
   isEmbedded,
   simplifiedCursor,
+  title,
 }) => {
   const resolutionPoint = useMemo(() => {
     if (!resolution || !resolveTime || isNil(actualCloseTime)) {
@@ -152,6 +154,7 @@ const NumericTimeline: FC<Props> = ({
       nonInteractive={nonInteractive}
       isEmbedded={isEmbedded}
       simplifiedCursor={simplifiedCursor}
+      chartTitle={title}
     />
   );
 };

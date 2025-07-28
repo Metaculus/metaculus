@@ -4,6 +4,7 @@ import { FC } from "react";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
+import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_header_cp_status";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
@@ -30,12 +31,11 @@ import { cachedGetPost } from "./utils/get_post";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import NotebookRedirect from "../components/notebook_redirect";
-import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import QuestionHeaderInfo from "../components/question_header_info";
-import QuestionResolutionStatus from "../components/question_resolution_status";
+import QuestionHeader from "../components/question_header";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
 );
@@ -91,36 +91,15 @@ const IndividualQuestionPage: FC<{
                   </div>
                 )}
                 <div className="relative z-10 flex w-full flex-col gap-4">
-                  <section className="w-[48rem] max-w-full rounded border-transparent bg-gray-0 px-3 pt-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
+                  <section className="flex w-[48rem] max-w-full flex-col gap-5 rounded border-transparent bg-gray-0 p-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8">
                     {isCommunityQuestion && (
                       <CommunityDisclaimer
                         project={postData.projects.default_project}
                         variant="standalone"
-                        className="mb-4 block sm:hidden"
+                        className="block sm:hidden"
                       />
                     )}
-
-                    <PostHeader post={postData} questionTitle={questionTitle} />
-                    {!postData.conditional && (
-                      <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
-                        <h1 className="m-0 text-xl leading-tight sm:text-3xl">
-                          {postData.title}
-                        </h1>
-                        {postData.resolved && !!postData.question && (
-                          <QuestionResolutionStatus post={postData} />
-                        )}
-                      </div>
-                    )}
-
-                    {isConditionalPost(postData) && (
-                      <ConditionalTile
-                        post={postData}
-                        withNavigation
-                        withCPRevealBtn
-                      />
-                    )}
-                    <QuestionHeaderInfo post={postData} />
-
+                    <QuestionHeader post={postData} />
                     {isQuestionPost(postData) && (
                       <DetailedQuestionCard post={postData} />
                     )}
@@ -130,34 +109,34 @@ const IndividualQuestionPage: FC<{
                         preselectedQuestionId={preselectedGroupQuestionId}
                       />
                     )}
-
                     <ForecastMaker post={postData} />
-                    <ResolutionCriteria post={postData} />
-
-                    {isConditionalPost(postData) && (
-                      <ConditionalTimeline post={postData} />
-                    )}
-
-                    <div className="flex flex-col gap-2.5">
-                      <KeyFactorsSection
-                        postId={postData.id}
-                        postStatus={postData.status}
-                      />
-
-                      <BackgroundInfo post={postData} />
-                      {isGroupOfQuestionsPost(postData) &&
-                        postData.group_of_questions.graph_type ===
-                          GroupOfQuestionsGraphType.FanGraph && (
-                          <DetailedGroupCard
-                            post={postData}
-                            preselectedQuestionId={preselectedGroupQuestionId}
-                            groupPresentationOverride={
-                              GroupOfQuestionsGraphType.MultipleChoiceGraph
-                            }
-                            className="mt-2"
-                          />
+                    <div>
+                      <div className="flex flex-col gap-2.5">
+                        <ResolutionCriteria post={postData} />
+                        {isConditionalPost(postData) && (
+                          <ConditionalTimeline post={postData} />
                         )}
-                      <HistogramDrawer post={postData} />
+
+                        <KeyFactorsSection
+                          postId={postData.id}
+                          postStatus={postData.status}
+                        />
+
+                        <BackgroundInfo post={postData} />
+                        {isGroupOfQuestionsPost(postData) &&
+                          postData.group_of_questions.graph_type ===
+                            GroupOfQuestionsGraphType.FanGraph && (
+                            <DetailedGroupCard
+                              post={postData}
+                              preselectedQuestionId={preselectedGroupQuestionId}
+                              groupPresentationOverride={
+                                GroupOfQuestionsGraphType.MultipleChoiceGraph
+                              }
+                              className="mt-2"
+                            />
+                          )}
+                        <HistogramDrawer post={postData} />
+                      </div>
                     </div>
                   </section>
                   <Sidebar

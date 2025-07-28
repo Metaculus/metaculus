@@ -126,6 +126,7 @@ const QuestionContinuousTile: FC<Props> = ({
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
+            showMyPrediction={true}
           />
         )}
         {[
@@ -137,6 +138,7 @@ const QuestionContinuousTile: FC<Props> = ({
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
+            showMyPrediction={true}
           />
         )}
       </div>

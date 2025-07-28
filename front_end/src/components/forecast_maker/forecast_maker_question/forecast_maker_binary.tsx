@@ -8,6 +8,7 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
@@ -183,11 +184,7 @@ const ForecastMakerBinary: FC<Props> = ({
         disabled={!canPredict}
       />
 
-      {predictionMessage && (
-        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {predictionMessage}
-        </div>
-      )}
+      <ForecastPredictionMessage predictionMessage={predictionMessage} />
       <div className="flex flex-col items-center justify-center gap-6">
         <div className="flex flex-col items-center gap-3">
           <div className="flex gap-3">
