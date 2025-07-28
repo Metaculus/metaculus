@@ -49,8 +49,10 @@ const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
 };
 
 export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
-  const isFirstQuestion = link.question1 === post.question?.id;
-  const otherQuestionID = isFirstQuestion ? link.question2 : link.question1;
+  const isFirstQuestion = link.question1_id === post.question?.id;
+  const otherQuestionID = isFirstQuestion
+    ? link.question2_id
+    : link.question1_id;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [canceled, setCanceled] = useState<boolean>(false);
   const t = useTranslations();

@@ -11,8 +11,8 @@ export enum LinkTypes {
   Causal = "causal",
 }
 export type CoherenceLink = {
-  question1: number;
-  question2: number;
+  question1_id: number;
+  question2_id: number;
   direction: Directions;
   strength: Strengths;
   type: LinkTypes;

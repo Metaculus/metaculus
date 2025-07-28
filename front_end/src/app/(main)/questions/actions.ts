@@ -329,8 +329,8 @@ export async function createCoherenceLink(
 ) {
   try {
     return await CoherenceLinksApiClass.createCoherenceLink({
-      question1: question1.id,
-      question2: question2.id,
+      question1_id: question1.id,
+      question2_id: question2.id,
       direction,
       strength,
       type,
