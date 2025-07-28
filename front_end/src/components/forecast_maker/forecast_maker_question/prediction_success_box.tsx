@@ -40,7 +40,6 @@ const PredictionSuccessBox: FC<PredictionSuccessBoxProps> = ({
           </span>
         </span>
       </h4>
-      <PredictionSuccessLinks post={post}></PredictionSuccessLinks>
       <div className="mx-1 flex flex-wrap items-center justify-center gap-2">
         <PostSubscribeButton post={post} />
 
@@ -52,6 +51,8 @@ const PredictionSuccessBox: FC<PredictionSuccessBoxProps> = ({
           {t("shareInComment")}
         </Button>
       </div>
+
+      <PredictionSuccessLinks post={post}></PredictionSuccessLinks>
     </div>
   );
 };
