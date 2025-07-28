@@ -14,6 +14,8 @@ import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import { useBreakpoint } from "@/hooks/tailwind";
+import { useShareMenuItems } from "@/hooks/use_share_menu_items";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
 import {
   Post,
@@ -42,6 +44,13 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
       post.user_permission
     ) &&
       post.curation_status !== PostStatus.APPROVED);
+  const isLargeScreen = useBreakpoint("md");
+
+  const shareMenuItems = useShareMenuItems({
+    questionTitle: post.title,
+    questionId: post.question?.id,
+    includeEmbedOnSmallScreens: false, // Don't include embed on small screens in dropdown
+  });
 
   const [confirmModalOpen, setConfirmModalOpen] = useState<{
     open: boolean;
@@ -96,6 +105,19 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   };
 
   const menuItems: MenuItemProps[] = [
+    // Mobile menu items
+    // TODO: check for Notebooks
+    ...(!isLargeScreen
+      ? [
+          {
+            id: "share",
+            name: t("share"),
+            className: "capitalize",
+            items: shareMenuItems,
+          },
+        ]
+      : []),
+
     // Include if user has permissions to edit
     ...(allowEdit
       ? [
