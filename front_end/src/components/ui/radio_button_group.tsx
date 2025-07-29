@@ -27,7 +27,7 @@ const RadioButtonGroup: FC<Props> = ({
   className,
 }) => {
   return (
-    <div className={cn("flex gap-4", className)}>
+    <div className={cn("flex gap-2.5", className)}>
       {options.map((option) => (
         <div
           key={option.value}

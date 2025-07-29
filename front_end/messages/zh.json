@@ -1403,7 +1403,6 @@
   "defaultWithdrawalSettingText": "默认情况下，我的预测将在问题生命周期的百分比后撤回",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# 个预测} other {# 个预测}} 即将被撤回",
   "predictionsWithdrawnText": "{count, plural, =1 {# 个预测已} other {# 个预测已}} 被撤回",
-  "withdrawAfterPercentSetting1": "在以下情况后撤回",
   "customize": "自定义",
   "beforeAutoWithdrawal": "在我的预测被自动撤回之前",
   "pageNotFound": "页面未找到",
@@ -1423,6 +1422,5 @@
   "mainGraphType": "主要图表类型",
   "mainGraphTypeDescription": "如果子问题是有序的（如年份），请选择“扇形图”；如果是无序的（如政党），请选择“切换时间线”。",
   "fanGraph": "扇形图",
-  "toggledTimelines": "切换时间线",
-  "withdrawAfterPercentSetting2": "的问题总生命周期"
+  "toggledTimelines": "切换时间线"
 }

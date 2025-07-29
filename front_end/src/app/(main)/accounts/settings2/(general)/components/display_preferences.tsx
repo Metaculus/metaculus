@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import PreferencesSection from "@/app/(main)/accounts/settings2/components/preferences_section";
 import { APP_LANGUAGES } from "@/components/language_menu";
 import RadioButtonGroup from "@/components/ui/radio_button_group";
 import Select from "@/components/ui/select";
@@ -12,7 +13,7 @@ type Props = {
   user: CurrentUser;
 };
 
-const GeneralDisplay: FC<Props> = ({}) => {
+const DisplayPreferences: FC<Props> = ({}) => {
   const t = useTranslations();
   const [interfaceType, setInterfaceType] = useState<string>("consumerView");
   const interfaceTypeOptions = [
@@ -51,10 +52,7 @@ const GeneralDisplay: FC<Props> = ({}) => {
   }));
 
   return (
-    <div className="flex flex-col gap-4 rounded border border-blue-400 p-6 dark:border-blue-400-dark">
-      <h3 className="m-0 text-blue-900 dark:text-blue-900-dark">
-        {t("settingsDisplay")}
-      </h3>
+    <PreferencesSection title={t("settingsDisplay")}>
       <div>
         <div className="text-gray-500 dark:text-gray-500-dark">
           {t("settingsInterfaceType")}
@@ -102,8 +100,8 @@ const GeneralDisplay: FC<Props> = ({}) => {
           />
         </div>
       </div>
-    </div>
+    </PreferencesSection>
   );
 };
 
-export default GeneralDisplay;
+export default DisplayPreferences;

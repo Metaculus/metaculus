@@ -1400,7 +1400,6 @@
   "defaultWithdrawalSettingText": "Ve výchozím nastavení jsou mé předpovědi staženy po % životnosti otázky",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# předpověď} other {# předpovědí}} bude brzy staženo",
   "predictionsWithdrawnText": "{count, plural, =1 {# předpověď byla} other {# předpovědí bylo}} staženo",
-  "withdrawAfterPercentSetting1": "Stažení po",
   "customize": "Přizpůsobit",
   "CPMovementChangeLabel": "{value} toto {period}",
   "beforeAutoWithdrawal": "Před automatickým stažením mých předpovědí",
@@ -1421,6 +1420,5 @@
   "mainGraphType": "Hlavní typ grafu",
   "mainGraphTypeDescription": "Zvolte „Vějířový graf“, pokud jsou podotázky seřazeny (například roky) a „Přepínané časové osy“, pokud nejsou seřazeny (například politické strany).",
   "fanGraph": "Vějířový graf",
-  "toggledTimelines": "Přepínané časové osy",
-  "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
+  "toggledTimelines": "Přepínané časové osy"
 }

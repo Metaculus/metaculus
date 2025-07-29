@@ -1400,7 +1400,6 @@
   "defaultWithdrawalSettingText": "Por defecto, mis predicciones se retiran después de un % del tiempo de vida de la pregunta",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# predicción} other {# predicciones}} se retirarán pronto",
   "predictionsWithdrawnText": "{count, plural, =1 {# predicción ha sido} other {# predicciones han sido}} retiradas",
-  "withdrawAfterPercentSetting1": "Retirar después de",
   "customize": "Personalizar",
   "CPMovementChangeLabel": "{value} este {period}",
   "beforeAutoWithdrawal": "Antes de que mis predicciones se retiren automáticamente",
@@ -1421,6 +1420,5 @@
   "mainGraphType": "Tipo de Gráfico Principal",
   "mainGraphTypeDescription": "Elija \"Gráfico de Abanico\" si las subpreguntas están ordenadas (como años) y \"Líneas de Tiempo Alternas\" si no están ordenadas (como partidos políticos).",
   "fanGraph": "Gráfico de Abanico",
-  "toggledTimelines": "Líneas de Tiempo Alternas",
-  "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
+  "toggledTimelines": "Líneas de Tiempo Alternas"
 }
