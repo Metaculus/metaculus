@@ -14,6 +14,9 @@ import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
+import { useBreakpoint } from "@/hooks/tailwind";
+import { useShareMenuItems } from "@/hooks/use_share_menu_items";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
 import {
   Post,
@@ -42,6 +45,15 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
       post.user_permission
     ) &&
       post.curation_status !== PostStatus.APPROVED);
+  const isLargeScreen = useBreakpoint("md");
+
+  const shareMenuItems = useShareMenuItems({
+    questionTitle: post.title,
+    questionId: post.question?.id,
+    includeEmbedOnSmallScreens: false, // Don't include embed on small screens in dropdown
+  });
+
+  const { isSubscribed, toggleSubscription } = usePostSubscriptionContext();
 
   const [confirmModalOpen, setConfirmModalOpen] = useState<{
     open: boolean;
@@ -96,6 +108,23 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   };
 
   const menuItems: MenuItemProps[] = [
+    // Mobile menu items
+    ...(!isLargeScreen
+      ? [
+          {
+            id: "share",
+            name: t("share"),
+            className: "capitalize",
+            items: shareMenuItems,
+          },
+          {
+            id: "subscription",
+            name: isSubscribed ? t("followingButton") : t("followButton"),
+            onClick: toggleSubscription,
+          },
+        ]
+      : []),
+
     // Include if user has permissions to edit
     ...(allowEdit
       ? [
@@ -199,7 +228,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
         onClose={closeDownloadModal}
         post={post}
       />
-      <DropdownMenu items={menuItems}>
+      <DropdownMenu
+        items={menuItems}
+        className="divide-y divide-gray-300 border-gray-300 dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark"
+        itemClassName="px-3 py-2"
+      >
         {button ? (
           button
         ) : (

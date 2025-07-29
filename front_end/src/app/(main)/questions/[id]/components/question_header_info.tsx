@@ -25,7 +25,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
   return (
     <div
       className={cn(
-        "mt-auto flex items-center justify-between gap-3 font-medium",
+        "mt-auto flex items-center justify-between gap-3",
         className
       )}
     >

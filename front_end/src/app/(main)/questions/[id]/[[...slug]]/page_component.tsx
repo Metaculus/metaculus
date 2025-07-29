@@ -13,6 +13,7 @@ import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
+import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { GroupOfQuestionsGraphType } from "@/types/post";
@@ -65,95 +66,99 @@ const IndividualQuestionPage: FC<{
     <EmbedModalContextProvider>
       <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
         <HideCPProvider post={postData}>
-          {isCommunityQuestion ? (
-            <CommunityHeader community={currentCommunity} />
-          ) : (
-            <Header />
-          )}
-          <main
-            className={cn(
-              "mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10",
-              {
-                "sm:mt-5": isCommunityQuestion,
-              }
+          <PostSubscriptionProvider post={postData}>
+            {isCommunityQuestion ? (
+              <CommunityHeader community={currentCommunity} />
+            ) : (
+              <Header />
             )}
-          >
-            <div className="flex gap-4">
-              <div className="relative w-full">
-                {isCommunityQuestion && (
-                  <div className="absolute z-0 -mt-[41px] hidden w-full sm:block">
-                    <CommunityDisclaimer
-                      project={postData.projects.default_project}
-                      variant="inline"
-                    />
-                  </div>
-                )}
-                <div className="relative z-10 flex w-full flex-col gap-4">
-                  <section className="flex w-[48rem] max-w-full flex-col gap-5 rounded border-transparent bg-gray-0 p-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8">
-                    {isCommunityQuestion && (
+            <main
+              className={cn(
+                "mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10",
+                {
+                  "sm:mt-5": isCommunityQuestion,
+                }
+              )}
+            >
+              <div className="flex gap-4">
+                <div className="relative w-full">
+                  {isCommunityQuestion && (
+                    <div className="absolute z-0 -mt-[41px] hidden w-full sm:block">
                       <CommunityDisclaimer
                         project={postData.projects.default_project}
-                        variant="standalone"
-                        className="block sm:hidden"
+                        variant="inline"
                       />
-                    )}
-                    <QuestionHeader post={postData} />
-                    {isQuestionPost(postData) && (
-                      <DetailedQuestionCard post={postData} />
-                    )}
-                    {isGroupOfQuestionsPost(postData) && (
-                      <DetailedGroupCard
-                        post={postData}
-                        preselectedQuestionId={preselectedGroupQuestionId}
-                      />
-                    )}
-                    <ForecastMaker post={postData} />
-                    <div>
-                      <div className="flex flex-col gap-2.5">
-                        <ResolutionCriteria post={postData} />
-                        {isConditionalPost(postData) && (
-                          <ConditionalTimeline post={postData} />
-                        )}
-
-                        <KeyFactorsSection
-                          postId={postData.id}
-                          postStatus={postData.status}
-                        />
-
-                        <BackgroundInfo post={postData} />
-                        {isGroupOfQuestionsPost(postData) &&
-                          postData.group_of_questions.graph_type ===
-                            GroupOfQuestionsGraphType.FanGraph && (
-                            <DetailedGroupCard
-                              post={postData}
-                              preselectedQuestionId={preselectedGroupQuestionId}
-                              groupPresentationOverride={
-                                GroupOfQuestionsGraphType.MultipleChoiceGraph
-                              }
-                              className="mt-2"
-                            />
-                          )}
-                        <HistogramDrawer post={postData} />
-                      </div>
                     </div>
-                  </section>
-                  <Sidebar
-                    postData={postData}
-                    layout="mobile"
-                    questionTitle={questionTitle}
-                  />
-                  <CommentFeed postData={postData} />
-                </div>
-              </div>
-              <Sidebar postData={postData} questionTitle={questionTitle} />
-            </div>
-          </main>
+                  )}
+                  <div className="relative z-10 flex w-full flex-col gap-4">
+                    <section className="flex w-[48rem] max-w-full flex-col gap-5 rounded border-transparent bg-gray-0 p-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8">
+                      {isCommunityQuestion && (
+                        <CommunityDisclaimer
+                          project={postData.projects.default_project}
+                          variant="standalone"
+                          className="block sm:hidden"
+                        />
+                      )}
+                      <QuestionHeader post={postData} />
+                      {isQuestionPost(postData) && (
+                        <DetailedQuestionCard post={postData} />
+                      )}
+                      {isGroupOfQuestionsPost(postData) && (
+                        <DetailedGroupCard
+                          post={postData}
+                          preselectedQuestionId={preselectedGroupQuestionId}
+                        />
+                      )}
+                      <ForecastMaker post={postData} />
+                      <div>
+                        <div className="flex flex-col gap-2.5">
+                          <ResolutionCriteria post={postData} />
+                          {isConditionalPost(postData) && (
+                            <ConditionalTimeline post={postData} />
+                          )}
 
-          <QuestionEmbedModal
-            postId={postData.id}
-            postTitle={postData.title}
-            questionType={postData.question?.type}
-          />
+                          <KeyFactorsSection
+                            postId={postData.id}
+                            postStatus={postData.status}
+                          />
+
+                          <BackgroundInfo post={postData} />
+                          {isGroupOfQuestionsPost(postData) &&
+                            postData.group_of_questions.graph_type ===
+                              GroupOfQuestionsGraphType.FanGraph && (
+                              <DetailedGroupCard
+                                post={postData}
+                                preselectedQuestionId={
+                                  preselectedGroupQuestionId
+                                }
+                                groupPresentationOverride={
+                                  GroupOfQuestionsGraphType.MultipleChoiceGraph
+                                }
+                                className="mt-2"
+                              />
+                            )}
+                          <HistogramDrawer post={postData} />
+                        </div>
+                      </div>
+                    </section>
+                    <Sidebar
+                      postData={postData}
+                      layout="mobile"
+                      questionTitle={questionTitle}
+                    />
+                    <CommentFeed postData={postData} />
+                  </div>
+                </div>
+                <Sidebar postData={postData} questionTitle={questionTitle} />
+              </div>
+            </main>
+
+            <QuestionEmbedModal
+              postId={postData.id}
+              postTitle={postData.title}
+              questionType={postData.question?.type}
+            />
+          </PostSubscriptionProvider>
         </HideCPProvider>
       </CommentsFeedProvider>
     </EmbedModalContextProvider>

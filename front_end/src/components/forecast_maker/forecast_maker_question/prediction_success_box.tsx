@@ -6,6 +6,7 @@ import { FC } from "react";
 
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
+import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
@@ -40,7 +41,9 @@ const PredictionSuccessBox: FC<PredictionSuccessBoxProps> = ({
         </span>
       </h4>
       <div className="mx-1 flex flex-wrap items-center justify-center gap-2">
-        <PostSubscribeButton post={post} />
+        <PostSubscriptionProvider post={post}>
+          <PostSubscribeButton />
+        </PostSubscriptionProvider>
 
         <Button variant="secondary" onClick={onCommentClick}>
           <FontAwesomeIcon
