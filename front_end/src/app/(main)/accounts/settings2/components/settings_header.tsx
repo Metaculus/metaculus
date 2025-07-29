@@ -14,7 +14,7 @@ import { FC } from "react";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import { isPathEqual } from "@/utils/navigation";
 
-const SettingsHeader: FC<Props> = ({}) => {
+const SettingsHeader: FC = ({}) => {
   const t = useTranslations();
   const pathname = usePathname();
   const tabsOptions: GroupButton<string>[] = [
