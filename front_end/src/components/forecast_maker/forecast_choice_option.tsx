@@ -126,7 +126,7 @@ const ForecastChoiceOption = <T = string,>({
   );
 
   const SliderElement = (
-    <div className="ml-5 mr-7">
+    <div className="sm:ml-5 sm:mr-7">
       <Slider
         inputMin={inputMin}
         inputMax={inputMax}
@@ -193,7 +193,7 @@ const ForecastChoiceOption = <T = string,>({
         <td className="border-t border-gray-300 p-2 text-right text-sm font-medium dark:border-gray-300-dark">
           {forecastColumnValue}
         </td>
-        <td className="border-t border-gray-300 p-2 text-center dark:border-gray-300-dark">
+        <td className="border-t border-gray-300 px-3 text-center dark:border-gray-300-dark sm:px-2 sm:py-2">
           <ForecastTextInput
             onChange={handleInputChange}
             onForecastChange={handleInputForecastChange}
@@ -220,7 +220,10 @@ const ForecastChoiceOption = <T = string,>({
         onClick={() => onOptionClick?.(id)}
       >
         <td
-          className="w-full border-t border-none border-gray-300 p-2 px-6 pt-0 dark:border-gray-300-dark"
+          className={cn(
+            "w-full border-t border-none border-gray-300 px-3 py-2 pt-0 dark:border-gray-300-dark sm:px-6",
+            { "hidden sm:table-cell": disabled }
+          )}
           colSpan={4}
         >
           {SliderElement}
