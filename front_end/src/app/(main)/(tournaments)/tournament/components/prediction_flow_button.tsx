@@ -18,6 +18,14 @@ const PredictionFlowButton: React.FC<Props> = ({ tournament }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
+  const isForecastsFlowEnabled =
+    tournament.forecasts_flow_enabled &&
+    !tournament.timeline.all_questions_closed;
+
+  if (!isForecastsFlowEnabled || isNil(user)) {
+    return null;
+  }
+
   return (
     <Button
       onClick={() => {

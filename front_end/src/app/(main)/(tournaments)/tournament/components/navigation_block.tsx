@@ -14,13 +14,10 @@ type Props = {
 
 const NavigationBlock: FC<Props> = ({ tournament }) => {
   const t = useTranslations();
-  const isForecastsFlowEnabled =
-    tournament.forecasts_flow_enabled &&
-    !tournament.timeline.all_questions_closed;
 
   return (
     <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
-      {isForecastsFlowEnabled && tournament.type !== TournamentType.Index && (
+      {tournament.type !== TournamentType.Index && (
         <PredictionFlowButton tournament={tournament} />
       )}
 
