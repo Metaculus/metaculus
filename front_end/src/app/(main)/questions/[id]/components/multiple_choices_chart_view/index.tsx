@@ -151,15 +151,6 @@ const MultiChoicesChartView: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <div className="flex items-center">
-        {!embedMode && (
-          <>
-            {!!title && (
-              <h3 className="m-0 text-base font-normal leading-5">{title}</h3>
-            )}
-          </>
-        )}
-      </div>
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
@@ -189,6 +180,7 @@ const MultiChoicesChartView: FC<Props> = ({
           isEmptyDomain={isEmptyDomain}
           openTime={openTime}
           forceAutoZoom={isInteracted.current}
+          chartTitle={!embedMode ? title : undefined}
         />
       </div>
 

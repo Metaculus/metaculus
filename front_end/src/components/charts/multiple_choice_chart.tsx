@@ -69,6 +69,7 @@ type Props = {
   isEmptyDomain?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
+  chartTitle?: string;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -90,6 +91,7 @@ const MultipleChoiceChart: FC<Props> = ({
   isEmptyDomain,
   openTime,
   forceAutoZoom,
+  chartTitle,
 }) => {
   const t = useTranslations();
   const {
@@ -219,6 +221,7 @@ const MultipleChoiceChart: FC<Props> = ({
       height={height}
       zoom={withZoomPicker ? zoom : undefined}
       onZoomChange={setZoom}
+      chartTitle={chartTitle}
     >
       {!!chartWidth && (
         <VictoryChart
