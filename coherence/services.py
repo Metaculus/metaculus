@@ -1,27 +1,28 @@
 from django.db import transaction
 
 from coherence.models import CoherenceLink
+from questions.models import Question
 from users.models import User
 
 
 def create_coherence_link(
     *,
     user: User = None,
-    question1_id: int = None,
-    question2_id: int = None,
+    question1: Question = None,
+    question2: Question = None,
     direction: CoherenceLink.Direction = None,
     strength: CoherenceLink.Strength = None,
-    type: CoherenceLink.LinkType = None,
+    link_type: CoherenceLink.LinkType = None,
 ):
 
     with transaction.atomic():
         obj = CoherenceLink(
             user=user,
-            question1_id=question1_id,
-            question2_id=question2_id,
+            question1=question1,
+            question2=question2,
             direction=direction,
             strength=strength,
-            type=type,
+            type=link_type,
         )
 
         # Save project and validate
