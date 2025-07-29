@@ -1,14 +1,11 @@
 "use client";
 
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
-import { Tournament } from "@/types/projects";
-import { getProjectSlug } from "@/utils/navigation";
+import { Tournament, TournamentType } from "@/types/projects";
+import PredictionFlowButton from "./prediction_flow_button";
 
 type Props = {
   tournament: Tournament;
@@ -16,30 +13,14 @@ type Props = {
 
 const NavigationBlock: FC<Props> = ({ tournament }) => {
   const t = useTranslations();
-  const { setCurrentModal } = useModal();
-  const { user } = useAuth();
   const isForecastsFlowEnabled =
     tournament.forecasts_flow_enabled &&
     !tournament.timeline.all_questions_closed;
 
   return (
     <div className="mx-4 mt-4 flex flex-row justify-between gap-2 lg:mx-0">
-      {isForecastsFlowEnabled && (
-        <Button
-          onClick={() => {
-            if (isNil(user)) {
-              setCurrentModal({ type: "signin" });
-            }
-          }}
-          href={
-            !isNil(user)
-              ? `/tournament/${getProjectSlug(tournament)}/prediction-flow`
-              : undefined
-          }
-          className="w-full flex-1 border-blue-400 text-sm text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark md:text-lg"
-        >
-          {t("predictionFlow")}
-        </Button>
+      {isForecastsFlowEnabled && tournament.type !== TournamentType.Index && (
+        <PredictionFlowButton tournament={tournament} />
       )}
 
       <Button
