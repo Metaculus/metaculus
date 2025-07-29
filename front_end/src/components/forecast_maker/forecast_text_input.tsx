@@ -60,6 +60,9 @@ const ForecastTextInput: FC<Props> = ({
         isDirty
           ? "border-orange-800 bg-orange-100 text-orange-800 dark:border-orange-800-dark dark:bg-orange-100-dark dark:text-orange-800-dark"
           : "border-gray-700 bg-gray-0 text-orange-700 dark:border-gray-700-dark dark:bg-gray-0-dark dark:text-orange-700-dark",
+        {
+          "opacity-35": disabled,
+        },
         className
       )}
       type="text"

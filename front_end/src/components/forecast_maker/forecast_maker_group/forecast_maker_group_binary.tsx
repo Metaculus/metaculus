@@ -18,6 +18,7 @@ import {
   createForecasts,
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
+import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
 import GroupQuestionResolution from "@/components/group_question_resolution";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -329,7 +330,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
-            <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
+            <th className="rounded-tl bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
               {groupVariable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
@@ -340,12 +341,12 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               />
             </th>
             <th
-              className="hidden bg-blue-100 p-2 text-left text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:table-cell"
+              className="hidden rounded-tr bg-blue-100 p-2 text-left text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:table-cell"
               colSpan={2}
             >
               My Prediction
             </th>
-            <th className="bg-blue-100 p-2 text-center text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:hidden">
+            <th className="rounded-tr bg-blue-100 p-2 text-center text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:hidden">
               Me
             </th>
           </tr>
@@ -381,11 +382,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           ))}
         </tbody>
       </table>
-      {predictionMessage && (
-        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-          {predictionMessage}
-        </div>
-      )}
+      <ForecastPredictionMessage predictionMessage={predictionMessage} />
       {!!highlightedQuestion?.resolution && (
         <div className="flex flex-row items-center justify-center gap-1.5 truncate py-2 text-gray-900 dark:text-gray-900-dark">
           <GroupQuestionResolution
@@ -459,9 +456,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
             className="mt-2 flex items-center justify-center"
             detached
           />
-          <div className="h-[32px] w-full">
-            {isPending && <LoadingIndicator />}
-          </div>
+          {isPending && (
+            <div className="h-[32px] w-full">
+              <LoadingIndicator />
+            </div>
+          )}
         </>
       )}
       {highlightedQuestion && <ScoreDisplay question={highlightedQuestion} />}

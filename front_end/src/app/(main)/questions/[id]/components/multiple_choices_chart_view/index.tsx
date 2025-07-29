@@ -1,7 +1,5 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
-import { isNil } from "lodash";
-import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
@@ -52,7 +50,6 @@ const MultiChoicesChartView: FC<Props> = ({
   tooltipChoices,
   tooltipUserChoices,
   onChoiceItemsUpdate,
-  forecastersCount,
   timestamps,
   onCursorChange,
   openTime,
@@ -74,7 +71,6 @@ const MultiChoicesChartView: FC<Props> = ({
   className,
 }) => {
   const { user } = useAuth();
-  const t = useTranslations();
   const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
@@ -155,21 +151,6 @@ const MultiChoicesChartView: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <div className="flex items-center">
-        {!embedMode && (
-          <>
-            {!!title && (
-              <h3 className="m-0 text-base font-normal leading-5">{title}</h3>
-            )}
-            {!isNil(forecastersCount) && (
-              <div className="ml-auto text-sm">
-                {t("totalForecastersLabel") + " "}
-                <strong>{forecastersCount}</strong>
-              </div>
-            )}
-          </>
-        )}
-      </div>
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
@@ -199,6 +180,7 @@ const MultiChoicesChartView: FC<Props> = ({
           isEmptyDomain={isEmptyDomain}
           openTime={openTime}
           forceAutoZoom={isInteracted.current}
+          chartTitle={!embedMode ? title : undefined}
         />
       </div>
 

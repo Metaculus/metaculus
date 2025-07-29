@@ -18,48 +18,60 @@ import PeriodMovement from "./period_movement";
 type Props = {
   question: QuestionWithForecasts;
   className?: string;
-  presentation?: "forecasterView" | "consumerView";
+  // Unit override
+  unit?: string;
   threshold?: number;
+  size?: "xs" | "sm";
+  variant?: "message" | "chip";
+  boldValueUnit?: boolean;
 };
 
-const QuestionCPMovement: FC<Props> = ({
+export const QuestionCPMovement: FC<Props> = ({
   question,
   className,
-  presentation,
   threshold = 0.01,
+  size = "sm",
+  variant = "message",
+  boldValueUnit = false,
+  unit: unitOverride,
 }) => {
   const t = useTranslations();
+  const movement = question?.aggregations?.recency_weighted?.movement;
 
-  const movement = question.aggregations?.recency_weighted?.movement;
-
-  if (!movement || !movement.divergence || movement.divergence < threshold) {
+  if (!movement || !movement.divergence || movement.divergence < threshold)
     return null;
-  }
-  const movementComponents = getMovementComponents(question, movement, t);
 
-  if (!movementComponents) {
-    return null;
-  }
+  const mc = getMovementComponents(question, movement, t);
+
+  if (!mc) return null;
+
+  const unit = unitOverride ?? mc.unit;
+  const amount = mc.amount.toString();
+
+  const maybeBold = (n: React.ReactNode) =>
+    boldValueUnit ? <strong className="whitespace-nowrap">{n}</strong> : n;
+
+  const valueNode =
+    variant === "message" ? maybeBold(formatValueUnit(amount, unit)) : <></>;
+
+  const chip =
+    variant === "chip" ? maybeBold(formatValueUnit(amount, unit)) : undefined;
 
   return (
     <PeriodMovement
       direction={movement.direction}
-      message={t(getMovementPeriodMessage(Number(movement.period)), {
-        value: formatValueUnit(
-          movementComponents.amount.toString(),
-          question?.type === QuestionType.Binary &&
-            presentation == "consumerView"
-            ? "%"
-            : movementComponents.unit
-        ),
+      chip={chip}
+      message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
+        value: () => valueNode,
       })}
       className={cn("text-xs", className)}
       iconClassName="text-xs"
+      size={size}
     />
   );
 };
 
-export function getMovementPeriodMessage(period: number): TranslationKey {
+function getMovementPeriodMessage(period: number): TranslationKey {
   if (period <= 60 * 60) return "CPMovementHourChangeLabel";
   if (period <= 24 * 60 * 60) return "CPMovementDayChangeLabel";
 
@@ -138,7 +150,7 @@ export function getMovementComponents(
         ? isNil(question.unit)
           ? question.type
           : " " + question.unit
-        : " " + t("percentagePoints");
+        : " " + t("percentagePointsShort");
     const amount =
       question.type === QuestionType.Numeric
         ? abbreviatedNumber(round(cpMovement.movement, 1)) // for numeric questions we receive already scaled value

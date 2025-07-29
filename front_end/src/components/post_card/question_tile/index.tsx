@@ -28,7 +28,7 @@ type Props = {
   authorUsername: string;
   curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
-  forecasters?: number;
+  showChart?: boolean;
   canPredict?: boolean;
 };
 
@@ -37,8 +37,8 @@ const QuestionTile: FC<Props> = ({
   curationStatus,
   authorUsername,
   hideCP,
-  forecasters,
   canPredict,
+  showChart,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -58,7 +58,7 @@ const QuestionTile: FC<Props> = ({
 
   // hide the card if the question is not opened yet
   // otherwise, we should the chart with "No forecasts yet" message on the chart itself
-  if (forecastAvailability.isEmpty && curationStatus !== PostStatus.OPEN) {
+  if (forecastAvailability.isEmpty && question.status !== QuestionStatus.OPEN) {
     return null;
   }
 
@@ -74,11 +74,10 @@ const QuestionTile: FC<Props> = ({
       return (
         <QuestionContinuousTile
           question={question}
-          curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
           forecastAvailability={forecastAvailability}
-          forecasters={forecasters}
           canPredict={canPredict}
+          showChart={showChart}
         />
       );
     case QuestionType.MultipleChoice: {
@@ -109,6 +108,7 @@ const QuestionTile: FC<Props> = ({
           openTime={openTime}
           forecastAvailability={forecastAvailability}
           canPredict={canPredict}
+          showChart={showChart}
         />
       );
     }

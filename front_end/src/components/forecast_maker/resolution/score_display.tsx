@@ -128,6 +128,8 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
   const primaryScoreBoxes = [];
   const secondaryScoreBoxes = [];
   for (const { key, scoreBox } of keyedScoreBoxes) {
+    if (isNil(scoreBox)) continue;
+
     if (key === question.default_score_type) {
       primaryScoreBoxes.push(scoreBox);
     } else {
@@ -136,14 +138,16 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
   }
   return (
     <>
-      <div
-        className={cn(
-          "mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4",
-          className
-        )}
-      >
-        {primaryScoreBoxes}
-      </div>
+      {primaryScoreBoxes.length > 0 && (
+        <div
+          className={cn(
+            "mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4",
+            className
+          )}
+        >
+          {primaryScoreBoxes}
+        </div>
+      )}
       {secondaryScoreBoxes.length > 0 && (
         <SectionToggle
           title="Additional Scores"
