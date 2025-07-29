@@ -1,5 +1,6 @@
 import invariant from "ts-invariant";
 
+import GeneralDisplay from "@/app/(main)/accounts/settings2/(general)/components/general_display";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
 export default async function Settings() {
@@ -8,7 +9,7 @@ export default async function Settings() {
 
   return (
     <>
-      <h2>General Settings</h2>
+      <GeneralDisplay user={currentUser} />
     </>
   );
 }
