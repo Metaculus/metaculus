@@ -30,8 +30,8 @@ import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
-import TournamentFeed from "../components/tournament_feed";
 import PredictionFlowButton from "../components/prediction_flow_button";
+import TournamentFeed from "../components/tournament_feed";
 
 type Props = {
   params: Promise<{ slug: string }>;

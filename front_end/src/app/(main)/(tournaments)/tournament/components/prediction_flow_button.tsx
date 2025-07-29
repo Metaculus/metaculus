@@ -1,12 +1,13 @@
 "use client";
 
+import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
+
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Tournament } from "@/types/projects";
 import { getProjectSlug } from "@/utils/navigation";
-import { isNil } from "lodash";
-import { useTranslations } from "next-intl";
 
 type Props = {
   tournament: Tournament;

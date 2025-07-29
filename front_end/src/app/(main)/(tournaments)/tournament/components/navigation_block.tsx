@@ -5,6 +5,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { Tournament, TournamentType } from "@/types/projects";
+
 import PredictionFlowButton from "./prediction_flow_button";
 
 type Props = {
