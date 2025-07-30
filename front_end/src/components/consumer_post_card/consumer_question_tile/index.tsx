@@ -1,11 +1,13 @@
 import { FC } from "react";
 
+import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
+import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
+import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
 import ConsumerBinaryTile from "./consumer_binary_tile";
 import ConsumerContinuousTile from "./consumer_continuous_tile";
-
 type Props = {
   question: QuestionWithForecasts;
 };
@@ -25,11 +27,23 @@ const ConsumerQuestionTile: FC<Props> = ({ question }) => {
     case QuestionType.Numeric:
     case QuestionType.Discrete:
     case QuestionType.Date:
+      const continuousAreaChartData = getContinuousAreaChartData({
+        question,
+        isClosed: question.status === QuestionStatus.CLOSED,
+      });
       return (
-        <ConsumerContinuousTile
-          question={question}
-          forecastAvailability={forecastAvailability}
-        />
+        <div className="flex flex-col gap-2.5">
+          <ConsumerContinuousTile
+            question={question}
+            forecastAvailability={forecastAvailability}
+          />
+          <MinifiedContinuousAreaChart
+            question={question}
+            data={continuousAreaChartData}
+            height={50}
+            forceTickCount={2}
+          />
+        </div>
       );
     default:
       return null;

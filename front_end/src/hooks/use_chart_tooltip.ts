@@ -2,6 +2,7 @@ import {
   autoUpdate,
   flip,
   offset,
+  Placement,
   shift,
   useClientPoint,
   useDismiss,
@@ -11,17 +12,25 @@ import {
 } from "@floating-ui/react";
 import { useState } from "react";
 
-const useChartTooltip = () => {
+type Props = {
+  placement?: Placement;
+  tooltipOffset?: number;
+};
+
+const useChartTooltip = ({
+  placement = "left",
+  tooltipOffset = 24,
+}: Props = {}) => {
   const [isActive, setIsActive] = useState(false);
   const { refs, floatingStyles, context } = useFloating({
     middleware: [
-      offset(24),
+      offset(tooltipOffset),
       flip(),
       shift({ mainAxis: false, crossAxis: true }),
     ],
     open: isActive,
     onOpenChange: setIsActive,
-    placement: "left",
+    placement,
     whileElementsMounted: autoUpdate,
   });
   const clientPoint = useClientPoint(context);

@@ -17,6 +17,7 @@ import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { QuestionStatus } from "@/types/post";
 import {
   ForecastAvailability,
   QuestionType,
@@ -27,7 +28,7 @@ import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-const HEIGHT = 100;
+const HEIGHT = 90;
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -51,6 +52,7 @@ const QuestionContinuousTile: FC<Props> = ({
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
+    isClosed: question.status === QuestionStatus.CLOSED,
   });
 
   // generate data to submit based on user forecast and question type
@@ -164,20 +166,25 @@ const QuestionContinuousTile: FC<Props> = ({
               openTime={getPostDrivenTime(question.open_time)}
               unit={question.unit}
               tickFontSize={9}
+              questionStatus={question.status}
+              forecastAvailability={forecastAvailability}
+              forFeedPage
             />
           ) : (
-            <ContinuousAreaChart
-              data={continuousAreaChartData}
-              height={HEIGHT}
-              question={question}
-              hideCP={hideCP}
-            />
+            <>
+              <ContinuousAreaChart
+                data={continuousAreaChartData}
+                height={HEIGHT}
+                question={question}
+                hideCP={hideCP}
+                forceTickCount={3}
+              />
+              <ForecastAvailabilityChartOverflow
+                forecastAvailability={forecastAvailability}
+                className="pl-3 text-xs md:text-sm"
+              />
+            </>
           )}
-
-          <ForecastAvailabilityChartOverflow
-            forecastAvailability={forecastAvailability}
-            className="pl-3 text-xs md:text-sm"
-          />
         </div>
       )}
     </div>

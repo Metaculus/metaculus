@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/group_timeline";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostConditional, PostStatus } from "@/types/post";

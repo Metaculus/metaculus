@@ -83,9 +83,7 @@ const QuestionTile: FC<Props> = ({
     case QuestionType.MultipleChoice: {
       const visibleChoicesCount = 3;
 
-      const choices = generateChoiceItemsFromMultipleChoiceForecast(question, {
-        activeCount: visibleChoicesCount,
-      });
+      const choices = generateChoiceItemsFromMultipleChoiceForecast(question);
       const userForecasts = generateUserForecastsForMultipleQuestion(question);
       const actualCloseTime = getPostDrivenTime(question.actual_close_time);
       const openTime = getPostDrivenTime(question.open_time);

@@ -1,4 +1,8 @@
 import { faSquare, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
+import {
+  faSquare as faSquareSolid,
+  faSquareCheck as faSquareCheckSolid,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
 import { FC, MouseEventHandler, ReactNode, TouchEventHandler } from "react";
@@ -25,6 +29,7 @@ type Props = {
   onClick?: MouseEventHandler<HTMLSpanElement>;
   readOnly?: boolean;
   errors?: ErrorResponse;
+  isSolidIcon?: boolean;
 };
 
 const Checkbox: FC<Props> = ({
@@ -44,6 +49,7 @@ const Checkbox: FC<Props> = ({
   onClick,
   readOnly,
   errors,
+  isSolidIcon = false,
 }) => {
   return (
     <Field
@@ -71,7 +77,7 @@ const Checkbox: FC<Props> = ({
         {({ checked }) =>
           checked ? (
             <FontAwesomeIcon
-              icon={faSquareCheck}
+              icon={isSolidIcon ? faSquareCheckSolid : faSquareCheck}
               size="xl"
               className={cn("mr-1", inputClassName, {
                 "opacity-20": disabled,
@@ -80,7 +86,7 @@ const Checkbox: FC<Props> = ({
             />
           ) : (
             <FontAwesomeIcon
-              icon={faSquare}
+              icon={isSolidIcon ? faSquareSolid : faSquare}
               size="xl"
               className={cn("mr-1", inputClassName, {
                 "opacity-20": disabled,
