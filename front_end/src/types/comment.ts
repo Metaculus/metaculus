@@ -42,6 +42,10 @@ export type CommentType = BECommentType & {
   children: CommentType[];
 };
 
+export type CommentOfWeekType = BECommentType & {
+  excluded: boolean;
+};
+
 export type ForecastType = {
   start_time: Date;
   probability_yes: number;
@@ -92,6 +96,7 @@ export type KeyFactor = {
   user_votes: KeyFactorVote[]; // empty array if the user has not voted
   vote_type: KeyFactorVoteType | null; // null if the user has not voted
   votes_score: number;
+  votes_count: number;
 };
 
 export type CommentDraft = {

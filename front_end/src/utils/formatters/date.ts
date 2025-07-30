@@ -4,6 +4,7 @@ import {
   intlFormat,
   intlFormatDistance,
 } from "date-fns";
+import { es, cs, pt, zhTW, zhCN, enUS } from "date-fns/locale";
 
 export function formatDate(locale: string, date: Date) {
   return intlFormat(
@@ -115,3 +116,20 @@ export function formatDurationToShortStr(duration: Duration): string {
   }
   return str;
 }
+
+export const getDateFnsLocale = (locale: string) => {
+  switch (locale) {
+    case "es":
+      return es;
+    case "cs":
+      return cs;
+    case "pt":
+      return pt;
+    case "zh-TW":
+      return zhTW;
+    case "zh":
+      return zhCN;
+    default:
+      return enUS;
+  }
+};
