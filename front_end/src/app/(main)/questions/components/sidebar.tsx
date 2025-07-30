@@ -7,6 +7,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, Fragment, useMemo, useState } from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
@@ -44,6 +45,10 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   const pathname = usePathname();
   const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+
+  const isWeeklyTopCommentsFeatureEnabled = useFeatureFlagEnabled(
+    "weekly_top_comments"
+  );
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
     const menuItems: SidebarMenuItem[] = [
@@ -92,6 +97,21 @@ const FeedSidebar: FC<Props> = ({ items }) => {
         : []),
       ...(!PUBLIC_MINIMAL_UI
         ? [
+            ...(isWeeklyTopCommentsFeatureEnabled
+              ? [
+                  {
+                    name: t("weeklyTopComments"),
+                    emoji: "💬",
+                    onClick: () => {
+                      sendAnalyticsEvent("sidebarClick", {
+                        event_category: t("weeklyTopComments"),
+                      });
+                    },
+                    url: getFeedUrl(FeedType.WEEKLY_TOP_COMMENTS),
+                    isActive: currentFeed == FeedType.WEEKLY_TOP_COMMENTS,
+                  },
+                ]
+              : []),
             {
               name: t("communities"),
               emoji: "👥",

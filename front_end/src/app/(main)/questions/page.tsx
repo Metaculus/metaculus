@@ -5,7 +5,11 @@ import AwaitedCommunitiesFeed from "@/components/communities_feed";
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { POST_COMMUNITIES_FILTER } from "@/constants/posts_feed";
+import AwaitedWeeklyTopCommentsFeed from "@/components/weekly_top_comments_feed";
+import {
+  POST_COMMUNITIES_FILTER,
+  POST_WEEKLY_TOP_COMMENTS_FILTER,
+} from "@/constants/posts_feed";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import { SearchParams } from "@/types/navigation";
 import { QuestionOrder } from "@/types/question";
@@ -24,6 +28,7 @@ export default async function Questions(props: {
 }) {
   const searchParams = await props.searchParams;
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
+  const isWeeklyTopCommentsFeed = searchParams[POST_WEEKLY_TOP_COMMENTS_FILTER];
   const filters = generateFiltersFromSearchParams(searchParams, {
     // Default Feed ordering should be hotness
     defaultOrderBy: QuestionOrder.HotDesc,
@@ -46,6 +51,15 @@ export default async function Questions(props: {
                 }
               >
                 <AwaitedCommunitiesFeed />
+              </Suspense>
+            ) : isWeeklyTopCommentsFeed ? (
+              <Suspense
+                key={JSON.stringify(searchParams)}
+                fallback={
+                  <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+                }
+              >
+                <AwaitedWeeklyTopCommentsFeed searchParams={searchParams} />
               </Suspense>
             ) : (
               <>

@@ -1418,5 +1418,16 @@
   "registrationInfoAbility4": "與世界上最優秀的預測者一起參與討論",
   "registrationInfoAbility5": "向社群提交自己的問題",
   "registrationInfoAbility6": "從嘈雜中篩選出重要的故事",
+  "current_week": "本週",
+  "placementFirst": "第 1 名",
+  "placementSecond": "第 2 名",
+  "placementThird": "第 3 名",
+  "placementOther": "第 {placement} 名",
+  "exclude": "排除",
+  "unexclude": "取消排除",
+  "mindsChanged": "改變想法",
+  "keyFactorVotes": "關鍵因素投票",
+  "weeklyTopComments": "每週最佳評論",
+  "entryExcluded": "此條目無資格獲得排名或獎品。如果有資格，他們將位列於此。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

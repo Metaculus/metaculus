@@ -1421,5 +1421,16 @@
   "registrationInfoAbility4": "Připojte se k diskuzi s nejlepšími prognostiky na světě",
   "registrationInfoAbility5": "Předkládejte vlastní otázky komunitě",
   "registrationInfoAbility6": "Prořízněte si přes šum, abyste sledovali důležité příběhy",
+  "current_week": "Aktuální týden",
+  "placementFirst": "1. místo",
+  "placementSecond": "2. místo",
+  "placementThird": "3. místo",
+  "placementOther": "{placement}. místo",
+  "exclude": "Vyloučit",
+  "unexclude": "Znovu zahrnout",
+  "mindsChanged": "změny názorů",
+  "keyFactorVotes": "hlasy klíčového faktoru",
+  "weeklyTopComments": "Nejlepší týdenní komentáře",
+  "entryExcluded": "Tento příspěvek není způsobilý získat umístění nebo cenu. Zde by se umístili, pokud by byli způsobilí.",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
