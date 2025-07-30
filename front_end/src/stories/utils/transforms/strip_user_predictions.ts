@@ -10,12 +10,7 @@ export const stripUserPredictions = (
         ...post.group_of_questions,
         questions: post.group_of_questions.questions.map((q) => ({
           ...q,
-          id: q.id ?? 0,
           my_forecasts: { history: [] },
-          aggregations: {
-            ...q.aggregations,
-            recency_weighted: { history: [] },
-          },
         })),
       },
     };
@@ -27,10 +22,6 @@ export const stripUserPredictions = (
       question: {
         ...post.question,
         my_forecasts: { history: [] },
-        aggregations: {
-          ...post.question.aggregations,
-          recency_weighted: { history: [] },
-        },
       },
     };
   }
