@@ -22,7 +22,7 @@ type Props = {
 
 function getProxiedFaviconUrl(originalUrl: string): string {
   if (!originalUrl) return "";
-  return `/newsmatch/favicon?url=${encodeURIComponent(originalUrl)}`;
+  return `/newsmatch/favicon/?url=${encodeURIComponent(originalUrl)}`;
 }
 
 const NewsMatchArticle: FC<Props> = ({ article, isClosest }) => {

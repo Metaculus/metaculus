@@ -38,5 +38,6 @@ export function getPublicSettings() {
         ? process.env.PUBLIC_AUTHENTICATION_REQUIRED === "true"
         : defVals.PUBLIC_AUTHENTICATION_REQUIRED,
     PUBLIC_SCREENSHOT_SERVICE_ENABLED: !!process.env.SCREENSHOT_SERVICE_API_URL,
+    PUBLIC_COOKIEBOT_ID: process.env.PUBLIC_COOKIEBOT_ID ?? "",
   };
 }
