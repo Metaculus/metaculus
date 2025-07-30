@@ -15,7 +15,7 @@ function BotLeaderboard() {
           <div className="mt-2 text-sm text-blue-500 opacity-75 dark:text-blue-500-dark md:text-base">
             Check current prize allocations in the{' '}
             <a
-              href="https://www.metaculus.com/tournament/aibq2/"
+              href="/tournament/aibq2/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 underline dark:text-blue-600-dark dark:hover:text-blue-700-dark"
