@@ -7,7 +7,7 @@ import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
-import PreferencesSection from "@/app/(main)/accounts/settings2/components/preferences_section";
+import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
 import RichText from "@/components/rich_text";
 import Checkbox from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/form_field";
@@ -88,22 +88,9 @@ const PredictionPreferences: FC<Props> = ({ user }) => {
                 }
               }}
               readOnly={isPendingUpdateExpirationPercent}
-              label=""
+              label={t("defaultWithdrawalSettingText")}
             />
-            <div className=" ">
-              <span className="leading-none">
-                {t("defaultWithdrawalSettingText")}
-                <span className="ml-1 inline-block translate-y-0.5">
-                  <LoadingSpinner
-                    size="1x"
-                    className={cn(
-                      "invisible",
-                      isPendingUpdateExpirationPercent && "visible"
-                    )}
-                  />
-                </span>
-              </span>
-            </div>
+            {isPendingUpdateExpirationPercent && <LoadingSpinner size="1x" />}
           </div>
 
           {isExpirationEnabled && (

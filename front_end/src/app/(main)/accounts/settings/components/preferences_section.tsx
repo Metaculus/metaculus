@@ -5,7 +5,7 @@ import { FC, PropsWithChildren } from "react";
 import cn from "@/utils/core/cn";
 
 type Props = PropsWithChildren & {
-  title: string;
+  title?: string;
   className?: string;
 };
 
@@ -17,9 +17,11 @@ const PreferencesSection: FC<Props> = ({ children, title, className }) => {
         className
       )}
     >
-      <h3 className="m-0 text-xl/7 text-blue-900 dark:text-blue-900-dark">
-        {title}
-      </h3>
+      {!!title && (
+        <h3 className="m-0 text-xl/7 text-blue-900 dark:text-blue-900-dark">
+          {title}
+        </h3>
+      )}
       {children}
     </div>
   );

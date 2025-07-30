@@ -1,7 +1,7 @@
 import invariant from "ts-invariant";
 
-import EmailNotifications from "@/app/(main)/accounts/settings2/notifications/components/email_notifications";
-import QuestionNotifications from "@/app/(main)/accounts/settings2/notifications/components/question_notifications";
+import EmailNotifications from "@/app/(main)/accounts/settings/notifications/components/email_notifications";
+import QuestionNotifications from "@/app/(main)/accounts/settings/notifications/components/question_notifications";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 

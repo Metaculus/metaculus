@@ -18,21 +18,20 @@ const SettingsHeader: FC = ({}) => {
   const t = useTranslations();
   const pathname = usePathname();
   const tabsOptions: GroupButton<string>[] = [
-    // TODO: rename settings2 -> settings
     {
       value: "general",
       label: <TabItem icon={faGear} label={t("settingsGeneral")} />,
-      href: "/accounts/settings2/",
+      href: "/accounts/settings/",
     },
     {
       value: "notifications",
       label: <TabItem icon={faBell} label={t("settingsNotifications")} />,
-      href: "/accounts/settings2/notifications/",
+      href: "/accounts/settings/notifications/",
     },
     {
       value: "account",
       label: <TabItem icon={faUser} label={t("settingsAccount")} />,
-      href: "/accounts/settings2/account/",
+      href: "/accounts/settings/account/",
     },
   ];
   const currentPage =

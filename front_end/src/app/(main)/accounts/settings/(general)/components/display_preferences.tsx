@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import PreferencesSection from "@/app/(main)/accounts/settings2/components/preferences_section";
+import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
 import { APP_LANGUAGES } from "@/components/language_menu";
 import RadioButtonGroup from "@/components/ui/radio_button_group";
 import Select from "@/components/ui/select";
