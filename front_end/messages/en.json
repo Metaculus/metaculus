@@ -856,6 +856,7 @@
   "projects": "projects",
   "FABPrizePool": "PRIZE POOL",
   "FABPrizeValue": "$30,000",
+  "FABPrizeValue50k": "$50,000",
   "FABStartDate": "START DATE",
   "FABEndDate": "ENDED ON",
   "FABStartDateJuly8": "July 8",
