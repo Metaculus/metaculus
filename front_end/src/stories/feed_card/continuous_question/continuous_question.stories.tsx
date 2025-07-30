@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import ConsumerPostCard from "@/components/consumer_post_card";
 import PostCard from "@/components/post_card";
+import { createConditionalRenderer } from "@/stories/utils/renderer/conditional-renderer";
+import { stripUserPredictions } from "@/stories/utils/transforms/strip_user_predictions";
 import { PostWithForecasts } from "@/types/post";
 
 import { getMockData } from "./mock_data";
@@ -13,6 +15,7 @@ type StoryProps = {
   post: PostWithForecasts;
   forCommunityFeed?: boolean;
   isConsumer?: boolean;
+  hideUserPredictions?: boolean;
 };
 
 const meta = {
@@ -23,6 +26,10 @@ const meta = {
       control: {
         type: "boolean",
       },
+    },
+    hideUserPredictions: {
+      control: { type: "boolean" },
+      description: "Hide user predictions in graph cards",
     },
     forCommunityFeed: {
       table: {
@@ -36,28 +43,33 @@ export default meta;
 
 type Story = StoryObj<StoryProps>;
 
+const render = createConditionalRenderer<StoryProps>({
+  componentSelector: (args) => (args.isConsumer ? ConsumerPostCard : PostCard),
+  transformRules: [
+    {
+      key: "hideUserPredictions",
+      when: (args) => !!args.hideUserPredictions,
+      transform: (args) => ({
+        ...args,
+        post: stripUserPredictions(args.post),
+      }),
+    },
+  ],
+  buildKey: (_args, appliedKeys) =>
+    appliedKeys.length > 0 ? appliedKeys.join("-") : "default",
+});
+
 export const Ongoing: Story = {
-  render: (args) => {
-    return args.isConsumer ? (
-      <ConsumerPostCard {...args} />
-    ) : (
-      <PostCard {...args} />
-    );
-  },
+  render,
   args: {
     post: ongoingArgs as unknown as PostWithForecasts,
     isConsumer: false,
+    hideUserPredictions: false,
   },
 };
 
 export const CpHidden: Story = {
-  render: (args) => {
-    return args.isConsumer ? (
-      <ConsumerPostCard {...args} />
-    ) : (
-      <PostCard {...args} />
-    );
-  },
+  render,
   args: {
     post: {
       ...ongoingArgs,
@@ -77,17 +89,12 @@ export const CpHidden: Story = {
         },
       },
     } as unknown as PostWithForecasts,
+    hideUserPredictions: false,
   },
 };
 
 export const Closed: Story = {
-  render: (args) => {
-    return args.isConsumer ? (
-      <ConsumerPostCard {...args} />
-    ) : (
-      <PostCard {...args} />
-    );
-  },
+  render,
   args: {
     post: {
       ...closedArgs,
@@ -98,17 +105,12 @@ export const Closed: Story = {
         status: "closed",
       },
     } as unknown as PostWithForecasts,
+    hideUserPredictions: false,
   },
 };
 
 export const Resolved: Story = {
-  render: (args) => {
-    return args.isConsumer ? (
-      <ConsumerPostCard {...args} />
-    ) : (
-      <PostCard {...args} />
-    );
-  },
+  render,
   args: {
     post: {
       ...closedArgs,
@@ -117,5 +119,6 @@ export const Resolved: Story = {
         ...closedArgs.question,
       },
     } as unknown as PostWithForecasts,
+    hideUserPredictions: false,
   },
 };
