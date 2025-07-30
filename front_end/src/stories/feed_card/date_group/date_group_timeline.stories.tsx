@@ -1,0 +1,156 @@
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+
+import ConsumerPostCard from "@/components/consumer_post_card";
+import PostCard from "@/components/post_card";
+import { PostWithForecasts } from "@/types/post";
+
+import { getMockData } from "./mock_data";
+
+const ongoingArgs = getMockData(false);
+const closedArgs = getMockData(true);
+
+type StoryProps = {
+  post: PostWithForecasts;
+  forCommunityFeed?: boolean;
+  isConsumer?: boolean;
+};
+
+const meta = {
+  title: "Feed Card/Date Group/Timeline Chart",
+  component: PostCard,
+  argTypes: {
+    isConsumer: {
+      control: {
+        type: "boolean",
+        order: 0,
+      },
+    },
+    post: {
+      control: {
+        type: "object",
+      },
+    },
+    forCommunityFeed: {
+      table: {
+        disable: true,
+      },
+    },
+  },
+} satisfies Meta<StoryProps>;
+
+export default meta;
+
+type Story = StoryObj<StoryProps>;
+
+export const Ongoing: Story = {
+  render: (args) => {
+    return args.isConsumer ? (
+      <ConsumerPostCard {...args} />
+    ) : (
+      <PostCard {...args} />
+    );
+  },
+  args: {
+    post: {
+      ...ongoingArgs,
+      group_of_questions: {
+        ...ongoingArgs.group_of_questions,
+        questions: ongoingArgs.group_of_questions.questions.map((question) => ({
+          ...question,
+          status: "open",
+          resolution: null,
+          cp_reveal_time: null,
+          actual_resolve_time: null,
+          actual_close_time: null,
+        })),
+      },
+    } as unknown as PostWithForecasts,
+    isConsumer: false,
+  },
+};
+
+export const CpHidden: Story = {
+  render: (args) => {
+    return args.isConsumer ? (
+      <ConsumerPostCard {...args} />
+    ) : (
+      <PostCard {...args} />
+    );
+  },
+  args: {
+    post: {
+      ...ongoingArgs,
+      group_of_questions: {
+        ...ongoingArgs.group_of_questions,
+        questions: ongoingArgs.group_of_questions.questions.map((question) => ({
+          ...question,
+          status: "open",
+          resolution: null,
+          cp_reveal_time: "2025-12-24T21:51:51Z",
+          aggregations: {
+            recency_weighted: {
+              history: [],
+            },
+          },
+          my_forecasts: {
+            history: [],
+          },
+        })),
+      },
+    } as unknown as PostWithForecasts,
+  },
+};
+
+export const Closed: Story = {
+  render: (args) => {
+    return args.isConsumer ? (
+      <ConsumerPostCard {...args} />
+    ) : (
+      <PostCard {...args} />
+    );
+  },
+  args: {
+    post: {
+      ...ongoingArgs,
+      status: "closed",
+      group_of_questions: {
+        ...ongoingArgs.group_of_questions,
+        questions: ongoingArgs.group_of_questions.questions.map((question) => ({
+          ...question,
+          status: "open",
+          actual_resolve_time: null,
+          actual_close_time: question.actual_resolve_time,
+          resolution: null,
+        })),
+      },
+    } as unknown as PostWithForecasts,
+  },
+};
+
+export const Resolved: Story = {
+  render: (args) => {
+    return args.isConsumer ? (
+      <ConsumerPostCard {...args} />
+    ) : (
+      <PostCard {...args} />
+    );
+  },
+  args: {
+    post: {
+      ...closedArgs,
+      status: "closed",
+      group_of_questions: {
+        ...closedArgs.group_of_questions,
+        questions: closedArgs.group_of_questions.questions.map((question) => ({
+          ...question,
+          resolution: question.resolution ? "2028-07-24T16:00:00Z" : null,
+          status: question.resolution ? "resolved" : "open",
+          actual_resolve_time: question.resolution
+            ? "2025-07-24T16:00:00Z"
+            : null,
+          actual_close_time: null,
+        })),
+      },
+    } as unknown as PostWithForecasts,
+  },
+};

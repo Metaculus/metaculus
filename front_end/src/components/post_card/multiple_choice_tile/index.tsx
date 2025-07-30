@@ -234,6 +234,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
           questionType={groupType}
           canPredict={canPredict && canReaffirm}
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+          withChoiceIcon={false}
         />
       </div>
       {showChart && (

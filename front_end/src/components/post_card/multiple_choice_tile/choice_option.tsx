@@ -19,6 +19,7 @@ type Props = {
   scaling?: Scaling;
   labelClassName?: string;
   actual_resolve_time?: string | null;
+  withIcon?: boolean;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -31,6 +32,7 @@ const ChoiceOption: FC<Props> = ({
   scaling,
   labelClassName,
   actual_resolve_time,
+  withIcon = true,
 }) => {
   const resolutionWords = String(displayedResolution)?.split(" ");
   const adjustedResolution = resolutionWords.length
@@ -65,12 +67,14 @@ const ChoiceOption: FC<Props> = ({
         }
       )}
     >
-      <div className="pr-3">
-        <ChoiceIcon
-          color={hasValue ? color : undefined}
-          className="resize-icon size-3 rounded-full"
-        />
-      </div>
+      {withIcon && (
+        <div className="pr-3">
+          <ChoiceIcon
+            color={hasValue ? color : undefined}
+            className="resize-icon size-3 rounded-full"
+          />
+        </div>
+      )}
 
       <div
         className={cn(
