@@ -10,10 +10,19 @@ function BotLeaderboard() {
 
         <div className="flex flex-col items-center justify-center py-12 text-center md:py-40">
           <div className="text-lg font-medium text-blue-600 dark:text-blue-600-dark md:text-xl min-[1920px]:text-2xl">
-            Leaderboard is in progress, check back soon!
+            Doing final checks on leaderboard, check back soon!
           </div>
           <div className="mt-2 text-sm text-blue-500 opacity-75 dark:text-blue-500-dark md:text-base">
-            Tournament results will be displayed here once available.
+            Check current prize allocations in the{' '}
+            <a
+              href="https://www.metaculus.com/tournament/aibq2/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 underline dark:text-blue-600-dark dark:hover:text-blue-700-dark"
+            >
+              Final Leaderboard section of the Q2 tournament page
+            </a>
+            .
           </div>
         </div>
       </div>
