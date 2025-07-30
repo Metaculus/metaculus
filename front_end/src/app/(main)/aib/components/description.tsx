@@ -12,7 +12,12 @@ function Description() {
         <li className="pt-3 min-[1920px]:pt-5">
           {t.rich("FABdesc2", {
             link: (chunks) => (
-              <Link href="https://www.loom.com/share/fc3c1a643b984a15b510647d8f760685" target="_blank">{chunks}</Link>
+              <Link
+                href="https://www.loom.com/share/fc3c1a643b984a15b510647d8f760685"
+                target="_blank"
+              >
+                {chunks}
+              </Link>
             ),
           })}
         </li>

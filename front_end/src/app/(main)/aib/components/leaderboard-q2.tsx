@@ -13,12 +13,12 @@ function BotLeaderboard() {
             Doing final checks on leaderboard, check back soon!
           </div>
           <div className="mt-2 text-sm text-blue-500 opacity-75 dark:text-blue-500-dark md:text-base">
-            Check current prize allocations in the{' '}
+            Check current prize allocations in the{" "}
             <a
               href="/tournament/aibq2/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 underline dark:text-blue-600-dark dark:hover:text-blue-700-dark"
+              className="text-blue-600 underline hover:text-blue-700 dark:text-blue-600-dark dark:hover:text-blue-700-dark"
             >
               Final Leaderboard section of the Q2 tournament page
             </a>
