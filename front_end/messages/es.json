@@ -1468,5 +1468,15 @@
   "createQuestionLinkCommentPromptBodyMultiple": "Notamos que agregaste varias URLs a otras preguntas de Metaculus. Si lo deseas, puedes crear enlaces causales entre la pregunta actual y las preguntas enlazadas.",
   "questionLinkCreated": "¡Enlace de pregunta creado con éxito!",
   "questionLinkCreatedMultiple": "¡Enlaces de preguntas creados con éxito!",
+  "current_week": "Semana actual",
+  "placementFirst": "1er lugar",
+  "placementSecond": "2º lugar",
+  "placementThird": "3er lugar",
+  "placementOther": "{placement}º lugar",
+  "exclude": "Excluir",
+  "unexclude": "Incluir",
+  "mindsChanged": "mentes cambiadas",
+  "keyFactorVotes": "votos de factor clave",
+  "weeklyTopComments": "Comentarios principales de la semana",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
