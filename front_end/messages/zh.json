@@ -1463,5 +1463,15 @@
   "maAndCorporateActions": "并购与公司行为",
   "economicIndicatorForecasting": "经济指标预测",
   "otherFinancialForecasting": "其他财务预测",
+  "current_week": "本周",
+  "placementFirst": "第1名",
+  "placementSecond": "第2名",
+  "placementThird": "第3名",
+  "placementOther": "第{placement}名",
+  "exclude": "排除",
+  "unexclude": "取消排除",
+  "mindsChanged": "改变主意",
+  "keyFactorVotes": "关键因子投票",
+  "weeklyTopComments": "本周最佳评论",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

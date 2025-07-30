@@ -1458,5 +1458,15 @@
   "maAndCorporateActions": "併購和公司行動",
   "economicIndicatorForecasting": "經濟指標預測",
   "otherFinancialForecasting": "其他財務預測",
+  "current_week": "本週",
+  "placementFirst": "第 1 名",
+  "placementSecond": "第 2 名",
+  "placementThird": "第 3 名",
+  "placementOther": "第 {placement} 名",
+  "exclude": "排除",
+  "unexclude": "取消排除",
+  "mindsChanged": "改變想法",
+  "keyFactorVotes": "關鍵因素投票",
+  "weeklyTopComments": "每週最佳評論",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
