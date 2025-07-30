@@ -1,2 +1,2 @@
-export type AppTheme = "light" | "dark";
+export type AppTheme = "light" | "dark" | "auto";
 export type ThemeColor = { DEFAULT: string; dark: string };

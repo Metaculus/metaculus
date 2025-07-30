@@ -1,31 +1,29 @@
-import { FC } from "react";
-
 import cn from "@/utils/core/cn";
 
 import RadioButton from "./radio_button";
 
-export interface RadioOption {
-  value: string;
+export interface RadioOption<T> {
+  value: T;
   label: string;
   description?: string;
 }
 
-interface Props {
-  options: RadioOption[];
+interface Props<T> {
+  options: RadioOption<T>[];
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: T) => void;
   name: string;
   disabled?: boolean;
   className?: string;
 }
 
-const RadioButtonGroup: FC<Props> = ({
+const RadioButtonGroup = <T extends string>({
   options,
   value,
   onChange,
   disabled = false,
   className,
-}) => {
+}: Props<T>) => {
   return (
     <div className={cn("flex flex-col gap-2.5 md:flex-row", className)}>
       {options.map((option) => (
@@ -35,7 +33,7 @@ const RadioButtonGroup: FC<Props> = ({
             "w-full cursor-pointer rounded border border-blue-400 px-4 py-3 transition-colors hover:bg-blue-200 dark:border-blue-400-dark dark:hover:bg-blue-200-dark md:px-5 md:py-5",
             {
               "bg-blue-200 dark:bg-blue-200-dark": value === option.value,
-              "cursor-not-allowed opacity-50": disabled,
+              "cursor-not-allowed": disabled,
             }
           )}
           onClick={() => !disabled && onChange(option.value)}
@@ -45,7 +43,7 @@ const RadioButtonGroup: FC<Props> = ({
             disabled={disabled}
             size="default"
           >
-            <div className="ml-2 cursor-pointer">
+            <div className="ml-2">
               <div className="font-medium text-blue-800 dark:text-blue-800-dark">
                 {option.label}
               </div>

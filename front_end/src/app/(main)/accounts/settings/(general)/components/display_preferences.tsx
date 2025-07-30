@@ -3,36 +3,49 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
 import { APP_LANGUAGES } from "@/components/language_menu";
-import RadioButtonGroup from "@/components/ui/radio_button_group";
+import LoadingSpinner from "@/components/ui/loading_spiner";
+import RadioButtonGroup, {
+  RadioOption,
+} from "@/components/ui/radio_button_group";
 import Select from "@/components/ui/select";
-import { CurrentUser } from "@/types/users";
+import { useServerAction } from "@/hooks/use_server_action";
+import { AppTheme } from "@/types/theme";
+import { CurrentUser, InterfaceType } from "@/types/users";
 
 type Props = {
   user: CurrentUser;
 };
 
-const DisplayPreferences: FC<Props> = ({}) => {
+const DisplayPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
-  const [interfaceType, setInterfaceType] = useState<string>("consumerView");
-  const interfaceTypeOptions = [
+  const interfaceTypeOptions: RadioOption<InterfaceType>[] = [
     {
-      value: "consumerView",
+      value: InterfaceType.ConsumerView,
       label: t("consumerView"),
       description: t("consumerViewDescription"),
     },
     {
-      value: "forecasterView",
+      value: InterfaceType.ForecasterView,
       label: t("forecasterView"),
       description: t("forecasterViewDescription"),
     },
   ];
+  const [updateInterfaceType, isPendingUpdateInterfaceType] = useServerAction(
+    async (interface_type: InterfaceType) => {
+      if (!isPendingUpdateInterfaceType) {
+        await updateProfileAction({
+          interface_type,
+        });
+      }
+    }
+  );
 
-  const [themeType, setThemeType] = useState<string>("default");
-  const themeTypeOptions = [
+  const themeTypeOptions: RadioOption<AppTheme>[] = [
     {
-      value: "default",
+      value: "auto",
       label: t("settingsThemeSystemDefault"),
     },
     {
@@ -44,6 +57,15 @@ const DisplayPreferences: FC<Props> = ({}) => {
       label: t("settingsThemeDarkMode"),
     },
   ];
+  const [updateAppTheme, isPendingUpdateAppTheme] = useServerAction(
+    async (app_theme: AppTheme) => {
+      if (!isPendingUpdateAppTheme) {
+        await updateProfileAction({
+          app_theme,
+        });
+      }
+    }
+  );
 
   const [locale, setLocale] = useState<string>("en");
   const localeOptions = APP_LANGUAGES.map((obj) => ({
@@ -54,30 +76,33 @@ const DisplayPreferences: FC<Props> = ({}) => {
   return (
     <PreferencesSection title={t("settingsDisplay")}>
       <div>
-        <div className="text-gray-500 dark:text-gray-500-dark">
-          {t("settingsInterfaceType")}
+        <div className="flex gap-2.5 text-gray-500 dark:text-gray-500-dark">
+          <span>{t("settingsInterfaceType")}</span>
+          {isPendingUpdateInterfaceType && <LoadingSpinner size="1x" />}
         </div>
         <RadioButtonGroup
-          value={interfaceType}
-          name="representation"
+          value={user.interface_type}
+          name="interface_type"
           options={interfaceTypeOptions}
-          onChange={setInterfaceType}
+          onChange={updateInterfaceType}
           className="mt-2.5"
         />
       </div>
       <div>
-        <div className="text-gray-500 dark:text-gray-500-dark">
-          {t("settingsThemeSelection")}
+        <div className="flex gap-2.5 text-gray-500 dark:text-gray-500-dark">
+          <span>{t("settingsThemeSelection")}</span>
+          {isPendingUpdateAppTheme && <LoadingSpinner size="1x" />}
         </div>
         <RadioButtonGroup
-          value={themeType}
-          name="theme"
+          value={user.app_theme}
+          name="app_theme"
           options={themeTypeOptions}
-          onChange={setThemeType}
+          onChange={updateAppTheme}
           className="mt-2.5"
         />
       </div>
-      <div>
+      {/* TODO: language switcher */}
+      <div hidden={true}>
         <div className="text-gray-500 dark:text-gray-500-dark">
           {t("settingsDefaultLanguage")}
         </div>
