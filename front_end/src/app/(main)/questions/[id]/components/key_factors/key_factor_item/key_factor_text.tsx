@@ -1,4 +1,4 @@
-import { faArrowTurnUp } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
@@ -46,11 +46,8 @@ const KeyFactorText: FC<Props> = ({
         className="target visible ml-1 inline-flex items-center overflow-visible rounded-full p-2 text-blue-600 hover:bg-blue-400 hover:font-bold hover:text-blue-700 can-hover:invisible dark:text-blue-600 dark:hover:bg-blue-400-dark"
       >
         <FontAwesomeIcon
-          icon={faArrowTurnUp}
-          className={cn(
-            "size-3 scale-110",
-            linkToComment && "rotate-180 scale-x-[-1]"
-          )}
+          icon={faArrowUpRightFromSquare}
+          className="size-3 scale-110"
         />
       </a>
     </div>
