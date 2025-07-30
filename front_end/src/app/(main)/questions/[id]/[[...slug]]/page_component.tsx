@@ -45,7 +45,6 @@ const IndividualQuestionPage: FC<{
 }> = async ({ params, searchParams }) => {
   const postData = await cachedGetPost(params.id);
   const defaultProject = postData.projects.default_project;
-
   if (postData.notebook) {
     return <NotebookRedirect id={postData.id} slug={params.slug} />;
   }

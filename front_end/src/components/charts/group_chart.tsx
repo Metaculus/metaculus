@@ -440,14 +440,18 @@ const GroupChart: FC<Props> = ({
             {/* Line cursor points */}
             {graphs.map(
               (
-                { color, active, line, highlighted, resolutionPoint },
+                { color, active, line, highlighted, resolutionPoint, isClosed },
                 index
               ) => {
                 const filteredLine = filteredLines[index];
                 const point = onCursorChange
                   ? filteredLine?.at(-1)
-                  : { x: Number(xDomain[1]), y: line?.at(-1)?.y ?? 0 };
-                console.log(point);
+                  : {
+                      x: isClosed
+                        ? line?.at(-1)?.x ?? Number(xDomain[1])
+                        : Number(xDomain[1]),
+                      y: line?.at(-1)?.y ?? 0,
+                    };
                 if (
                   !active ||
                   !filteredLine ||
@@ -578,6 +582,7 @@ export type ChoiceGraph = {
   color: ThemeColor;
   active: boolean;
   highlighted: boolean;
+  isClosed?: boolean;
 };
 type ChartData = BaseChartData & {
   graphs: ChoiceGraph[];
@@ -767,6 +772,7 @@ function buildChartData({
         scatter: scatter,
         active,
         highlighted,
+        isClosed: closeTime ? new Date(closeTime) < new Date() : false,
       };
       if (item.line.length > 0) {
         item.line.push({

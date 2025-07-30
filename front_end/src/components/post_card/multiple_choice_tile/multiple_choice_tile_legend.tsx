@@ -18,6 +18,7 @@ type Props = {
   onReaffirm?: () => void;
   canPredict?: boolean;
   ref?: RefObject<HTMLDivElement | null>;
+  withChoiceIcon?: boolean;
 };
 
 const MultipleChoiceTileLegend: FC<Props> = ({
@@ -29,6 +30,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   onReaffirm,
   canPredict = false,
   ref,
+  withChoiceIcon = true,
 }) => {
   const t = useTranslations();
 
@@ -58,6 +60,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
             scaling={scaling}
             labelClassName={optionLabelClassName}
             actual_resolve_time={actual_resolve_time}
+            withIcon={withChoiceIcon}
           />
         )
       )}

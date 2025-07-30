@@ -10,7 +10,7 @@ import { getDiscreteMockData } from "./mock_data";
 import { metaArgTypes } from "../config";
 
 const meta = {
-  title: "Discrete Question Timeline",
+  title: "Numeric Timeline/Discrete Question",
   component: NumericTimeline,
   argTypes: {
     ...metaArgTypes,
@@ -25,7 +25,6 @@ const numericOngoingArgs = getDiscreteMockData(false);
 const closedArgs = getDiscreteMockData(true);
 
 export const Ongoing: Story = {
-  name: "Ongoing",
   render: (args) => {
     const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
     return (
