@@ -67,7 +67,7 @@ const ChangePassword: FC = () => {
       <div className="mb-4 text-gray-500 dark:text-gray-500-dark">
         {t("changePasswordButton")}
       </div>
-      <div className="grid grid-cols-2">
+      <div className="grid md:grid-cols-2">
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(submit)}>
           <div>
             <Input

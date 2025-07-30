@@ -13,7 +13,7 @@ const PreferencesSection: FC<Props> = ({ children, title, className }) => {
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 rounded border border-blue-400 p-6 text-blue-800 dark:border-blue-400-dark dark:text-blue-800-dark",
+        "flex flex-col gap-4 rounded border border-blue-400 p-4 text-blue-800 dark:border-blue-400-dark dark:text-blue-800-dark md:p-6",
         className
       )}
     >

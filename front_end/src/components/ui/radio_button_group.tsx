@@ -27,12 +27,12 @@ const RadioButtonGroup: FC<Props> = ({
   className,
 }) => {
   return (
-    <div className={cn("flex gap-2.5", className)}>
+    <div className={cn("flex flex-col gap-2.5 md:flex-row", className)}>
       {options.map((option) => (
         <div
           key={option.value}
           className={cn(
-            "w-full cursor-pointer rounded border border-blue-400 p-5 transition-colors hover:bg-blue-200 dark:border-blue-400-dark dark:hover:bg-blue-200-dark",
+            "w-full cursor-pointer rounded border border-blue-400 px-4 py-3 transition-colors hover:bg-blue-200 dark:border-blue-400-dark dark:hover:bg-blue-200-dark md:px-5 md:py-5",
             {
               "bg-blue-200 dark:bg-blue-200-dark": value === option.value,
               "cursor-not-allowed opacity-50": disabled,

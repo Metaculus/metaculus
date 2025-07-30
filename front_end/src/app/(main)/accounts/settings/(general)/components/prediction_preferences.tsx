@@ -63,7 +63,7 @@ const PredictionPreferences: FC<Props> = ({ user }) => {
           onChange={(checked) => {
             void updateHideCP(!checked);
           }}
-          className="p-1"
+          className="flex items-center p-1"
           inputClassName="text-gray-900 dark:text-gray-900-dark"
           readOnly={isPendingUpdateCP}
           label={t("showCommunityPredictionByDefault")}
@@ -75,7 +75,7 @@ const PredictionPreferences: FC<Props> = ({ user }) => {
         <div className="flex flex-col gap-2">
           <div className="flex items-center p-1">
             <Checkbox
-              className="text-gray-900 dark:text-gray-900-dark"
+              className="flex items-center"
               checked={isExpirationEnabled}
               onChange={(checked) => {
                 setIsExpirationEnabled(checked);
@@ -87,6 +87,7 @@ const PredictionPreferences: FC<Props> = ({ user }) => {
                   debouncedUpdateExpirationPercent(null);
                 }
               }}
+              inputClassName="text-gray-900 dark:text-gray-900-dark"
               readOnly={isPendingUpdateExpirationPercent}
               label={t("defaultWithdrawalSettingText")}
             />
