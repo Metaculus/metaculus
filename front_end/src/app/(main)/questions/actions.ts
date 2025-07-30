@@ -316,3 +316,13 @@ export async function getPostZipData(params: DataParams) {
 export async function emailData(params: DataParams) {
   return await ServerPostsApi.emailData(params);
 }
+
+export async function setExcludedFromWeekTopComments(
+  commentId: number,
+  excluded: boolean
+) {
+  return await ServerCommentsApi.setCommentExcludedFromWeekTop(
+    commentId,
+    excluded
+  );
+}
