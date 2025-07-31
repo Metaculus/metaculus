@@ -1,8 +1,10 @@
 import { useTranslations } from "next-intl";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
+import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/group_forecast_card";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import {
@@ -22,7 +24,11 @@ type Props = {
 const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
   const t = useTranslations();
   const reverseOrder =
-    isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData);
+    (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) &&
+    !(
+      postData.group_of_questions &&
+      checkGroupOfQuestionsPostType(postData, QuestionType.Date)
+    );
 
   return (
     <div className="flex flex-col">

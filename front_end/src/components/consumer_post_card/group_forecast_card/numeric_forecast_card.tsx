@@ -14,9 +14,10 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 
 type Props = {
   post: PostWithForecasts;
+  forceColorful?: boolean;
 };
 
-const NumericForecastCard: FC<Props> = ({ post }) => {
+const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
   const t = useTranslations();
@@ -117,6 +118,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               progress={relativeWidth}
               color={color}
               unit={unit}
+              forceColorful={forceColorful}
             />
           );
         }
