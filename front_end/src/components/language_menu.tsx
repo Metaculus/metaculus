@@ -14,36 +14,40 @@ type Props = {
   className?: string;
 };
 
+export const APP_LANGUAGES = [
+  {
+    name: "English",
+    locale: "en",
+  },
+  {
+    name: "Čeština",
+    locale: "cs",
+  },
+  {
+    name: "Español",
+    locale: "es",
+  },
+  {
+    name: "Portuguese",
+    locale: "pt",
+  },
+  {
+    name: "中文",
+    locale: "zh",
+  },
+  {
+    name: "繁體中文",
+    locale: "zh-TW",
+  },
+];
+
 const LanguageMenu: FC<Props> = ({ className }) => {
   const { params } = useSearchParams();
   const pathname = usePathname();
   const locale = useLocale();
 
   const languageMenuItems = [
-    {
-      name: "English",
-      locale: "en",
-    },
-    {
-      name: "Čeština",
-      locale: "cs",
-    },
-    {
-      name: "Español",
-      locale: "es",
-    },
-    {
-      name: "Portuguese",
-      locale: "pt",
-    },
-    {
-      name: "中文",
-      locale: "zh",
-    },
-    {
-      name: "繁體中文",
-      locale: "zh-TW",
-    },
+    ...APP_LANGUAGES,
     {
       name: "Untranslated",
       locale: "original", // Check the translations documentation why this is the case

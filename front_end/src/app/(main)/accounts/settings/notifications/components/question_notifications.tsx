@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 
+import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
@@ -83,40 +84,29 @@ const QuestionNotifications: FC<Props> = ({
   }, [activeModal]);
 
   return (
-    <section className="text-sm">
-      <hr />
-      <h2 className="mb-5 mt-3 px-1">{t("settingsQuestionNotifications")}</h2>
+    <PreferencesSection title={t("settingsQuestionNotifications")}>
       <div className="p-1">
-        <table className="hidden w-full table-auto border-separate rounded-lg lg:table">
+        <table className="hidden w-full table-auto border-collapse rounded-lg lg:table">
           <thead className="text-left text-blue-700 dark:text-blue-700-dark">
             <tr>
-              <th className="rounded-tl border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
+              <th className="border border-b-0 border-blue-400 bg-blue-200 p-2 font-normal dark:border-blue-400-dark dark:bg-blue-200-dark">
                 {t("question")}
               </th>
-              <th className="border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
+              <th className="border border-b-0 border-blue-400 bg-blue-200 p-2 font-normal dark:border-blue-400-dark dark:bg-blue-200-dark">
                 {t("remindWhen")}
               </th>
-              <th className="border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
+              <th className="border border-b-0 border-blue-400 bg-blue-200 p-2 font-normal dark:border-blue-400-dark dark:bg-blue-200-dark">
                 {t("created")}
               </th>
-              <th className="rounded-tr border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark"></th>
+              <th className="border border-b-0 border-blue-400 bg-blue-200 p-2 font-normal dark:border-blue-400-dark dark:bg-blue-200-dark"></th>
             </tr>
           </thead>
           <tbody className="text-gray-800 dark:text-gray-800-dark">
-            {posts.map((post, index) => (
-              <tr
-                key={`sub-${post.id}`}
-                className={cn({
-                  "rounded-b": index === posts.length - 1,
-                })}
-              >
+            {posts.map((post) => (
+              <tr key={`sub-${post.id}`}>
                 <td
                   className={cn(
-                    "max-w-[500px] border border-blue-200 border-l-gray-300 p-2 dark:border-blue-200-dark dark:border-l-gray-300-dark",
-                    {
-                      "rounded-bl border-b-gray-300 dark:border-b-gray-300-dark":
-                        index === posts.length - 1,
-                    }
+                    "max-w-[500px] border border-blue-400 p-2 dark:border-blue-400-dark"
                   )}
                 >
                   <Button
@@ -129,33 +119,21 @@ const QuestionNotifications: FC<Props> = ({
                 </td>
                 <td
                   className={cn(
-                    "border border-blue-200 p-2 dark:border-blue-200-dark",
-                    {
-                      "border-b-gray-300 dark:border-b-gray-300-dark":
-                        index === posts.length - 1,
-                    }
+                    "border border-blue-400 p-2 dark:border-blue-400-dark"
                   )}
                 >
                   {getSubscriptionsLabel(t, locale, post)}
                 </td>
                 <td
                   className={cn(
-                    "border border-blue-200 p-2 dark:border-blue-200-dark",
-                    {
-                      "border-b-gray-300 dark:border-b-gray-300-dark":
-                        index === posts.length - 1,
-                    }
+                    "border border-blue-400 p-2 dark:border-blue-400-dark"
                   )}
                 >
                   {getSubscriptionTimestampLabel(post, locale)}
                 </td>
                 <td
                   className={cn(
-                    "border border-blue-200 border-r-gray-300 p-2 dark:border-blue-200-dark dark:border-r-gray-300-dark",
-                    {
-                      "rounded-br border-b-gray-300 dark:border-b-gray-300-dark":
-                        index === posts.length - 1,
-                    }
+                    "border border-blue-400 p-2 dark:border-blue-400-dark"
                   )}
                 >
                   <button
@@ -251,7 +229,7 @@ const QuestionNotifications: FC<Props> = ({
           revalidate={revalidateSubscriptions}
         />
       )}
-    </section>
+    </PreferencesSection>
   );
 };
 

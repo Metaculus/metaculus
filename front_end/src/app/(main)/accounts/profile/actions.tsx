@@ -97,6 +97,8 @@ export async function updateProfileAction(
       | "hide_community_prediction"
       | "is_onboarding_complete"
       | "prediction_expiration_percent"
+      | "app_theme"
+      | "interface_type"
     >
   >,
   revalidate = true

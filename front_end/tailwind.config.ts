@@ -12,7 +12,7 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    screens: Object.assign({ xs: "480px" }, defaultTheme.screens),
+    screens: Object.assign({ xs: "480px", xxs: "400px" }, defaultTheme.screens),
     extend: {
       colors: METAC_COLORS,
       boxShadow: {

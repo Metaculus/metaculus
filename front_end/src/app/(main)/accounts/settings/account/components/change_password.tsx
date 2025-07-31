@@ -62,41 +62,49 @@ const ChangePassword: FC = () => {
   );
   const [submit, isPending] = useServerAction(onSubmit);
   return (
-    <section className="text-sm">
-      <hr />
-      <h2 className="mt-3 px-1">{t("changePasswordButton")}</h2>
-      <div className="grid grid-cols-2 gap-4">
-        <form onSubmit={handleSubmit(submit)}>
-          <Input
-            className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            placeholder={t("currentPasswordPlaceholder")}
-            type="password"
-            errors={errors.password}
-            {...register("password")}
-          />
+    <section>
+      <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
+      <div className="mb-4 text-gray-500 dark:text-gray-500-dark">
+        {t("changePasswordButton")}
+      </div>
+      <div className="grid md:grid-cols-2">
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit(submit)}>
+          <div>
+            <Input
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              placeholder={t("currentPasswordPlaceholder")}
+              type="password"
+              errors={errors.password}
+              {...register("password")}
+            />
+          </div>
 
-          <Input
-            className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            placeholder={t("newPasswordPlaceholder")}
-            type="password"
-            errors={errors.new_password}
-            {...register("new_password")}
-          />
+          <div>
+            <Input
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              placeholder={t("newPasswordPlaceholder")}
+              type="password"
+              errors={errors.new_password}
+              {...register("new_password")}
+            />
+          </div>
 
-          <Input
-            className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            placeholder={t("verifyPasswordPlaceholder")}
-            type="password"
-            errors={errors.password_again}
-            {...register("password_again")}
-          />
+          <div>
+            <Input
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              placeholder={t("verifyPasswordPlaceholder")}
+              type="password"
+              errors={errors.password_again}
+              {...register("password_again")}
+            />
+          </div>
           <FormErrorMessage errors={submitErrors} />
 
-          <div className="mt-4 flex items-center">
+          <div className="flex items-center">
             <Button variant="secondary" type="submit" disabled={isPending}>
               {t("updatePasswordButton")}
             </Button>
-            {isPending && <LoadingSpinner className="ml-2" />}
+            {isPending && <LoadingSpinner className="ml-2" size="1x" />}
           </div>
         </form>
       </div>

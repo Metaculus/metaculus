@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
 
-import { emailMeMyData } from "../actions";
+import { emailMeMyData } from "../../actions";
 
 const EmailMeMyData: FC = () => {
   const t = useTranslations();
@@ -29,9 +29,11 @@ const EmailMeMyData: FC = () => {
   };
 
   return (
-    <section className="text-sm">
-      <hr />
-      <h2 className="mb-5 mt-3 px-1"> {t("emailMeMyData")}</h2>
+    <section>
+      <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
+      <div className="mb-4 text-gray-500 dark:text-gray-500-dark">
+        {t("emailMeMyData")}
+      </div>
       <div className="text-sm">
         <p>{t("emailMeMyDataStatement")}</p>
         <div className="mt-4 flex items-center">
