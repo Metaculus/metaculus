@@ -32,10 +32,12 @@ const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
               text={"$" + Number(tournament.prize_pool).toLocaleString()}
             />
           )}
-          <TournamentStat
-            title={t("StartDate")}
-            text={formatDate(locale, new Date(tournament.start_date))}
-          />
+          {!isNil(tournament.start_date) && (
+            <TournamentStat
+              title={t("StartDate")}
+              text={formatDate(locale, new Date(tournament.start_date))}
+            />
+          )}
           {!isNil(tournament.close_date) && (
             <TournamentStat
               title={t("EndDate")}
