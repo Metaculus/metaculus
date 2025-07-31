@@ -68,7 +68,8 @@ const QuestionResolutionChip: FC<Props> = ({
 
 export const QuestionResolutionChipFacade: FC<{
   question: QuestionWithNumericForecasts;
-}> = ({ question }) => {
+  size?: "md" | "lg";
+}> = ({ question, size = "md" }) => {
   const locale = useLocale();
   const formatedResolution = formatResolution({
     resolution: question.resolution,
@@ -86,6 +87,7 @@ export const QuestionResolutionChipFacade: FC<{
       formatedResolution={formatedResolution}
       successfullyResolved={successfullyResolved}
       unit={question.unit}
+      size={size}
     />
   );
 };

@@ -1,13 +1,13 @@
+import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { capitalize } from "lodash";
 import { useTranslations } from "next-intl";
 
+import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
+import { QuestionResolutionChipFacade } from "@/components/consumer_post_card/question_resolution_chip";
 import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { QuestionResolutionChipFacade } from "@/components/consumer_post_card/question_resolution_chip";
-import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
-import { capitalize } from "lodash";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -20,7 +20,7 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
   canPredict,
 }) => {
   return (
-    <div className="mx-auto space-y-7 px-10 py-5">
+    <div className="mx-auto mb-7 space-y-7 px-10 pt-5">
       <PredictionBinaryInfo
         showMyPrediction={true}
         question={question}
@@ -30,8 +30,11 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
         renderResolutionStatus={(q) => (
           <div className="flex items-center justify-center gap-6">
             <BinaryCPBar question={question} size={"lg"} />
-            <FontAwesomeIcon className="text-purple-700" icon={faArrowRight} />
-            <QuestionResolutionChipFacade question={q} />
+            <FontAwesomeIcon
+              className="text-purple-700"
+              icon={faArrowRightLong}
+            />
+            <QuestionResolutionChipFacade question={q} size="lg" />
           </div>
         )}
       />

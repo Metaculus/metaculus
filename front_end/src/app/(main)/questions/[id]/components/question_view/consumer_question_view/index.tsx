@@ -4,6 +4,8 @@ import { PostWithForecasts } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
 
 import ConsumerQuestionPrediction from "./prediction";
+import QuestionActionButton from "./question_action_buttons";
+import QuestionTimeline from "./timeline";
 import QuestionTitle from "../shared/question_title";
 
 type Props = {
@@ -32,6 +34,8 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
       <div className="mt-8">
         <ConsumerQuestionPrediction postData={postData} />
+        <QuestionActionButton postData={postData} />
+        <QuestionTimeline postData={postData} />
       </div>
     </div>
   );
