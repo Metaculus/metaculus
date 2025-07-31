@@ -33,13 +33,13 @@ const StyledSelect: FC<{
   <Select
     value={value}
     onChange={(event) => onChange(event.target.value)}
-    className="select-arrow h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
+    className="rounded-md border border-gray-300 bg-gray-50 py-1.5 pl-2.5 pr-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400"
   >
     {options.map((option) => (
       <option
         key={option}
         value={option}
-        className={"bg-gray-0 dark:bg-gray-0-dark"}
+        className="bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
       >
         {t(option)}
       </option>
@@ -164,7 +164,9 @@ export const CreateCoherenceLink: FC<Props> = ({
                       openPickerWithQuestion();
                     }}
                   >
-                    <span className="max-w-[220px] truncate text-sm font-medium text-gray-900 dark:text-gray-900-dark">
+                    <span
+                      className={`text-sm font-medium leading-tight text-gray-900 dark:text-gray-900-dark ${!isFirstQuestion ? "max-w-[220px] truncate py-0" : "py-1.5"}`}
+                    >
                       {otherQuestion.title}
                     </span>
                     <button
