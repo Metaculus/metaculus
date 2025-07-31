@@ -1438,6 +1438,6 @@
   "questionUpcomingMessage": "This question is not yet open for predicting.",
   "questionOpenMessage": "The community sees this as a toss-up.",
   "questionClosedMessage": "This question is closed for predictions.",
-  "questionResolvedMessage": "The community gave this a {probability}% chance, and it resolved {resolution}.",
+  "questionResolvedMessage": "The community gave this a {probability}% chance, and it resolved <b>{resolution}</b>.",
   "unknown": "Unknown"
 }

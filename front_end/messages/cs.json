@@ -1443,7 +1443,7 @@
   "questionUpcomingMessage": "Tato otázka ještě není otevřena pro předpovědi.",
   "questionOpenMessage": "Pro komunitu je to nerozhodně.",
   "questionClosedMessage": "Tato otázka je uzavřena pro předpovědi.",
-  "questionResolvedMessage": "Komunita tomu dala {probability}% šanci a bylo to vyřešeno jako {resolution}.",
+  "questionResolvedMessage": "Komunita tomu dala {probability}% šanci a bylo to vyřešeno jako <b>{resolution}</b>.",
   "unknown": "Neznámé",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
