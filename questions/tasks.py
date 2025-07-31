@@ -10,7 +10,7 @@ from notifications.services import (
     NotificationPredictedQuestionResolved,
     NotificationPostParams,
     NotificationQuestionParams,
-    send_forecast_autowidrawal_notification,
+    send_forecast_auto_withdrawal_notification,
 )
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
@@ -20,7 +20,7 @@ from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
-from utils.frontend import build_frontend_account_settings_url, build_post_url
+from utils.frontend import build_post_url
 
 
 @dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
@@ -205,10 +205,8 @@ def check_and_schedule_forecast_widrawal_due_notifications():
 
     # Send batched notifications
     for _, notification_data in user_notifications.items():
-        email_sent = send_forecast_autowidrawal_notification(
-            user=notification_data["user"],
-            posts_data=notification_data["posts"],
-            account_settings_url=build_frontend_account_settings_url(),
+        email_sent = send_forecast_auto_withdrawal_notification(
+            user=notification_data["user"], posts_data=notification_data["posts"]
         )
 
         if email_sent:
