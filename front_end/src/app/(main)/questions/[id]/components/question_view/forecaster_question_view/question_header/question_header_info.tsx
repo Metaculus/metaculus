@@ -12,7 +12,7 @@ import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
 
-import ForecastersCounter from "../../components/forecaster_counter";
+import ForecastersCounter from "../../../../../components/forecaster_counter";
 
 type Props = {
   post: PostWithForecasts;
