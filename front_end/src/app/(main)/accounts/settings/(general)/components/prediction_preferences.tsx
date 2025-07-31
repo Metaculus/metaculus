@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useServerAction } from "@/hooks/use_server_action";
 import { CurrentUser } from "@/types/users";
-import cn from "@/utils/core/cn";
 
 export type Props = {
   user: CurrentUser;

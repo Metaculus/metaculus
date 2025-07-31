@@ -62,7 +62,7 @@ export type CurrentUser = User & {
   registered_campaigns: { key: string; details: object }[];
   should_suggest_keyfactors: boolean;
   prediction_expiration_percent: number | null;
-  app_theme: AppTheme;
+  app_theme?: AppTheme | null;
   interface_type: InterfaceType;
 };
 

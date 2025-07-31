@@ -1,10 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import { FC, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
+import ThemePreferences from "@/app/(main)/accounts/settings/(general)/components/theme_preferences";
 import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
 import { APP_LANGUAGES } from "@/components/language_menu";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -13,7 +13,6 @@ import RadioButtonGroup, {
 } from "@/components/ui/radio_button_group";
 import Select from "@/components/ui/select";
 import { useServerAction } from "@/hooks/use_server_action";
-import { AppTheme } from "@/types/theme";
 import { CurrentUser, InterfaceType } from "@/types/users";
 
 type Props = {
@@ -22,7 +21,6 @@ type Props = {
 
 const DisplayPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
-  const { theme, setTheme } = useTheme();
   const interfaceTypeOptions: RadioOption<InterfaceType>[] = [
     {
       value: InterfaceType.ConsumerView,
@@ -45,21 +43,6 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
     }
   );
 
-  const themeTypeOptions: RadioOption<AppTheme>[] = [
-    {
-      value: "system",
-      label: t("settingsThemeSystemDefault"),
-    },
-    {
-      value: "light",
-      label: t("settingsThemeLightMode"),
-    },
-    {
-      value: "dark",
-      label: t("settingsThemeDarkMode"),
-    },
-  ];
-
   const [locale, setLocale] = useState<string>("en");
   const localeOptions = APP_LANGUAGES.map((obj) => ({
     value: obj.locale,
@@ -81,16 +64,7 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
           className="mt-2.5"
         />
       </div>
-      {/* TODO: implement backend save strategy */}
-      <div hidden={true}>
-        <RadioButtonGroup
-          value={theme ?? "system"}
-          name="app_theme"
-          options={themeTypeOptions}
-          onChange={setTheme}
-          className="mt-2.5"
-        />
-      </div>
+      <ThemePreferences />
       {/* TODO: language switcher */}
       <div hidden={true}>
         <div className="text-gray-500 dark:text-gray-500-dark">
