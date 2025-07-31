@@ -56,7 +56,7 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
   return null;
 };
 
-function checkGroupOfQuestionsPostType<T extends QuestionType>(
+export function checkGroupOfQuestionsPostType<T extends QuestionType>(
   post: PostWithForecasts,
   type: T
 ): post is PostWithForecasts & {
