@@ -52,6 +52,7 @@
                 </mj-text>
 
                 <mj-text font-size="12px" color="#666666">
+                    {% blocktrans %}
                     You can manage your notification settings on your Metaculus
                     {% endblocktrans %}
                     <a href="{% tag_notification_settings_url %}">{% trans "settings page" %}</a>.
