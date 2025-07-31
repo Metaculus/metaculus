@@ -104,7 +104,7 @@ const ChangePassword: FC = () => {
             <Button variant="secondary" type="submit" disabled={isPending}>
               {t("updatePasswordButton")}
             </Button>
-            {isPending && <LoadingSpinner className="ml-2" />}
+            {isPending && <LoadingSpinner className="ml-2" size="1x" />}
           </div>
         </form>
       </div>
