@@ -1440,7 +1440,7 @@
   "questionUpcomingMessage": "這個問題尚未開放預測。",
   "questionOpenMessage": "社群認為這是個不確定的結果。",
   "questionClosedMessage": "這個問題已關閉預測。",
-  "questionResolvedMessage": "社群給予此事 {probability}% 的機會，結果為 {resolution}。",
+  "questionResolvedMessage": "社群給予此事 {probability}% 的機會，結果為 <b>{resolution}</b>。",
   "unknown": "未知",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

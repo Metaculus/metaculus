@@ -1443,7 +1443,7 @@
   "questionUpcomingMessage": "Esta pregunta aún no está abierta para predecir.",
   "questionOpenMessage": "La comunidad ve esto como una decisión incierta.",
   "questionClosedMessage": "Esta pregunta está cerrada para predicciones.",
-  "questionResolvedMessage": "La comunidad le dio un {probability}% de probabilidad, y se resolvió {resolution}.",
+  "questionResolvedMessage": "La comunidad le dio un {probability}% de probabilidad, y se resolvió <b>{resolution}</b>.",
   "unknown": "Desconocido",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

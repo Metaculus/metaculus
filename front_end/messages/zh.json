@@ -1445,7 +1445,7 @@
   "questionUpcomingMessage": "此问题尚未开放预测。",
   "questionOpenMessage": "社区将此视为未定局。",
   "questionClosedMessage": "此问题已关闭预测。",
-  "questionResolvedMessage": "社区给出了{probability}%的概率，结果为{resolution}。",
+  "questionResolvedMessage": "社区给出了{probability}%的概率，结果为 <b>{resolution}</b>。",
   "unknown": "未知",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
