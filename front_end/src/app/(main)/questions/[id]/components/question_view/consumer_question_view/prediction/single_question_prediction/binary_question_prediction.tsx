@@ -19,6 +19,28 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
   question,
   canPredict,
 }) => {
+  const renderResolutionStatus = (q: QuestionWithNumericForecasts) => (
+    <div className="flex items-center justify-center gap-6">
+      <BinaryCPBar question={question} size={"lg"} className="hidden sm:flex" />
+      <BinaryCPBar
+        question={question}
+        size={"md"}
+        className="flex min-w-0 sm:hidden"
+      />
+      <FontAwesomeIcon className="text-purple-700" icon={faArrowRightLong} />
+      <QuestionResolutionChipFacade
+        question={q}
+        size="lg"
+        className="hidden sm:flex"
+      />
+      <QuestionResolutionChipFacade
+        question={q}
+        size="md"
+        className="flex sm:hidden"
+      />
+    </div>
+  );
+
   return (
     <div className="mx-auto mb-7 space-y-7 px-10 pt-5">
       <PredictionBinaryInfo
@@ -27,16 +49,7 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
         canPredict={canPredict}
         size="lg"
         cpMovementVariant="chip"
-        renderResolutionStatus={(q) => (
-          <div className="flex items-center justify-center gap-6">
-            <BinaryCPBar question={question} size={"lg"} />
-            <FontAwesomeIcon
-              className="text-purple-700"
-              icon={faArrowRightLong}
-            />
-            <QuestionResolutionChipFacade question={q} size="lg" />
-          </div>
-        )}
+        renderResolutionStatus={renderResolutionStatus}
       />
 
       <QuestionInfo question={question} />

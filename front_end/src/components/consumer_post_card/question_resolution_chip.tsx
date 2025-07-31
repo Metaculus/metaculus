@@ -12,18 +12,20 @@ type Props = {
   unit?: string;
   presentation?: "forecasterView" | "consumerView";
   size?: "md" | "lg";
+  className?: string;
 };
 
 const QuestionResolutionChip: FC<Props> = ({
   formatedResolution,
   successfullyResolved,
   unit,
+  className,
   presentation = "forecasterView",
   size = "md",
 }) => {
   const t = useTranslations();
   return (
-    <div className="flex justify-center">
+    <div className={cn("flex justify-center", className)}>
       <div
         className={cn(
           "flex w-fit flex-col items-center rounded-[10px] border border-purple-500 px-4 py-2.5 dark:border-purple-500",
@@ -69,7 +71,8 @@ const QuestionResolutionChip: FC<Props> = ({
 export const QuestionResolutionChipFacade: FC<{
   question: QuestionWithNumericForecasts;
   size?: "md" | "lg";
-}> = ({ question, size = "md" }) => {
+  className?: string;
+}> = ({ question, className, size = "md" }) => {
   const locale = useLocale();
   const formatedResolution = formatResolution({
     resolution: question.resolution,
@@ -88,6 +91,7 @@ export const QuestionResolutionChipFacade: FC<{
       successfullyResolved={successfullyResolved}
       unit={question.unit}
       size={size}
+      className={className}
     />
   );
 };

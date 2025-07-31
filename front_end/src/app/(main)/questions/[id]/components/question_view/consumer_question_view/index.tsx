@@ -32,7 +32,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
       <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <ConsumerQuestionPrediction postData={postData} />
         <QuestionActionButton postData={postData} />
         <QuestionTimeline postData={postData} />
