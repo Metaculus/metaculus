@@ -7,8 +7,6 @@ import Header from "@/app/(main)/components/headers/header";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTimeline from "@/components/conditional_timeline";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
-import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import HideCPProvider from "@/contexts/cp_context";
@@ -23,17 +21,16 @@ import {
   getPostTitle,
   isConditionalPost,
   isGroupOfQuestionsPost,
-  isQuestionPost,
 } from "@/utils/questions/helpers";
 
-import { cachedGetPost } from "./utils/get_post";
 import HistogramDrawer from "../components/histogram_drawer";
 import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import QuestionHeader from "../components/question_header";
+import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+import { cachedGetPost } from "./utils/get_post";
 
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
@@ -61,6 +58,7 @@ const IndividualQuestionPage: FC<{
     extractPreselectedGroupQuestionId(searchParams);
 
   const questionTitle = getPostTitle(postData);
+
   return (
     <EmbedModalContextProvider>
       <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
@@ -98,17 +96,10 @@ const IndividualQuestionPage: FC<{
                           className="block sm:hidden"
                         />
                       )}
-                      <QuestionHeader post={postData} />
-                      {isQuestionPost(postData) && (
-                        <DetailedQuestionCard post={postData} />
-                      )}
-                      {isGroupOfQuestionsPost(postData) && (
-                        <DetailedGroupCard
-                          post={postData}
-                          preselectedQuestionId={preselectedGroupQuestionId}
-                        />
-                      )}
-                      <ForecastMaker post={postData} />
+                      <QuestionView
+                        postData={postData}
+                        preselectedGroupQuestionId={preselectedGroupQuestionId}
+                      />
                       <div>
                         <div className="flex flex-col gap-2.5">
                           <ResolutionCriteria post={postData} />
