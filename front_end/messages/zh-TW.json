@@ -1442,5 +1442,7 @@
   "questionClosedMessage": "這個問題已關閉預測。",
   "questionResolvedMessage": "社群給予此事 {probability}% 的機會，結果為 <b>{resolution}</b>。",
   "unknown": "未知",
+  "lowest": "最低",
+  "highest": "最高",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

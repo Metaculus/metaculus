@@ -1445,5 +1445,7 @@
   "questionClosedMessage": "Tato otázka je uzavřena pro předpovědi.",
   "questionResolvedMessage": "Komunita tomu dala {probability}% šanci a bylo to vyřešeno jako <b>{resolution}</b>.",
   "unknown": "Neznámé",
+  "lowest": "Nejnižší",
+  "highest": "Nejvyšší",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

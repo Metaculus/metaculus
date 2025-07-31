@@ -1439,5 +1439,7 @@
   "questionOpenMessage": "The community sees this as a toss-up.",
   "questionClosedMessage": "This question is closed for predictions.",
   "questionResolvedMessage": "The community gave this a {probability}% chance, and it resolved <b>{resolution}</b>.",
-  "unknown": "Unknown"
+  "unknown": "Unknown",
+  "lowest": "Lowest",
+  "highest": "Highest"
 }
