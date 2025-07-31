@@ -3,9 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
 import { useTranslations } from "next-intl";
 
+import { SharePostMenu } from "@/components/post_actions";
 import Button from "@/components/ui/button";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import {
+  getPostTitle,
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
@@ -18,11 +20,16 @@ const QuestionActionButton: React.FC<Props> = ({ postData }) => {
   const t = useTranslations();
   return (
     <div className="mx-auto flex items-center justify-center gap-2 pb-5">
-      <Button variant="tertiary">
-        <FontAwesomeIcon icon={faShare} />
-        {capitalize(t("share"))}
-      </Button>
-
+      <SharePostMenu
+        questionId={postData.id}
+        questionTitle={getPostTitle(postData)}
+        textAlign="left"
+      >
+        <Button variant="tertiary">
+          <FontAwesomeIcon icon={faShare} />
+          {capitalize(t("share"))}
+        </Button>
+      </SharePostMenu>
       {((isQuestionPost(postData) &&
         postData.question.status === QuestionStatus.OPEN) ||
         (isGroupOfQuestionsPost(postData) &&
