@@ -1,4 +1,4 @@
-import { faPercent, faShare } from "@fortawesome/free-solid-svg-icons";
+import { faShare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
 import { useTranslations } from "next-intl";
@@ -12,12 +12,23 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
+import QuestionPredictButton from "./question_predict_button";
+
 type Props = {
   postData: PostWithForecasts;
 };
 
 const QuestionActionButton: React.FC<Props> = ({ postData }) => {
   const t = useTranslations();
+
+  const isPredictable =
+    (isQuestionPost(postData) &&
+      postData.question.status === QuestionStatus.OPEN) ||
+    (isGroupOfQuestionsPost(postData) &&
+      postData.group_of_questions.questions.every(
+        (q) => q.status === QuestionStatus.OPEN
+      ));
+
   return (
     <div className="mx-auto flex items-center justify-center gap-2 pb-5">
       <SharePostMenu
@@ -30,17 +41,8 @@ const QuestionActionButton: React.FC<Props> = ({ postData }) => {
           {capitalize(t("share"))}
         </Button>
       </SharePostMenu>
-      {((isQuestionPost(postData) &&
-        postData.question.status === QuestionStatus.OPEN) ||
-        (isGroupOfQuestionsPost(postData) &&
-          postData.group_of_questions.questions.every(
-            (q) => q.status === QuestionStatus.OPEN
-          ))) && (
-        <Button variant="tertiary">
-          <FontAwesomeIcon icon={faPercent} />
-          {t("predict")}
-        </Button>
-      )}
+
+      {isPredictable && <QuestionPredictButton post={postData} />}
     </div>
   );
 };

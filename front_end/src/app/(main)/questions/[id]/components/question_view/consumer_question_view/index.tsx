@@ -3,8 +3,8 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import { PostWithForecasts } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
 
+import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
-import QuestionActionButton from "./question_action_buttons";
 import QuestionTimeline from "./timeline";
 import QuestionTitle from "../shared/question_title";
 
