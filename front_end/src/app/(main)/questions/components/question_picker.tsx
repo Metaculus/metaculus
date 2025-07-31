@@ -149,9 +149,9 @@ const QuestionPicker: FC<Props> = ({
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           isImmersive={true}
-          className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 md:m-auto md:h-auto md:max-w-3xl md:rounded md:p-5"
+          className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 md:m-auto md:max-h-[80vh] md:max-w-3xl md:rounded md:p-5"
         >
-          <div className="flex h-full flex-col bg-white dark:bg-gray-0-dark md:bg-transparent">
+          <div className="flex h-full flex-col bg-white dark:bg-gray-0-dark md:h-auto md:max-h-full md:bg-transparent">
             {/* Header for mobile */}
             <div className="flex items-center justify-between px-4 py-3 md:hidden">
               <h2 className="text-xl font-medium leading-7">
@@ -186,7 +186,7 @@ const QuestionPicker: FC<Props> = ({
               )}
 
               {/* Results area */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto md:min-h-0">
                 {isLoading ? (
                   <div className="flex justify-center py-8">
                     <LoadingIndicator />
