@@ -21,7 +21,7 @@ from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
 from utils.formatters import abbreviated_number, format_value_unit
-from utils.frontend import build_post_comment_url
+from utils.frontend import build_post_comment_url, build_frontend_account_settings_url
 
 logger = logging.getLogger(__name__)
 
@@ -741,19 +741,17 @@ def send_comment_report_notification_to_staff(
     )
 
 
-def send_forecast_autowidrawal_notification(
-    user: User,
-    posts_data: list[dict],
-    account_settings_url: str,
-):
+def send_forecast_auto_withdrawal_notification(user: User, posts_data: list[dict]):
     send_email_with_template(
         to=user.email,
-        subject=_(f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"),
+        subject=_(
+            f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"
+        ),
         template_name="emails/forecast_auto_withdraw.html",
         context={
             "recipient": user,
             "posts_data": posts_data,
-            "account_settings_url": account_settings_url,
+            "account_settings_url": build_frontend_account_settings_url(),
             "number_of_posts": len(posts_data),
         },
         use_async=False,
