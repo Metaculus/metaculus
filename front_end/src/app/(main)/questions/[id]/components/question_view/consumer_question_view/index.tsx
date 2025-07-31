@@ -3,7 +3,12 @@ import { useTranslations } from "next-intl";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/group_forecast_card";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
-import { PostWithForecasts, QuestionStatus } from "@/types/post";
+import {
+  GroupOfQuestionsGraphType,
+  PostStatus,
+  PostWithForecasts,
+  QuestionStatus,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
@@ -23,12 +28,25 @@ type Props = {
 
 const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
   const t = useTranslations();
+
+  const isFanGraph =
+    postData.group_of_questions?.graph_type ===
+    GroupOfQuestionsGraphType.FanGraph;
+
+  const isDateGroup =
+    postData.group_of_questions &&
+    checkGroupOfQuestionsPostType(postData, QuestionType.Date);
+
   const reverseOrder =
     (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) &&
-    !(
-      postData.group_of_questions &&
-      checkGroupOfQuestionsPostType(postData, QuestionType.Date)
-    );
+    !(isDateGroup || isFanGraph);
+
+  const showClosedMessageMultipleChoice =
+    isMultipleChoicePost(postData) &&
+    postData.question.status === QuestionStatus.CLOSED;
+
+  const showClosedMessageFanGraph =
+    isFanGraph && postData.status === PostStatus.CLOSED;
 
   return (
     <div className="flex flex-col">
@@ -38,9 +56,8 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           unreadCount={postData.unread_comment_count ?? 0}
           url={getPostLink(postData)}
           className="bg-gray-200 px-2 dark:bg-gray-200-dark"
-          compact={true}
+          compact
         />
-
         <ForecastersCounter
           forecasters={postData.nr_forecasters}
           compact={false}
@@ -50,18 +67,26 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
       <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
 
       <div className="mt-6 sm:mt-8">
-        {isMultipleChoicePost(postData) &&
-          postData.question.status === QuestionStatus.CLOSED && (
-            <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700">
-              {t("predictionClosedMessage")}
-            </p>
-          )}
+        {showClosedMessageMultipleChoice && (
+          <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700">
+            {t("predictionClosedMessage")}
+          </p>
+        )}
+
         <div
           className={cn("flex flex-col", reverseOrder && "flex-col-reverse")}
         >
           <ConsumerQuestionPrediction postData={postData} />
+
+          {showClosedMessageFanGraph && (
+            <p className="my-8 text-center text-sm leading-[20px] text-gray-700">
+              {t("predictionClosedMessage")}
+            </p>
+          )}
+
           <QuestionActionButton postData={postData} />
         </div>
+
         <QuestionTimeline postData={postData} />
       </div>
     </div>
