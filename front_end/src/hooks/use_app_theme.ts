@@ -26,13 +26,9 @@ const useAppTheme = () => {
         setIsSyncing(true);
         setUser({ ...user, app_theme: newTheme });
 
-        try {
-          await updateProfileAction({ app_theme: newTheme }, false);
-        } catch (error) {
-          logError(error);
-        } finally {
-          setIsSyncing(false);
-        }
+        updateProfileAction({ app_theme: newTheme }, false)
+          .catch(logError)
+          .finally(() => setIsSyncing(false));
       }
     },
     [setNextTheme, user, setUser]
