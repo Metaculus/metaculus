@@ -12,6 +12,7 @@ import { QuestionWithForecasts } from "@/types/question";
 import { isConditionalPost, isQuestionPost } from "@/utils/questions/helpers";
 
 import QuestionHeaderCPStatus from "./question_header_cp_status";
+import QuestionTitle from "../../shared/question_title";
 
 const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
@@ -36,9 +37,7 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
             <ConditionalTile post={post} withNavigation withCPRevealBtn />
           ) : (
             <div className="lg:order-0 order-1 flex items-center">
-              <h1 className="m-0 pr-4 text-xl leading-tight text-blue-800 dark:text-blue-800-dark lg:pr-0 lg:text-3xl">
-                {post.title}
-              </h1>
+              <QuestionTitle>{post.title}</QuestionTitle>
               {isQuestionPost(post) && (
                 <div className="lg:hidden">
                   <QuestionHeaderCPStatus

@@ -40,7 +40,7 @@ export const QuestionViewComponent: React.FC<Props> = ({
   variant = "forecaster",
 }) => {
   if (variant === "consumer") {
-    return <ConsumerQuestionView />;
+    return <ConsumerQuestionView postData={postData} />;
   }
   return (
     <ForecasterQuestionView

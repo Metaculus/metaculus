@@ -1,5 +1,35 @@
-const ConsumerQuestionView: React.FC = () => {
-  return <></>;
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
+import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
+import { PostWithForecasts } from "@/types/post";
+import { getPostLink } from "@/utils/navigation";
+
+import QuestionTitle from "../shared/question_title";
+
+type Props = {
+  postData: PostWithForecasts;
+};
+
+const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
+  return (
+    <div className="flex flex-col">
+      <div className="mb-6 flex items-center justify-center gap-[6px]">
+        <CommentStatus
+          totalCount={postData.comment_count ?? 0}
+          unreadCount={postData.unread_comment_count ?? 0}
+          url={getPostLink(postData)}
+          className="bg-gray-200 px-2 dark:bg-gray-200-dark"
+          compact={true}
+        />
+
+        <ForecastersCounter
+          forecasters={postData.nr_forecasters}
+          compact={false}
+        />
+      </div>
+
+      <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
+    </div>
+  );
 };
 
 export default ConsumerQuestionView;
