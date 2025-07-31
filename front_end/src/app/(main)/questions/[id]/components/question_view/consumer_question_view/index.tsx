@@ -5,7 +5,10 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
-import { isMultipleChoicePost } from "@/utils/questions/helpers";
+import {
+  isGroupOfQuestionsPost,
+  isMultipleChoicePost,
+} from "@/utils/questions/helpers";
 
 import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
@@ -18,7 +21,8 @@ type Props = {
 
 const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
   const t = useTranslations();
-  const reverseOrder = isMultipleChoicePost(postData);
+  const reverseOrder =
+    isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData);
 
   return (
     <div className="flex flex-col">

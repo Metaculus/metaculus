@@ -1,5 +1,6 @@
 import { PostWithForecasts } from "@/types/post";
 import {
+  isGroupOfQuestionsPost,
   isMultipleChoicePost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
@@ -22,7 +23,7 @@ const ConsumerQuestionPrediction: React.FC<Props> = ({ postData }) => {
     );
   }
 
-  if (isMultipleChoicePost(postData)) {
+  if (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) {
     return <GroupOfQuestionsPrediction postData={postData} />;
   }
 
