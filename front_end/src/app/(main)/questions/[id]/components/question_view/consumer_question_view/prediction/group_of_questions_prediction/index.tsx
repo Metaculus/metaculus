@@ -29,7 +29,13 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
         postData.group_of_questions?.questions,
         postData.group_of_questions
       );
-      content = <TimeSeriesChart questions={sortedQuestions} />;
+      content = (
+        <TimeSeriesChart
+          questions={sortedQuestions}
+          variant="colorful"
+          height={180}
+        />
+      );
     } else {
       content = <NumericForecastCard post={postData} />;
     }
