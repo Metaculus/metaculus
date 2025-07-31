@@ -1,51 +1,28 @@
-"use client";
-
-import { isNil } from "lodash";
-
-import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
-import { isConditionalPost, isNotebookPost } from "@/utils/questions/helpers";
 
 import ConsumerQuestionView from "./consumer_question_view";
 import ForecasterQuestionView from "./forecaster_question_view";
+import { QuestionVariantComposer } from "../question_variant_composer";
 
 type Props = {
   postData: PostWithForecasts;
-  preselectedGroupQuestionId: number | undefined;
-  variant?: "forecaster" | "consumer";
+  preselectedGroupQuestionId?: number;
 };
 
-const QuestionView: React.FC<Omit<Props, "variant">> = ({
+const QuestionView: React.FC<Props> = ({
   postData,
   preselectedGroupQuestionId,
 }) => {
-  const { user } = useAuth();
-  const variant =
-    isNil(user) && !isNotebookPost(postData) && !isConditionalPost(postData)
-      ? "consumer"
-      : "forecaster";
-
   return (
-    <QuestionViewComponent
+    <QuestionVariantComposer
       postData={postData}
-      preselectedGroupQuestionId={preselectedGroupQuestionId}
-      variant={variant}
-    />
-  );
-};
-
-export const QuestionViewComponent: React.FC<Props> = ({
-  postData,
-  preselectedGroupQuestionId,
-  variant = "forecaster",
-}) => {
-  if (variant === "consumer") {
-    return <ConsumerQuestionView postData={postData} />;
-  }
-  return (
-    <ForecasterQuestionView
-      postData={postData}
-      preselectedGroupQuestionId={preselectedGroupQuestionId}
+      consumer={<ConsumerQuestionView postData={postData} />}
+      forecaster={
+        <ForecasterQuestionView
+          postData={postData}
+          preselectedGroupQuestionId={preselectedGroupQuestionId}
+        />
+      }
     />
   );
 };
