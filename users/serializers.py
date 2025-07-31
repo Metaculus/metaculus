@@ -79,6 +79,8 @@ class UserPrivateSerializer(UserPublicSerializer):
             "registered_campaigns",
             "should_suggest_keyfactors",
             "prediction_expiration_percent",
+            "app_theme",
+            "interface_type",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -124,6 +126,8 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "hide_community_prediction",
             "is_onboarding_complete",
             "prediction_expiration_percent",
+            "app_theme",
+            "interface_type",
         )
 
 
