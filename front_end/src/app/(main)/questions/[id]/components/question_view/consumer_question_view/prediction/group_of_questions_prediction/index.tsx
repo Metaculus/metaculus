@@ -2,8 +2,10 @@ import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/g
 import DateForecastCard from "@/components/consumer_post_card/group_forecast_card/date_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
-import { PostWithForecasts } from "@/types/post";
+import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import { isMultipleChoicePost } from "@/utils/questions/helpers";
 
 type Props = {
@@ -19,7 +21,18 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
   ) {
     content = <PercentageForecastCard post={postData} forceColorful />;
   } else if (checkGroupOfQuestionsPostType(postData, QuestionType.Numeric)) {
-    content = <NumericForecastCard post={postData} />;
+    if (
+      postData.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.FanGraph
+    ) {
+      const sortedQuestions = sortGroupPredictionOptions(
+        postData.group_of_questions?.questions,
+        postData.group_of_questions
+      );
+      content = <TimeSeriesChart questions={sortedQuestions} />;
+    } else {
+      content = <NumericForecastCard post={postData} />;
+    }
   } else if (checkGroupOfQuestionsPostType(postData, QuestionType.Date)) {
     content = (
       <DateForecastCard
@@ -31,12 +44,12 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
 
   if (!content) return null;
 
-  const wrapperClass = checkGroupOfQuestionsPostType(
-    postData,
-    QuestionType.Date
-  )
-    ? "mb-7"
-    : "mt-7";
+  const wrapperClass =
+    checkGroupOfQuestionsPostType(postData, QuestionType.Date) ||
+    postData.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.FanGraph
+      ? "mb-7"
+      : "mt-7";
 
   return <div className={wrapperClass}>{content}</div>;
 };

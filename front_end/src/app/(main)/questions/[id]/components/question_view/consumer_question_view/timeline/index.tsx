@@ -2,7 +2,11 @@ import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/g
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import { PostWithForecasts, QuestionStatus } from "@/types/post";
+import {
+  GroupOfQuestionsGraphType,
+  PostWithForecasts,
+  QuestionStatus,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
   isGroupOfQuestionsPost,
@@ -32,6 +36,13 @@ const QuestionTimeline: React.FC<Props> = ({ postData }) => {
       postData,
       QuestionType.Date
     );
+
+    if (
+      postData.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.FanGraph
+    ) {
+      return null;
+    }
 
     return (
       <div className={wrapperClass}>

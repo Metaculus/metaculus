@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { SharePostMenu } from "@/components/post_actions";
 import Button from "@/components/ui/button";
-import { PostWithForecasts, QuestionStatus } from "@/types/post";
+import { PostStatus, PostWithForecasts, QuestionStatus } from "@/types/post";
 import {
   getPostTitle,
   isGroupOfQuestionsPost,
@@ -24,10 +24,7 @@ const QuestionActionButton: React.FC<Props> = ({ postData }) => {
   const isPredictable =
     (isQuestionPost(postData) &&
       postData.question.status === QuestionStatus.OPEN) ||
-    (isGroupOfQuestionsPost(postData) &&
-      postData.group_of_questions.questions.every(
-        (q) => q.status === QuestionStatus.OPEN
-      ));
+    (isGroupOfQuestionsPost(postData) && postData.status === PostStatus.OPEN);
 
   return (
     <div className="mx-auto flex items-center justify-center gap-2 pb-5">
