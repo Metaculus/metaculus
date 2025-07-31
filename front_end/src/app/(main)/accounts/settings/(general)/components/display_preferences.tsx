@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 import { FC, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
@@ -21,6 +22,7 @@ type Props = {
 
 const DisplayPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
+  const { theme, setTheme } = useTheme();
   const interfaceTypeOptions: RadioOption<InterfaceType>[] = [
     {
       value: InterfaceType.ConsumerView,
@@ -45,7 +47,7 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
 
   const themeTypeOptions: RadioOption<AppTheme>[] = [
     {
-      value: "auto",
+      value: "system",
       label: t("settingsThemeSystemDefault"),
     },
     {
@@ -57,15 +59,6 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
       label: t("settingsThemeDarkMode"),
     },
   ];
-  const [updateAppTheme, isPendingUpdateAppTheme] = useServerAction(
-    async (app_theme: AppTheme) => {
-      if (!isPendingUpdateAppTheme) {
-        await updateProfileAction({
-          app_theme,
-        });
-      }
-    }
-  );
 
   const [locale, setLocale] = useState<string>("en");
   const localeOptions = APP_LANGUAGES.map((obj) => ({
@@ -88,16 +81,13 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
           className="mt-2.5"
         />
       </div>
-      <div>
-        <div className="flex gap-2.5 text-gray-500 dark:text-gray-500-dark">
-          <span>{t("settingsThemeSelection")}</span>
-          {isPendingUpdateAppTheme && <LoadingSpinner size="1x" />}
-        </div>
+      {/* TODO: implement backend save strategy */}
+      <div hidden={true}>
         <RadioButtonGroup
-          value={user.app_theme}
+          value={theme ?? "system"}
           name="app_theme"
           options={themeTypeOptions}
-          onChange={updateAppTheme}
+          onChange={setTheme}
           className="mt-2.5"
         />
       </div>
