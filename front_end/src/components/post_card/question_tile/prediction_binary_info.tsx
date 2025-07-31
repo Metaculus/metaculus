@@ -15,6 +15,7 @@ type Props = {
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
   showMyPrediction?: boolean;
+  size?: "sm" | "lg";
 };
 
 const PredictionBinaryInfo: FC<Props> = ({
@@ -22,6 +23,7 @@ const PredictionBinaryInfo: FC<Props> = ({
   onReaffirm,
   canPredict,
   showMyPrediction,
+  size = "sm",
 }) => {
   const locale = useLocale();
 
@@ -49,7 +51,7 @@ const PredictionBinaryInfo: FC<Props> = ({
 
   return (
     <>
-      <BinaryCPBar question={question} size="sm" />
+      <BinaryCPBar question={question} size={size} />
       <QuestionCPMovement
         question={question}
         className="mx-auto max-w-[110px] text-center"

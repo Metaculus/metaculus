@@ -1435,5 +1435,12 @@
   "forecasterView": "預測者視圖",
   "forecasterViewDescription": "信息豐富的佈局，推薦給經驗豐富的用戶",
   "settingsDefaultLanguage": "預設語言",
-  "toggledTimelines": "切換時間線"
+  "toggledTimelines": "切換時間線",
+  "hiddenUntil": "隱藏至",
+  "questionUpcomingMessage": "這個問題尚未開放預測。",
+  "questionOpenMessage": "社群認為這是個不確定的結果。",
+  "questionClosedMessage": "這個問題已關閉預測。",
+  "questionResolvedMessage": "社群給予此事 {probability}% 的機會，結果為 {resolution}。",
+  "unknown": "未知",
+  "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

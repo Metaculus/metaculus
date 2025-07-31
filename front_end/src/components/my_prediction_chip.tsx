@@ -94,8 +94,6 @@ const MyPredictionChip: FC<Props> = ({
       </div>
     );
   }
-
-  return null;
 };
 
 export default MyPredictionChip;
