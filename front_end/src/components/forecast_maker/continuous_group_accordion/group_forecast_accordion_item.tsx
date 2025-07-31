@@ -196,6 +196,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           title={title}
+          className="pt-header"
         >
           {children}
         </MobileAccordionModal>
