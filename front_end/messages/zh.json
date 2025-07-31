@@ -1440,5 +1440,12 @@
   "forecasterView": "预测师视图",
   "forecasterViewDescription": "信息丰富的布局，推荐给有经验的用户",
   "settingsDefaultLanguage": "默认语言",
-  "toggledTimelines": "切换时间线"
+  "toggledTimelines": "切换时间线",
+  "hiddenUntil": "隐藏至",
+  "questionUpcomingMessage": "此问题尚未开放预测。",
+  "questionOpenMessage": "社区将此视为未定局。",
+  "questionClosedMessage": "此问题已关闭预测。",
+  "questionResolvedMessage": "社区给出了{probability}%的概率，结果为{resolution}。",
+  "unknown": "未知",
+  "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

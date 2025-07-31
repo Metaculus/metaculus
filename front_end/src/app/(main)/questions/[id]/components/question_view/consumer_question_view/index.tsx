@@ -30,11 +30,9 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
       <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
 
-      {/* {isQuestionPost(postData) && postData.question.type == "binary" && (
-        <PredictionBinaryInfo question={postData.question} />
-      )} */}
-
-      <ConsumerQuestionPrediction postData={postData} />
+      <div className="mt-8">
+        <ConsumerQuestionPrediction postData={postData} />
+      </div>
     </div>
   );
 };

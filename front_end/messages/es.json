@@ -1438,5 +1438,12 @@
   "forecasterView": "Vista de Pronosticador",
   "forecasterViewDescription": "Disposición rica en información, recomendada para usuarios experimentados",
   "settingsDefaultLanguage": "Idioma Predeterminado",
-  "toggledTimelines": "Líneas de Tiempo Alternas"
+  "toggledTimelines": "Líneas de Tiempo Alternas",
+  "hiddenUntil": "Oculto hasta",
+  "questionUpcomingMessage": "Esta pregunta aún no está abierta para predecir.",
+  "questionOpenMessage": "La comunidad ve esto como una decisión incierta.",
+  "questionClosedMessage": "Esta pregunta está cerrada para predicciones.",
+  "questionResolvedMessage": "La comunidad le dio un {probability}% de probabilidad, y se resolvió {resolution}.",
+  "unknown": "Desconocido",
+  "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
