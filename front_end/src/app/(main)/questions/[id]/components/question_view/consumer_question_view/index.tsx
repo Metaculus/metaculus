@@ -3,6 +3,7 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import { PostWithForecasts } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
 
+import ConsumerQuestionPrediction from "./prediction";
 import QuestionTitle from "../shared/question_title";
 
 type Props = {
@@ -28,6 +29,12 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
       </div>
 
       <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
+
+      {/* {isQuestionPost(postData) && postData.question.type == "binary" && (
+        <PredictionBinaryInfo question={postData.question} />
+      )} */}
+
+      <ConsumerQuestionPrediction postData={postData} />
     </div>
   );
 };
