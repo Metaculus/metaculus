@@ -62,7 +62,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 icon={faArrowRight}
                 className="text-4xl opacity-20 transition-all group-hover:opacity-80 md:text-6xl xl:text-8xl"
               />{" "}
-              {t("FABQ4Conclude")}
+              Fall 2025 tournament is underway!
               <Button
                 size="lg"
                 variant="primary"
