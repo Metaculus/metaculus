@@ -9,8 +9,8 @@ function Dates() {
   return (
     <Card
       className="rounded-md bg-gray-500/20 py-4 text-gray-800 hover:cursor-default dark:bg-gray-500-dark/20 dark:text-gray-800-dark"
-      heading1={t("FABEndDate")}
-      heading2={t("FABEndDateSep30")}
+      heading1={t("FABStartDate")}
+      heading2={t("FABStartDateApr21")}
     />
   );
 }
