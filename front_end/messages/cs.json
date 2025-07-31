@@ -1430,6 +1430,7 @@
   "questionLinksPrivate": "Odkazy na otázky (Soukromé)",
   "mostForecasters": "Většina předpovědníků",
   "noQuestionsLinkedP1": "Ještě jste nepřipojili žádné otázky",
-  "noQuestionsLinkedP2": "Existují na Metaculu jiné otázky, které mají vliv na tuto otázku? Připojte je sem, aby se zlepšilo kolektivní porozumění Metaculu, a získávejte připomenutí, která vám pomohou udržet vaše předpovědi konzistentní. Vaše odkazy jsou soukromé, ale přispějí k agregaci komunity.",
+  "noQuestionsLinkedP2": "Existují na Metaculu jiné otázky, které mají vliv na tuto otázku? Připojte je sem, aby se zlepšilo kolektivní porozumění Metaculu, a získávejte připomenutí, která vám pomohou udržet vaše předpovědi konzistentní.",
+  "noQuestionsLinkedP3": "Vaše odkazy jsou soukromé, ale přispějí k agregaci komunity.",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

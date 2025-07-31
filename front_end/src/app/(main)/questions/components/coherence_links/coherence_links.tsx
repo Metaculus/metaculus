@@ -87,21 +87,26 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               ></CreateCoherenceLink>
             ))}
 
-            <div className="flex flex-col items-center justify-between pb-8 pt-6">
+            <div className="flex flex-col items-center justify-between gap-3 px-0 md:px-20">
               {(!coherenceLinks || coherenceLinks.size === 0) &&
                 newLinks?.length === 0 && (
-                  <>
-                    <span>{t("noQuestionsLinkedP1")}</span>
-                    <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
+                  <div className="flex flex-col items-center justify-between gap-2 pt-3">
+                    <span className="text-balance text-center text-sm">
                       {t("noQuestionsLinkedP2")}
                     </span>
-                  </>
+                    <span className="text-balance text-center text-sm">
+                      {t("noQuestionsLinkedP3")}
+                    </span>
+                    <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
+                      {t("noQuestionsLinkedP1")}
+                    </span>
+                  </div>
                 )}
 
               <Button
                 onClick={addLink}
                 variant="tertiary"
-                className="mx-auto mt-4 self-start"
+                className="mx-auto self-start"
               >
                 <FontAwesomeIcon icon={faPlus} className="size-4" />
                 {t("linkQuestion")}
