@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 def decay(val: float, dt: datetime.datetime) -> float:
-    return val / 2 ** ((timezone.now() - dt).days / 7)
+    delta = (timezone.now() - dt).days
+
+    if delta <= 3.5:
+        return val
+
+    return val * ((delta / 3.5) ** -2)
 
 
 def compute_question_hotness(question: Question) -> float:
