@@ -1443,5 +1443,7 @@
   "questionClosedMessage": "Esta pergunta está fechada para previsões.",
   "questionResolvedMessage": "A comunidade deu a isso uma chance de {probability}% e foi resolvido como <b>{resolution}</b>.",
   "unknown": "Desconhecido",
+  "lowest": "Mais baixo",
+  "highest": "Mais alto",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

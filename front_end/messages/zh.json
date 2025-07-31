@@ -1447,5 +1447,7 @@
   "questionClosedMessage": "此问题已关闭预测。",
   "questionResolvedMessage": "社区给出了{probability}%的概率，结果为 <b>{resolution}</b>。",
   "unknown": "未知",
+  "lowest": "最低",
+  "highest": "最高",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

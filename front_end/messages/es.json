@@ -1445,5 +1445,7 @@
   "questionClosedMessage": "Esta pregunta está cerrada para predicciones.",
   "questionResolvedMessage": "La comunidad le dio un {probability}% de probabilidad, y se resolvió <b>{resolution}</b>.",
   "unknown": "Desconocido",
+  "lowest": "Más bajo",
+  "highest": "Más alto",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
