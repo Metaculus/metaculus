@@ -1,6 +1,6 @@
 "use client";
 
-import { faEye, faEyeSlash, faCopy } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -18,10 +18,8 @@ const ApiAccess: FC<Props> = ({ token }) => {
   const t = useTranslations();
   const [visible, setVisible] = useState(false);
 
-  // TODO: ensure all articles/pages which might have references to the API key page have updated urls
-
   return (
-    <section>
+    <section id="api-access">
       <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
       <div className="mb-4 text-gray-500 dark:text-gray-500-dark">
         {t("apiAccess")}

@@ -150,8 +150,7 @@ const PredictionPreferences: FC<Props> = ({ user }) => {
                 </RichText>
               </div>
               <div className="mb-1">
-                {/* TODO: add proper link */}
-                <Link href="/faq/">
+                <Link href="/faq/#auto-withdrawal">
                   {t("withdrawAfterPercentSettingDescriptionLink")}
                 </Link>
               </div>
