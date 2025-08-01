@@ -77,8 +77,17 @@ export function getForecastDateDisplayValue(
   const { scaling, actual_resolve_time, dateFormatString, adjustLabels } =
     params ?? {};
 
+  if (!value || isNaN(value)) {
+    return "...";
+  }
+
+  const date = fromUnixTime(value);
+  if (isNaN(date.getTime())) {
+    return "...";
+  }
+
   if (dateFormatString) {
-    return format(fromUnixTime(value), dateFormatString);
+    return format(date, dateFormatString);
   }
 
   const dateFormat = scaling
@@ -90,7 +99,7 @@ export function getForecastDateDisplayValue(
       })
     : "d MMM yyyy";
 
-  return format(fromUnixTime(value), dateFormat);
+  return format(date, dateFormat);
 }
 
 function formatPredictionDisplayValue(
