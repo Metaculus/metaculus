@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import ConsumerContinuousTile from "@/components/consumer_post_card/consumer_question_tile/consumer_continuous_tile";
-import { METAC_COLORS } from "@/constants/colors";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { formatNumberWithUnit } from "@/utils/formatters/number";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
@@ -53,22 +53,22 @@ const ContinuousQuestionRange: React.FC<{
   const highest = question.scaling?.range_max ?? 0;
   const unit = question.unit || "";
 
-  const chartColor =
+  const labelClassName = cn(
     question.status === QuestionStatus.CLOSED
-      ? METAC_COLORS.gray["500"]
-      : METAC_COLORS.olive["500"];
-
+      ? "text-gray-800 dark:text-gray-800-dark"
+      : "text-olive-800 dark:text-olive-800-dark"
+  );
   return (
     <div className="flex w-full flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
       <p className="m-0 flex justify-between">
         {t("lowest")}:{" "}
-        <span style={{ color: chartColor.dark }}>
+        <span className={labelClassName}>
           {formatNumberWithUnit(lowest, unit)}
         </span>
       </p>
       <p className="m-0 flex justify-between">
         {t("highest")}:{" "}
-        <span style={{ color: chartColor.dark }}>
+        <span className={labelClassName}>
           {formatNumberWithUnit(highest, unit)}
         </span>
       </p>
