@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from posts.models import Post
-from questions.constants import ResolutionType
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
     QUESTION_CONTINUOUS_TYPES,
@@ -755,7 +755,7 @@ def serialize_group(
 
 
 def validate_question_resolution(question: Question, resolution: str) -> str:
-    if resolution in ResolutionType:
+    if resolution in UnsuccessfulResolutionType:
         return resolution
 
     if question.type == Question.QuestionType.BINARY:

@@ -8,7 +8,7 @@ from django.utils import timezone
 from comments.models import Comment
 from misc.models import PostArticle
 from posts.models import Post, Vote, PostActivityBoost
-from questions.constants import QuestionStatus
+from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.models import Question
 from users.models import User
 from utils.models import ModelBatchUpdater
@@ -29,6 +29,9 @@ def compute_question_hotness(question: Question) -> float:
     """
     Compute the hotness of post subquestion.
     """
+
+    if question.resolution in UnsuccessfulResolutionType:
+        return 0
 
     now = timezone.now()
     hotness = 0
