@@ -2,8 +2,6 @@
 
 import { createContext, ReactNode, useContext, useRef, useState } from "react";
 
-import { METAC_COLORS } from "@/constants/colors";
-import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 
 type TabsContextValue = {
@@ -22,21 +20,9 @@ export const Tabs = ({
   className?: string;
 }) => {
   const [active, setActive] = useState(defaultValue);
-  const { theme, getThemeColor } = useAppTheme();
-  if (!theme) {
-    return null;
-  }
-
-  const bgColor = getThemeColor(METAC_COLORS.gray[0]);
-
   return (
     <TabsContext.Provider value={{ active, setActive }}>
-      <div
-        className={cn(className)}
-        style={{
-          backgroundColor: bgColor,
-        }}
-      >
+      <div className={cn("bg-gray-0 dark:bg-gray-0-dark", className)}>
         {children}
       </div>
     </TabsContext.Provider>
@@ -44,15 +30,8 @@ export const Tabs = ({
 };
 
 export const TabsList = ({ children }: { children: ReactNode }) => {
-  const { getThemeColor } = useAppTheme();
-  const backgroundColor = getThemeColor(METAC_COLORS.gray[0]);
   return (
-    <div
-      className="sticky top-12 z-10  flex gap-2 overflow-x-auto pb-1 pt-2"
-      style={{
-        backgroundColor,
-      }}
-    >
+    <div className="scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-7  py-3 dark:bg-blue-200-dark">
       {children}
     </div>
   );
@@ -66,15 +45,10 @@ export const TabsTab = ({
   children: ReactNode;
 }) => {
   const ctx = useContext(TabsContext);
-  const { getThemeColor } = useAppTheme();
 
   if (!ctx) throw new Error("Tabs.Tab must be inside <Tabs>");
 
   const isActive = ctx.active === value;
-  const activeBg = getThemeColor(METAC_COLORS.blue[800]);
-  const activeText = getThemeColor(METAC_COLORS.gray[0]);
-  const inactiveBg = getThemeColor(METAC_COLORS.gray[200]);
-  const inactiveText = getThemeColor(METAC_COLORS.gray[800]);
 
   const HEADER_OFFSET = 60;
   const handleClick = (value: string, target: HTMLElement) => {
@@ -89,11 +63,12 @@ export const TabsTab = ({
 
   return (
     <button
-      style={{
-        backgroundColor: isActive ? activeBg : inactiveBg,
-        color: isActive ? activeText : inactiveText,
-      }}
-      className="whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors"
+      className={cn(
+        "whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors",
+        isActive
+          ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
+          : "bg-gray-200 text-gray-800 dark:bg-gray-200-dark dark:text-gray-800-dark"
+      )}
       onClick={(e) => {
         ctx.setActive(value);
         (e.target as HTMLElement).scrollIntoView({
