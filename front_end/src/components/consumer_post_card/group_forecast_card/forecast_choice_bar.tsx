@@ -1,3 +1,5 @@
+"use client";
+
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";

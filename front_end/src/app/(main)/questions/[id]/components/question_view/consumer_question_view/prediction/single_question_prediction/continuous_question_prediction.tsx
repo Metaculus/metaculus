@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";

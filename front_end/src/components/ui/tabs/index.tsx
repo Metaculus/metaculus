@@ -48,7 +48,7 @@ export const TabsList = ({ children }: { children: ReactNode }) => {
   const backgroundColor = getThemeColor(METAC_COLORS.gray[0]);
   return (
     <div
-      className="sticky top-14 z-10 flex gap-2 overflow-x-auto"
+      className="sticky top-12 z-10  flex gap-2 overflow-x-auto pb-1 pt-2"
       style={{
         backgroundColor,
       }}

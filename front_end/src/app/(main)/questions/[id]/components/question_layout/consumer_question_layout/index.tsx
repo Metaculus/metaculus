@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/tabs/index";
 import { PostWithForecasts } from "@/types/post";
 
-import QuestionTimeline from "../../question_view/consumer_question_view/timeline";
+import QuestionTimeline, {
+  hasTimeline as hasTimelineFn,
+} from "../../question_view/consumer_question_view/timeline";
 import NewsMatch from "../../sidebar/news_match";
 import QuestionInfo from "../question_info";
 import QuestionSection from "../question_section";
@@ -25,6 +27,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
   postData,
 }) => {
   const t = useTranslations();
+  const hasTimeline = hasTimelineFn(postData);
 
   return (
     <div className="relative z-10 flex w-full flex-col gap-4">
@@ -34,7 +37,9 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
           <Tabs defaultValue="comments" className="-mb-5">
             <TabsList>
               <TabsTab value="comments">{t("comments")}</TabsTab>
-              <TabsTab value="timeline">{t("timeline")}</TabsTab>
+              {hasTimeline && (
+                <TabsTab value="timeline">{t("timeline")}</TabsTab>
+              )}
               <TabsTab value="news">{t("inNews")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
             </TabsList>
@@ -42,13 +47,15 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
             <TabsSection value="comments">
               <CommentFeed compactVersion postData={postData} />
             </TabsSection>
-            <TabsSection value="timeline">
-              <QuestionTimeline
-                className="block"
-                postData={postData}
-                hideTitle
-              />
-            </TabsSection>
+            {hasTimeline && (
+              <TabsSection value="timeline">
+                <QuestionTimeline
+                  className="block"
+                  postData={postData}
+                  hideTitle
+                />
+              </TabsSection>
+            )}
             <TabsSection value="news">
               <Suspense fallback={null}>
                 <NewsMatch questionId={postData.id} withoutToggle />
