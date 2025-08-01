@@ -62,7 +62,7 @@ const TabItem: FC<{ icon: IconDefinition; label: string }> = ({
 }) => {
   return (
     <div className="flex gap-2">
-      <FontAwesomeIcon icon={icon} className="xxs:block hidden" />
+      <FontAwesomeIcon icon={icon} className="hidden xxs:block" />
       <span>{label}</span>
     </div>
   );
