@@ -20,9 +20,9 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
   return (
     <div>
       {t("updateLinksRequest")}
-      {Array.from(coherenceLinks?.data ?? [], (link, index) => (
+      {Array.from(coherenceLinks?.data ?? [], (link) => (
         <DisplayCoherenceLink
-          key={index}
+          key={link.id}
           link={link}
           post={post}
           linkModified={updateCoherenceLinks}
