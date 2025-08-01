@@ -30,9 +30,6 @@ def compute_question_hotness(question: Question) -> float:
     Compute the hotness of post subquestion.
     """
 
-    if question.resolution in UnsuccessfulResolutionType:
-        return 0
-
     now = timezone.now()
     hotness = 0
 
@@ -49,11 +46,13 @@ def compute_question_hotness(question: Question) -> float:
     )
 
     # Resolution time
-    hotness += (
-        decay(20, question.resolution_set_time)
-        if question.resolution_set_time and now > question.resolution_set_time
-        else 0
-    )
+    if (
+        question.resolution_set_time
+        and now > question.resolution_set_time
+        and question.resolution
+        and question.resolution not in UnsuccessfulResolutionType
+    ):
+        hotness += decay(20, question.resolution_set_time)
 
     return hotness
 
