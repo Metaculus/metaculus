@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { LanguageService } from "@/services/language_service";
+import {
+  LanguageService,
+  LOCALE_COOKIE_NAME,
+} from "@/services/language_service";
 import {
   COOKIE_NAME_TOKEN,
   getAlphaTokenSession,
@@ -70,7 +73,7 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-url", request.url);
 
   const locale_in_url = request.nextUrl.searchParams.get("locale");
-  const locale_in_cookie = request.cookies.get("NEXT_LOCALE")?.value;
+  const locale_in_cookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
 
   const response = NextResponse.next({
     request: {

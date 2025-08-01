@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
@@ -81,6 +82,10 @@ export async function signUpAction(
 ): Promise<SignUpActionState> {
   const headersList = await headers();
 
+  // Get current language from cookie or autodetected locale
+  const currentLanguage =
+    (await LanguageService.getLocaleCookie()) || (await getLocale());
+
   const ipAddress =
     headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
 
@@ -96,6 +101,7 @@ export async function signUpAction(
         campaign_data: validatedSignupData.campaignData,
         redirect_url: validatedSignupData.redirectUrl,
         invite_token: validatedSignupData.inviteToken,
+        language: currentLanguage,
       },
       {
         ...(validatedSignupData.turnstileToken

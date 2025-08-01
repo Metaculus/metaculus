@@ -38,6 +38,14 @@ export class LanguageService {
   }
 
   /**
+   * Get the current locale from cookies (server-side)
+   */
+  static async getLocaleCookie(): Promise<string | null> {
+    const cookieStore = await cookies();
+    return cookieStore.get(LOCALE_COOKIE_NAME)?.value || null;
+  }
+
+  /**
    * Synchronize user's language preference across browser sessions
    * If user's language preference doesn't match current locale, redirect with correct locale
    */
