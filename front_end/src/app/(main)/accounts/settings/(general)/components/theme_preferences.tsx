@@ -18,10 +18,13 @@ const ThemePreferences: FC = () => {
   const { user } = useAuth();
   const mounted = useMounted();
 
-  const currentTheme = useMemo(
-    () => user?.app_theme ?? (mounted ? themeChoice : AppTheme.System),
-    [user?.app_theme, themeChoice, mounted]
-  );
+  const currentTheme = useMemo(() => {
+    if (user?.app_theme) return user.app_theme;
+    if (mounted && Object.values(AppTheme).includes(themeChoice as AppTheme))
+      return themeChoice;
+
+    return AppTheme.System;
+  }, [user?.app_theme, themeChoice, mounted]);
 
   const themeTypeOptions: RadioOption<AppTheme>[] = [
     {
