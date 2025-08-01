@@ -42,7 +42,7 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
   );
 
   return (
-    <div className="mx-auto mb-7 space-y-7 px-10 pt-5">
+    <div className="mx-auto mb-7 space-y-7 pt-5 lg:px-10">
       <PredictionBinaryInfo
         showMyPrediction={true}
         question={question}

@@ -65,4 +65,21 @@ const QuestionTimeline: React.FC<Props> = ({
   return null;
 };
 
+export function hasTimeline(postData: PostWithForecasts): boolean {
+  if (isQuestionPost(postData)) {
+    return postData.question.status !== QuestionStatus.UPCOMING;
+  }
+  if (isGroupOfQuestionsPost(postData)) {
+    if (
+      postData.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.FanGraph
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+  return false;
+}
+
 export default QuestionTimeline;
