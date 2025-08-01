@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { LocaleCookieService } from "@/services/locale_cookie";
+import { LanguageService } from "@/services/language_service";
 import {
   COOKIE_NAME_TOKEN,
   getAlphaTokenSession,
@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
 
   // Handle explicit locale parameter in URL
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
-    LocaleCookieService.setLocaleInResponse(response, locale_in_url);
+    LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
 
   if (deleteCookieToken) {

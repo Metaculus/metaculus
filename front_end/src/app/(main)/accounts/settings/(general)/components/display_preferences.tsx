@@ -53,7 +53,7 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
   const [updateLanguage, isPendingUpdateLanguage] = useServerAction(
     async (language: string) => {
       if (!isPendingUpdateLanguage) {
-        await updateLanguagePreference(language || null).catch(logError);
+        await updateLanguagePreference(language).catch(logError);
       }
     }
   );

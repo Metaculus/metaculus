@@ -39,6 +39,7 @@ class ServerProfileApiClass extends ProfileApi {
     unsubscribed_mailing_tags?: SubscriptionEmailType[];
     unsubscribed_preference_tags?: ProfilePreferencesType[];
     is_onboarding_complete?: boolean;
+    language?: string | null;
   }) {
     return await this.patch<CurrentUser, typeof props>(
       "/users/me/update/",
