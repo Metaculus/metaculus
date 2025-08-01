@@ -6,14 +6,13 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
 import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
-import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
-import { CoherenceLinksGroup } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
@@ -28,8 +27,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
   const [newLinks, setNewLinks] = useState<number[]>([]);
-  const [coherenceLinks, setCoherenceLinks] =
-    useState<CoherenceLinksGroup | null>(null);
+  const { coherenceLinks, updateCoherenceLinks } = useCoherenceLinksContext();
   const toggleOpenRef = useCallback((element: HTMLElement | null) => {
     if (element) {
       setNewLinks([]);
@@ -46,75 +44,68 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
     setNewLinks(newLinks.filter((current) => current !== key));
   }
 
-  const updatePage = async () => {
-    ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
-      .then((links) => setCoherenceLinks(links))
-      .catch((error) => console.log(error));
-  };
-
   useEffect(() => {
-    void updatePage();
+    void updateCoherenceLinks();
   }, []);
 
-  if (post.question?.type !== QuestionType.Binary) return null;
+  if (!isLoggedIn || post.question?.type !== QuestionType.Binary) return null;
 
   return (
-    isLoggedIn && (
-      <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
-        <ExpandableContent
-          maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
-          expandLabel={expandLabel}
-          collapseLabel={collapseLabel}
-          className="-mt-4"
-        >
-          <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
-            {Array.from(coherenceLinks?.data ?? [], (link) => (
-              <DisplayCoherenceLink
-                key={link.id}
-                link={link}
-                post={post}
-                compact={false}
-              ></DisplayCoherenceLink>
-            ))}
+    <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
+      <ExpandableContent
+        maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
+        expandLabel={expandLabel}
+        collapseLabel={collapseLabel}
+        className="-mt-4"
+      >
+        <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
+          {Array.from(coherenceLinks?.data ?? [], (link) => (
+            <DisplayCoherenceLink
+              key={link.id}
+              link={link}
+              post={post}
+              compact={false}
+              linkModified={updateCoherenceLinks}
+            ></DisplayCoherenceLink>
+          ))}
 
-            {Array.from(newLinks, (id) => (
-              <CreateCoherenceLink
-                post={post}
-                key={id}
-                linkCreated={updatePage}
-                linkKey={id}
-                deleteLink={deleteLink}
-              ></CreateCoherenceLink>
-            ))}
+          {Array.from(newLinks, (id) => (
+            <CreateCoherenceLink
+              post={post}
+              key={id}
+              linkCreated={updateCoherenceLinks}
+              linkKey={id}
+              deleteLink={deleteLink}
+            ></CreateCoherenceLink>
+          ))}
 
-            <div className="flex flex-col items-center justify-between gap-3 px-0 md:px-20">
-              {(!coherenceLinks || coherenceLinks.size === 0) &&
-                newLinks?.length === 0 && (
-                  <div className="flex flex-col items-center justify-between gap-2 pt-3">
-                    <span className="text-balance text-center text-sm">
-                      {t("noQuestionsLinkedP2")}
-                    </span>
-                    <span className="text-balance text-center text-sm">
-                      {t("noQuestionsLinkedP3")}
-                    </span>
-                    <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
-                      {t("noQuestionsLinkedP1")}
-                    </span>
-                  </div>
-                )}
+          <div className="flex flex-col items-center justify-between gap-3 px-0 md:px-20">
+            {(!coherenceLinks || coherenceLinks.size === 0) &&
+              newLinks?.length === 0 && (
+                <div className="flex flex-col items-center justify-between gap-2 pt-3">
+                  <span className="text-balance text-center text-sm">
+                    {t("noQuestionsLinkedP2")}
+                  </span>
+                  <span className="text-balance text-center text-sm">
+                    {t("noQuestionsLinkedP3")}
+                  </span>
+                  <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
+                    {t("noQuestionsLinkedP1")}
+                  </span>
+                </div>
+              )}
 
-              <Button
-                onClick={addLink}
-                variant="tertiary"
-                className="mx-auto self-start"
-              >
-                <FontAwesomeIcon icon={faPlus} className="size-4" />
-                {t("linkQuestion")}
-              </Button>
-            </div>
+            <Button
+              onClick={addLink}
+              variant="tertiary"
+              className="mx-auto self-start"
+            >
+              <FontAwesomeIcon icon={faPlus} className="size-4" />
+              {t("linkQuestion")}
+            </Button>
           </div>
-        </ExpandableContent>
-      </SectionToggle>
-    )
+        </div>
+      </ExpandableContent>
+    </SectionToggle>
   );
 };

@@ -1,11 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
-import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
-import { CoherenceLinksGroup } from "@/types/coherence";
 import { PostWithForecasts } from "@/types/post";
 
 interface Props {
@@ -13,15 +12,8 @@ interface Props {
 }
 
 export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
-  const [coherenceLinks, setCoherenceLinks] =
-    useState<CoherenceLinksGroup | null>(null);
+  const { coherenceLinks, updateCoherenceLinks } = useCoherenceLinksContext();
   const t = useTranslations();
-
-  useEffect(() => {
-    ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
-      .then((links) => setCoherenceLinks(links))
-      .catch((error) => console.log(error));
-  }, [post]);
 
   if (!coherenceLinks || coherenceLinks.size === 0) return null;
 
@@ -33,6 +25,7 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
           key={index}
           link={link}
           post={post}
+          linkModified={updateCoherenceLinks}
           compact={true}
         ></DisplayCoherenceLink>
       ))}

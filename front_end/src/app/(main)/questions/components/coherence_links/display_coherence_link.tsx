@@ -16,6 +16,7 @@ type Props = {
   link: CoherenceLink;
   post: Post;
   compact: boolean;
+  linkModified: () => Promise<void>;
 };
 
 const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
@@ -48,7 +49,12 @@ const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
   }
 };
 
-export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
+export const DisplayCoherenceLink: FC<Props> = ({
+  link,
+  post,
+  compact,
+  linkModified,
+}) => {
   const isFirstQuestion = link.question1_id === post.question?.id;
   const otherQuestionID = isFirstQuestion
     ? link.question2_id
@@ -66,6 +72,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   async function deleteLink() {
     setCanceled(true);
     await deleteCoherenceLink(link);
+    await linkModified();
   }
 
   if (!otherQuestion || canceled) return null;
