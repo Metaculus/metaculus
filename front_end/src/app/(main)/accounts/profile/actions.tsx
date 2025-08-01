@@ -118,7 +118,10 @@ export async function updateProfileAction(
 /**
  * Server action to update user's language preference and set the language cookie
  */
-export async function updateLanguagePreference(language: string) {
+export async function updateLanguagePreference(
+  language: string,
+  revalidate = true
+) {
   const serverSession = await getServerSession();
 
   if (serverSession) {
@@ -130,5 +133,5 @@ export async function updateLanguagePreference(language: string) {
 
   // Set the language as the active locale
   await LanguageService.setLocaleCookie(language);
-  revalidatePath("/");
+  revalidate && revalidatePath("/");
 }
