@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { LocaleCookieService } from "@/services/locale_cookie";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
@@ -52,6 +53,11 @@ export default async function loginAction(
   }
 
   await setServerSession(response.token);
+
+  // Set user's language preference as the active locale
+  if (response.user.language) {
+    await LocaleCookieService.setLocale(response.user.language);
+  }
 
   const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
     getPublicSettings();
@@ -103,6 +109,11 @@ export async function signUpAction(
 
     if (response.is_active && response.token) {
       await setServerSession(response.token);
+
+      // Set user's language preference as the active locale
+      if (response.user?.language) {
+        await LocaleCookieService.setLocale(response.user.language);
+      }
 
       revalidatePath("/");
 

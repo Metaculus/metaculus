@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
+import { LocaleCookieService } from "@/services/locale_cookie";
 import {
   COOKIE_NAME_TOKEN,
   getAlphaTokenSession,
@@ -69,7 +70,7 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-url", request.url);
 
   const locale_in_url = request.nextUrl.searchParams.get("locale");
-  const local_in_cookie = request.cookies.get("NEXT_LOCALE")?.value;
+  const locale_in_cookie = request.cookies.get("NEXT_LOCALE")?.value;
 
   const response = NextResponse.next({
     request: {
@@ -77,10 +78,9 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  if (locale_in_url && locale_in_url !== local_in_cookie) {
-    response.cookies.set("NEXT_LOCALE", locale_in_url, {
-      maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
-    });
+  // Handle explicit locale parameter in URL
+  if (locale_in_url && locale_in_url !== locale_in_cookie) {
+    LocaleCookieService.setLocaleInResponse(response, locale_in_url);
   }
 
   if (deleteCookieToken) {

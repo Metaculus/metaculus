@@ -7,6 +7,7 @@ import {
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { LocaleCookieService } from "@/services/locale_cookie";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 
@@ -99,6 +100,7 @@ export async function updateProfileAction(
       | "prediction_expiration_percent"
       | "app_theme"
       | "interface_type"
+      | "language"
     >
   >,
   revalidate = true
@@ -110,4 +112,19 @@ export async function updateProfileAction(
   }
 
   return response;
+}
+
+/**
+ * Server action to update user's language preference and set the language cookie
+ */
+export async function updateLanguagePreference(language: string | null) {
+  // Update the user's language preference in the database
+  await ServerProfileApi.updateProfile({
+    language: language === null ? undefined : language,
+  });
+
+  // Set the language as the active locale
+  await LocaleCookieService.setLocale(language);
+
+  revalidatePath("/");
 }
