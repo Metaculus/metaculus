@@ -6,7 +6,6 @@ import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import QuestionRepost from "@/app/(main)/questions/components/question_repost";
-import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
@@ -15,6 +14,7 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 
 import QuestionTypePicker from "../components/question_type_picker";
 import QuestionDraftCleanup from "./components/question_draft_cleanup";
+
 const linkClassName =
   "text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark";
 
@@ -26,7 +26,6 @@ export const metadata = {
 const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
   props
 ) => {
-  const currentUser = await ServerProfileApi.getMyProfile();
   const searchParams = await props.searchParams;
   const t = await getTranslations();
   const createHref = (
