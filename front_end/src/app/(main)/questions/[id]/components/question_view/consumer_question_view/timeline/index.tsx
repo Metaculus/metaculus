@@ -8,6 +8,7 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/core/cn";
 import {
   isGroupOfQuestionsPost,
   isQuestionPost,
@@ -15,16 +16,22 @@ import {
 
 type Props = {
   postData: PostWithForecasts;
+  className?: string;
+  hideTitle?: boolean;
 };
 
-const QuestionTimeline: React.FC<Props> = ({ postData }) => {
-  const wrapperClass = "mt-8 hidden sm:block";
+const QuestionTimeline: React.FC<Props> = ({
+  postData,
+  className,
+  hideTitle,
+}) => {
+  const wrapperClass = cn("mt-8 hidden sm:block", className);
 
   if (isQuestionPost(postData)) {
     if (postData.question.status !== QuestionStatus.UPCOMING) {
       return (
         <div className={wrapperClass}>
-          <DetailedQuestionCard post={postData} />
+          <DetailedQuestionCard post={postData} hideTitle={hideTitle} />
         </div>
       );
     }
