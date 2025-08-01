@@ -19,7 +19,7 @@ from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import notify_project_subscriptions_question_open
-from questions.constants import ResolutionType
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -415,24 +415,24 @@ def resolve_question(
         if question == condition:
             # handle annulment
             if question.resolution in [
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 resolve_question(
                     conditional.question_no,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
                 resolve_question(
                     conditional.question_yes,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
             if child.resolution is None:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_no,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         actual_resolve_time,
                     )
                     close_question(
@@ -442,7 +442,7 @@ def resolve_question(
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_yes,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         actual_resolve_time,
                     )
                     close_question(
@@ -453,8 +453,8 @@ def resolve_question(
             # we resolve the active branch and annull the other
             if child.resolution not in [
                 None,
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 if question.resolution == "yes":
                     resolve_question(
@@ -464,7 +464,7 @@ def resolve_question(
                     )
                     resolve_question(
                         conditional.question_no,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         conditional.question_no.actual_close_time,
                     )
                 if question.resolution == "no":
@@ -475,23 +475,23 @@ def resolve_question(
                     )
                     resolve_question(
                         conditional.question_yes,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         conditional.question_yes.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
             if question.resolution in [
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 resolve_question(
                     conditional.question_yes,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
                 resolve_question(
                     conditional.question_no,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
             else:  # child is successfully resolved
@@ -559,16 +559,16 @@ def unresolve_question(question: Question):
         child = conditional.condition_child
         if question == condition:
             if child.resolution not in [
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 # unresolve both branches (handles annulment / ambiguity automatically)
                 unresolve_question(conditional.question_yes)
                 unresolve_question(conditional.question_no)
             if child.resolution not in [
                 None,
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 # both branches should still be closed though
                 close_question(

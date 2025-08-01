@@ -74,10 +74,22 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "open_time": make_aware(datetime.datetime(2025, 4, 4)),
                 "scheduled_close_time": make_aware(datetime.datetime(2025, 4, 10)),
                 "resolution_set_time": make_aware(datetime.datetime(2025, 4, 11)),
+                "resolution": "no",
                 # Should be ignored
                 "movement": 0.4,
             },
             6.25,
+        ],
+        # Unsuccessfully resolved question
+        [
+            {
+                # 1W from now
+                "open_time": make_aware(datetime.datetime(2025, 4, 4)),
+                "scheduled_close_time": make_aware(datetime.datetime(2025, 4, 10)),
+                "resolution_set_time": make_aware(datetime.datetime(2025, 4, 11)),
+                "resolution": "annulled",
+            },
+            1.25,
         ],
     ],
 )
@@ -181,6 +193,7 @@ def test_compute_post_hotness(user1):
                     open_time=make_aware(datetime.datetime(2025, 4, 4)),
                     scheduled_close_time=make_aware(datetime.datetime(2025, 4, 10)),
                     resolution_set_time=make_aware(datetime.datetime(2025, 4, 11)),
+                    resolution="yes"
                 ),
                 # Will be scored as 18
                 create_question(

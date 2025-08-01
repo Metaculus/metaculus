@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 import numpy as np
 
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question
 from utils.typing import ForecastValues
 
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 def string_location_to_scaled_location(
     string_location: str, question: Question
 ) -> float:
-    if string_location in ["ambiguous", "annulled"]:
+    if string_location in UnsuccessfulResolutionType:
         raise ValueError("Cannot convert ambiguous or annulled to any real locations")
     if question.type == Question.QuestionType.BINARY:
         return 1.0 if string_location == "yes" else 0.0
@@ -160,9 +161,10 @@ def bucket_index_to_unscaled_location(bucket_index: int, question: Question) -> 
 
 def string_location_to_unscaled_location(
     string_location: str, question: Question
-) -> float:
-    if string_location in ["", None, "ambiguous", "annulled"]:
-        return None
+) -> float | None:
+    if not string_location or string_location in UnsuccessfulResolutionType:
+        return
+
     scaled_location = string_location_to_scaled_location(string_location, question)
     return scaled_location_to_unscaled_location(scaled_location, question)
 
@@ -170,8 +172,9 @@ def string_location_to_unscaled_location(
 def string_location_to_bucket_index(
     string_location: str, question: Question
 ) -> int | None:
-    if string_location in ["", None, "ambiguous", "annulled"]:
-        return None
+    if not string_location or string_location in UnsuccessfulResolutionType:
+        return
+
     unscaled_location = string_location_to_unscaled_location(string_location, question)
     return unscaled_location_to_bucket_index(unscaled_location, question)
 
