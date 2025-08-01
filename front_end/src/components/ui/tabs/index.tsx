@@ -1,4 +1,5 @@
 "use client";
+
 import {
   useRef,
   useContext,
@@ -35,7 +36,7 @@ export const Tabs = ({
     {}
   );
 
-  const { getThemeColor } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
 
   const registerSection = useCallback(
     (value: string, ref: HTMLElement | null) => {
@@ -46,6 +47,9 @@ export const Tabs = ({
     },
     []
   );
+  if (!theme) {
+    return null;
+  }
 
   const bgColor = getThemeColor(METAC_COLORS.gray[0]);
 
