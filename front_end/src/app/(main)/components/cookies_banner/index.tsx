@@ -60,7 +60,7 @@ const CookiesBanner: FC = () => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 z-[49] flex w-screen justify-center gap-8 border-t border-t-blue-500/50 bg-gradient-to-b from-white/65 to-white p-4 shadow-md backdrop-blur-sm dark:border-t-blue-700/50 dark:from-blue-900/65 dark:to-blue-900 md:p-6">
+    <div className="fixed bottom-0 left-0 z-[100] flex w-screen justify-center gap-8 border-t border-t-blue-500/50 bg-gradient-to-b from-white/65 to-white p-4 shadow-md backdrop-blur-sm dark:border-t-blue-700/50 dark:from-blue-900/65 dark:to-blue-900 md:p-6">
       <div className="flex w-full max-w-[1076px] flex-col justify-between gap-3 md:flex-row">
         <div className="flex flex-col gap-1.5">
           <h3 className="m-0 text-base font-normal leading-6 text-blue-900 dark:text-blue-900-dark md:text-lg md:leading-7">

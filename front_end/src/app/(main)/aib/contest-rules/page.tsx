@@ -3,9 +3,9 @@ import Link from "next/link";
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
-  title: "Rules for Q3 AI Forecasting Benchmark Tournament | Metaculus",
+  title: "AI Forecasting Benchmark Tournament Rules | Metaculus",
   description:
-    "Explore the official rules for the AIB Contest on Metaculus. Learn about eligibility, scoring, submission guidelines, and prize allocation to ensure your AI bot meets all requirements and competes fairly.",
+    "Official rules for the AI Forecasting Benchmark (AIB) tournament on Metaculus. Learn about eligibility requirements, scoring systems, submission guidelines, and prize allocation for AI bot competitions.",
 };
 
 export default function ContestRules() {
