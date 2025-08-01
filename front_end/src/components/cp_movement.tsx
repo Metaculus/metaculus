@@ -133,16 +133,18 @@ export function getMovementComponents(
       cpMovement.direction === MovementDirection.UP
         ? t("increased")
         : t("decreased");
-    const unit =
-      question.type === QuestionType.Numeric
-        ? isNil(question.unit)
-          ? question.type
-          : " " + question.unit
-        : " " + t("percentagePoints");
-    const amount =
-      question.type === QuestionType.Numeric
-        ? abbreviatedNumber(round(cpMovement.movement, 1)) // for numeric questions we receive already scaled value
-        : round(cpMovement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
+    const unit = [QuestionType.Numeric, QuestionType.Discrete].includes(
+      question.type
+    )
+      ? isNil(question.unit)
+        ? question.type
+        : " " + question.unit
+      : " " + t("percentagePoints");
+    const amount = [QuestionType.Numeric, QuestionType.Discrete].includes(
+      question.type
+    )
+      ? abbreviatedNumber(round(cpMovement.movement, 1)) // for numeric questions we receive already scaled value
+      : round(cpMovement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
     if (
       [MovementDirection.UP, MovementDirection.DOWN].includes(
         cpMovement.direction
