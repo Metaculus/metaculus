@@ -20,6 +20,7 @@ import {
 import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
 import QuestionTimeline from "./timeline";
+import KeyFactorsSection from "../../key_factors/key_factors_section";
 import QuestionTitle from "../shared/question_title";
 
 type Props = {
@@ -86,6 +87,21 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
           <QuestionActionButton postData={postData} />
         </div>
+
+        {postData.question &&
+          [
+            QuestionType.Numeric,
+            QuestionType.Discrete,
+            QuestionType.Date,
+          ].includes(postData.question.type) && (
+            <div className="sm:hidden">
+              <KeyFactorsSection
+                postId={postData.id}
+                postStatus={postData.status}
+                variant="compact"
+              />
+            </div>
+          )}
 
         <QuestionTimeline postData={postData} />
       </div>

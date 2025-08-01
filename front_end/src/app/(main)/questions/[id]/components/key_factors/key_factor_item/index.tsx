@@ -12,6 +12,7 @@ import UpdownKeyFactorItem from "./updown_item";
 type Props = {
   keyFactor: KeyFactor;
   linkToComment?: boolean;
+  variant?: "default" | "compact";
 };
 
 const FEATURE_FLAG_KEY = "key-factors-p2";
@@ -24,6 +25,7 @@ const LAYOUT_VARIANTS = {
 export const KeyFactorItem: FC<Props> = ({
   keyFactor,
   linkToComment = true,
+  variant = "default",
 }) => {
   const layoutVariant = useFeatureFlagVariantKey(FEATURE_FLAG_KEY);
   const linkAnchor = linkToComment
@@ -53,6 +55,7 @@ export const KeyFactorItem: FC<Props> = ({
           keyFactor={keyFactor}
           linkAnchor={linkAnchor}
           linkToComment={linkToComment}
+          variant={variant}
         />
       );
   }
