@@ -12,12 +12,16 @@ type Props = {
   questionTitle: string;
   questionId?: number;
   btnClassName?: string;
+  children?: React.ReactNode;
+  textAlign?: "left" | "right";
 };
 
 export const SharePostMenu: FC<Props> = ({
   questionTitle,
   questionId,
   btnClassName,
+  children,
+  textAlign = "right",
 }) => {
   const shareMenuItems = useShareMenuItems({
     questionTitle,
@@ -26,14 +30,18 @@ export const SharePostMenu: FC<Props> = ({
   });
 
   return (
-    <DropdownMenu items={shareMenuItems}>
-      <Button
-        variant="secondary"
-        className={cn("rounded border-0", btnClassName)}
-        presentationType="icon"
-      >
-        <FontAwesomeIcon icon={faShareNodes} className="text-lg" />
-      </Button>
+    <DropdownMenu textAlign={textAlign} items={shareMenuItems}>
+      {children ? (
+        children
+      ) : (
+        <Button
+          variant="secondary"
+          className={cn("rounded border-0", btnClassName)}
+          presentationType="icon"
+        >
+          <FontAwesomeIcon icon={faShareNodes} className="text-lg" />
+        </Button>
+      )}
     </DropdownMenu>
   );
 };

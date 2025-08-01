@@ -1,3 +1,5 @@
+"use client";
+
 import "./styles.scss";
 
 import { isNil, round } from "lodash";
@@ -22,6 +24,7 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { calculateCharWidth } from "@/utils/charts/helpers";
 import { getResolutionPosition } from "@/utils/charts/resolution";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -38,9 +41,25 @@ import TimeSeriesLabel from "./time_series_label";
 type Props = {
   questions: QuestionWithNumericForecasts[];
   height?: number;
+  variant?: "default" | "colorful";
 };
 
-const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
+const MULTIPLE_CHOICE_LIGHT_COLOR_SCALE = Object.values(
+  METAC_COLORS["mc-option-light"]
+) as ThemeColor[];
+const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(
+  METAC_COLORS["mc-option"]
+) as ThemeColor[];
+
+function getNormalizedTicks(maxValue: number): number[] {
+  return [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
+}
+
+const TimeSeriesChart: FC<Props> = ({
+  questions,
+  height = 130,
+  variant = "default",
+}) => {
   const { theme, getThemeColor } = useAppTheme();
   const locale = useLocale();
   const { ref: chartContainerRef, width: chartWidth } =
@@ -91,6 +110,9 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
       return new Date(current) < new Date(earliest) ? current : earliest;
     });
   }, [shouldShowCPLabel, questionAvailabilities]);
+
+  const maxValue = Math.max(...adjustedChartData.map((d) => d.y), 1);
+  const tickValues = getNormalizedTicks(maxValue);
 
   if (chartData.length === 0) {
     return null;
@@ -155,8 +177,10 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
               },
             }}
             gridComponent={<LineSegment />}
-            tickCount={5}
+            tickValues={variant === "colorful" ? tickValues : undefined}
+            tickCount={variant === "default" ? 5 : undefined}
           />
+
           <VictoryGroup data={adjustedChartData}>
             <VictoryBar
               style={{
@@ -168,6 +192,7 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                   labelVisibilityMap={tickLabelVisibilityMap}
                   widthPerLabel={widthPerLabel}
                   allQuestionsEmpty={allQuestionsEmpty}
+                  colorful={variant === "colorful"}
                 />
               }
             />
@@ -177,35 +202,73 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                   isTickLabel={false}
                   labelVisibilityMap={barLabelVisibilityMap}
                   allQuestionsEmpty={allQuestionsEmpty}
+                  colorful={variant === "colorful"}
                 />
               }
               style={{
-                border: {
-                  stroke: getThemeColor(METAC_COLORS.blue["400"]),
-                  strokeWidth: 2,
-                  borderRadius: 2,
-                },
                 data: {
-                  fill: ({ datum }) =>
-                    datum.isEmpty
-                      ? "transparent"
-                      : datum.resolution
-                        ? getThemeColor(
-                            ["no", "yes"].includes(datum.resolution as string)
-                              ? METAC_COLORS.purple["400"]
-                              : METAC_COLORS.purple["500"]
-                          )
-                        : datum.isClosed
-                          ? getThemeColor(METAC_COLORS.gray["500"])
-                          : getThemeColor(METAC_COLORS.blue["400"]),
-                  display: "block",
+                  fill: ({ datum, index }) => {
+                    if (variant === "colorful" && !datum.isEmpty) {
+                      if (datum.resolution) {
+                        return "transparent";
+                      }
+                      const safeIndex = typeof index === "number" ? index : 0;
+                      const color: ThemeColor =
+                        MULTIPLE_CHOICE_LIGHT_COLOR_SCALE[
+                          safeIndex % MULTIPLE_CHOICE_LIGHT_COLOR_SCALE.length
+                        ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+
+                      return getThemeColor(color);
+                    }
+
+                    if (datum.resolution) {
+                      return getThemeColor(
+                        ["no", "yes"].includes(datum.resolution as string)
+                          ? METAC_COLORS.purple["400"]
+                          : METAC_COLORS.purple["500"]
+                      );
+                    }
+
+                    return datum.isClosed
+                      ? getThemeColor(METAC_COLORS.gray["500"])
+                      : getThemeColor(METAC_COLORS.blue["400"]);
+                  },
+                  stroke:
+                    variant === "colorful"
+                      ? ({ datum, index }) => {
+                          if (datum.resolution) {
+                            return getThemeColor(METAC_COLORS.purple["600"]);
+                          }
+                          if (!datum.isEmpty) {
+                            const safeIndex =
+                              typeof index === "number" ? index : 0;
+                            const color: ThemeColor =
+                              MULTIPLE_CHOICE_COLOR_SCALE[
+                                safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
+                              ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+
+                            return getThemeColor(color);
+                          }
+                          return "transparent";
+                        }
+                      : undefined,
                   strokeLinejoin: "round",
-                  strokeWidth: ({ datum }) =>
-                    datum.isEmpty
+                  strokeWidth: ({ datum }) => {
+                    if (variant === "colorful") {
+                      if (datum.resolution) {
+                        return 2;
+                      }
+                      return datum.isEmpty ||
+                        ["no", "yes"].includes(datum.resolution as string)
+                        ? 0
+                        : 1;
+                    }
+                    return datum.isEmpty
                       ? 0
                       : ["no", "yes"].includes(datum.resolution as string)
                         ? 0
-                        : 5,
+                        : 5;
+                  },
                   width: ({ datum }) =>
                     datum.isEmpty
                       ? 0

@@ -9,9 +9,10 @@ import cn from "@/utils/core/cn";
 type Props = {
   question: QuestionWithNumericForecasts;
   size?: "sm" | "md" | "lg";
+  className?: string;
 };
 
-const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
+const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
   const questionCP =
     question.aggregations.recency_weighted.latest?.centers?.[0];
@@ -77,9 +78,13 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md" }) => {
 
   return (
     <div
-      className={cn("relative flex items-center justify-center", {
-        "min-w-[200px] max-w-[200px]": size === "md",
-      })}
+      className={cn(
+        "relative flex items-center justify-center",
+        {
+          "min-w-[200px] max-w-[200px]": size === "md",
+        },
+        className
+      )}
     >
       <svg width={width} height={height} className="overflow-visible">
         <defs>

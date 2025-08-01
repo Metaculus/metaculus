@@ -2,7 +2,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_header_continuous_resolution_chip";
+import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_continuous_resolution_chip";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import QuestionCPMovement from "@/components/cp_movement";

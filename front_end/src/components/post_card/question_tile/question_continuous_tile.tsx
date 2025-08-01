@@ -5,6 +5,7 @@ import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
+import { QuestionResolutionChipFacade } from "@/components/consumer_post_card/question_resolution_chip";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import {
   buildDefaultForecastExpiration,
@@ -129,6 +130,9 @@ const QuestionContinuousTile: FC<Props> = ({
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
             showMyPrediction={true}
+            renderResolutionStatus={(q) => (
+              <QuestionResolutionChipFacade question={q} />
+            )}
           />
         )}
         {[

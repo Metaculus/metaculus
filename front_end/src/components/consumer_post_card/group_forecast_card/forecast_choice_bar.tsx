@@ -1,3 +1,5 @@
+"use client";
+
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
@@ -21,6 +23,7 @@ type Props = {
   color: ThemeColor;
   isBordered?: boolean;
   unit?: string;
+  forceColorful?: boolean;
 };
 
 const WIDTH_ADJUSTMENT = 2;
@@ -35,6 +38,7 @@ const ForecastChoiceBar: FC<Props> = ({
   color,
   isBordered = false,
   unit,
+  forceColorful = false,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
@@ -101,7 +105,8 @@ const ForecastChoiceBar: FC<Props> = ({
             background: (() => {
               if (resolution) {
                 return "transparent";
-              } else if (isClosed) {
+              }
+              if (isClosed && !forceColorful) {
                 return addOpacityToHex(
                   mounted
                     ? getThemeColor(METAC_COLORS.gray["500"])
@@ -120,17 +125,15 @@ const ForecastChoiceBar: FC<Props> = ({
                   ? getThemeColor(METAC_COLORS.purple["700"])
                   : METAC_COLORS.gray["700"].DEFAULT;
               }
-
-              return isClosed
-                ? addOpacityToHex(
-                    mounted
-                      ? getThemeColor(METAC_COLORS.gray["500"])
-                      : METAC_COLORS.gray["500"].DEFAULT,
-                    0.5
-                  )
-                : mounted
-                  ? getThemeColor(color)
-                  : color.DEFAULT;
+              if (isClosed && !forceColorful) {
+                return addOpacityToHex(
+                  mounted
+                    ? getThemeColor(METAC_COLORS.gray["500"])
+                    : METAC_COLORS.gray["500"].DEFAULT,
+                  0.5
+                );
+              }
+              return mounted ? getThemeColor(color) : color.DEFAULT;
             })(),
           }}
         ></div>

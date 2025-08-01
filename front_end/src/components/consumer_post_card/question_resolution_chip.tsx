@@ -1,7 +1,10 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   formatedResolution: string;
@@ -9,18 +12,20 @@ type Props = {
   unit?: string;
   presentation?: "forecasterView" | "consumerView";
   size?: "md" | "lg";
+  className?: string;
 };
 
 const QuestionResolutionChip: FC<Props> = ({
   formatedResolution,
   successfullyResolved,
   unit,
+  className,
   presentation = "forecasterView",
   size = "md",
 }) => {
   const t = useTranslations();
   return (
-    <div className="flex justify-center">
+    <div className={cn("flex justify-center", className)}>
       <div
         className={cn(
           "flex w-fit flex-col items-center rounded-[10px] border border-purple-500 px-4 py-2.5 dark:border-purple-500",
@@ -60,6 +65,34 @@ const QuestionResolutionChip: FC<Props> = ({
         </span>
       </div>
     </div>
+  );
+};
+
+export const QuestionResolutionChipFacade: FC<{
+  question: QuestionWithNumericForecasts;
+  size?: "md" | "lg";
+  className?: string;
+}> = ({ question, className, size = "md" }) => {
+  const locale = useLocale();
+  const formatedResolution = formatResolution({
+    resolution: question.resolution,
+    questionType: question.type,
+    scaling: question.scaling,
+    locale,
+    unit: question.unit,
+    actual_resolve_time: question.actual_resolve_time ?? null,
+    completeBounds: true,
+    longBounds: true,
+  });
+  const successfullyResolved = isSuccessfullyResolved(question.resolution);
+  return (
+    <QuestionResolutionChip
+      formatedResolution={formatedResolution}
+      successfullyResolved={successfullyResolved}
+      unit={question.unit}
+      size={size}
+      className={className}
+    />
   );
 };
 

@@ -22,6 +22,7 @@ import KeyFactorItem from "./key_factor_item";
 type KeyFactorsSectionProps = {
   postId: number;
   postStatus: PostStatus;
+  variant?: "default" | "compact";
 };
 
 const AddKeyFactorsButton: FC<{
@@ -49,6 +50,7 @@ const AddKeyFactorsButton: FC<{
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
   postId,
   postStatus,
+  variant = "default",
 }) => {
   const t = useTranslations();
   const hash = useHash();
@@ -91,6 +93,72 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
     return null;
   }
 
+  const DetailElement =
+    combinedKeyFactors.length > 0 &&
+    factorsLimit > 0 &&
+    ![
+      PostStatus.CLOSED,
+      PostStatus.RESOLVED,
+      PostStatus.PENDING_RESOLUTION,
+    ].includes(postStatus) ? (
+      <AddKeyFactorsButton
+        className="ml-auto"
+        onClick={(event) => {
+          event.preventDefault();
+          sendAnalyticsEvent("addKeyFactor", {
+            event_label: "fromList",
+          });
+          if (!user) {
+            setCurrentModal({ type: "signin" });
+            return;
+          }
+          setIsAddKeyFactorsModalOpen(true);
+        }}
+      />
+    ) : null;
+
+  const KeyFactors =
+    combinedKeyFactors.length > 0 ? (
+      <div id="key-factors-list" className="flex flex-col gap-2.5">
+        {visibleKeyFactors.map((kf) => (
+          <KeyFactorItem
+            variant={variant}
+            key={`post-key-factor-${kf.id}`}
+            keyFactor={kf}
+            linkToComment={variant === "default"}
+          />
+        ))}
+        {combinedKeyFactors.length > displayLimit && (
+          <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
+            <Button
+              variant="tertiary"
+              onClick={() => setDisplayLimit((prev) => prev + 10)}
+            >
+              {t("showMore")}
+            </Button>
+          </div>
+        )}
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-between pb-8 pt-6">
+        <span>{t("noKeyFactorsP1")}</span>
+        <span className="mt-1 text-sm text-blue-600 dark:text-blue-600-dark">
+          {t("noKeyFactorsP2")}
+        </span>
+        <AddKeyFactorsButton
+          className="mx-auto mt-4"
+          onClick={(event) => {
+            event.preventDefault();
+            if (!user) {
+              setCurrentModal({ type: "signin" });
+              return;
+            }
+            setIsAddKeyFactorsModalOpen(true);
+          }}
+        />
+      </div>
+    );
+
   return (
     <>
       {user && (
@@ -102,72 +170,24 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
         />
       )}
 
-      <SectionToggle
-        detailElement={
-          combinedKeyFactors.length > 0 &&
-          factorsLimit > 0 &&
-          ![
-            PostStatus.CLOSED,
-            PostStatus.RESOLVED,
-            PostStatus.PENDING_RESOLUTION,
-          ].includes(postStatus) ? (
-            <AddKeyFactorsButton
-              className="ml-auto"
-              onClick={(event) => {
-                event.preventDefault();
-                sendAnalyticsEvent("addKeyFactor", {
-                  event_label: "fromList",
-                });
-                if (!user) {
-                  setCurrentModal({ type: "signin" });
-                  return;
-                }
-                setIsAddKeyFactorsModalOpen(true);
-              }}
-            />
-          ) : null
-        }
-        title={t("keyFactors")}
-        defaultOpen
-        id="key-factors"
-        wrapperClassName="scroll-mt-header"
-      >
-        {combinedKeyFactors.length > 0 ? (
-          <div id="key-factors-list" className="flex flex-col gap-2.5">
-            {visibleKeyFactors.map((kf) => (
-              <KeyFactorItem key={`post-key-factor-${kf.id}`} keyFactor={kf} />
-            ))}
-            {combinedKeyFactors.length > displayLimit && (
-              <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
-                <Button
-                  variant="tertiary"
-                  onClick={() => setDisplayLimit((prev) => prev + 10)}
-                >
-                  {t("showMore")}
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-between pb-8 pt-6">
-            <span>{t("noKeyFactorsP1")}</span>
-            <span className="mt-1 text-sm text-blue-600 dark:text-blue-600-dark">
-              {t("noKeyFactorsP2")}
-            </span>
-            <AddKeyFactorsButton
-              className="mx-auto mt-4"
-              onClick={(event) => {
-                event.preventDefault();
-                if (!user) {
-                  setCurrentModal({ type: "signin" });
-                  return;
-                }
-                setIsAddKeyFactorsModalOpen(true);
-              }}
-            />
-          </div>
-        )}
-      </SectionToggle>
+      {variant === "compact" ? (
+        <div className="space-y-2.5">
+          <p className="text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
+            {t("keyFactors")}
+          </p>
+          {KeyFactors}
+        </div>
+      ) : (
+        <SectionToggle
+          detailElement={DetailElement}
+          title={t("keyFactors")}
+          defaultOpen
+          id="key-factors"
+          wrapperClassName="scroll-mt-header"
+        >
+          {KeyFactors}
+        </SectionToggle>
+      )}
     </>
   );
 };
