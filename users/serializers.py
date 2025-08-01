@@ -81,6 +81,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "prediction_expiration_percent",
             "app_theme",
             "interface_type",
+            "language",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -128,6 +129,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "prediction_expiration_percent",
             "app_theme",
             "interface_type",
+            "language",
         )
 
 

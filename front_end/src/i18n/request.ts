@@ -3,6 +3,8 @@ import Negotiator from "negotiator";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
+import { LOCALE_COOKIE_NAME } from "@/services/language_service";
+
 // Read the translations documentation for more info on "original"
 const locales = ["cs", "en", "es", "zh", "zh-TW", "pt", "original"];
 const defaultLocale = "en";
@@ -12,7 +14,7 @@ async function getLocale(): Promise<string> {
   const acceptLang = headersStore.get("accept-language");
 
   const cookieStore = await cookies();
-  const cookieLocale = cookieStore.get("NEXT_LOCALE")?.value;
+  const cookieLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
 
   let options = [defaultLocale];
 

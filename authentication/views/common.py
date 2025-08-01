@@ -81,6 +81,7 @@ def signup_api_view(request):
     campaign_key = serializer.validated_data.get("campaign_key", None)
     campaign_data = serializer.validated_data.get("campaign_data", None)
     redirect_url = serializer.validated_data.get("redirect_url", None)
+    language = serializer.validated_data.get("language", None)
 
     is_active = not settings.AUTH_SIGNUP_VERIFY_EMAIL
 
@@ -103,6 +104,7 @@ def signup_api_view(request):
             password=password,
             is_active=is_active,
             is_bot=is_bot,
+            language=language,
         )
 
         if campaign_key is None and project is not None:

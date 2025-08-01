@@ -1,9 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { FC } from "react";
 
-import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
+import {
+  updateLanguagePreference,
+  updateProfileAction,
+} from "@/app/(main)/accounts/profile/actions";
 import ThemePreferences from "@/app/(main)/accounts/settings/(general)/components/theme_preferences";
 import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
 import { APP_LANGUAGES } from "@/components/language_menu";
@@ -14,6 +17,7 @@ import RadioButtonGroup, {
 import Select from "@/components/ui/select";
 import { useServerAction } from "@/hooks/use_server_action";
 import { CurrentUser, InterfaceType } from "@/types/users";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   user: CurrentUser;
@@ -21,6 +25,8 @@ type Props = {
 
 const DisplayPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
+  const currentLocale = useLocale();
+
   const interfaceTypeOptions: RadioOption<InterfaceType>[] = [
     {
       value: InterfaceType.ConsumerView,
@@ -33,6 +39,7 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
       description: t("forecasterViewDescription"),
     },
   ];
+
   const [updateInterfaceType, isPendingUpdateInterfaceType] = useServerAction(
     async (interface_type: InterfaceType) => {
       if (!isPendingUpdateInterfaceType) {
@@ -43,11 +50,21 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
     }
   );
 
-  const [locale, setLocale] = useState<string>("en");
+  const [updateLanguage, isPendingUpdateLanguage] = useServerAction(
+    async (language: string) => {
+      if (!isPendingUpdateLanguage) {
+        updateLanguagePreference(language).catch(logError);
+      }
+    }
+  );
+
   const localeOptions = APP_LANGUAGES.map((obj) => ({
     value: obj.locale,
     label: obj.name,
   }));
+
+  // Use user's language preference, fallback to current locale if not set
+  const selectedLanguage = user.language || currentLocale;
 
   return (
     <PreferencesSection title={t("settingsDisplay")}>
@@ -65,10 +82,10 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
         />
       </div>
       <ThemePreferences />
-      {/* TODO: language switcher */}
-      <div hidden={true}>
-        <div className="text-gray-500 dark:text-gray-500-dark">
-          {t("settingsDefaultLanguage")}
+      <div>
+        <div className="flex gap-2.5 text-gray-500 dark:text-gray-500-dark">
+          <span>{t("settingsDefaultLanguage")}</span>
+          {isPendingUpdateLanguage && <LoadingSpinner size="1x" />}
         </div>
         <div className="relative mt-2.5 inline-block">
           {/* Language icon overlay */}
@@ -83,9 +100,12 @@ const DisplayPreferences: FC<Props> = ({ user }) => {
           </div>
           <Select
             className="rounded border-blue-400 py-4 pl-[50px] leading-5 dark:border-blue-400-dark"
-            value={locale}
+            value={selectedLanguage}
             options={localeOptions}
-            onChange={(e) => setLocale(e.target.value)}
+            onChange={(e) => {
+              void updateLanguage(e.target.value);
+            }}
+            disabled={isPendingUpdateLanguage}
           />
         </div>
       </div>
