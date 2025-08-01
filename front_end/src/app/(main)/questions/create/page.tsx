@@ -131,15 +131,13 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionType={t("numericRange")}
             questionExample={`"${t("numericRangeExample")}"`}
           />
-          {currentUser?.is_staff && ( // TODO: remove to launch Discrete questions
-            <QuestionTypePicker
-              url={createHref("/questions/create/question", {
-                type: QuestionType.Discrete,
-              })}
-              questionType={t("discrete")}
-              questionExample={`"${t("discreteExample")}"`}
-            />
-          )}
+          <QuestionTypePicker
+            url={createHref("/questions/create/question", {
+              type: QuestionType.Discrete,
+            })}
+            questionType={t("discrete")}
+            questionExample={`"${t("discreteExample")}"`}
+          />
           <QuestionTypePicker
             url={createHref("/questions/create/question", {
               type: QuestionType.Date,
