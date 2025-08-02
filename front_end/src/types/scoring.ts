@@ -49,6 +49,7 @@ export type LeaderboardEntry = {
   score: number;
   rank: number | null;
   excluded: boolean;
+  show_when_excluded: boolean;
   medal: MedalType | null;
   prize: number | null;
   coverage: number;

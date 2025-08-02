@@ -415,28 +415,27 @@ def assign_ranks(
         exclusion_records = exclusion_records.filter(
             Q(start_time__isnull=True) | Q(start_time__lte=finalize_time)
         )
-    excluded_ids: set[int | None] = set(
-        exclusion_records.values_list("user_id", flat=True)
-    )
 
-    # Extracting users from LeaderboardEntries
-    # That could be included in the calculations
-    # TODO: add exclusions for moderators (not yet migrated)
-    #   Also add similar exclusions to other leaderboard types
-    included_users = User.objects.filter(
+    candidates: QuerySet[User] = User.objects.filter(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
-    ).values_list("pk", flat=True)
+    ).only("id")
 
+    # dictionary of {excluded user id : show anyway status}
+    shown_exclusions_dict = {None: True}  # aggregations always excluded but shown
+    for exclusion in exclusion_records:
+        if exclusion.user_id not in shown_exclusions_dict:
+            shown_exclusions_dict[exclusion.user_id] = False
+        shown_exclusions_dict[exclusion.user_id] = (
+            shown_exclusions_dict[exclusion.user_id] or exclusion.show_anyway
+        )
     if not include_humans:
-        included_users = included_users.exclude(is_bot=False)
+        for user in candidates.filter(is_bot=False):
+            if user.id not in shown_exclusions_dict:
+                shown_exclusions_dict[user.id] = True
     if not include_bots:
-        included_users = included_users.exclude(is_bot=True)
-
-    for entry in entries:
-        if entry.user_id and entry.user_id not in included_users:
-            excluded_ids.add(entry.user_id)
-
-    excluded_ids.add(None)  # aggregates are excluded
+        for user in candidates.filter(is_bot=True):
+            if user.id not in shown_exclusions_dict:
+                shown_exclusions_dict[user.id] = True
 
     # set ranks
     rank = 1
@@ -450,8 +449,9 @@ def assign_ranks(
             if prev_entry and np.isclose(entry.score, prev_entry.score):
                 entry.rank = prev_entry.rank
         prev_entry = entry
-        if entry.user_id in excluded_ids:
+        if entry.user_id in shown_exclusions_dict:
             entry.excluded = True
+            entry.show_when_excluded = shown_exclusions_dict[entry.user_id]
         else:
             rank += 1
 
