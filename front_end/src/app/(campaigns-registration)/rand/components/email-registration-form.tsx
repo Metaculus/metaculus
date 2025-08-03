@@ -52,7 +52,6 @@ export const EmailRegistrationForm: FC = () => {
   });
 
   const onSubmit = async (data: EmailRegistrationSchema) => {
-    console.log("Form submitted with data:", data);
     setSubmissionState({ status: "loading" });
 
     try {
