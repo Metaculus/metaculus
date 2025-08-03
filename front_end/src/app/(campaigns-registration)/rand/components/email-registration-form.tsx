@@ -25,6 +25,7 @@ const emailRegistrationSchema = z.object({
         lowerEmail.endsWith(".edu") || lowerEmail.endsWith("@metaculus.com")
       );
     }, "Please use a university email address ending in .edu"),
+  mailingListOptIn: z.boolean(),
 });
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
@@ -51,13 +52,15 @@ export const EmailRegistrationForm: FC = () => {
   });
 
   const onSubmit = async (data: EmailRegistrationSchema) => {
+    console.log("Form submitted with data:", data);
     setSubmissionState({ status: "loading" });
 
     try {
       const result = await submitToZapierWebhook(
         data.email,
         user?.username,
-        user?.email
+        user?.email,
+        data.mailingListOptIn
       );
 
       if (result.success) {
@@ -103,6 +106,21 @@ export const EmailRegistrationForm: FC = () => {
             disabled={submissionState.status === "loading"}
             {...register("email")}
           />
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="mailingListOptIn"
+              {...register("mailingListOptIn")}
+              disabled={submissionState.status === "loading"}
+              className="h-4 w-4 accent-blue-600 dark:accent-blue-400"
+            />
+            <label
+              htmlFor="mailingListOptIn"
+              className="text-xs text-white/90 dark:text-gray-200"
+            >
+              Sign up for the Metaculus mailing list
+            </label>
+          </div>
           <FormError
             errors={errors}
             name="email"
