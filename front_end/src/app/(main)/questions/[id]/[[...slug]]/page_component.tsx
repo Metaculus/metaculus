@@ -4,36 +4,22 @@ import { FC } from "react";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
-import CommentFeed from "@/components/comment_feed";
-import ConditionalTimeline from "@/components/conditional_timeline";
-import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
-import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import ForecastMaker from "@/components/forecast_maker";
-import BackgroundInfo from "@/components/question/background_info";
-import ResolutionCriteria from "@/components/question/resolution_criteria";
 import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import {
-  getPostTitle,
-  isConditionalPost,
-  isGroupOfQuestionsPost,
-  isQuestionPost,
-} from "@/utils/questions/helpers";
+import { getPostTitle } from "@/utils/questions/helpers";
 
-import { cachedGetPost } from "./utils/get_post";
-import HistogramDrawer from "../components/histogram_drawer";
-import KeyFactorsSection from "../components/key_factors/key_factors_section";
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import QuestionHeader from "../components/question_header";
+import QuestionLayout from "../components/question_layout";
+import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+import { cachedGetPost } from "./utils/get_post";
 
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
@@ -61,6 +47,7 @@ const IndividualQuestionPage: FC<{
     extractPreselectedGroupQuestionId(searchParams);
 
   const questionTitle = getPostTitle(postData);
+
   return (
     <EmbedModalContextProvider>
       <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
@@ -89,64 +76,22 @@ const IndividualQuestionPage: FC<{
                       />
                     </div>
                   )}
-                  <div className="relative z-10 flex w-full flex-col gap-4">
-                    <section className="flex w-[48rem] max-w-full flex-col gap-5 rounded border-transparent bg-gray-0 p-4 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8">
-                      {isCommunityQuestion && (
-                        <CommunityDisclaimer
-                          project={postData.projects.default_project}
-                          variant="standalone"
-                          className="block sm:hidden"
-                        />
-                      )}
-                      <QuestionHeader post={postData} />
-                      {isQuestionPost(postData) && (
-                        <DetailedQuestionCard post={postData} />
-                      )}
-                      {isGroupOfQuestionsPost(postData) && (
-                        <DetailedGroupCard
-                          post={postData}
-                          preselectedQuestionId={preselectedGroupQuestionId}
-                        />
-                      )}
-                      <ForecastMaker post={postData} />
-                      <div>
-                        <div className="flex flex-col gap-2.5">
-                          <ResolutionCriteria post={postData} />
-                          {isConditionalPost(postData) && (
-                            <ConditionalTimeline post={postData} />
-                          )}
-
-                          <KeyFactorsSection
-                            postId={postData.id}
-                            postStatus={postData.status}
-                          />
-
-                          <BackgroundInfo post={postData} />
-                          {isGroupOfQuestionsPost(postData) &&
-                            postData.group_of_questions.graph_type ===
-                              GroupOfQuestionsGraphType.FanGraph && (
-                              <DetailedGroupCard
-                                post={postData}
-                                preselectedQuestionId={
-                                  preselectedGroupQuestionId
-                                }
-                                groupPresentationOverride={
-                                  GroupOfQuestionsGraphType.MultipleChoiceGraph
-                                }
-                                className="mt-2"
-                              />
-                            )}
-                          <HistogramDrawer post={postData} />
-                        </div>
-                      </div>
-                    </section>
-                    <Sidebar
+                  <QuestionLayout
+                    postData={postData}
+                    preselectedGroupQuestionId={preselectedGroupQuestionId}
+                  >
+                    {isCommunityQuestion && (
+                      <CommunityDisclaimer
+                        project={postData.projects.default_project}
+                        variant="standalone"
+                        className="block sm:hidden"
+                      />
+                    )}
+                    <QuestionView
                       postData={postData}
-                      layout="mobile"
-                      questionTitle={questionTitle}
+                      preselectedGroupQuestionId={preselectedGroupQuestionId}
                     />
-                    <CommentFeed postData={postData} />
-                  </div>
+                  </QuestionLayout>
                 </div>
                 <Sidebar postData={postData} questionTitle={questionTitle} />
               </div>

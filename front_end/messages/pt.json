@@ -1436,5 +1436,16 @@
   "forecasterView": "Visualização do Previsor",
   "forecasterViewDescription": "Layout rico em informações, recomendado para usuários experientes",
   "settingsDefaultLanguage": "Idioma Padrão",
+  "questionUpcomingMessage": "Esta pergunta ainda não está aberta para previsões.",
+  "questionOpenMessage": "A comunidade vê isso como uma incerteza.",
+  "questionClosedMessage": "Esta pergunta está fechada para previsões.",
+  "questionResolvedMessage": "A comunidade deu a isso uma chance de <b>{probability}%</b>, e o resultado foi <b>{resolution}</b>.",
+  "unknown": "Desconhecido",
+  "lowest": "Mais baixo",
+  "highest": "Mais alto",
+  "timeline": "Linha do tempo",
+  "inNews": "Nas notícias",
+  "info": "Informações da pergunta",
+  "hiddenUntil": "Oculto até",
   "toggledTimelines": "Linhas do Tempo Alternadas"
 }

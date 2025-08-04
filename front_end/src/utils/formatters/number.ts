@@ -96,3 +96,27 @@ export function abbreviatedNumber(
     toScientificNotation(val, sigfigs, leadingNumbers, trailingZeros) + suffix
   );
 }
+
+export function formatNumberWithUnit(
+  val: number | string,
+  unit?: string,
+  sigfigs = 3,
+  trailingZeros = false,
+  scaling?: Scaling,
+  minThousandsPow = 4
+): string {
+  const formattedNumber = abbreviatedNumber(
+    val,
+    sigfigs,
+    trailingZeros,
+    scaling,
+    minThousandsPow
+  );
+
+  if (!unit) return formattedNumber;
+
+  if (typeof val === "number" && Math.abs(val) === 1) {
+    return `${formattedNumber} ${unit}`;
+  }
+  return `${formattedNumber} ${unit}`;
+}

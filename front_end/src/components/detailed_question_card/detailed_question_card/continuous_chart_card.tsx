@@ -23,6 +23,7 @@ type Props = {
   hideCP?: boolean;
   nrForecasters?: number;
   forecastAvailability?: ForecastAvailability;
+  hideTitle?: boolean;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -30,6 +31,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   hideCP,
   nrForecasters,
   forecastAvailability,
+  hideTitle,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -202,7 +204,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           unit={question.unit}
           inboundOutcomeCount={question.inbound_outcome_count}
           simplifiedCursor={question.type !== QuestionType.Binary || !user}
-          title={t("forecastTimelineHeading")}
+          title={hideTitle ? undefined : t("forecastTimelineHeading")}
           forecastAvailability={forecastAvailability}
           cursorTooltip={
             question.type === QuestionType.Binary && !user

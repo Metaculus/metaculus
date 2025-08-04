@@ -13,6 +13,7 @@ type Props = {
   labelVisibilityMap: boolean[];
   widthPerLabel?: number;
   allQuestionsEmpty?: boolean;
+  colorful?: boolean;
 };
 
 const TimeSeriesLabel: FC<Props & any> = ({
@@ -20,6 +21,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
   labelVisibilityMap,
   widthPerLabel,
   allQuestionsEmpty = false,
+  colorful = false,
   ...props
 }) => {
   const { datum, y, dy, scale, ...rest } = props;
@@ -64,7 +66,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
 
   return (
     <g>
-      {(datum.isClosed || datum.resolution) && !datum.isEmpty && (
+      {!colorful && (datum.isClosed || datum.resolution) && !datum.isEmpty && (
         <VictoryLabel
           datum={datum}
           y={scale.y(datum.y)}
@@ -102,13 +104,15 @@ const TimeSeriesLabel: FC<Props & any> = ({
         className="font-inter"
         style={{
           fontSize: 16,
-          fontWeight: 700,
+          fontWeight: colorful ? 500 : 700,
           lineHeight: "24px",
           fontFamily: "var(--font-inter-variable)",
           fill: ({ datum }: any) =>
-            datum.isEmpty
-              ? getThemeColor(METAC_COLORS.gray["500"])
-              : getLabelColor(datum),
+            colorful
+              ? getThemeColor(METAC_COLORS.gray["900"])
+              : datum.isEmpty
+                ? getThemeColor(METAC_COLORS.gray["500"])
+                : getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>
           labelVisibilityMap[index] ? `${datum.label}` : ""
