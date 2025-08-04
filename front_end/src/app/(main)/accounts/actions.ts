@@ -78,7 +78,10 @@ export type SignUpActionState =
   | null;
 
 export async function signUpAction(
-  validatedSignupData: SignUpSchema & { redirectUrl?: string }
+  validatedSignupData: SignUpSchema & {
+    redirectUrl?: string;
+    appTheme?: string;
+  }
 ): Promise<SignUpActionState> {
   const headersList = await headers();
 
@@ -101,6 +104,7 @@ export async function signUpAction(
         redirect_url: validatedSignupData.redirectUrl,
         invite_token: validatedSignupData.inviteToken,
         language: currentLanguage,
+        app_theme: validatedSignupData.appTheme,
       },
       {
         ...(validatedSignupData.turnstileToken
