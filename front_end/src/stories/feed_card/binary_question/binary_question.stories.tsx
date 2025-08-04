@@ -4,6 +4,10 @@ import ConsumerPostCard from "@/components/consumer_post_card";
 import PostCard from "@/components/post_card";
 import { createConditionalRenderer } from "@/stories/utils/renderer/conditional-renderer";
 import { stripUserPredictions } from "@/stories/utils/transforms/strip_user_predictions";
+import {
+  CpMovementState,
+  withCpMovement,
+} from "@/stories/utils/transforms/with_cp_movement";
 import { PostWithForecasts } from "@/types/post";
 
 import { getMockData } from "./mock_data";
@@ -15,6 +19,7 @@ type StoryProps = {
   forCommunityFeed?: boolean;
   isConsumer?: boolean;
   hideUserPredictions?: boolean;
+  cpMovement?: CpMovementState;
 };
 
 const meta = {
@@ -29,6 +34,11 @@ const meta = {
     hideUserPredictions: {
       control: { type: "boolean" },
       description: "Hide user predictions in graph cards",
+    },
+    cpMovement: {
+      control: { type: "radio" },
+      options: ["up", "down", "none"],
+      description: "Toggle CP Movement (up, down, none)",
     },
     forCommunityFeed: {
       table: {
@@ -46,6 +56,14 @@ const render = createConditionalRenderer<StoryProps>({
   componentSelector: (args) => (args.isConsumer ? ConsumerPostCard : PostCard),
   transformRules: [
     {
+      key: "cpMovement",
+      when: (args) => args.cpMovement !== undefined,
+      transform: (args) => ({
+        ...args,
+        post: withCpMovement(args.post, args.cpMovement ?? "none"),
+      }),
+    },
+    {
       key: "hideUserPredictions",
       when: (args) => !!args.hideUserPredictions,
       transform: (args) => ({
@@ -54,8 +72,8 @@ const render = createConditionalRenderer<StoryProps>({
       }),
     },
   ],
-  buildKey: (_args, appliedKeys) =>
-    appliedKeys.length > 0 ? appliedKeys.join("-") : "default",
+  buildKey: (args, appliedKeys) =>
+    `${appliedKeys.join("-")}-${args.cpMovement ?? "none"}`,
 });
 
 export const Ongoing: Story = {

@@ -4,6 +4,10 @@ import ConsumerPostCard from "@/components/consumer_post_card";
 import PostCard from "@/components/post_card";
 import { createConditionalRenderer } from "@/stories/utils/renderer/conditional-renderer";
 import { stripUserPredictions } from "@/stories/utils/transforms/strip_user_predictions";
+import {
+  CpMovementState,
+  withCpMovement,
+} from "@/stories/utils/transforms/with_cp_movement";
 import { PostWithForecasts } from "@/types/post";
 
 import { getMockData } from "./mock_data";
@@ -16,6 +20,7 @@ type StoryProps = {
   forCommunityFeed?: boolean;
   isConsumer?: boolean;
   hideUserPredictions?: boolean;
+  cpMovement?: CpMovementState;
 };
 
 const meta = {
@@ -23,18 +28,19 @@ const meta = {
   component: PostCard,
   argTypes: {
     isConsumer: {
-      control: {
-        type: "boolean",
-      },
+      control: { type: "boolean" },
     },
     hideUserPredictions: {
       control: { type: "boolean" },
       description: "Hide user predictions in graph cards",
     },
+    cpMovement: {
+      control: { type: "radio" },
+      options: ["up", "down", "none"],
+      description: "Toggle CP Movement (up, down, none)",
+    },
     forCommunityFeed: {
-      table: {
-        disable: true,
-      },
+      table: { disable: true },
     },
   },
 } satisfies Meta<StoryProps>;
@@ -47,6 +53,14 @@ const render = createConditionalRenderer<StoryProps>({
   componentSelector: (args) => (args.isConsumer ? ConsumerPostCard : PostCard),
   transformRules: [
     {
+      key: "cpMovement",
+      when: () => true,
+      transform: (args) => ({
+        ...args,
+        post: withCpMovement(args.post, args.cpMovement ?? "none"),
+      }),
+    },
+    {
       key: "hideUserPredictions",
       when: (args) => !!args.hideUserPredictions,
       transform: (args) => ({
@@ -55,8 +69,8 @@ const render = createConditionalRenderer<StoryProps>({
       }),
     },
   ],
-  buildKey: (_args, appliedKeys) =>
-    appliedKeys.length > 0 ? appliedKeys.join("-") : "default",
+  buildKey: (args, appliedKeys) =>
+    `${appliedKeys.join("-")}-${args.cpMovement ?? "none"}`,
 });
 
 export const Ongoing: Story = {
@@ -65,6 +79,7 @@ export const Ongoing: Story = {
     post: ongoingArgs as unknown as PostWithForecasts,
     isConsumer: false,
     hideUserPredictions: false,
+    cpMovement: "none",
   },
 };
 
@@ -80,16 +95,13 @@ export const CpHidden: Story = {
         status: "open",
         resolution: null,
         aggregations: {
-          recency_weighted: {
-            history: [],
-          },
+          recency_weighted: { history: [] },
         },
-        my_forecasts: {
-          history: [],
-        },
+        my_forecasts: { history: [] },
       },
     } as unknown as PostWithForecasts,
     hideUserPredictions: false,
+    cpMovement: "none",
   },
 };
 
@@ -106,6 +118,7 @@ export const Closed: Story = {
       },
     } as unknown as PostWithForecasts,
     hideUserPredictions: false,
+    cpMovement: "none",
   },
 };
 
@@ -115,10 +128,9 @@ export const Resolved: Story = {
     post: {
       ...closedArgs,
       status: "resolved",
-      question: {
-        ...closedArgs.question,
-      },
+      question: { ...closedArgs.question },
     } as unknown as PostWithForecasts,
     hideUserPredictions: false,
+    cpMovement: "none",
   },
 };
