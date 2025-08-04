@@ -1435,5 +1435,16 @@
   "forecasterView": "預測者視圖",
   "forecasterViewDescription": "信息豐富的佈局，推薦給經驗豐富的用戶",
   "settingsDefaultLanguage": "預設語言",
+  "questionUpcomingMessage": "此問題尚未開放預測。",
+  "questionOpenMessage": "社群認為這是個五五波。",
+  "questionClosedMessage": "此問題已關閉預測。",
+  "questionResolvedMessage": "社群給予此問題 <b>{probability}%</b> 的機率，結果為 <b>{resolution}</b>。",
+  "unknown": "未知",
+  "lowest": "最低",
+  "highest": "最高",
+  "timeline": "時間軸",
+  "inNews": "新聞中的",
+  "info": "問題資訊",
+  "hiddenUntil": "隱藏至",
   "toggledTimelines": "切換時間線"
 }

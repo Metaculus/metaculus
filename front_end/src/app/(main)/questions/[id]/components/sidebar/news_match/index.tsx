@@ -7,13 +7,16 @@ import NewsMatchDrawer from "./news_match_drawer";
 
 interface Props {
   questionId: number;
+  withoutToggle?: boolean;
 }
 
-const NewsMatch: FC<Props> = async ({ questionId }) => {
+const NewsMatch: FC<Props> = async ({ questionId, withoutToggle }) => {
   const articles = await ServerPostsApi.getRelatedNews(questionId);
 
   if (articles.length > 0) {
-    return <NewsMatchDrawer articles={articles} />;
+    return (
+      <NewsMatchDrawer articles={articles} withoutToggle={withoutToggle} />
+    );
   } else {
     return null;
   }
