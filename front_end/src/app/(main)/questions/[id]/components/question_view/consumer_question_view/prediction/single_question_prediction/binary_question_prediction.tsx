@@ -28,7 +28,10 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
         size={"md"}
         className="flex min-w-0 sm:hidden"
       />
-      <FontAwesomeIcon className="text-purple-700" icon={faArrowRightLong} />
+      <FontAwesomeIcon
+        className="text-purple-700 dark:text-purple-700-dark"
+        icon={faArrowRightLong}
+      />
       <QuestionResolutionChipFacade
         question={q}
         size="lg"
@@ -97,7 +100,7 @@ const QuestionInfo: React.FC<{
   return (
     <div
       className={cn(
-        "mt-4 text-center text-blue-800 dark:text-gray-300",
+        "mt-4 text-center text-blue-800 dark:text-blue-800-dark",
         question.status !== QuestionStatus.RESOLVED && "mx-auto max-w-[170px]"
       )}
     >

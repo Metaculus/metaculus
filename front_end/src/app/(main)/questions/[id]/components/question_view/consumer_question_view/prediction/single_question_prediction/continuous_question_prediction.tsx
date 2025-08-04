@@ -59,7 +59,7 @@ const ContinuousQuestionRange: React.FC<{
       : "text-olive-800 dark:text-olive-800-dark"
   );
   return (
-    <div className="flex w-full flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
+    <div className="flex w-full flex-col gap-1 text-sm text-gray-700 dark:text-gray-700-dark">
       <p className="m-0 flex justify-between">
         {t("lowest")}:{" "}
         <span className={labelClassName}>

@@ -69,7 +69,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
       <div className="mt-6 sm:mt-8">
         {showClosedMessageMultipleChoice && (
-          <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700">
+          <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
             {t("predictionClosedMessage")}
           </p>
         )}
@@ -80,7 +80,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           <ConsumerQuestionPrediction postData={postData} />
 
           {showClosedMessageFanGraph && (
-            <p className="my-8 text-center text-sm leading-[20px] text-gray-700">
+            <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
             </p>
           )}
