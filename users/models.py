@@ -52,6 +52,8 @@ class User(TimeStampedModel, AbstractUser):
     profile_picture = models.ImageField(null=True, blank=True, default=None)
 
     # Subscription settings
+    # We use None to indicate that the user has not yet made a choice
+    newsletter_optin = models.BooleanField(default=None, null=True)
     unsubscribed_mailing_tags = ArrayField(
         models.CharField(max_length=200), blank=True, default=list
     )
