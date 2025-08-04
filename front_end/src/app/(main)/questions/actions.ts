@@ -23,6 +23,7 @@ import ServerQuestionsApi, {
   WithdrawalPayload,
 } from "@/services/api/questions/questions.server";
 import { CoherenceLink } from "@/types/coherence";
+import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
 import { Question } from "@/types/question";
@@ -326,19 +327,18 @@ export async function createCoherenceLink(
   direction: string,
   strength: string,
   type: string
-) {
+): Promise<null | ErrorResponse> {
   try {
-    return await CoherenceLinksApiClass.createCoherenceLink({
+    await CoherenceLinksApiClass.createCoherenceLink({
       question1_id: question1.id,
       question2_id: question2.id,
       direction,
       strength,
       type,
     });
+    return null;
   } catch (err) {
-    return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
-    };
+    return ApiError.isApiError(err) ? err.data : {};
   }
 }
 

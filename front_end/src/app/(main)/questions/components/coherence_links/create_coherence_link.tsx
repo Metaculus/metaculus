@@ -9,6 +9,7 @@ import QuestionPicker, {
   SearchedQuestionType,
 } from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionWithForecasts } from "@/types/question";
@@ -47,6 +48,11 @@ const StyledSelect: FC<{
   </Select>
 );
 
+enum LinkCreationErrors {
+  questionPairExists = "questionPairExists",
+  questionMustDiffer = "questionMustDiffer",
+}
+
 export const CreateCoherenceLink: FC<Props> = ({
   post,
   linkCreated,
@@ -61,7 +67,20 @@ export const CreateCoherenceLink: FC<Props> = ({
     useState<QuestionWithForecasts | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
   const [pickerInitialSearch, setPickerInitialSearch] = useState<string>("");
+  const [validationErrors, setValidationErrors] =
+    useState<LinkCreationErrors | null>(null);
   const t = useTranslations();
+
+  function getLinkCreationError(constraintName: string | null) {
+    switch (constraintName) {
+      case "different_questions":
+        return LinkCreationErrors.questionMustDiffer;
+      case "unique_user_question_pair":
+        return LinkCreationErrors.questionPairExists;
+      default:
+        return null;
+    }
+  }
 
   async function saveQuestion() {
     let question1: Question | null;
@@ -78,15 +97,23 @@ export const CreateCoherenceLink: FC<Props> = ({
       question2 = postQuestion;
     }
 
-    await createCoherenceLink(
+    createCoherenceLink(
       question1,
       question2,
       direction,
       strength,
       LinkTypes.Causal
-    );
-    await cancelLink();
-    await linkCreated();
+    ).then(async (result) => {
+      if (result !== null) {
+        const message = result?.non_field_errors?.at(0);
+        const constraintName =
+          message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
+        setValidationErrors(getLinkCreationError(constraintName));
+      } else {
+        await cancelLink();
+        await linkCreated();
+      }
+    });
   }
 
   async function cancelLink() {
@@ -224,6 +251,12 @@ export const CreateCoherenceLink: FC<Props> = ({
           />
         </Button>
       </div>
+      {validationErrors && (
+        <FormErrorMessage
+          className={"text-base"}
+          errors={t(validationErrors)}
+        />
+      )}
     </div>
   );
 };

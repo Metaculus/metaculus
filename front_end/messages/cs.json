@@ -1435,5 +1435,7 @@
   "FABRulesRule3": "Na jednoho uživatele jeden soutěžní bot",
   "FABRulesRule4": "Výrobci botů musí být ochotni sdílet kód nebo popis, jak jejich bot pracuje, a umožnit členu Metaculu zkontrolovat jejich kód.",
   "FABdesc4": "Výkon botů porovnáván s předpověďmi lidské komunity Metaculus",
+  "questionPairExists": "Mezi těmito otázkami jste již vytvořili odkaz. Pokud chcete změnit sílu odkazu, musíte nejdříve odstranit současný odkaz.",
+  "questionMustDiffer": "Nemůžete propojit otázku samou se sebou.",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

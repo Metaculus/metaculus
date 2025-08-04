@@ -1430,5 +1430,7 @@
   "linkQuestion": "Add Question Link",
   "low" : "small",
   "medium" : "medium",
-  "high" : "large"
+  "high" : "large",
+  "questionPairExists" : "You've already made a link between these questions. You must delete the current link if you want to change the strength.",
+  "questionMustDiffer" : "You can't link a question to itself."
 }

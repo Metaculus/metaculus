@@ -1435,5 +1435,7 @@
   "FABRulesRule3": "Un bot elegible para premios por usuario",
   "FABRulesRule4": "Los creadores de bots deben estar dispuestos a compartir el código o una descripción de cómo funciona su bot y permitir que un miembro de Metaculus inspeccione su código.",
   "FABdesc4": "Rendimiento del bot evaluado en comparación con la predicción de la comunidad humana de Metaculus",
+  "questionPairExists": "Ya has creado un enlace entre estas preguntas. Debes eliminar el enlace actual si deseas cambiar la fuerza.",
+  "questionMustDiffer": "No puedes vincular una pregunta consigo misma.",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
