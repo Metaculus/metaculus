@@ -22,6 +22,7 @@ import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
@@ -40,6 +41,7 @@ export const SignupForm: FC<{
   inviteToken?: string;
 }> = ({ forceIsBot, addToProject, email, inviteToken }) => {
   const t = useTranslations();
+  const { themeChoice } = useAppTheme();
   const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const [isTurnstileValidated, setIsTurnstileValidate] =
     // Treat as validated if project is not configured with Turnstile key
@@ -68,6 +70,7 @@ export const SignupForm: FC<{
     const response = await signUpAction({
       ...data,
       redirectUrl: currentLocation,
+      appTheme: themeChoice,
     });
 
     if (response && response.errors) {
