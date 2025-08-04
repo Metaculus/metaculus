@@ -1,4 +1,3 @@
-import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/group_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
@@ -6,6 +5,7 @@ import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
+  checkGroupOfQuestionsPostType,
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";

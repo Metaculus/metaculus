@@ -1,4 +1,3 @@
-import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/group_forecast_card";
 import DateForecastCard from "@/components/consumer_post_card/group_forecast_card/date_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
@@ -6,7 +5,10 @@ import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
-import { isMultipleChoicePost } from "@/utils/questions/helpers";
+import {
+  checkGroupOfQuestionsPostType,
+  isMultipleChoicePost,
+} from "@/utils/questions/helpers";
 
 type Props = {
   postData: PostWithForecasts;

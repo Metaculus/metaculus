@@ -1,21 +1,17 @@
 import { FC } from "react";
 
-import {
-  GroupOfQuestionsGraphType,
-  PostGroupOfQuestions,
-  PostWithForecasts,
-} from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
-  isGroupOfQuestionsPost,
+  checkGroupOfQuestionsPostType,
   isMultipleChoicePost,
 } from "@/utils/questions/helpers";
 
+import TimeSeriesChart from "../time_series_chart";
 import DateForecastCard from "./date_forecast_card";
 import NumericForecastCard from "./numeric_forecast_card";
 import PercentageForecastCard from "./percentage_forecast_card";
-import TimeSeriesChart from "../time_series_chart";
 
 type Props = {
   post: PostWithForecasts;
@@ -55,17 +51,5 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
 
   return null;
 };
-
-export function checkGroupOfQuestionsPostType<T extends QuestionType>(
-  post: PostWithForecasts,
-  type: T
-): post is PostWithForecasts & {
-  group_of_questions: PostGroupOfQuestions<QuestionWithForecasts & { type: T }>;
-} {
-  return (
-    isGroupOfQuestionsPost(post) &&
-    post.group_of_questions.questions[0]?.type === type
-  );
-}
 
 export default GroupForecastCard;

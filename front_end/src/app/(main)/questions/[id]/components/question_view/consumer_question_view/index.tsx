@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/group_forecast_card";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {
   GroupOfQuestionsGraphType,
@@ -13,6 +12,7 @@ import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import {
+  checkGroupOfQuestionsPostType,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
 } from "@/utils/questions/helpers";
