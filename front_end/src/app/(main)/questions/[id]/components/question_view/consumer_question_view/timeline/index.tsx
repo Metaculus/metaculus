@@ -2,11 +2,7 @@ import { checkGroupOfQuestionsPostType } from "@/components/consumer_post_card/g
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import {
-  GroupOfQuestionsGraphType,
-  PostWithForecasts,
-  QuestionStatus,
-} from "@/types/post";
+import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
@@ -44,13 +40,6 @@ const QuestionTimeline: React.FC<Props> = ({
       QuestionType.Date
     );
 
-    if (
-      postData.group_of_questions?.graph_type ===
-      GroupOfQuestionsGraphType.FanGraph
-    ) {
-      return null;
-    }
-
     return (
       <div className={wrapperClass}>
         {isDateType ? (
@@ -70,13 +59,6 @@ export function hasTimeline(postData: PostWithForecasts): boolean {
     return postData.question.status !== QuestionStatus.UPCOMING;
   }
   if (isGroupOfQuestionsPost(postData)) {
-    if (
-      postData.group_of_questions?.graph_type ===
-      GroupOfQuestionsGraphType.FanGraph
-    ) {
-      return false;
-    }
-
     return true;
   }
   return false;

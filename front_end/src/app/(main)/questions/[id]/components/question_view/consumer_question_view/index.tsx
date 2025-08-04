@@ -40,7 +40,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
   const reverseOrder =
     (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) &&
-    !(isDateGroup || isFanGraph);
+    !isDateGroup;
 
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
