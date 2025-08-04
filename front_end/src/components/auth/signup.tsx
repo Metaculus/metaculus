@@ -283,6 +283,13 @@ export const SignUpModal: FC<SignInModalType> = ({
               />
               <span className="ml-4">{t("registrationInfoAbility5")}</span>
             </li>
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility6")}</span>
+            </li>
           </ul>
           <hr className="my-6 border-gray-300 dark:border-gray-300-dark sm:hidden" />
           <SocialButtons type="signup" />
