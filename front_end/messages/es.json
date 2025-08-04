@@ -1435,5 +1435,6 @@
   "FABRulesRule3": "Un bot elegible para premios por usuario",
   "FABRulesRule4": "Los creadores de bots deben estar dispuestos a compartir el código o una descripción de cómo funciona su bot y permitir que un miembro de Metaculus inspeccione su código.",
   "FABdesc4": "Rendimiento del bot evaluado en comparación con la predicción de la comunidad humana de Metaculus",
+  "signUpNewsletterOptin": "Me gustaría recibir actualizaciones sobre nuevos torneos y noticias de la plataforma",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
