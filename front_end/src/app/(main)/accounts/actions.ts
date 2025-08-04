@@ -83,8 +83,7 @@ export async function signUpAction(
   const headersList = await headers();
 
   // Get current language from cookie or autodetected locale
-  const currentLanguage =
-    (await LanguageService.getLocaleCookie()) || (await getLocale());
+  const currentLanguage = await getLocale();
 
   const ipAddress =
     headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");

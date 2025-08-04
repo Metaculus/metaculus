@@ -3,11 +3,11 @@ import Negotiator from "negotiator";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-import { LOCALE_COOKIE_NAME } from "@/services/language_service";
-
-// Read the translations documentation for more info on "original"
-const locales = ["cs", "en", "es", "zh", "zh-TW", "pt", "original"];
-const defaultLocale = "en";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE_NAME,
+  LOCALES,
+} from "@/services/language_service";
 
 async function getLocale(): Promise<string> {
   const headersStore = await headers();
@@ -16,7 +16,7 @@ async function getLocale(): Promise<string> {
   const cookieStore = await cookies();
   const cookieLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
 
-  let options = [defaultLocale];
+  let options = [DEFAULT_LOCALE];
 
   if (cookieLocale) {
     options = [cookieLocale];
@@ -34,9 +34,9 @@ async function getLocale(): Promise<string> {
   options = options.filter((opt) => opt !== "*");
 
   try {
-    return match(options, locales, defaultLocale);
+    return match(options, LOCALES, DEFAULT_LOCALE);
   } catch {
-    return defaultLocale;
+    return DEFAULT_LOCALE;
   }
 }
 

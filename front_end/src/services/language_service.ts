@@ -8,6 +8,9 @@ import { CurrentUser } from "@/types/users";
 
 const LOCALE_COOKIE_NAME = "NEXT_LOCALE";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year in seconds
+const LOCALES = ["cs", "en", "es", "zh", "zh-TW", "pt", "original"];
+// Read the translations documentation for more info on "original"
+const DEFAULT_LOCALE = "en";
 
 export class LanguageService {
   /**
@@ -54,7 +57,7 @@ export class LanguageService {
     currentLocale: string
   ): Promise<void> {
     // Only sync if user is authenticated and has a language preference
-    if (!user?.language) return;
+    if (!user?.language || !LOCALES.includes(user.language)) return;
 
     // Check if user's preference matches current locale
     if (user.language !== currentLocale) {
@@ -71,4 +74,4 @@ export class LanguageService {
 }
 
 // Export constants for external use
-export { LOCALE_COOKIE_NAME, COOKIE_MAX_AGE };
+export { LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE_NAME, COOKIE_MAX_AGE };
