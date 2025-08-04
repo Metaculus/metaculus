@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class ResolutionType(models.TextChoices):
+class UnsuccessfulResolutionType(models.TextChoices):
     AMBIGUOUS = "ambiguous"
     ANNULLED = "annulled"
 

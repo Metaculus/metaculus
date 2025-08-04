@@ -8,7 +8,7 @@ from django.utils import timezone
 from comments.models import Comment
 from misc.models import PostArticle
 from posts.models import Post, Vote, PostActivityBoost
-from questions.constants import QuestionStatus
+from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.models import Question
 from users.models import User
 from utils.models import ModelBatchUpdater
@@ -46,11 +46,13 @@ def compute_question_hotness(question: Question) -> float:
     )
 
     # Resolution time
-    hotness += (
-        decay(20, question.resolution_set_time)
-        if question.resolution_set_time and now > question.resolution_set_time
-        else 0
-    )
+    if (
+        question.resolution_set_time
+        and now > question.resolution_set_time
+        and question.resolution
+        and question.resolution not in UnsuccessfulResolutionType
+    ):
+        hotness += decay(20, question.resolution_set_time)
 
     return hotness
 

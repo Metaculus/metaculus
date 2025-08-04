@@ -19,6 +19,7 @@ export type SignUpProps = {
   campaign_data?: object;
   redirect_url?: string;
   invite_token?: string;
+  newsletter_optin?: boolean;
 };
 
 class ServerAuthApiClass extends ApiService {
