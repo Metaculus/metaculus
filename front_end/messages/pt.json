@@ -1436,14 +1436,16 @@
   "forecasterView": "Visualização do Previsor",
   "forecasterViewDescription": "Layout rico em informações, recomendado para usuários experientes",
   "settingsDefaultLanguage": "Idioma Padrão",
-  "toggledTimelines": "Linhas do Tempo Alternadas",
-  "hiddenUntil": "Oculto até",
   "questionUpcomingMessage": "Esta pergunta ainda não está aberta para previsões.",
-  "questionOpenMessage": "A comunidade vê isso como imprevisível.",
+  "questionOpenMessage": "A comunidade vê isso como uma incerteza.",
   "questionClosedMessage": "Esta pergunta está fechada para previsões.",
-  "questionResolvedMessage": "A comunidade deu a isso uma chance de {probability}% e foi resolvido como <b>{resolution}</b>.",
+  "questionResolvedMessage": "A comunidade deu a isso uma chance de {probability}%, e o resultado foi <b>{resolution}</b>.",
   "unknown": "Desconhecido",
   "lowest": "Mais baixo",
   "highest": "Mais alto",
-  "withdrawAfterPercentSetting2": "da duração total da pergunta"
+  "timeline": "Linha do tempo",
+  "inNews": "Nas notícias",
+  "info": "Informações da pergunta",
+  "hiddenUntil": "Oculto até",
+  "toggledTimelines": "Linhas do Tempo Alternadas"
 }

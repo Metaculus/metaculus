@@ -1434,7 +1434,6 @@
   "pageNotFound": "Page not found",
   "thinkSupposedPageNote": "If you think there's supposed to be a page here, <link>send a note to us</link> and we'll try to get it fixed.",
   "returnToHomePage": "Return to Home page",
-  "hiddenUntil": "Hidden until",
   "questionUpcomingMessage": "This question is not yet open for predicting.",
   "questionOpenMessage": "The community sees this as a toss-up.",
   "questionClosedMessage": "This question is closed for predictions.",
@@ -1444,5 +1443,6 @@
   "highest": "Highest",
   "timeline": "Timeline",
   "inNews": "In the News",
-  "info": "Question Info"
+  "info": "Question Info",
+  "hiddenUntil": "Hidden until"
 }

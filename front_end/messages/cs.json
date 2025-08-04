@@ -1438,14 +1438,16 @@
   "forecasterView": "Zobrazení pro prognostiky",
   "forecasterViewDescription": "Na informace bohaté rozvržení, doporučeno pro zkušené uživatele",
   "settingsDefaultLanguage": "Výchozí jazyk",
-  "toggledTimelines": "Přepínané časové osy",
-  "hiddenUntil": "Skryto do",
   "questionUpcomingMessage": "Tato otázka ještě není otevřena pro předpovědi.",
-  "questionOpenMessage": "Pro komunitu je to nerozhodně.",
+  "questionOpenMessage": "Komunita vidí tuto otázku jako nerozhodnou.",
   "questionClosedMessage": "Tato otázka je uzavřena pro předpovědi.",
-  "questionResolvedMessage": "Komunita tomu dala {probability}% šanci a bylo to vyřešeno jako <b>{resolution}</b>.",
+  "questionResolvedMessage": "Komunita tomuto dala šanci {probability}%, a výsledkem je <b>{resolution}</b>.",
   "unknown": "Neznámé",
   "lowest": "Nejnižší",
   "highest": "Nejvyšší",
-  "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
+  "timeline": "Časová osa",
+  "inNews": "Ve zprávách",
+  "info": "Informace o otázce",
+  "hiddenUntil": "Skryto do",
+  "toggledTimelines": "Přepínané časové osy"
 }

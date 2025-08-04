@@ -1440,14 +1440,16 @@
   "forecasterView": "预测师视图",
   "forecasterViewDescription": "信息丰富的布局，推荐给有经验的用户",
   "settingsDefaultLanguage": "默认语言",
-  "toggledTimelines": "切换时间线",
-  "hiddenUntil": "隐藏至",
   "questionUpcomingMessage": "此问题尚未开放预测。",
-  "questionOpenMessage": "社区将此视为未定局。",
+  "questionOpenMessage": "社区认为这是一个难以抉择的问题。",
   "questionClosedMessage": "此问题已关闭预测。",
-  "questionResolvedMessage": "社区给出了{probability}%的概率，结果为 <b>{resolution}</b>。",
+  "questionResolvedMessage": "社区给出此概率为{probability}%，结果是<b>{resolution}</b>。",
   "unknown": "未知",
   "lowest": "最低",
   "highest": "最高",
-  "withdrawAfterPercentSetting2": "的问题总生命周期"
+  "timeline": "时间线",
+  "inNews": "新闻中",
+  "info": "问题信息",
+  "hiddenUntil": "隐藏至",
+  "toggledTimelines": "切换时间线"
 }
