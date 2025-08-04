@@ -32,6 +32,7 @@ class SignupSerializer(serializers.ModelSerializer):
             "redirect_url",
             "invite_token",
             "language",
+            "app_theme",
         )
         extra_kwargs = {"email": {"required": True}}
 
