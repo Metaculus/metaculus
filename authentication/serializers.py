@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -33,6 +34,18 @@ class SignupSerializer(serializers.ModelSerializer):
             "language",
         )
         extra_kwargs = {"email": {"required": True}}
+
+    def validate_language(self, value: str):
+        try:
+            value = serializers.ChoiceField(
+                choices=settings.LANGUAGES,
+                required=False,
+                allow_null=True,
+            ).run_validation(value)
+        except serializers.ValidationError:
+            return
+
+        return value
 
     def validate_add_to_project(self, value):
         try:
