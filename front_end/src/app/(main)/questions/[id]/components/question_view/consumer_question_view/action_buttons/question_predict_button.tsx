@@ -11,7 +11,7 @@ import MobileAccordionModal from "@/components/forecast_maker/continuous_group_a
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import { useMediaQuery } from "@/hooks/use_media_query";
+import { useBreakpoint } from "@/hooks/tailwind";
 import { PostWithForecasts } from "@/types/post";
 
 type Props = {
@@ -21,7 +21,7 @@ type Props = {
 const QuestionPredictButton: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isDesktop = useBreakpoint("sm");
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
@@ -40,7 +40,7 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
         {t("predict")}
       </Button>
 
-      {isMobile ? (
+      {!isDesktop ? (
         <MobileAccordionModal
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
@@ -57,7 +57,7 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           label={post.question?.title ?? ""}
-          className="w-full max-w-2xl"
+          className="!h-[calc(100vh-200px)] w-full max-w-2xl"
         >
           <ForecastMaker
             post={post}
