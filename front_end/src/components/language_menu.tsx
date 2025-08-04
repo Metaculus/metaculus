@@ -2,13 +2,12 @@
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
-import useSearchParams from "@/hooks/use_search_params";
-import { sendAnalyticsEvent } from "@/utils/analytics";
+import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
 import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
 
 type Props = {
   className?: string;
@@ -42,8 +41,6 @@ export const APP_LANGUAGES = [
 ];
 
 const LanguageMenu: FC<Props> = ({ className }) => {
-  const { params } = useSearchParams();
-  const pathname = usePathname();
   const locale = useLocale();
 
   const languageMenuItems = [
@@ -81,16 +78,9 @@ const LanguageMenu: FC<Props> = ({ className }) => {
               )}
               onClick={(e) => {
                 e.preventDefault();
-                params.delete("locale");
-                params.append("locale", item.locale);
-                sendAnalyticsEvent("translate", { event_label: item.locale });
-                // Certain pages do not trigger an update after calling router.refresh()
-                // so for now I am using a forced page reload when changing the language.
-                // Even though this is horrible, changing the language is not a common
-                // action, so it's ok as the initial implementation
-                // TODO: remove the reload() call from here, and properly fix those pages
-                // which don't render the new language content when calling router.refresh()
-                window.location.href = pathname + "?" + params.toString();
+                updateLanguagePreference(item.locale, false)
+                  .then(() => window.location.reload())
+                  .catch(logError);
               }}
               name="language"
               value={item.locale}

@@ -64,6 +64,7 @@ export type CurrentUser = User & {
   prediction_expiration_percent: number | null;
   app_theme?: AppTheme | null;
   interface_type: InterfaceType;
+  language?: string | null;
 };
 
 export enum ProfilePageMode {
