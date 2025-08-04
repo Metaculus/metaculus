@@ -67,7 +67,7 @@ export const TabsTab = ({
         "whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors",
         isActive
           ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "bg-gray-200 text-gray-800 dark:bg-gray-200-dark dark:text-gray-800-dark"
+          : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark"
       )}
       onClick={(e) => {
         ctx.setActive(value);
