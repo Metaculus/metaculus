@@ -45,7 +45,6 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           title={post.question?.title ?? ""}
-          contentClassName="[&>div:first-child]:mt-[57px]"
         >
           <ForecastMaker
             post={post}
