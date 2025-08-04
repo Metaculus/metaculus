@@ -90,6 +90,7 @@ export async function signUpAction(
         campaign_data: validatedSignupData.campaignData,
         redirect_url: validatedSignupData.redirectUrl,
         invite_token: validatedSignupData.inviteToken,
+        newsletter_optin: validatedSignupData.newsletterOptin,
       },
       {
         ...(validatedSignupData.turnstileToken

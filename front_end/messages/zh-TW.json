@@ -1416,5 +1416,6 @@
   "FABRulesRule3": "每位用戶僅能有一個符合獎品資格的機器人",
   "FABRulesRule4": "機器人製作者必須願意分享其機器人運行的代碼或描述，並允許Metaculus的成員查看其代碼。",
   "FABdesc4": "與 Metaculus 人類社區的預測相比較的機器人性能基準",
+  "signUpNewsletterOptin": "我想收到有關新錦標賽和平台新聞的更新",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

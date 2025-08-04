@@ -1421,5 +1421,6 @@
   "FABRulesRule3": "每位用户只允许一个符合奖项资格的机器人",
   "FABRulesRule4": "机器人制作者必须愿意分享代码或描述他们机器人的工作原理，并允许Metaculus成员检查他们的代码。",
   "FABdesc4": "机器人表现与Metaculus人类社区预测进行基准测试",
+  "signUpNewsletterOptin": "我希望收到有关新锦标赛和平台新闻的更新",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
