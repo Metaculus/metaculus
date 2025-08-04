@@ -1441,7 +1441,7 @@
   "questionUpcomingMessage": "Tato otázka ještě není otevřena pro předpovědi.",
   "questionOpenMessage": "Komunita vidí tuto otázku jako nerozhodnou.",
   "questionClosedMessage": "Tato otázka je uzavřena pro předpovědi.",
-  "questionResolvedMessage": "Komunita tomuto dala šanci {probability}%, a výsledkem je <b>{resolution}</b>.",
+  "questionResolvedMessage": "Komunita tomuto dala šanci <b>{probability}%</b>, a výsledkem je <b>{resolution}</b>.",
   "unknown": "Neznámé",
   "lowest": "Nejnižší",
   "highest": "Nejvyšší",

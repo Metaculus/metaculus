@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import { QuestionResolutionChipFacade } from "@/components/consumer_post_card/question_resolution_chip";
 import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
+import RichText from "@/components/rich_text";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -76,11 +77,18 @@ const QuestionInfo: React.FC<{
           "?";
         const resolution =
           capitalize(question.resolution?.toString()) ?? t("unknown");
-        return t.rich("questionResolvedMessage", {
-          probability,
-          resolution,
-          b: (chunks) => <span className="font-bold">{chunks}</span>,
-        });
+        return (
+          <RichText>
+            {(tags) =>
+              t.rich("questionResolvedMessage", {
+                probability,
+                resolution,
+                b: tags.strong,
+                br: tags.br,
+              })
+            }
+          </RichText>
+        );
       default:
         return null;
     }

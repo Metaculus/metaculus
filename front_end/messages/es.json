@@ -1441,7 +1441,7 @@
   "questionUpcomingMessage": "Esta pregunta aún no está abierta para predicciones.",
   "questionOpenMessage": "La comunidad ve esto como una incógnita.",
   "questionClosedMessage": "Esta pregunta está cerrada para predicciones.",
-  "questionResolvedMessage": "La comunidad le dio a esto una probabilidad del {probability}%, y se resolvió <b>{resolution}</b>.",
+  "questionResolvedMessage": "La comunidad le dio a esto una probabilidad del <b>{probability}%</b>, y se resolvió <b>{resolution}</b>.",
   "unknown": "Desconocido",
   "lowest": "Más bajo",
   "highest": "Más alto",

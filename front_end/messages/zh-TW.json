@@ -1438,7 +1438,7 @@
   "questionUpcomingMessage": "此問題尚未開放預測。",
   "questionOpenMessage": "社群認為這是個五五波。",
   "questionClosedMessage": "此問題已關閉預測。",
-  "questionResolvedMessage": "社群給予此問題 {probability}% 的機率，結果為 <b>{resolution}</b>。",
+  "questionResolvedMessage": "社群給予此問題 <b>{probability}%</b> 的機率，結果為 <b>{resolution}</b>。",
   "unknown": "未知",
   "lowest": "最低",
   "highest": "最高",
