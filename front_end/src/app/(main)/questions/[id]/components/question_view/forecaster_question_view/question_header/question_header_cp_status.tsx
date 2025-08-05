@@ -3,6 +3,8 @@ import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_continuous_resolution_chip";
+import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
+import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import QuestionCPMovement from "@/components/cp_movement";
@@ -27,6 +29,10 @@ const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
   const locale = useLocale();
   const t = useTranslations();
   const forecastAvailability = getQuestionForecastAvailability(question);
+  const continuousAreaChartData = getContinuousAreaChartData({
+    question,
+    isClosed: question.status === QuestionStatus.CLOSED,
+  });
   const isContinuous = [
     QuestionType.Numeric,
     QuestionType.Discrete,
@@ -53,6 +59,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
           formatedResolution={formatedResolution}
           successfullyResolved={successfullyResolved}
           size={size}
+          question={question}
         />
       );
     }
@@ -87,7 +94,12 @@ const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
               size={size}
             />
           </div>
-          {/* TODO: @ncarazon add mini-graph here */}
+          <MinifiedContinuousAreaChart
+            question={question}
+            data={continuousAreaChartData}
+            height={50}
+            forceTickCount={2}
+          />
           <QuestionCPMovement
             question={question}
             className="mx-auto"

@@ -1,20 +1,31 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
+import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
+import { QuestionStatus } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
   formatedResolution: string;
   successfullyResolved: boolean;
   size?: "md" | "lg";
+  question: QuestionWithForecasts;
 };
 
 const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
   formatedResolution,
   successfullyResolved,
   size = "md",
+  question,
 }) => {
   const t = useTranslations();
+  const continuousAreaChartData = getContinuousAreaChartData({
+    question,
+    isClosed: question.status === QuestionStatus.CLOSED,
+  });
+
   return (
     <div
       className={cn("flex w-max justify-center", {
@@ -52,9 +63,12 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
         >
           {formatedResolution}
         </span>
-        {
-          // TODO: @ncarazon add mini-graph here
-        }
+        <MinifiedContinuousAreaChart
+          question={question}
+          data={continuousAreaChartData}
+          height={50}
+          forceTickCount={2}
+        />
       </div>
     </div>
   );
