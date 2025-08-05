@@ -18,7 +18,7 @@ from posts.services.subscriptions import (
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from projects.services.cache import invalidate_projects_questions_count_cache
-from projects.services.common import notify_project_subscriptions_question_open
+from projects.services.subscriptions import notify_project_subscriptions_question_open
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
