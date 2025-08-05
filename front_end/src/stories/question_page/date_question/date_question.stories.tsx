@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
+import ConsumerQuestionLayout from "@/app/(main)/questions/[id]/components/question_layout/consumer_question_layout";
+import ForecasterQuestionLayout from "@/app/(main)/questions/[id]/components/question_layout/forecaster_question_layout";
 import ConsumerQuestionView from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view";
 import ForecasterQuestionView from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import { getMockData as getDateQuestionMockData } from "@/stories/feed_card/date_question/mock_data";
+import { MockCommentsFeedProvider } from "@/stories/utils/mocks/mock_comments_feed_provider";
 import { createConditionalRenderer } from "@/stories/utils/renderer/conditional-renderer";
 import { stripUserPredictions } from "@/stories/utils/transforms/strip_user_predictions";
 import { PostWithForecasts } from "@/types/post";
@@ -34,13 +36,23 @@ const meta = {
   decorators: [
     (Story, context) => {
       const { postData } = context.args;
+      const Layout = context.args.isConsumer
+        ? ConsumerQuestionLayout
+        : ForecasterQuestionLayout;
       return (
         <PostSubscriptionProvider post={postData}>
-          <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
-            <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
-              <Story />
+          <MockCommentsFeedProvider>
+            <div style={{ maxWidth: "703px", margin: "0 auto" }}>
+              <Layout
+                postData={postData}
+                preselectedGroupQuestionId={
+                  context.args.preselectedGroupQuestionId
+                }
+              >
+                <Story />
+              </Layout>
             </div>
-          </CommentsFeedProvider>
+          </MockCommentsFeedProvider>
         </PostSubscriptionProvider>
       );
     },
