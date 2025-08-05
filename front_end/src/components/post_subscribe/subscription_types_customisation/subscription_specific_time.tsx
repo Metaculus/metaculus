@@ -72,7 +72,9 @@ const SubscriptionSectionSpecificTime: FC<
           <div key={index} className="mt-1 flex">
             <DatetimeUtc
               min={currentDateTime}
-              onChange={(dt) => onChange("next_trigger_datetime", dt, index)}
+              onChange={(dt) =>
+                onChange("next_trigger_datetime", dt ?? "", index)
+              }
               defaultValue={sub.next_trigger_datetime}
               className="max-w-[190px] !rounded-none"
             />

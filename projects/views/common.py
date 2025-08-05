@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -11,14 +11,15 @@ from posts.serializers import serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
+    ProjectSerializer,
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
-    TagSerializer,
     ProjectUserSerializer,
     TournamentShortSerializer,
     NewsCategorySerialize,
     serialize_project_index_weights,
+    LeaderboardTagSerializer,
 )
 from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
@@ -30,8 +31,8 @@ from projects.services.common import (
     get_site_main_project,
     get_project_timeline_data,
 )
+from questions.models import Question
 from users.services.common import get_users_by_usernames
-from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
 from utils.tasks import email_data_task
@@ -95,33 +96,10 @@ def categories_list_api_view(request: Request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def tags_list_api_view(request: Request):
-    search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
-        request.query_params.get("search")
-    )
+def leaderboard_tags_list_api_view(request: Request):
+    qs = get_projects_qs().filter_leaderboard_tags()
 
-    def f():
-        qs = get_projects_qs().filter_tags().annotate_posts_count()
-
-        if search_query:
-            qs = qs.filter(name__icontains=search_query)
-        else:
-            qs = qs.order_by("-posts_count")
-
-        qs = qs[0:1000]
-
-        return [
-            {**TagSerializer(obj).data, "posts_count": obj.posts_count}
-            for obj in qs.all()
-        ]
-
-    data = (
-        f()
-        if search_query
-        else cache_get_or_set("tags_list_api_view", f, timeout=3600 * 6)
-    )
-
-    return Response(data)
+    return Response(LeaderboardTagSerializer(qs, many=True).data)
 
 
 @api_view(["GET"])
@@ -214,6 +192,52 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
     )
 
     return Response(serialize_posts_many_forecast_flow(posts, user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_create_api_view(request: Request):
+    serializer = ProjectSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_delete_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj: Project = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Post.objects.filter(default_project=obj).delete()
+    obj.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["PATCH"])
+def project_update_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    serializer = ProjectSerializer(
+        obj,
+        data=request.data,
+        partial=True,
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
 
 
 @api_view(["GET"])

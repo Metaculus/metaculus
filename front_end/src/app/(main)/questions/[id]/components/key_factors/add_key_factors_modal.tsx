@@ -9,7 +9,7 @@ import { FC, useState } from "react";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
+import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { BECommentType } from "@/types/comment";
 import { User } from "@/types/users";
@@ -113,6 +113,11 @@ export const AddKeyFactorsForm = ({
 }) => {
   const t = useTranslations();
 
+  const totalKeyFactorsLimitReached =
+    keyFactors.length +
+      suggestedKeyFactors.filter((kf) => kf.selected).length >=
+    Math.min(factorsLimit, FACTORS_PER_COMMENT);
+
   return (
     <div className="flex w-full flex-col gap-4">
       {suggestedKeyFactors.length > 0 && (
@@ -130,6 +135,7 @@ export const AddKeyFactorsForm = ({
                 variant={keyFactor.selected ? "primary" : "tertiary"}
                 size="xs"
                 className="h-fit w-fit"
+                disabled={totalKeyFactorsLimitReached && !keyFactor.selected}
                 onClick={() => {
                   setSuggestedKeyFactors(
                     suggestedKeyFactors.map((kf) =>
@@ -183,7 +189,7 @@ export const AddKeyFactorsForm = ({
             setKeyFactors([...keyFactors, ""]);
           }}
           disabled={
-            keyFactors.length >= Math.min(factorsLimit, FACTORS_PER_COMMENT) ||
+            totalKeyFactorsLimitReached ||
             keyFactors.at(-1) === "" ||
             !isNil(limitError)
           }
@@ -225,8 +231,8 @@ const AddKeyFactorsModal: FC<Props> = ({
   const {
     keyFactors,
     setKeyFactors,
-    errorMessage,
-    setErrorMessage,
+    errors,
+    setErrors,
     suggestedKeyFactors,
     setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
@@ -250,12 +256,14 @@ const AddKeyFactorsModal: FC<Props> = ({
 
   const handleSubmit = async () => {
     if (isNil(commentId) && !markdown) {
-      setErrorMessage(t("emptyCommentField"));
+      setErrors(new Error(t("emptyCommentField")));
       return;
     }
+
     const result = await submit(keyFactors, suggestedKeyFactors, markdown);
-    if (result?.error) {
-      setErrorMessage(result.error);
+
+    if (result && "errors" in result) {
+      setErrors(result.errors);
       return;
     }
     clearState();
@@ -339,9 +347,7 @@ const AddKeyFactorsModal: FC<Props> = ({
               </Button>
             )}
           </div>
-          {errorMessage && (
-            <p className="text-sm text-red-500">{errorMessage}</p>
-          )}
+          <FormError errors={errors} detached={true} />
         </div>
       )}
     </BaseModal>

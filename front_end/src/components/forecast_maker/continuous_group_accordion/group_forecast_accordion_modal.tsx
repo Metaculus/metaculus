@@ -19,7 +19,7 @@ const MobileAccordionModal: FC<
       isOpen={isOpen}
       onClose={onClose}
       isImmersive={true}
-      className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 lg:hidden"
+      className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 pt-header lg:hidden"
     >
       <div className="flex h-full flex-col bg-white dark:bg-blue-200-dark">
         <div className="flex items-center justify-between px-4 py-2">

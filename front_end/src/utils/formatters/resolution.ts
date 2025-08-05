@@ -20,6 +20,7 @@ export function formatResolution({
   unit,
   completeBounds = false,
   longBounds = false,
+  sigfigs,
 }: {
   resolution: number | string | null | undefined;
   questionType: QuestionType;
@@ -29,6 +30,7 @@ export function formatResolution({
   unit?: string;
   completeBounds?: boolean;
   longBounds?: boolean;
+  sigfigs?: number;
 }) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -107,7 +109,7 @@ export function formatResolution({
 
   if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
     return formatValueUnit(
-      abbreviatedNumber(Number(resolution), 10, false),
+      abbreviatedNumber(Number(resolution), sigfigs ?? 10, false),
       unit
     );
   }

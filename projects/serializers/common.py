@@ -7,19 +7,48 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
-from scoring.models import GLOBAL_LEADERBOARD_STRING
 from users.serializers import UserPublicSerializer
 
 
-class TagSerializer(serializers.ModelSerializer):
-    is_global_leaderboard = serializers.SerializerMethodField()
-
+class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "type", "is_global_leaderboard")
+        fields = (
+            "created_at",
+            "edited_at",
+            "id",
+            "type",
+            "bot_leaderboard_status",
+            "name",
+            "slug",
+            "subtitle",
+            "description",
+            "header_image",
+            "header_logo",
+            "emoji",
+            "order",
+            "prize_pool",
+            "start_date",
+            "close_date",
+            "forecasting_end_date",
+            "meta_description",
+            "default_permission",
+            "visibility",
+            "show_on_homepage",
+            "show_on_services_page",
+            "forecasts_flow_enabled",
+        )
+        read_only_fields = (
+            "created_at",
+            "edited_at",
+            "id",
+        )
 
-    def get_is_global_leaderboard(self, obj: Project) -> bool:
-        return obj.name.endswith(GLOBAL_LEADERBOARD_STRING)
+
+class LeaderboardTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("id", "name", "slug", "type")
 
 
 class NewsCategorySerialize(serializers.ModelSerializer):
@@ -31,7 +60,7 @@ class NewsCategorySerialize(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "description", "type")
+        fields = ("id", "name", "slug", "emoji", "description", "type")
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -93,8 +122,8 @@ class TournamentSerializer(TournamentShortSerializer):
 
 def serialize_project(obj: Project):
     match obj.type:
-        case obj.ProjectTypes.TAG:
-            serializer = TagSerializer
+        case obj.ProjectTypes.LEADERBOARD_TAG:
+            serializer = LeaderboardTagSerializer
         case obj.ProjectTypes.TOPIC:
             serializer = TopicSerializer
         case obj.ProjectTypes.CATEGORY:
@@ -112,7 +141,7 @@ def serialize_project(obj: Project):
         case obj.ProjectTypes.COMMUNITY:
             serializer = CommunitySerializer
         case _:
-            serializer = TagSerializer
+            serializer = LeaderboardTagSerializer
 
     return serializer(obj).data
 
@@ -147,20 +176,23 @@ def serialize_project_index_weights(project: Project):
     posts_map = {
         x["id"]: x
         for x in serialize_post_many(
-            {x.question.get_post_id() for x in qs}, with_cp=True
+            {x.question.get_post_id() for x in qs},
+            with_cp=True,
+            include_cp_history=True,
         )
     }
 
     for project_question in qs:
-        post = posts_map[project_question.question.get_post_id()]
+        post = posts_map.get(project_question.question.get_post_id())
 
-        index_weights.append(
-            {
-                "post": post,
-                "question_id": project_question.question_id,
-                "weight": project_question.weight,
-            }
-        )
+        if post:
+            index_weights.append(
+                {
+                    "post": post,
+                    "question_id": project_question.question_id,
+                    "weight": project_question.weight,
+                }
+            )
 
     return index_weights
 

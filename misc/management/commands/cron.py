@@ -17,6 +17,9 @@ from posts.jobs import (
 )
 from posts.services.hotness import compute_feed_hotness
 from questions.jobs import job_check_question_open_event, job_close_question
+
+from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
+from scoring.utils import update_medal_points_and_ranks
 from scoring.jobs import (
     finalize_leaderboards,
     update_global_comment_and_question_leaderboards,
@@ -147,6 +150,19 @@ class Command(BaseCommand):
         )
 
         #
+        # Forecast Auto Withdrawal Job
+        #
+        scheduler.add_job(
+            close_old_connections(
+                check_and_schedule_forecast_widrawal_due_notifications.send
+            ),
+            trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
+            id="forecast_auto_withdrawal",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
         # Scoring Jobs
         #
         scheduler.add_job(
@@ -160,6 +176,13 @@ class Command(BaseCommand):
             close_old_connections(finalize_leaderboards),
             trigger=CronTrigger.from_crontab("0 3 * * *"),  # Every day at 03:00 UTC
             id="finalize_leaderboards",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(update_medal_points_and_ranks),
+            trigger=CronTrigger.from_crontab("0 4 * * *"),  # Every day at 04:00 UTC
+            id="update_medal_points_and_ranks",
             max_instances=1,
             replace_existing=True,
         )

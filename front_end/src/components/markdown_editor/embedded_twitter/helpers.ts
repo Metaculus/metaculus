@@ -19,6 +19,6 @@ export const transformTwitterLinks = (markdown: string): string => {
   const tweetComponents = Array.from(uniqueTweetIds)
     .map((id) => `<Tweet id="${id}" />`)
     .join("\n");
-
-  return `${markdown}\n\n${tweetComponents}`;
+  const tweetsWrapper = `<div class="tweets-wrapper">${tweetComponents}</div>`;
+  return `${markdown}\n\n${tweetsWrapper}`;
 };

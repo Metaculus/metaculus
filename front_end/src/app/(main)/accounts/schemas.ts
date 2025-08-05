@@ -23,6 +23,7 @@ export const generateSignUpSchema = (turnstileToken: string) =>
       addToProject: z.number().optional(),
       campaignKey: z.string().optional(),
       campaignData: z.record(z.any()).optional(),
+      newsletterOptin: z.boolean().optional(),
     }),
     z
       .object({

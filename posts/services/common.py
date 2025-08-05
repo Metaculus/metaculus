@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.translation import activate
@@ -30,7 +30,6 @@ from questions.services import (
 )
 from questions.types import AggregationMethod
 from scoring.models import (
-    GLOBAL_LEADERBOARD_STRING,
     global_leaderboard_dates,
     name_and_slug_for_global_leaderboard_dates,
 )
@@ -66,52 +65,46 @@ def update_global_leaderboard_tags(post: Post):
     # set or update the tags for this post with respect to the global
     # leaderboard(s) this is a part of
 
-    projects: QuerySet[Project] = post.projects.all()
-
     # Skip if post is not eligible for global leaderboards
-    if not post.default_project.visibility == Project.Visibility.NORMAL and not next(
-        (p for p in projects if p.visibility == Project.Visibility.NORMAL), None
+    if not any(
+        p
+        for p in post.get_related_projects()
+        if p.visibility == Project.Visibility.NORMAL
     ):
         return
 
     # Get all global leaderboard dates and create/get corresponding tags
-    to_set_tags = []
+    desired_tags: list[Project] = []
     gl_dates = global_leaderboard_dates()
+
     for question in post.get_questions():
         dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
         if dates:
             tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
             try:
                 tag, _ = Project.objects.get_or_create(
-                    type=Project.ProjectTypes.TAG,
+                    type=Project.ProjectTypes.LEADERBOARD_TAG,
                     slug=tag_slug,
                     defaults={"name": tag_name, "order": 1},
                 )
             except IntegrityError:
-                # Unsure why this is happening, so for debugging purposes
-                # log error and continue - don't block the triggering event
-                # (e.g. question resolution)
-                logger.exception(
-                    f"Error creating/getting global leaderboard tag for post {post.id}."
-                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
-                    f"question: {question.id}, dates: {dates}"
+                # We might have a race condition when two concurrent events
+                # try to create the same tag simultaneously.
+                # In this case, an IntegrityError could be thrown by the database
+                # due to the unique slug constraint. This is absolutely okay,
+                # we just need to take the actual record from the db
+                tag = Project.objects.get(
+                    type=Project.ProjectTypes.LEADERBOARD_TAG, slug=tag_slug
                 )
-                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
-            to_set_tags.append(tag)
 
-    # Update post's global leaderboard tags
-    current_gl_tags = [
-        p
-        for p in projects
-        if p.type == Project.ProjectTypes.TAG
-        and p.name.endswith(GLOBAL_LEADERBOARD_STRING)
-    ]
-    for tag in current_gl_tags:
-        if tag not in to_set_tags:
-            post.projects.remove(tag)
-    for tag in to_set_tags:
-        if tag not in current_gl_tags:
-            post.projects.add(tag)
+            desired_tags.append(tag)
+
+    # Reconcile current vs desired tags in bulk
+    non_leaderboard_tags = post.projects.exclude(
+        type=Project.ProjectTypes.LEADERBOARD_TAG
+    )
+
+    post.projects.set([*non_leaderboard_tags, *desired_tags])
 
 
 def create_post(
@@ -186,10 +179,9 @@ def create_post(
 def trigger_update_post_translations(
     post: Post, with_comments: bool = False, force: bool = False
 ):
-    if not force and (
-        not post.is_automatically_translated
-        or post.curation_status != Post.CurationStatus.APPROVED
-    ):
+    if (
+        not force and not post.is_automatically_translated
+    ) or post.curation_status != Post.CurationStatus.APPROVED:
         return
 
     is_private = post.is_private()
@@ -423,13 +415,19 @@ def approve_post(
 
     # Automatically update secondary and default project forecasting end date
     for project in post.get_related_projects():
-        if project.type == Project.ProjectTypes.TOURNAMENT:
+        if project.type in [
+            Project.ProjectTypes.TOURNAMENT,
+            Project.ProjectTypes.QUESTION_SERIES,
+        ]:
             move_project_forecasting_end_date(project, post)
 
     post.update_pseudo_materialized_fields()
 
     # Invalidate project questions count cache since approval affects visibility
     invalidate_projects_questions_count_cache(post.get_related_projects())
+
+    # Translate approved post
+    trigger_update_post_translations(post, with_comments=False, force=False)
 
 
 @transaction.atomic

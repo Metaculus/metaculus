@@ -380,6 +380,7 @@ ALLOWED_HOSTS = [
     ".metaculus.com",
     "localhost",
     "127.0.0.1",
+    "host.docker.internal",
     "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
 

@@ -2,10 +2,11 @@ from django.core.management.base import BaseCommand
 from django.db.models import F, Value, CharField, TextField
 from django.db.models.functions import Concat
 
+from notifications.constants import MailingTags
 from users.models import User
 
 
-def anonymize_users(users_manager, users):
+def anonymize_users(users):
     total_users = users.count()
     batch_size = 20000
 
@@ -60,7 +61,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **kwargs):
-        users = User.objects.all()
+        users = User.objects.exclude(is_staff=True)
+        staff_users = User.objects.filter(is_staff=True)
         total_users = users.count()
 
         if not kwargs["force"]:
@@ -73,5 +75,14 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING("Operation cancelled."))
                 return
 
-        anonymize_users(User.objects, users)
+        for staff_user in staff_users:
+            staff_user.unsubscribed_mailing_tags = [c[0] for c in MailingTags.choices]
+            staff_user.save()
+
+        print(
+            f" Unsubscribed {staff_users.count()} staff users from mailing tags ",
+            staff_users.first().unsubscribed_mailing_tags,
+        )
+
+        anonymize_users(users)
         self.stdout.write(self.style.SUCCESS("Successfully anonymized all users."))

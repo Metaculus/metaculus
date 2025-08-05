@@ -1,6 +1,8 @@
 import { isNil } from "lodash";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import invariant from "ts-invariant";
@@ -20,6 +22,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
+import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
@@ -27,6 +30,7 @@ import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
+import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
 
 type Props = {
@@ -64,6 +68,17 @@ export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+
+  // Ensure project has a correct link.
+  // E.g. if tournament with /index/ url -> redirect to /tournament/
+  const correctLink = getProjectLink(tournament);
+  const headersList = await headers();
+  const originalUrl = headersList.get("x-url") || "";
+
+  if (!originalUrl.includes(correctLink)) {
+    redirect(correctLink);
+  }
+
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ServerProfileApi.getMyProfile();
   const isForecastsFlowEnabled =
@@ -128,16 +143,25 @@ export default async function TournamentSlug(props: Props) {
       </div>
 
       <NavigationBlock tournament={tournament} />
-      <ParticipationBlock tournament={tournament} posts={predictionFlowPosts} />
+      {tournament.type !== TournamentType.Index && (
+        <ParticipationBlock
+          tournament={tournament}
+          posts={predictionFlowPosts}
+        />
+      )}
 
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
           <HtmlContent content={tournament.description} />
 
-          {indexWeights.length > 0 && (
-            <IndexSection indexWeights={indexWeights} tournament={tournament} />
-          )}
+          {indexWeights.length > 0 &&
+            tournament.type === TournamentType.Index && (
+              <IndexSection
+                indexWeights={indexWeights}
+                tournament={tournament}
+              />
+            )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
@@ -155,6 +179,16 @@ export default async function TournamentSlug(props: Props) {
             </div>
           )}
         </div>
+
+        {tournament.type === TournamentType.Index && (
+          <div className="mt-4">
+            <PredictionFlowButton tournament={tournament} />
+            <ParticipationBlock
+              tournament={tournament}
+              posts={predictionFlowPosts}
+            />
+          </div>
+        )}
       </div>
 
       {/* Questions block */}

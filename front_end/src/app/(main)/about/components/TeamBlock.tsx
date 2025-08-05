@@ -39,11 +39,28 @@ const people: Person[] = [
     ],
   },
   {
-    name: "Tobi Alafin",
+    name: "Alex Costea",
     position: "Research Engineer",
-    imgSrc: "https://metaculus-web-media.s3.amazonaws.com/tobi_1.webp",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/alex-costea-modified.webp",
     introduction:
-      "Tobi is a research engineer working on PRISM-AI, developing coherence checking systems for Metaculus forecasts. Prior to Metaculus he undertook a masters degree in theoretical computer science from the University of Liverpool and before that worked as a software developer at Bluechip Technologies in Nigeria. His interests include AI safety and ensuring the longterm future of humanity is robustly beneficial. He enjoys weightlifting, reading fiction and discussing it with fellow fans.",
+      "Alex Costea is a Research Engineer at Metaculus, developing the PRISM-CC project. His passion lies in bridging the gap between technology and societal systems. Prior to Metaculus, he worked as a Software Engineer for SAP, developing e-commerce solutions for large multi-national corporations. He received a Bachelor's degree in Sociology from the University of Amsterdam. In his free time, he enjoys learning new things and creating various projects, software and otherwise.",
+  },
+  {
+    name: "Jordan Rubin",
+    position: "Quantitative Finance Executive",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/jordan-rubin-modified.webp",
+    introduction:
+      "Jordan is on garden leave after building the systematic buy-side alpha capture business at Two Sigma Investments. He currently blogs at FUTURE TOKENS on Substack. Jordan received a BS/BA degree in Economics from Wharton School at University of Pennsylvania. As advisor to Metaculus, he focuses on commercialization and monetization.",
+  },
+  {
+    name: "Abhimanyu Pallavi Sudhir",
+    position: "Research Fellow",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
+    introduction:
+      "Abhimanyu focuses on three primary research areas: (1) exploring analogies between economics and AI systems, particularly examining market dynamics and bounded rationality frameworks, (2) developing information markets and scalable oversight mechanisms to enhance epistemic processes and advance AI alignment, and (3) investigating applications of thermodynamics to these domains.",
   },
   {
     userId: 126463,
@@ -66,7 +83,7 @@ const people: Person[] = [
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/christian_williams.webp",
     introduction:
-      "Christian oversees Metaculus’ communications and marketing efforts, working closely with the operations and program teams. Previously, he worked in the aerospace and defense industry as a marketing operations lead. He received his master’s in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before entering the science world, he wrote for <cite>The Onion AV Club</cite> and contributed material to <cite>Saturday Night Live</cite>.",
+      "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
     name: "Nikitas Angeletos Chrysaitis",
@@ -336,7 +353,7 @@ const people: Person[] = [
 const groups: Groups = {
   team: [
     "Deger Turan",
-    "Tobi Alafin",
+    "Alex Costea",
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
@@ -350,6 +367,7 @@ const groups: Groups = {
     "Nikita Oleinykof",
     "Luke Sabor",
     "Nikitas Angeletos Chrysaitis",
+    "Abhimanyu Pallavi Sudhir",
     "John Bash",
   ],
   board: [
@@ -364,6 +382,7 @@ const groups: Groups = {
     "Tamay Besiroglu",
     "Welton Chang",
     "Burak Nehbit",
+    "Jordan Rubin",
     "Steven Schkolne",
   ],
 };

@@ -1,7 +1,7 @@
 import numpy as np
 from django.db.models import Q, Count
 from django.views.decorators.cache import cache_page
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -14,6 +14,7 @@ from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
 from questions.models import AggregationMethod
+from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard, LeaderboardEntry, LeaderboardsRanksEntry
 from scoring.serializers import (
     LeaderboardSerializer,
@@ -21,7 +22,8 @@ from scoring.serializers import (
     ContributionSerializer,
     GetLeaderboardSerializer,
 )
-from scoring.utils import get_contributions
+from scoring.utils import get_contributions, update_project_leaderboard
+
 from users.models import User
 from users.views import serialize_profile
 
@@ -162,6 +164,38 @@ def project_leaderboard(
     return Response(leaderboard_data)
 
 
+@api_view(["POST"])
+def update_project_leaderboard_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    leaderboard_id = serializers.IntegerField(
+        allow_null=True, required=False
+    ).run_validation(request.data.get("leaderboard_id"))
+    leaderboard = (
+        get_object_or_404(Leaderboard.objects.all(), pk=leaderboard_id)
+        if leaderboard_id
+        else None
+    )
+    force_update = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("force_update")
+    )
+    force_finalize = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("force_finalize")
+    )
+    update_project_leaderboard(
+        project=obj,
+        leaderboard=leaderboard,
+        force_update=force_update,
+        force_finalize=force_finalize,
+    )
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def user_medal_ranks(
@@ -287,7 +321,18 @@ def medal_contributions(
         else:
             leaderboard = leaderboards.first()
 
-    contributions = get_contributions(user, leaderboard)
+    with_live_coverage = leaderboard.score_type in [
+        LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+        LeaderboardScoreTypes.MANUAL,
+    ]
+    contributions = get_contributions(
+        user,
+        leaderboard,
+        with_live_coverage,
+    )
     leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
     return_data = {

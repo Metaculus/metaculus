@@ -7,9 +7,17 @@ import { CSSProperties, FC, PropsWithChildren } from "react";
 import QuestionCPMovement from "@/components/cp_movement";
 import ReaffirmButton from "@/components/post_card/reaffirm_button";
 import { PostStatus } from "@/types/post";
-import { QuestionWithForecasts, UserForecast } from "@/types/question";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  UserForecast,
+} from "@/types/question";
 import cn from "@/utils/core/cn";
-import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { isForecastActive } from "@/utils/forecasts/helpers";
+import {
+  getDiscreteValueOptions,
+  getPredictionDisplayValue,
+} from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 import { formatValueUnit } from "@/utils/questions/units";
@@ -64,7 +72,7 @@ const PredictionChip: FC<Props> = ({
   const renderUserForecast = () => {
     const latest = question.my_forecasts?.latest;
 
-    if (showUserForecast && latest && !latest.end_time) {
+    if (showUserForecast && latest && isForecastActive(latest)) {
       const displayValue = getPredictionDisplayValue(
         latest.centers ? latest.centers[0] : latest.forecast_values[1],
         {
@@ -134,15 +142,23 @@ const PredictionChip: FC<Props> = ({
         questionType: question.type,
         scaling: question.scaling,
         actual_resolve_time: question.actual_resolve_time ?? null,
+        discreteValueOptions:
+          question.type === QuestionType.Discrete
+            ? getDiscreteValueOptions(question)
+            : undefined,
       }
     );
-  } else if (latest && !latest.end_time) {
+  } else if (latest && isForecastActive(latest)) {
     communityPredictionDisplayValue = getPredictionDisplayValue(
       latest.centers?.[0],
       {
         questionType: question.type,
         scaling: question.scaling,
         actual_resolve_time: question.actual_resolve_time ?? null,
+        discreteValueOptions:
+          question.type === QuestionType.Discrete
+            ? getDiscreteValueOptions(question)
+            : undefined,
       }
     );
   }
