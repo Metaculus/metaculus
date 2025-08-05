@@ -14,7 +14,7 @@
     "translations:generate": "node ./scripts/add_missing_translations.mjs",
     "pm2-runtime": "pm2 list && pm2-runtime start ecosystem.config.js",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "NODE_OPTIONS=--max_old_space_size=8192 storybook build",
+    "build-storybook": "NODE_OPTIONS=--max_old_space_size=16384 storybook build",
     "test": "jest"
   },
   "dependencies": {
