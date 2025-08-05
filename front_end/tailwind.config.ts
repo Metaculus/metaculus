@@ -1,3 +1,4 @@
+import containerQueries from "@tailwindcss/container-queries";
 import { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
@@ -70,7 +71,7 @@ const config: Config = {
     },
   },
   plugins: [
-    require("@tailwindcss/container-queries"),
+    containerQueries,
     // @ts-ignore
     function ({ addVariant }) {
       addVariant("no-hover", "@media (hover: none)");

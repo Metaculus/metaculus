@@ -13,7 +13,7 @@ import QuestionHeader from "./question_header";
 
 type Props = {
   postData: PostWithForecasts;
-  preselectedGroupQuestionId: number | undefined;
+  preselectedGroupQuestionId?: number | undefined;
 };
 
 const ForecasterQuestionView: React.FC<Props> = ({
