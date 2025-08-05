@@ -5,6 +5,7 @@ import { FC, ReactNode } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceTooltipItem } from "@/types/choices";
+import { getFontsString } from "@/utils/fonts";
 
 type Props = {
   title?: string;
@@ -22,7 +23,7 @@ const MCPredictionsTooltip: FC<Props> = ({
   const t = useTranslations();
 
   return (
-    <table className="w-max">
+    <table className={`w-max ${getFontsString()} font-sans`}>
       <thead>
         <tr className="border-b border-gray-300 dark:border-gray-300-dark">
           <th
