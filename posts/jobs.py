@@ -6,8 +6,12 @@ import logging
 
 import dramatiq
 
-from posts.models import Post
-from posts.services.subscriptions import notify_milestone, notify_date
+from posts.models import Post, Notebook
+from posts.services.subscriptions import (
+    notify_milestone,
+    notify_date,
+)
+from projects.services.subscriptions import notify_project_subscriptions_post_open
 from questions.models import Question
 from questions.services import compute_question_movement
 from utils.models import ModelBatchUpdater
@@ -55,3 +59,26 @@ def job_compute_movement():
             posts_updater.append(post)
 
     logger.info("Done computing movement for posts")
+
+
+@dramatiq.actor
+def job_check_notebook_open_event():
+    """
+    A cron job to check for newly published notebooks.
+    We also have a similar job for question posts:
+    `questions.jobs.job_check_question_open_event`
+    """
+
+    notebooks_qs = Notebook.objects.filter(
+        post__in=Post.objects.filter_published(), open_time_triggered=False
+    ).select_related("post")
+
+    for notebook in notebooks_qs:
+        try:
+            notify_project_subscriptions_post_open(notebook.post, notebook=notebook)
+        except Exception:
+            logger.exception("Failed to handle notebook publish")
+        finally:
+            # Mark as triggered
+            notebook.open_time_triggered = True
+            notebook.save(update_fields=["open_time_triggered"])

@@ -495,6 +495,12 @@ class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
     markdown_summary = models.TextField(blank=True, default="")
 
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"
 

@@ -6,8 +6,14 @@ from markdown import markdown
 from comments.utils import USERNAME_PATTERN
 
 
-def remove_markdown(text: str) -> str:
-    return strip_tags(markdown(text))
+def remove_markdown(md: str, keep_newlines: bool = False) -> str:
+    html = markdown(md)
+
+    if keep_newlines:
+        html = re.sub(r"</p\s*>", "\n\n", html, flags=re.I)
+        html = re.sub(r"<br\s*/?>", "\n", html, flags=re.I)
+
+    return strip_tags(html)
 
 
 def beautify_mentions(text: str) -> str:
@@ -63,3 +69,56 @@ def generate_email_comment_preview_text(
     preview = beautify_mentions(preview)
 
     return preview, True
+
+
+def _normalise_whitespace_keep_newlines(text: str) -> str:
+    """
+    Compress internal whitespace but *leave* `\n` tokens untouched.
+    """
+    lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.splitlines()]
+    return "\n".join(lines).strip()
+
+
+def generate_email_notebook_preview_text(
+    text: str,
+    max_words: int = 100,
+) -> str:
+    """
+    Produce a preview of a Notebook/article body for e-mails.
+
+    Parameters
+    ----------
+    text : str
+        Raw markdown of the Notebook.
+    max_words : int
+        Number of *words* to keep (default 100).
+
+    Returns
+    -------
+    (preview: str, truncated: bool)
+    """
+
+    source = remove_markdown(text).replace("\\", "")
+    source = _normalise_whitespace_keep_newlines(source)
+
+    # tokenize, *but* preserve newlines so paragraphs stay visible
+    tokens = re.split(r"(\s+)", source)  # keeps whitespace tokens
+    word_count = 0
+    out_tokens = []
+
+    for tok in tokens:
+        if word_count >= max_words:
+            break
+        if tok.isspace():
+            out_tokens.append(tok)
+        else:
+            out_tokens.append(tok)
+            word_count += 1
+
+    truncated = word_count < len([t for t in tokens if not t.isspace()])
+
+    preview = "".join(out_tokens).rstrip()
+    if truncated:
+        preview += "..."
+
+    return preview
