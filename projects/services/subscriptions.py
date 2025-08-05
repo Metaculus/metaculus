@@ -56,7 +56,6 @@ def notify_project_subscriptions_post_open(
         )
         .annotate(
             # We want to prioritize news categories over regular projects
-            # TODO: test this query
             is_news_category=Case(
                 When(
                     project__type=Project.ProjectTypes.NEWS_CATEGORY, then=Value(True)
