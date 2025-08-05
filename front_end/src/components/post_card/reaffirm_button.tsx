@@ -22,7 +22,7 @@ const ReaffirmButton: FC<Props> = ({ onClick, all = false, className }) => {
       <span>{all ? t("reaffirmAll") : t("reaffirm")}</span>
       {reaffirmStatus === "loading" && <LoadingSpinner size="sm" />}
       {reaffirmStatus === "completed" && (
-        <FontAwesomeIcon icon={faCircleCheck} size="sm" />
+        <FontAwesomeIcon icon={faCircleCheck} size="sm" className="w-2.5" />
       )}
     </span>
   );
