@@ -15,7 +15,11 @@ from notifications.services import (
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
 from questions.models import Question, UserForecastNotification
-from questions.services import build_question_forecasts, get_forecasts_per_user
+from questions.services import (
+    build_question_forecasts,
+    get_forecasts_per_user,
+    get_outbound_question_links,
+)
 from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
@@ -103,6 +107,7 @@ def resolve_question_and_send_notifications(question_id: int):
     for score in scores:
         if score.user not in user_notification_params:
             forecasts_count = user_forecasts_count_map.get(score.user_id) or 0
+            linked_questions = get_outbound_question_links(question, score.user)
 
             user_notification_params[score.user] = (
                 NotificationPredictedQuestionResolved.ParamsType(
@@ -111,6 +116,10 @@ def resolve_question_and_send_notifications(question_id: int):
                     resolution=question.resolution,
                     forecasts_count=forecasts_count,
                     coverage=score.coverage,
+                    linked_questions=[
+                        NotificationQuestionParams.from_question(q)
+                        for q in linked_questions
+                    ],
                 )
             )
 

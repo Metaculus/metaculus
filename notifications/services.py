@@ -70,6 +70,8 @@ class NotificationQuestionParams:
     id: int
     title: str
     type: str
+    post_id: int
+    post_title: str
     label: str = ""
     unit: str = None
 
@@ -81,6 +83,8 @@ class NotificationQuestionParams:
             type=question.type,
             label=question.label,
             unit=question.unit,
+            post_id=question.get_post_id(),
+            post_title=question.get_post().title,
         )
 
 
@@ -633,6 +637,7 @@ class NotificationPredictedQuestionResolved(
         resolution: str
         forecasts_count: int
         coverage: float
+        linked_questions: list[NotificationQuestionParams]
         peer_score: float = 0
         baseline_score: float = 0
 
@@ -748,7 +753,9 @@ def send_forecast_autowidrawal_notification(
 ):
     send_email_with_template(
         to=user.email,
-        subject=_(f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"),
+        subject=_(
+            f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"
+        ),
         template_name="emails/forecast_auto_withdraw.html",
         context={
             "recipient": user,
