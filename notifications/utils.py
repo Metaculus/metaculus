@@ -109,10 +109,9 @@ def generate_email_notebook_preview_text(
     for tok in tokens:
         if word_count >= max_words:
             break
-        if tok.isspace():
-            out_tokens.append(tok)
-        else:
-            out_tokens.append(tok)
+
+        out_tokens.append(tok)
+        if not tok.isspace():
             word_count += 1
 
     truncated = word_count < len([t for t in tokens if not t.isspace()])
