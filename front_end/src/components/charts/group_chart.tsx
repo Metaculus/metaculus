@@ -352,9 +352,9 @@ const GroupChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 grid: {
-                  stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                  stroke: getThemeColor(METAC_COLORS.gray["400"]),
                   strokeWidth: 1,
-                  strokeDasharray: "2, 5",
+                  strokeDasharray: "3, 2",
                 },
               }}
               label={yLabel}

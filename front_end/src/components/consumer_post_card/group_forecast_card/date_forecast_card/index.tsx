@@ -138,8 +138,8 @@ const DateForecastCard: FC<Props> = ({
                   stroke: "transparent",
                 },
                 grid: {
-                  stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                  strokeDasharray: "4,4",
+                  stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                  strokeDasharray: "3,2",
                 },
                 axis: {
                   stroke: getThemeColor(METAC_COLORS.gray["300"]),

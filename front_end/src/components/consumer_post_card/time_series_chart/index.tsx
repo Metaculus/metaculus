@@ -172,7 +172,7 @@ const TimeSeriesChart: FC<Props> = ({
               grid: {
                 stroke: allQuestionsEmpty
                   ? "transparent"
-                  : getThemeColor(METAC_COLORS.blue["300"]),
+                  : getThemeColor(METAC_COLORS.blue["400"]),
                 strokeDasharray: allQuestionsEmpty ? "none" : "4, 4",
               },
             }}
