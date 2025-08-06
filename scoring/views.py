@@ -137,25 +137,6 @@ def project_leaderboard(
     entries = leaderboard.entries.order_by("rank", "-score").select_related("user")
     user = request.user
 
-    for entry in entries[:10]:
-        print(entry.user)
-    # if not user.is_staff:
-    #     bot_status: Project.BotLeaderboardStatus = leaderboard.bot_status or (
-    #         leaderboard.project.bot_leaderboard_status
-    #         if leaderboard.project
-    #         else Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW
-    #     )
-    #     if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
-    #         entries = entries.filter(
-    #             Q(excluded=False)
-    #             | Q(aggregation_method__isnull=False)
-    #             | Q(user__is_bot=True)
-    #         )
-    #     else:
-    #         entries = entries.filter(
-    #             Q(excluded=False) | Q(aggregation_method__isnull=False)
-    #         )
-
     # manual annotations will be lost
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
