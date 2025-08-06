@@ -94,6 +94,7 @@ def email_data_task(
     user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
+    include_future: bool,
 ):
     try:
         from utils.csv_utils import export_data_for_questions
@@ -111,6 +112,7 @@ def email_data_task(
             user_ids,
             include_bots,
             anonymized,
+            include_future,
         )
 
         assert data is not None, "No data generated"

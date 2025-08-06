@@ -14,7 +14,7 @@ from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
-from questions.constants import ResolutionType
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
@@ -80,8 +80,8 @@ class ProjectsQuerySet(models.QuerySet):
                 )
                 & ~Q(
                     posts__related_questions__question__resolution__in=[
-                        ResolutionType.AMBIGUOUS,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.AMBIGUOUS,
+                        UnsuccessfulResolutionType.ANNULLED,
                     ]
                 ),
                 distinct=True,
@@ -94,8 +94,8 @@ class ProjectsQuerySet(models.QuerySet):
                 )
                 & ~Q(
                     default_posts__related_questions__question__resolution__in=[
-                        ResolutionType.AMBIGUOUS,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.AMBIGUOUS,
+                        UnsuccessfulResolutionType.ANNULLED,
                     ]
                 ),
                 distinct=True,

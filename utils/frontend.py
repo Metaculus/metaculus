@@ -3,6 +3,8 @@ from urllib.parse import urlencode, urlparse
 from django.conf import settings
 from django.utils.text import slugify
 
+from posts.models import Post
+
 
 def build_frontend_url(path: str = None):
     base_url = settings.PUBLIC_APP_URL.strip().rstrip("/")
@@ -59,8 +61,15 @@ def build_post_comment_url(post_id: int, post_title: str, comment_id: int):
     )
 
 
-def build_post_url(post_id: int):
-    return build_frontend_url(f"/questions/{post_id}/")
+def build_post_url(post: Post):
+    if post.notebook_id:
+        return build_frontend_url(f"/notebooks/{post.id}/{slugify(post.title)}/")
+
+    return build_frontend_url(f"/questions/{post.id}/{slugify(post.title)}/")
+
+
+def build_news_url():
+    return build_frontend_url("/news/")
 
 
 def build_frontend_account_settings_url():

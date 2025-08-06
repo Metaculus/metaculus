@@ -264,7 +264,11 @@ class PostQuerySet(models.QuerySet):
                         F("created_at"),
                         function="POWER",
                         template=(
-                            "POWER(2, ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float/7))"
+                            "CASE "
+                            "WHEN ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float) <= 3.5 "
+                            "THEN 1 "
+                            "ELSE POWER(((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float / 3.5), 2) "
+                            "END"
                         ),
                         output_field=FloatField(),
                     )
@@ -490,6 +494,12 @@ class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
     markdown_summary = models.TextField(blank=True, default="")
+
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from questions.constants import ResolutionType
+from questions.constants import UnsuccessfulResolutionType
 from scoring.models import Leaderboard, LeaderboardEntry
 from users.serializers import BaseUserSerializer
 
@@ -78,7 +78,12 @@ class LeaderboardSerializer(serializers.Serializer):
         return (
             obj.get_questions()
             .filter(resolution__isnull=False)
-            .exclude(resolution__in=[ResolutionType.ANNULLED, ResolutionType.AMBIGUOUS])
+            .exclude(
+                resolution__in=[
+                    UnsuccessfulResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.AMBIGUOUS,
+                ]
+            )
             .count()
         )
 

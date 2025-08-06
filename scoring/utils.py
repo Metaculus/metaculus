@@ -32,6 +32,7 @@ from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
@@ -161,7 +162,7 @@ def generate_scoring_leaderboard_entries(
     maximum_coverage = sum(
         q.question_weight
         for q in questions
-        if q.resolution and q.resolution not in ["annulled", "ambiguous"]
+        if q.resolution and q.resolution not in UnsuccessfulResolutionType
     )
     for score in scores:
         identifier = score.user_id or score.aggregation_method

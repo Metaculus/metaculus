@@ -26,11 +26,10 @@ from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,
-    subscribe_project,
-    unsubscribe_project,
     get_site_main_project,
     get_project_timeline_data,
 )
+from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
 from users.services.common import get_users_by_usernames
 from utils.csv_utils import export_data_for_questions
