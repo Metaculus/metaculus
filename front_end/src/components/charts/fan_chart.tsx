@@ -277,7 +277,7 @@ const FanChart: FC<Props> = ({
                   stroke: "transparent",
                 },
               }}
-              tickFormat={(_, index) => labels[index] ?? ""}
+              tickFormat={hideCP ? () => "" : (_, index) => labels[index] ?? ""}
             />
           </VictoryPortal>
           {!hideCP &&

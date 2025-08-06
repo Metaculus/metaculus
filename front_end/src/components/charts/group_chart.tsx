@@ -373,7 +373,9 @@ const GroupChart: FC<Props> = ({
             <VictoryPortal>
               <VictoryAxis
                 tickValues={xScale.ticks}
-                tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
+                tickFormat={
+                  hideCP || isCursorActive ? () => "" : xScale.tickFormat
+                }
                 tickLabelComponent={
                   <XTickLabel
                     chartWidth={chartWidth}

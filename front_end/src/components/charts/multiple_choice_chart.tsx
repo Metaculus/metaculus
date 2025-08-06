@@ -382,6 +382,7 @@ const MultipleChoiceChart: FC<Props> = ({
             <VictoryAxis
               tickValues={xScale.ticks}
               tickFormat={
+                hideCP ||
                 isCursorActive ||
                 !!forecastAvailability?.isEmpty ||
                 !!forecastAvailability?.cpRevealsOn

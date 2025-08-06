@@ -628,7 +628,7 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels ? () => "" : xScale.tickFormat}
+            tickFormat={hideLabels || hideCP ? () => "" : xScale.tickFormat}
             style={{
               ticks: {
                 strokeWidth: 1,
