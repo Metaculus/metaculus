@@ -8,19 +8,5 @@ const config: StorybookConfig = {
     options: {},
   },
   staticDirs: ["../public", { from: "../public/fonts", to: "/fonts" }],
-  viteFinal: async (viteConfig) => {
-    viteConfig.build = {
-      ...viteConfig.build,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes("question_view")) return "questionViews";
-            if (id.includes("question_layout")) return "questionLayouts";
-          },
-        },
-      },
-    };
-    return viteConfig;
-  },
 };
 export default config;
