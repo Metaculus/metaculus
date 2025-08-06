@@ -104,3 +104,30 @@ def test_notify_project_subscriptions_post_open__news_category(user1, mocker):
     assert not Notification.objects.filter(
         recipient=user1, type="post_status_change"
     ).exists()
+
+
+def test_notify_project_subscriptions_post_open__notebook(user1, mocker):
+    project_default = factory_project(subscribers=[user1])
+    project_2 = factory_project(subscribers=[user1])
+
+    post = factory_post(
+        author=factory_user(),
+        default_project=project_default,
+        curation_status=Post.CurationStatus.APPROVED,
+        projects=[project_2],
+        notebook=factory_notebook(),
+    )
+    mock_send = mocker.patch(
+        "projects.services.subscriptions.send_news_category_notebook_publish_notification"
+    )
+
+    # Notebook should be sent in separate email
+    # Since it has News Category project type
+    notify_project_subscriptions_post_open(post, notebook=post.notebook)
+    mock_send.assert_not_called()
+
+    assert set(
+        Notification.objects.filter(type="post_status_change").values_list(
+            "recipient_id", flat=True
+        )
+    ) == {user1.pk}
