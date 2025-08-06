@@ -94,7 +94,7 @@ const PostStatus: FC<Props> = ({
       {/* Show text only in non-compact mode */}
       {!compact && (
         <span
-          className="whitespace-nowrap text-xs font-normal"
+          className="whitespace-nowrap text-xs font-medium"
           suppressHydrationWarning
         >
           {statusText}

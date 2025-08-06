@@ -74,7 +74,7 @@ const PostVoter: FC<Props> = ({ className, post, questionPage }) => {
         )}
       </Button>
       {!!vote.score != null && vote.score !== 0 && (
-        <span className="text-xs font-normal text-gray-700 dark:text-gray-700-dark">
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-700-dark">
           {vote.score}
         </span>
       )}

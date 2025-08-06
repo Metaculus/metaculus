@@ -102,6 +102,9 @@ const config: Config = {
         ".list-lower-roman": {
           "list-style-type": "lower-roman",
         },
+        ".text-xs": {
+          "text-rendering": "geometricPrecision",
+        },
       });
     }),
   ],

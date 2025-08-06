@@ -49,7 +49,7 @@ const CommentStatus: FC<Props> = ({
     <Button
       variant="text"
       className={cn(
-        "border-nonepx-2 h-6 gap-1 text-nowrap rounded-xs border-none py-1 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2 md:px-2.5",
+        "border-nonepx-2 h-6 gap-1 text-nowrap rounded-xs border-none py-1 text-xs font-medium text-gray-700 dark:text-gray-700-dark md:gap-2 md:px-2.5",
         {
           "text-gray-500 dark:text-gray-500-dark": !totalCount,
         },
