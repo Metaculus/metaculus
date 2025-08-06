@@ -47,20 +47,29 @@ const PostStatus: FC<Props> = ({
       if (new Date(open_time).getTime() > Date.now()) {
         return (
           <>
-            {t("opens")} <LocalDaytime date={open_time} />
+            {t("opens")}{" "}
+            <span className="font-medium tabular-nums">
+              <LocalDaytime date={open_time} />
+            </span>
           </>
         );
       }
       return (
         <>
-          {t("closes")} <LocalDaytime date={scheduled_close_time} />
+          {t("closes")}{" "}
+          <span className="font-medium tabular-nums">
+            <LocalDaytime date={scheduled_close_time} />
+          </span>
         </>
       );
     }
     if (status === PostStatusEnum.RESOLVED) {
       return (
         <>
-          {t("resolved")} <LocalDaytime date={actual_close_time} />
+          {t("resolved")}{" "}
+          <span className="font-medium tabular-nums">
+            <LocalDaytime date={actual_close_time} />
+          </span>
         </>
       );
     }
@@ -94,7 +103,7 @@ const PostStatus: FC<Props> = ({
       {/* Show text only in non-compact mode */}
       {!compact && (
         <span
-          className="whitespace-nowrap text-xs font-medium"
+          className="whitespace-nowrap text-xs font-normal"
           suppressHydrationWarning
         >
           {statusText}

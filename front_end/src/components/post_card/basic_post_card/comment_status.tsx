@@ -49,7 +49,7 @@ const CommentStatus: FC<Props> = ({
     <Button
       variant="text"
       className={cn(
-        "border-nonepx-2 h-6 gap-1 text-nowrap rounded-xs border-none py-1 text-xs font-medium text-gray-700 dark:text-gray-700-dark md:gap-2 md:px-2.5",
+        "border-nonepx-2 h-6 gap-1 text-nowrap rounded-xs border-none py-1 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2 md:px-2.5",
         {
           "text-gray-500 dark:text-gray-500-dark": !totalCount,
         },
@@ -87,8 +87,16 @@ const CommentStatus: FC<Props> = ({
           {user && unreadCount > 0 ? (
             <span className="text-gray-500 dark:text-gray-500-dark">
               {t.rich("unreadWithTotalCountXs", {
-                unread_count_formatted: unreadCountFormatted,
-                total_count_formatted: totalCountFormatted,
+                unread_count_formatted: (
+                  <span className="font-medium tabular-nums">
+                    {unreadCountFormatted}
+                  </span>
+                ),
+                total_count_formatted: (
+                  <span className="font-medium tabular-nums">
+                    {totalCountFormatted}
+                  </span>
+                ),
                 purple: (obj) => (
                   <span className="text-purple-700 dark:text-purple-700-dark">
                     {obj}
@@ -102,7 +110,9 @@ const CommentStatus: FC<Props> = ({
                 "text-gray-500 dark:text-gray-500-dark": !totalCount,
               })}
             >
-              {totalCountFormatted}
+              <span className="font-medium tabular-nums">
+                {totalCountFormatted}
+              </span>
             </span>
           )}
         </span>
@@ -113,8 +123,16 @@ const CommentStatus: FC<Props> = ({
           {user && unreadCount > 0 ? (
             <span className="text-gray-500 dark:text-gray-500-dark">
               {t.rich("unreadWithTotalCount", {
-                unread_count_formatted: unreadCountFormatted,
-                total_count_formatted: totalCountFormatted,
+                unread_count_formatted: (
+                  <span className="font-medium tabular-nums">
+                    {unreadCountFormatted}
+                  </span>
+                ),
+                total_count_formatted: (
+                  <span className="font-medium tabular-nums">
+                    {totalCountFormatted}
+                  </span>
+                ),
                 purple: (obj) => (
                   <span className="text-purple-700 dark:text-purple-700-dark">
                     {obj}
@@ -131,7 +149,11 @@ const CommentStatus: FC<Props> = ({
             >
               {t.rich("totalCommentsCount", {
                 total_count: totalCount,
-                total_count_formatted: totalCountFormatted,
+                total_count_formatted: (
+                  <span className="font-medium tabular-nums">
+                    {totalCountFormatted}
+                  </span>
+                ),
               })}
             </span>
           )}
