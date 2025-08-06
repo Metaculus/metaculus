@@ -87,7 +87,7 @@ const ChoiceOption: FC<Props> = ({
       {isNil(resolution) ? (
         <div
           className={cn(
-            "resize-label w-full pr-1.5 text-right text-sm font-normal",
+            "resize-label w-full pr-1.5 text-right text-sm font-normal tabular-nums",
             {
               "opacity-30": !hasValue,
             },
@@ -106,7 +106,7 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label leading-0 flex items-center gap-0.5 whitespace-nowrap  px-1.5 text-right text-sm font-medium">
+        <div className="resize-label leading-0 flex items-center gap-0.5 whitespace-nowrap  px-1.5 text-right text-sm font-medium tabular-nums">
           <ChoiceResolutionIcon
             color={questionType === QuestionType.Date ? color : undefined}
           />
