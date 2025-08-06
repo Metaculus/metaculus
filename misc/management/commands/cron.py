@@ -14,16 +14,16 @@ from posts.jobs import (
     job_compute_movement,
     job_subscription_notify_date,
     job_subscription_notify_milestone,
+    job_check_post_open_event,
 )
 from posts.services.hotness import compute_feed_hotness
-from questions.jobs import job_check_question_open_event, job_close_question
-
+from questions.jobs import job_close_question
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
-from scoring.utils import update_medal_points_and_ranks
 from scoring.jobs import (
     finalize_leaderboards,
     update_global_comment_and_question_leaderboards,
 )
+from scoring.utils import update_medal_points_and_ranks
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -108,17 +108,17 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        scheduler.add_job(
+            close_old_connections(job_check_post_open_event.send),
+            trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
+            id="posts_job_check_post_open_event",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # Question jobs
         #
-        scheduler.add_job(
-            close_old_connections(job_check_question_open_event.send),
-            trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
-            id="questions_job_check_question_open_event",
-            max_instances=1,
-            replace_existing=True,
-        )
         scheduler.add_job(
             close_old_connections(job_close_question.send),
             trigger=CronTrigger.from_crontab("* * * * *"),  # Every Minute
