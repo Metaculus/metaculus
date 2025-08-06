@@ -1,18 +1,18 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import { PostDropdownMenu } from "@/components/post_actions";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
 import Button from "@/components/ui/button";
+import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
-
-import ForecastersCounter from "../../../../../components/forecaster_counter";
 
 type Props = {
   post: PostWithForecasts;
@@ -21,6 +21,15 @@ type Props = {
 
 const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
   const resolutionData = extractPostResolution(post);
+  const { ref, width } = useContainerSize<HTMLDivElement>();
+  const [shouldUseCompact, setShouldUseCompact] = useState(false);
+
+  useEffect(() => {
+    // Once it hits >500px, always keep it compact
+    if (width > 500) {
+      setShouldUseCompact(true);
+    }
+  }, [width]);
 
   return (
     <div
@@ -29,7 +38,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
         className
       )}
     >
-      <div className="flex items-center gap-1.5 lg:gap-2">
+      <div className="flex items-center gap-1.5 lg:gap-2" ref={ref}>
         <PostVoter post={post} />
 
         {/* CommentStatus - compact on small screens, full on large screens */}
@@ -59,6 +68,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
           post={post}
           resolution={resolutionData}
           className="hidden md:flex"
+          compact={shouldUseCompact}
         />
 
         {/* ForecastersCounter - compact on small screens, full on large screens */}
