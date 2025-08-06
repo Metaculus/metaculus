@@ -1,7 +1,8 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { FC } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import { PostDropdownMenu } from "@/components/post_actions";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
@@ -12,8 +13,6 @@ import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
 
-import ForecastersCounter from "../../../../../components/forecaster_counter";
-
 type Props = {
   post: PostWithForecasts;
   className?: string;
@@ -21,6 +20,29 @@ type Props = {
 
 const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
   const resolutionData = extractPostResolution(post);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [shouldUseCompact, setShouldUseCompact] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        // Once it hits >500px, always keep it compact
+        if (width > 500) {
+          setShouldUseCompact(true);
+        }
+      }
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   return (
     <div
@@ -29,7 +51,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
         className
       )}
     >
-      <div className="flex items-center gap-1.5 lg:gap-2">
+      <div className="flex items-center gap-1.5 lg:gap-2" ref={containerRef}>
         <PostVoter post={post} />
 
         {/* CommentStatus - compact on small screens, full on large screens */}
@@ -59,6 +81,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
           post={post}
           resolution={resolutionData}
           className="hidden md:flex"
+          compact={shouldUseCompact}
         />
 
         {/* ForecastersCounter - compact on small screens, full on large screens */}
