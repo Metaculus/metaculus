@@ -24,13 +24,18 @@ const AppThemeProvided: FC<PropsWithChildren> = ({ children }) => {
 };
 
 const InnerTheme: FC<PropsWithChildren> = ({ children }) => {
-  const { setTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
   const { user } = useAuth();
 
   // Sync user db settings with localStorage theme configuration
   useEffect(() => {
-    if (user?.app_theme) setTheme(user?.app_theme);
-  }, [setTheme, user?.app_theme]);
+    if (user?.app_theme && user.app_theme !== theme) {
+      console.log(
+        `Synchronized current theme with user.app_theme settings: ${user.app_theme}`
+      );
+      setTheme(user.app_theme);
+    }
+  }, [setTheme, theme, user?.app_theme]);
 
   return <>{children}</>;
 };
