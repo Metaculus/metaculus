@@ -1,6 +1,6 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import { PostDropdownMenu } from "@/components/post_actions";
@@ -8,6 +8,7 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
 import Button from "@/components/ui/button";
+import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
@@ -20,29 +21,15 @@ type Props = {
 
 const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
   const resolutionData = extractPostResolution(post);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const { ref, width } = useContainerSize<HTMLDivElement>();
   const [shouldUseCompact, setShouldUseCompact] = useState(false);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        // Once it hits >500px, always keep it compact
-        if (width > 500) {
-          setShouldUseCompact(true);
-        }
-      }
-    });
-
-    resizeObserver.observe(container);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
+    // Once it hits >500px, always keep it compact
+    if (width > 500) {
+      setShouldUseCompact(true);
+    }
+  }, [width]);
 
   return (
     <div
@@ -51,7 +38,7 @@ const QuestionHeaderInfo: FC<Props> = ({ post, className }) => {
         className
       )}
     >
-      <div className="flex items-center gap-1.5 lg:gap-2" ref={containerRef}>
+      <div className="flex items-center gap-1.5 lg:gap-2" ref={ref}>
         <PostVoter post={post} />
 
         {/* CommentStatus - compact on small screens, full on large screens */}
