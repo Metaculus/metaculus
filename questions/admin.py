@@ -7,7 +7,7 @@ from django.utils.html import format_html
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from posts.models import Post
-from questions.constants import ResolutionType
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -140,8 +140,8 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         for question in queryset:
             if not question.resolution or question.resolution in (
-                ResolutionType.AMBIGUOUS,
-                ResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
             ):
                 continue
             score_question(
@@ -158,8 +158,8 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         for question in queryset:
             if not question.resolution or question.resolution in (
-                ResolutionType.AMBIGUOUS,
-                ResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
             ):
                 continue
             score_question(
