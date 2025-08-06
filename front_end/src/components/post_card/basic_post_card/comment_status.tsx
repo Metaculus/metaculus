@@ -86,23 +86,16 @@ const CommentStatus: FC<Props> = ({
         <span className="align-middle">
           {user && unreadCount > 0 ? (
             <span className="text-gray-500 dark:text-gray-500-dark">
-              {t.rich("unreadWithTotalCountXs", {
-                unread_count_formatted: (
-                  <span className="font-medium tabular-nums">
-                    {unreadCountFormatted}
-                  </span>
-                ),
-                total_count_formatted: (
-                  <span className="font-medium tabular-nums">
-                    {totalCountFormatted}
-                  </span>
-                ),
-                purple: (obj) => (
-                  <span className="text-purple-700 dark:text-purple-700-dark">
-                    {obj}
-                  </span>
-                ),
-              })}
+              <span className="text-purple-700 dark:text-purple-700-dark">
+                (
+                <span className="font-medium tabular-nums">
+                  {unreadCountFormatted}
+                </span>
+                )
+              </span>{" "}
+              <span className="font-medium tabular-nums">
+                {totalCountFormatted}
+              </span>
             </span>
           ) : (
             <span
@@ -122,23 +115,17 @@ const CommentStatus: FC<Props> = ({
         <span className="align-middle">
           {user && unreadCount > 0 ? (
             <span className="text-gray-500 dark:text-gray-500-dark">
-              {t.rich("unreadWithTotalCount", {
-                unread_count_formatted: (
-                  <span className="font-medium tabular-nums">
-                    {unreadCountFormatted}
-                  </span>
-                ),
-                total_count_formatted: (
-                  <span className="font-medium tabular-nums">
-                    {totalCountFormatted}
-                  </span>
-                ),
-                purple: (obj) => (
-                  <span className="text-purple-700 dark:text-purple-700-dark">
-                    {obj}
-                  </span>
-                ),
-              })}
+              <span className="text-purple-700 dark:text-purple-700-dark">
+                (
+                <span className="font-medium tabular-nums">
+                  {unreadCountFormatted}
+                </span>{" "}
+                unread)
+              </span>{" "}
+              <span className="font-medium tabular-nums">
+                {totalCountFormatted}
+              </span>{" "}
+              total
             </span>
           ) : (
             <span
@@ -147,14 +134,10 @@ const CommentStatus: FC<Props> = ({
                 "text-gray-700 dark:text-gray-700-dark": variant === "gray",
               })}
             >
-              {t.rich("totalCommentsCount", {
-                total_count: totalCount,
-                total_count_formatted: (
-                  <span className="font-medium tabular-nums">
-                    {totalCountFormatted}
-                  </span>
-                ),
-              })}
+              <span className="font-medium tabular-nums">
+                {totalCountFormatted}
+              </span>{" "}
+              {totalCount === 1 ? "comment" : "comments"}
             </span>
           )}
         </span>

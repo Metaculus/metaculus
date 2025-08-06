@@ -51,14 +51,10 @@ const ForecastersCounter: FC<Props> = ({
       {/* Full version - shows descriptive text */}
       {!compact && (
         <span className="align-middle">
-          {t.rich("forecastersWithCount", {
-            count: forecasters,
-            count_formatted: (
-              <span className="font-medium tabular-nums">
-                {forecastersFormatted}
-              </span>
-            ),
-          })}
+          <span className="font-medium tabular-nums">
+            {forecastersFormatted}
+          </span>{" "}
+          {forecasters === 1 ? "forecaster" : "forecasters"}
         </span>
       )}
     </div>
