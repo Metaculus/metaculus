@@ -1412,7 +1412,6 @@
   "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {comentarios} =1 {comentario} other {comentarios} }",
   "unreadWithTotalCount": "<purple>({unread_count_formatted} sin leer)</purple> {total_count_formatted} en total",
   "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
-  "forecastersWithCount": "{count_formatted} {count, plural, =1 {pronosticador} other {pronosticadores} }",
   "percentagePointsShort": "pp",
   "latestEstimate": "Última estimación",
   "currentEstimate": "Estimación actual",
@@ -1449,5 +1448,6 @@
   "inNews": "En las Noticias",
   "info": "Información de la Pregunta",
   "hiddenUntil": "Oculto hasta",
+  "forecastersWithCount": "<strong>{count_formatted}</strong> {count, plural, =1 {pronosticador} other {pronosticadores}}",
   "toggledTimelines": "Líneas de Tiempo Alternas"
 }

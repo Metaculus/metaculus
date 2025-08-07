@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
+import RichText from "@/components/rich_text";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
@@ -50,12 +51,17 @@ const ForecastersCounter: FC<Props> = ({
       )}
       {/* Full version - shows descriptive text */}
       {!compact && (
-        <span className="align-middle">
-          <span className="font-medium tabular-nums">
-            {forecastersFormatted}
-          </span>{" "}
-          {forecasters === 1 ? "forecaster" : "forecasters"}
-        </span>
+        <RichText>
+          {(tags) => (
+            <span className="align-middle tabular-nums">
+              {t.rich("forecastersWithCount", {
+                count: forecasters,
+                count_formatted: forecastersFormatted,
+                ...tags,
+              })}
+            </span>
+          )}
+        </RichText>
       )}
     </div>
   );
