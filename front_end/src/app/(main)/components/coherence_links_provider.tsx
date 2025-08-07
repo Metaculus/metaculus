@@ -23,7 +23,7 @@ export type LinkIdToQuestionMap = Map<number, Question>;
 export type CoherenceLinksContextType = {
   coherenceLinks: CoherenceLinksGroup;
   updateCoherenceLinks: () => Promise<void>;
-  getOtherQuestions: (questionID: number) => Promise<LinkIdToQuestionMap>;
+  getOtherQuestions: () => Promise<LinkIdToQuestionMap>;
 };
 
 export const CoherenceLinksContext =
@@ -43,8 +43,10 @@ export const CoherenceLinksProvider: FC<
       .catch((error) => console.log(error));
   };
 
-  const getOtherQuestions = async (questionID: number) => {
+  const getOtherQuestions = async () => {
     const questionData = new Map<number, Question>();
+    const questionID = post.question?.id;
+    if (!questionID) return questionData;
     for (const link of coherenceLinks.data) {
       const otherQuestionId =
         questionID == link.question1_id ? link.question2_id : link.question1_id;

@@ -24,7 +24,7 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
 
   useEffect(() => {
     if (questionID)
-      getOtherQuestions(questionID).then((otherQuestions) => {
+      getOtherQuestions().then((otherQuestions) => {
         setCoherenceLinksData(
           coherenceLinks.data.filter(
             (it) => otherQuestions.get(it.id)?.status == QuestionStatus.OPEN
