@@ -94,6 +94,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "default_permission",
             "visibility",
             "is_current_content_translated",
+            "posts_count",
         )
 
     def get_score_type(self, project: Project) -> str | None:
