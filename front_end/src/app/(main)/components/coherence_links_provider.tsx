@@ -9,16 +9,21 @@ import {
 } from "react";
 
 import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CoherenceLinksGroup } from "@/types/coherence";
 import { Post } from "@/types/post";
+import { Question } from "@/types/question";
 
 type BaseProviderProps = {
   post: Post;
 };
 
+export type LinkIdToQuestionMap = Map<number, Question>;
+
 export type CoherenceLinksContextType = {
   coherenceLinks: CoherenceLinksGroup;
   updateCoherenceLinks: () => Promise<void>;
+  getOtherQuestions: (questionID: number) => Promise<LinkIdToQuestionMap>;
 };
 
 export const CoherenceLinksContext =
@@ -38,9 +43,20 @@ export const CoherenceLinksProvider: FC<
       .catch((error) => console.log(error));
   };
 
+  const getOtherQuestions = async (questionID: number) => {
+    const questionData = new Map<number, Question>();
+    for (const link of coherenceLinks.data) {
+      const otherQuestionId =
+        questionID == link.question1_id ? link.question2_id : link.question1_id;
+      const otherQuestion = await ClientPostsApi.getQuestion(otherQuestionId);
+      questionData.set(link.id, otherQuestion);
+    }
+    return questionData;
+  };
+
   return (
     <CoherenceLinksContext.Provider
-      value={{ coherenceLinks, updateCoherenceLinks }}
+      value={{ coherenceLinks, updateCoherenceLinks, getOtherQuestions }}
     >
       {children}
     </CoherenceLinksContext.Provider>
