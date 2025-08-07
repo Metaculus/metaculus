@@ -46,7 +46,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
 
-  const isWeeklyTopCommentsFeatureEnabled = useFeatureFlagEnabled(
+  const isWeeklyTopCommentsFeatureEnabled = true || useFeatureFlagEnabled(
     "weekly_top_comments"
   );
 
