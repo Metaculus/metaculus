@@ -1407,9 +1407,6 @@
   "LeaderboardTagDisclaimer": "Veja todas as perguntas que contam para este ranking <link>aqui</link>",
   "activeForecastersLabel": "Previsores Ativos",
   "default": "padrão",
-  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {comentários} =1 {comentário} other {comentários} }",
-  "unreadWithTotalCount": "<purple>({unread_count_formatted} não lido)</purple> {total_count_formatted} no total",
-  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
   "percentagePointsShort": "pp",
   "latestEstimate": "Estimação mais recente",
   "currentEstimate": "Estimativa atual",
@@ -1447,5 +1444,8 @@
   "info": "Informações da pergunta",
   "hiddenUntil": "Oculto até",
   "forecastersWithCount": "<strong>{count_formatted}</strong> {count, plural, =1 {previsor} other {previsores}}",
+  "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
+  "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> não lida)</purple> <strong>{total_count_formatted}</strong> no total",
+  "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {comentários} =1 {comentário} other {comentários}}",
   "toggledTimelines": "Linhas do Tempo Alternadas"
 }

@@ -1405,9 +1405,6 @@
   "LeaderboardTagDisclaimer": "查看此排行榜中計算在內的所有問題，請點擊<link>這裡</link>",
   "activeForecastersLabel": "活躍預測者",
   "default": "預設",
-  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {則留言} =1 {則留言} other {則留言} }",
-  "unreadWithTotalCount": "<purple>（{unread_count_formatted} 未讀）</purple> 共 {total_count_formatted}",
-  "unreadWithTotalCountXs": "<purple>（{unread_count_formatted}）</purple> {total_count_formatted}",
   "percentagePointsShort": "百分點",
   "CPMovementChangeLabel": "{value} 本{period}",
   "latestEstimate": "最新估計",
@@ -1446,5 +1443,8 @@
   "info": "問題資訊",
   "hiddenUntil": "隱藏至",
   "forecastersWithCount": "<strong>{count_formatted}</strong> 位{count, plural, =1 {預測者} other {預測者}}",
+  "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
+  "unreadWithTotalCount": "<purple>（<strong>{unread_count_formatted}</strong> 未讀）</purple> <strong>{total_count_formatted}</strong> 總計",
+  "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {則評論} =1 {則評論} other {則評論}}",
   "toggledTimelines": "切換時間線"
 }

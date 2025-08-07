@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import RichText from "@/components/rich_text";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
@@ -85,18 +86,22 @@ const CommentStatus: FC<Props> = ({
       {compact && totalCount > 0 && (
         <span className="align-middle">
           {user && unreadCount > 0 ? (
-            <span className="text-gray-500 dark:text-gray-500-dark">
-              <span className="text-purple-700 dark:text-purple-700-dark">
-                (
-                <span className="font-medium tabular-nums">
-                  {unreadCountFormatted}
+            <RichText>
+              {(tags) => (
+                <span className="tabular-nums text-gray-500 dark:text-gray-500-dark">
+                  {t.rich("unreadWithTotalCountXs", {
+                    unread_count_formatted: unreadCountFormatted,
+                    total_count_formatted: totalCountFormatted,
+                    ...tags,
+                    purple: (chunks) => (
+                      <span className="text-purple-700 dark:text-purple-700-dark">
+                        {chunks}
+                      </span>
+                    ),
+                  })}
                 </span>
-                )
-              </span>{" "}
-              <span className="font-medium tabular-nums">
-                {totalCountFormatted}
-              </span>
-            </span>
+              )}
+            </RichText>
           ) : (
             <span
               className={cn("text-gray-700  dark:text-gray-700-dark", {
@@ -114,19 +119,22 @@ const CommentStatus: FC<Props> = ({
       {!compact && (
         <span className="align-middle">
           {user && unreadCount > 0 ? (
-            <span className="text-gray-500 dark:text-gray-500-dark">
-              <span className="text-purple-700 dark:text-purple-700-dark">
-                (
-                <span className="font-medium tabular-nums">
-                  {unreadCountFormatted}
-                </span>{" "}
-                unread)
-              </span>{" "}
-              <span className="font-medium tabular-nums">
-                {totalCountFormatted}
-              </span>{" "}
-              total
-            </span>
+            <RichText>
+              {(tags) => (
+                <span className="tabular-nums text-gray-500 dark:text-gray-500-dark">
+                  {t.rich("unreadWithTotalCount", {
+                    unread_count_formatted: unreadCountFormatted,
+                    total_count_formatted: totalCountFormatted,
+                    ...tags,
+                    purple: (chunks) => (
+                      <span className="text-purple-700 dark:text-purple-700-dark">
+                        {chunks}
+                      </span>
+                    ),
+                  })}
+                </span>
+              )}
+            </RichText>
           ) : (
             <span
               className={cn("text-gray-700  dark:text-gray-700-dark", {
@@ -134,10 +142,17 @@ const CommentStatus: FC<Props> = ({
                 "text-gray-700 dark:text-gray-700-dark": variant === "gray",
               })}
             >
-              <span className="font-medium tabular-nums">
-                {totalCountFormatted}
-              </span>{" "}
-              {totalCount === 1 ? "comment" : "comments"}
+              <RichText>
+                {(tags) => (
+                  <span className="tabular-nums">
+                    {t.rich("totalCommentsCount", {
+                      total_count: totalCount,
+                      total_count_formatted: totalCountFormatted,
+                      ...tags,
+                    })}
+                  </span>
+                )}
+              </RichText>
             </span>
           )}
         </span>
