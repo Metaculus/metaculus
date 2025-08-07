@@ -102,10 +102,8 @@ export const DisplayCoherenceLink: FC<Props> = ({
           {
             impact: () => (
               <>
-                <StrengthComponent strength={link.strength} />
-                {" "}
-                <DirectionComponent direction={link.direction} />
-                {" "}
+                <StrengthComponent strength={link.strength} />{" "}
+                <DirectionComponent direction={link.direction} />{" "}
                 <span>{t("causal")}</span>
               </>
             ),
