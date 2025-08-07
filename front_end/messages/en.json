@@ -1417,5 +1417,7 @@
   "pageNotFound": "Page not found",
   "thinkSupposedPageNote": "If you think there's supposed to be a page here, <link>send a note to us</link> and we'll try to get it fixed.",
   "entryExcluded": "This entry is not eligible to earn rank or prize. This is where they would have placed if they were eligible.",
+  "expandAll": "Expand All",
+  "collapseAll": "Collapse All",
   "returnToHomePage": "Return to Home page"
 }
