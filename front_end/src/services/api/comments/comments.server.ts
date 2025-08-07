@@ -1,5 +1,5 @@
 import "server-only";
-import { BECommentType } from "@/types/comment";
+import { BECommentType, CommentOfWeekType } from "@/types/comment";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 import CommentsApi, {
@@ -74,6 +74,22 @@ class ServerCommentsApiClass extends CommentsApi {
     return await this.post<null, KeyFactorVoteParams>(
       `/key-factors/${voteData.id}/vote/`,
       voteData
+    );
+  }
+
+  async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekType[]> {
+    return await this.get<CommentOfWeekType[]>(
+      `/comments/comments-of-week/?start_date=${start_date}`
+    );
+  }
+
+  async setCommentExcludedFromWeekTop(
+    commentId: number,
+    excluded: boolean
+  ): Promise<Response> {
+    return await this.post(
+      `/comments/${commentId}/set-excluded-from-week-top/`,
+      { excluded }
     );
   }
 }
