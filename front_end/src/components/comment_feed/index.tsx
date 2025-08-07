@@ -32,6 +32,7 @@ import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
+import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
@@ -112,8 +113,10 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
 
+  const { isDone } = getQuestionStatus(postData ?? null);
+
   const shouldSuggestKeyFactors =
-    user?.should_suggest_keyfactors && !postData?.notebook;
+    user?.should_suggest_keyfactors && !postData?.notebook && !isDone;
 
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);

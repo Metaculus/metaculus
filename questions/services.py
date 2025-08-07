@@ -18,8 +18,8 @@ from posts.services.subscriptions import (
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from projects.services.cache import invalidate_projects_questions_count_cache
-from projects.services.common import notify_project_subscriptions_question_open
-from questions.constants import ResolutionType
+from projects.services.subscriptions import notify_project_subscriptions_post_open
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -205,9 +205,7 @@ def update_question(question: Question, **kwargs) -> Question:
     return question
 
 
-def create_group_of_questions(
-    *, title: str = None, questions: list[dict], **kwargs
-) -> GroupOfQuestions:
+def create_group_of_questions(*, questions: list[dict], **kwargs) -> GroupOfQuestions:
     obj = GroupOfQuestions(**kwargs)
 
     obj.full_clean()
@@ -237,6 +235,7 @@ def update_group_of_questions(
             "description",
             "group_variable",
             "subquestions_order",
+            "graph_type",
         ],
         data=kwargs,
     )
@@ -416,24 +415,24 @@ def resolve_question(
         if question == condition:
             # handle annulment
             if question.resolution in [
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 resolve_question(
                     conditional.question_no,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
                 resolve_question(
                     conditional.question_yes,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
             if child.resolution is None:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_no,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         actual_resolve_time,
                     )
                     close_question(
@@ -443,7 +442,7 @@ def resolve_question(
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_yes,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         actual_resolve_time,
                     )
                     close_question(
@@ -454,8 +453,8 @@ def resolve_question(
             # we resolve the active branch and annull the other
             if child.resolution not in [
                 None,
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 if question.resolution == "yes":
                     resolve_question(
@@ -465,7 +464,7 @@ def resolve_question(
                     )
                     resolve_question(
                         conditional.question_no,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         conditional.question_no.actual_close_time,
                     )
                 if question.resolution == "no":
@@ -476,23 +475,23 @@ def resolve_question(
                     )
                     resolve_question(
                         conditional.question_yes,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.ANNULLED,
                         conditional.question_yes.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
             if question.resolution in [
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 resolve_question(
                     conditional.question_yes,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
                 resolve_question(
                     conditional.question_no,
-                    ResolutionType.ANNULLED,
+                    UnsuccessfulResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
             else:  # child is successfully resolved
@@ -560,16 +559,16 @@ def unresolve_question(question: Question):
         child = conditional.condition_child
         if question == condition:
             if child.resolution not in [
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 # unresolve both branches (handles annulment / ambiguity automatically)
                 unresolve_question(conditional.question_yes)
                 unresolve_question(conditional.question_no)
             if child.resolution not in [
                 None,
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
             ]:
                 # both branches should still be closed though
                 close_question(
@@ -651,6 +650,13 @@ def close_question(question: Question, actual_close_time: datetime | None = None
 
     update_global_leaderboard_tags(post)
     post.save()
+
+    # Cancel notifications which have a trigger time after the new actual_close_time
+    # or for forecasts with an end_time after the new actual_close_time
+    UserForecastNotification.objects.filter(question=question).filter(
+        Q(trigger_time__gt=question.actual_close_time)
+        | Q(forecast__end_time__gt=question.actual_close_time)
+    ).delete()
 
 
 def update_leaderboards_for_question(question: Question):
@@ -861,6 +867,15 @@ def update_forecast_notification(
             forecast.end_time or start_time
         )  # If end_time is None, same case as duration 0 -> no notification
         total_lifetime = end_time - start_time
+
+        if (
+            forecast.end_time is not None
+            and question.scheduled_close_time is not None
+            and forecast.end_time >= question.scheduled_close_time
+        ):
+            # If the forecast.end_time is after the question.scheduled_close_time,
+            # don't create a notification
+            return
 
         # Determine trigger time based on lifetime
         if total_lifetime < timedelta(hours=8):
@@ -1159,13 +1174,13 @@ def handle_question_open(question: Question):
     A specific handler is triggered once it's opened
     """
 
+    post = question.get_post()
+
     # Handle post subscriptions
-    notify_post_status_change(
-        question.get_post(), Post.PostStatusChange.OPEN, question=question
-    )
+    notify_post_status_change(post, Post.PostStatusChange.OPEN, question=question)
 
     # Handle question on followed projects subscriptions
-    notify_project_subscriptions_question_open(question)
+    notify_project_subscriptions_post_open(post, question=question)
 
 
 def get_forecasts_per_user(question: Question) -> dict[int, int]:

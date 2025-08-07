@@ -8,7 +8,7 @@ from django.utils import timezone
 from comments.models import Comment
 from misc.models import PostArticle
 from posts.models import Post, Vote, PostActivityBoost
-from questions.constants import QuestionStatus
+from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.models import Question
 from users.models import User
 from utils.models import ModelBatchUpdater
@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 def decay(val: float, dt: datetime.datetime) -> float:
-    return val / 2 ** ((timezone.now() - dt).days / 7)
+    delta = (timezone.now() - dt).days
+
+    if delta <= 3.5:
+        return val
+
+    return val * ((delta / 3.5) ** -2)
 
 
 def compute_question_hotness(question: Question) -> float:
@@ -41,11 +46,13 @@ def compute_question_hotness(question: Question) -> float:
     )
 
     # Resolution time
-    hotness += (
-        decay(20, question.resolution_set_time)
-        if question.resolution_set_time and now > question.resolution_set_time
-        else 0
-    )
+    if (
+        question.resolution_set_time
+        and now > question.resolution_set_time
+        and question.resolution
+        and question.resolution not in UnsuccessfulResolutionType
+    ):
+        hotness += decay(20, question.resolution_set_time)
 
     return hotness
 
@@ -60,13 +67,17 @@ def _compute_hotness_approval_score(post: Post) -> float:
 
 
 def _compute_hotness_relevant_news(post: Post) -> float:
-    related_article = PostArticle.objects.filter(post=post).order_by("distance").first()
+    # Notebooks should not have news hotness score
+    if post.notebook_id:
+        return 0.0
 
-    if not related_article:
-        return 0
+    qs = PostArticle.objects.filter(post=post)
 
-    return decay(
-        20 * max(0, 0.5 - related_article.distance), related_article.created_at
+    return sum(
+        [
+            decay(max(0, 0.5 - related_article.distance), related_article.created_at)
+            for related_article in qs
+        ]
     )
 
 

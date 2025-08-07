@@ -1,7 +1,11 @@
 "use client";
 
-import { faFile, faCirclePlay } from "@fortawesome/free-regular-svg-icons";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faChartBar } from "@fortawesome/free-regular-svg-icons";
+import {
+  faArrowLeft,
+  faTrophy,
+  faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,13 +34,13 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
 
   return (
     <div className="mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4 text-blue-700 dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 dark:text-blue-700-dark">
-      <Link href="/aib/2025/q1" className="mb-3 flex w-full no-underline">
+      <Link href="/aib/2025/q2" className="mb-3 flex w-full no-underline">
         <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
           <FontAwesomeIcon
             icon={faArrowLeft}
             className="text-lg md:text-lg min-[1920px]:text-xl"
           />{" "}
-          Check out final rankings for Q1 - 2025
+          Check out final rankings for Q2 - 2025
         </div>
       </Link>{" "}
       <div className="flex size-full flex-col items-center gap-3">
@@ -50,7 +54,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
           </div>
           <div className="relative flex h-auto min-h-[8rem] w-full flex-row overflow-hidden rounded md:w-1/3 lg:h-auto">
             <Image
-              src="https://metaculus-web-media.s3.amazonaws.com/aib-q2.webp"
+              src="https://metaculus-web-media.s3.amazonaws.com/aib-q3.webp"
               alt=""
               fill
               priority
@@ -125,27 +129,39 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             )}
             <div className="flex flex-row gap-3">
               <Link
-                href="/tournament/aibq2/"
-                className="flex size-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
-              >
-                <FontAwesomeIcon
-                  icon={faFile}
-                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
-                />
-                <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
-                  {t("FABTournamentPage")}
-                </span>
-              </Link>
-              <Link
-                href="https://www.loom.com/share/fc3c1a643b984a15b510647d8f760685"
+                href="/notebooks/38928/ai-benchmark-resources/"
                 className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
-                  icon={faCirclePlay}
+                  icon={faInfoCircle}
                   className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
                 />
                 <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
-                  Set up a bot in 30min
+                  {t("FABInfoPage")}
+                </span>
+              </Link>
+              <Link
+                href="/tournament/fall-aib-2025/"
+                className="flex size-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+              >
+                <FontAwesomeIcon
+                  icon={faTrophy}
+                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
+                />
+                <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
+                  {"Fall 2025"}
+                </span>
+              </Link>
+              <Link
+                href="/tournament/minibench/"
+                className="flex size-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+              >
+                <FontAwesomeIcon
+                  icon={faChartBar}
+                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
+                />
+                <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
+                  {"MiniBench"}
                 </span>
               </Link>
             </div>
@@ -164,7 +180,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 The project ID to add the user to is hardcoded here - the FAB project is changed once every quarter, and it doesn't
                 make sense to build infrastructure to manage the ID from the UI. When the new FAB tournament starts, we'll just change the ID here.
               */}
-              <SignupForm forceIsBot={true} addToProject={32721} />
+              <SignupForm forceIsBot={true} addToProject={32813} />
             </div>
             <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {

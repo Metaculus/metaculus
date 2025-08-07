@@ -1,7 +1,7 @@
 import { useLocale } from "next-intl";
 import { FC } from "react";
-import "@github/relative-time-element";
 
+import RelativeTime from "@/components/ui/relative_time";
 import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
@@ -20,8 +20,7 @@ const LocalDaytime: FC<Props> = ({ date }) => {
   const localValue = date ? formatDate(locale, new Date(date)) : "";
 
   return (
-    // @ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304
-    <relative-time
+    <RelativeTime
       datetime={date}
       format="relative"
       prefix=""
@@ -31,8 +30,7 @@ const LocalDaytime: FC<Props> = ({ date }) => {
       title=""
     >
       {localValue}
-      {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
-    </relative-time>
+    </RelativeTime>
   );
 };
 

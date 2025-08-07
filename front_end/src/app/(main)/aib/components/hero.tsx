@@ -11,9 +11,8 @@ function Hero() {
         </span>{" "}
         <span className="font-light text-blue-600 dark:text-blue-600-dark">
           {t("FABHeroSubtitle")}{" "}
-          <span className="font-light text-blue-700 dark:text-blue-700-dark">
-            Q2{" "}
-            <span className="font-light opacity-50 md:font-thin">(2025)</span>
+          <span className="font-light text-purple-700 dark:text-purple-700-dark">
+            Fall 2025
           </span>
         </span>
       </h1>

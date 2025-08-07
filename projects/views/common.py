@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -11,6 +11,7 @@ from posts.serializers import serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
+    ProjectSerializer,
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
@@ -25,11 +26,11 @@ from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,
-    subscribe_project,
-    unsubscribe_project,
     get_site_main_project,
     get_project_timeline_data,
 )
+from projects.services.subscriptions import subscribe_project, unsubscribe_project
+from questions.models import Question
 from users.services.common import get_users_by_usernames
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
@@ -190,6 +191,52 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
     )
 
     return Response(serialize_posts_many_forecast_flow(posts, user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_create_api_view(request: Request):
+    serializer = ProjectSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_delete_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj: Project = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Post.objects.filter(default_project=obj).delete()
+    obj.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["PATCH"])
+def project_update_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    serializer = ProjectSerializer(
+        obj,
+        data=request.data,
+        partial=True,
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
 
 
 @api_view(["GET"])

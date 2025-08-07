@@ -11,7 +11,10 @@ from comments.constants import CommentReportType
 from comments.models import Comment
 from notifications.constants import MailingTags
 from notifications.models import Notification
-from notifications.utils import generate_email_comment_preview_text
+from notifications.utils import (
+    generate_email_comment_preview_text,
+    generate_email_notebook_preview_text,
+)
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -21,7 +24,7 @@ from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
 from utils.formatters import abbreviated_number, format_value_unit
-from utils.frontend import build_post_comment_url
+from utils.frontend import build_post_comment_url, build_post_url, build_news_url
 
 logger = logging.getLogger(__name__)
 
@@ -456,6 +459,7 @@ class NotificationPostStatusChange(
         event: Post.PostStatusChange
         project: NotificationProjectParams = None
         question: NotificationQuestionParams = None
+        notebook_id: int = None
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
@@ -760,3 +764,33 @@ def send_forecast_autowidrawal_notification(
     )
 
     return True
+
+
+def send_news_category_notebook_publish_notification(user: User, post: Post):
+    """
+    For notebooks published in News Category projects (e.g. Platform News),
+    we want to send them as separate emails, but still grouped —
+    just like we do for regular questions and notebooks via the
+    `NotificationPostStatusChange` notification type.
+    """
+
+    preview_text = generate_email_notebook_preview_text(
+        post.notebook.markdown, max_words=100
+    )
+
+    return send_email_with_template(
+        to=user.email,
+        subject=f"[Metaculus News] {post.title}",
+        template_name="emails/subscribed_news_notebook_published.html",
+        context={
+            "recipient": user,
+            "params": {
+                "post": NotificationPostParams.from_post(post),
+                "preview_text": preview_text,
+                "post_url": build_post_url(post),
+                "news_url": build_news_url(),
+            },
+        },
+        use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )

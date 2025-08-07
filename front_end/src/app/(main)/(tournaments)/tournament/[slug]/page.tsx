@@ -30,6 +30,7 @@ import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
+import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
 
 type Props = {
@@ -142,7 +143,12 @@ export default async function TournamentSlug(props: Props) {
       </div>
 
       <NavigationBlock tournament={tournament} />
-      <ParticipationBlock tournament={tournament} posts={predictionFlowPosts} />
+      {tournament.type !== TournamentType.Index && (
+        <ParticipationBlock
+          tournament={tournament}
+          posts={predictionFlowPosts}
+        />
+      )}
 
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
@@ -173,6 +179,16 @@ export default async function TournamentSlug(props: Props) {
             </div>
           )}
         </div>
+
+        {tournament.type === TournamentType.Index && (
+          <div className="mt-4">
+            <PredictionFlowButton tournament={tournament} />
+            <ParticipationBlock
+              tournament={tournament}
+              posts={predictionFlowPosts}
+            />
+          </div>
+        )}
       </div>
 
       {/* Questions block */}

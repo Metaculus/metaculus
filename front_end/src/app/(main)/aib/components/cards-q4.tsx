@@ -42,7 +42,13 @@ const Card: FC<{ className: string; heading1: string; heading2: string }> = ({
         <div className="text-lg opacity-60 md:text-lg lg:text-xl min-[1920px]:text-2xl">
           {heading1}
         </div>
-        <div className="text-2xl md:text-4xl lg:text-6xl min-[1920px]:text-7xl">
+        <div
+          className={cn(
+            heading2 === "Coming Soon"
+              ? "text-xl md:text-3xl lg:text-4xl min-[1920px]:text-5xl"
+              : "text-2xl md:text-4xl lg:text-6xl min-[1920px]:text-7xl"
+          )}
+        >
           {heading2}
         </div>
       </div>

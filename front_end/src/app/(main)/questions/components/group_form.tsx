@@ -36,6 +36,7 @@ import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
+  GroupOfQuestionsGraphType,
   Post,
   PostGroupOfQuestionsSubquestionsOrder,
   PostWithForecasts,
@@ -109,6 +110,12 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
         z.literal(PostGroupOfQuestionsSubquestionsOrder.CP_DESC),
       ])
       .optional(),
+    graph_type: z
+      .union([
+        z.literal(GroupOfQuestionsGraphType.FanGraph),
+        z.literal(GroupOfQuestionsGraphType.MultipleChoiceGraph),
+      ])
+      .optional(),
   });
 };
 
@@ -176,7 +183,7 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions.map((x) => {
+    const groupData = subQuestions.map((x, idx) => {
       const subquestionData = {
         id: x.id,
         type: subtype,
@@ -186,7 +193,7 @@ const GroupForm: React.FC<Props> = ({
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
         cp_reveal_time: x.cp_reveal_time,
-        group_rank: x.group_rank,
+        group_rank: idx,
       };
 
       if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
@@ -273,6 +280,7 @@ const GroupForm: React.FC<Props> = ({
         group_variable: data["group_variable"],
         questions: groupData,
         subquestions_order: data["subquestions_order"],
+        graph_type: data["graph_type"],
       },
     };
     let resp: { post: Post };
@@ -337,6 +345,9 @@ const GroupForm: React.FC<Props> = ({
       subquestions_order:
         post?.group_of_questions?.subquestions_order ??
         PostGroupOfQuestionsSubquestionsOrder.MANUAL,
+      graph_type:
+        post?.group_of_questions?.graph_type ??
+        GroupOfQuestionsGraphType.MultipleChoiceGraph,
     },
   });
 
@@ -620,6 +631,29 @@ const GroupForm: React.FC<Props> = ({
                 post?.group_of_questions?.subquestions_order ??
                 PostGroupOfQuestionsSubquestionsOrder.MANUAL
               }
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={t("mainGraphType")}
+            explanation={t("mainGraphTypeDescription")}
+          >
+            <Select
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              options={[
+                {
+                  value: GroupOfQuestionsGraphType.FanGraph,
+                  label: t("fanGraph"),
+                },
+                {
+                  value: GroupOfQuestionsGraphType.MultipleChoiceGraph,
+                  label: t("toggledTimelines"),
+                },
+              ]}
+              defaultValue={
+                post?.group_of_questions?.graph_type ??
+                GroupOfQuestionsGraphType.MultipleChoiceGraph
+              }
+              {...form.register("graph_type")}
             />
           </InputContainer>
           {subQuestions.map((subQuestion, index) => {
