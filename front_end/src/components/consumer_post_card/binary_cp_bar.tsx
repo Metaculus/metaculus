@@ -71,7 +71,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
-            id={`progressGradient-${question.id}`}
+            id={`progressGradient-${question.id}-${size}`}
             x1={gradientStartX}
             y1={gradientStartY}
             x2={gradientEndX}
@@ -100,7 +100,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         <path
           d={progressArc.path}
           fill="none"
-          stroke={`url(#progressGradient-${question.id})`}
+          stroke={`url(#progressGradient-${question.id}-${size})`}
           strokeWidth={strokeWidth}
         />
 
