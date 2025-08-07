@@ -1421,5 +1421,16 @@
   "registrationInfoAbility4": "Únete a la conversación con los mejores pronosticadores del mundo",
   "registrationInfoAbility5": "Envía tus propias preguntas a la comunidad",
   "registrationInfoAbility6": "Despeja el ruido para seguir las historias que importan",
+  "current_week": "Semana actual",
+  "placementFirst": "1er lugar",
+  "placementSecond": "2º lugar",
+  "placementThird": "3er lugar",
+  "placementOther": "{placement}º lugar",
+  "exclude": "Excluir",
+  "unexclude": "Incluir",
+  "mindsChanged": "mentes cambiadas",
+  "keyFactorVotes": "votos de factor clave",
+  "weeklyTopComments": "Comentarios principales de la semana",
+  "entryExcluded": "Esta entrada no es elegible para ganar rango o premio. Aquí es donde se hubieran colocado si fueran elegibles.",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

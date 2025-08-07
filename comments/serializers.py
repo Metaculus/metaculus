@@ -222,6 +222,7 @@ def serialize_key_factor(
             {"vote_type": vote.vote_type, "score": vote.score} for vote in user_votes
         ],
         "votes_score": key_factor.votes_score,
+        "votes_count": key_factor.get_votes_count(),
         "vote_type": key_factor.vote_type,
     }
 

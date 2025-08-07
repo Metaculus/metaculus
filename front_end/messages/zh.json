@@ -1423,5 +1423,16 @@
   "registrationInfoAbility4": "与世界顶级预测者一起参与讨论",
   "registrationInfoAbility5": "向社区提交你自己的问题",
   "registrationInfoAbility6": "剖析噪音以追踪重要的故事",
+  "current_week": "本周",
+  "placementFirst": "第1名",
+  "placementSecond": "第2名",
+  "placementThird": "第3名",
+  "placementOther": "第{placement}名",
+  "exclude": "排除",
+  "unexclude": "取消排除",
+  "mindsChanged": "改变主意",
+  "keyFactorVotes": "关键因子投票",
+  "weeklyTopComments": "本周最佳评论",
+  "entryExcluded": "此条目无资格获得排名或奖品。若符合资格，他们将排在此处。",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
