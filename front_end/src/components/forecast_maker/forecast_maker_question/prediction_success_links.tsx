@@ -23,14 +23,12 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
   const questionID = post?.question?.id;
 
   useEffect(() => {
-    if (questionID)
-      getOtherQuestions().then((otherQuestions) => {
-        setCoherenceLinksData(
-          coherenceLinks.data.filter(
-            (it) => otherQuestions.get(it.id)?.status == QuestionStatus.OPEN
-          )
-        );
-      });
+    const otherQuestions = getOtherQuestions();
+    setCoherenceLinksData(
+      coherenceLinks.data.filter(
+        (it) => otherQuestions.get(it.id)?.status == QuestionStatus.OPEN
+      )
+    );
   }, [coherenceLinks, getOtherQuestions, questionID]);
 
   if (coherenceLinksData.length === 0) return null;

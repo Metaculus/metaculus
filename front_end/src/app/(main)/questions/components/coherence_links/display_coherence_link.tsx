@@ -56,18 +56,22 @@ export const DisplayCoherenceLink: FC<Props> = ({
   linkModified,
 }) => {
   const isFirstQuestion = link.question1_id === post.question?.id;
-  const otherQuestionID = isFirstQuestion
-    ? link.question2_id
-    : link.question1_id;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [canceled, setCanceled] = useState<boolean>(false);
   const t = useTranslations();
 
   useEffect(() => {
-    ClientPostsApi.getQuestion(otherQuestionID).then((question) =>
-      setOtherQuestion(question)
-    );
-  }, [otherQuestionID]);
+    if (isFirstQuestion && link.question2) setOtherQuestion(link.question2);
+    else if (link.question1) setOtherQuestion(link.question1);
+    else {
+      const otherQuestionID = isFirstQuestion
+        ? link.question2_id
+        : link.question1_id;
+      ClientPostsApi.getQuestion(otherQuestionID).then((question) =>
+        setOtherQuestion(question)
+      );
+    }
+  }, [isFirstQuestion, link]);
 
   async function deleteLink() {
     setCanceled(true);

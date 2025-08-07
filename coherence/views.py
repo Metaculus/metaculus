@@ -7,7 +7,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from coherence.models import CoherenceLink
-from coherence.serializers import CoherenceLinkSerializer, serialize_coherence_link
+from coherence.serializers import (
+    CoherenceLinkSerializer,
+    serialize_coherence_link,
+    serialize_coherence_link_many,
+)
 from coherence.services import create_coherence_link
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -55,9 +59,7 @@ def get_links_for_question_api_view(request, pk):
         Q(question1=question) | Q(question2=question), user=request.user
     )
 
-    links_to_data = []
-    for link in links:
-        links_to_data.append(serialize_coherence_link(link))
+    links_to_data = serialize_coherence_link_many(links)
 
     return Response({"size": len(links_to_data), "data": links_to_data})
 

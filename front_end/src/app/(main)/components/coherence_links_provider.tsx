@@ -9,8 +9,7 @@ import {
 } from "react";
 
 import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
-import ClientPostsApi from "@/services/api/posts/posts.client";
-import { CoherenceLinksGroup } from "@/types/coherence";
+import { FetchedCoherenceLinks } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
 
@@ -21,9 +20,9 @@ type BaseProviderProps = {
 export type LinkIdToQuestionMap = Map<number, Question>;
 
 export type CoherenceLinksContextType = {
-  coherenceLinks: CoherenceLinksGroup;
+  coherenceLinks: FetchedCoherenceLinks;
   updateCoherenceLinks: () => Promise<void>;
-  getOtherQuestions: () => Promise<LinkIdToQuestionMap>;
+  getOtherQuestions: () => LinkIdToQuestionMap;
 };
 
 export const CoherenceLinksContext =
@@ -32,7 +31,7 @@ export const CoherenceLinksContext =
 export const CoherenceLinksProvider: FC<
   PropsWithChildren<BaseProviderProps>
 > = ({ children, post }) => {
-  const [coherenceLinks, setCoherenceLinks] = useState<CoherenceLinksGroup>({
+  const [coherenceLinks, setCoherenceLinks] = useState<FetchedCoherenceLinks>({
     size: 0,
     data: [],
   });
@@ -43,14 +42,13 @@ export const CoherenceLinksProvider: FC<
       .catch((error) => console.log(error));
   };
 
-  const getOtherQuestions = async () => {
+  const getOtherQuestions = () => {
     const questionData = new Map<number, Question>();
     const questionID = post.question?.id;
     if (!questionID) return questionData;
     for (const link of coherenceLinks.data) {
-      const otherQuestionId =
-        questionID == link.question1_id ? link.question2_id : link.question1_id;
-      const otherQuestion = await ClientPostsApi.getQuestion(otherQuestionId);
+      const otherQuestion =
+        questionID === link.question1_id ? link.question2 : link.question1;
       questionData.set(link.id, otherQuestion);
     }
     return questionData;
