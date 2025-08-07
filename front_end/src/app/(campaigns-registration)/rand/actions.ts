@@ -13,7 +13,8 @@ export type ConfirmationResult = {
 export async function submitToZapierWebhook(
   email: string,
   username?: string,
-  userEmail?: string
+  userEmail?: string,
+  addToMailingList: boolean = false
 ): Promise<ZapierSubmissionResult> {
   try {
     const webhookUrl = process.env.RAND_ZAPIER_WEBHOOK_URL;
@@ -35,6 +36,7 @@ export async function submitToZapierWebhook(
         email,
         username: username || null,
         userEmail: userEmail || null,
+        addToMailingList,
         timestamp: new Date().toISOString(),
         source: "rand_landing_page",
       }),
