@@ -11,6 +11,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     score = serializers.FloatField()
     rank = serializers.IntegerField()
     excluded = serializers.BooleanField()
+    show_when_excluded = serializers.BooleanField()
     medal = serializers.CharField()
     prize = serializers.FloatField()
     coverage = serializers.FloatField()
@@ -27,6 +28,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "score",
             "rank",
             "excluded",
+            "show_when_excluded",
             "medal",
             "prize",
             "coverage",
