@@ -94,7 +94,6 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "default_permission",
             "visibility",
             "is_current_content_translated",
-            "posts_count",
             "bot_leaderboard_status",
         )
 
