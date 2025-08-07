@@ -7,6 +7,7 @@ import ForecasterQuestionView from "@/app/(main)/questions/[id]/components/quest
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import { getMockData as getDateGroupMockData } from "@/stories/feed_card/date_group/mock_data";
 import { MockCommentsFeedProvider } from "@/stories/utils/mocks/mock_comments_feed_provider";
+import MockHideCPProvider from "@/stories/utils/mocks/mock_hide_cp_provider";
 import { createConditionalRenderer } from "@/stories/utils/renderer/conditional-renderer";
 import { stripUserPredictions } from "@/stories/utils/transforms/strip_user_predictions";
 import { PostWithForecasts } from "@/types/post";
@@ -119,6 +120,13 @@ export const CpHidden: Story = {
     } as unknown as PostWithForecasts,
     hideUserPredictions: false,
   },
+  decorators: [
+    (Story) => (
+      <MockHideCPProvider>
+        <Story />
+      </MockHideCPProvider>
+    ),
+  ],
 };
 
 export const Closed: Story = {

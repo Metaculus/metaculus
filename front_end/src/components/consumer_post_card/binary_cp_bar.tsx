@@ -22,33 +22,13 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const isClosed = question.status === QuestionStatus.CLOSED;
   const cpPercentage = Math.round((questionCP ?? 0) * 1000) / 10;
 
-  // SVG configurations
-  const strokeWidth = {
-    sm: 8,
-    md: 12,
-    lg: 12,
-  }[size];
-  const strokeCursorWidth = {
-    sm: 11,
-    md: 17,
-    lg: 17,
-  }[size];
-  const width = {
-    sm: 85,
-    md: 112,
-    lg: 140,
-  }[size];
-  const height = {
-    sm: 50,
-    md: 66,
-    lg: 83,
-  }[size];
+  const width = 112;
+  const height = 66;
+  const strokeWidth = 12;
+  const strokeCursorWidth = 17;
   const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
-  const center = {
-    x: width / 2,
-    y: height - strokeWidth,
-  };
+  const center = { x: width / 2, y: height - strokeWidth };
 
   const backgroundArc = describeArc({
     percentage: 100,
@@ -79,9 +59,11 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center",
+        "relative flex origin-top items-center justify-center", // origin for scaling
         {
-          "min-w-[200px] max-w-[200px]": size === "md",
+          "scale-[0.75]": size === "sm",
+          "scale-100": size === "md",
+          "scale-[1.25]": size === "lg",
         },
         className
       )}
@@ -89,7 +71,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
-            id={`progressGradient-${question.id}`}
+            id={`progressGradient-${question.id}-${size}`}
             x1={gradientStartX}
             y1={gradientStartY}
             x2={gradientEndX}
@@ -118,7 +100,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         <path
           d={progressArc.path}
           fill="none"
-          stroke={`url(#progressGradient-${question.id})`}
+          stroke={`url(#progressGradient-${question.id}-${size})`}
           strokeWidth={strokeWidth}
         />
 
@@ -152,22 +134,10 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           textColor
         )}
       >
-        <span
-          className={cn("text-lg font-bold", {
-            "leading-[24px]": size === "sm",
-            "leading-8": size === "md",
-            "text-3xl leading-[40px]": size === "lg",
-          })}
-        >
+        <span className="text-lg font-bold leading-8">
           {!isNil(questionCP) && cpPercentage}%
         </span>
-        <span
-          className={cn("font-normal uppercase", {
-            "text-[9px] leading-[9px]": size === "sm",
-            "text-xs uppercase leading-none": size === "md",
-            "leading-none": size === "lg",
-          })}
-        >
+        <span className="text-xs font-normal uppercase leading-none">
           {t("chance")}
         </span>
       </div>

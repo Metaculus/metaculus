@@ -450,7 +450,13 @@ const NumericChart: FC<Props> = ({
                 }}
                 offsetY={isEmbedded ? 0 : BOTTOM_PADDING}
                 tickValues={xScale.ticks}
-                tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
+                tickFormat={
+                  hideCP
+                    ? () => ""
+                    : isCursorActive
+                      ? () => ""
+                      : xScale.tickFormat
+                }
                 tickLabelComponent={
                   <VictoryPortal>
                     <XTickLabel

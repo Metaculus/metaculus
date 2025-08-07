@@ -314,7 +314,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
 
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels ? () => "" : xScale.tickFormat}
+            tickFormat={hideCP || hideLabels ? () => "" : xScale.tickFormat}
             style={{
               ticks: {
                 strokeWidth: 1,

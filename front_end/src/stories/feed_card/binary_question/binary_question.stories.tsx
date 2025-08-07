@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import ConsumerPostCard from "@/components/consumer_post_card";
 import PostCard from "@/components/post_card";
+import { AuthContext } from "@/contexts/auth_context";
 import { createConditionalRenderer } from "@/stories/utils/renderer/conditional-renderer";
 import { stripUserPredictions } from "@/stories/utils/transforms/strip_user_predictions";
 import {
@@ -9,6 +10,7 @@ import {
   withCpMovement,
 } from "@/stories/utils/transforms/with_cp_movement";
 import { PostWithForecasts } from "@/types/post";
+import { CurrentUser } from "@/types/users";
 
 import { getMockData } from "./mock_data";
 const ongoingArgs = getMockData(false);
@@ -108,6 +110,18 @@ export const CpHidden: Story = {
     } as unknown as PostWithForecasts,
     hideUserPredictions: false,
   },
+  decorators: [
+    (Story) => (
+      <AuthContext.Provider
+        value={{
+          user: { hide_community_prediction: true } as CurrentUser,
+          setUser: () => {},
+        }}
+      >
+        <Story />
+      </AuthContext.Provider>
+    ),
+  ],
 };
 
 export const Closed: Story = {
