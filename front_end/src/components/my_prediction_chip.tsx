@@ -63,7 +63,7 @@ const MyPredictionChip: FC<Props> = ({
     return (
       <div
         className={cn(
-          "flex flex-row items-center justify-center gap-1.5 border-t-[0.5px] border-gray-400 pt-2.5 text-center text-xs text-orange-800 dark:border-gray-400-dark dark:text-orange-800-dark",
+          "flex flex-row items-center justify-center gap-1.5 border-t-[0.5px] border-gray-300 pt-2.5 text-center text-xs text-orange-800 dark:border-gray-200-dark dark:text-orange-800-dark",
           className,
           {
             "flex-col": question.type === QuestionType.Date,

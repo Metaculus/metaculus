@@ -248,9 +248,9 @@ const FanChart: FC<Props> = ({
                 stroke: "transparent",
               },
               grid: {
-                stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                stroke: getThemeColor(METAC_COLORS.gray["400"]),
                 strokeWidth: 1,
-                strokeDasharray: "2, 5",
+                strokeDasharray: "3, 2",
               },
             }}
             tickValues={yScale.ticks}
@@ -291,8 +291,8 @@ const FanChart: FC<Props> = ({
                     opacity: 0.3,
                     fill: () =>
                       area?.[1]?.resolved
-                        ? getThemeColor(METAC_COLORS.purple["300"])
-                        : getThemeColor(METAC_COLORS.olive["300"]),
+                        ? getThemeColor(METAC_COLORS.purple["500"])
+                        : getThemeColor(METAC_COLORS.olive["500"]),
                   },
                 }}
               />

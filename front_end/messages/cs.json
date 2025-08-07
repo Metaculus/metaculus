@@ -1409,10 +1409,6 @@
   "LeaderboardTagDisclaimer": "Podívejte se na všechny otázky, které se započítávají do tohoto žebříčku <link>zde</link>",
   "activeForecastersLabel": "Aktivní předpovědci",
   "default": "výchozí",
-  "totalCommentsCount": "{total_count_formatted} {total_count, plural, =0 {komentářů} =1 {komentář} other {komentářů} }",
-  "unreadWithTotalCount": "<purple>({unread_count_formatted} nepřečtených)</purple> {total_count_formatted} celkem",
-  "unreadWithTotalCountXs": "<purple>({unread_count_formatted})</purple> {total_count_formatted}",
-  "forecastersWithCount": "{count_formatted} {count, plural, =1 {prognostik} other {prognostiků} }",
   "percentagePointsShort": "pp",
   "latestEstimate": "Nejnovější odhad",
   "currentEstimate": "Aktuální odhad",
@@ -1449,5 +1445,9 @@
   "inNews": "Ve zprávách",
   "info": "Informace o otázce",
   "hiddenUntil": "Skryto do",
+  "forecastersWithCount": "<strong>{count_formatted}</strong> {count, plural, =1 {předpověď} other {předpovědi}}",
+  "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
+  "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> nepřečtených)</purple> <strong>{total_count_formatted}</strong> celkem",
+  "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {komentářů} =1 {komentář} other {komentáře}}",
   "toggledTimelines": "Přepínané časové osy"
 }
