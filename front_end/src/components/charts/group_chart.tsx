@@ -441,10 +441,7 @@ const GroupChart: FC<Props> = ({
             })}
             {/* Line cursor points */}
             {graphs.map(
-              (
-                { color, active, line, highlighted, resolutionPoint, isClosed },
-                index
-              ) => {
+              ({ color, active, line, highlighted, isClosed }, index) => {
                 const filteredLine = filteredLines[index];
                 const point = onCursorChange
                   ? filteredLine?.at(-1)
@@ -458,7 +455,6 @@ const GroupChart: FC<Props> = ({
                   !active ||
                   !filteredLine ||
                   !point ||
-                  !!resolutionPoint ||
                   (!forceShowLinePoints &&
                     (isHighlightActive ||
                       !isCursorActive ||
