@@ -89,6 +89,7 @@ export type Tournament = TournamentPreview & {
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
   is_current_content_translated?: boolean;
+  bot_leaderboard_status?: BotLeaderboardStatus;
   index_weights?: ProjectIndexWeights[];
   timeline: TournamentTimeline;
   forecasts_flow_enabled: boolean;
@@ -116,4 +117,11 @@ export type Community = Project & {
 export enum CommunitySettingsMode {
   Questions = "questions",
   Settings = "settings",
+}
+
+export enum BotLeaderboardStatus {
+  ExcludeAndHide = "exclude_and_hide",
+  ExcludeAndShow = "exclude_and_show",
+  Include = "include",
+  BotsOnly = "bots_only",
 }

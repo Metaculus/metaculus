@@ -95,6 +95,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "visibility",
             "is_current_content_translated",
             "posts_count",
+            "bot_leaderboard_status",
         )
 
     def get_score_type(self, project: Project) -> str | None:
