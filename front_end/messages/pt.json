@@ -1419,5 +1419,11 @@
   "registrationInfoAbility4": "Junte-se à conversa com os melhores previsores do mundo",
   "registrationInfoAbility5": "Envie suas próprias perguntas para a comunidade",
   "registrationInfoAbility6": "Corte o ruído para acompanhar as histórias que importam",
+  "tournamentStats": "Estatísticas do Torneio",
+  "lastQuestionClosed": "Última Pergunta Encerrada",
+  "lastQuestionCloses": "Última Pergunta Encerra",
+  "lastQuestionResolved": "Última Pergunta Resolvida",
+  "lastQuestionResolves": "Última Pergunta Resolve",
+  "entryExcluded": "Esta inscrição não é elegível para ganhar classificação ou prêmio. Esta é a posição que teriam se fossem elegíveis.",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

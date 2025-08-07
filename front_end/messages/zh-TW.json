@@ -1418,5 +1418,11 @@
   "registrationInfoAbility4": "與世界上最優秀的預測者一起參與討論",
   "registrationInfoAbility5": "向社群提交自己的問題",
   "registrationInfoAbility6": "從嘈雜中篩選出重要的故事",
+  "tournamentStats": "比賽統計",
+  "lastQuestionClosed": "最後一個問題已關閉",
+  "lastQuestionCloses": "最後一個問題關閉",
+  "lastQuestionResolved": "最後一個問題已解決",
+  "lastQuestionResolves": "最後一個問題解決",
+  "entryExcluded": "此參賽作品不符合獲得排名或獎勵的資格。如果符合資格，他們將會擺在此處。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
