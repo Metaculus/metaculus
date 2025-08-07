@@ -7,6 +7,7 @@ import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
+import ExcludedEntryTooltip from "../excluded_entry_tooltop";
 import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
@@ -37,8 +38,8 @@ const TableRow: FC<Props> = ({
     percent_prize,
     prize,
   } = rowEntry;
-  const highlight = user?.id === userId || excluded;
   const t = useTranslations();
+  const highlight = user?.id === userId || excluded;
   const coveragePercent = coverage
     ? maxCoverage
       ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
@@ -55,7 +56,16 @@ const TableRow: FC<Props> = ({
             {!!medal && (
               <MedalIcon type={medal} className="mr-2 inline-block size-4" />
             )}
-            <span className="flex-1 text-center">{rank}</span>
+
+            <span className="flex-1 text-center">
+              {excluded ? (
+                <>
+                  <ExcludedEntryTooltip rank={rank} />
+                </>
+              ) : (
+                rank
+              )}
+            </span>
           </>
         )}
       </Td>

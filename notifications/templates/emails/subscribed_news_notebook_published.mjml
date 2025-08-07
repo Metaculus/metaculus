@@ -1,0 +1,34 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    Hello {{recipient.username}},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    We’re excited to share the latest update from Metaculus:
+                    {% endblocktrans %}
+
+                    <p style="white-space: pre;">{{ params.preview_text }}</p>
+
+                    <a href="{{ params.post_url }}">{% trans "👉 Read the full article." %}</a>
+
+                    <p style="font-size:85%; color:#aaaaaa;">
+                        {% blocktrans with news_url=params.news_url %}
+                        You're receiving this email because you're subscribed to News. Unsubscribe
+                        <a href="{{ news_url }}">here</a>.
+                        {% endblocktrans %}
+                    </p>
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>

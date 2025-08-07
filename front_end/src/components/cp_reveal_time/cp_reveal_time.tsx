@@ -1,7 +1,8 @@
 import { intlFormatDistance } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
-import "@github/relative-time-element";
+
+import RelativeTime from "@/components/ui/relative_time";
 
 type Props = {
   cpRevealTime: string;
@@ -15,11 +16,9 @@ const CPRevealTime: FC<Props> = ({ cpRevealTime, className }) => {
   return (
     <span className={className}>
       {t("cpRevealed")}{" "}
-      {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
-      <relative-time datetime={cpRevealTime} lang={locale}>
+      <RelativeTime datetime={cpRevealTime} lang={locale}>
         {intlFormatDistance(cpRevealTime, new Date(), { locale })}
-        {/*@ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
-      </relative-time>
+      </RelativeTime>
     </span>
   );
 };

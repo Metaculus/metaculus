@@ -1,12 +1,13 @@
 from notifications.models import Notification
 from posts.models import Post
+from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services.common import notify_project_subscriptions_question_open
+from projects.services.subscriptions import notify_project_subscriptions_post_open
 from questions.models import Question
+from tests.unit.test_posts.factories import factory_post, factory_notebook
 from tests.unit.test_questions.factories import create_question
-from tests.unit.test_posts.factories import factory_post
-from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user
+from .factories import factory_project
 
 
 def test_notify_project_subscriptions_post_open_notification(user1, user2):
@@ -26,7 +27,7 @@ def test_notify_project_subscriptions_post_open_notification(user1, user2):
     )
 
     # Post is located in 2 projects
-    notify_project_subscriptions_question_open(post.question)
+    notify_project_subscriptions_post_open(post, question=post.question)
 
     assert (
         Notification.objects.filter(recipient=user1, type="post_status_change").count()
@@ -68,7 +69,62 @@ def test_notify_project_subscriptions_post_open__private_question(user1, user2):
     )
 
     # Post is located in 2 projects
-    notify_project_subscriptions_question_open(post.question)
+    notify_project_subscriptions_post_open(post, question=post.question)
+
+    assert set(
+        Notification.objects.filter(type="post_status_change").values_list(
+            "recipient_id", flat=True
+        )
+    ) == {user1.pk}
+
+
+def test_notify_project_subscriptions_post_open__news_category(user1, mocker):
+    project_default = factory_project(subscribers=[user1])
+    project_1 = factory_project(
+        subscribers=[user1], type=Project.ProjectTypes.NEWS_CATEGORY
+    )
+    project_2 = factory_project(subscribers=[user1])
+
+    post = factory_post(
+        author=factory_user(),
+        default_project=project_default,
+        curation_status=Post.CurationStatus.APPROVED,
+        projects=[project_1, project_2],
+        notebook=factory_notebook(),
+    )
+    mock_send = mocker.patch(
+        "projects.services.subscriptions.send_news_category_notebook_publish_notification"
+    )
+
+    # Notebook should be sent in separate email
+    # Since it has News Category project type
+    notify_project_subscriptions_post_open(post, notebook=post.notebook)
+    mock_send.assert_called_once_with(user1, post)
+
+    assert not Notification.objects.filter(
+        recipient=user1, type="post_status_change"
+    ).exists()
+
+
+def test_notify_project_subscriptions_post_open__notebook(user1, mocker):
+    project_default = factory_project(subscribers=[user1])
+    project_2 = factory_project(subscribers=[user1])
+
+    post = factory_post(
+        author=factory_user(),
+        default_project=project_default,
+        curation_status=Post.CurationStatus.APPROVED,
+        projects=[project_2],
+        notebook=factory_notebook(),
+    )
+    mock_send = mocker.patch(
+        "projects.services.subscriptions.send_news_category_notebook_publish_notification"
+    )
+
+    # Notebook should be sent in separate email
+    # Since it has News Category project type
+    notify_project_subscriptions_post_open(post, notebook=post.notebook)
+    mock_send.assert_not_called()
 
     assert set(
         Notification.objects.filter(type="post_status_change").values_list(
