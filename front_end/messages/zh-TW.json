@@ -1403,8 +1403,6 @@
   "positive": "正面",
   "negative": "負面",
   "causal": "因果",
-  "thisQuestionCausesOtherQuestion": "這個問題對<otherQuestion></otherQuestion>有<strength></strength>的<direction></direction><linkType></linkType>影響",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對這個問題有<strength></strength>的<direction></direction><linkType></linkType>影響",
   "swap": "交換",
   "updateLinksRequest": "不要忘記更新以下連結的問題：",
   "unlink": "取消連結",
@@ -1436,5 +1434,7 @@
   "registrationInfoAbility6": "從嘈雜中篩選出重要的故事",
   "questionPairExists": "您已經在這些問題之間建立了連結。如果要更改強度，必須刪除當前連結。",
   "questionMustDiffer": "您不能將問題連結到自身。",
+  "thisQuestionCausesOtherQuestion": "此問題對<otherQuestion></otherQuestion>有<impact></impact>影響",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對此問題有<impact></impact>影響",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

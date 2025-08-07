@@ -100,9 +100,15 @@ export const DisplayCoherenceLink: FC<Props> = ({
             ? "thisQuestionCausesOtherQuestion"
             : "otherQuestionCausesThisQuestion",
           {
-            strength: () => <StrengthComponent strength={link.strength} />,
-            direction: () => <DirectionComponent direction={link.direction} />,
-            linkType: () => <span>{t("causal")}</span>,
+            impact: () => (
+              <>
+                <StrengthComponent strength={link.strength} />
+                {" "}
+                <DirectionComponent direction={link.direction} />
+                {" "}
+                <span>{t("causal")}</span>
+              </>
+            ),
             otherQuestion: () => (
               <Link
                 href={getPostLink(otherQuestion)}

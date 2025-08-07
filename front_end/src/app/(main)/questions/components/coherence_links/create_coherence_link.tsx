@@ -151,23 +151,23 @@ export const CreateCoherenceLink: FC<Props> = ({
             ? "thisQuestionCausesOtherQuestion"
             : "otherQuestionCausesThisQuestion",
           {
-            strength: () => (
-              <StyledSelect
-                value={strength}
-                onChange={(value) => setStrength(value as Strengths)}
-                options={strengthOptions}
-                t={t}
-              />
+            impact: () => (
+              <>
+                <StyledSelect
+                  value={strength}
+                  onChange={(value) => setStrength(value as Strengths)}
+                  options={strengthOptions}
+                  t={t}
+                />{" "}
+                <StyledSelect
+                  value={direction}
+                  onChange={(value) => setDirection(value as Directions)}
+                  options={directionOptions}
+                  t={t}
+                />{" "}
+                <span>{t("causal")}</span>
+              </>
             ),
-            direction: () => (
-              <StyledSelect
-                value={direction}
-                onChange={(value) => setDirection(value as Directions)}
-                options={directionOptions}
-                t={t}
-              />
-            ),
-            linkType: () => <span>{t("causal")}</span>,
             otherQuestion: () => (
               <span>
                 {!otherQuestion ? (

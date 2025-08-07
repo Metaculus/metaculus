@@ -1408,8 +1408,6 @@
   "positive": "正面",
   "negative": "负面",
   "causal": "因果",
-  "thisQuestionCausesOtherQuestion": "该问题对<otherQuestion></otherQuestion>有<direction></direction><strength></strength><linkType></linkType>影响",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<direction></direction><strength></strength><linkType></linkType>影响",
   "swap": "交换",
   "updateLinksRequest": "别忘了更新以下相关问题：",
   "unlink": "取消链接",
@@ -1441,5 +1439,7 @@
   "registrationInfoAbility6": "剖析噪音以追踪重要的故事",
   "questionPairExists": "您已经在这些问题之间建立了链接。如果您想更改强度，必须删除当前链接。",
   "questionMustDiffer": "您不能将一个问题链接到它自己。",
+  "thisQuestionCausesOtherQuestion": "此问题对<otherQuestion></otherQuestion>有<impact></impact>的影响",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<impact></impact>的影响",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

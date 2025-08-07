@@ -1406,8 +1406,6 @@
   "positive": "pozitivní",
   "negative": "negativní",
   "causal": "příčinný",
-  "thisQuestionCausesOtherQuestion": "Tato otázka má <strength></strength> <direction></direction> <linkType></linkType> dopad na <otherQuestion></otherQuestion>",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <strength></strength> <direction></direction> <linkType></linkType> dopad na tuto otázku",
   "swap": "Zaměnit",
   "updateLinksRequest": "Nezapomeňte aktualizovat následující propojené otázky:",
   "unlink": "zrušit propojení",
@@ -1439,5 +1437,7 @@
   "registrationInfoAbility6": "Prořízněte si přes šum, abyste sledovali důležité příběhy",
   "questionPairExists": "Mezi těmito otázkami jste již vytvořili odkaz. Pokud chcete změnit sílu odkazu, musíte nejdříve odstranit současný odkaz.",
   "questionMustDiffer": "Nemůžete propojit otázku samou se sebou.",
+  "thisQuestionCausesOtherQuestion": "Tato otázka má <impact></impact> dopad na <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
