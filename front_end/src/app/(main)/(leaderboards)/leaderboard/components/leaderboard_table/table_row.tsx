@@ -17,6 +17,7 @@ import {
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../../search_params";
+import ExcludedEntryTooltip from "../excluded_entry_tooltop";
 import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
@@ -70,7 +71,15 @@ const LeaderboardRow: FC<Props> = ({
           ) : (
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
-              <span className="flex-1 text-center">{rank}</span>
+              <span className="flex-1 text-center">
+                {excluded ? (
+                  <>
+                    <ExcludedEntryTooltip rank={rank} />
+                  </>
+                ) : (
+                  rank
+                )}
+              </span>
             </>
           )}
         </Link>

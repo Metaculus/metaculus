@@ -39,4 +39,7 @@ def send_email_with_template(
     if use_async:
         send_email_async.send(**kwargs)
     else:
-        send_email_async(**kwargs)
+        try:
+            send_email_async(**kwargs)
+        except Exception:
+            logger.exception("Failed to send email")

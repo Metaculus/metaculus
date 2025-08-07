@@ -309,6 +309,11 @@ class LeaderboardEntry(TimeStampedModel):
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
     excluded = models.BooleanField(default=False, db_index=True)
+    show_when_excluded = models.BooleanField(
+        default=False,
+        help_text="""If true, this entry will still be shown in the leaderboard even if
+        excluded.""",
+    )
 
     class Medals(models.TextChoices):
         GOLD = "gold"
@@ -396,6 +401,11 @@ class MedalExclusionRecord(models.Model):
         max_length=200,
         choices=ExclusionTypes.choices,
         help_text="""Records the type of exclusion. Use Other for custom exclusions.""",
+    )
+    show_anyway = models.BooleanField(
+        default=False,
+        help_text="""If true, users excluded by this record will still appear in leaderboards.
+        <br>They will still be excluded from taking ranks and prizes.""",
     )
     notes = models.TextField(
         null=True,
