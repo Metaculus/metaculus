@@ -1200,6 +1200,6 @@ def get_forecasts_per_user(question: Question) -> dict[int, int]:
 
 
 def get_outbound_question_links(question: Question, user: User) -> list[Question]:
-    links = CoherenceLink.objects.filter(Q(question1=question), user=user)
+    links = CoherenceLink.objects.filter(question1=question, user=user).select_related("question2")
     outbound_questions = [link.question2 for link in links]
     return outbound_questions

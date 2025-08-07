@@ -73,8 +73,8 @@ class NotificationQuestionParams:
     id: int
     title: str
     type: str
-    post_id: int
-    post_title: str
+    post_id: int | None = None
+    post_title: str | None = None
     label: str = ""
     unit: str = None
 
@@ -641,7 +641,7 @@ class NotificationPredictedQuestionResolved(
         resolution: str
         forecasts_count: int
         coverage: float
-        linked_questions: list[NotificationQuestionParams]
+        linked_questions: list[NotificationQuestionParams] | None = None
         peer_score: float = 0
         baseline_score: float = 0
 
