@@ -82,6 +82,18 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         default score type will be the one that contributes to the leaderboard.
         """,
     )
+    default_aggregation_method = models.CharField(
+        max_length=20,
+        choices=AggregationMethod.choices,
+        default=AggregationMethod.RECENCY_WEIGHTED,
+        db_index=True,
+        help_text="""Default aggregation method for this question.
+        Determines which aggregation is calculated and presented for this question.
+        <br>This should generally be either "recency_weighted", but for very short-term
+        questions, or ones where forecasting is done live, "unweighted" is likely
+        a better choice.
+        """,
+    )
 
     # description fields
     title = models.CharField(max_length=2000)
