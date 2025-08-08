@@ -33,10 +33,20 @@ type AccordionItemProps = {
   type: QuestionStatus.OPEN | QuestionStatus.CLOSED | QuestionStatus.RESOLVED;
   unit?: string;
   forcedOpenId?: number;
+  forcedExpandAll?: boolean;
 };
 
 const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
-  ({ option, showCP, children, subQuestionId, type, unit, forcedOpenId }) => {
+  ({
+    option,
+    showCP,
+    children,
+    subQuestionId,
+    type,
+    unit,
+    forcedOpenId,
+    forcedExpandAll,
+  }) => {
     const locale = useLocale();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const {
@@ -125,7 +135,9 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
         <Disclosure
           as="div"
           defaultOpen={
-            subQuestionId === option.id || forcedOpenId === option.id
+            forcedExpandAll ||
+            subQuestionId === option.id ||
+            forcedOpenId === option.id
           }
           id={`group-option-${option.id}`}
           // Change the key so that when forceOpen toggles, Disclosure re-mounts

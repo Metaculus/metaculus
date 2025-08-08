@@ -1421,5 +1421,7 @@
   "registrationInfoAbility4": "Únete a la conversación con los mejores pronosticadores del mundo",
   "registrationInfoAbility5": "Envía tus propias preguntas a la comunidad",
   "registrationInfoAbility6": "Despeja el ruido para seguir las historias que importan",
+  "expandAll": "Expandir todo",
+  "collapseAll": "Colapsar todo",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
