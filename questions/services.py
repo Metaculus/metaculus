@@ -85,12 +85,13 @@ def get_forecast_initial_dict(question: Question) -> dict:
 
 def build_question_forecasts(
     question: Question,
-    aggregation_method: str = AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_method: AggregationMethod | None = None,
 ):
     """
     Builds the AggregateForecasts for a question
     Stores them in the database
     """
+    aggregation_method = aggregation_method or question.default_aggregation_method
     aggregation_history = get_aggregation_history(
         question,
         aggregation_methods=[aggregation_method],
@@ -1200,6 +1201,8 @@ def get_forecasts_per_user(question: Question) -> dict[int, int]:
 
 
 def get_outbound_question_links(question: Question, user: User) -> list[Question]:
-    links = CoherenceLink.objects.filter(question1=question, user=user).select_related("question2")
+    links = CoherenceLink.objects.filter(question1=question, user=user).select_related(
+        "question2"
+    )
     outbound_questions = [link.question2 for link in links]
     return outbound_questions

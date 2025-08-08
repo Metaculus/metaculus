@@ -248,6 +248,7 @@ export type Question = {
   include_bots_in_aggregates: boolean;
   question_weight: number;
   default_score_type: ScoreType;
+  default_aggregation_method: AggregationMethod;
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;

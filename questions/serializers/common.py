@@ -67,6 +67,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "include_bots_in_aggregates",
             "question_weight",
             "default_score_type",
+            "default_aggregation_method",
             "label",
             "unit",
             "open_upper_bound",
@@ -281,7 +282,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "description",
             "group_variable",
             "subquestions_order",
-            "graph_type"
+            "graph_type",
         )
 
     def validate_questions(self, data: list[str]):
