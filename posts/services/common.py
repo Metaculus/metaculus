@@ -28,7 +28,6 @@ from questions.services import (
     update_notebook,
     update_question,
 )
-from questions.types import AggregationMethod
 from scoring.models import (
     global_leaderboard_dates,
     name_and_slug_for_global_leaderboard_dates,

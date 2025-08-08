@@ -33,7 +33,6 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel

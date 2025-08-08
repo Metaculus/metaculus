@@ -21,7 +21,7 @@ from notifications.services import (
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
-from questions.types import AggregationMethod, Direction
+from questions.types import Direction
 from questions.utils import get_last_forecast_in_the_past
 from users.models import User
 from utils.models import ArrayLength

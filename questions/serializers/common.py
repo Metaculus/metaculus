@@ -20,7 +20,7 @@ from questions.models import Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
-from questions.types import AggregationMethod, QuestionMovement
+from questions.types import QuestionMovement
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
