@@ -6,7 +6,7 @@ import {
   privateInstances,
   proForecasters,
 } from "./config";
-import ServicesPageTemplate from "../components/services_page_template";
+import ServicesPageTemplate from "../../components/services_page_template";
 
 export { metadata };
 
