@@ -10,6 +10,7 @@ import {
 } from "@/utils/formatters/prediction";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 import { formatValueUnit } from "@/utils/questions/units";
+import { formatInTimeZone } from "date-fns-tz";
 
 export function formatResolution({
   resolution,
@@ -78,8 +79,9 @@ export function formatResolution({
       const date = new Date(Number(resolution));
       if (isValid(date)) {
         return scaling
-          ? format(
+          ? formatInTimeZone(
               date,
+              "UTC",
               getQuestionDateFormatString({
                 scaling,
                 actual_resolve_time,
@@ -94,8 +96,9 @@ export function formatResolution({
     const date = new Date(resolution);
     if (isValid(date)) {
       return scaling
-        ? format(
+        ? formatInTimeZone(
             date,
+            "UTC",
             getQuestionDateFormatString({
               scaling,
               actual_resolve_time,
