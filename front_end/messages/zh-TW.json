@@ -1445,5 +1445,9 @@
   "questionMustDiffer": "您不能將問題連結到自身。",
   "thisQuestionCausesOtherQuestion": "此問題對<otherQuestion></otherQuestion>有<impact></impact>影響",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對此問題有<impact></impact>影響",
+  "recency_weighted": "近期加權",
+  "single_aggregation": "單一聚合",
+  "metaculus_prediction": "Metaculus 預測",
+  "cpAggregationMethod": "社群預測聚合方法",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
