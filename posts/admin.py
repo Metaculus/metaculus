@@ -55,17 +55,33 @@ class PostAdmin(CustomTranslationAdmin):
 
     def hotness_explanation(self, obj):
         explanation = explain_post_hotness(obj)
-        components_html = "<ul style='margin-left: 0;'>"
-        for comp in explanation["components"]:
-            components_html += (
-                "<li style='list-style: disc;'>"
-                f"<strong>{comp['label']}</strong>: {comp['score']:.2f}"
-                "</li>"
-            )
-        components_html += "</ul>"
+
+        def render_components(items):
+            html = ["<ul style='margin-left: 0;'>"]
+            for comp in items or []:
+                score = comp.get("score", None)
+                html.append("<li style='list-style: disc;'>")
+
+                if isinstance(score, (int, float)):
+                    html.append(
+                        f"<strong>{comp.get('label', '')}</strong>: {score:.2f}"
+                    )
+                else:
+                    html.append(f"<strong>{comp.get('label', '')}</strong>")
+
+                # NEW: prefer 'children' (new schema), fallback to 'components' (old)
+                children = comp.get("children") or comp.get("components")
+                if children:
+                    html.append(render_components(children))
+
+                html.append("</li>")
+            html.append("</ul>")
+            return "".join(html)
+
+        components_html = render_components(explanation.get("components", []))
 
         full_html = f"""
-            <p><strong>Total Hotness:</strong> {explanation['hotness']:.2f}</p>
+            <p><strong>Total Hotness:</strong> {explanation.get('hotness', 0):.2f}</p>
             <p><strong>Components:</strong></p>
             {components_html}
         """

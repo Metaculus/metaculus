@@ -1432,6 +1432,8 @@
   "registrationInfoAbility4": "與世界上最優秀的預測者一起參與討論",
   "registrationInfoAbility5": "向社群提交自己的問題",
   "registrationInfoAbility6": "從嘈雜中篩選出重要的故事",
+  "expandAll": "全部展開",
+  "collapseAll": "全部摺疊",
   "questionPairExists": "您已經在這些問題之間建立了連結。如果要更改強度，必須刪除當前連結。",
   "questionMustDiffer": "您不能將問題連結到自身。",
   "thisQuestionCausesOtherQuestion": "此問題對<otherQuestion></otherQuestion>有<impact></impact>影響",

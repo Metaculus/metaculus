@@ -1439,5 +1439,7 @@
   "questionMustDiffer": "Nemůžete propojit otázku samou se sebou.",
   "thisQuestionCausesOtherQuestion": "Tato otázka má <impact></impact> dopad na <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
+  "expandAll": "Rozbalit vše",
+  "collapseAll": "Sbalit vše",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

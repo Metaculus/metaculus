@@ -1435,6 +1435,8 @@
   "registrationInfoAbility4": "Únete a la conversación con los mejores pronosticadores del mundo",
   "registrationInfoAbility5": "Envía tus propias preguntas a la comunidad",
   "registrationInfoAbility6": "Despeja el ruido para seguir las historias que importan",
+  "expandAll": "Expandir todo",
+  "collapseAll": "Colapsar todo",
   "questionPairExists": "Ya has creado un enlace entre estas preguntas. Debes eliminar el enlace actual si deseas cambiar la fuerza.",
   "questionMustDiffer": "No puedes vincular una pregunta consigo misma.",
   "thisQuestionCausesOtherQuestion": "Esta pregunta tiene un impacto <impact></impact> en <otherQuestion></otherQuestion>",

@@ -1436,4 +1436,7 @@
   "high" : "large",
   "questionPairExists" : "You've already made a link between these questions. You must delete the current link if you want to change the strength.",
   "questionMustDiffer" : "You can't link a question to itself."
+  "expandAll": "Expand All",
+  "collapseAll": "Collapse All",
+  "returnToHomePage": "Return to Home page"
 }

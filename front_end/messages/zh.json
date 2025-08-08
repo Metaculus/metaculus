@@ -1441,5 +1441,7 @@
   "questionMustDiffer": "您不能将一个问题链接到它自己。",
   "thisQuestionCausesOtherQuestion": "此问题对<otherQuestion></otherQuestion>有<impact></impact>的影响",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<impact></impact>的影响",
+  "expandAll": "全部展开",
+  "collapseAll": "全部折叠",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

@@ -1433,6 +1433,8 @@
   "registrationInfoAbility4": "Junte-se à conversa com os melhores previsores do mundo",
   "registrationInfoAbility5": "Envie suas próprias perguntas para a comunidade",
   "registrationInfoAbility6": "Corte o ruído para acompanhar as histórias que importam",
+  "expandAll": "Expandir Tudo",
+  "collapseAll": "Recolher Tudo",
   "questionPairExists": "Você já fez uma ligação entre essas perguntas. Você deve excluir o link atual se quiser alterar a força.",
   "questionMustDiffer": "Você não pode vincular uma pergunta a ela mesma.",
   "thisQuestionCausesOtherQuestion": "Esta pergunta tem um impacto <impact></impact> em <otherQuestion></otherQuestion>",
