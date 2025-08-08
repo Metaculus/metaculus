@@ -1,5 +1,6 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { ServiceType } from "@/constants/services";
@@ -91,7 +92,22 @@ export default async function ProForecastersPage() {
         </div>
       </div>
 
-      <CaseStudyCard />
+      <CaseStudyCard
+        title={t("proForecastersCaseStudyTitle")}
+        description={{
+          firstPart: t("proForecastersCaseStudyParagraph1"),
+          secondPart: t.rich("proForecastersCaseStudyParagraph2", {
+            link: (chunks) => (
+              <Link
+                className="underline"
+                href="/tournament/respiratory-outlook-24-25/"
+              >
+                {chunks}
+              </Link>
+            ),
+          }),
+        }}
+      />
 
       <ProForecastersBlock className="mt-10 sm:mt-16 lg:mt-[120px]" />
 
