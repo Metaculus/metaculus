@@ -99,7 +99,7 @@ export default async function TournamentSlug(props: Props) {
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
       {/* header block */}
-      <div className="overflow-hidden rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
+      <div className="rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
             <HeaderBlockNav
@@ -108,14 +108,16 @@ export default async function TournamentSlug(props: Props) {
               variant="image_overflow"
             />
 
-            <Image
-              src={tournament.header_image}
-              alt=""
-              fill
-              priority
-              className="size-full object-cover object-center"
-              unoptimized
-            />
+            <div className="overflow-hidden">
+              <Image
+                src={tournament.header_image}
+                alt=""
+                fill
+                priority
+                className="size-full object-cover object-center"
+                unoptimized
+              />
+            </div>
           </div>
         )}
         <div className="px-4 pb-5 pt-4 sm:p-8">
