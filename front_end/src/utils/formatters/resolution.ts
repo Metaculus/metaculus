@@ -1,4 +1,5 @@
-import { format, isValid } from "date-fns";
+import { isValid } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { capitalize } from "lodash";
 
 import { QuestionType, Scaling } from "@/types/question";
@@ -10,7 +11,6 @@ import {
 } from "@/utils/formatters/prediction";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 import { formatValueUnit } from "@/utils/questions/units";
-import { formatInTimeZone } from "date-fns-tz";
 
 export function formatResolution({
   resolution,
