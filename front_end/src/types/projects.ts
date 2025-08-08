@@ -68,6 +68,7 @@ export type TournamentPreview = Project & {
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;
+  followers_count?: number;
 };
 
 export type TournamentTimeline = {

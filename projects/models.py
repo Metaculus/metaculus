@@ -436,7 +436,11 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         from posts.models import PostUserSnapshot
 
         self.forecasters_count = (
-            PostUserSnapshot.objects.filter(last_forecast_date__isnull=False)
+            PostUserSnapshot.objects.filter(
+                last_forecast_date__isnull=False,
+                user__is_staff=False,
+                # TODO: don't count project admins
+            )
             .filter(Q(post__default_project=self) | Q(post__projects=self))
             .values("user_id")
             .distinct()

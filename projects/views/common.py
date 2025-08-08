@@ -134,7 +134,7 @@ def tournaments_list_api_view(request: Request):
     )
 
     # Get all projects without the expensive annotation
-    projects = list(qs.all())
+    projects: list[Project] = list(qs.all())
 
     # Get questions count using cached bulk operation
     questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
@@ -158,7 +158,7 @@ def tournaments_list_api_view(request: Request):
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
     qs = get_projects_qs(user=request.user).filter_tournament()
-    obj = get_by_pk_or_slug(qs, slug)
+    obj: Project = get_by_pk_or_slug(qs, slug)
 
     # Get questions count using cached operation
     questions_count_map = get_projects_questions_count_cached([obj.id])
@@ -166,6 +166,9 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data = TournamentSerializer(obj).data
     data["questions_count"] = questions_count_map.get(obj.id) or 0
     data["timeline"] = get_project_timeline_data(obj)
+    data["forecasts_count"] = obj.forecasts_count
+    data["forecasters_count"] = obj.forecasters_count
+    data["followers_count"] = obj.followers_count
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
