@@ -74,12 +74,12 @@ const PrivateInstancesPageTemplate: React.FC<Props> = async ({
 
         <div className="mt-12 flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-[22px]">
           {steps.map((step, idx) => (
-            <div key={idx} className="flex items-center gap-4">
+            <div key={idx} className="flex flex-1 items-center gap-4">
               <StepCard
                 step={idx + 1}
                 title={step.title}
                 description={step.description}
-                className="flex-1"
+                className="h-full flex-1"
                 titleClassName={step.titleClassName}
               />
               {idx < steps.length - 1 && (
