@@ -1413,6 +1413,7 @@
   "high": "grande",
   "questionLinksPrivate": "Links de Pergunta (Privado)",
   "mostForecasters": "A maioria dos Previsores",
+  "unfinalizedPrizeTooltip": "Este torneio está em andamento. As pontuações e prêmios vão mudar à medida que mais perguntas forem resolvidas.",
   "noQuestionsLinkedP1": "Você ainda não vinculou nenhuma pergunta",
   "noQuestionsLinkedP2": "Existem outras perguntas no Metaculus que têm impacto nesta pergunta? Vincule-as aqui para melhorar a compreensão coletiva do Metaculus e receba lembretes para ajudar a manter suas previsões consistentes.",
   "noQuestionsLinkedP3": "Seus links são privados, mas contribuirão para um agregado da comunidade.",

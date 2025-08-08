@@ -730,6 +730,8 @@ def update_project_leaderboard(
     )
     new_entries = assign_prize_percentages(new_entries, minimum_prize_percent)
 
+    if prize_pool:  # always assign prizes
+        new_entries = assign_prizes(new_entries, prize_pool)
     # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
         project.close_date if project else None
@@ -740,11 +742,7 @@ def update_project_leaderboard(
             Project.ProjectTypes.TOURNAMENT,
         ]:
             if project.default_permission is not None:
-                # assign medals
                 new_entries = assign_medals(new_entries)
-            # add prize if applicable
-            if prize_pool:
-                new_entries = assign_prizes(new_entries, prize_pool)
         # always set finalize
         Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 

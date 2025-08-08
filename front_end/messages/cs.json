@@ -1415,6 +1415,7 @@
   "high": "velký",
   "questionLinksPrivate": "Odkazy na otázky (Soukromé)",
   "mostForecasters": "Většina předpovědníků",
+  "unfinalizedPrizeTooltip": "Tento turnaj stále probíhá. Skóre a ceny se mohou změnit, jakmile se vyřeší více otázek.",
   "noQuestionsLinkedP1": "Ještě jste nepřipojili žádné otázky",
   "noQuestionsLinkedP2": "Existují na Metaculu jiné otázky, které mají vliv na tuto otázku? Připojte je sem, aby se zlepšilo kolektivní porozumění Metaculu, a získávejte připomenutí, která vám pomohou udržet vaše předpovědi konzistentní.",
   "noQuestionsLinkedP3": "Vaše odkazy jsou soukromé, ale přispějí k agregaci komunity.",

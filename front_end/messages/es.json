@@ -1415,6 +1415,7 @@
   "high": "grande",
   "questionLinksPrivate": "Enlaces de preguntas (Privado)",
   "mostForecasters": "La mayoría de los pronosticadores",
+  "unfinalizedPrizeTooltip": "Este torneo está en curso. Las puntuaciones y los premios cambiarán a medida que se resuelvan más preguntas.",
   "noQuestionsLinkedP1": "Aún no has vinculado ninguna pregunta",
   "noQuestionsLinkedP2": "¿Hay otras preguntas en Metaculus que tengan un impacto en esta pregunta? Enlázalas aquí para mejorar la comprensión colectiva de Metaculus, y recibe recordatorios para ayudarte a mantener tus pronósticos consistentes.",
   "noQuestionsLinkedP3": "Tus enlaces son privados, pero contribuirán a un agregado de la comunidad.",
