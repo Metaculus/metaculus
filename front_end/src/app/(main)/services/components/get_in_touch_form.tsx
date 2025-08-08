@@ -21,7 +21,7 @@ import Checkbox from "./get_in_touch_checkbox";
 import { submitGetInTouchForm } from "../actions";
 
 type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];
-type ServiceOption = {
+export type ServiceOption = {
   value: ServiceType;
   labelKey: TranslationKey;
 };
@@ -77,6 +77,7 @@ type Props = {
     | "tournaments"
     | "pro-forecasters"
     | "private-instances";
+  serviceOptions?: ServiceOption[];
 };
 
 const GetInTouchForm: FC<Props> = ({
@@ -84,6 +85,7 @@ const GetInTouchForm: FC<Props> = ({
   id,
   preselectedServices,
   pageLabel,
+  serviceOptions = SERVICE_OPTIONS,
 }) => {
   const t = useTranslations();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -186,7 +188,7 @@ const GetInTouchForm: FC<Props> = ({
               {t("whatServiceAreYouInterestedIn")}
             </p>
             <div className="mx-auto mt-4 flex flex-col items-center justify-center gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-3">
-              {SERVICE_OPTIONS.map((serviceOption) => (
+              {serviceOptions.map((serviceOption) => (
                 <Controller
                   key={serviceOption.value}
                   name="services"

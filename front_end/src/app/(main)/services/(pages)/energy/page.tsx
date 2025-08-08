@@ -1,0 +1,23 @@
+import {
+  metadata,
+  heading,
+  solutions,
+  tournaments,
+  privateInstances,
+  proForecasters,
+} from "./config";
+import ServicesPageTemplate from "../../components/templates/services_page_template";
+
+export { metadata };
+
+export default function EnergyServicesPage() {
+  return (
+    <ServicesPageTemplate
+      heading={heading}
+      solutions={solutions}
+      tournaments={tournaments}
+      privateInstances={privateInstances}
+      proForecasters={proForecasters}
+    />
+  );
+}
