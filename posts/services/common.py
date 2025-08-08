@@ -322,8 +322,8 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         if question.cp_reveal_time and question.cp_reveal_time > now:
             continue
         cp = get_aggregations_at_time(
-            question, now, [AggregationMethod.RECENCY_WEIGHTED]
-        ).get(AggregationMethod.RECENCY_WEIGHTED, None)
+            question, now, [question.default_aggregation_method]
+        ).get(question.default_aggregation_method, None)
         if cp is None:
             continue
 

@@ -504,7 +504,8 @@ function generateChoiceOptions({
   );
 
   return questions.map((question, index) => {
-    const latest = question.aggregations.recency_weighted.latest;
+    const latest =
+      question.aggregations[question.default_aggregation_method].latest;
     return {
       id: question.id,
       name: question.label,

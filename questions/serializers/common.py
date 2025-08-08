@@ -598,7 +598,7 @@ def serialize_question(
     )
 
     if question_movement:
-        serialized_data["aggregations"][AggregationMethod.RECENCY_WEIGHTED][
+        serialized_data["aggregations"][question.default_aggregation_method][
             "movement"
         ] = question_movement
 

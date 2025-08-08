@@ -819,7 +819,8 @@ export function getContinuousAreaChartData({
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const userForecast = question.my_forecasts?.latest;
 
   if (latest && isForecastActive(latest)) {

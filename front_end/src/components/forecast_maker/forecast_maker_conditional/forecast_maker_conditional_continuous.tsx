@@ -679,7 +679,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ? previousForecast.forecast_values
       : undefined;
   const aggregateLatest =
-    activeOptionData?.question.aggregations.recency_weighted.latest;
+    activeOptionData?.question.aggregations[
+      activeOptionData.question.default_aggregation_method
+    ].latest;
   const communityCdf: number[] | undefined =
     aggregateLatest && isForecastActive(aggregateLatest)
       ? aggregateLatest.forecast_values
