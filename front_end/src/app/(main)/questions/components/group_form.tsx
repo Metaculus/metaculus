@@ -325,7 +325,8 @@ const GroupForm: React.FC<Props> = ({
         open_lower_bound: x.open_lower_bound,
         open_upper_bound: x.open_upper_bound,
         has_forecasts:
-          (x.aggregations?.recency_weighted?.latest?.forecaster_count || 0) > 0,
+          (x.aggregations[x.default_aggregation_method].latest
+            ?.forecaster_count || 0) > 0,
         group_rank: x.group_rank ?? idx,
       };
     });

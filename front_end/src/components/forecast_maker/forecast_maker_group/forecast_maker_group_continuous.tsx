@@ -679,6 +679,7 @@ function generateGroupOptions({
       prevForecast,
       q
     );
+    const latest = q.aggregations[q.default_aggregation_method].latest;
     return {
       id: q.id,
       name: q.label,
@@ -692,10 +693,8 @@ function generateGroupOptions({
       ),
       forecastInputMode:
         prevForecast?.type ?? ContinuousForecastInputType.Slider,
-      communityQuartiles: q.aggregations.recency_weighted.latest
-        ? computeQuartilesFromCDF(
-            q.aggregations.recency_weighted.latest.forecast_values
-          )
+      communityQuartiles: latest
+        ? computeQuartilesFromCDF(latest.forecast_values)
         : null,
       resolution: q.resolution,
       isDirty: false,

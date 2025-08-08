@@ -659,7 +659,8 @@ function getFanOptionsFromContinuousGroup(
       return {
         name: q.label,
         communityCdf:
-          q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+          q.aggregations[q.default_aggregation_method].latest
+            ?.forecast_values ?? [],
         userCdf: userCdf,
         resolved: q.resolution !== null,
         question: q,
@@ -682,7 +683,7 @@ function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
   return questions.map((q) => {
-    const aggregation = q.aggregations.recency_weighted.latest;
+    const aggregation = q.aggregations[q.default_aggregation_method].latest;
     const resolved = q.resolution !== null;
 
     const latest = q.my_forecasts?.latest;

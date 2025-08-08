@@ -136,7 +136,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
-      question.aggregations.recency_weighted,
+      question.aggregations[question.default_aggregation_method],
       userLastForecast
     )
   );

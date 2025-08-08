@@ -119,13 +119,17 @@ function getForecastData(
   ) {
     return null;
   }
-  const latest_democrat = democratQuestion.aggregations.recency_weighted.latest;
+  const latest_democrat =
+    democratQuestion.aggregations[democratQuestion.default_aggregation_method]
+      .latest;
   if (!latest_democrat) {
     return null;
   }
 
   const latest_republican =
-    republicanQuestion.aggregations.recency_weighted.latest;
+    republicanQuestion.aggregations[
+      republicanQuestion.default_aggregation_method
+    ].latest;
   if (!latest_republican) {
     return null;
   }

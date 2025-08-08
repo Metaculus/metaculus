@@ -27,7 +27,8 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 ): ChoiceItem[] {
   const { activeCount, preserveOrder } = config ?? {};
 
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
 
   const choiceOrdering: number[] = question.options?.map((_, i) => i) ?? [];
   if (!preserveOrder) {
@@ -39,7 +40,8 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   }
 
   const labels = question.options ? question.options : [];
-  const aggregationHistory = question.aggregations.recency_weighted.history;
+  const aggregationHistory =
+    question.aggregations[question.default_aggregation_method].history;
   const userHistory = question.my_forecasts?.history;
 
   const aggregationTimestamps: number[] = [];
@@ -205,10 +207,11 @@ export function generateChoiceItemsFromGroupQuestions(
       ).getTime()
     );
 
-    const aggregationHistory =
-      question.aggregations.recency_weighted.history.filter((forecast) => {
-        return forecast.start_time * 1000 < closeTime;
-      });
+    const aggregationHistory = question.aggregations[
+      question.default_aggregation_method
+    ].history.filter((forecast) => {
+      return forecast.start_time * 1000 < closeTime;
+    });
 
     const aggregationTimestamps: number[] = [];
     aggregationHistory.forEach((forecast) => {

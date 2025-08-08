@@ -21,13 +21,13 @@ const QuestionLink: FC<Props> = ({ question }) => {
   const { question_yes, question_no } = question.conditional;
   const ifTrumpWinProbability =
     Math.round(
-      (question_yes.aggregations.recency_weighted.latest?.centers?.[0] ?? 0) *
-        1000
+      (question_yes.aggregations[question_yes.default_aggregation_method].latest
+        ?.centers?.[0] ?? 0) * 1000
     ) / 10;
   const ifHarrisWinProbability =
     Math.round(
-      (question_no.aggregations.recency_weighted.latest?.centers?.[0] ?? 0) *
-        1000
+      (question_no.aggregations[question_no.default_aggregation_method].latest
+        ?.centers?.[0] ?? 0) * 1000
     ) / 10;
   const moreLikely =
     Math.round(Math.abs(ifTrumpWinProbability - ifHarrisWinProbability) * 10) /

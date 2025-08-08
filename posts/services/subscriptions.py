@@ -21,7 +21,7 @@ from notifications.services import (
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
-from questions.types import AggregationMethod, Direction
+from questions.types import Direction
 from questions.utils import get_last_forecast_in_the_past
 from users.models import User
 from utils.models import ArrayLength
@@ -157,7 +157,7 @@ def notify_post_cp_change(post: Post):
         question: list(
             AggregateForecast.objects.filter(
                 question=question,
-                method=AggregationMethod.RECENCY_WEIGHTED,
+                method=question.default_aggregation_method,
                 start_time__gte=question.cp_reveal_time or question.created_at,
             ).order_by("start_time")
         )

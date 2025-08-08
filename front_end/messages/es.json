@@ -1448,5 +1448,9 @@
   "questionMustDiffer": "No puedes vincular una pregunta consigo misma.",
   "thisQuestionCausesOtherQuestion": "Esta pregunta tiene un impacto <impact></impact> en <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tiene un impacto <impact></impact> en esta pregunta",
+  "recency_weighted": "Ponderación de recencia",
+  "single_aggregation": "Agregación única",
+  "metaculus_prediction": "Predicción de Metaculus",
+  "cpAggregationMethod": "Método de agregación de predicción comunitaria",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

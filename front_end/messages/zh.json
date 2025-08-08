@@ -1450,5 +1450,9 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<impact></impact>的影响",
   "expandAll": "全部展开",
   "collapseAll": "全部折叠",
+  "recency_weighted": "加权最近性",
+  "single_aggregation": "单一聚合",
+  "metaculus_prediction": "Metaculus 预测",
+  "cpAggregationMethod": "社区预测聚合方法",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

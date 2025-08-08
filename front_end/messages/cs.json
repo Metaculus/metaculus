@@ -1448,5 +1448,9 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
   "expandAll": "Rozbalit vše",
   "collapseAll": "Sbalit vše",
+  "recency_weighted": "Vážené podle aktuálnosti",
+  "single_aggregation": "Jednotná agregace",
+  "metaculus_prediction": "Předpověď Metaculus",
+  "cpAggregationMethod": "Metoda agregace předpovědí komunity",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

@@ -92,9 +92,9 @@ const QuestionTile: FC<Props> = ({
       const openTime = getPostDrivenTime(question.open_time);
 
       const timestamps: number[] = !forecastAvailability.cpRevealsOn
-        ? question.aggregations.recency_weighted.history.map(
-            (forecast) => forecast.start_time
-          )
+        ? question.aggregations[
+            question.default_aggregation_method
+          ].history.map((forecast) => forecast.start_time)
         : userForecasts?.flatMap((option) => option.timestamps ?? []) ?? [];
 
       return (
@@ -120,7 +120,8 @@ const QuestionTile: FC<Props> = ({
 const generateUserForecastsForMultipleQuestion = (
   question: QuestionWithMultipleChoiceForecasts
 ): UserChoiceItem[] | undefined => {
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const options = question.options;
 
   const choiceOrdering: number[] = options?.map((_, i) => i) ?? [];

@@ -63,7 +63,8 @@ const ScoreBox: FC<ScoreBoxProps> = ({
 
 const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
   const t = useTranslations();
-  const cp_scores = question.aggregations.recency_weighted.score_data;
+  const cp_scores =
+    question.aggregations[question.default_aggregation_method].score_data;
   const user_scores = question.my_forecasts?.score_data;
   if (!cp_scores && !user_scores) return null;
 

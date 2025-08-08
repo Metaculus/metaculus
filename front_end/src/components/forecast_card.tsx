@@ -111,7 +111,9 @@ const ForecastCard: FC<Props> = ({
           return (
             <div className="relative flex w-full flex-col">
               <NumericTimeline
-                aggregation={question.aggregations.recency_weighted}
+                aggregation={
+                  question.aggregations[question.default_aggregation_method]
+                }
                 myForecasts={question.my_forecasts}
                 resolution={question.resolution}
                 resolveTime={question.actual_resolve_time}
@@ -164,7 +166,9 @@ const ForecastCard: FC<Props> = ({
             return (
               <div className="relative flex w-full flex-col">
                 <NumericTimeline
-                  aggregation={question.aggregations.recency_weighted}
+                  aggregation={
+                    question.aggregations[question.default_aggregation_method]
+                  }
                   myForecasts={question.my_forecasts}
                   resolution={question.resolution}
                   resolveTime={question.actual_resolve_time}
@@ -229,7 +233,7 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.Date: {
           const cursorForecast = getCursorForecast(
             cursorTimestamp,
-            question.aggregations.recency_weighted
+            question.aggregations[question.default_aggregation_method]
           );
 
           return (

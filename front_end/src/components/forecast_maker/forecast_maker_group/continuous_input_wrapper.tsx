@@ -219,7 +219,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
       ? previousForecast.forecast_values
       : undefined;
   const communityCdf: number[] | undefined =
-    option.question.aggregations.recency_weighted.latest?.forecast_values;
+    option.question.aggregations[option.question.default_aggregation_method]
+      .latest?.forecast_values;
 
   const questionDuration =
     new Date(option.question.scheduled_close_time).getTime() -

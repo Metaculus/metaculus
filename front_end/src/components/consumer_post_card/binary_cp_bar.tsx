@@ -12,7 +12,8 @@ type Props = {
 const BinaryCPBar: FC<Props> = ({ question }) => {
   const t = useTranslations();
   const questionCP =
-    question.aggregations.recency_weighted.latest?.centers?.[0];
+    question.aggregations[question.default_aggregation_method].latest
+      ?.centers?.[0];
   if (question.type !== QuestionType.Binary || !questionCP) {
     return null;
   }

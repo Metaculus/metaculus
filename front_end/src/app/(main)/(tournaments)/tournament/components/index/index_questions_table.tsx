@@ -245,7 +245,8 @@ function getTableData(questions: ProjectIndexWeights[]): TableItem[] {
     }
 
     const cpRawValue =
-      question.aggregations.recency_weighted.latest?.centers?.[0] ?? null;
+      question.aggregations[question.default_aggregation_method].latest
+        ?.centers?.[0] ?? null;
     const cpDisplayValue = getPredictionDisplayValue(cpRawValue, {
       questionType: question.type,
       scaling: question.scaling,

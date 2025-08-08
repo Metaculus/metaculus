@@ -141,7 +141,9 @@ const QuestionContinuousTile: FC<Props> = ({
         {question.type === QuestionType.Binary ? (
           <NumericTimeline
             nonInteractive={true}
-            aggregation={question.aggregations.recency_weighted}
+            aggregation={
+              question.aggregations[question.default_aggregation_method]
+            }
             myForecasts={question.my_forecasts}
             height={HEIGHT}
             questionType={question.type}

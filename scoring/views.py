@@ -335,6 +335,7 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
+    # TODO: make it "default"
     return Response(
         serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED)
     )
