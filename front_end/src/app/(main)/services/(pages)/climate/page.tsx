@@ -6,7 +6,7 @@ import {
   proForecasters,
   metadata,
 } from "./config";
-import ServicesPageTemplate from "../../components/services_page_template";
+import ServicesPageTemplate from "../../components/templates/services_page_template";
 
 export { metadata };
 

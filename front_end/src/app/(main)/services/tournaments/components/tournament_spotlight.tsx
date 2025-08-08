@@ -11,9 +11,17 @@ import { getProjectLink } from "@/utils/navigation";
 
 import Button from "../../components/button";
 
-type Props = { tournament: TournamentPreview; className?: string };
+type Props = {
+  tournament: TournamentPreview;
+  tournamentDescription: string;
+  className?: string;
+};
 
-const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
+const TournamentSpotlight: FC<Props> = ({
+  tournament,
+  tournamentDescription,
+  className,
+}) => {
   const t = useTranslations();
   const locale = useLocale();
   const {
@@ -54,7 +62,7 @@ const TournamentSpotlight: FC<Props> = ({ tournament, className }) => {
             {name}
           </p>
           <p className="m-0 mt-5 text-sm font-normal text-blue-500 sm:text-base sm:font-medium">
-            {t("tournamentSpotlightDescription")}
+            {tournamentDescription}
           </p>
           {/* TODO: add after approval */}
           {/* <div className="mt-8 rounded-md bg-blue-900 p-6">
