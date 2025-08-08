@@ -133,7 +133,9 @@ def project_leaderboard(
             leaderboard = leaderboards.first()
 
     # serialize
-    leaderboard_data = LeaderboardSerializer(leaderboard).data
+    leaderboard_data = LeaderboardSerializer(
+        leaderboard, context={"include_max_coverage": True}
+    ).data
     entries = leaderboard.entries.order_by("rank", "-score").select_related("user")
     user = request.user
 
