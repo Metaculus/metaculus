@@ -77,17 +77,18 @@ class LeaderboardSerializer(serializers.Serializer):
             return obj.project.prize_pool
 
     def get_max_coverage(self, obj: Leaderboard):
-        return (
-            obj.get_questions()
-            .filter(resolution__isnull=False)
-            .exclude(
-                resolution__in=[
-                    UnsuccessfulResolutionType.ANNULLED,
-                    UnsuccessfulResolutionType.AMBIGUOUS,
-                ]
+        if self.context.get("include_max_coverage", False):
+            return (
+                obj.get_questions()
+                .filter(resolution__isnull=False)
+                .exclude(
+                    resolution__in=[
+                        UnsuccessfulResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.AMBIGUOUS,
+                    ]
+                )
+                .count()
             )
-            .count()
-        )
 
 
 class ContributionSerializer(serializers.Serializer):
