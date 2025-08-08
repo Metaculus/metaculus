@@ -32,7 +32,6 @@ export const CoherenceLinksProvider: FC<
   PropsWithChildren<BaseProviderProps>
 > = ({ children, post }) => {
   const [coherenceLinks, setCoherenceLinks] = useState<FetchedCoherenceLinks>({
-    size: 0,
     data: [],
   });
 

@@ -61,7 +61,7 @@ def get_links_for_question_api_view(request, pk):
 
     links_to_data = serialize_coherence_link_many(links)
 
-    return Response({"size": len(links_to_data), "data": links_to_data})
+    return Response({"data": links_to_data})
 
 
 @api_view(["DELETE"])

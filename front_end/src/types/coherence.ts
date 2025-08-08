@@ -24,7 +24,6 @@ export type CoherenceLink = {
 };
 
 export type FetchedCoherenceLinks = {
-  size: number;
   data: (CoherenceLink & {
     question1: Question;
     question2: Question;

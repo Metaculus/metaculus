@@ -80,7 +80,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
           ))}
 
           <div className="flex flex-col items-center justify-between gap-3 px-0 md:px-20">
-            {(!coherenceLinks || coherenceLinks.size === 0) &&
+            {(!coherenceLinks || coherenceLinks.data.length === 0) &&
               newLinks?.length === 0 && (
                 <div className="flex flex-col items-center justify-between gap-2 pt-3">
                   <span className="text-balance text-center text-sm">
