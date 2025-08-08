@@ -129,7 +129,11 @@ class TestNotificationCPChange:
                 question_data=[
                     CPChangeData(
                         question=NotificationQuestionParams(
-                            id=1, type="binary", title="Question Title"
+                            id=1,
+                            type="binary",
+                            title="Question Title",
+                            post_id=1,
+                            post_title="Question Title",
                         ),
                         cp_median=0.5,
                         cp_change_label="goneUp",
@@ -147,7 +151,11 @@ class TestNotificationCPChange:
                 question_data=[
                     CPChangeData(
                         question=NotificationQuestionParams(
-                            id=1, type="binary", title="Question Title"
+                            id=1,
+                            type="binary",
+                            title="Question Title",
+                            post_id=1,
+                            post_title="Question Title",
                         ),
                         cp_median=0.5,
                         cp_change_label="goneUp",
@@ -167,7 +175,11 @@ class TestNotificationCPChange:
                 question_data=[
                     CPChangeData(
                         question=NotificationQuestionParams(
-                            id=1, type="binary", title="Question Title"
+                            id=1,
+                            type="binary",
+                            title="Question Title",
+                            post_id=1,
+                            post_title="Question Title",
                         ),
                         cp_median=0.5,
                         cp_change_label="goneUp",
@@ -257,14 +269,28 @@ class TestNotificationPostStatusChange:
                 post=NotificationPostParams(
                     post_id=5, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                question=NotificationQuestionParams(
+                    id=1,
+                    title="",
+                    label="First",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.OPEN,
             ),
             cls(
                 post=NotificationPostParams(
                     post_id=5, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                question=NotificationQuestionParams(
+                    id=1,
+                    title="",
+                    label="First",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.CLOSED,
             ),
             # Same post, different subquestions, same events
@@ -272,19 +298,35 @@ class TestNotificationPostStatusChange:
                 post=NotificationPostParams(
                     post_id=6, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                question=NotificationQuestionParams(
+                    id=1,
+                    title="",
+                    label="First",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.OPEN,
             ),
             cls(
                 post=NotificationPostParams(
                     post_id=6, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=2, title="", label="Second", type="binary"),
+                question=NotificationQuestionParams(
+                    id=2,
+                    title="",
+                    label="Second",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.OPEN,
             ),
         ]
 
-        result_params = NotificationPostStatusChange._generate_notification_params(params)
+        result_params = NotificationPostStatusChange._generate_notification_params(
+            params
+        )
 
         # Test from_projects
         from_projects = result_params["from_projects"]
