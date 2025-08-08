@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
 import ForecastMakerGroupCopyMenu from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
+import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -125,6 +126,9 @@ const GroupForecastAccordion: FC<Props> = ({
       [options]
     );
 
+  const [expandAll, setExpandAll] = useState(false);
+  const toggleExpandAll = () => setExpandAll((prev) => !prev);
+
   const homogeneousUnit = useMemo(() => {
     const units = Array.from(new Set(options.map((obj) => obj.question.unit)));
 
@@ -135,6 +139,16 @@ const GroupForecastAccordion: FC<Props> = ({
 
   return (
     <div className="w-full">
+      <div className="absolute right-4 top-4 mb-2 hidden justify-end sm:flex">
+        <Button
+          onClick={toggleExpandAll}
+          size="xs"
+          variant="tertiary"
+          className="ml-auto"
+        >
+          {expandAll ? t("collapseAll") : t("expandAll")}
+        </Button>
+      </div>
       {!!activeOptions.length && (
         <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
           <div className="flex shrink grow items-center overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
@@ -159,8 +173,9 @@ const GroupForecastAccordion: FC<Props> = ({
           <AccordionItem
             option={option}
             showCP={showCP}
-            key={option.id}
+            key={`${option.id}-expand-${expandAll}`}
             forcedOpenId={forcedOpenId}
+            forcedExpandAll={expandAll}
             subQuestionId={subQuestionId}
             type={QuestionStatus.OPEN}
             unit={
@@ -209,8 +224,9 @@ const GroupForecastAccordion: FC<Props> = ({
             option={option}
             showCP={true}
             subQuestionId={subQuestionId}
+            forcedExpandAll={expandAll}
             type={QuestionStatus.CLOSED}
-            key={option.id}
+            key={`${option.id}-expand-${expandAll}`}
           >
             <ContinuousInputWrapper
               option={option}
@@ -251,8 +267,9 @@ const GroupForecastAccordion: FC<Props> = ({
             option={option}
             showCP={true}
             subQuestionId={subQuestionId}
+            forcedExpandAll={expandAll}
             type={QuestionStatus.RESOLVED}
-            key={option.id}
+            key={`${option.id}-expand-${expandAll}`}
           >
             <ContinuousInputWrapper
               option={option}

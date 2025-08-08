@@ -1,4 +1,5 @@
-import { format, isValid } from "date-fns";
+import { isValid } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { capitalize } from "lodash";
 
 import { QuestionType, Scaling } from "@/types/question";
@@ -78,8 +79,9 @@ export function formatResolution({
       const date = new Date(Number(resolution));
       if (isValid(date)) {
         return scaling
-          ? format(
+          ? formatInTimeZone(
               date,
+              "UTC",
               getQuestionDateFormatString({
                 scaling,
                 actual_resolve_time,
@@ -94,8 +96,9 @@ export function formatResolution({
     const date = new Date(resolution);
     if (isValid(date)) {
       return scaling
-        ? format(
+        ? formatInTimeZone(
             date,
+            "UTC",
             getQuestionDateFormatString({
               scaling,
               actual_resolve_time,

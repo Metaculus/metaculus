@@ -39,7 +39,7 @@ import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
-import ConditionalQuestionPicker from "./conditional_question_picker";
+import QuestionPicker, { SearchedQuestionType } from "./question_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -249,7 +249,7 @@ const ConditionalForm: React.FC<{
           />
         )}
         <InputContainer labelText={t("parentQuestion")}>
-          <ConditionalQuestionPicker
+          <QuestionPicker
             onQuestionChange={(question: QuestionWithForecasts) => {
               setConditionQuestion({
                 question,
@@ -260,7 +260,7 @@ const ConditionalForm: React.FC<{
               });
             }}
             title={t("selectParentQuestion")}
-            isParentQuestion={true}
+            searchedQuestionType={SearchedQuestionType.Parent}
             disabled={isLive && mode !== "create"}
           />
           <FormErrorMessage
@@ -280,7 +280,7 @@ const ConditionalForm: React.FC<{
           )}
         </InputContainer>
         <InputContainer labelText={t("childQuestion")}>
-          <ConditionalQuestionPicker
+          <QuestionPicker
             onQuestionChange={(question: QuestionWithForecasts) => {
               setConditionQuestion({
                 question,
@@ -291,7 +291,7 @@ const ConditionalForm: React.FC<{
               });
             }}
             title={t("selectChildQuestion")}
-            isParentQuestion={false}
+            searchedQuestionType={SearchedQuestionType.Child}
             disabled={isLive && mode !== "create"}
           />
           <FormErrorMessage
