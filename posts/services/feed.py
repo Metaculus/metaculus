@@ -127,7 +127,7 @@ def get_posts_feed(
 
     qs = qs.filter(forecast_type_q)
 
-    statuses = statuses or []
+    statuses = list(statuses or [])
 
     q = Q()
 

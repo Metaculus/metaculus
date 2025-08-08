@@ -49,6 +49,7 @@ class LeaderboardSerializer(serializers.Serializer):
     start_time = serializers.DateTimeField()
     end_time = serializers.DateTimeField()
     finalize_time = serializers.DateTimeField()
+    finalized = serializers.BooleanField()
     prize_pool = serializers.SerializerMethodField()
     max_coverage = serializers.SerializerMethodField()
 
@@ -64,6 +65,7 @@ class LeaderboardSerializer(serializers.Serializer):
             "start_time",
             "end_time",
             "finalize_time",
+            "finalized",
             "prize_pool",
             "max_coverage",
         ]
