@@ -775,7 +775,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True, blank=True, db_index=True
     )  # Jeffrey's Divergence
 
-    hotness = models.IntegerField(default=0, editable=False, db_index=True)
+    hotness = models.FloatField(default=0, editable=False, db_index=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )

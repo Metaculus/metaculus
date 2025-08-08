@@ -127,8 +127,12 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
   ];
   const primaryScoreBoxes = [];
   const secondaryScoreBoxes = [];
+  const spotScores = question.default_score_type.startsWith("spot");
   for (const { key, scoreBox } of keyedScoreBoxes) {
-    if (key === question.default_score_type) {
+    if (
+      (spotScores && (key === "spot_baseline" || key === "spot_peer")) ||
+      (!spotScores && (key === "baseline" || key === "peer"))
+    ) {
       primaryScoreBoxes.push(scoreBox);
     } else {
       secondaryScoreBoxes.push(scoreBox);

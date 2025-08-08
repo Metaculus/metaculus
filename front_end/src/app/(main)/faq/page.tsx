@@ -560,8 +560,25 @@ export default async function FAQ() {
           predicted probabilities from its users, then aggregates those
           probabilities. We believe that this sort of &quot;prediction
           aggregator&quot; has both advantages and disadvantages relative to a
-          prediction market.
+          prediction market, and we go into detail about these in our blog post{" "}
+          <i>
+            <a
+              href="https://www.metaculus.com/notebooks/38198/metaculus-and-markets-whats-the-difference/"
+              target="_blank"
+            >
+              Metaculus and Markets: What&#39;s the Difference?
+            </a>
+          </i>
+          . Here&#39;s a graphic from that post with a quick overview:
         </p>
+
+        <Image
+          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets.jpg"
+          alt="Metaculus and Markets Comparison"
+          className="my-4"
+          width={700}
+          height={207}
+        />
 
         <h4 className="text-lg font-semibold">
           Advantages of Metaculus over prediction markets
@@ -962,16 +979,15 @@ export default async function FAQ() {
         </p>
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>
-            A &quot;credible source&quot; will be taken to be an online or
-            in-print published story from a journalistic source, or information
-            publicly posted on a the website of an organization by that
-            organization making public information pertaining to that
-            organization, or in another source where the preponderance of
-            evidence suggests that the information is correct and that there is
-            no significant controversy surrounding the information or its
-            correctness. It will generally not include unsourced information
-            found in blogs, facebook or twitter postings, or websites of
-            individuals.
+            A &quot;credible source&quot; will be taken to be an online or print
+            published article from a journalistic or academic source,
+            information publicly posted by an authoritative source with specific
+            knowledge or responsibility for the subject matter, or in general
+            information from a source where the preponderance of evidence
+            suggests that the information is correct—provided in all cases that
+            there is no significant controversy surrounding its correctness.
+            Credible sources will generally not include unsourced information
+            found in blogs, social media postings, or websites of individuals.
           </li>
           <li>
             The phrase &quot;Before [date X] will be taken to mean prior to the

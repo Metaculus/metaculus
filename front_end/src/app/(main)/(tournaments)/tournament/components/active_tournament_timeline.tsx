@@ -3,9 +3,10 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import { Tournament } from "@/types/projects";
+import RelativeTime from "@/components/ui/relative_time";
+import { BotLeaderboardStatus, Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { formatRelativeDate } from "@/utils/formatters/date";
+import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   tournament: Tournament;
@@ -51,9 +52,13 @@ const ActiveTournamentTimeline: FC<Props> = async ({
           {isUpcoming && (
             <>
               {" "}
-              {formatRelativeDate(locale, new Date(tournament.start_date), {
-                short: true,
-              })}
+              <RelativeTime
+                datetime={tournament.start_date}
+                format="relative"
+                title=""
+              >
+                {formatDate(locale, new Date(tournament.start_date))}
+              </RelativeTime>
             </>
           )}
         </p>
@@ -86,20 +91,21 @@ const ActiveTournamentTimeline: FC<Props> = async ({
           {format(new Date(latestScheduledCloseTimestamp), formatString)}
         </p>
       </div>
-      {lastParticipationDayTimestamp && (
-        <div className="mt-4 flex w-full items-center justify-center">
-          <LastDayParticipationChip
-            lastParticipationDayTimestamp={lastParticipationDayTimestamp}
-            position={0}
-          />
-          <p className="m-0 ml-1.5 text-xs text-gray-600 dark:text-gray-600-dark sm:text-base">
-            <b className="text-gray-800 dark:text-gray-800-dark">
-              {format(new Date(lastParticipationDayTimestamp), formatString)}:
-            </b>{" "}
-            {t("lastDayForPrizeParticipation")}
-          </p>
-        </div>
-      )}
+      {lastParticipationDayTimestamp &&
+        tournament.bot_leaderboard_status !== BotLeaderboardStatus.BotsOnly && (
+          <div className="mt-4 flex w-full items-center justify-center">
+            <LastDayParticipationChip
+              lastParticipationDayTimestamp={lastParticipationDayTimestamp}
+              position={0}
+            />
+            <p className="m-0 ml-1.5 text-xs text-gray-600 dark:text-gray-600-dark sm:text-base">
+              <b className="text-gray-800 dark:text-gray-800-dark">
+                {format(new Date(lastParticipationDayTimestamp), formatString)}:
+              </b>{" "}
+              {t("lastDayForPrizeParticipation")}
+            </p>
+          </div>
+        )}
     </div>
   );
 };
