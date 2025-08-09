@@ -6,6 +6,11 @@ urlpatterns = [
     path("auth/login/token/", common.login_api_view),
     path("auth/verify_token/", common.verify_token_api_view),
     path("auth/signup/", common.signup_api_view, name="auth-signup"),
+    path(
+        "auth/signup/anonymous/",
+        common.signup_anonymous_api_view,
+        name="auth-signup-anonymous",
+    ),
     path("auth/signup/resend/", common.resend_activation_link_api_view),
     path("auth/signup/activate/", common.signup_activate_api_view),
     # Social auth

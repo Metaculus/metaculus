@@ -1,10 +1,13 @@
 import logging
+import uuid
+import random
 
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -25,7 +28,7 @@ from authentication.services import (
     check_password_reset,
     SignupInviteService,
 )
-from projects.models import ProjectUserPermission
+from projects.models import ProjectUserPermission, Project
 from projects.permissions import ObjectPermission
 from users.models import User
 from users.serializers import UserPrivateSerializer
@@ -130,6 +133,58 @@ def signup_api_view(request):
     return Response(
         {
             "is_active": is_active,
+            "token": token,
+            "user": UserPrivateSerializer(user).data,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def signup_anonymous_api_view(request):
+    if not settings.PUBLIC_ALLOW_SIGNUP:
+        raise ValidationError("Anonymous signup is not allowed")
+
+    # request must come from a project that is active and allows anonymous forecasting
+    project_id = request.data.get("project_id")
+    project = get_object_or_404(Project, id=project_id)
+    if not (project.allow_anonymous_forecasting and project.is_ongoing):
+        raise ValidationError(
+            "Project is not active or does not allow anonymous forecasting"
+        )
+
+    adjectives = (
+        "Brave_Calm_Clever_Curious_Daring_Eager_Fancy_Gentle_Happy_Jolly_Kind_Lively"
+        "_Lucky_Mighty_Nimble_Patient_Proud_Quick_Quiet_Rapid_Shiny_Silly_Smart_Swift_"
+        "Witty_Zany_Bright_Bold_Charming_Cheerful_Cool_Dashing_Fearless_Glorious_"
+        "Graceful_Helpful_Inventive_Joyful_Loyal_Playful_Powerful_Radiant_Resourceful_"
+        "Sincere_Spirited_Steady_Sturdy_Thoughtful_Valiant_Vivid".split("_")
+    )
+    nouns = (
+        "Ant_Badger_Bear_Beetle_Bison_Cat_Cougar_Crane_Crow_Deer_Dog_Dolphin_Dragon_"
+        "Eagle_Falcon_Ferret_Fox_Frog_Giraffe_Goat_Goose_Hawk_Heron_Horse_Hound_Jaguar"
+        "_Jay_Koala_Leopard_Lion_Lynx_Moose_Otter_Owl_Panther_Panda_Penguin_Puma_"
+        "Rabbit_Raven_Salmon_Seal_Shark_Sparrow_Swan_Tiger_Toad_Turtle_Viper_Wolf_Wren"
+        "_Yak_Zebra".split("_")
+    )
+    username = (
+        f"{random.choice(adjectives)}{random.choice(nouns)}_{str(uuid.uuid4())[:8]}"
+    )
+
+    with transaction.atomic():
+        user = User.objects.create(
+            username=username,
+            is_active=True,
+            is_anonymous=True,
+            newsletter_optin=False,
+        )
+        token_obj, _ = Token.objects.get_or_create(user=user)
+        token = token_obj.key
+
+    return Response(
+        {
+            "is_active": True,
             "token": token,
             "user": UserPrivateSerializer(user).data,
         },
