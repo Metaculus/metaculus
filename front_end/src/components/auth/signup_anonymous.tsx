@@ -70,9 +70,11 @@ const AnonymousSignupForm: FC<{ projectId: number }> = ({ projectId }) => {
       className="flex flex-col gap-3 sm:w-96"
     >
       <p className="text-sm leading-normal text-gray-800 dark:text-gray-200">
-        This Tournament allows you to forecast anonymously, but{" "}
-        <strong>requires the use of a cookie</strong>.<br /> Click &quot;I
-        Agree&quot; below to begin forecasting! <br />
+        {t.rich("anonymousTournamentCookieConsent", {
+          strong: (chunks) => <strong>{chunks}</strong>,
+        })}{" "}
+        <br />
+        {t("clickIAgreeToForecast")}
       </p>
 
       <div className="flex items-center gap-3">
@@ -87,8 +89,7 @@ const AnonymousSignupForm: FC<{ projectId: number }> = ({ projectId }) => {
         </Button>
       </div>
       <p>
-        If you&apos;d like to keep track of your own forecasts, you can sign up
-        for an account{" "}
+        {t("signUpInstead")}
         <Button
           type="button"
           variant="link"
@@ -96,7 +97,7 @@ const AnonymousSignupForm: FC<{ projectId: number }> = ({ projectId }) => {
           onClick={() => setCurrentModal({ type: "signup" })}
           className="p-0 align-baseline"
         >
-          here
+          {t("here")}
         </Button>
         .
       </p>

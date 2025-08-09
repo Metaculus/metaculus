@@ -1446,5 +1446,12 @@
   "questionMustDiffer": "Você não pode vincular uma pergunta a ela mesma.",
   "thisQuestionCausesOtherQuestion": "Esta pergunta tem um impacto <impact></impact> em <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tem um impacto <impact></impact> nesta pergunta",
+  "anonymousRegistrationHeading": "Gostaria de Prever Anonimamente?",
+  "anonymousTournamentCookieConsent": "Este Torneio permite que você faça previsões de forma anônima, mas <strong>requer o uso de um cookie</strong>.",
+  "clickIAgreeToForecast": "Clique em \"Concordo\" abaixo para começar a prever!",
+  "iAgree": "Concordo",
+  "signUpInstead": "Se quiser acompanhar suas previsões a longo prazo, você pode criar uma conta ",
+  "here": "aqui",
+  "anonymousRegistrationTerms": "Ao consentir, você reconhece e concorda com os <terms>Termos de Uso</terms> e a <privacy>Política de Privacidade</privacy> do Metaculus.",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }
