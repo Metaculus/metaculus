@@ -281,6 +281,17 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     sign_up_fields = models.JSONField(
         default=list, blank=True, help_text="Used during tournament onboarding."
     )
+    allow_anonymous_forecasting = models.BooleanField(
+        default=False,
+        help_text=(
+            "When a logged out user comes to the tournament page while the tournament "
+            "is ongoing, they will be prompted"
+            " to consent to cookies, then given an anonymous account."
+            "<br>This field also "
+            "permits anonymous users to forecast on questions in the tournament (whose "
+            "post.default_project is this project)."
+        ),
+    )
 
     # SEO
     meta_description = models.TextField(blank=True, default="")
