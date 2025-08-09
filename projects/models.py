@@ -285,11 +285,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=False,
         help_text=(
             "When a logged out user comes to the tournament page while the tournament "
-            "is ongoing, they will be prompted"
-            " to consent to cookies, then given an anonymous account."
-            "<br>This field also "
-            "permits anonymous users to forecast on questions in the tournament (whose "
-            "post.default_project is this project)."
+            "is ongoing, they will be prompted to consent to cookies, then given an "
+            "anonymous account."
+            "<br>This field also permits anonymous users to forecast on questions in "
+            "the tournament (whose post.default_project is this project)."
         ),
     )
 
