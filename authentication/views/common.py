@@ -179,13 +179,12 @@ def signup_anonymous_api_view(request):
             is_anonymous=True,
             newsletter_optin=False,
         )
-        token_obj, _ = Token.objects.get_or_create(user=user)
-        token = token_obj.key
+        token = Token.objects.create(user=user)
 
     return Response(
         {
             "is_active": True,
-            "token": token,
+            "token": token.key,
             "user": UserPrivateSerializer(user).data,
         },
         status=status.HTTP_201_CREATED,
