@@ -337,7 +337,7 @@ class PostQuerySet(models.QuerySet):
                             then=models.Value(ObjectPermission.VIEWER),
                         )
                     ]
-                    if user and user.is_anonymous
+                    if user and (user.is_anonymous or user.anonymous)
                     else []
                 ),
                 default=Coalesce(

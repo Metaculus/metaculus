@@ -176,7 +176,7 @@ def signup_anonymous_api_view(request):
         user = User.objects.create(
             username=username,
             is_active=True,
-            is_anonymous=True,
+            anonymous=True,
             newsletter_optin=False,
             check_for_spam=False,
             is_onboarding_complete=True,

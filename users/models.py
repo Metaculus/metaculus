@@ -24,7 +24,7 @@ class User(TimeStampedModel, AbstractUser):
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False, db_index=True)
     is_spam = models.BooleanField(default=False, db_index=True)
-    is_anonymous = models.BooleanField(default=False)
+    anonymous = models.BooleanField(default=False)
     check_for_spam = models.BooleanField(default=True)
 
     old_usernames = models.JSONField(default=list, null=False, editable=False)
