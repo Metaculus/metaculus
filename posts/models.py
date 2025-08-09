@@ -326,6 +326,20 @@ class PostQuerySet(models.QuerySet):
                     ),
                     then=models.Value(ObjectPermission.ADMIN),
                 ),
+                # anonymous users can't forecast unless project allows
+                *(
+                    [
+                        models.When(
+                            Q(
+                                default_project__default_permission__isnull=False,
+                                default_project__allow_anonymous_forecasting=False,
+                            ),
+                            then=models.Value(ObjectPermission.VIEWER),
+                        )
+                    ]
+                    if user and user.is_anonymous
+                    else []
+                ),
                 default=Coalesce(
                     F("_user_permission_override__permission"),
                     F("default_project__default_permission"),
