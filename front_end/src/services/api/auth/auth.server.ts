@@ -80,6 +80,15 @@ class ServerAuthApiClass extends ApiService {
     });
   }
 
+  async signUpAnonymous(projectId: number) {
+    return this.post<SignUpResponse, { project_id: number }>(
+      "/auth/signup/anonymous/",
+      {
+        project_id: projectId,
+      }
+    );
+  }
+
   async activateAccount(userId: string, token: string) {
     return this.post<AuthResponse, { user_id: string; token: string }>(
       "/auth/signup/activate/",

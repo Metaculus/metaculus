@@ -11,6 +11,7 @@ import {
 export type ModalType =
   | "signin"
   | "signup"
+  | "signupAnonymous"
   | "signupSuccess"
   | "resetPassword"
   | "resetPasswordConfirm"

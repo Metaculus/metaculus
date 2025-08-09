@@ -16,6 +16,16 @@ const SignUpModal = dynamic(
   }
 );
 
+const SignUpAnonymousModal = dynamic(
+  () =>
+    import("@/components/auth/signup_anonymous").then(
+      (mod) => mod.SignUpAnonymousModal
+    ),
+  {
+    ssr: false,
+  }
+);
+
 const SignUpModalSuccess = dynamic(
   () =>
     import("@/components/auth/signup").then((mod) => mod.SignUpModalSuccess),
@@ -81,6 +91,13 @@ const GlobalModals: FC = () => {
         <SignUpModal
           isOpen={currentModal?.type === "signup"}
           onClose={onClose}
+        />
+      )}
+      {currentModal?.type === "signupAnonymous" && (
+        <SignUpAnonymousModal
+          isOpen={currentModal?.type === "signupAnonymous"}
+          onClose={onClose}
+          projectId={currentModal?.data?.projectId}
         />
       )}
       {currentModal?.type === "signupSuccess" && (

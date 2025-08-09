@@ -1448,5 +1448,12 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
   "expandAll": "Rozbalit vše",
   "collapseAll": "Sbalit vše",
+  "anonymousRegistrationHeading": "Chtěli byste předpovědět anonymně?",
+  "anonymousTournamentCookieConsent": "Tento turnaj vám umožňuje předpovídat anonymně, ale <strong>vyžaduje použití souboru cookie</strong>.",
+  "clickIAgreeToForecast": "Klikněte na \"Souhlasím\" níže, abyste mohli začít předpovídat!",
+  "iAgree": "Souhlasím",
+  "signUpInstead": "Pokud byste chtěli dlouhodobě sledovat své předpovědi, můžete se zaregistrovat k účtu ",
+  "here": "zde",
+  "anonymousRegistrationTerms": "Svým souhlasem potvrzujete a souhlasíte s <terms>Podmínkami použití</terms> a <privacy>Zásadami ochrany osobních údajů</privacy> Metaculus.",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

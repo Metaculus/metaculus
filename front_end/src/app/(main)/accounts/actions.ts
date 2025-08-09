@@ -126,6 +126,26 @@ export async function signUpAction(
   }
 }
 
+export async function signUpAnonymousAction({
+  projectId,
+}: {
+  projectId: number;
+}): Promise<SignUpActionState> {
+  try {
+    const response = await ServerAuthApi.signUpAnonymous(projectId);
+    const signUpActionState: SignUpActionState = { ...response };
+    if (response.is_active && response.token) {
+      await setServerSession(response.token);
+      revalidatePath("/");
+    }
+    return signUpActionState;
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}
+
 export async function LogOut() {
   await deleteServerSession();
   return redirect("/");

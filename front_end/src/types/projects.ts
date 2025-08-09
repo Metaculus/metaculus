@@ -88,6 +88,7 @@ export type Tournament = TournamentPreview & {
   add_posts_to_main_feed: boolean;
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
+  allow_anonymous_forecasting: boolean;
   is_current_content_translated?: boolean;
   bot_leaderboard_status?: BotLeaderboardStatus;
   index_weights?: ProjectIndexWeights[];

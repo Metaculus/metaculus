@@ -1450,5 +1450,12 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<impact></impact>的影响",
   "expandAll": "全部展开",
   "collapseAll": "全部折叠",
+  "anonymousRegistrationHeading": "您想匿名进行预测吗？",
+  "anonymousTournamentCookieConsent": "本次比赛允许您匿名进行预测，但<strong>需要使用cookie</strong>。",
+  "clickIAgreeToForecast": "点击下方的\"我同意\"开始预测！",
+  "iAgree": "我同意",
+  "signUpInstead": "如果您希望长期跟踪您的预测，您可以注册一个账户",
+  "here": "此处",
+  "anonymousRegistrationTerms": "通过同意，您承认并同意Metaculus的<terms>使用条款</terms>和<privacy>隐私政策</privacy>。",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

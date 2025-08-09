@@ -1445,5 +1445,12 @@
   "questionMustDiffer": "您不能將問題連結到自身。",
   "thisQuestionCausesOtherQuestion": "此問題對<otherQuestion></otherQuestion>有<impact></impact>影響",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對此問題有<impact></impact>影響",
+  "anonymousRegistrationHeading": "您想要匿名預測嗎？",
+  "anonymousTournamentCookieConsent": "此比賽允許您匿名預測，但<strong>需要使用cookie</strong>。",
+  "clickIAgreeToForecast": "點選「我同意」以開始預測！",
+  "iAgree": "我同意",
+  "signUpInstead": "如果您想長期跟踪您的預測，可以註冊一個帳號",
+  "here": "這裡",
+  "anonymousRegistrationTerms": "通過同意，您確認並同意Metaculus的<terms>使用條款</terms>和<privacy>隱私政策</privacy>。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
