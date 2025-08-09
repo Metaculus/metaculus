@@ -178,6 +178,7 @@ def signup_anonymous_api_view(request):
             is_active=True,
             is_anonymous=True,
             newsletter_optin=False,
+            check_for_spam=False,
         )
         token = Token.objects.create(user=user)
 
