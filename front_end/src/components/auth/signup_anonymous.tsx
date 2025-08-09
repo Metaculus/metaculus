@@ -1,5 +1,6 @@
 "use client";
 
+import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
@@ -19,13 +20,12 @@ type SignUpAnonymousModalProps = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
   className?: string;
-  projectId: number;
+  projectId?: number;
 };
 
 type ServerErrorShape = Record<string, string[] | string>;
 
 const AnonymousSignupForm: FC<{ projectId: number }> = ({ projectId }) => {
-  projectId = 32813;
   const t = useTranslations();
   const { setCurrentModal } = useModal();
   const handlePostLoginAction = usePostLoginActionHandler();
@@ -116,6 +116,8 @@ export const SignUpAnonymousModal: FC<SignUpAnonymousModalProps> = ({
 }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
+
+  if (isNil(projectId)) return null;
 
   return (
     <BaseModal

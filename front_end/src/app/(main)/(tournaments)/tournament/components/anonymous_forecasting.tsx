@@ -20,7 +20,10 @@ const AnonymousForecastingCheck: FC<Props> = ({ tournament }) => {
       tournament.is_ongoing &&
       !user
     ) {
-      setCurrentModal({ type: "signupAnonymous" });
+      setCurrentModal({
+        type: "signupAnonymous",
+        data: { projectId: tournament.id },
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

@@ -97,6 +97,7 @@ const GlobalModals: FC = () => {
         <SignUpAnonymousModal
           isOpen={currentModal?.type === "signupAnonymous"}
           onClose={onClose}
+          projectId={currentModal?.data?.projectId}
         />
       )}
       {currentModal?.type === "signupSuccess" && (
