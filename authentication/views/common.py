@@ -169,7 +169,7 @@ def signup_anonymous_api_view(request):
         "_Yak_Zebra".split("_")
     )
     username = (
-        f"{random.choice(adjectives)}{random.choice(nouns)}_{str(uuid.uuid4())[:8]}"
+        f"{random.choice(adjectives)}{random.choice(nouns)}{str(uuid.uuid4())[:5]}"
     )
 
     with transaction.atomic():
@@ -179,6 +179,7 @@ def signup_anonymous_api_view(request):
             is_anonymous=True,
             newsletter_optin=False,
             check_for_spam=False,
+            is_onboarding_complete=True,
         )
         token = Token.objects.create(user=user)
 

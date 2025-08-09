@@ -118,6 +118,7 @@ class TournamentSerializer(TournamentShortSerializer):
             "edited_at",
             "visibility",
             "forecasts_flow_enabled",
+            "allow_anonymous_forecasting",
         )
 
 

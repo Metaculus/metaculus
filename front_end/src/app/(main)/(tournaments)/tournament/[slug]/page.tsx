@@ -25,6 +25,7 @@ import { ProjectVisibility, TournamentType } from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+import AnonymousForecastingCheck from "../components/anonymous_forecasting";
 import HeaderBlockInfo from "../components/header_block_info";
 import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
@@ -98,6 +99,7 @@ export default async function TournamentSlug(props: Props) {
 
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
+      <AnonymousForecastingCheck tournament={tournament} />
       {/* header block */}
       <div className="rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
         {!!tournament.header_image && (
