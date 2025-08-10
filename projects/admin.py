@@ -382,7 +382,8 @@ class ProjectAdmin(CustomTranslationAdmin):
         "email_me_questions_data_for_projects",
         "email_me_questions_data_for_projects_anonymized",
         "update_translations",
-        "generate_50_users",
+        "generate_50_users_password_simple",
+        "generate_50_users_password_complex",
     ]
 
     change_form_template = "admin/projects/project_change_form.html"
