@@ -556,7 +556,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             "_Yak_Zebra".split("_")
         )
         data = ""
-        for _ in range(2):
+        for _ in range(50):
             username = (
                 f"{random.choice(adjectives)}"
                 f"{random.choice(nouns)}"
@@ -573,7 +573,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             user.set_password(username)
             user.save()
             token = Token.objects.create(user=user)
-            data += f"{user.username},{token.key}\n"
+            data += f"{user.username}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
                     user=user,
@@ -582,13 +582,15 @@ class ProjectAdmin(CustomTranslationAdmin):
                 )
 
         # return csv file as a response
-        filename = "new_users.csv"
+        filename = "new_users-password_same_as_username.csv"
 
         response = HttpResponse(data, content_type="text/csv")
         response["Content-Disposition"] = f"attachment; filename={filename}"
 
+        return response
+
     generate_50_users.short_description = (
-        "Generate 50 users & download their data as a CSV."
+        "Generate 50 users & download their data as a CSV"
     )
 
     def get_urls(self):
