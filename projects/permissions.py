@@ -62,8 +62,12 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
     @classmethod
     def can_comment(cls, permission: Self, raise_exception=False):
-        # TODO: who can comment: viewers or forecasters only?
-        can = bool(permission)
+        can = permission in (
+            cls.FORECASTER,
+            cls.CURATOR,
+            cls.ADMIN,
+            cls.CREATOR,
+        )
 
         if raise_exception and not can:
             raise PermissionDenied("You do not have permission to comment this project")
