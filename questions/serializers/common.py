@@ -140,6 +140,8 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
             "include_bots_in_aggregates",
+            "default_score_type",
+            "default_aggregation_method",
             "question_weight",
             "range_max",
             "range_min",
