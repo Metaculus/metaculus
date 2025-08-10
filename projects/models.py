@@ -281,6 +281,10 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     sign_up_fields = models.JSONField(
         default=list, blank=True, help_text="Used during tournament onboarding."
     )
+    allow_quick_signup = models.BooleanField(
+        default=False,
+        help_text="Allow sign up with minimal validation on this project page.",
+    )
 
     # SEO
     meta_description = models.TextField(blank=True, default="")
