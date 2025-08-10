@@ -84,7 +84,7 @@ const Header: FC = () => {
               </MenuItems>
             </Menu>
           </li>
-          {!!user && (
+          {!!user && !user.anonymous && (
             <li className="hidden h-full lg:block">
               <NavLink
                 href={LINKS.createQuestion.href}

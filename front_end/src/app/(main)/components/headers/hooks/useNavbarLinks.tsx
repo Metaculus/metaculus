@@ -31,6 +31,8 @@ const useNavbarLinks = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const isLoggedIn = !isNil(user);
+  const isAnonymous = isLoggedIn && user.anonymous;
+  console.log({ isAnonymous });
   const { PUBLIC_MINIMAL_UI, PUBLIC_ALLOW_TUTORIAL, PUBLIC_ALLOW_SIGNUP } =
     usePublicSettings();
 
@@ -130,7 +132,7 @@ const useNavbarLinks = ({
           className:
             "mr-2 px-2 flex h-full items-center capitalize no-underline hover:bg-blue-200-dark",
         },
-        ...(isLoggedIn
+        ...(isLoggedIn && !isAnonymous
           ? [
               {
                 href: `/questions/create/?community_id=${community?.id}`,
@@ -158,6 +160,7 @@ const useNavbarLinks = ({
       LINKS.tournaments,
       PUBLIC_MINIMAL_UI,
       isLoggedIn,
+      isAnonymous,
       community,
       t,
     ]
@@ -174,7 +177,7 @@ const useNavbarLinks = ({
     ];
 
     // create question link is moved from navbar to desktop menu
-    if (!isMenuCollapsed && isLoggedIn) {
+    if (!isMenuCollapsed && isLoggedIn && !isAnonymous) {
       links.push(LINKS.createQuestion);
     }
 
@@ -202,6 +205,7 @@ const useNavbarLinks = ({
     LINKS.trackRecord,
     PUBLIC_MINIMAL_UI,
     isLoggedIn,
+    isAnonymous,
     isMenuCollapsed,
   ]);
 
@@ -235,19 +239,27 @@ const useNavbarLinks = ({
 
     if (isLoggedIn) {
       const accountLinks: MobileMenuItemDefinition[] = [
-        !isNil(community)
-          ? {
-              href: `/questions/create/?community_id=${community.id}`,
-              label: (
-                <>
-                  <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
-                  {t("createQuestion")}
-                </>
-              ),
-              className:
-                "mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark",
-            }
-          : LINKS.createQuestion,
+        ...(!isAnonymous
+          ? [
+              !isNil(community)
+                ? {
+                    href: `/questions/create/?community_id=${community.id}`,
+                    label: (
+                      <>
+                        <FontAwesomeIcon
+                          size="1x"
+                          className="mr-1"
+                          icon={faPlus}
+                        />
+                        {t("createQuestion")}
+                      </>
+                    ),
+                    className:
+                      "mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark",
+                  }
+                : LINKS.createQuestion,
+            ]
+          : []),
         { href: null, label: t("account"), isTitle: true },
         { href: `/accounts/profile/${user.id}`, label: t("profile") },
         { href: "/accounts/settings/", label: t("settings") },
@@ -307,12 +319,14 @@ const useNavbarLinks = ({
     LINKS.leaderboards,
     LINKS.news,
     LINKS.press,
-    LINKS.trackRecord,
+    LINKS.services,
     LINKS.tournaments,
+    LINKS.trackRecord,
     PUBLIC_ALLOW_SIGNUP,
     PUBLIC_ALLOW_TUTORIAL,
     user,
     isLoggedIn,
+    isAnonymous,
     setCurrentModal,
     t,
     community,
