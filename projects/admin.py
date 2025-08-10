@@ -540,7 +540,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         "Email Me Question Data for Selected Projects Anonymized"
     )
 
-    def generate_50_users(self, request, queryset: QuerySet[Project]):
+    def generate_50_users_password_simple(self, request, queryset: QuerySet[Project]):
         adjectives = (
             "Brave_Calm_Clever_Curious_Daring_Eager_Fancy_Gentle_Happy_Jolly_Kind_Lively"
             "_Lucky_Mighty_Nimble_Patient_Proud_Quick_Quiet_Rapid_Shiny_Silly_Smart_Swift_"
@@ -589,8 +589,66 @@ class ProjectAdmin(CustomTranslationAdmin):
 
         return response
 
-    generate_50_users.short_description = (
-        "Generate 50 users & download their data as a CSV"
+    generate_50_users_password_simple.short_description = (
+        "Generate 50 users with username == password & download their data as a CSV"
+    )
+
+    def generate_50_users_password_complex(self, request, queryset: QuerySet[Project]):
+        adjectives = (
+            "Brave_Calm_Clever_Curious_Daring_Eager_Fancy_Gentle_Happy_Jolly_Kind_Lively"
+            "_Lucky_Mighty_Nimble_Patient_Proud_Quick_Quiet_Rapid_Shiny_Silly_Smart_Swift_"
+            "Witty_Zany_Bright_Bold_Charming_Cheerful_Cool_Dashing_Fearless_Glorious_"
+            "Graceful_Helpful_Inventive_Joyful_Loyal_Playful_Powerful_Radiant_Resourceful_"
+            "Sincere_Spirited_Steady_Sturdy_Thoughtful_Valiant_Vivid".split("_")
+        )
+        nouns = (
+            "Ant_Badger_Bear_Beetle_Bison_Cat_Cougar_Crane_Crow_Deer_Dog_Dolphin_Dragon_"
+            "Eagle_Falcon_Ferret_Fox_Frog_Giraffe_Goat_Goose_Hawk_Heron_Horse_Hound_Jaguar"
+            "_Jay_Koala_Leopard_Lion_Lynx_Moose_Otter_Owl_Panther_Panda_Penguin_Puma_"
+            "Rabbit_Raven_Salmon_Seal_Shark_Sparrow_Swan_Tiger_Toad_Turtle_Viper_Wolf_Wren"
+            "_Yak_Zebra".split("_")
+        )
+        data = ""
+        for _ in range(50):
+            username = (
+                f"{random.choice(adjectives)}"
+                f"{random.choice(nouns)}"
+                f"{random.randint(1000, 9999)}"
+            )
+            password = (
+                f"{random.choice(adjectives)}"
+                f"{random.choice(nouns)}"
+                f"{random.randint(1000, 9999)}"
+            )
+
+            user = User.objects.create(
+                username=username,
+                is_active=True,
+                newsletter_optin=False,
+                check_for_spam=False,
+                is_onboarding_complete=True,
+            )
+            user.set_password(password)
+            user.save()
+            token = Token.objects.create(user=user)
+            data += f"{user.username},{password}\n"
+            for project in queryset:
+                ProjectUserPermission.objects.create(
+                    user=user,
+                    project=project,
+                    permission=ObjectPermission.FORECASTER,
+                )
+
+        # return csv file as a response
+        filename = "new_users-columns-are-username-password.csv"
+
+        response = HttpResponse(data, content_type="text/csv")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+
+        return response
+
+    generate_50_users_password_complex.short_description = (
+        "Generate 50 users with random passwords and download their data as a CSV"
     )
 
     def get_urls(self):
