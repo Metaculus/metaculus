@@ -37,6 +37,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "show_on_homepage",
             "show_on_services_page",
             "forecasts_flow_enabled",
+            "allow_quick_signup",
         )
         read_only_fields = (
             "created_at",
@@ -95,6 +96,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "visibility",
             "is_current_content_translated",
             "bot_leaderboard_status",
+            "allow_quick_signup",
         )
 
     def get_score_type(self, project: Project) -> str | None:

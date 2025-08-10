@@ -31,6 +31,7 @@ import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
 import PredictionFlowButton from "../components/prediction_flow_button";
+import SignupPrompt from "../components/signup_prompt";
 import TournamentFeed from "../components/tournament_feed";
 
 type Props = {
@@ -98,6 +99,7 @@ export default async function TournamentSlug(props: Props) {
 
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
+      <SignupPrompt tournament={tournament} />
       {/* header block */}
       <div className="rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
         {!!tournament.header_image && (
