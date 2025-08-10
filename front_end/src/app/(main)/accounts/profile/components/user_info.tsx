@@ -178,7 +178,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
                 <h1 className="mt-0 inline text-3xl md:text-4xl">
                   {formatUsername(profile)}
                 </h1>
-                {isCurrentUser && (
+                {isCurrentUser && !profile.anonymous && (
                   <span className="inline">
                     <ChangeUsername />
                   </span>
@@ -205,7 +205,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
             </div>
 
             {/* Edit on SM screens */}
-            {isCurrentUser && (
+            {isCurrentUser && !profile.anonymous && (
               <Button
                 variant="secondary"
                 onClick={() => setEditMode(true)}
@@ -218,7 +218,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
 
           <div className="relative hidden flex-row justify-center text-xs font-medium md:flex md:text-sm">
             {/* Edit on desktop MD */}
-            {isCurrentUser && (
+            {isCurrentUser && !profile.anonymous && (
               <Button
                 variant="secondary"
                 onClick={() => setEditMode(true)}
@@ -248,7 +248,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         <h1 className="mt-0 inline text-3xl md:text-4xl">
           {formatUsername(profile)}
         </h1>
-        {isCurrentUser && (
+        {isCurrentUser && !profile.anonymous && (
           <span className="inline">
             <ChangeUsername />
           </span>
