@@ -30,7 +30,8 @@ const QuestionCPMovement: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const movement = question.aggregations?.recency_weighted?.movement;
+  const movement =
+    question.aggregations[question.default_aggregation_method].movement;
 
   if (!movement || !movement.divergence || movement.divergence < threshold) {
     return null;

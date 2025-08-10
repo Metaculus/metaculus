@@ -46,5 +46,5 @@ export function getQuestionForecastAvailability(
 }
 
 const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
-  !question.aggregations.recency_weighted.history.length &&
+  !question.aggregations[question.default_aggregation_method].history.length &&
   !question.my_forecasts?.history.length;

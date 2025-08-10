@@ -28,8 +28,10 @@ export function calculateIndex(posts: ProjectIndexWeights[]): {
         return acc;
       }
 
-      const latestAggregation = question.aggregations.recency_weighted.latest;
-      const historyAggregation = question.aggregations.recency_weighted.history;
+      const latestAggregation =
+        question.aggregations[question.default_aggregation_method].latest;
+      const historyAggregation =
+        question.aggregations[question.default_aggregation_method].history;
       if (!latestAggregation) {
         return acc;
       }
@@ -116,8 +118,9 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
     if (!question) {
       return;
     }
-    const historyTimestamps =
-      question.aggregations.recency_weighted.history.map((el) => el.start_time);
+    const historyTimestamps = question.aggregations[
+      question.default_aggregation_method
+    ].history.map((el) => el.start_time);
     timestamps.push(...historyTimestamps);
   });
   const sortedTimestamps = uniq([...timestamps]).sort(
@@ -210,10 +213,10 @@ export function calculateIndexTimeline(posts: ProjectIndexWeights[]) {
       }
       const aggregation =
         index >= finalTimestamps.length - 2
-          ? question.aggregations.recency_weighted.latest
-          : question.aggregations.recency_weighted.history.findLast(
-              (el) => el.start_time <= timestamp
-            );
+          ? question.aggregations[question.default_aggregation_method].latest
+          : question.aggregations[
+              question.default_aggregation_method
+            ].history.findLast((el) => el.start_time <= timestamp);
       if (!aggregation) {
         return acc;
       }

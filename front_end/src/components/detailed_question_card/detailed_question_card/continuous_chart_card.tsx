@@ -38,7 +38,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const [isChartReady, setIsChartReady] = useState(false);
 
-  const aggregation = question.aggregations.recency_weighted;
+  const aggregation =
+    question.aggregations[question.default_aggregation_method];
   const isCpHidden = !!forecastAvailability?.cpRevealsOn;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
@@ -172,7 +173,9 @@ const DetailedContinuousChartCard: FC<Props> = ({
     >
       <div className="relative">
         <NumericTimeline
-          aggregation={question.aggregations.recency_weighted}
+          aggregation={
+            question.aggregations[question.default_aggregation_method]
+          }
           myForecasts={question.my_forecasts}
           resolution={question.resolution}
           resolveTime={question.actual_resolve_time}

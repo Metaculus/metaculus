@@ -43,7 +43,7 @@ const ConditionalChart: FC<Props> = ({
   const t = useTranslations();
 
   const resolved = question.resolution !== null;
-  const aggregate = question.aggregations.recency_weighted;
+  const aggregate = question.aggregations[question.default_aggregation_method];
   const aggregateLatest = aggregate.latest;
   const userLatest = question.my_forecasts?.latest;
 

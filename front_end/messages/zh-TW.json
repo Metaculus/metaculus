@@ -1452,5 +1452,9 @@
   "signUpInstead": "如果您想長期跟踪您的預測，可以註冊一個帳號",
   "here": "這裡",
   "anonymousRegistrationTerms": "通過同意，您確認並同意Metaculus的<terms>使用條款</terms>和<privacy>隱私政策</privacy>。",
+  "recency_weighted": "近期加權",
+  "single_aggregation": "單一聚合",
+  "metaculus_prediction": "Metaculus 預測",
+  "cpAggregationMethod": "社群預測聚合方法",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

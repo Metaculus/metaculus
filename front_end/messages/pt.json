@@ -1453,5 +1453,9 @@
   "signUpInstead": "Se quiser acompanhar suas previsões a longo prazo, você pode criar uma conta ",
   "here": "aqui",
   "anonymousRegistrationTerms": "Ao consentir, você reconhece e concorda com os <terms>Termos de Uso</terms> e a <privacy>Política de Privacidade</privacy> do Metaculus.",
+  "recency_weighted": "Ponderação por Recência",
+  "single_aggregation": "Agregação Única",
+  "metaculus_prediction": "Previsão do Metaculus",
+  "cpAggregationMethod": "Método de Agregação de Previsão da Comunidade",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

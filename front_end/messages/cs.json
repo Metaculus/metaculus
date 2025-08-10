@@ -1455,5 +1455,9 @@
   "signUpInstead": "Pokud byste chtěli dlouhodobě sledovat své předpovědi, můžete se zaregistrovat k účtu ",
   "here": "zde",
   "anonymousRegistrationTerms": "Svým souhlasem potvrzujete a souhlasíte s <terms>Podmínkami použití</terms> a <privacy>Zásadami ochrany osobních údajů</privacy> Metaculus.",
+  "recency_weighted": "Vážené podle aktuálnosti",
+  "single_aggregation": "Jednotná agregace",
+  "metaculus_prediction": "Předpověď Metaculus",
+  "cpAggregationMethod": "Metoda agregace předpovědí komunity",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
