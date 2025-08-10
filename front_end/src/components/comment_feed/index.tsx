@@ -27,7 +27,11 @@ import useScrollTo from "@/hooks/use_scroll_to";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import { CommentType } from "@/types/comment";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -108,7 +112,11 @@ const CommentFeed: FC<Props> = ({
   const isFirstRender = useRef(true);
   const scrollTo = useScrollTo();
   const commentsRef = useRef<HTMLDivElement>(null);
+  const canComment =
+    !!postData?.user_permission &&
+    postData?.user_permission !== ProjectPermissions.VIEWER;
   const showWelcomeMessage =
+    canComment &&
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
@@ -348,7 +356,7 @@ const CommentFeed: FC<Props> = ({
     ].includes(postData?.status ?? PostStatus.CLOSED);
 
     if (
-      postId &&
+      canComment &&
       isSimpleQuestion &&
       user?.should_suggest_keyfactors &&
       isPostOpen
@@ -426,6 +434,7 @@ const CommentFeed: FC<Props> = ({
                   }
                 }
                 isPrivateFeed={feedFilters.is_private}
+                canComment={canComment}
               />
             )}
           </>

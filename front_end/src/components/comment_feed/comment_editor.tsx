@@ -38,6 +38,7 @@ interface CommentEditorProps {
   isReplying?: boolean;
   replyUsername?: string;
   isPrivateFeed?: boolean;
+  canComment: boolean;
 }
 
 const CommentEditor: FC<CommentEditorProps> = ({
@@ -49,6 +50,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   isReplying = false,
   replyUsername,
   isPrivateFeed = false,
+  canComment,
 }) => {
   const t = useTranslations();
 
@@ -187,6 +189,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   };
 
   if (user == null)
+    // some users can comment, show a message to encourage logging in
     return (
       <>
         <Textarea
@@ -201,6 +204,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         </div>
       </>
     );
+  if (!canComment) {
+    // user is logged in but unable to comment (permission is too low to comment)
+    return (
+      <div className="mt-4 flex justify-center text-xs text-gray-500 dark:text-gray-400">
+        Commenting Not Available
+      </div>
+    );
+  }
 
   return (
     <>

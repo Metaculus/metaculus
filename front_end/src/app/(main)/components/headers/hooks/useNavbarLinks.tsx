@@ -32,7 +32,6 @@ const useNavbarLinks = ({
   const { setCurrentModal } = useModal();
   const isLoggedIn = !isNil(user);
   const isAnonymous = isLoggedIn && user.anonymous;
-  console.log({ isAnonymous });
   const { PUBLIC_MINIMAL_UI, PUBLIC_ALLOW_TUTORIAL, PUBLIC_ALLOW_SIGNUP } =
     usePublicSettings();
 
