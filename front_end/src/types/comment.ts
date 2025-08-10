@@ -7,6 +7,7 @@ export type AuthorType = {
   username: string;
   is_bot: boolean;
   is_staff: boolean;
+  anonymous: boolean;
 };
 
 export type BECommentType = {

@@ -236,6 +236,9 @@ const Comment: FC<CommentProps> = ({
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user, setUser } = useAuth();
   const scrollTo = useScrollTo();
+  const canComment =
+    !!postData?.user_permission &&
+    postData?.user_permission !== ProjectPermissions.VIEWER;
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
@@ -859,6 +862,7 @@ const Comment: FC<CommentProps> = ({
                   )}
 
                   {!onProfile &&
+                    canComment &&
                     (isReplying ? (
                       <Button
                         size="xxs"
@@ -901,7 +905,7 @@ const Comment: FC<CommentProps> = ({
           </>
         )}
       </div>
-      {isReplying && (
+      {isReplying && canComment && (
         <CommentEditor
           parentId={comment.id}
           postId={comment.on_post}
@@ -911,6 +915,7 @@ const Comment: FC<CommentProps> = ({
             setIsReplying(false);
           }}
           isReplying={isReplying}
+          canComment={canComment}
         />
       )}
 
