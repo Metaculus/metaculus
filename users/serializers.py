@@ -27,6 +27,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "username",
             "is_bot",
             "is_staff",
+            "anonymous",
         )
 
 
@@ -45,6 +46,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "is_active",
             "is_spam",
             "is_bot",
+            "anonymous",
             "twitter",
             "linkedin",
             "facebook",
@@ -95,7 +97,9 @@ class UserPrivateSerializer(UserPublicSerializer):
     def get_should_suggest_keyfactors(self, user: User):
         return (
             KeyFactor.objects.filter(comment__author=user).exists()
-            or LeaderboardEntry.objects.filter(user=user, medal=LeaderboardEntry.Medals.GOLD).exists()
+            or LeaderboardEntry.objects.filter(
+                user=user, medal=LeaderboardEntry.Medals.GOLD
+            ).exists()
         )
 
 

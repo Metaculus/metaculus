@@ -1,5 +1,4 @@
 import logging
-import uuid
 import random
 
 from django.conf import settings
@@ -169,7 +168,9 @@ def signup_anonymous_api_view(request):
         "_Yak_Zebra".split("_")
     )
     username = (
-        f"{random.choice(adjectives)}{random.choice(nouns)}{str(uuid.uuid4())[:5]}"
+        f"{random.choice(adjectives)}"
+        f"{random.choice(nouns)}"
+        f"{random.randint(1000, 9999)}"
     )
 
     with transaction.atomic():

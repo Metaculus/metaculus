@@ -238,6 +238,9 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    user = request.user
+    if user.is_authenticated and user.anonymous:
+        return Response({"error": "Anonymous users cannot create posts"}, status=403)
     # manually convert scaling to range_min, range_max, zero_point
     # TODO: move scaling handling
     qdatas = []

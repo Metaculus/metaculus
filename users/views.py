@@ -471,6 +471,10 @@ def users_list_api_view(request):
 @api_view(["POST"])
 def change_username_api_view(request: Request):
     user = request.user
+    if user.is_authenticated and user.anonymous:
+        return Response(
+            {"error": "Anonymous users cannot change their username"}, status=403
+        )
     username = serializers.CharField().run_validation(request.data.get("username"))
     username = validate_username(username)
 
@@ -489,6 +493,10 @@ def change_username_api_view(request: Request):
 @api_view(["PATCH"])
 def update_profile_api_view(request: Request) -> Response:
     user: User = request.user
+    if user.is_authenticated and user.anonymous:
+        return Response(
+            {"error": "Anonymous users cannot update their profile"}, status=403
+        )
     serializer: UserUpdateProfileSerializer = UserUpdateProfileSerializer(
         user, data=request.data, partial=True
     )

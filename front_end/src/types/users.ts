@@ -14,6 +14,7 @@ export type UserBase = {
   is_staff: boolean;
   is_active?: boolean;
   is_spam?: boolean;
+  anonymous: boolean;
 };
 
 export type User = UserBase & {

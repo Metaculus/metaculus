@@ -141,6 +141,12 @@ def comment_create_api_view(request: Request):
     permission = get_post_permission_for_user(
         parent.on_post if parent else on_post, user=user
     )
+    if user.is_authenticated and user.anonymous:
+        # TODO: consider just changing the can_comment permission to "Forecaster and up"
+        # right now it's "Viewer and up". Then this whole block and be removed
+        can = ObjectPermission.can_forecast(permission, raise_exception=False)
+        if not can:
+            raise PermissionDenied("You do not have permission to comment this project")
     ObjectPermission.can_comment(permission, raise_exception=True)
 
     forecast = (
