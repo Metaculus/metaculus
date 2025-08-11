@@ -1,4 +1,5 @@
 import { abbreviatedNumber } from "@/utils/formatters/number";
+
 import { tournaments as financialTournaments } from "../financial-services/config";
 
 export const metadata = {

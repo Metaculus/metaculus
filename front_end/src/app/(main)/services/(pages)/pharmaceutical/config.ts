@@ -1,5 +1,5 @@
-import { abbreviatedNumber } from "@/utils/formatters/number";
 import { TournamentPreview } from "@/types/projects";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 export const metadata = {
   title: "Forecasting for Pharmaceutical | Metaculus",
