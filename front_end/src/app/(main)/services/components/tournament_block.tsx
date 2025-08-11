@@ -14,6 +14,7 @@ type Props = {
   description: string;
   data: TournamentPreview[];
   className?: string;
+  learnMoreHref?: string;
 };
 
 const TournamentBlock: FC<Props> = ({
@@ -21,6 +22,7 @@ const TournamentBlock: FC<Props> = ({
   description,
   data,
   className,
+  learnMoreHref,
 }) => {
   const t = useTranslations();
   // Duplicate tournaments to allow for infinite scrolling
@@ -39,7 +41,10 @@ const TournamentBlock: FC<Props> = ({
         <p className="m-0 mt-5 max-w-[570px] text-center text-sm font-normal text-blue-500 sm:text-lg sm:font-medium">
           {description}
         </p>
-        <Button href="/services/tournaments" className="mt-8 uppercase">
+        <Button
+          href={learnMoreHref ?? "/services/tournaments"}
+          className="mt-8 uppercase"
+        >
           {t("learnMore")}
         </Button>
       </div>

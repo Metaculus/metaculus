@@ -18,6 +18,7 @@ export default function FinancialServicesPage() {
       tournaments={tournaments}
       privateInstances={privateInstances}
       proForecasters={proForecasters}
+      vertical="financial-services"
     />
   );
 }

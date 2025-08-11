@@ -26,10 +26,11 @@ type Props = {
   tournaments: {
     title: string;
     description: string;
-    data?: TournamentPreview[]; // <-- optional now
+    data?: TournamentPreview[];
   };
   privateInstances: { title: string; description: string };
   proForecasters: { title: string; firstPart: string; secondPart: string };
+  vertical?: "financial-services";
 };
 
 const ServicesPageTemplate: React.FC<Props> = async ({
@@ -38,8 +39,14 @@ const ServicesPageTemplate: React.FC<Props> = async ({
   tournaments,
   privateInstances,
   proForecasters,
+  vertical,
 }) => {
   const t = await getTranslations();
+
+  const base =
+    vertical === "financial-services"
+      ? "/services/financial-services"
+      : "/services";
 
   let finalStatsList = statsList;
   if (!finalStatsList) {
@@ -109,6 +116,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
         title={tournaments.title}
         description={tournaments.description}
         data={tournamentsData}
+        learnMoreHref={`${base}/tournaments`}
       />
 
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
@@ -126,7 +134,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
             {privateInstances.description}
           </p>
           <Button
-            href="/services/private-instances"
+            href={`${base}/private-instances`}
             className="mt-[38px] uppercase lg:mt-auto"
           >
             {t("learnMore")}
@@ -171,7 +179,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
             {proForecasters.secondPart}
           </p>
           <Button
-            href="/services/pro-forecasters"
+            href={`${base}/pro-forecasters`}
             className="mt-[38px] uppercase"
           >
             {t("learnMore")}
