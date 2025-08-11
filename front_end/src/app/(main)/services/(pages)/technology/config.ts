@@ -1,5 +1,3 @@
-import { tournaments as financialTournaments } from "../financial-services/config";
-
 export const metadata = {
   title: "Forecasting for Technology | Metaculus",
   description:
@@ -22,7 +20,6 @@ export const tournaments = {
   title: "Launch a Technology Forecasting Tournament",
   description:
     "Gain clarity on product timelines, regulatory changes, and competitive moves. We'll design questions specific to your technology domain and deliver strategic insights.",
-  data: financialTournaments.data,
 };
 
 export const privateInstances = {

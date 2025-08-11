@@ -2,11 +2,13 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import serverMiscApi from "@/services/api/misc/misc.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import DevicesImage from "../../assets/devices.svg?url";
+import { sortServiceTournaments } from "../../helpers";
 import ServiceConfig from "../../serviceConfig";
 import Button from "../button";
 import GetInTouchForm from "../get_in_touch_form";
@@ -24,7 +26,7 @@ type Props = {
   tournaments: {
     title: string;
     description: string;
-    data: TournamentPreview[];
+    data?: TournamentPreview[]; // <-- optional now
   };
   privateInstances: { title: string; description: string };
   proForecasters: { title: string; firstPart: string; secondPart: string };
@@ -66,6 +68,24 @@ const ServicesPageTemplate: React.FC<Props> = async ({
     }
   }
 
+  let tournamentsData = tournaments.data;
+  if (!tournamentsData) {
+    try {
+      const { mainPageTournamentsList } = ServiceConfig;
+      const all = await ServerProjectsApi.getTournaments({
+        show_on_services_page: true,
+      });
+      const curated = all.filter(({ id, slug }) =>
+        mainPageTournamentsList.some(
+          ({ id: want }) => want === slug || want === String(id)
+        )
+      );
+      tournamentsData = sortServiceTournaments(curated);
+    } catch {
+      tournamentsData = [];
+    }
+  }
+
   return (
     <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock
@@ -84,7 +104,12 @@ const ServicesPageTemplate: React.FC<Props> = async ({
         </p>
       </div>
 
-      <TournamentBlock className="mt-12" {...tournaments} />
+      <TournamentBlock
+        className="mt-12"
+        title={tournaments.title}
+        description={tournaments.description}
+        data={tournamentsData}
+      />
 
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
         <div className="flex w-full flex-col items-center rounded-2xl bg-blue-800 p-8 sm:items-start sm:p-[64px]">

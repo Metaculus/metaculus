@@ -1,5 +1,3 @@
-import { tournaments as financialTournaments } from "../financial-services/config";
-
 export const metadata = {
   title: "Forecasting for Healthcare | Metaculus",
   description:
@@ -22,7 +20,6 @@ export const tournaments = {
   title: "Launch a Healthcare Forecasting Tournament",
   description:
     "Gain clarity on clinical trial outcomes, regulatory timelines, and disease trends. Our partnerships with CDC demonstrate proven healthcare applications.",
-  data: financialTournaments.data,
 };
 
 export const privateInstances = {

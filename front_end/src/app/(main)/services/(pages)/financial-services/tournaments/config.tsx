@@ -1,5 +1,3 @@
-import { TournamentPreview } from "@/types/projects";
-
 export const metadata = {
   title: "Launch a Financial Forecasting Tournament | Metaculus",
   description:
@@ -44,35 +42,3 @@ export const steps = [
 
 export const spotlightTournamentDescription =
   "Metaculus hosts an annual forecasting competition for Bridgewater Associates, the world's largest hedge fund, to discover exceptional forecasting talent beyond traditional credentials. This partnership enriches Bridgewater's talent pool, successfully transitioning select top competitors into professional roles. Metaculus develops forecasting questions tailored to Bridgewater's strategic focus on market dynamics, macroeconomic trends, and geopolitical risks, facilitating a competition that attracts over 3,000 participants globally.";
-
-export const spotlightTournament: TournamentPreview = {
-  id: "bridgewater-spotlight",
-  name: "Bridgewater Forecasting Contest",
-  slug: "bridgewater-forecasting-contest",
-  prize_pool: 25000,
-  questions_count: 50,
-  forecasts_count: 161020,
-  forecasters_count: 3348,
-  header_image: null,
-} as unknown as TournamentPreview;
-
-export const tournaments: TournamentPreview[] = [
-  {
-    id: "market-pulse-25q2",
-    name: "Market Pulse Challenge 25Q2",
-    slug: "market-pulse-25q2",
-    prize_pool: 7500,
-    questions_count: 45,
-    forecasts_count: 11172,
-    header_image: null,
-  },
-  {
-    id: "fiscal-showdown-2025",
-    name: "Fiscal Showdown 2025",
-    slug: "fiscal-showdown-2025",
-    prize_pool: 5000,
-    questions_count: 19,
-    forecasts_count: 4827,
-    header_image: null,
-  },
-] as unknown as TournamentPreview[];
