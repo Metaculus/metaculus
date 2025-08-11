@@ -11,7 +11,7 @@ import GetInTouchForm, { ServiceOption } from "../get_in_touch_form";
 import StepCard from "../step_card";
 
 type Props = {
-  title: string;
+  title: React.ReactNode;
   description: {
     firstPart: string;
     secondPart: string;
