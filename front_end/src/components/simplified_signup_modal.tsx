@@ -87,10 +87,7 @@ const SimplifiedSignupModal: FC = () => {
           {t("logIn")}
         </Button>
       </div>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex max-w-xs flex-col gap-4 "
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 ">
         <div className="w-full">
           <Input
             placeholder="Username"
