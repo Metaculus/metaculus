@@ -1,5 +1,3 @@
-import { abbreviatedNumber } from "@/utils/formatters/number";
-
 import { tournaments as financialTournaments } from "../financial-services/config";
 
 export const metadata = {
@@ -8,27 +6,7 @@ export const metadata = {
     "Optimize energy strategy with forecasting. Learn how energy companies partner with Metaculus to forecast renewable trends, policy changes, and market shifts.",
 };
 
-export const statsList = [
-  {
-    label: "Predictions",
-    value: `${abbreviatedNumber(2740000)}+`,
-  },
-  {
-    label: "Forecasting Questions",
-    value: `${abbreviatedNumber(19100)}+`,
-  },
-  {
-    label: "Questions Resolved",
-    value: `${abbreviatedNumber(9538)}+`,
-  },
-  {
-    label: `11 years of predictions`,
-    value: "",
-  },
-];
-
 export const heading = {
-  statsList,
   overview:
     "We help energy companies navigate the transition by forecasting technology adoption, policy impacts, and market dynamics reshaping the sector.",
   purpose: "for Energy",

@@ -1,5 +1,4 @@
 import { TournamentPreview } from "@/types/projects";
-import { abbreviatedNumber } from "@/utils/formatters/number";
 
 export const metadata = {
   title: "Forecasting for Pharmaceutical | Metaculus",
@@ -7,27 +6,7 @@ export const metadata = {
     "Improve trial outcomes and regulatory strategy with forecasting. Learn how pharma companies use Metaculus.",
 };
 
-export const statsList = [
-  {
-    label: "Predictions",
-    value: `${abbreviatedNumber(2740000)}+`,
-  },
-  {
-    label: "Forecasting Questions",
-    value: `${abbreviatedNumber(19100)}+`,
-  },
-  {
-    label: "Questions Resolved",
-    value: `${abbreviatedNumber(9538)}+`,
-  },
-  {
-    label: `11 years of predictions`,
-    value: "",
-  },
-];
-
 export const heading = {
-  statsList,
   overview:
     "We help pharmaceutical companies make better decisions by forecasting clinical trial success, regulatory approvals, and market dynamics throughout drug development.",
   purpose: "for Pharmaceutical Forecasting",

@@ -1,5 +1,4 @@
 import { TournamentPreview } from "@/types/projects";
-import { abbreviatedNumber } from "@/utils/formatters/number";
 
 export const metadata = {
   title: "Forecasting for Financial Services | Metaculus",
@@ -7,27 +6,7 @@ export const metadata = {
     "Make investment and risk decisions with greater confidence using Metaculus forecasting.",
 };
 
-export const statsList = [
-  {
-    label: "Predictions",
-    value: `${abbreviatedNumber(2740000)}+`,
-  },
-  {
-    label: "Forecasting Questions",
-    value: `${abbreviatedNumber(19100)}+`,
-  },
-  {
-    label: "Questions Resolved",
-    value: `${abbreviatedNumber(9538)}+`,
-  },
-  {
-    label: `11 years of predictions`,
-    value: "",
-  },
-];
-
 export const heading = {
-  statsList,
   overview:
     "We help financial institutions and investment firms make better decisions by forecasting market movements, regulatory changes, and risk events that matter.",
   purpose: "for Financial Services",

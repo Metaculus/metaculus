@@ -1,5 +1,3 @@
-import { abbreviatedNumber } from "@/utils/formatters/number";
-
 import { tournaments as financialTournaments } from "../financial-services/config";
 
 export const metadata = {
@@ -8,27 +6,7 @@ export const metadata = {
     "Enhance underwriting and risk decisions using forecasting. Discover how insurance firms partner with Metaculus.",
 };
 
-export const statsList = [
-  {
-    label: "Predictions",
-    value: `${abbreviatedNumber(2740000)}+`,
-  },
-  {
-    label: "Forecasting Questions",
-    value: `${abbreviatedNumber(19100)}+`,
-  },
-  {
-    label: "Questions Resolved",
-    value: `${abbreviatedNumber(9538)}+`,
-  },
-  {
-    label: `11 years of predictions`,
-    value: "",
-  },
-];
-
 export const heading = {
-  statsList,
   overview:
     "We help insurers, reinsurers, and actuarial teams make better decisions by forecasting catastrophic events, regulatory changes, and emerging risks that impact your business.",
   purpose: "for Insurance",

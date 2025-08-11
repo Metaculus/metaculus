@@ -1,5 +1,3 @@
-import { abbreviatedNumber } from "@/utils/formatters/number";
-
 import { tournaments as financialTournaments } from "../financial-services/config";
 
 export const metadata = {
@@ -8,27 +6,7 @@ export const metadata = {
     "Forecast drug development, FDA approvals, and disease trends. Learn how healthcare organizations use Metaculus.",
 };
 
-export const statsList = [
-  {
-    label: "Predictions",
-    value: `${abbreviatedNumber(2740000)}+`,
-  },
-  {
-    label: "Forecasting Questions",
-    value: `${abbreviatedNumber(19100)}+`,
-  },
-  {
-    label: "Questions Resolved",
-    value: `${abbreviatedNumber(9538)}+`,
-  },
-  {
-    label: `11 years of predictions`,
-    value: "",
-  },
-];
-
 export const heading = {
-  statsList,
   overview:
     "We help healthcare organizations make better decisions by forecasting drug development outcomes, regulatory approvals, and disease patterns that impact patient care.",
   purpose: "for Healthcare",

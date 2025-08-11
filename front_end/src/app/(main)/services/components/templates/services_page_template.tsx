@@ -1,8 +1,10 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
+import serverMiscApi from "@/services/api/misc/misc.server";
 import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import DevicesImage from "../../assets/devices.svg?url";
 import ServiceConfig from "../../serviceConfig";
@@ -14,28 +16,18 @@ import TournamentBlock from "../tournament_block";
 
 type Props = {
   heading: {
-    statsList: { label: string; value: string }[];
+    statsList?: { label: string; value: string }[];
     overview: string;
     purpose?: string;
   };
-  solutions: {
-    title: string;
-    description: string;
-  };
+  solutions: { title: string; description: string };
   tournaments: {
     title: string;
     description: string;
     data: TournamentPreview[];
   };
-  privateInstances: {
-    title: string;
-    description: string;
-  };
-  proForecasters: {
-    title: string;
-    firstPart: string;
-    secondPart: string;
-  };
+  privateInstances: { title: string; description: string };
+  proForecasters: { title: string; firstPart: string; secondPart: string };
 };
 
 const ServicesPageTemplate: React.FC<Props> = async ({
@@ -47,10 +39,37 @@ const ServicesPageTemplate: React.FC<Props> = async ({
 }) => {
   const t = await getTranslations();
 
+  let finalStatsList = statsList;
+  if (!finalStatsList) {
+    try {
+      const siteStats = await serverMiscApi.getSiteStats();
+      finalStatsList = [
+        {
+          label: t("predictions"),
+          value: `${abbreviatedNumber(siteStats.predictions)}+`,
+        },
+        {
+          label: t("forecastingQuestions"),
+          value: `${abbreviatedNumber(siteStats.questions)}+`,
+        },
+        {
+          label: t("questionsResolved"),
+          value: `${abbreviatedNumber(siteStats.resolved_questions)}+`,
+        },
+        {
+          label: `${siteStats.years_of_predictions} ${t("years")} ${t("ofPredictions")}`,
+          value: "",
+        },
+      ];
+    } catch {
+      finalStatsList = [];
+    }
+  }
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8  sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
+    <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock
-        statsList={statsList}
+        statsList={finalStatsList}
         overview={overview}
         purpose={purpose}
       />
@@ -68,7 +87,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
       <TournamentBlock className="mt-12" {...tournaments} />
 
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
-        <div className="flex w-full flex-col items-center rounded-2xl  bg-blue-800 p-8 sm:items-start  sm:p-[64px]">
+        <div className="flex w-full flex-col items-center rounded-2xl bg-blue-800 p-8 sm:items-start sm:p-[64px]">
           <Image
             src={DevicesImage}
             alt="Devices image"
@@ -88,6 +107,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
             {t("learnMore")}
           </Button>
         </div>
+
         <div className="flex w-full flex-col items-center justify-center rounded-2xl bg-blue-800 p-8 sm:items-start sm:p-[64px]">
           <div className="flex flex-row">
             {ServiceConfig.proForecastersImages.map((image, index) => (
@@ -95,9 +115,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
                 key={index}
                 className={cn(
                   "box-content h-[62px] w-[62px] overflow-hidden rounded-full border-4 border-blue-800 sm:h-[80px] sm:w-[80px] lg:h-[67px] lg:w-[67px]",
-                  {
-                    "-ml-[25px]": index !== 0,
-                  }
+                  { "-ml-[25px]": index !== 0 }
                 )}
               >
                 {index === ServiceConfig.proForecastersImages.length - 1 ? (
