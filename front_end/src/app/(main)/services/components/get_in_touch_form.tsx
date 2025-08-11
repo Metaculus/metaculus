@@ -56,13 +56,7 @@ const getInTouchFormSchema = z.object({
   message: z.string().optional(),
   services: z
     .array(
-      z.enum([
-        ServiceType.RUNNING_TOURNAMENT,
-        ServiceType.PRIVATE_INSTANCE,
-        ServiceType.PARTNERSHIP,
-        ServiceType.GENERAL_INQUIRY,
-        ServiceType.PRO_FORECASTING,
-      ])
+      z.enum(Object.values(ServiceType) as [ServiceType, ...ServiceType[]])
     )
     .min(1, { message: "At least one service must be selected" }),
 });
@@ -316,6 +310,16 @@ const SERVICE_LABELS = {
   [ServiceType.PRO_FORECASTING]: "Pro Forecasting",
   [ServiceType.PARTNERSHIP]: "Partnership",
   [ServiceType.GENERAL_INQUIRY]: "General Inquiry",
+
+  [ServiceType.MARKET_TIMING_AND_TRADING_SIGNALS]:
+    "Market Timing and Trading Signals",
+  [ServiceType.PORTFOLIO_RISK_ASSESSMENT]: "Portfolio Risk Assessment",
+  [ServiceType.REGULATORY_IMPACT_ANALYSIS]: "Regulatory Impact Analysis",
+  [ServiceType.CREDIT_RISK_EVALUATION]: "Credit Risk Evaluation",
+  [ServiceType.MA_AND_CORPORATE_ACTIONS]: "M&A and Corporate Actions",
+  [ServiceType.ECONOMIC_INDICATOR_FORECASTING]:
+    "Economic Indicator Forecasting",
+  [ServiceType.OTHER_FINANCIAL_FORECASTING]: "Other Financial Forecasting",
 } as const;
 
 function getServiceString(services: ServiceType[]) {
