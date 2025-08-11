@@ -7,7 +7,7 @@ import { ServiceType } from "@/constants/services";
 import Button from "../components/button";
 import GetInTouchForm from "../components/get_in_touch_form";
 import StepCard from "../components/step_card";
-import PlatfromBlock from "./components/platform_block";
+import PlatformBlock from "./components/platform_block";
 
 export const metadata = {
   title: "Create Your Private Forecasting Platform",
@@ -46,8 +46,13 @@ export default async function PrivateInstancesPage() {
         </Button>
       </div>
 
-      {/* Metaculus platform block */}
-      <PlatfromBlock />
+      <PlatformBlock
+        richForecastingInterface={t("captureForecastsAcrossTeams")}
+        description={t("advancedForecastingCapabilities")}
+        builtInAccuracyTracking={t("forecastPerformanceIsTracked")}
+        organizedCollaboration={t("groupForecastsByTeam")}
+        decisionRelevantInsights={t("transformRawPredictions")}
+      />
 
       <div className="mt-[100px] text-blue-700 dark:text-blue-700-dark md:mt-[150px] xl:mt-[120px]">
         <h3 className="m-0 text-center text-3xl font-bold tracking-tight text-inherit dark:text-inherit">
