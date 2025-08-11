@@ -11,6 +11,7 @@ from notifications.services import (
     NotificationPostParams,
     NotificationQuestionParams,
     send_forecast_autowidrawal_notification,
+    delete_scheduled_question_resolution_notifications,
 )
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
@@ -55,6 +56,9 @@ def run_build_question_forecasts(question_id: int):
 @dramatiq.actor(time_limit=1_800_000)
 def resolve_question_and_send_notifications(question_id: int):
     question: Question = Question.objects.get(id=question_id)
+
+    # Delete already scheduled resolution notifications
+    delete_scheduled_question_resolution_notifications(question)
 
     # scoring
     score_types = [
