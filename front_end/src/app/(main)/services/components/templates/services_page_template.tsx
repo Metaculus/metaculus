@@ -4,13 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
-import Button from "./button";
-import GetInTouchForm from "./get_in_touch_form";
-import HeadingBlock from "./heading_block";
-import PartnersCarousel from "./partners_carousel";
-import TournamentBlock from "./tournament_block";
-import DevicesImage from "../assets/devices.svg?url";
-import ServiceConfig from "../serviceConfig";
+import DevicesImage from "../../assets/devices.svg?url";
+import ServiceConfig from "../../serviceConfig";
+import Button from "../button";
+import GetInTouchForm from "../get_in_touch_form";
+import HeadingBlock from "../heading_block";
+import PartnersCarousel from "../partners_carousel";
+import TournamentBlock from "../tournament_block";
 
 type Props = {
   heading: {
