@@ -115,6 +115,7 @@ export default async function TournamentsPage() {
         <TournamentSpotlight
           tournament={spotlightTournament}
           className="mt-10 sm:mt-16 lg:mt-[120px]"
+          tournamentDescription={t("tournamentSpotlightDescription")}
         />
       )}
 

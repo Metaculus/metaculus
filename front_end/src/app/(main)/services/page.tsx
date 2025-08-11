@@ -4,7 +4,7 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
-import ServicesPageTemplate from "./components/services_page_template";
+import ServicesPageTemplate from "./components/templates/services_page_template";
 import { sortServiceTournaments } from "./helpers";
 import ServiceConfig from "./serviceConfig";
 
