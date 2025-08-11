@@ -2,7 +2,7 @@ import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Select } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
 import QuestionPicker, {
@@ -19,6 +19,7 @@ type Props = {
   linkKey: number;
   linkCreated: () => Promise<void>;
   deleteLink: (key: number) => Promise<void>;
+  suggestedOtherQuestion?: Question;
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
@@ -58,6 +59,7 @@ export const CreateCoherenceLink: FC<Props> = ({
   linkCreated,
   linkKey,
   deleteLink,
+  suggestedOtherQuestion,
 }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
@@ -70,6 +72,10 @@ export const CreateCoherenceLink: FC<Props> = ({
   const [validationErrors, setValidationErrors] =
     useState<LinkCreationErrors | null>(null);
   const t = useTranslations();
+
+  useEffect(() => {
+    void otherQuestionSelected(suggestedOtherQuestion);
+  }, [suggestedOtherQuestion]);
 
   function getLinkCreationError(constraintName: string | null) {
     switch (constraintName) {
@@ -125,7 +131,7 @@ export const CreateCoherenceLink: FC<Props> = ({
     setIsFirstQuestion(!isFirstQuestion);
   }
 
-  async function otherQuestionSelected(question: QuestionWithForecasts) {
+  async function otherQuestionSelected(question: Question) {
     setOtherQuestion(question);
     setIsPickerOpen(false);
   }

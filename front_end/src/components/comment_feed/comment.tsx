@@ -22,6 +22,7 @@ import {
   editComment,
   softDeleteComment,
 } from "@/app/(main)/questions/actions";
+import { CoherenceLinksForm } from "@/app/(main)/questions/components/coherence_links/coherence_links_form";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
@@ -954,6 +955,13 @@ const Comment: FC<CommentProps> = ({
             </Button>
           </div>
         </div>
+      )}
+
+      {isCommentJustCreated && (
+        <CoherenceLinksForm
+          post={postData}
+          comment={comment}
+        ></CoherenceLinksForm>
       )}
 
       {comment.children?.length > 0 && !isCollapsed && (
