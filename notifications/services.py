@@ -815,4 +815,10 @@ def delete_scheduled_question_resolution_notifications(question: Question):
         type=NotificationPredictedQuestionResolved.type,
         params__question__id=question.id,
     )
+
+    logger.info(
+        f"Deleting {qs.count()} scheduled question resolution notifications "
+        f"for question id {question.id}"
+    )
+
     qs.delete()
