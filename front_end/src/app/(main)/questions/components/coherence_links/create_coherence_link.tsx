@@ -4,6 +4,7 @@ import { Select } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { FC, useState, useEffect } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
 import QuestionPicker, {
   SearchedQuestionType,
@@ -12,12 +13,11 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
-import { Question, QuestionWithForecasts } from "@/types/question";
+import { Question } from "@/types/question";
 
 type Props = {
   post: Post;
   linkKey: number;
-  linkCreated: () => Promise<void>;
   deleteLink: (key: number) => Promise<void>;
   suggestedOtherQuestion?: Question;
 };
@@ -56,7 +56,6 @@ enum LinkCreationErrors {
 
 export const CreateCoherenceLink: FC<Props> = ({
   post,
-  linkCreated,
   linkKey,
   deleteLink,
   suggestedOtherQuestion,
@@ -65,16 +64,17 @@ export const CreateCoherenceLink: FC<Props> = ({
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState(Directions.Positive);
   const [strength, setStrength] = useState(Strengths.Medium);
-  const [otherQuestion, setOtherQuestion] =
-    useState<QuestionWithForecasts | null>(null);
+  const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
   const [pickerInitialSearch, setPickerInitialSearch] = useState<string>("");
   const [validationErrors, setValidationErrors] =
     useState<LinkCreationErrors | null>(null);
+  const { updateCoherenceLinks } = useCoherenceLinksContext();
   const t = useTranslations();
 
   useEffect(() => {
-    void otherQuestionSelected(suggestedOtherQuestion);
+    if (suggestedOtherQuestion)
+      void otherQuestionSelected(suggestedOtherQuestion);
   }, [suggestedOtherQuestion]);
 
   function getLinkCreationError(constraintName: string | null) {
@@ -117,7 +117,7 @@ export const CreateCoherenceLink: FC<Props> = ({
         setValidationErrors(getLinkCreationError(constraintName));
       } else {
         await cancelLink();
-        await linkCreated();
+        await updateCoherenceLinks();
       }
     });
   }

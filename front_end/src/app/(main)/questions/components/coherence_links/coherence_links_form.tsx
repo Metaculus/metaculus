@@ -12,18 +12,18 @@ type Props = {
 };
 
 export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
-  const [questionIDs, setQuestionIDs] = useState<number[]>([]);
+  const [postIDs, setPostIDs] = useState<number[]>([]);
 
-  function extractQuestionNumbers(text: string): Promise<number[]> {
+  function extractQuestionNumbers(text: string): number[] {
     const regex = /\/questions\/(\d+)/g;
     const array = Array.from(text.matchAll(regex), (match) =>
-      parseInt(match[1])
+      parseInt(match[1] ?? "-1")
     );
-    return [...new Set(array)];
+    return [...new Set(array.filter((it) => it !== -1))];
   }
 
   async function deleteLink(key: number) {
-    setQuestionIDs(questionIDs.filter((current) => current !== key));
+    setPostIDs(postIDs.filter((current) => current !== key));
   }
 
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -31,25 +31,24 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   const currentQuestionId = post.question?.post_id;
 
   useEffect(() => {
-    async function extractQuestions(
-      newQuestionIDs: number[]
-    ): Promise<Question[]> {
+    async function extractPostIDs(newPostIDs: number[]): Promise<Question[]> {
       const newQuestions = [];
-      for (const id of newQuestionIDs) {
-        const newQuestion = await ClientPostsApi.getQuestion(id);
-        newQuestions.push(newQuestion);
+      for (const id of newPostIDs) {
+        const newPost = await ClientPostsApi.getPost(id);
+        const newQuestion = newPost.question;
+        if (newQuestion) newQuestions.push(newQuestion);
       }
       return newQuestions;
     }
 
-    const newQuestionIDs = extractQuestionNumbers(text);
-    setQuestionIDs(newQuestionIDs);
-    extractQuestions(newQuestionIDs).then((result) => {
+    const newPostIDs = extractQuestionNumbers(text);
+    setPostIDs(newPostIDs);
+    extractPostIDs(newPostIDs).then((result) => {
       setQuestions(result);
     });
   }, [text]);
 
-  if (!currentQuestionId || questions.length === 0) return null;
+  if (!currentQuestionId || postIDs.length === 0) return null;
 
   return (
     <div>
@@ -57,10 +56,9 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
       {Array.from(questions, (question) => (
         <CreateCoherenceLink
           post={post}
-          linkKey={post.id}
-          key={post.id}
+          linkKey={question.post_id}
+          key={question.post_id}
           deleteLink={deleteLink}
-          linkCreated={deleteLink}
           suggestedOtherQuestion={question}
         />
       ))}

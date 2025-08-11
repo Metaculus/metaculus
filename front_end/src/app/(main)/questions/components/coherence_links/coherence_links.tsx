@@ -65,7 +65,6 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               link={link}
               post={post}
               compact={false}
-              linkModified={updateCoherenceLinks}
             ></DisplayCoherenceLink>
           ))}
 
@@ -73,7 +72,6 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
             <CreateCoherenceLink
               post={post}
               key={id}
-              linkCreated={updateCoherenceLinks}
               linkKey={id}
               deleteLink={deleteLink}
             ></CreateCoherenceLink>
