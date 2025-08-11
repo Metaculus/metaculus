@@ -154,10 +154,13 @@ def signup_simplified_api_view(request):
 
     user = User.objects.create_user(
         username=username,
-        email=f"conference+brightlinewatch2_{username}@metaculus.com",
-        last_login=timezone.now(),
+        email=f"autouser+{username}@metaculus.com",
         is_active=True,
         is_bot=False,
+        is_onboarding_complete=True,
+        check_for_spam=True,
+        newsletter_optin=False,
+        last_login=timezone.now(),
     )
 
     token_obj, _ = Token.objects.get_or_create(user=user)
