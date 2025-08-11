@@ -1,22 +1,19 @@
-from datetime import timedelta
 import json  # Add this import at the top
-import pytest
+from datetime import timedelta
+from datetime import timezone as dt_timezone
 from unittest.mock import patch
 
-from datetime import datetime, timezone as dt_timezone
 from django.utils import timezone
 from freezegun import freeze_time
-
 from rest_framework.reverse import reverse
 
+from posts.models import Post
+from questions.models import Forecast, Question, UserForecastNotification
+from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
-
-from questions.models import Forecast, Question, UserForecastNotification
-from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
-from posts.models import Post
 
 
 class TestQuestionForecast:
@@ -292,16 +289,11 @@ class TestQuestionResolve:
 
     def test_resolve_binary(self, post_binary_public, user_admin_client):
         url = reverse("question-resolve", args=[post_binary_public.question.id])
-        response = user_admin_client.post(
-            url,
-            data=json.dumps(
-                {
-                    "resolution": "yes",
-                    "actual_resolve_time": datetime.max.strftime("%Y-%m-%dT%H:%M:%S"),
-                }
-            ),
-            content_type="application/json",
-        )
+        payload = {
+            "resolution": "yes",
+            "actual_resolve_time": datetime.max.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+        response = user_admin_client.post(url, data=payload, format="json")
         assert response.status_code == 200
         question = Question.objects.get(id=post_binary_public.question.id)
         assert question.resolution == "yes"
@@ -312,6 +304,10 @@ class TestQuestionResolve:
         assert post.resolved
         assert post.status == Post.PostStatusChange.RESOLVED
         assert post.actual_close_time
+
+        # Ensure we can't trigger resolution again
+        response = user_admin_client.post(url, data=payload, format="json")
+        assert response.status_code == 400
 
     def test_resolve_multiple_choice(
         self, post_multiple_choice_public, user_admin_client

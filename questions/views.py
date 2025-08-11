@@ -12,6 +12,7 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
+from questions.constants import QuestionStatus
 from questions.models import Question
 from questions.serializers.common import (
     validate_question_resolution,
@@ -62,6 +63,9 @@ def resolve_api_view(request, pk: int):
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_resolve(permission, raise_exception=True)
+
+    if question.status == QuestionStatus.RESOLVED:
+        raise ValidationError("This question is already resolved")
 
     resolution = validate_question_resolution(question, request.data.get("resolution"))
     actual_resolve_time = DateTimeField().run_validation(
