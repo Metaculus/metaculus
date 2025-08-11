@@ -127,13 +127,9 @@ def get_posts_feed(
 
     qs = qs.filter(forecast_type_q)
 
-    statuses = statuses or []
+    statuses = list(statuses or [])
 
     q = Q()
-
-    # Include only approved posts if no curation status specified
-    if not any(status in Post.CurationStatus for status in statuses):
-        statuses.append(Post.CurationStatus.APPROVED)
 
     for status in statuses:
         if status in Post.CurationStatus:
@@ -185,6 +181,10 @@ def get_posts_feed(
                     )
                 ),
             )
+
+    # Include only approved posts if no curation status specified
+    if not any(status in Post.CurationStatus for status in statuses):
+        q &= Q(curation_status=Post.CurationStatus.APPROVED)
 
     qs = qs.filter(q)
 

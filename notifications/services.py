@@ -801,3 +801,24 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
         use_async=False,
         from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
+
+
+def delete_scheduled_question_resolution_notifications(question: Question):
+    """
+    Sometimes a question can be resolved and then later unresolved,
+    so we don’t want users to receive the initial resolution notification that’s no longer valid.
+    This service handles cleanup of unsent messages in such cases.
+    """
+
+    qs = Notification.objects.filter(
+        email_sent=False,
+        type=NotificationPredictedQuestionResolved.type,
+        params__question__id=question.id,
+    )
+
+    logger.info(
+        f"Deleting {qs.count()} scheduled question resolution notifications "
+        f"for question id {question.id}"
+    )
+
+    qs.delete()
