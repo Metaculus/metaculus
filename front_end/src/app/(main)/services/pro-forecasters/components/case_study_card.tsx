@@ -1,13 +1,21 @@
 import Image from "next/image";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import React from "react";
 
 import PdfThumb from "@/app/(main)/services/assets/pdf-thumb.png";
 
 import Button from "../../components/button";
 import ServiceConfig from "../../serviceConfig";
 
-const CaseStudyCard = async () => {
+type Props = {
+  title: string;
+  description: {
+    firstPart: React.ReactNode;
+    secondPart: React.ReactNode;
+  };
+};
+
+const CaseStudyCard: React.FC<Props> = async ({ title, description }) => {
   const t = await getTranslations();
   const { caseStudyPDFLink } = ServiceConfig;
   return (
@@ -16,22 +24,11 @@ const CaseStudyCard = async () => {
         <div className="flex flex-col md:w-2/3">
           <p className="m-0 text-[20px] text-olive-500">{t("caseStudy")}</p>
           <p className="m-0 mt-5 text-2xl font-bold leading-[140%] text-blue-200 sm:text-[30px]">
-            {t("proForecastersCaseStudyTitle")}
+            {title}
           </p>
-          <p className="m-0 mt-5">{t("proForecastersCaseStudyParagraph1")}</p>
+          <p className="m-0 mt-5">{description.firstPart}</p>
           <br />
-          <p className="m-0">
-            {t.rich("proForecastersCaseStudyParagraph2", {
-              link: (chunks) => (
-                <Link
-                  className="underline"
-                  href="/tournament/respiratory-outlook-24-25/"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
+          <p className="m-0">{description.secondPart}</p>
         </div>
         <div className="mx-auto mt-12 flex w-full max-w-[285px] flex-col items-center justify-center px-0 md:mx-0 md:mt-0 lg:max-w-[365px] lg:px-10">
           <Image src={PdfThumb} alt="PDF thumbnail" className="w-[285px]" />
