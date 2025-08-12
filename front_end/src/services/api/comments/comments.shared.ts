@@ -1,5 +1,9 @@
 import { ApiService } from "@/services/api/api_service";
-import { CommentType, KeyFactorVoteType, CommentOfWeekType } from "@/types/comment";
+import {
+  CommentType,
+  KeyFactorVoteType,
+  CommentOfWeekType,
+} from "@/types/comment";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {

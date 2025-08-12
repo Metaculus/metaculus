@@ -1,22 +1,20 @@
 "use client";
 
-import { addWeeks, isAfter, format, startOfWeek } from "date-fns";
-import { useRouter } from "next/navigation";
+import { addWeeks, isAfter, format } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useCallback, useEffect, useMemo } from "react";
 
+import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
+import useSearchParams from "@/hooks/use_search_params";
+import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { CommentOfWeekType } from "@/types/comment";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
-import ClientCommentsApi from "@/services/api/comments/comments.client";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import useSearchParams from "@/hooks/use_search_params";
-import { useDebouncedCallback } from "@/hooks/use_debounce";
 
 import HighlightedCommentCard from "./highlighted_comment_card";
 import WeekSelector from "./week_selector";
-import { WEEK_START_DAY } from "./constants";
 
 type Props = {
   comments: CommentOfWeekType[];
@@ -31,15 +29,15 @@ const CommentsOfWeekContent: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const locale = useLocale();
-  const router = useRouter();
-  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
 
+  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
   const [comments, setComments] =
     useState<CommentOfWeekType[]>(initialComments);
   const [weekStart, setWeekStart] = useState<Date>(initialWeekStart);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
 
   const fetchCommentsForWeek = useCallback(
@@ -47,21 +45,6 @@ const CommentsOfWeekContent: FC<Props> = ({
       setParam("weekly_top_comments", "true", false);
       setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
       shallowNavigateToSearchParams();
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const newComments = await ClientCommentsApi.getCommentsOfWeek(
-          format(newWeekStart, "yyyy-MM-dd")
-        );
-        setComments(newComments);
-      } catch (err) {
-        setError("Failed to load comments for this week");
-        console.error("Error fetching comments:", err);
-      } finally {
-        setIsLoading(false);
-      }
     },
     [setParam, shallowNavigateToSearchParams]
   );
@@ -74,41 +57,36 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const onWeekChange = useCallback(
     (newWeekStart: Date) => {
-      console.log(
-        "Client side - week change start date ",
-        format(newWeekStart, "yyyy-MM-dd")
-      );
       setWeekStart(newWeekStart);
       debouncedFetchComments(newWeekStart);
     },
-    [debouncedFetchComments, setParam, shallowNavigateToSearchParams]
+    [debouncedFetchComments]
   );
 
-  // Handle URL parameter changes (e.g., from browser back/forward)
   useEffect(() => {
-    const startDateParam = params.get("start_date");
-
-    if (startDateParam) {
-      const newWeekStart = new Date(startDateParam);
-      // Only fetch if the week actually changed
-      if (
-        format(newWeekStart, "yyyy-MM-dd") !== format(weekStart, "yyyy-MM-dd")
-      ) {
-        fetchCommentsForWeek(newWeekStart);
-      }
-    } else {
-      // Handle case when no start_date parameter (current week)
-      const currentWeekStart = startOfWeek(new Date(), {
-        weekStartsOn: WEEK_START_DAY,
-      });
-      if (
-        format(currentWeekStart, "yyyy-MM-dd") !==
-        format(weekStart, "yyyy-MM-dd")
-      ) {
-        fetchCommentsForWeek(currentWeekStart);
-      }
+    if (!startDateParam) {
+      return;
     }
-  }, []);
+    const fetchComments = async () => {
+      setIsLoading(true);
+      setError(null);
+      setWeekStart(new Date(startDateParam));
+      try {
+        const newComments = await ClientCommentsApi.getCommentsOfWeek(
+          format(startDateParam, "yyyy-MM-dd")
+        );
+        setComments(newComments);
+      } catch (err) {
+        setError("Failed to load comments for this week");
+        console.error("Error fetching comments:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (startDateParam !== format(initialWeekStart, "yyyy-MM-dd")) {
+      fetchComments();
+    }
+  }, [startDateParam, initialWeekStart]);
 
   const onExcludeToggleFinished = (commentId: number, excluded: boolean) => {
     setComments(
@@ -178,7 +156,7 @@ const CommentsOfWeekContent: FC<Props> = ({
 
       {!isLoading && !error && (
         <div className="space-y-4 pb-8">
-          {commentsWithPlacements.map((comment, index) => (
+          {commentsWithPlacements.map((comment) => (
             <HighlightedCommentCard
               key={comment.id}
               comment={comment}
