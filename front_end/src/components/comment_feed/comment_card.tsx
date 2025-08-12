@@ -9,7 +9,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useState, useRef, useEffect } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
@@ -68,19 +68,26 @@ const ExpandableCommentContent = ({
   comment,
   isExpanded,
   needsExpand,
+  contentRef,
 }: {
   comment: BECommentType;
   isExpanded: boolean;
   needsExpand: boolean;
+  contentRef: React.RefObject<HTMLDivElement | null>;
 }) => {
   const locale = useLocale();
   const t = useTranslations();
+
+  // Fixed height for collapsed state - adjust this value as needed
+  const COLLAPSED_HEIGHT = 200; // pixels
+
   return (
     <div
-      className={cn(
-        " relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4",
-        !isExpanded && needsExpand && "max-h-[250px]"
-      )}
+      ref={contentRef}
+      className="relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4"
+      style={{
+        height: !isExpanded && needsExpand ? `${COLLAPSED_HEIGHT}px` : "auto",
+      }}
     >
       {/* Author info */}
       <div className="flex items-center gap-1.5">
@@ -99,12 +106,7 @@ const ExpandableCommentContent = ({
       </div>
 
       {/* Comment text */}
-      <div
-        className={cn(
-          "mb-4 text-base font-normal leading-6 text-gray-700 dark:text-gray-700-dark"
-          // !isExpanded && needsExpand && "max-h-[250px] overflow-hidden"
-        )}
-      >
+      <div className="mb-4 text-base font-normal leading-6 text-gray-700 dark:text-gray-700-dark">
         <MarkdownEditor
           markdown={parseUserMentions(comment.text, comment.mentioned_users)}
           mode="read"
@@ -118,9 +120,8 @@ const ExpandableCommentContent = ({
       </div>
 
       {/* Gradient overlay for collapsed state */}
-
-      {!isExpanded && (
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-b from-transparent to-white to-65% dark:from-transparent dark:to-gray-0-dark" />
+      {!isExpanded && needsExpand && (
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-white dark:from-transparent dark:to-gray-0-dark" />
       )}
     </div>
   );
@@ -128,8 +129,51 @@ const ExpandableCommentContent = ({
 
 const CommentCard: FC<Props> = ({ comment, className }) => {
   const t = useTranslations();
-  const needsExpand = comment.text.length > 1000;
-  const [isExpanded, setIsExpanded] = useState(!needsExpand);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [needsExpand, setNeedsExpand] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Fixed height threshold - adjust this value as needed
+  const HEIGHT_THRESHOLD = 200; // pixels
+
+  // TEMPORARY: Force expand behavior for testing
+  // Remove this when height measurement is working
+  const FORCE_EXPAND_FOR_TESTING = true;
+
+  useEffect(() => {
+    const measureHeight = () => {
+      if (contentRef.current) {
+        // Temporarily expand to measure full height
+        const originalHeight = contentRef.current.style.height;
+        const originalOverflow = contentRef.current.style.overflow;
+
+        contentRef.current.style.height = "auto";
+        contentRef.current.style.overflow = "visible";
+
+        const fullHeight = contentRef.current.scrollHeight;
+        const shouldExpand = fullHeight > HEIGHT_THRESHOLD;
+
+        console.log("Comment height measurement:", {
+          fullHeight,
+          HEIGHT_THRESHOLD,
+          shouldExpand,
+          commentId: comment.id,
+        });
+
+        setNeedsExpand(FORCE_EXPAND_FOR_TESTING || shouldExpand);
+        setIsExpanded(!(FORCE_EXPAND_FOR_TESTING || shouldExpand));
+
+        // Restore original styles
+        contentRef.current.style.height = originalHeight;
+        contentRef.current.style.overflow = originalOverflow;
+      }
+    };
+
+    // Use setTimeout to ensure content is fully rendered
+    const timeoutId = setTimeout(measureHeight, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [comment.text, comment.key_factors, HEIGHT_THRESHOLD, comment.id]);
   const keyFactorsVotesCount =
     comment.key_factors?.reduce((acc, factor) => acc + factor.votes_count, 0) ||
     0;
@@ -159,7 +203,7 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
 
           <Link
             href={`/questions/${comment.on_post_data.id}`}
-            className="text-sm font-normal leading-5 text-blue-700 no-underline hover:underline dark:text-blue-700-dark"
+            className="text-sm font-normal leading-5 text-blue-700 no-underline hover:underline dark:text-blue-700-dark md:text-base"
           >
             {comment.on_post_data.title}
           </Link>
@@ -171,6 +215,7 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
         comment={comment}
         isExpanded={isExpanded}
         needsExpand={needsExpand}
+        contentRef={contentRef}
       />
 
       <div className="flex items-center justify-between p-3 md:p-4">
