@@ -1,7 +1,10 @@
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
-import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
+import CreateCoherenceLink, {
+  CreateCoherenceLinkRefType,
+} from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentType } from "@/types/comment";
@@ -15,6 +18,13 @@ type Props = {
 
 export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
+  const { updateCoherenceLinks } = useCoherenceLinksContext();
+  const childRefs = useRef<Map<number, CreateCoherenceLinkRefType | null>>(
+    new Map()
+  );
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const text = comment.text;
+  const currentQuestionId = post.question?.post_id;
   const t = useTranslations();
 
   function extractQuestionNumbers(text: string): number[] {
@@ -28,10 +38,6 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   async function deleteLink(key: number) {
     setQuestions(questions.filter((current) => current.post_id !== key));
   }
-
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const text = comment.text;
-  const currentQuestionId = post.question?.post_id;
 
   useEffect(() => {
     async function extractPostIDs(newPostIDs: number[]): Promise<Question[]> {
@@ -50,6 +56,16 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
     });
   }, [text]);
 
+  async function submitAll() {
+    let failed = false;
+    for (const ref of childRefs.current.values()) {
+      const saveStatus = await ref?.save();
+      if (saveStatus === false) failed = true;
+    }
+    await updateCoherenceLinks();
+    if (!failed) setCancelled(true);
+  }
+
   if (!currentQuestionId || questions.length === 0 || cancelled) return null;
 
   return (
@@ -66,6 +82,9 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
           suggestedOtherQuestion={question}
           shouldDisplayDelete={questions.length !== 1}
           shouldDisplaySave={false}
+          ref={(el) => {
+            childRefs.current.set(question.post_id, el);
+          }}
         />
       ))}
       <div className="ml-auto">
@@ -77,7 +96,13 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
         >
           {t("close")}
         </Button>
-        <Button variant="primary" size="sm" type="submit" className={"m-1"}>
+        <Button
+          variant="primary"
+          size="sm"
+          type="submit"
+          className={"m-1"}
+          onClick={submitAll}
+        >
           {t("submit")}
         </Button>
       </div>

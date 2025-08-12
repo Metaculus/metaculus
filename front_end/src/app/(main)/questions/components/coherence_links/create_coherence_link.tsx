@@ -2,7 +2,14 @@ import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Select } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useState, useEffect } from "react";
+import {
+  FC,
+  useState,
+  useEffect,
+  forwardRef,
+  Ref,
+  useImperativeHandle,
+} from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
@@ -22,6 +29,10 @@ type Props = {
   suggestedOtherQuestion?: Question;
   shouldDisplayDelete?: boolean;
   shouldDisplaySave?: boolean;
+};
+
+export type CreateCoherenceLinkRefType = {
+  save: () => Promise<boolean>;
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
@@ -56,14 +67,17 @@ enum LinkCreationErrors {
   questionMustDiffer = "questionMustDiffer",
 }
 
-export const CreateCoherenceLink: FC<Props> = ({
-  post,
-  linkKey,
-  deleteLink,
-  suggestedOtherQuestion,
-  shouldDisplayDelete,
-  shouldDisplaySave,
-}) => {
+const CreateCoherenceLink = (
+  {
+    post,
+    linkKey,
+    deleteLink,
+    suggestedOtherQuestion,
+    shouldDisplayDelete,
+    shouldDisplaySave,
+  }: Props,
+  forwardedRef: Ref<CreateCoherenceLinkRefType>
+) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState(Directions.Positive);
@@ -92,12 +106,12 @@ export const CreateCoherenceLink: FC<Props> = ({
     }
   }
 
-  async function saveQuestion() {
+  async function saveQuestionLink() {
     let question1: Question | null;
     let question2: Question | null;
     const postQuestion = post.question;
 
-    if (!postQuestion || !otherQuestion) return;
+    if (!postQuestion || !otherQuestion) return null;
 
     if (isFirstQuestion) {
       question1 = postQuestion;
@@ -122,9 +136,22 @@ export const CreateCoherenceLink: FC<Props> = ({
       setValidationErrors(getLinkCreationError(constraintName));
     } else {
       await cancelLink();
-      await updateCoherenceLinks();
     }
+
+    return result;
   }
+
+  async function saveQuestionLinkAndUpdate() {
+    await saveQuestionLink();
+    await updateCoherenceLinks();
+  }
+
+  useImperativeHandle(forwardedRef, () => ({
+    async save() {
+      const result = await saveQuestionLink();
+      return result === null;
+    },
+  }));
 
   async function cancelLink() {
     await deleteLink(linkKey);
@@ -244,7 +271,7 @@ export const CreateCoherenceLink: FC<Props> = ({
           </Button>
           {shouldDisplaySave !== false && (
             <Button
-              onClick={saveQuestion}
+              onClick={saveQuestionLinkAndUpdate}
               disabled={!otherQuestion}
               variant="tertiary"
             >
@@ -274,3 +301,5 @@ export const CreateCoherenceLink: FC<Props> = ({
     </div>
   );
 };
+
+export default forwardRef(CreateCoherenceLink);
