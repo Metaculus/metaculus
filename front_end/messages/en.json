@@ -1447,7 +1447,7 @@
   "collapseAll": "Collapse All",
   "createQuestionLinkCommentPrompt": "Would you like to create a Question Link?",
   "createQuestionLinkCommentPromptBody": "We noticed you added a URL to another Metaculus question. If you'd like, you can create a causal link between these two questions.",
-  "createQuestionLinkCommentPromptDisclaimer": "Question Links are private and only visible to you."
+  "createQuestionLinkCommentPromptDisclaimer": "Question Links are private and only visible to you.",
   "marketTimingAndTradingSignals": "Market Timing and Trading Signals",
   "portfolioRiskAssessment": "Portfolio Risk Assessment",
   "regulatoryImpactAnalysis": "Regulatory Impact Analysis",
