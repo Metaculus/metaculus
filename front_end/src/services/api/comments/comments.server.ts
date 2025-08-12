@@ -77,12 +77,6 @@ class ServerCommentsApiClass extends CommentsApi {
     );
   }
 
-  async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekType[]> {
-    return await this.get<CommentOfWeekType[]>(
-      `/comments/comments-of-week/?start_date=${start_date}`
-    );
-  }
-
   async setCommentExcludedFromWeekTop(
     commentId: number,
     excluded: boolean

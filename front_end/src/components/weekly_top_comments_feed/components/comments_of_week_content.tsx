@@ -12,9 +12,11 @@ import { formatDate } from "@/utils/formatters/date";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import useSearchParams from "@/hooks/use_search_params";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 
 import HighlightedCommentCard from "./highlighted_comment_card";
 import WeekSelector from "./week_selector";
+import { WEEK_START_DAY } from "./constants";
 
 type Props = {
   comments: CommentOfWeekType[];
@@ -42,22 +44,18 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const fetchCommentsForWeek = useCallback(
     async (newWeekStart: Date) => {
+      setParam("weekly_top_comments", "true", false);
+      setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
+      shallowNavigateToSearchParams();
+
       setIsLoading(true);
       setError(null);
 
       try {
-        const formattedDate =
-          newWeekStart.toISOString().split("T")[0] ||
-          format(newWeekStart, "yyyy-MM-dd");
-        const newComments =
-          await ClientCommentsApi.getCommentsOfWeek(formattedDate);
+        const newComments = await ClientCommentsApi.getCommentsOfWeek(
+          format(newWeekStart, "yyyy-MM-dd")
+        );
         setComments(newComments);
-        setWeekStart(newWeekStart);
-
-        // Update URL parameters without triggering a page reload
-        setParam("start_date", formattedDate, false);
-        setParam("weekly_top_comments", "true", false);
-        shallowNavigateToSearchParams();
       } catch (err) {
         setError("Failed to load comments for this week");
         console.error("Error fetching comments:", err);
@@ -68,11 +66,22 @@ const CommentsOfWeekContent: FC<Props> = ({
     [setParam, shallowNavigateToSearchParams]
   );
 
+  // Debounced version of fetchCommentsForWeek to prevent rapid API calls
+  const debouncedFetchComments = useDebouncedCallback(
+    fetchCommentsForWeek,
+    500
+  );
+
   const onWeekChange = useCallback(
     (newWeekStart: Date) => {
-      fetchCommentsForWeek(newWeekStart);
+      console.log(
+        "Client side - week change start date ",
+        format(newWeekStart, "yyyy-MM-dd")
+      );
+      setWeekStart(newWeekStart);
+      debouncedFetchComments(newWeekStart);
     },
-    [fetchCommentsForWeek]
+    [debouncedFetchComments, setParam, shallowNavigateToSearchParams]
   );
 
   // Handle URL parameter changes (e.g., from browser back/forward)
@@ -89,7 +98,9 @@ const CommentsOfWeekContent: FC<Props> = ({
       }
     } else {
       // Handle case when no start_date parameter (current week)
-      const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+      const currentWeekStart = startOfWeek(new Date(), {
+        weekStartsOn: WEEK_START_DAY,
+      });
       if (
         format(currentWeekStart, "yyyy-MM-dd") !==
         format(weekStart, "yyyy-MM-dd")
@@ -97,7 +108,7 @@ const CommentsOfWeekContent: FC<Props> = ({
         fetchCommentsForWeek(currentWeekStart);
       }
     }
-  }, [params, weekStart, fetchCommentsForWeek]);
+  }, []);
 
   const onExcludeToggleFinished = (commentId: number, excluded: boolean) => {
     setComments(
