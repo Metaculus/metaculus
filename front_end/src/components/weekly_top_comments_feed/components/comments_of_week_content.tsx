@@ -34,15 +34,15 @@ const CommentsOfWeekContent: FC<Props> = ({
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="hidden text-3xl font-bold text-blue-800 dark:text-blue-800-dark md:block">
+    <div className="mx-auto max-w-4xl px-1.5 md:px-0">
+      <div className="mb-6 flex flex-col items-start justify-between gap-2 md:flex-row md:items-center md:gap-0">
+        <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-800-dark md:block md:text-3xl">
           {t("weeklyTopComments")}
         </h1>
         <WeekSelector weekStart={weekStart} className="w-full md:w-fit" />
       </div>
 
-      <p>
+      <p className="mb-4 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
         Top comments are determined by comment votes, key factor votes, and
         minds changed. Bonus points are awarded for strong scores across
         multiple categories. Only votes cast within a week of a comment count,
