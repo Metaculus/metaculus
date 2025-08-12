@@ -56,7 +56,6 @@ const HighlightedCommentCard: FC<Props> = ({
 
     setIsExcluding(true);
     try {
-      console.log("comment.excluded", comment.excluded);
       await setExcludedFromWeekTopComments(comment.id, !comment.excluded);
       onExcludeToggleFinished(comment.id);
     } catch (error) {
