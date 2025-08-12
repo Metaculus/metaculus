@@ -1448,5 +1448,7 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
   "expandAll": "Rozbalit vše",
   "collapseAll": "Sbalit vše",
+  "continueTerms": "Pokračováním potvrzujete a souhlasíte s <terms>Podmínkami použití</terms> a <privacy>Zásadami ochrany osobních údajů</privacy> společnosti Metaculus.",
+  "chooseYourUsername": "Zvolte si své uživatelské jméno",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

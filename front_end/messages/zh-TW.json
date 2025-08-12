@@ -1445,5 +1445,7 @@
   "questionMustDiffer": "您不能將問題連結到自身。",
   "thisQuestionCausesOtherQuestion": "此問題對<otherQuestion></otherQuestion>有<impact></impact>影響",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對此問題有<impact></impact>影響",
+  "continueTerms": "繼續操作即表示您承認並同意 Metaculus 的<terms>使用條款</terms>和<privacy>隱私政策</privacy>。",
+  "chooseYourUsername": "選擇您的用戶名",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

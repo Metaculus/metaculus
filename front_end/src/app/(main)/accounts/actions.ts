@@ -163,3 +163,21 @@ export async function resendActivationEmailAction(
 export async function inviteUsers(emails: string[]) {
   await ServerAuthApi.inviteUsers(emails);
 }
+
+export async function simplifiedSignUpAction(
+  username: string,
+  authToken: string
+) {
+  try {
+    const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
+
+    if (response?.token) {
+      await setServerSession(response.token);
+    }
+    return response;
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}

@@ -1448,5 +1448,7 @@
   "questionMustDiffer": "No puedes vincular una pregunta consigo misma.",
   "thisQuestionCausesOtherQuestion": "Esta pregunta tiene un impacto <impact></impact> en <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tiene un impacto <impact></impact> en esta pregunta",
+  "continueTerms": "Al continuar, reconoces y aceptas los <terms>Términos de Uso</terms> y la <privacy>Política de Privacidad</privacy> de Metaculus.",
+  "chooseYourUsername": "Elige tu nombre de usuario",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
