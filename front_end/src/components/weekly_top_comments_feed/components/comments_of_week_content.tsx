@@ -59,7 +59,7 @@ const CommentsOfWeekContent: FC<Props> = ({
         {formatDate(locale, addWeeks(weekStart, 2))}.
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pb-8">
         {comments.map((comment, index) => (
           <HighlightedCommentCard
             key={comment.id}
