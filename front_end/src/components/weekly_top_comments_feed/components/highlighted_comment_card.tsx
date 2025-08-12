@@ -36,8 +36,17 @@ const getPlacementText = (
 };
 
 const getPlacementColor = (placement: number) => {
-  if (placement === 1) return "text-orange-700 dark:text-orange-700-dark";
-  return "text-gray-600 dark:text-gray-600-dark";
+  const trophyType = getTrophyType(placement);
+  switch (trophyType) {
+    case "gold":
+      return "text-yellow-700 dark:text-yellow-500"; // Gold - matches trophy
+    case "silver":
+      return "text-gray-600 dark:text-gray-600-dark"; // Silver - matches trophy
+    case "bronze":
+      return "text-orange-700 dark:text-orange-700-dark"; // Bronze - matches trophy
+    default:
+      return "text-gray-600 dark:text-gray-600-dark"; // Fallback
+  }
 };
 
 const HighlightedCommentCard: FC<Props> = ({
@@ -50,6 +59,29 @@ const HighlightedCommentCard: FC<Props> = ({
   const t = useTranslations();
 
   const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
+
+  // Get blur circle color based on placement (matches trophy colors)
+  const getBlurColor = (placement: number) => {
+    const trophyType = getTrophyType(placement);
+    switch (trophyType) {
+      case "gold":
+        return "rgb(234 179 8 / 0.12)"; // yellow-500 with opacity
+      case "silver":
+        return "rgb(107 114 128 / 0.1)"; // gray-500 with opacity
+      case "bronze":
+        return "rgb(234 88 12 / 0.07)"; // orange-600 with opacity
+      default:
+        return "rgb(59 130 246 / 0.1)"; // blue-500 with opacity
+    }
+  };
+
+  // Get border classes - only gold gets special border, others use default blue
+  const getBorderClass = (placement: number) => {
+    if (placement === 1) {
+      return "border-yellow-500 dark:border-yellow-500/40";
+    }
+    return "border-blue-500 dark:border-blue-500-dark"; // Default blue border
+  };
 
   const handleExclude = async () => {
     if (isProcessing) return;
@@ -66,7 +98,26 @@ const HighlightedCommentCard: FC<Props> = ({
   };
 
   return (
-    <div className="relative overflow-hidden rounded border border-blue-500 bg-white dark:border-blue-500-dark dark:bg-gray-0-dark">
+    <div
+      className={cn(
+        "relative overflow-hidden rounded border bg-white dark:bg-gray-0-dark",
+        getBorderClass(placement)
+      )}
+    >
+      {/* Blur circle - only for 1st place */}
+      {placement === 1 && (
+        <div className="absolute left-0 top-0 overflow-visible">
+          {/* Gold blur circle */}
+          <div
+            className="absolute size-[400px] rounded-full blur-3xl"
+            style={{
+              top: "-250px",
+              left: "-250px",
+              backgroundColor: getBlurColor(placement),
+            }}
+          ></div>
+        </div>
+      )}
       {/* Admin exclude button */}
       {isAdmin && (
         <Button

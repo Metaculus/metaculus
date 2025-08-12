@@ -36,7 +36,7 @@ const CommentsOfWeekContent: FC<Props> = ({
   return (
     <div className="mx-auto max-w-4xl px-1.5 md:px-0">
       <div className="mb-6 flex flex-col items-start justify-between gap-2 md:flex-row md:items-center md:gap-4">
-        <h1 className="mt-2 text-2xl font-bold text-blue-800 dark:text-blue-800-dark md:mt-1.5 md:block md:text-3xl">
+        <h1 className="mt-2 text-balance text-2xl font-bold text-blue-800 dark:text-blue-800-dark md:mt-1.5 md:block md:text-3xl">
           {t("weeklyTopComments")}
         </h1>
         <WeekSelector weekStart={weekStart} className="w-full md:w-fit" />
