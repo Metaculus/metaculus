@@ -1,4 +1,5 @@
 from typing import Iterable
+from django.db.models import Count
 
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
@@ -222,7 +223,7 @@ def serialize_key_factor(
             {"vote_type": vote.vote_type, "score": vote.score} for vote in user_votes
         ],
         "votes_score": key_factor.votes_score,
-        "votes_count": key_factor.get_votes_count(),
+        "votes_count": getattr(key_factor, "votes_count"),
         "vote_type": key_factor.vote_type,
     }
 
@@ -236,6 +237,7 @@ def serialize_key_factors_many(
         KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors])
         .filter_active()
         .select_related("comment__author")
+        .annotate(votes_count=Count("votes"))
     )
 
     # Restore the original ordering
