@@ -1,8 +1,9 @@
 import json  # Add this import at the top
-from datetime import timedelta
+from datetime import timedelta, datetime
 from datetime import timezone as dt_timezone
 from unittest.mock import patch
 
+import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework.reverse import reverse
@@ -517,7 +518,6 @@ class TestQuestionForecastAutoWithdrawal:
     def test_forecast_auto_withdrawal_notification(
         self, transactional_db, user1, user2, user1_client, user2_client
     ):
-
         question1 = create_question(
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
