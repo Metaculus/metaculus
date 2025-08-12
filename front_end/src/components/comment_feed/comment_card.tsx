@@ -4,6 +4,7 @@ import {
   faCaretUp,
   faChevronDown,
   faChevronUp,
+  faDiagramProject,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -18,7 +19,6 @@ import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
 import { formatUsername } from "@/utils/formatters/users";
 
-import DiagramProjectIcon from "./DiagramProjectIcon";
 import SquareArrowUpRight from "./SquareArrowUpRight";
 
 type Props = {
@@ -26,7 +26,7 @@ type Props = {
   className?: string;
 };
 
-const BottomBottonContainer: FC<PropsWithChildren<{ className?: string }>> = ({
+const BottomStatContainer: FC<PropsWithChildren<{ className?: string }>> = ({
   children,
   className,
 }) => {
@@ -43,10 +43,11 @@ const BottomBottonContainer: FC<PropsWithChildren<{ className?: string }>> = ({
 };
 
 const KeyFactors = ({ keyFactors }: { keyFactors: KeyFactor[] }) => {
+  const t = useTranslations();
   return (
     <div className="flex flex-col gap-[10px]">
-      <div className="text-xs font-normal leading-4 text-gray-600 dark:text-gray-600-dark">
-        KEY FACTORS
+      <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">
+        {t("keyFactors")}
       </div>
 
       {keyFactors.map((factor) => (
@@ -73,7 +74,7 @@ const ExpandableCommentContent = ({
   needsExpand: boolean;
 }) => {
   const locale = useLocale();
-
+  const t = useTranslations();
   return (
     <div
       className={cn(
@@ -81,8 +82,8 @@ const ExpandableCommentContent = ({
         !isExpanded && needsExpand && "max-h-[250px]"
       )}
     >
-      <div className="text-xs font-normal leading-4 text-gray-600 dark:text-gray-600-dark">
-        COMMENT
+      <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">
+        {t("comment")}
       </div>
 
       {/* Author info */}
@@ -157,8 +158,8 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
       {/* Question context */}
       {comment.on_post_data && (
         <div className="flex flex-col gap-1.5 border-b border-gray-300 bg-blue-100 p-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
-          <div className="text-xs font-normal leading-4 text-gray-600 dark:text-gray-600-dark">
-            QUESTION
+          <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">
+            {t("question")}
           </div>
 
           <Link
@@ -180,14 +181,14 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
       <div className="flex items-center justify-between p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500-dark">
-          <BottomBottonContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
+          <BottomStatContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
             <FontAwesomeIcon icon={faChevronUp} className={cn(``)} />
             <span>{comment.vote_score}</span>
             <FontAwesomeIcon icon={faChevronDown} className={cn(``)} />
-          </BottomBottonContainer>
+          </BottomStatContainer>
 
           {comment.changed_my_mind.count > 0 && (
-            <BottomBottonContainer className="leading-[114%]">
+            <BottomStatContainer className="leading-[114%]">
               <FontAwesomeIcon
                 icon={faCaretUp}
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
@@ -196,21 +197,24 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
               <span className="ml-1 hidden text-nowrap md:block">
                 {t("mindsChanged")}
               </span>
-            </BottomBottonContainer>
+            </BottomStatContainer>
           )}
           {comment.key_factors && comment.key_factors.length > 0 && (
-            <BottomBottonContainer className="leading-[114%]">
-              <DiagramProjectIcon className="mr-2 fill-gray-500 dark:fill-gray-500-dark" />
+            <BottomStatContainer className="leading-[114%]">
+              <FontAwesomeIcon
+                icon={faDiagramProject}
+                className="mr-2 text-gray-500 dark:text-gray-500-dark"
+              />
               <span>{keyFactorsVotesCount}</span>
               <span className="ml-1 hidden text-nowrap md:block">
                 {t("keyFactorVotes")}
               </span>
-            </BottomBottonContainer>
+            </BottomStatContainer>
           )}
         </div>
 
         {isExpanded || !needsExpand ? (
-          <BottomBottonContainer className="p-1 md:px-2.5 md:py-1">
+          <BottomStatContainer className="p-1 md:px-2.5 md:py-1">
             <Button
               size="sm"
               variant="text"
@@ -220,9 +224,9 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
               <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
               <span className="hidden md:block">View comment</span>
             </Button>
-          </BottomBottonContainer>
+          </BottomStatContainer>
         ) : (
-          <BottomBottonContainer className="border-blue-500  dark:border-blue-500-dark ">
+          <BottomStatContainer className="border-blue-500  dark:border-blue-500-dark ">
             <Button
               variant="text"
               size="sm"
@@ -235,7 +239,7 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
               />
               Expand
             </Button>
-          </BottomBottonContainer>
+          </BottomStatContainer>
         )}
       </div>
     </div>
