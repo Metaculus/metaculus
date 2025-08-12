@@ -1471,8 +1471,8 @@
   "exclude": "排除",
   "unexclude": "取消排除",
   "mindsChanged": "改变主意",
-  "keyFactorVotes": "关键因子投票",
   "weeklyTopComments": "本周热评",
   "weeklyTopCommentsShort": "热评",
+  "keyFactorImpact": "关键因素影响",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
