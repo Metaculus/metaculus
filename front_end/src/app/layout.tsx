@@ -11,6 +11,7 @@ import { Toaster } from "react-hot-toast";
 
 import GlobalModals from "@/components/global_modals";
 import PublicSettingsScript from "@/components/public_settings_script";
+import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
@@ -116,6 +117,7 @@ export default async function RootLayout({
                             />
                             {children}
                             <GlobalModals />
+                            <SimplifiedSignupModal />
                             <Toaster />
                           </TranslationsBannerProvider>
                         </GlobalSearchProvider>
