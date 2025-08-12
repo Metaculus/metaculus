@@ -17,21 +17,21 @@ const getTrophyStyles = (type: TrophyType) => {
   switch (type) {
     case "gold":
       return {
-        background: "bg-yellow-200/75 dark:bg-yellow-200-dark/75",
-        icon: "text-yellow-700 dark:text-yellow-700-dark",
-        border: "border-yellow-500 dark:border-yellow-500-dark",
+        background: "bg-yellow-200/75 dark:bg-gray-800/10",
+        icon: "text-yellow-700 dark:text-yellow-400",
+        border: "border-yellow-500 dark:border-yellow-500",
       };
     case "silver":
       return {
-        background: "bg-gray-200 dark:bg-gray-200-dark",
+        background: "bg-gray-200 dark:bg-gray-800/10",
         icon: "text-gray-600 dark:text-gray-600-dark",
         border: "border-gray-400 dark:border-gray-400-dark",
       };
     case "bronze":
       return {
-        background: "bg-orange-200/50 dark:bg-orange-200-dark/50",
-        icon: "text-orange-700 dark:text-orange-700-dark",
-        border: "border-orange-500 dark:border-orange-500-dark",
+        background: "bg-orange-200/50 dark:bg-gray-800/10",
+        icon: "text-orange-700 dark:text-orange-500",
+        border: "border-orange-500/50 dark:border-orange-500",
       };
   }
 };
@@ -42,7 +42,7 @@ const Trophy: FC<Props> = ({ type, className }) => {
   return (
     <div
       className={cn(
-        "flex size-8 items-center justify-center rounded-sm border",
+        "flex size-8 items-center justify-center rounded-md border",
         styles.background,
         styles.border,
         className

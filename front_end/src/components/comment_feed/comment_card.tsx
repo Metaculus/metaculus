@@ -197,7 +197,7 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
       {/* Question context */}
       {comment.on_post_data && (
         <div className="flex flex-col gap-1.5 border-b border-gray-300 p-3 dark:border-gray-300-dark md:p-4">
-          <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">
+          <div className="text-xs font-normal uppercase leading-4 text-gray-500 dark:text-gray-500-dark">
             {t("question")}
           </div>
 
