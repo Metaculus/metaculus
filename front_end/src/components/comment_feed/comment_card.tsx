@@ -76,7 +76,6 @@ const ExpandableCommentContent = ({
   contentRef: React.RefObject<HTMLDivElement | null>;
 }) => {
   const locale = useLocale();
-  const t = useTranslations();
 
   // Fixed height for collapsed state - adjust this value as needed
   const COLLAPSED_HEIGHT = 200; // pixels
@@ -136,10 +135,6 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
   // Fixed height threshold - adjust this value as needed
   const HEIGHT_THRESHOLD = 200; // pixels
 
-  // TEMPORARY: Force expand behavior for testing
-  // Remove this when height measurement is working
-  const FORCE_EXPAND_FOR_TESTING = true;
-
   useEffect(() => {
     const measureHeight = () => {
       if (contentRef.current) {
@@ -153,15 +148,8 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
         const fullHeight = contentRef.current.scrollHeight;
         const shouldExpand = fullHeight > HEIGHT_THRESHOLD;
 
-        console.log("Comment height measurement:", {
-          fullHeight,
-          HEIGHT_THRESHOLD,
-          shouldExpand,
-          commentId: comment.id,
-        });
-
-        setNeedsExpand(FORCE_EXPAND_FOR_TESTING || shouldExpand);
-        setIsExpanded(!(FORCE_EXPAND_FOR_TESTING || shouldExpand));
+        setNeedsExpand(shouldExpand);
+        setIsExpanded(!shouldExpand);
 
         // Restore original styles
         contentRef.current.style.height = originalHeight;
