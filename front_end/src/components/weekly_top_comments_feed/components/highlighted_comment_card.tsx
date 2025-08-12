@@ -81,7 +81,7 @@ const HighlightedCommentCard: FC<Props> = ({
       )}
 
       {/* Placement header */}
-      <div className="flex items-center gap-3 px-4 pb-0 pt-4">
+      <div className="flex items-center gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
         <Trophy type={getTrophyType(placement)} />
         <span
           className={cn(
@@ -95,7 +95,7 @@ const HighlightedCommentCard: FC<Props> = ({
 
       <CommentCard
         comment={comment}
-        className="mt-4 border-t  border-gray-300  dark:border-gray-300-dark"
+        className="mt-3 border-t border-gray-300  dark:border-gray-300-dark  md:mt-4"
       />
     </div>
   );
