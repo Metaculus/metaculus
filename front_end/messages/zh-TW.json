@@ -1467,6 +1467,7 @@
   "unexclude": "取消排除",
   "mindsChanged": "改變想法",
   "keyFactorVotes": "關鍵因素投票",
-  "weeklyTopComments": "每週最佳評論",
+  "weeklyTopComments": "本週熱評",
+  "weeklyTopCommentsShort": "熱評",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
