@@ -1477,6 +1477,7 @@
   "unexclude": "Incluir",
   "mindsChanged": "mentes cambiadas",
   "keyFactorVotes": "votos de factor clave",
-  "weeklyTopComments": "Comentarios principales de la semana",
+  "weeklyTopComments": "Top Comentarios de la Semana",
+  "weeklyTopCommentsShort": "Top Comentarios",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
