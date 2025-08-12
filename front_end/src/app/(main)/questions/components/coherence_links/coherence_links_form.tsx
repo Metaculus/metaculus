@@ -65,16 +65,22 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
           deleteLink={deleteLink}
           suggestedOtherQuestion={question}
           shouldDisplayDelete={questions.length !== 1}
+          shouldDisplaySave={false}
         />
       ))}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => setCancelled(true)}
-        className="ml-auto"
-      >
-        {t("close")}
-      </Button>
+      <div className="ml-auto">
+        <Button
+          variant="secondary"
+          size="sm"
+          className={"m-1"}
+          onClick={() => setCancelled(true)}
+        >
+          {t("close")}
+        </Button>
+        <Button variant="primary" size="sm" type="submit" className={"m-1"}>
+          {t("submit")}
+        </Button>
+      </div>
     </div>
   );
 };

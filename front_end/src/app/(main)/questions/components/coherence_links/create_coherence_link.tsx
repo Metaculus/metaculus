@@ -21,6 +21,7 @@ type Props = {
   deleteLink: (key: number) => Promise<void>;
   suggestedOtherQuestion?: Question;
   shouldDisplayDelete?: boolean;
+  shouldDisplaySave?: boolean;
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
@@ -61,6 +62,7 @@ export const CreateCoherenceLink: FC<Props> = ({
   deleteLink,
   suggestedOtherQuestion,
   shouldDisplayDelete,
+  shouldDisplaySave,
 }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
@@ -105,23 +107,23 @@ export const CreateCoherenceLink: FC<Props> = ({
       question2 = postQuestion;
     }
 
-    createCoherenceLink(
+    const result = await createCoherenceLink(
       question1,
       question2,
       direction,
       strength,
       LinkTypes.Causal
-    ).then(async (result) => {
-      if (result !== null) {
-        const message = result?.non_field_errors?.at(0);
-        const constraintName =
-          message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
-        setValidationErrors(getLinkCreationError(constraintName));
-      } else {
-        await cancelLink();
-        await updateCoherenceLinks();
-      }
-    });
+    );
+
+    if (result !== null) {
+      const message = result?.non_field_errors?.at(0);
+      const constraintName =
+        message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
+      setValidationErrors(getLinkCreationError(constraintName));
+    } else {
+      await cancelLink();
+      await updateCoherenceLinks();
+    }
   }
 
   async function cancelLink() {
@@ -240,13 +242,15 @@ export const CreateCoherenceLink: FC<Props> = ({
           <Button onClick={swapFormat} variant="tertiary">
             {t("swap")}
           </Button>
-          <Button
-            onClick={saveQuestion}
-            disabled={!otherQuestion}
-            variant="tertiary"
-          >
-            {t("save")}
-          </Button>
+          {shouldDisplaySave !== false && (
+            <Button
+              onClick={saveQuestion}
+              disabled={!otherQuestion}
+              variant="tertiary"
+            >
+              {t("save")}
+            </Button>
+          )}
         </div>
         {shouldDisplayDelete !== false && (
           <Button
