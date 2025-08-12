@@ -68,7 +68,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const debouncedMarkdown = useDebouncedValue(markdown, 1000);
-  const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
+  const [clientError, setClientError] = useState<React.ReactNode>(null);
+  const [serverError, setServerError] = useState<string | ErrorResponse>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -128,16 +129,19 @@ const CommentEditor: FC<CommentEditorProps> = ({
   }, [params, clearParams, shallowNavigateToSearchParams]);
 
   const handleSubmit = async () => {
-    setErrorMessage("");
+    setClientError(null);
+    setServerError(undefined);
     setIsLoading(true);
+
     if (user && !PUBLIC_MINIMAL_UI) {
-      const validateMessage = validateComment(markdown, user, t);
-      if (validateMessage) {
-        setErrorMessage(validateMessage);
+      const validateNode = validateComment(markdown.trim(), user, t);
+      if (validateNode) {
+        setClientError(validateNode);
         setIsLoading(false);
         return;
       }
     }
+
     sendAnalyticsEvent("postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
@@ -156,12 +160,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
       });
 
       if (!response) {
-        setErrorMessage(t("outdatedServerActionMessage"));
+        setServerError(t("outdatedServerActionMessage"));
         return;
       }
-
       if (!!response && "errors" in response) {
-        setErrorMessage(response.errors as ErrorResponse);
+        setServerError(response.errors as ErrorResponse);
         return;
       }
 
@@ -204,8 +207,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   return (
     <>
-      {/* TODO: this box can only be shown in create, not edit mode */}
+      {clientError && (
+        <div className="mt-3 rounded-tl-md rounded-tr-md border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950 dark:text-red-200">
+          {clientError}
+        </div>
+      )}
 
+      {/* TODO: this box can only be shown in create, not edit mode */}
       {shouldIncludeForecast && (
         <Checkbox
           checked={hasIncludedForecast}
@@ -252,7 +260,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         </div>
       )}
       <FormErrorMessage
-        errors={errorMessage}
+        errors={serverError}
         containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
       />
     </>
