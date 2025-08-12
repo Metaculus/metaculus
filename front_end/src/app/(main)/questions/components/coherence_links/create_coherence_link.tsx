@@ -20,6 +20,7 @@ type Props = {
   linkKey: number;
   deleteLink: (key: number) => Promise<void>;
   suggestedOtherQuestion?: Question;
+  shouldDisplayDelete?: boolean;
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
@@ -59,6 +60,7 @@ export const CreateCoherenceLink: FC<Props> = ({
   linkKey,
   deleteLink,
   suggestedOtherQuestion,
+  shouldDisplayDelete,
 }) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
@@ -246,16 +248,18 @@ export const CreateCoherenceLink: FC<Props> = ({
             {t("save")}
           </Button>
         </div>
-        <Button
-          onClick={cancelLink}
-          className="size-8 border border-salmon-500 hover:border-salmon-600 dark:border-salmon-500-dark dark:hover:border-salmon-600-dark"
-          variant="tertiary"
-        >
-          <FontAwesomeIcon
-            icon={faTrash}
-            className="text-salmon-600 dark:text-salmon-600-dark"
-          />
-        </Button>
+        {shouldDisplayDelete !== false && (
+          <Button
+            onClick={cancelLink}
+            className="size-8 border border-salmon-500 hover:border-salmon-600 dark:border-salmon-500-dark dark:hover:border-salmon-600-dark"
+            variant="tertiary"
+          >
+            <FontAwesomeIcon
+              icon={faTrash}
+              className="text-salmon-600 dark:text-salmon-600-dark"
+            />
+          </Button>
+        )}
       </div>
       {validationErrors && (
         <FormErrorMessage

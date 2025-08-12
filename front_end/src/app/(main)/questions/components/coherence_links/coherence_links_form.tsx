@@ -14,7 +14,6 @@ type Props = {
 };
 
 export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
-  const [postIDs, setPostIDs] = useState<number[]>([]);
   const [cancelled, setCancelled] = useState<boolean>(false);
   const t = useTranslations();
 
@@ -27,7 +26,7 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   }
 
   async function deleteLink(key: number) {
-    setPostIDs(postIDs.filter((current) => current !== key));
+    setQuestions(questions.filter((current) => current.post_id !== key));
   }
 
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -46,13 +45,12 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
     }
 
     const newPostIDs = extractQuestionNumbers(text);
-    setPostIDs(newPostIDs);
     extractPostIDs(newPostIDs).then((result) => {
       setQuestions(result);
     });
   }, [text]);
 
-  if (!currentQuestionId || postIDs.length === 0 || cancelled) return null;
+  if (!currentQuestionId || questions.length === 0 || cancelled) return null;
 
   return (
     <div className="flex w-full grow flex-col gap-4 rounded bg-gray-0 px-3 py-2 text-base dark:bg-gray-0-dark">
@@ -66,6 +64,7 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
           key={question.post_id}
           deleteLink={deleteLink}
           suggestedOtherQuestion={question}
+          shouldDisplayDelete={questions.length !== 1}
         />
       ))}
       <Button
