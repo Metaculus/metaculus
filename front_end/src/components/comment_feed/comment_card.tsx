@@ -78,23 +78,18 @@ const ExpandableCommentContent = ({
   return (
     <div
       className={cn(
-        " relative flex flex-col gap-[10px] overflow-hidden p-4",
+        " relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4",
         !isExpanded && needsExpand && "max-h-[250px]"
       )}
     >
-      <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">
-        {t("comment")}
-      </div>
-
       {/* Author info */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <Link
           href={`/accounts/profile/${comment.author.id}/`}
           className="text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
         >
           {formatUsername(comment.author)}
         </Link>
-        <div className="size-0.5 rounded-full bg-gray-500 dark:bg-gray-500-dark" />
         <span
           className="text-base font-normal leading-6 text-gray-500 dark:text-gray-500-dark"
           suppressHydrationWarning
@@ -157,14 +152,14 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
     >
       {/* Question context */}
       {comment.on_post_data && (
-        <div className="flex flex-col gap-1.5 border-b border-gray-300 bg-blue-100 p-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
+        <div className="flex flex-col gap-1.5 border-b border-gray-300 p-3 dark:border-gray-300-dark md:p-4">
           <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">
             {t("question")}
           </div>
 
           <Link
             href={`/questions/${comment.on_post_data.id}`}
-            className="text-base font-medium leading-6 text-blue-700 no-underline hover:underline dark:text-blue-700-dark"
+            className="text-sm font-normal leading-5 text-blue-700 no-underline hover:underline dark:text-blue-700-dark"
           >
             {comment.on_post_data.title}
           </Link>
@@ -178,7 +173,7 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
         needsExpand={needsExpand}
       />
 
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500-dark">
           <BottomStatContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
