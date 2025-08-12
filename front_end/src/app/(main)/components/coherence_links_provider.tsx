@@ -1,5 +1,6 @@
 "use client";
 
+import { isNil } from "lodash";
 import {
   createContext,
   FC,
@@ -8,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
 import { FetchedCoherenceLinks } from "@/types/coherence";
 import { Post } from "@/types/post";
@@ -34,11 +36,17 @@ export const CoherenceLinksProvider: FC<
   const [coherenceLinks, setCoherenceLinks] = useState<FetchedCoherenceLinks>({
     data: [],
   });
+  const { user } = useAuth();
+  const isLoggedIn = !isNil(user);
 
   const updateCoherenceLinks = async () => {
-    ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
-      .then((links) => setCoherenceLinks(links))
-      .catch((error) => console.log(error));
+    if (isLoggedIn) {
+      ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
+        .then((links) => setCoherenceLinks(links))
+        .catch((error) => console.log(error));
+    } else {
+      setCoherenceLinks({ data: [] });
+    }
   };
 
   const getOtherQuestions = () => {
