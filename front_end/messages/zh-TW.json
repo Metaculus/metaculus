@@ -1447,5 +1447,12 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對此問題有<impact></impact>影響",
   "continueTerms": "繼續操作即表示您承認並同意 Metaculus 的<terms>使用條款</terms>和<privacy>隱私政策</privacy>。",
   "chooseYourUsername": "選擇您的用戶名",
+  "marketTimingAndTradingSignals": "市場時機和交易信號",
+  "portfolioRiskAssessment": "投資組合風險評估",
+  "regulatoryImpactAnalysis": "法規影響分析",
+  "creditRiskEvaluation": "信用風險評估",
+  "maAndCorporateActions": "併購和公司行動",
+  "economicIndicatorForecasting": "經濟指標預測",
+  "otherFinancialForecasting": "其他財務預測",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
