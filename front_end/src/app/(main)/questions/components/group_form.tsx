@@ -476,6 +476,10 @@ const GroupForm: React.FC<Props> = ({
     }
   }, [form, shouldUseDraftValue, debouncedHandleFormChange, subQuestions]);
 
+  const isManual =
+    form.watch("subquestions_order") ===
+    PostGroupOfQuestionsSubquestionsOrder.MANUAL;
+
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -905,49 +909,63 @@ const GroupForm: React.FC<Props> = ({
                         : t("collapse")}
                     </Button>
 
-                    {form.watch("subquestions_order") ===
-                      PostGroupOfQuestionsSubquestionsOrder.MANUAL && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="tertiary"
-                          disabled={index === 0}
-                          onClick={() => {
-                            setSubQuestions(
-                              shiftArrayElement(subQuestions, index, -1).map(
-                                (q, idx) => ({ ...q, group_rank: idx })
-                              )
-                            );
-                            setCollapsedSubQuestions(
-                              shiftArrayElement(
-                                collapsedSubQuestions,
-                                index,
-                                -1
-                              )
-                            );
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faChevronUp} />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="tertiary"
-                          disabled={index === subQuestions.length - 1}
-                          onClick={() => {
-                            setSubQuestions(
-                              shiftArrayElement(subQuestions, index, 1).map(
-                                (q, idx) => ({ ...q, group_rank: idx })
-                              )
-                            );
-                            setCollapsedSubQuestions(
-                              shiftArrayElement(collapsedSubQuestions, index, 1)
-                            );
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faChevronDown} />
-                        </Button>
-                      </>
-                    )}
+                    <>
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        disabled={!isManual || index === 0}
+                        title={
+                          isManual
+                            ? undefined
+                            : "Switch Group Sorting to Manual to reorder"
+                        }
+                        onClick={() => {
+                          if (!isManual) return;
+                          setSubQuestions(
+                            shiftArrayElement(subQuestions, index, -1).map(
+                              (q, idx) => ({
+                                ...q,
+                                group_rank: idx,
+                              })
+                            )
+                          );
+                          setCollapsedSubQuestions(
+                            shiftArrayElement(collapsedSubQuestions, index, -1)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faChevronUp} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        disabled={
+                          !isManual || index === subQuestions.length - 1
+                        }
+                        title={
+                          isManual
+                            ? undefined
+                            : "Switch Group Sorting to Manual to reorder"
+                        }
+                        onClick={() => {
+                          if (!isManual) return;
+                          setSubQuestions(
+                            shiftArrayElement(subQuestions, index, 1).map(
+                              (q, idx) => ({
+                                ...q,
+                                group_rank: idx,
+                              })
+                            )
+                          );
+                          setCollapsedSubQuestions(
+                            shiftArrayElement(collapsedSubQuestions, index, 1)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faChevronDown} />
+                      </Button>
+                    </>
                   </div>
 
                   <Button
