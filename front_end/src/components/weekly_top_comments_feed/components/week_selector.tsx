@@ -15,11 +15,12 @@ import { FC, Fragment, useCallback } from "react";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 import { getDateFnsLocale } from "@/utils/formatters/date";
+import { WEEK_START_DAY } from "./constants";
 
 type Props = {
   weekStart: Date;
   className?: string;
-  onWeekChange?: (newWeekStart: Date) => void;
+  onWeekChange: (newWeekStart: Date) => void;
 };
 
 const DateSelect: FC<Props> = ({
@@ -30,8 +31,10 @@ const DateSelect: FC<Props> = ({
   const t = useTranslations();
   const localeStr = useLocale();
   const locale = getDateFnsLocale(localeStr);
-  // Add current week option at the top
-  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 0 }); // Sunday
+
+  const currentWeekStart = startOfWeek(new Date(), {
+    weekStartsOn: WEEK_START_DAY,
+  });
   const isCurrentWeek =
     format(selectedWeekStart, "yyyy-MM-dd") ===
     format(currentWeekStart, "yyyy-MM-dd");
@@ -74,9 +77,7 @@ const DateSelect: FC<Props> = ({
 
   const handleWeekSelect = useCallback(
     (weekStart: Date) => {
-      if (onWeekChange) {
-        onWeekChange(weekStart);
-      }
+      onWeekChange(weekStart);
     },
     [onWeekChange]
   );
@@ -148,27 +149,15 @@ const DateSelect: FC<Props> = ({
 };
 
 const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
-  const router = useRouter();
-
   const weekEnd = addWeeks(weekStart, 1);
 
   const navigateWeek = useCallback(
     (direction: "prev" | "next") => {
       const weeksToMove = direction === "prev" ? -1 : 1;
       const newStart = addWeeks(weekStart, weeksToMove);
-
-      if (onWeekChange) {
-        // Use client-side navigation if callback is provided
-        onWeekChange(newStart);
-      } else {
-        // Fallback to server-side navigation
-        const newStartDateString = format(newStart, "yyyy-MM-dd");
-        router.push(
-          `/questions/?weekly_top_comments=true&start_date=${newStartDateString}`
-        );
-      }
+      onWeekChange(newStart);
     },
-    [weekStart, router, onWeekChange]
+    [weekStart, onWeekChange]
   );
 
   return (
