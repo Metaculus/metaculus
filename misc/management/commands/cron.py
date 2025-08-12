@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
+from comments.jobs import update_current_top_comments_of_week
 from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
@@ -194,3 +195,14 @@ class Command(BaseCommand):
             logger.info("Stopping scheduler...")
             scheduler.shutdown()
             logger.info("Scheduler shut down successfully!")
+
+        #
+        # Comment Jobs
+        #
+        scheduler.add_job(
+            close_old_connections(update_current_top_comments_of_week.send),
+            trigger=CronTrigger.from_crontab("0 * * * *"),  # Every hour
+            id="update_current_top_comments_of_week",
+            max_instances=1,
+            replace_existing=True,
+        )

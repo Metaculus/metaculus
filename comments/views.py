@@ -26,7 +26,6 @@ from comments.serializers import (
 )
 from comments.services.common import (
     set_comment_excluded_from_week_top,
-    update_top_comments_of_week,
     create_comment,
     pin_comment,
     unpin_comment,
@@ -389,9 +388,6 @@ def comments_of_week_view(request: Request):
     week_start_date = serializers.DateField(input_formats=["%Y-%m-%d"]).run_validation(
         request.query_params.get("start_date")
     )
-
-    # TODO: Recompute the weekly top comments for the current and previous week since
-    update_top_comments_of_week(week_start_date)
 
     # Admins can see all top (max 18) candidates for the weekly top comments
     top_comments_of_week_entries = CommentsOfTheWeekEntry.objects.filter(
