@@ -100,7 +100,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
             ...(isWeeklyTopCommentsFeatureEnabled
               ? [
                   {
-                    name: t("weeklyTopComments"),
+                    name: t("weeklyTopCommentsShort"),
                     emoji: "💬",
                     onClick: () => {
                       sendAnalyticsEvent("sidebarClick", {
