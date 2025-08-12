@@ -76,6 +76,7 @@ const SimplifiedSignupModal: FC = () => {
       onClose={() => {}}
       isImmersive={true}
       label={t("chooseYourUsername")}
+      className="md:max-w-sm"
     >
       <div className="mb-6 text-base leading-tight">
         {t("registrationSignInHeading")}&nbsp;
@@ -108,7 +109,7 @@ const SimplifiedSignupModal: FC = () => {
             Continue
           </Button>
         </div>
-        <div className="mt-6 text-center text-gray-700 dark:text-gray-700-dark">
+        <div className="mt-2 text-center text-gray-700 dark:text-gray-700-dark">
           {t.rich("continueTerms", {
             terms: (chunks) => (
               <Link target="_blank" href={"/terms-of-use/"}>
