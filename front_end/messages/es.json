@@ -1448,5 +1448,8 @@
   "questionMustDiffer": "No puedes vincular una pregunta consigo misma.",
   "thisQuestionCausesOtherQuestion": "Esta pregunta tiene un impacto <impact></impact> en <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tiene un impacto <impact></impact> en esta pregunta",
+  "createQuestionLinkCommentPrompt": "¿Te gustaría crear un enlace de pregunta?",
+  "createQuestionLinkCommentPromptBody": "Notamos que agregaste una URL a otra pregunta de Metaculus. Si lo deseas, puedes crear un enlace causal entre estas dos preguntas.",
+  "createQuestionLinkCommentPromptDisclaimer": "Los enlaces de preguntas son privados y solo los puedes ver tú.",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

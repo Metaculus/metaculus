@@ -1448,5 +1448,8 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
   "expandAll": "Rozbalit vše",
   "collapseAll": "Sbalit vše",
+  "createQuestionLinkCommentPrompt": "Chcete vytvořit odkaz na otázku?",
+  "createQuestionLinkCommentPromptBody": "Všimli jsme si, že jste přidali URL k další otázce na Metaculu. Pokud chcete, můžete vytvořit příčinný odkaz mezi těmito dvěma otázkami.",
+  "createQuestionLinkCommentPromptDisclaimer": "Odkazy na otázky jsou soukromé a viditelné pouze pro vás.",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

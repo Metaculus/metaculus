@@ -1,6 +1,8 @@
+import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
 import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
+import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentType } from "@/types/comment";
 import { Post } from "@/types/post";
@@ -13,6 +15,8 @@ type Props = {
 
 export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   const [postIDs, setPostIDs] = useState<number[]>([]);
+  const [cancelled, setCancelled] = useState<boolean>(false);
+  const t = useTranslations();
 
   function extractQuestionNumbers(text: string): number[] {
     const regex = /\/questions\/(\d+)/g;
@@ -48,11 +52,13 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
     });
   }, [text]);
 
-  if (!currentQuestionId || postIDs.length === 0) return null;
+  if (!currentQuestionId || postIDs.length === 0 || cancelled) return null;
 
   return (
-    <div>
-      Here are some question links for you!
+    <div className="flex w-full grow flex-col gap-4 rounded bg-gray-0 px-3 py-2 text-base dark:bg-gray-0-dark">
+      <h1>{t("createQuestionLinkCommentPrompt")}</h1>
+      <div>{t("createQuestionLinkCommentPromptBody")}</div>
+      <div>{t("createQuestionLinkCommentPromptDisclaimer")}</div>
       {Array.from(questions, (question) => (
         <CreateCoherenceLink
           post={post}
@@ -62,6 +68,14 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
           suggestedOtherQuestion={question}
         />
       ))}
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => setCancelled(true)}
+        className="ml-auto"
+      >
+        {t("close")}
+      </Button>
     </div>
   );
 };
