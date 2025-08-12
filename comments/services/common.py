@@ -10,6 +10,8 @@ from django.db.models import (
     OuterRef,
     Subquery,
     IntegerField,
+    Avg,
+    FloatField,
 )
 from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
@@ -21,6 +23,7 @@ from comments.models import (
     CommentDiff,
     CommentsOfTheWeekEntry,
     CommentVote,
+    KeyFactor,
     KeyFactorVote,
 )
 from comments.services.spam_detection import check_and_handle_comment_spam
@@ -206,18 +209,18 @@ def soft_delete_comment(comment: Comment):
 def compute_comment_score(
     comment_votes: int,
     change_my_minds: int,
-    total_key_factor_votes: int,
+    key_factor_votes_score: int,
     maximum_comment_votes: int,
     maximum_cmms: int,
-    maximum_key_factor_votes: int,
+    maximum_key_factor_score: int,
 ):
     handicap = 3  # downweight scores that have a maximum << 3
     normalised_comment_votes = (comment_votes + handicap) / (
         maximum_comment_votes + handicap
     )
     normalised_cmms = (change_my_minds + handicap) / (maximum_cmms + handicap)
-    normalised_kf_votes = (total_key_factor_votes + handicap) / (
-        maximum_key_factor_votes + handicap
+    normalised_kf_votes = (key_factor_votes_score + handicap) / (
+        maximum_key_factor_score + handicap
     )
 
     cv_weight = 1
@@ -292,29 +295,33 @@ def update_top_comments_of_week(week_start_date: datetime.date):
             0,
             output_field=IntegerField(),
         ),
-        key_factor_votes_count=Coalesce(
+        key_factor_votes_score=Coalesce(
             Subquery(
-                KeyFactorVote.objects.filter(
-                    key_factor__comment=OuterRef("pk"),
-                    created_at__gte=F("key_factor__comment__created_at"),
-                    created_at__lt=F("key_factor__comment__created_at")
-                    + datetime.timedelta(days=7),
-                )
-                .exclude(user=OuterRef("author"))
-                .values("key_factor__comment")
+                KeyFactor.objects.filter(comment=OuterRef("pk"))
                 .annotate(
-                    total=Sum(
-                        Abs(
-                            F("score"),
-                            output_field=IntegerField(),
-                        )
+                    avg_score=Coalesce(
+                        Subquery(
+                            KeyFactorVote.objects.filter(
+                                key_factor=OuterRef("pk"),
+                                created_at__gte=F("key_factor__comment__created_at"),
+                                created_at__lt=F("key_factor__comment__created_at")
+                                + datetime.timedelta(days=7),
+                            ).exclude(user_id=OuterRef("comment__author_id"))
+                            # .values("key_factor")
+                            .annotate(avg=Avg("score")).values("avg")[:1],
+                            output_field=FloatField(),
+                        ),
+                        0.0,
+                        output_field=FloatField(),
                     )
                 )
+                .values("comment")
+                .annotate(total=Sum(Abs(F("avg_score"))))
                 .values("total")[:1],
-                output_field=IntegerField(),
+                output_field=FloatField(),
             ),
-            0,
-            output_field=IntegerField(),
+            0.0,
+            output_field=FloatField(),
         ),
     )
 
@@ -322,22 +329,22 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         count=Count("id"),
         max_vote_score=Max("vote_score"),
         max_changed_my_mind_count=Max("changed_my_mind_count"),
-        max_key_factor_votes_count=Max("key_factor_votes_count"),
+        max_key_factor_votes_score=Max("key_factor_votes_score"),
     )
 
     maximum_comment_votes = stats["max_vote_score"]
     maximum_cmms = stats["max_changed_my_mind_count"]
-    maximum_key_factor_votes = stats["max_key_factor_votes_count"]
+    maximum_key_factor_score = stats["max_key_factor_votes_score"]
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
     for comment in comments_of_week:
         comment_score = compute_comment_score(
             comment_votes=max(0, comment.vote_score),
             change_my_minds=comment.changed_my_mind_count,
-            total_key_factor_votes=comment.key_factor_votes_count,
+            key_factor_votes_score=comment.key_factor_votes_score,
             maximum_comment_votes=maximum_comment_votes,
             maximum_cmms=maximum_cmms,
-            maximum_key_factor_votes=maximum_key_factor_votes,
+            maximum_key_factor_score=maximum_key_factor_score,
         )
 
         top_comments_of_week.append(
