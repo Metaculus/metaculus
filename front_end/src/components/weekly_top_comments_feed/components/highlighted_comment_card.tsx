@@ -133,7 +133,9 @@ const HighlightedCommentCard: FC<Props> = ({
 
       {/* Placement header */}
       <div className="flex items-center gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
-        {placement && <Trophy type={getTrophyType(placement)} />}
+        {placement && placement <= 6 && (
+          <Trophy type={getTrophyType(placement)} />
+        )}
         <span
           className={cn(
             "text-base font-normal leading-6",
