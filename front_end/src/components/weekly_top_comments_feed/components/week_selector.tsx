@@ -39,10 +39,9 @@ const DateSelect: FC<Props> = ({
     format(selectedWeekStart, "yyyy-MM-dd") ===
     format(currentWeekStart, "yyyy-MM-dd");
 
-  const offset = isCurrentWeek ? 1 : 0;
-
-  const pastWeeksMenuItems = Array.from({ length: 4 }, (_, i) => {
-    const itemWeekStart = addWeeks(selectedWeekStart, -(i + offset));
+  const weeksCount = 10;
+  const pastWeeksMenuItems = Array.from({ length: weeksCount }, (_, i) => {
+    const itemWeekStart = addWeeks(currentWeekStart, -(i + 1));
     const itemLastWeekDay = addDays(itemWeekStart, 6);
     return {
       id: i.toString(),
