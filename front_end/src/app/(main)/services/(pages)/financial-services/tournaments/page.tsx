@@ -3,17 +3,23 @@ import { getTranslations } from "next-intl/server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentPreview } from "@/types/projects";
 
-import TournamentsPageTemplate from "../components/templates/tournaments_page_template";
-import { isSpotlightTournament, sortServiceTournaments } from "../helpers";
-import ServiceConfig from "../serviceConfig";
+import {
+  description,
+  metadata,
+  spotlightTournamentDescription,
+  steps,
+  stepsDescription,
+} from "./config";
+import TournamentsPageTemplate from "../../../components/templates/tournaments_page_template";
+import {
+  isSpotlightTournament,
+  sortServiceTournaments,
+} from "../../../helpers";
+import ServiceConfig from "../../../serviceConfig";
 
-export const metadata = {
-  title: "Run a Forecasting Tournament with Metaculus",
-  description:
-    "Design and run forecasting tournaments to crowdsource insights on your critical questions. Metaculus helps you surface expert predictions and solve complex challenges with structured, competitive forecasting.",
-};
+export { metadata };
 
-export default async function TournamentsPage() {
+export default async function FinancialServicesTournamentsPage() {
   const t = await getTranslations();
   const { spotlightTournamentId } = ServiceConfig;
 
@@ -41,7 +47,7 @@ export default async function TournamentsPage() {
   return (
     <TournamentsPageTemplate
       spotlightTournament={spotlightTournament}
-      spotlightTournamentDescription={t("tournamentSpotlightDescription")}
+      spotlightTournamentDescription={spotlightTournamentDescription}
       tournaments={sortedTournaments}
       launchTournament={t.rich("launchTournamentOnMetaculus", {
         span: (chunks) => (
@@ -51,25 +57,11 @@ export default async function TournamentsPage() {
         ),
       })}
       description={{
-        firstPart: t("metaculusHasYearsOfExperience"),
-        secondPart: t("weHelpOrganizationsSolve"),
+        firstPart: description.firstPart,
+        secondPart: description.secondPart,
       }}
-      stepsDescription={t("stepsForSettingUpTournament")}
-      steps={[
-        {
-          title: t("tellUsYourGoal"),
-          description: t("shareChallenge"),
-          titleClassName: "lg:pr-10",
-        },
-        {
-          title: t("weDevelopFocusedQuestions"),
-          description: t("weWillDeconstruct"),
-        },
-        {
-          title: t("tournamentLaunches"),
-          description: t("forecastsAndReasoning"),
-        },
-      ]}
+      stepsDescription={stepsDescription}
+      steps={steps}
     />
   );
 }
