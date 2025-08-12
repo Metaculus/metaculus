@@ -16,7 +16,7 @@ type Props = {
   comment: CommentOfWeekType;
   placement: number | null;
   currentUser: CurrentUser | null;
-  onExcludeToggleFinished: (commentId: number) => void;
+  onExcludeToggleFinished: (commentId: number, excluded: boolean) => void;
 };
 
 const getTrophyType = (placement: number) => {
@@ -89,7 +89,7 @@ const HighlightedCommentCard: FC<Props> = ({
     setIsExcluding(true);
     try {
       await setExcludedFromWeekTopComments(comment.id, !comment.excluded);
-      onExcludeToggleFinished(comment.id);
+      onExcludeToggleFinished(comment.id, !comment.excluded);
     } catch (error) {
       console.error("Error excluding comment:", error);
     } finally {
