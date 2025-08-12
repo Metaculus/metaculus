@@ -33,6 +33,19 @@ const CommentsOfWeekContent: FC<Props> = ({
     router.refresh();
   };
 
+  const commentsWithPlacements = [];
+  let lastPlacement: number | null = null;
+  for (const comment of comments) {
+    const placement: number | null = comment.excluded
+      ? null
+      : (lastPlacement ?? 0) + 1;
+    lastPlacement = placement ?? lastPlacement;
+    commentsWithPlacements.push({
+      ...comment,
+      placement,
+    });
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-1.5 md:px-0">
       <div className="mb-6 flex flex-col items-start justify-between gap-2 md:flex-row md:items-center md:gap-4">
@@ -60,11 +73,11 @@ const CommentsOfWeekContent: FC<Props> = ({
       </p>
 
       <div className="space-y-4 pb-8">
-        {comments.map((comment, index) => (
+        {commentsWithPlacements.map((comment, index) => (
           <HighlightedCommentCard
             key={comment.id}
             comment={comment}
-            placement={index + 1}
+            placement={comment.placement}
             currentUser={currentUser}
             onExcludeToggleFinished={onExcludeToggleFinished}
           />

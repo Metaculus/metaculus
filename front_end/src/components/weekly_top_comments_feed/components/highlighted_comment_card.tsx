@@ -14,7 +14,7 @@ import Trophy from "./trophy";
 
 type Props = {
   comment: CommentOfWeekType;
-  placement: number;
+  placement: number | null;
   currentUser: CurrentUser | null;
   onExcludeToggleFinished: (commentId: number) => void;
 };
@@ -101,7 +101,7 @@ const HighlightedCommentCard: FC<Props> = ({
     <div
       className={cn(
         "relative overflow-hidden rounded border bg-white dark:bg-gray-0-dark",
-        getBorderClass(placement)
+        placement && getBorderClass(placement)
       )}
     >
       {/* Blur circle - only for 1st place */}
@@ -133,14 +133,14 @@ const HighlightedCommentCard: FC<Props> = ({
 
       {/* Placement header */}
       <div className="flex items-center gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
-        <Trophy type={getTrophyType(placement)} />
+        {placement && <Trophy type={getTrophyType(placement)} />}
         <span
           className={cn(
             "text-base font-normal leading-6",
-            getPlacementColor(placement)
+            placement && getPlacementColor(placement)
           )}
         >
-          {getPlacementText(placement, t)}
+          {placement ? getPlacementText(placement, t) : "Excluded"}
         </span>
       </div>
 
