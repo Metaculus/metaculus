@@ -18,16 +18,20 @@ import { getDateFnsLocale } from "@/utils/formatters/date";
 
 type Props = {
   weekStart: Date;
-
   className?: string;
+  onWeekChange?: (newWeekStart: Date) => void;
 };
 
-const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
+const DateSelect: FC<Props> = ({
+  weekStart: selectedWeekStart,
+  className,
+  onWeekChange,
+}) => {
   const t = useTranslations();
   const localeStr = useLocale();
   const locale = getDateFnsLocale(localeStr);
   // Add current week option at the top
-  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 0 }); // Sunday
   const isCurrentWeek =
     format(selectedWeekStart, "yyyy-MM-dd") ===
     format(currentWeekStart, "yyyy-MM-dd");
@@ -44,10 +48,7 @@ const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
         "MMM d",
         { locale }
       )}`,
-      href: `/questions/?weekly_top_comments=true&start_date=${format(
-        itemWeekStart,
-        "yyyy-MM-dd"
-      )}`,
+      weekStart: itemWeekStart,
       isSelected:
         format(selectedWeekStart, "yyyy-MM-dd") ===
         format(itemWeekStart, "yyyy-MM-dd"),
@@ -58,7 +59,7 @@ const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
   const currentWeekItem = {
     id: "current",
     name: t("current_week"),
-    href: "/questions/?weekly_top_comments=true",
+    weekStart: currentWeekStart,
     isCurrentWeek: true,
     isSelected: isCurrentWeek,
   };
@@ -70,6 +71,15 @@ const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
   )}`;
 
   const currentYear = startOfYear(selectedWeekStart);
+
+  const handleWeekSelect = useCallback(
+    (weekStart: Date) => {
+      if (onWeekChange) {
+        onWeekChange(weekStart);
+      }
+    },
+    [onWeekChange]
+  );
 
   return (
     <Menu as="div" className="relative">
@@ -101,15 +111,15 @@ const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
               {/* Current Week Option */}
               <MenuItem as={Fragment} key={currentWeekItem.id}>
                 {({}) => (
-                  <Link
-                    href={currentWeekItem.href}
+                  <button
+                    onClick={() => handleWeekSelect(currentWeekItem.weekStart)}
                     className={cn(
-                      "block border-b border-blue-200 px-2.5 py-1 text-sm leading-5 text-blue-700 no-underline hover:bg-gray-100 dark:border-blue-200-dark dark:text-blue-700-dark hover:dark:bg-gray-100-dark",
+                      "block w-full border-b border-blue-200 px-2.5 py-1 text-left text-sm leading-5 text-blue-700 hover:bg-gray-100 dark:border-blue-200-dark dark:text-blue-700-dark hover:dark:bg-gray-100-dark",
                       currentWeekItem.isSelected ? "font-bold" : "font-medium"
                     )}
                   >
                     {currentWeekItem.name}
-                  </Link>
+                  </button>
                 )}
               </MenuItem>
 
@@ -117,15 +127,15 @@ const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
               {pastWeeksMenuItems.map((item) => (
                 <MenuItem as={Fragment} key={item.id}>
                   {({}) => (
-                    <Link
-                      href={item.href}
+                    <button
+                      onClick={() => handleWeekSelect(item.weekStart)}
                       className={cn(
-                        "block px-2.5 py-1 text-sm leading-5 text-blue-700 no-underline hover:bg-gray-100 dark:text-blue-700-dark hover:dark:bg-gray-100-dark",
+                        "block w-full px-2.5 py-1 text-left text-sm leading-5 text-blue-700 hover:bg-gray-100 dark:text-blue-700-dark hover:dark:bg-gray-100-dark",
                         item.isSelected ? "font-bold" : "font-normal"
                       )}
                     >
                       {item.name}
-                    </Link>
+                    </button>
                   )}
                 </MenuItem>
               ))}
@@ -137,7 +147,7 @@ const DateSelect: FC<Props> = ({ weekStart: selectedWeekStart, className }) => {
   );
 };
 
-const WeekSelector: FC<Props> = ({ weekStart, className }) => {
+const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
   const router = useRouter();
 
   const weekEnd = addWeeks(weekStart, 1);
@@ -146,13 +156,19 @@ const WeekSelector: FC<Props> = ({ weekStart, className }) => {
     (direction: "prev" | "next") => {
       const weeksToMove = direction === "prev" ? -1 : 1;
       const newStart = addWeeks(weekStart, weeksToMove);
-      const newStartDateString = format(newStart, "yyyy-MM-dd");
 
-      router.push(
-        `/questions/?weekly_top_comments=true&start_date=${newStartDateString}`
-      );
+      if (onWeekChange) {
+        // Use client-side navigation if callback is provided
+        onWeekChange(newStart);
+      } else {
+        // Fallback to server-side navigation
+        const newStartDateString = format(newStart, "yyyy-MM-dd");
+        router.push(
+          `/questions/?weekly_top_comments=true&start_date=${newStartDateString}`
+        );
+      }
     },
-    [weekStart, router]
+    [weekStart, router, onWeekChange]
   );
 
   return (
@@ -175,7 +191,7 @@ const WeekSelector: FC<Props> = ({ weekStart, className }) => {
       </Button>
 
       <div className="flex-1 text-center text-base font-medium leading-6 text-blue-700 dark:text-blue-700-dark">
-        <DateSelect weekStart={weekStart} />
+        <DateSelect weekStart={weekStart} onWeekChange={onWeekChange} />
       </div>
 
       <Button
