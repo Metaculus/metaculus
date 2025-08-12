@@ -1,4 +1,4 @@
-import { startOfWeek, format, getDay } from "date-fns";
+import { startOfWeek, format, getDay, addWeeks } from "date-fns";
 import { redirect } from "next/navigation";
 import { FC } from "react";
 
@@ -12,13 +12,17 @@ import { WEEK_START_DAY } from "./components/constants";
 const AwaitedWeeklyTopCommentsFeed: FC<{
   searchParams: SearchParams;
 }> = async ({ searchParams }) => {
-  const currentWeekStart = startOfWeek(new Date(), {
-    weekStartsOn: WEEK_START_DAY,
-  });
+  const defaultWeekStart = addWeeks(
+    startOfWeek(new Date(), {
+      weekStartsOn: WEEK_START_DAY,
+    }),
+    -2
+  );
+
   const startDate =
     typeof searchParams.start_date === "string"
       ? new Date(searchParams.start_date)
-      : currentWeekStart;
+      : defaultWeekStart;
 
   // Redirect to the last Sunday if the provided date is not a Sunday
   if (
