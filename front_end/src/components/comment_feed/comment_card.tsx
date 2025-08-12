@@ -235,7 +235,7 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
               />
               <span>{keyFactorsVotesCount}</span>
               <span className="ml-1 hidden text-nowrap md:block">
-                {t("keyFactorVotes")}
+                {t("keyFactorImpact")}
               </span>
             </BottomStatContainer>
           )}

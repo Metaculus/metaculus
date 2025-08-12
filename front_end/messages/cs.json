@@ -1468,9 +1468,9 @@
   "exclude": "Vyloučit",
   "unexclude": "Znovu zahrnout",
   "mindsChanged": "změny názorů",
-  "keyFactorVotes": "hlasy klíčového faktoru",
   "weeklyTopComments": "Top Komentáře Týdne",
   "weeklyTopCommentsShort": "Top Komentáře",
   "entryExcluded": "Tento příspěvek není způsobilý získat umístění nebo cenu. Zde by se umístili, pokud by byli způsobilí.",
+  "keyFactorImpact": "dopad klíčového faktoru",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }
