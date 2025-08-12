@@ -187,6 +187,8 @@ AUTHENTICATION_BACKENDS = (
 AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
+# Simplified signup flow. If contains token -> allows fast signup with username only
+AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"

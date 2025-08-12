@@ -1450,5 +1450,7 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<impact></impact>的影响",
   "expandAll": "全部展开",
   "collapseAll": "全部折叠",
+  "continueTerms": "继续即表示您承认并同意Metaculus的<terms>使用条款</terms>和<privacy>隐私政策</privacy>。",
+  "chooseYourUsername": "选择您的用户名",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

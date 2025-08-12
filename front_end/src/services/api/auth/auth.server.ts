@@ -117,6 +117,16 @@ class ServerAuthApiClass extends ApiService {
       emails,
     });
   }
+
+  async simplifiedSignUp(
+    username: string,
+    auth_token: string
+  ): Promise<SignUpResponse> {
+    return this.post<SignUpResponse, { username: string; auth_token: string }>(
+      "/auth/signup/simplified/",
+      { username, auth_token }
+    );
+  }
 }
 
 const ServerAuthApi = new ServerAuthApiClass(serverFetcher);
