@@ -957,7 +957,7 @@ const Comment: FC<CommentProps> = ({
         </div>
       )}
 
-      {isCommentJustCreated && (
+      {isCommentJustCreated && postData && (
         <CoherenceLinksForm
           post={postData}
           comment={comment}

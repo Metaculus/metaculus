@@ -13,8 +13,7 @@ interface Props {
 }
 
 export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
-  const { coherenceLinks, updateCoherenceLinks, getOtherQuestions } =
-    useCoherenceLinksContext();
+  const { coherenceLinks, getOtherQuestions } = useCoherenceLinksContext();
   const t = useTranslations();
   const [coherenceLinksData, setCoherenceLinksData] = useState<CoherenceLink[]>(
     []
@@ -41,7 +40,6 @@ export const PredictionSuccessLinks: FC<Props> = ({ post }) => {
           key={link.id}
           link={link}
           post={post}
-          linkModified={updateCoherenceLinks}
           compact={true}
         ></DisplayCoherenceLink>
       ))}
