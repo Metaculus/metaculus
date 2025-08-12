@@ -1,5 +1,5 @@
 import "server-only";
-import { BECommentType, CommentOfWeekType } from "@/types/comment";
+import { BECommentType } from "@/types/comment";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 import CommentsApi, {

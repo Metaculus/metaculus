@@ -7,14 +7,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { addDays, addWeeks, format, startOfYear, startOfWeek } from "date-fns";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, Fragment, useCallback } from "react";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 import { getDateFnsLocale } from "@/utils/formatters/date";
+
 import { WEEK_START_DAY } from "./constants";
 
 type Props = {
