@@ -39,9 +39,10 @@ const TournamentsList: FC<Props> = ({
   const { params } = useSearchParams();
 
   const searchString = params.get(TOURNAMENTS_SEARCH) ?? "";
-  const sortBy = disableClientSort
+  const sortBy: TournamentsSortBy | null = disableClientSort
     ? null
-    : (params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null);
+    : (params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null) ??
+      TournamentsSortBy.StartDateDesc;
 
   const filteredItems = useMemo(
     () => filterItems(items, decodeURIComponent(searchString), sortBy),
