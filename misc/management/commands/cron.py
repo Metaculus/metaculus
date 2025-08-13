@@ -8,7 +8,10 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
-from comments.jobs import update_current_top_comments_of_week
+from comments.tasks import (
+    update_current_top_comments_of_week,
+    job_finalize_and_send_weekly_top_comments,
+)
 from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
@@ -25,6 +28,7 @@ from scoring.jobs import (
     update_global_comment_and_question_leaderboards,
 )
 from scoring.utils import update_medal_points_and_ranks
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -159,6 +163,15 @@ class Command(BaseCommand):
             ),
             trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
             id="forecast_auto_withdrawal",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        # Weekly Top Comments every Sunday at 12:00 UTC
+        scheduler.add_job(
+            close_old_connections(job_finalize_and_send_weekly_top_comments.send),
+            trigger=CronTrigger.from_crontab("0 12 * * 0"),
+            id="weekly_top_comments_finalize_and_send",
             max_instances=1,
             replace_existing=True,
         )

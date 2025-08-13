@@ -773,6 +773,29 @@ def send_forecast_autowidrawal_notification(
     return True
 
 
+def send_weekly_top_comments_notification(
+    recipients: list[str] | str,
+    top_comments: list[Comment],
+    top_comments_url: str,
+    other_usernames: str,
+    account_settings_url: str,
+):
+    send_email_with_template(
+        to=recipients,
+        subject=_("Last week’s top Metaculus comments"),
+        template_name="emails/weekly_top_comments.html",
+        context={
+            "top_comments": top_comments,
+            "top_comments_url": top_comments_url,
+            "other_usernames": other_usernames,
+            "account_settings_url": account_settings_url,
+        },
+        use_async=False,
+    )
+
+    return True
+
+
 def send_news_category_notebook_publish_notification(user: User, post: Post):
     """
     For notebooks published in News Category projects (e.g. Platform News),
