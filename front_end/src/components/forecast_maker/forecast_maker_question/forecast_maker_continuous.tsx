@@ -203,7 +203,8 @@ const ForecastMakerContinuous: FC<Props> = ({
     overlayPreviousForecast && previousForecast
       ? previousForecast.forecast_values
       : undefined;
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const communityCdf: number[] | undefined =
     latest && isForecastActive(latest) ? latest?.forecast_values : undefined;
 

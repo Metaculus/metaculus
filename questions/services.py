@@ -5,7 +5,7 @@ from typing import cast, Iterable
 
 import sentry_sdk
 from django.db import transaction
-from django.db.models import Q, QuerySet, Subquery, OuterRef, Count
+from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -86,12 +86,13 @@ def get_forecast_initial_dict(question: Question) -> dict:
 
 def build_question_forecasts(
     question: Question,
-    aggregation_method: str = AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_method: AggregationMethod | None = None,
 ):
     """
     Builds the AggregateForecasts for a question
     Stores them in the database
     """
+    aggregation_method = aggregation_method or question.default_aggregation_method
     aggregation_history = get_aggregation_history(
         question,
         aggregation_methods=[aggregation_method],
@@ -161,8 +162,8 @@ def compute_question_movement(question: Question) -> float | None:
     now = timezone.now()
 
     cp_now = get_aggregations_at_time(
-        question, now, [AggregationMethod.RECENCY_WEIGHTED]
-    ).get(AggregationMethod.RECENCY_WEIGHTED)
+        question, now, [question.default_aggregation_method]
+    ).get(question.default_aggregation_method)
 
     if not cp_now:
         return
@@ -170,8 +171,8 @@ def compute_question_movement(question: Question) -> float | None:
     cp_previous = get_aggregations_at_time(
         question,
         now - get_question_movement_period(question),
-        [AggregationMethod.RECENCY_WEIGHTED],
-    ).get(AggregationMethod.RECENCY_WEIGHTED)
+        [question.default_aggregation_method],
+    ).get(question.default_aggregation_method)
 
     if not cp_previous:
         return
@@ -905,13 +906,15 @@ def update_forecast_notification(
 
 
 @sentry_sdk.trace
-def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None):
+def get_questions_cutoff(
+    questions: Iterable[Question], group_cutoff: int | None = None
+):
     if not group_cutoff:
         return questions
 
     qs = (
         AggregateForecast.objects.filter(
-            question__in=questions, method=AggregationMethod.RECENCY_WEIGHTED
+            question__in=questions, method=F("question__default_aggregation_method")
         )
         .filter(
             (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
@@ -921,7 +924,7 @@ def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None
         .distinct("question_id")
         .values_list("question_id", "centers")
     )
-    recency_weighted = dict(qs)
+    aggregations = dict(qs)
     grouped = defaultdict(list)
 
     for q in questions:
@@ -939,7 +942,7 @@ def get_questions_cutoff(questions: Iterable[Question], group_cutoff: int = None
         """
         Extracts question aggregation forecast value
         """
-        centers = recency_weighted.get(q.id)
+        centers = aggregations.get(q.id)
 
         if not centers:
             return 0
@@ -1008,11 +1011,7 @@ def get_aggregated_forecasts_for_questions(
     questions = list(questions)
     question_map = {q.pk: q for q in questions}
     if aggregated_forecast_qs is None:
-        aggregated_forecast_qs = AggregateForecast.objects.filter(
-            method__in=[
-                AggregationMethod.RECENCY_WEIGHTED,
-            ],
-        )
+        aggregated_forecast_qs = AggregateForecast.objects.all()
 
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 
@@ -1084,7 +1083,7 @@ def calculate_period_movement_for_questions(
             # Only forecasted questions
             compare_periods_map.keys(),
             aggregated_forecast_qs=AggregateForecast.objects.filter(
-                method=AggregationMethod.RECENCY_WEIGHTED,
+                method=F("question__default_aggregation_method"),
             ).only("id", "start_time", "question_id", "end_time"),
             include_cp_history=True,
         )
@@ -1204,6 +1203,8 @@ def get_forecasts_per_user(question: Question) -> dict[int, int]:
 
 
 def get_outbound_question_links(question: Question, user: User) -> list[Question]:
-    links = CoherenceLink.objects.filter(question1=question, user=user).select_related("question2")
+    links = CoherenceLink.objects.filter(question1=question, user=user).select_related(
+        "question2"
+    )
     outbound_questions = [link.question2 for link in links]
     return outbound_questions

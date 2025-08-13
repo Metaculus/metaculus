@@ -45,4 +45,5 @@ export const ONBOARDING_TOPICS: OnboardingTopic[] = [
 ];
 
 export const extractCommunityForecast = (post: PostWithForecasts) =>
-  post.question?.aggregations?.recency_weighted?.latest?.centers?.[0] ?? 0.5;
+  post.question?.aggregations[post.question.default_aggregation_method].latest
+    ?.centers?.[0] ?? 0.5;

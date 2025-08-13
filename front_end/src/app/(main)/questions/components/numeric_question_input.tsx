@@ -11,6 +11,7 @@ import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import {
+  AggregationMethod,
   DefaultInboundOutcomeCount,
   QuestionDraft,
   QuestionWithNumericForecasts,
@@ -122,6 +123,7 @@ const NumericQuestionInput: React.FC<{
     include_bots_in_aggregates: false,
     question_weight: 1.0,
     default_score_type: "peer",
+    default_aggregation_method: AggregationMethod.recency_weighted,
     forecasts: {
       timestamps: [],
       nr_forecasters: [],
@@ -153,6 +155,9 @@ const NumericQuestionInput: React.FC<{
       : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
+      unweighted: { history: [], latest: undefined },
+      single_aggregation: { history: [], latest: undefined },
+      metaculus_prediction: { history: [], latest: undefined },
     },
   });
 
