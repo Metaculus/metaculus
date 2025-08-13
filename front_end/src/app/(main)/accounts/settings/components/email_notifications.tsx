@@ -84,6 +84,10 @@ const EmailNotifications: FC<Props> = ({ user }) => {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
       label: t("beforeAutoWithdrawal"),
     },
+    {
+      type: SubscriptionEmailType.weekly_top_comments,
+      label: t("weeklyTopComments"),
+    },
   ];
 
   return (
