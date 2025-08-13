@@ -481,6 +481,7 @@ const MultipleChoiceChart: FC<Props> = ({
                             color={getThemeColor(color)}
                             chartHeight={height - BOTTOM_PADDING}
                             text={choice}
+                            compact={isEmbedded || forFeedPage}
                           />
                         </VictoryPortal>
                       }
@@ -778,6 +779,7 @@ const ResolutionChip: FC<{
   y?: number | null;
   datum?: any;
   chartHeight: number;
+  compact?: boolean;
   text: string;
   color: string;
   scale?: {
@@ -792,9 +794,9 @@ const ResolutionChip: FC<{
   const CHIP_LINE_WIDTH = 8;
 
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, chartHeight, text, color, scale } = props;
-  const isSimplifielResolution = text.length > RESOLUTION_TEXT_LIMIT;
-  const adjustedText = isSimplifielResolution ? "Yes" : text;
+  const { x, y, compact, datum, chartHeight, text, color, scale } = props;
+  const adjustedText =
+    compact && text.length > RESOLUTION_TEXT_LIMIT ? "Yes" : text;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 
@@ -807,22 +809,21 @@ const ResolutionChip: FC<{
   if (isNil(x) || isNil(y) || isNil(scale)) {
     return null;
   }
-  const adjustedX =
+  const desiredX =
     CHIP_LINE_WIDTH * 3 > textWidth
       ? scale.x(x) - textWidth / 2
       : scale.x(x) - textWidth + CHIP_LINE_WIDTH;
+
   const adjustedY = Math.min(
     chartHeight - CHIP_HEIGHT,
     scale.y(y) - CHIP_HEIGHT / 2
   );
-  const isBottomChartChip = adjustedY === chartHeight - CHIP_HEIGHT;
-  const adjustedTextY = isBottomChartChip
-    ? adjustedY + CHIP_HEIGHT / 2
-    : scale.y(y);
+  const isBottom = adjustedY === chartHeight - CHIP_HEIGHT;
+  const adjustedTextY = isBottom ? adjustedY + CHIP_HEIGHT / 2 : scale.y(y);
   return (
     <g>
       <rect
-        x={adjustedX}
+        x={desiredX}
         y={adjustedY}
         width={textWidth}
         height={CHIP_HEIGHT}
@@ -834,7 +835,7 @@ const ResolutionChip: FC<{
       />
       <text
         ref={textRef}
-        x={adjustedX + textWidth / 2}
+        x={desiredX + textWidth / 2}
         y={adjustedTextY}
         textAnchor="middle"
         dominantBaseline="middle"
