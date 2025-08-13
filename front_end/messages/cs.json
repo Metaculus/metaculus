@@ -1452,5 +1452,14 @@
   "single_aggregation": "Jednotná agregace",
   "metaculus_prediction": "Předpověď Metaculus",
   "cpAggregationMethod": "Metoda agregace předpovědí komunity",
+  "continueTerms": "Pokračováním potvrzujete a souhlasíte s <terms>Podmínkami použití</terms> a <privacy>Zásadami ochrany osobních údajů</privacy> společnosti Metaculus.",
+  "chooseYourUsername": "Zvolte si své uživatelské jméno",
+  "marketTimingAndTradingSignals": "Načasování trhu a obchodní signály",
+  "portfolioRiskAssessment": "Hodnocení rizika portfolia",
+  "regulatoryImpactAnalysis": "Analýza dopadu regulace",
+  "creditRiskEvaluation": "Hodnocení úvěrového rizika",
+  "maAndCorporateActions": "Fúze a akvizice a korporátní akce",
+  "economicIndicatorForecasting": "Předpovídání ekonomických ukazatelů",
+  "otherFinancialForecasting": "Ostatní finanční předpovědi",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

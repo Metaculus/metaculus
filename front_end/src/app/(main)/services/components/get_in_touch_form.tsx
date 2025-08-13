@@ -21,7 +21,7 @@ import Checkbox from "./get_in_touch_checkbox";
 import { submitGetInTouchForm } from "../actions";
 
 type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];
-type ServiceOption = {
+export type ServiceOption = {
   value: ServiceType;
   labelKey: TranslationKey;
 };
@@ -56,13 +56,7 @@ const getInTouchFormSchema = z.object({
   message: z.string().optional(),
   services: z
     .array(
-      z.enum([
-        ServiceType.RUNNING_TOURNAMENT,
-        ServiceType.PRIVATE_INSTANCE,
-        ServiceType.PARTNERSHIP,
-        ServiceType.GENERAL_INQUIRY,
-        ServiceType.PRO_FORECASTING,
-      ])
+      z.enum(Object.values(ServiceType) as [ServiceType, ...ServiceType[]])
     )
     .min(1, { message: "At least one service must be selected" }),
 });
@@ -77,6 +71,7 @@ type Props = {
     | "tournaments"
     | "pro-forecasters"
     | "private-instances";
+  serviceOptions?: ServiceOption[];
 };
 
 const GetInTouchForm: FC<Props> = ({
@@ -84,6 +79,7 @@ const GetInTouchForm: FC<Props> = ({
   id,
   preselectedServices,
   pageLabel,
+  serviceOptions = SERVICE_OPTIONS,
 }) => {
   const t = useTranslations();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -186,7 +182,7 @@ const GetInTouchForm: FC<Props> = ({
               {t("whatServiceAreYouInterestedIn")}
             </p>
             <div className="mx-auto mt-4 flex flex-col items-center justify-center gap-y-3 text-blue-800 dark:text-blue-800-dark lg:mt-3">
-              {SERVICE_OPTIONS.map((serviceOption) => (
+              {serviceOptions.map((serviceOption) => (
                 <Controller
                   key={serviceOption.value}
                   name="services"
@@ -314,6 +310,16 @@ const SERVICE_LABELS = {
   [ServiceType.PRO_FORECASTING]: "Pro Forecasting",
   [ServiceType.PARTNERSHIP]: "Partnership",
   [ServiceType.GENERAL_INQUIRY]: "General Inquiry",
+
+  [ServiceType.MARKET_TIMING_AND_TRADING_SIGNALS]:
+    "Market Timing and Trading Signals",
+  [ServiceType.PORTFOLIO_RISK_ASSESSMENT]: "Portfolio Risk Assessment",
+  [ServiceType.REGULATORY_IMPACT_ANALYSIS]: "Regulatory Impact Analysis",
+  [ServiceType.CREDIT_RISK_EVALUATION]: "Credit Risk Evaluation",
+  [ServiceType.MA_AND_CORPORATE_ACTIONS]: "M&A and Corporate Actions",
+  [ServiceType.ECONOMIC_INDICATOR_FORECASTING]:
+    "Economic Indicator Forecasting",
+  [ServiceType.OTHER_FINANCIAL_FORECASTING]: "Other Financial Forecasting",
 } as const;
 
 function getServiceString(services: ServiceType[]) {

@@ -21,7 +21,7 @@ export function validateComment(
         {(tags) =>
           t.rich("commentTooShort", {
             ...tags,
-            info: (chunks) => <p className="mt-2 text-sm">{chunks}</p>,
+            info: (chunks) => <p className="my-0 mt-2 text-sm">{chunks}</p>,
             link: (chunks) => <Link href="/help/guidelines/">{chunks}</Link>,
           })
         }

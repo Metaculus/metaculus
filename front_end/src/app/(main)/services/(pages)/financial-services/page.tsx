@@ -1,0 +1,24 @@
+import {
+  metadata,
+  heading,
+  solutions,
+  tournaments,
+  privateInstances,
+  proForecasters,
+} from "./config";
+import ServicesPageTemplate from "../../components/templates/services_page_template";
+
+export { metadata };
+
+export default function FinancialServicesPage() {
+  return (
+    <ServicesPageTemplate
+      heading={heading}
+      solutions={solutions}
+      tournaments={tournaments}
+      privateInstances={privateInstances}
+      proForecasters={proForecasters}
+      vertical="financial-services"
+    />
+  );
+}

@@ -11,7 +11,21 @@ import ConsumerViewMobileLight from "@/app/(main)/services/assets/consumer-views
 import ForecastSection from "@/app/(main)/services/assets/forecast-section.png";
 import ClientImage from "@/app/(main)/services/components/client_image";
 
-const PlatfromSection: FC = () => {
+type Props = {
+  description: string;
+  richForecastingInterface: string;
+  builtInAccuracyTracking: string;
+  organizedCollaboration: string;
+  decisionRelevantInsights: string;
+};
+
+const PlatformSection: FC<Props> = ({
+  description,
+  richForecastingInterface,
+  builtInAccuracyTracking,
+  organizedCollaboration,
+  decisionRelevantInsights,
+}) => {
   const t = useTranslations();
   return (
     <div className="mt-[60px] text-center text-blue-700 dark:text-blue-700-dark sm:mt-16 lg:mt-[120px]">
@@ -19,7 +33,7 @@ const PlatfromSection: FC = () => {
         {t("theMetaculusPlatform")}
       </h3>
       <p className="m-0 mx-auto mt-3 max-w-[240px] text-pretty text-sm font-medium text-blue-700 dark:text-blue-700-dark sm:max-w-full sm:text-xl">
-        {t("advancedForecastingCapabilities")}
+        {description}
       </p>
       <div className="mt-10 text-blue-700 dark:text-blue-700-dark">
         <div className="flex flex-col xl:flex-row">
@@ -34,7 +48,7 @@ const PlatfromSection: FC = () => {
                 {t("richForecastingInterface")}
               </p>
               <p className="m-0 mt-2.5 px-4 text-sm sm:px-5 xl:px-0">
-                {t("captureForecastsAcrossTeams")}
+                {richForecastingInterface}
               </p>
             </div>
 
@@ -46,7 +60,7 @@ const PlatfromSection: FC = () => {
                 </span>
               </p>
               <p className="m-0 mt-2.5 px-4 text-sm sm:px-5 xl:px-0">
-                {t("forecastPerformanceIsTracked")}
+                {builtInAccuracyTracking}
               </p>
             </div>
           </div>
@@ -71,7 +85,7 @@ const PlatfromSection: FC = () => {
                 {t("organizedCollaboration")}
               </p>
               <p className="m-0 mt-2.5 px-4 text-sm sm:px-5 xl:px-0">
-                {t("groupForecastsByTeam")}
+                {organizedCollaboration}
               </p>
             </div>
 
@@ -80,7 +94,7 @@ const PlatfromSection: FC = () => {
                 {t("decisionRelevantInsights")}
               </p>
               <p className="m-0 mt-2.5 px-4 text-sm sm:px-5 xl:px-0">
-                {t("transformRawPredictions")}
+                {decisionRelevantInsights}
               </p>
             </div>
           </div>
@@ -90,4 +104,4 @@ const PlatfromSection: FC = () => {
   );
 };
 
-export default PlatfromSection;
+export default PlatformSection;

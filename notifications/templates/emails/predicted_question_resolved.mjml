@@ -22,9 +22,7 @@
                 </mj-raw>
 
                 <mj-text>
-                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                        {{ notification.question.title}}
-                    </a>
+                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">{{ notification.question.title}}</a>
 
                     {% if IS_SCREENSHOT_SERVICE_ENABLED %}
                     <a href="{% post_url notification.post.post_id notification.post.post_title %}">

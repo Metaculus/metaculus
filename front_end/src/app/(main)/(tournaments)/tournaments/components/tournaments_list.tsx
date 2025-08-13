@@ -24,6 +24,7 @@ type Props = {
   cardsPerPage: number;
   initialCardsCount?: number;
   withEmptyState?: boolean;
+  disableClientSort?: boolean;
 };
 
 const TournamentsList: FC<Props> = ({
@@ -32,12 +33,17 @@ const TournamentsList: FC<Props> = ({
   cardsPerPage,
   initialCardsCount,
   withEmptyState,
+  disableClientSort = false,
 }) => {
   const t = useTranslations();
   const { params } = useSearchParams();
 
   const searchString = params.get(TOURNAMENTS_SEARCH) ?? "";
-  const sortBy = params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null;
+  const sortBy: TournamentsSortBy | null = disableClientSort
+    ? null
+    : (params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null) ??
+      TournamentsSortBy.StartDateDesc;
+
   const filteredItems = useMemo(
     () => filterItems(items, decodeURIComponent(searchString), sortBy),
     [items, searchString, sortBy]

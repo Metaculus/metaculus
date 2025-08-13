@@ -296,8 +296,10 @@ export function generateTimestampXScale(
  */
 function minimumSignificantRounding(values: number[]): number[] {
   const roundedValues: number[] = [];
+  const EPS = 1e-12;
+
   function sigfigRound(val: number, sigfigs: number): number {
-    if (val === 0) return 0; // Special case for zero
+    if (val === 0) return 0;
     const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
     return Math.round(val * divisor) / divisor;
   }
@@ -306,25 +308,39 @@ function minimumSignificantRounding(values: number[]): number[] {
   values.forEach((value, i) => {
     if (i === 0 || i === values.length - 1) {
       roundedValues.push(value);
-    } else {
-      const prevValue = values[i - 1];
-      const nextValue = values[i + 1];
-      let digits = 1;
-      let candidate: number;
-      if (isNil(prevValue) || isNil(nextValue)) {
-        roundedValues.push(value);
-        return;
-      }
-      while (true) {
-        candidate = sigfigRound(value, digits);
-        if (Math.abs((value - candidate) / (value - prevValue)) < 0.2) {
-          break;
-        }
-        digits += 1;
-      }
-      roundedValues.push(candidate);
+      return;
     }
+    const prevValue = values[i - 1];
+    const nextValue = values[i + 1];
+
+    if (prevValue == null || nextValue == null) {
+      roundedValues.push(value);
+      return;
+    }
+
+    // flat/duplicate guards
+    if (
+      Math.abs(value - prevValue) < EPS ||
+      Math.abs(nextValue - value) < EPS
+    ) {
+      roundedValues.push(value);
+      return;
+    }
+
+    let candidate = value;
+    for (let digits = 1; digits <= 12; digits++) {
+      candidate = sigfigRound(value, digits);
+      const denom = value - prevValue;
+      if (
+        Math.abs(denom) < EPS ||
+        Math.abs((value - candidate) / denom) < 0.2
+      ) {
+        break;
+      }
+    }
+    roundedValues.push(candidate);
   });
+
   return roundedValues;
 }
 

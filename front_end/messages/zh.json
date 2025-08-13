@@ -1454,5 +1454,14 @@
   "single_aggregation": "单一聚合",
   "metaculus_prediction": "Metaculus 预测",
   "cpAggregationMethod": "社区预测聚合方法",
+  "continueTerms": "继续即表示您承认并同意Metaculus的<terms>使用条款</terms>和<privacy>隐私政策</privacy>。",
+  "chooseYourUsername": "选择您的用户名",
+  "marketTimingAndTradingSignals": "市场时机和交易信号",
+  "portfolioRiskAssessment": "投资组合风险评估",
+  "regulatoryImpactAnalysis": "监管影响分析",
+  "creditRiskEvaluation": "信用风险评估",
+  "maAndCorporateActions": "并购与公司行为",
+  "economicIndicatorForecasting": "经济指标预测",
+  "otherFinancialForecasting": "其他财务预测",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

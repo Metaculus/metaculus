@@ -187,6 +187,8 @@ AUTHENTICATION_BACKENDS = (
 AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
+# Simplified signup flow. If contains token -> allows fast signup with username only
+AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
@@ -528,11 +530,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = {
     "zh": ("zh-TW",),
     "zh-TW": ("zh",),
 }
-
-# This is used to mark the fallback value for translations that are not available. The default of "" is not good
-# because it prevents us from being able to set fields to empty strings. None is also not good because
-# it cannot be set from admin, in case admins want to mark a field to not be translated.
-TRANSLATIONS_FALLBACK_UNDEFINED = "--NOT_TRANSLATED--"
 
 USE_I18N = True
 
