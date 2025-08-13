@@ -76,17 +76,14 @@ const MultiChoicesChartView: FC<Props> = ({
   const { user } = useAuth();
   const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
-  const handleChartReady = useCallback(() => {
-    setIsChartReady(true);
-  }, []);
+  const handleChartReady = useCallback(() => setIsChartReady(true), []);
 
   const legendContainerRef = useRef<HTMLDivElement>(null);
   const [normalizedChartHeight, setNormalizedChartHeight] = useState<
     number | undefined
-  >(undefined);
+  >();
   useEffect(() => {
     if (!legendContainerRef.current || !chartHeight) return;
-
     setNormalizedChartHeight(
       chartHeight -
         (legendContainerRef.current?.clientHeight ?? 0) -
@@ -104,9 +101,7 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const handleChoiceChange = useCallback(
     (choice: string, checked: boolean) => {
-      if (!isInteracted.current) {
-        isInteracted.current = true;
-      }
+      if (!isInteracted.current) isInteracted.current = true;
       onChoiceItemsUpdate(
         choiceItems.map((item) =>
           item.choice === choice
@@ -117,6 +112,7 @@ const MultiChoicesChartView: FC<Props> = ({
     },
     [choiceItems, onChoiceItemsUpdate]
   );
+
   const handleChoiceHighlight = useCallback(
     (choice: string, highlighted: boolean) => {
       onChoiceItemsUpdate(
@@ -127,71 +123,63 @@ const MultiChoicesChartView: FC<Props> = ({
     },
     [choiceItems, onChoiceItemsUpdate]
   );
+
   const toggleSelectAll = useCallback(
     (isAllSelected: boolean) => {
-      if (isAllSelected) {
-        onChoiceItemsUpdate(
-          choiceItems.map((item) => ({
-            ...item,
-            active: false,
-            highlighted: false,
-          }))
-        );
-      } else {
-        onChoiceItemsUpdate(
-          choiceItems.map((item) => ({ ...item, active: true }))
-        );
-      }
+      onChoiceItemsUpdate(
+        choiceItems.map((item) =>
+          isAllSelected
+            ? { ...item, active: false, highlighted: false }
+            : { ...item, active: true }
+        )
+      );
     },
     [choiceItems, onChoiceItemsUpdate]
   );
 
-  const chartChoiceItems = useMemo(() => {
-    const primary = choiceItems.slice(
-      0,
-      embedMode ? 2 : MAX_VISIBLE_CHECKBOXES
-    );
-    const others = choiceItems.slice(embedMode ? 2 : MAX_VISIBLE_CHECKBOXES);
+  const chartChoiceItems = useMemo(
+    () => buildChartChoiceItems(choiceItems, embedMode),
+    [choiceItems, embedMode]
+  );
 
-    if (others.length === 0) return choiceItems;
-    const aggTs = others[0]?.aggregationTimestamps ?? [];
-    const userTs = others[0]?.userTimestamps ?? [];
+  const singleActive = useMemo(
+    () => getSingleActive(choiceItems),
+    [choiceItems]
+  );
+  const forceBinaryView =
+    questionType === QuestionType.MultipleChoice && singleActive !== null;
 
-    const sumNullable = (vals: Array<number | null | undefined>) => {
-      let sum = 0;
-      let hasAny = false;
-      for (const v of vals) {
-        if (v != null) {
-          sum += v;
-          hasAny = true;
-        }
-      }
-      return hasAny ? Number(sum.toFixed(6)) : null;
-    };
+  const binaryChoiceItems = useMemo(
+    () =>
+      singleActive
+        ? [
+            {
+              ...singleActive,
+              color: singleActive.color,
+              highlighted: true,
+            },
+          ]
+        : [],
+    [singleActive]
+  );
 
-    const aggregationValues = aggTs.map((_, i) =>
-      sumNullable(others.map((o) => (o.active ? o.aggregationValues[i] : 0)))
-    );
-
-    const userValues = userTs.map((_, i) =>
-      sumNullable(others.map((o) => (o.active ? o.userValues[i] : 0)))
-    );
-
-    const anyActive = others.some((o) => o.active);
-
-    const othersItem = {
-      choice: "Others",
-      color: METAC_COLORS.gray["400"],
-      active: anyActive,
-      highlighted: false,
-      aggregationTimestamps: aggTs,
-      aggregationValues,
-      userTimestamps: userTs,
-      userValues,
-    } as unknown as ChoiceItem;
-
-    return [...primary, othersItem];
-  }, [choiceItems, embedMode]);
+  const commonChartProps = {
+    actualCloseTime,
+    timestamps,
+    hideCP,
+    yLabel: embedMode ? undefined : yLabel,
+    onChartReady: handleChartReady,
+    onCursorChange,
+    scaling,
+    isClosed,
+    extraTheme: chartTheme,
+    height: normalizedChartHeight,
+    withZoomPicker: true,
+    defaultZoom: resolveDefaultZoom(defaultZoom, !!user),
+    openTime,
+    forceAutoZoom: isInteracted.current,
+    forecastAvailability,
+  } as const;
 
   return (
     <div
@@ -204,65 +192,36 @@ const MultiChoicesChartView: FC<Props> = ({
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
-        className={"relative"}
+        className="relative"
       >
-        {questionType === QuestionType.MultipleChoice ? (
-          <MultipleChoiceChart
-            actualCloseTime={actualCloseTime}
-            timestamps={timestamps}
-            choiceItems={chartChoiceItems}
-            hideCP={hideCP}
-            yLabel={embedMode ? undefined : yLabel}
-            onChartReady={handleChartReady}
-            onCursorChange={onCursorChange}
-            scaling={scaling}
-            isClosed={isClosed}
-            extraTheme={chartTheme}
-            height={normalizedChartHeight}
-            withZoomPicker
-            defaultZoom={
-              defaultZoom
-                ? defaultZoom
-                : user
-                  ? TimelineChartZoomOption.All
-                  : TimelineChartZoomOption.TwoMonths
-            }
-            openTime={openTime}
-            forceAutoZoom={isInteracted.current}
-            isEmbedded={embedMode}
-            forecastAvailability={forecastAvailability}
-            chartTitle={!embedMode ? title : undefined}
-          />
-        ) : (
+        {forceBinaryView ? (
           <GroupChart
-            actualCloseTime={actualCloseTime}
-            timestamps={timestamps}
-            choiceItems={choiceItems}
-            cursorTimestamp={cursorTimestamp}
-            hideCP={hideCP}
-            yLabel={embedMode ? undefined : yLabel}
-            onChartReady={handleChartReady}
-            onCursorChange={onCursorChange}
-            questionType={questionType}
-            scaling={scaling}
-            isClosed={isClosed}
-            extraTheme={chartTheme}
-            height={normalizedChartHeight}
-            withZoomPicker
-            defaultZoom={
-              defaultZoom
-                ? defaultZoom
-                : user
-                  ? TimelineChartZoomOption.All
-                  : TimelineChartZoomOption.TwoMonths
-            }
+            {...commonChartProps}
+            cursorTimestamp={null}
+            questionType={QuestionType.Binary}
             isEmptyDomain={
               !!forecastAvailability?.isEmpty ||
               !!forecastAvailability?.cpRevealsOn
             }
-            openTime={openTime}
-            forceAutoZoom={isInteracted.current}
-            forecastAvailability={forecastAvailability}
+            choiceItems={binaryChoiceItems}
+          />
+        ) : questionType === QuestionType.MultipleChoice ? (
+          <MultipleChoiceChart
+            {...commonChartProps}
+            isEmbedded={embedMode}
+            chartTitle={!embedMode ? title : undefined}
+            choiceItems={chartChoiceItems}
+          />
+        ) : (
+          <GroupChart
+            {...commonChartProps}
+            questionType={questionType}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            cursorTimestamp={cursorTimestamp}
+            choiceItems={choiceItems}
           />
         )}
       </div>
@@ -298,5 +257,68 @@ const MultiChoicesChartView: FC<Props> = ({
     </div>
   );
 };
+
+function resolveDefaultZoom(
+  explicit: TimelineChartZoomOption | undefined,
+  hasUser: boolean
+) {
+  return (
+    explicit ??
+    (hasUser ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths)
+  );
+}
+
+function buildChartChoiceItems(
+  all: ChoiceItem[],
+  embedMode: boolean
+): ChoiceItem[] {
+  const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
+  const primary = all.slice(0, maxPrimary);
+  const others = all.slice(maxPrimary);
+
+  if (others.length === 0) return all;
+
+  const aggTs = others[0]?.aggregationTimestamps ?? [];
+  const userTs = others[0]?.userTimestamps ?? [];
+
+  const sumNullable = (vals: Array<number | null | undefined>) => {
+    let sum = 0;
+    let hasAny = false;
+    for (const v of vals) {
+      if (v != null) {
+        sum += v;
+        hasAny = true;
+      }
+    }
+    return hasAny ? Number(sum.toFixed(6)) : null;
+  };
+
+  const aggregationValues = aggTs.map((_, i) =>
+    sumNullable(others.map((o) => (o.active ? o.aggregationValues[i] : 0)))
+  );
+  const userValues = userTs.map((_, i) =>
+    sumNullable(others.map((o) => (o.active ? o.userValues[i] : 0)))
+  );
+
+  const anyActive = others.some((o) => o.active);
+
+  const othersItem = {
+    choice: "Others",
+    color: METAC_COLORS.gray["400"],
+    active: anyActive,
+    highlighted: false,
+    aggregationTimestamps: aggTs,
+    aggregationValues,
+    userTimestamps: userTs,
+    userValues,
+  } as unknown as ChoiceItem;
+
+  return [...primary, othersItem];
+}
+
+function getSingleActive(all: ChoiceItem[]): ChoiceItem | null {
+  const actives = all.filter((c) => c.active);
+  return actives.length === 1 ? actives[0] ?? null : null;
+}
 
 export default MultiChoicesChartView;
