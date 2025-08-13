@@ -1,9 +1,9 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from projects.models import Project
 from users.models import User
 from users.serializers import validate_username
-from projects.models import Project
 
 
 class SignupSerializer(serializers.ModelSerializer):

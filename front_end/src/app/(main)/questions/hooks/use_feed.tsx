@@ -64,6 +64,7 @@ const useFeed = () => {
         case FeedType.MY_PREDICTIONS:
           if (!user) return {};
           return {
+            [POST_FOR_MAIN_FEED]: "false",
             [POST_FORECASTER_ID_FILTER]: user.id.toString(),
             [POST_ORDER_BY_FILTER]: QuestionOrder.WeeklyMovementDesc,
           };

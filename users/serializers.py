@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
 from comments.models import KeyFactor
+from projects.models import Project
 from scoring.models import LeaderboardEntry
 from users.models import User, UserCampaignRegistration
-from projects.models import Project
 
 forbidden_usernames = [
     "anonymous",
@@ -95,7 +95,9 @@ class UserPrivateSerializer(UserPublicSerializer):
     def get_should_suggest_keyfactors(self, user: User):
         return (
             KeyFactor.objects.filter(comment__author=user).exists()
-            or LeaderboardEntry.objects.filter(user=user, medal=LeaderboardEntry.Medals.GOLD).exists()
+            or LeaderboardEntry.objects.filter(
+                user=user, medal=LeaderboardEntry.Medals.GOLD
+            ).exists()
         )
 
 
@@ -128,7 +130,15 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
 
 
 def validate_username(value: str):
-    value = serializers.RegexField(r"^\w([\w.@+-]*\w)?$").run_validation(value)
+    value = serializers.RegexField(
+        r"^\w([\w.@+-]*\w)?$",
+        error_messages={
+            "invalid": (
+                "Enter a valid username. This value may contain only letters, "
+                "numbers, and @/./+/-/_ characters."
+            )
+        },
+    ).run_validation(value)
 
     if value.lower() in forbidden_usernames:
         raise serializers.ValidationError("this username is not allowed")

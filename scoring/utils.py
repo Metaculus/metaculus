@@ -2,6 +2,7 @@ import csv
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from io import StringIO
 
@@ -26,6 +27,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment
@@ -847,15 +849,15 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
         Comment.objects.filter(
             on_post__in=main_feed_posts,
             author=user,
-            created_at__lte=leaderboard.end_time,
+            created_at__lte=leaderboard.end_time or make_aware(datetime.max),
             comment_votes__isnull=False,
         )
         .annotate(
             vote_score=SubqueryAggregate(
                 "comment_votes__direction",
                 filter=Q(
-                    created_at__gte=leaderboard.start_time,
-                    created_at__lte=leaderboard.end_time,
+                    created_at__gte=leaderboard.start_time or make_aware(datetime.min),
+                    created_at__lte=leaderboard.end_time or make_aware(datetime.max),
                 ),
                 aggregate=Sum,
             )
@@ -898,8 +900,8 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
             question__in=questions,
-            start_time__gte=leaderboard.start_time,
-            start_time__lte=leaderboard.end_time,
+            start_time__gte=leaderboard.start_time or make_aware(datetime.min),
+            start_time__lte=leaderboard.end_time or make_aware(datetime.max),
         ).only("question_id", "author_id"),
         key=lambda forecast: forecast.question_id,
     )
@@ -964,7 +966,6 @@ def get_contributions(
     leaderboard: Leaderboard,
     with_live_coverage: bool = False,
 ) -> list[Contribution]:
-
     if leaderboard.score_type == LeaderboardScoreTypes.COMMENT_INSIGHT:
         return get_contribution_comment_insight(user, leaderboard)
 

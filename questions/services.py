@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 
 from coherence.models import CoherenceLink
 from notifications.constants import MailingTags
+from notifications.services import delete_scheduled_question_resolution_notifications
 from posts.models import PostUserSnapshot, PostSubscription, Notebook, Post
 from posts.services.subscriptions import (
     create_subscription_cp_change,
@@ -549,6 +550,9 @@ def unresolve_question(question: Question):
         else question.scheduled_close_time
     )
     question.save()
+
+    # Delete already scheduled resolution notifications
+    delete_scheduled_question_resolution_notifications(question)
 
     # Check if the question is part of any/all conditionals
     conditional: Conditional

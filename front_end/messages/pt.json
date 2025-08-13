@@ -1446,5 +1446,14 @@
   "questionMustDiffer": "Você não pode vincular uma pergunta a ela mesma.",
   "thisQuestionCausesOtherQuestion": "Esta pergunta tem um impacto <impact></impact> em <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tem um impacto <impact></impact> nesta pergunta",
+  "continueTerms": "Ao continuar, você reconhece e concorda com os <terms>Termos de Uso</terms> e a <privacy>Política de Privacidade</privacy> do Metaculus.",
+  "chooseYourUsername": "Escolha seu nome de usuário",
+  "marketTimingAndTradingSignals": "Cronometragem de Mercado e Sinais de Negociação",
+  "portfolioRiskAssessment": "Avaliação de Risco de Portfólio",
+  "regulatoryImpactAnalysis": "Análise de Impacto Regulatório",
+  "creditRiskEvaluation": "Avaliação de Risco de Crédito",
+  "maAndCorporateActions": "Fusões e Aquisições e Ações Corporativas",
+  "economicIndicatorForecasting": "Previsão de Indicadores Econômicos",
+  "otherFinancialForecasting": "Outras Previsões Financeiras",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }
