@@ -1,11 +1,12 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
-import React, { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
+import { METAC_COLORS } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
@@ -145,6 +146,53 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems, onChoiceItemsUpdate]
   );
 
+  const chartChoiceItems = useMemo(() => {
+    const primary = choiceItems.slice(
+      0,
+      embedMode ? 2 : MAX_VISIBLE_CHECKBOXES
+    );
+    const others = choiceItems.slice(embedMode ? 2 : MAX_VISIBLE_CHECKBOXES);
+
+    if (others.length === 0) return choiceItems;
+    const aggTs = others[0]?.aggregationTimestamps ?? [];
+    const userTs = others[0]?.userTimestamps ?? [];
+
+    const sumNullable = (vals: Array<number | null | undefined>) => {
+      let sum = 0;
+      let hasAny = false;
+      for (const v of vals) {
+        if (v != null) {
+          sum += v;
+          hasAny = true;
+        }
+      }
+      return hasAny ? Number(sum.toFixed(6)) : null;
+    };
+
+    const aggregationValues = aggTs.map((_, i) =>
+      sumNullable(others.map((o) => (o.active ? o.aggregationValues[i] : 0)))
+    );
+
+    const userValues = userTs.map((_, i) =>
+      sumNullable(others.map((o) => (o.active ? o.userValues[i] : 0)))
+    );
+
+    const anyActive = others.some((o) => o.active);
+
+    const othersItem = {
+      choice: "Others",
+      color: METAC_COLORS.gray["400"],
+      active: anyActive,
+      highlighted: false,
+      aggregationTimestamps: aggTs,
+      aggregationValues,
+      userTimestamps: userTs,
+      userValues,
+    } as unknown as ChoiceItem;
+
+    return [...primary, othersItem];
+  }, [choiceItems, embedMode]);
+
   return (
     <div
       className={cn(
@@ -162,7 +210,7 @@ const MultiChoicesChartView: FC<Props> = ({
           <MultipleChoiceChart
             actualCloseTime={actualCloseTime}
             timestamps={timestamps}
-            choiceItems={choiceItems}
+            choiceItems={chartChoiceItems}
             hideCP={hideCP}
             yLabel={embedMode ? undefined : yLabel}
             onChartReady={handleChartReady}
