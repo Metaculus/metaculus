@@ -78,17 +78,7 @@ const SimplifiedSignupModal: FC = () => {
       label={t("chooseYourUsername")}
       className="md:max-w-sm"
     >
-      <div className="mb-6 text-base leading-tight">
-        {t("registrationSignInHeading")}&nbsp;
-        <Button
-          variant="link"
-          size="md"
-          onClick={() => setCurrentModal({ type: "signin" })}
-        >
-          {t("logIn")}
-        </Button>
-      </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 ">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="w-full">
           <Input
             placeholder="Username"
@@ -109,6 +99,17 @@ const SimplifiedSignupModal: FC = () => {
             Continue
           </Button>
         </div>
+        <div className="mb-2 text-center text-sm leading-tight text-gray-700 dark:text-gray-700-dark">
+          {t("registrationSignInHeading")}&nbsp;
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => setCurrentModal({ type: "signin" })}
+          >
+            {t("logIn")}
+          </Button>
+        </div>
+        <hr className="m-0 border-gray-300 dark:border-gray-300-dark" />
         <div className="mt-2 text-center text-gray-700 dark:text-gray-700-dark">
           {t.rich("continueTerms", {
             terms: (chunks) => (
