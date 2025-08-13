@@ -631,7 +631,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(password)
             user.save()
-            token = Token.objects.create(user=user)
+            Token.objects.create(user=user)
             data += f"{user.username},{password}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
