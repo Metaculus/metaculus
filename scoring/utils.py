@@ -65,7 +65,10 @@ def score_question(
     score_users: bool | list[int] = True,
 ):
     if aggregation_methods is None:
-        aggregation_methods = [AggregationMethod.RECENCY_WEIGHTED]
+        aggregation_methods = [
+            AggregationMethod.RECENCY_WEIGHTED,
+            AggregationMethod.UNWEIGHTED,
+        ]
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     if not spot_scoring_time:
         if question.spot_scoring_time:
