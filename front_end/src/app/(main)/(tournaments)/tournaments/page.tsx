@@ -1,9 +1,10 @@
+import { isValid } from "date-fns";
+import { toDate } from "date-fns-tz";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentPreview, TournamentType } from "@/types/projects";
-import { toUtcMs } from "@/utils/date";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import TournamentFilters from "./components/tournament_filters";
@@ -88,9 +89,10 @@ export default async function Tournaments() {
 }
 
 const archiveEndTs = (t: TournamentPreview) =>
-  toUtcMs(t.forecasting_end_date) ||
-  toUtcMs(t.close_date) ||
-  toUtcMs(t.start_date);
+  [t.forecasting_end_date, t.close_date, t.start_date]
+    .map((s) => (s ? toDate(s.trim(), { timeZone: "UTC" }) : null))
+    .find((d) => d && isValid(d))
+    ?.getTime() ?? 0;
 
 function extractTournamentLists(tournaments: TournamentPreview[]) {
   const activeTournaments: TournamentPreview[] = [];
