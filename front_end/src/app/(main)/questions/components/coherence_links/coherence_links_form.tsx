@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import { APIError } from "openai";
 import { FC, useEffect, useRef, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
@@ -30,10 +29,10 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   const t = useTranslations();
 
   function extractQuestionNumbers(text: string): number[] {
-    const regex = /\/questions\/(\d+)/g;
-    const array = Array.from(text.matchAll(regex), (match) =>
-      parseInt(match[1] ?? "-1")
-    );
+    const regex = /(?:\/questions\/|<EmbeddedQuestion id=")(\d+)/g;
+    const array = Array.from(text.matchAll(regex), (match) => {
+      return parseInt(match[1] ?? "-1");
+    });
     return [...new Set(array.filter((it) => it !== -1))];
   }
 
