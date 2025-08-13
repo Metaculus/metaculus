@@ -131,7 +131,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
 
 def validate_username(value: str):
     value = serializers.RegexField(
-        r"^[\w.+-]+\Z",
+        r"^\w([\w.@+-]*\w)?$",
         error_messages={
             "invalid": (
                 "Enter a valid username. This value may contain only letters, "
