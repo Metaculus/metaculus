@@ -1462,5 +1462,7 @@
   "createQuestionLinkCommentPrompt": "您想创建一个问题链接吗？",
   "createQuestionLinkCommentPromptBody": "我们注意到您添加了另一个Metaculus问题的链接。如果您愿意，您可以在这两个问题之间创建一个因果链接。",
   "createQuestionLinkCommentPromptDisclaimer": "问题链接是私有的，只有您可见。",
+  "createQuestionLinkCommentPromptMultiple": "您想创建问题链接吗？",
+  "createQuestionLinkCommentPromptBodyMultiple": "我们注意到您添加了多个链接到其他 Metaculus 问题的 URL。如果您愿意，您可以在当前问题和链接问题之间创建因果链接。",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

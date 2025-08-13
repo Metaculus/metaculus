@@ -24,6 +24,7 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
     new Map()
   );
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [nrQuestionsInitial, setNrQuestionsInitial] = useState<number>(0);
   const text = comment.text;
   const currentQuestionId = post.question?.post_id;
   const t = useTranslations();
@@ -67,6 +68,7 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   useEffect(() => {
     const newPostIDs = extractQuestionNumbers(text);
     extractPostIDs(newPostIDs).then((result) => {
+      setNrQuestionsInitial(result.length);
       setQuestions(result);
     });
   }, [text]);
@@ -85,8 +87,16 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
 
   return (
     <div className="flex w-full grow flex-col gap-4 rounded bg-gray-0 px-3 py-2 text-base dark:bg-gray-0-dark">
-      <h1>{t("createQuestionLinkCommentPrompt")}</h1>
-      <div>{t("createQuestionLinkCommentPromptBody")}</div>
+      <h1>
+        {nrQuestionsInitial === 1
+          ? t("createQuestionLinkCommentPrompt")
+          : t("createQuestionLinkCommentPromptMultiple")}
+      </h1>
+      <div>
+        {nrQuestionsInitial === 1
+          ? t("createQuestionLinkCommentPromptBody")
+          : t("createQuestionLinkCommentPromptBodyMultiple")}
+      </div>
       <div>{t("createQuestionLinkCommentPromptDisclaimer")}</div>
       {Array.from(questions, (question) => (
         <CreateCoherenceLink
