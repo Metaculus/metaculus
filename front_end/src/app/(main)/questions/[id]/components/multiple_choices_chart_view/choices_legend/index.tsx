@@ -44,7 +44,7 @@ const ChoicesLegend: FC<Props> = ({
   }, [choices]);
 
   return (
-    <div className="relative flex flex-wrap items-center justify-center gap-3 text-xs font-normal">
+    <div className="relative flex flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
       {legendChoices.map(({ choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
