@@ -928,7 +928,6 @@
   "copyFromBranch": "從 {branch} 複製",
   "parentResolvesAsYes": "父問題解析為是",
   "parentResolvesAsNo": "父問題解析為否",
-  "othersCount": "其他 {count} 人",
   "selectAll": "全選",
   "deselectAll": "取消全選",
   "forecastDataIsEmpty": "預測數據為空",
@@ -1446,5 +1445,6 @@
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>（<strong>{unread_count_formatted}</strong> 未讀）</purple> <strong>{total_count_formatted}</strong> 總計",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {則評論} =1 {則評論} other {則評論}}",
+  "othersCount": "其他 ({count})",
   "toggledTimelines": "切換時間線"
 }

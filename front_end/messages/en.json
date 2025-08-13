@@ -974,7 +974,7 @@
   "copyFromBranch": "copy from {branch}",
   "parentResolvesAsYes": "Parent Resolves as Yes",
   "parentResolvesAsNo": "Parent Resolves as No",
-  "othersCount": "{count} others",
+  "othersCount": "Others ({count})",
   "selectAll": "select all",
   "deselectAll": "deselect all",
   "forecastDataIsEmpty": "Forecast data is empty",

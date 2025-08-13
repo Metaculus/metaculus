@@ -43,6 +43,11 @@ const ChoicesLegend: FC<Props> = ({
     return selectedCount === choices.length;
   }, [choices]);
 
+  const othersLabel = useMemo(
+    () => t("othersCount", { count: dropdownChoices.length }),
+    [t, dropdownChoices.length]
+  );
+
   return (
     <div className="relative flex flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
       {legendChoices.map(({ choice, color, active }, idx) => (
@@ -67,7 +72,7 @@ const ChoicesLegend: FC<Props> = ({
                   "bg-gray-300 dark:bg-gray-300-dark": open,
                 })}
               >
-                {t("othersCount", { count: dropdownChoices.length })}
+                {othersLabel}
                 <FontAwesomeIcon icon={faChevronDown} className="ml-1" />
               </PopoverButton>
               <PopoverPanel

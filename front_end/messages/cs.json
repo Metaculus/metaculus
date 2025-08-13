@@ -758,7 +758,6 @@
   "copyFromBranch": "kopie z {branch}",
   "parentResolvesAsYes": "Rodič vyřeší jako Ano",
   "parentResolvesAsNo": "Rodič se rozhodne jako Ne",
-  "othersCount": "{count} ostatní",
   "selectAll": "vybrat vše",
   "deselectAll": "zrušit výběr všech",
   "forecastDataIsEmpty": "Údaje o prognóze jsou prázdné",
@@ -1449,5 +1448,6 @@
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> nepřečtených)</purple> <strong>{total_count_formatted}</strong> celkem",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {komentářů} =1 {komentář} other {komentáře}}",
+  "othersCount": "Ostatní ({count})",
   "toggledTimelines": "Přepínané časové osy"
 }
