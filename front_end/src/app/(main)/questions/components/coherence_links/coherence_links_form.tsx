@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { APIError } from "openai";
 import { FC, useEffect, useRef, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
@@ -9,7 +10,8 @@ import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentType } from "@/types/comment";
 import { Post } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionType } from "@/types/question";
+import { ApiError } from "@/utils/core/errors";
 
 type Props = {
   post: Post;
@@ -39,17 +41,31 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
     setQuestions(questions.filter((current) => current.post_id !== key));
   }
 
-  useEffect(() => {
-    async function extractPostIDs(newPostIDs: number[]): Promise<Question[]> {
-      const newQuestions = [];
-      for (const id of newPostIDs) {
-        const newPost = await ClientPostsApi.getPost(id);
+  async function extractPostIDs(newPostIDs: number[]): Promise<Question[]> {
+    const newQuestions: Question[] = [];
+    const values = await Promise.allSettled(
+      Array.from(newPostIDs, (id) => ClientPostsApi.getPost(id))
+    );
+    for (const value of values) {
+      if (value.status === "fulfilled") {
+        const newPost = value.value;
         const newQuestion = newPost.question;
-        if (newQuestion) newQuestions.push(newQuestion);
+        if (newQuestion?.type === QuestionType.Binary)
+          newQuestions.push(newQuestion);
+      } else {
+        const e = value.reason;
+        const error = ApiError.isApiError(e) ? e.data : undefined;
+        if (error) {
+          console.log("API Error retrieving post.", error);
+        } else {
+          console.log(e);
+        }
       }
-      return newQuestions;
     }
+    return newQuestions;
+  }
 
+  useEffect(() => {
     const newPostIDs = extractQuestionNumbers(text);
     extractPostIDs(newPostIDs).then((result) => {
       setQuestions(result);
