@@ -285,3 +285,14 @@ class CommentsOfTheWeekEntry(TimeStampedModel):
     week_start_date = models.DateField()
     score = models.FloatField(default=0)
     excluded = models.BooleanField(default=False)
+
+
+class CommentsOfTheWeekNotification(TimeStampedModel):
+    """
+    Used to keep track of the last time a notification was sent for
+    a given week, so we avoid sending duplicate notifications
+    """
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    week_start_date = models.DateField()
+    email_sent = models.BooleanField(default=False)

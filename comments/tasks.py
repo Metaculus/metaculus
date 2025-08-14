@@ -3,7 +3,7 @@ from django.utils import timezone
 import logging
 from datetime import date, timedelta
 
-from comments.models import Comment
+from comments.models import Comment, CommentsOfTheWeekNotification
 from comments.services.notifications import (
     notify_mentioned_users,
     notify_weekly_top_comments_subscribers,
@@ -57,8 +57,20 @@ def job_finalize_and_send_weekly_top_comments():
         )
         return
 
+    already_notified = CommentsOfTheWeekNotification.objects.filter(
+        week_start_date=finalizing_week_start_date,
+        email_sent=True,
+    ).exists()
+
+    if already_notified:
+        return
+
     notify_weekly_top_comments_subscribers(
         week_start_date=finalizing_week_start_date,
+    )
+    CommentsOfTheWeekNotification.objects.create(
+        week_start_date=finalizing_week_start_date,
+        email_sent=True,
     )
 
     logger.info(
