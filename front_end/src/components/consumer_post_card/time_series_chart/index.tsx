@@ -129,7 +129,7 @@ const TimeSeriesChart: FC<Props> = ({
             left: 0,
             top: 20,
             right: 0,
-            bottom: 25,
+            bottom: 30,
           }}
           domainPadding={{
             x: chartWidth > 400 ? 80 : chartData.length > 3 ? 40 : 50,
