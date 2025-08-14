@@ -89,7 +89,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             # locations where CDF is evaluated
             continuous_range = []
             for x in np.linspace(
-                0, 1, question.inbound_outcome_count or DEFAULT_INBOUND_OUTCOME_COUNT
+                0,
+                1,
+                (question.inbound_outcome_count or DEFAULT_INBOUND_OUTCOME_COUNT) + 1,
             ):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
