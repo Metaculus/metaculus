@@ -41,7 +41,9 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   }
 
   async function deleteLink(key: number) {
-    setQuestions(questions.filter((current) => current.post_id !== key));
+    setQuestions((prevQuestions) =>
+      prevQuestions.filter((current) => current.post_id !== key)
+    );
   }
 
   async function extractPostIDs(newPostIDs: number[]): Promise<Question[]> {
@@ -86,7 +88,12 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
     if (!failed) setFormSubmitted(true);
   }
 
-  if (!currentQuestionId || questions.length === 0 || !displayed) return null;
+  if (
+    !currentQuestionId ||
+    !displayed ||
+    (questions.length === 0 && !formSubmitted)
+  )
+    return null;
 
   return (
     <CommentForm

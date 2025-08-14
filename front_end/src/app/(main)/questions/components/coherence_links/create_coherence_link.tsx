@@ -134,6 +134,8 @@ const CreateCoherenceLink = (
       const constraintName =
         message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
       setValidationErrors(getLinkCreationError(constraintName));
+    } else {
+      await cancelLink();
     }
 
     return result;
@@ -142,7 +144,6 @@ const CreateCoherenceLink = (
   async function saveQuestionLinkAndUpdate() {
     const result = await saveQuestionLink();
     if (result === null) {
-      await cancelLink();
       await updateCoherenceLinks();
     }
   }

@@ -41,7 +41,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   }
 
   async function deleteLink(key: number) {
-    setNewLinks(newLinks.filter((current) => current !== key));
+    setNewLinks((prevLinks) => prevLinks.filter((current) => current !== key));
   }
 
   useEffect(() => {
