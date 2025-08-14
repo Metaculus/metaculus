@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { getBinaryGaugeColors } from "@/utils/colors/binary_gauge_colors";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -14,11 +15,11 @@ type Props = {
 
 const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
+
+  if (question.type !== QuestionType.Binary) return null;
+
   const questionCP =
     question.aggregations.recency_weighted.latest?.centers?.[0];
-  if (question.type !== QuestionType.Binary) {
-    return null;
-  }
   const isClosed = question.status === QuestionStatus.CLOSED;
   const cpPercentage = Math.round((questionCP ?? 0) * 1000) / 10;
 
@@ -44,7 +45,8 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
     center,
     radius,
   });
-  const { textColor, strokeColor, progressColor } = getColorStyles(
+
+  const { textClass, strokeClass, hex } = getBinaryGaugeColors(
     cpPercentage,
     isClosed || isNil(questionCP)
   );
@@ -59,7 +61,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   return (
     <div
       className={cn(
-        "relative flex origin-top items-center justify-center", // origin for scaling
+        "relative flex origin-top items-center justify-center",
         {
           "scale-[0.75]": size === "sm",
           "scale-100": size === "md",
@@ -78,10 +80,10 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
             y2={gradientEndY}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={progressColor} stopOpacity="0" />
+            <stop offset="0%" stopColor={hex} stopOpacity="0" />
             <stop
               offset={`${Math.min(100, (cpPercentage / 15) * 100)}%`}
-              stopColor={progressColor}
+              stopColor={hex}
               stopOpacity="1"
             />
           </linearGradient>
@@ -93,7 +95,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           fill="none"
           stroke={undefined}
           strokeWidth={strokeWidth}
-          className={cn("opacity-15", strokeColor)}
+          className={cn("opacity-15", strokeClass)}
         />
 
         {/* Progress arc */}
@@ -123,7 +125,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
               progressArc.endPoint.y +
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
-            className={strokeColor}
+            className={strokeClass}
             strokeWidth={strokeCursorWidth}
           />
         )}
@@ -131,7 +133,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       <div
         className={cn(
           "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
-          textColor
+          textClass
         )}
       >
         <span className="text-lg font-bold leading-8">
@@ -166,70 +168,10 @@ function describeArc({
   const endY = center.y + radius * Math.sin(endAngle);
 
   return {
-    path: `
-        M ${startX} ${startY}
-        A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}
-      `,
+    path: `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`,
     endPoint: { x: endX, y: endY },
     angle: endAngle,
   };
 }
 
-function getColorStyles(percentage: number, isInactive: boolean) {
-  if (isInactive) {
-    return {
-      textColor: `text-gray-600 dark:text-gray-600-dark`,
-      strokeColor: `stroke-gray-600 dark:stroke-gray-600-dark`,
-      progressColor: "#777777",
-    };
-  }
-  if (percentage > 85) {
-    return {
-      textColor: `text-[#66A566]`,
-      strokeColor: `stroke-[#66A566]`,
-      progressColor: "#66A566",
-    };
-  } else if (percentage > 75) {
-    return {
-      textColor: `text-[#7BA06B]`,
-      strokeColor: `stroke-[#7BA06B]`,
-      progressColor: "#7BA06B",
-    };
-  } else if (percentage > 50) {
-    return {
-      textColor: `text-[#899D6E]`,
-      strokeColor: `stroke-[#899D6E]`,
-      progressColor: "#899D6E",
-    };
-  } else if (percentage > 35) {
-    return {
-      textColor: `text-[#979A72]`,
-      strokeColor: `stroke-[#979A72]`,
-      progressColor: "#979A72",
-    };
-  } else if (percentage > 25) {
-    return {
-      textColor: `text-[#A59775]`,
-      strokeColor: `stroke-[#A59775]`,
-      progressColor: "#A59775",
-    };
-  } else if (percentage > 15) {
-    return {
-      textColor: `text-[#B29378]`,
-      strokeColor: `stroke-[#B29378]`,
-      progressColor: "#B29378",
-    };
-  } else if (percentage > 10) {
-    return {
-      textColor: `text-[#C0907B]`,
-      strokeColor: `stroke-[#C0907B]`,
-      progressColor: "#C0907B",
-    };
-  }
-  return {
-    textColor: `text-[#D58B80]`,
-    strokeColor: `stroke-[#D58B80]`,
-    progressColor: "#D58B80",
-  };
-}
 export default BinaryCPBar;
