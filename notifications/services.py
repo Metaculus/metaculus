@@ -768,6 +768,7 @@ def send_forecast_autowidrawal_notification(
             "number_of_posts": len(posts_data),
         },
         use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
     return True
