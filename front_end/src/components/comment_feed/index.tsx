@@ -375,7 +375,7 @@ const CommentFeed: FC<Props> = ({
             "w-[48rem] border-transparent bg-gray-0 px-3 py-2 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark xs:px-4 lg:border":
               !inNotebook,
           },
-          compactVersion && "p-0"
+          compactVersion && "p-0 xs:p-0"
         )}
       >
         {!compactVersion && (

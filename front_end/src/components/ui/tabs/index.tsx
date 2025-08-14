@@ -31,7 +31,7 @@ export const Tabs = ({
 
 export const TabsList = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-7  py-3 dark:bg-blue-200-dark">
+    <div className="scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
       {children}
     </div>
   );
