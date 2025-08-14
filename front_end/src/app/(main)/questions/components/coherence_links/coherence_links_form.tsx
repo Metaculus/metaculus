@@ -86,12 +86,12 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   if (!currentQuestionId || questions.length === 0 || cancelled) return null;
 
   return (
-    <div className="flex w-full grow flex-col gap-4 rounded bg-gray-0 px-3 py-2 text-base dark:bg-gray-0-dark">
-      <h1>
+    <div className="mt-3 flex flex-col gap-5 rounded border border-blue-800 bg-gray-0 p-4 text-base leading-tight dark:border-blue-800-dark dark:bg-gray-0-dark md:p-6">
+      <div className={"text-2xl"}>
         {nrQuestionsInitial === 1
           ? t("createQuestionLinkCommentPrompt")
           : t("createQuestionLinkCommentPromptMultiple")}
-      </h1>
+      </div>
       <div>
         {nrQuestionsInitial === 1
           ? t("createQuestionLinkCommentPromptBody")
@@ -112,22 +112,18 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
           }}
         />
       ))}
-      <div className="ml-auto">
+
+      <div className="flex w-full items-end gap-3">
         <Button
           variant="secondary"
           size="sm"
-          className={"m-1"}
           onClick={() => setCancelled(true)}
+          className="ml-auto"
         >
           {t("close")}
         </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          type="submit"
-          className={"m-1"}
-          onClick={submitAll}
-        >
+
+        <Button variant="primary" size="sm" onClick={submitAll}>
           {t("submit")}
         </Button>
       </div>
