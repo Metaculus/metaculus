@@ -1462,5 +1462,7 @@
   "createQuestionLinkCommentPromptDisclaimer": "Odkazy na otázky jsou soukromé a viditelné pouze pro vás.",
   "createQuestionLinkCommentPromptMultiple": "Chcete vytvořit odkazy na otázky?",
   "createQuestionLinkCommentPromptBodyMultiple": "Všimli jsme si, že jste přidali více URL odkazů na další otázky na Metaculu. Pokud chcete, můžete vytvořit kauzální odkazy mezi aktuální otázkou a propojenými otázkami.",
+  "questionLinkCreated": "Odkaz na otázku byl úspěšně vytvořen!",
+  "questionLinkCreatedMultiple": "Odkazy na otázky byly úspěšně vytvořeny!",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

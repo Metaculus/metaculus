@@ -1459,5 +1459,7 @@
   "createQuestionLinkCommentPromptDisclaimer": "問題鏈接是私密的，只有您可以看到。",
   "createQuestionLinkCommentPromptMultiple": "您想要創建問題鏈接嗎？",
   "createQuestionLinkCommentPromptBodyMultiple": "我們注意到您添加了多個指向其他 Metaculus 問題的網址。如果您願意，您可以在當前問題和鏈接問題之間創建因果關聯。",
+  "questionLinkCreated": "問題鏈結成功建立！",
+  "questionLinkCreatedMultiple": "問題鏈結已成功建立！",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

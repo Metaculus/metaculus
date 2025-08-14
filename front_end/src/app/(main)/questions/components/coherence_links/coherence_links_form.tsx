@@ -1,3 +1,5 @@
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useRef, useState } from "react";
 
@@ -18,7 +20,8 @@ type Props = {
 };
 
 export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
-  const [cancelled, setCancelled] = useState<boolean>(false);
+  const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
+  const [displayed, setDisplayed] = useState<boolean>(true);
   const { updateCoherenceLinks } = useCoherenceLinksContext();
   const childRefs = useRef<Map<number, CreateCoherenceLinkRefType | null>>(
     new Map()
@@ -80,38 +83,56 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
       if (saveStatus === false) failed = true;
     }
     await updateCoherenceLinks();
-    if (!failed) setCancelled(true);
+    if (!failed) setFormSubmitted(true);
   }
 
-  if (!currentQuestionId || questions.length === 0 || cancelled) return null;
+  if (!currentQuestionId || questions.length === 0 || !displayed) return null;
 
   return (
-    <CommentForm onCancel={() => setCancelled(true)} onSubmit={submitAll}>
-      <div className={"text-2xl"}>
-        {nrQuestionsInitial === 1
-          ? t("createQuestionLinkCommentPrompt")
-          : t("createQuestionLinkCommentPromptMultiple")}
-      </div>
-      <div>
-        {nrQuestionsInitial === 1
-          ? t("createQuestionLinkCommentPromptBody")
-          : t("createQuestionLinkCommentPromptBodyMultiple")}
-      </div>
-      <div>{t("createQuestionLinkCommentPromptDisclaimer")}</div>
-      {Array.from(questions, (question) => (
-        <CreateCoherenceLink
-          post={post}
-          linkKey={question.post_id}
-          key={question.post_id}
-          deleteLink={deleteLink}
-          suggestedOtherQuestion={question}
-          shouldDisplayDelete={questions.length !== 1}
-          shouldDisplaySave={false}
-          ref={(el) => {
-            childRefs.current.set(question.post_id, el);
-          }}
-        />
-      ))}
+    <CommentForm
+      onCancel={() => setDisplayed(false)}
+      onSubmit={submitAll}
+      buttonsDisplayed={!formSubmitted}
+    >
+      {formSubmitted && (
+        <div className={"flex flex-auto justify-between"}>
+          <div className={"text-xl"}>
+            {nrQuestionsInitial === 1
+              ? t("questionLinkCreated")
+              : t("questionLinkCreatedMultiple")}
+          </div>
+          <FontAwesomeIcon icon={faXmark} onClick={() => setDisplayed(false)} />
+        </div>
+      )}
+      {!formSubmitted && (
+        <>
+          <div className={"text-2xl"}>
+            {nrQuestionsInitial === 1
+              ? t("createQuestionLinkCommentPrompt")
+              : t("createQuestionLinkCommentPromptMultiple")}
+          </div>
+          <div>
+            {nrQuestionsInitial === 1
+              ? t("createQuestionLinkCommentPromptBody")
+              : t("createQuestionLinkCommentPromptBodyMultiple")}
+          </div>
+          <div>{t("createQuestionLinkCommentPromptDisclaimer")}</div>
+          {Array.from(questions, (question) => (
+            <CreateCoherenceLink
+              post={post}
+              linkKey={question.post_id}
+              key={question.post_id}
+              deleteLink={deleteLink}
+              suggestedOtherQuestion={question}
+              shouldDisplayDelete={questions.length !== 1}
+              shouldDisplaySave={false}
+              ref={(el) => {
+                childRefs.current.set(question.post_id, el);
+              }}
+            />
+          ))}
+        </>
+      )}
     </CommentForm>
   );
 };

@@ -1462,5 +1462,7 @@
   "createQuestionLinkCommentPromptDisclaimer": "Los enlaces de preguntas son privados y solo los puedes ver tú.",
   "createQuestionLinkCommentPromptMultiple": "¿Te gustaría crear enlaces de preguntas?",
   "createQuestionLinkCommentPromptBodyMultiple": "Notamos que agregaste varias URLs a otras preguntas de Metaculus. Si lo deseas, puedes crear enlaces causales entre la pregunta actual y las preguntas enlazadas.",
+  "questionLinkCreated": "¡Enlace de pregunta creado con éxito!",
+  "questionLinkCreatedMultiple": "¡Enlaces de preguntas creados con éxito!",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }
