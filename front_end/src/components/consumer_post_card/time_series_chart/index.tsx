@@ -2,6 +2,7 @@
 
 import "./styles.scss";
 
+import { parse, isValid } from "date-fns";
 import { isNil, round } from "lodash";
 import { useLocale } from "next-intl";
 import { FC, useMemo } from "react";
@@ -65,7 +66,16 @@ const TimeSeriesChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const chartData = buildChartData(questions, locale);
+  const orderedQuestions = useMemo(
+    () =>
+      [...questions]
+        .map((q, i) => ({ q, i, k: monthYearKey(q.label) }))
+        .sort((a, b) => (a.k === b.k ? a.i - b.i : a.k - b.k))
+        .map(({ q }) => q),
+    [questions]
+  );
+
+  const chartData = buildChartData(orderedQuestions, locale);
   const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
   const { labelVisibilityMap: tickLabelVisibilityMap, widthPerLabel } =
@@ -81,9 +91,8 @@ const TimeSeriesChart: FC<Props> = ({
 
   // Forecast availabilities map
   const questionAvailabilities = useMemo(
-    () =>
-      questions.map((question) => getQuestionForecastAvailability(question)),
-    [questions]
+    () => orderedQuestions.map((q) => getQuestionForecastAvailability(q)),
+    [orderedQuestions]
   );
 
   // Show upcoming label if any empty questions have cpRevealsOn
@@ -508,5 +517,24 @@ function adjustChartData(
       unresolvedPoints.length === 0 ? ([0, 1] as [number, number]) : undefined,
   };
 }
+const F = [
+  "MMM-yy",
+  "MMM yy",
+  "MMM yyyy",
+  "MM/yyyy",
+  "MM-yyyy",
+  "yyyy-MM",
+  "yyyy/MM",
+] as const;
+
+const monthYearKey = (s?: string): number => {
+  if (!s) return Infinity;
+  s = s.replace(/[’]/g, "'").replace(/[—–]/g, "-").trim();
+  for (const f of F) {
+    const d = parse(s, f, new Date());
+    if (isValid(d)) return d.getFullYear() * 12 + d.getMonth();
+  }
+  return Infinity;
+};
 
 export default TimeSeriesChart;
