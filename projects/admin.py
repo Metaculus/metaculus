@@ -1,3 +1,5 @@
+import random
+
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
 from django.contrib import admin
@@ -9,10 +11,13 @@ from django.urls import path
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
+from rest_framework.authtoken.models import Token
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission, ProjectIndexQuestion
+from projects.permissions import ObjectPermission
 from questions.models import Question
+from users.models import User
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from utils.csv_utils import export_all_data_for_questions
@@ -377,6 +382,8 @@ class ProjectAdmin(CustomTranslationAdmin):
         "email_me_questions_data_for_projects",
         "email_me_questions_data_for_projects_anonymized",
         "update_translations",
+        "generate_50_users_password_simple",
+        "generate_50_users_password_complex",
     ]
 
     change_form_template = "admin/projects/project_change_form.html"
@@ -532,6 +539,117 @@ class ProjectAdmin(CustomTranslationAdmin):
 
     email_me_questions_data_for_projects_anonymized.short_description = (
         "Email Me Question Data for Selected Projects Anonymized"
+    )
+
+    def generate_50_users_password_simple(self, request, queryset: QuerySet[Project]):
+        adjectives = (
+            "Brave_Calm_Clever_Curious_Daring_Eager_Fancy_Gentle_Happy_Jolly_Kind_Lively"
+            "_Lucky_Mighty_Nimble_Patient_Proud_Quick_Quiet_Rapid_Shiny_Silly_Smart_Swift_"
+            "Witty_Zany_Bright_Bold_Charming_Cheerful_Cool_Dashing_Fearless_Glorious_"
+            "Graceful_Helpful_Inventive_Joyful_Loyal_Playful_Powerful_Radiant_Resourceful_"
+            "Sincere_Spirited_Steady_Sturdy_Thoughtful_Valiant_Vivid".split("_")
+        )
+        nouns = (
+            "Ant_Badger_Bear_Beetle_Bison_Cat_Cougar_Crane_Crow_Deer_Dog_Dolphin_Dragon_"
+            "Eagle_Falcon_Ferret_Fox_Frog_Giraffe_Goat_Goose_Hawk_Heron_Horse_Hound_Jaguar"
+            "_Jay_Koala_Leopard_Lion_Lynx_Moose_Otter_Owl_Panther_Panda_Penguin_Puma_"
+            "Rabbit_Raven_Salmon_Seal_Shark_Sparrow_Swan_Tiger_Toad_Turtle_Viper_Wolf_Wren"
+            "_Yak_Zebra".split("_")
+        )
+        data = ""
+        for _ in range(50):
+            username = (
+                f"{random.choice(adjectives)}"
+                f"{random.choice(nouns)}"
+                f"{random.randint(1000, 9999)}"
+            )
+
+            user = User.objects.create(
+                username=username,
+                is_active=True,
+                newsletter_optin=False,
+                check_for_spam=False,
+                is_onboarding_complete=True,
+            )
+            user.set_password(username)
+            user.save()
+            Token.objects.create(user=user)
+            data += f"{user.username}\n"
+            for project in queryset:
+                ProjectUserPermission.objects.create(
+                    user=user,
+                    project=project,
+                    permission=ObjectPermission.FORECASTER,
+                )
+
+        # return csv file as a response
+        filename = "new_users-password_same_as_username.csv"
+
+        response = HttpResponse(data, content_type="text/csv")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+
+        return response
+
+    generate_50_users_password_simple.short_description = (
+        "Generate 50 users with username == password & download their data as a CSV"
+    )
+
+    def generate_50_users_password_complex(self, request, queryset: QuerySet[Project]):
+        adjectives = (
+            "Brave_Calm_Clever_Curious_Daring_Eager_Fancy_Gentle_Happy_Jolly_Kind_Lively"
+            "_Lucky_Mighty_Nimble_Patient_Proud_Quick_Quiet_Rapid_Shiny_Silly_Smart_Swift_"
+            "Witty_Zany_Bright_Bold_Charming_Cheerful_Cool_Dashing_Fearless_Glorious_"
+            "Graceful_Helpful_Inventive_Joyful_Loyal_Playful_Powerful_Radiant_Resourceful_"
+            "Sincere_Spirited_Steady_Sturdy_Thoughtful_Valiant_Vivid".split("_")
+        )
+        nouns = (
+            "Ant_Badger_Bear_Beetle_Bison_Cat_Cougar_Crane_Crow_Deer_Dog_Dolphin_Dragon_"
+            "Eagle_Falcon_Ferret_Fox_Frog_Giraffe_Goat_Goose_Hawk_Heron_Horse_Hound_Jaguar"
+            "_Jay_Koala_Leopard_Lion_Lynx_Moose_Otter_Owl_Panther_Panda_Penguin_Puma_"
+            "Rabbit_Raven_Salmon_Seal_Shark_Sparrow_Swan_Tiger_Toad_Turtle_Viper_Wolf_Wren"
+            "_Yak_Zebra".split("_")
+        )
+        data = ""
+        for _ in range(50):
+            username = (
+                f"{random.choice(adjectives)}"
+                f"{random.choice(nouns)}"
+                f"{random.randint(1000, 9999)}"
+            )
+            password = (
+                f"{random.choice(adjectives)}"
+                f"{random.choice(nouns)}"
+                f"{random.randint(1000, 9999)}"
+            )
+
+            user = User.objects.create(
+                username=username,
+                is_active=True,
+                newsletter_optin=False,
+                check_for_spam=False,
+                is_onboarding_complete=True,
+            )
+            user.set_password(password)
+            user.save()
+            Token.objects.create(user=user)
+            data += f"{user.username},{password}\n"
+            for project in queryset:
+                ProjectUserPermission.objects.create(
+                    user=user,
+                    project=project,
+                    permission=ObjectPermission.FORECASTER,
+                )
+
+        # return csv file as a response
+        filename = "new_users-columns-are-username-password.csv"
+
+        response = HttpResponse(data, content_type="text/csv")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+
+        return response
+
+    generate_50_users_password_complex.short_description = (
+        "Generate 50 users with random passwords and download their data as a CSV"
     )
 
     def get_urls(self):

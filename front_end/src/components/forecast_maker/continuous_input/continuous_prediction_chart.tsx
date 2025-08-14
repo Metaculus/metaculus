@@ -102,7 +102,8 @@ const ContinuousPredictionChart: FC<Props> = ({
 
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
-    const latest = question.aggregations.recency_weighted.latest;
+    const latest =
+      question.aggregations[question.default_aggregation_method].latest;
     if (showCP && latest && isForecastActive(latest)) {
       charts.push({
         pmf: cdfToPmf(latest.forecast_values),
@@ -133,7 +134,7 @@ const ContinuousPredictionChart: FC<Props> = ({
 
     return charts;
   }, [
-    question.aggregations.recency_weighted.latest,
+    question.aggregations[question.default_aggregation_method].latest,
     question.status,
     dataset,
     readOnly,

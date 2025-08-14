@@ -20,7 +20,7 @@ from questions.models import Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
-from questions.types import AggregationMethod, QuestionMovement
+from questions.types import QuestionMovement
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
@@ -67,6 +67,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "include_bots_in_aggregates",
             "question_weight",
             "default_score_type",
+            "default_aggregation_method",
             "label",
             "unit",
             "open_upper_bound",
@@ -139,6 +140,8 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
             "include_bots_in_aggregates",
+            "default_score_type",
+            "default_aggregation_method",
             "question_weight",
             "range_max",
             "range_min",
@@ -281,7 +284,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "description",
             "group_variable",
             "subquestions_order",
-            "graph_type"
+            "graph_type",
         )
 
     def validate_questions(self, data: list[str]):
@@ -597,7 +600,7 @@ def serialize_question(
     )
 
     if question_movement:
-        serialized_data["aggregations"][AggregationMethod.RECENCY_WEIGHTED][
+        serialized_data["aggregations"][question.default_aggregation_method][
             "movement"
         ] = question_movement
 

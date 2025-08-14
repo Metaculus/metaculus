@@ -86,8 +86,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const hasUserActiveForecast = hasLatestActiveYes || hasLatestActiveNo;
 
   const latestAggregationYes =
-    question_yes.aggregations?.recency_weighted.latest;
-  const latestAggregationNo = question_no.aggregations?.recency_weighted.latest;
+    question_yes.aggregations[question_yes.default_aggregation_method].latest;
+  const latestAggregationNo =
+    question_no.aggregations[question_no.default_aggregation_method].latest;
 
   const prevYesAggregationValue =
     latestAggregationYes && isForecastActive(latestAggregationYes)

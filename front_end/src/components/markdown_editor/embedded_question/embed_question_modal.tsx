@@ -143,7 +143,8 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
 const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
   question,
 }) => {
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const prediction = latest?.centers?.[0];
 
   return (

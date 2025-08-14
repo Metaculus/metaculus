@@ -57,7 +57,8 @@ const ForecastMakerBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const communityForecast =
     latest && isForecastActive(latest) ? latest?.centers?.[0] : undefined;
 

@@ -13,7 +13,8 @@ type Props = {
 
 const QuestionForecastChip: FC<Props> = ({ question }) => {
   const isClosed = question.status === QuestionStatus.CLOSED;
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const communityPredictionDisplayValue = latest
     ? getPredictionDisplayValue(latest.centers?.[0], {
         questionType: question.type,
