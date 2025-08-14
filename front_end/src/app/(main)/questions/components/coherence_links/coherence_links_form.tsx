@@ -2,10 +2,10 @@ import { useTranslations } from "next-intl";
 import { FC, useEffect, useRef, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
+import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
 import CreateCoherenceLink, {
   CreateCoherenceLinkRefType,
 } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
-import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentType } from "@/types/comment";
 import { Post } from "@/types/post";
@@ -86,7 +86,7 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
   if (!currentQuestionId || questions.length === 0 || cancelled) return null;
 
   return (
-    <div className="mt-3 flex flex-col gap-5 rounded border border-blue-800 bg-gray-0 p-4 text-base leading-tight dark:border-blue-800-dark dark:bg-gray-0-dark md:p-6">
+    <CommentForm onCancel={() => setCancelled(true)} onSubmit={submitAll}>
       <div className={"text-2xl"}>
         {nrQuestionsInitial === 1
           ? t("createQuestionLinkCommentPrompt")
@@ -112,21 +112,6 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
           }}
         />
       ))}
-
-      <div className="flex w-full items-end gap-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setCancelled(true)}
-          className="ml-auto"
-        >
-          {t("close")}
-        </Button>
-
-        <Button variant="primary" size="sm" onClick={submitAll}>
-          {t("submit")}
-        </Button>
-      </div>
-    </div>
+    </CommentForm>
   );
 };

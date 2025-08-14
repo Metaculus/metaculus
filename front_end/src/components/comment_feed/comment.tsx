@@ -14,6 +14,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
 import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
@@ -916,9 +917,15 @@ const Comment: FC<CommentProps> = ({
       )}
 
       {isKeyfactorsFormOpen && (
-        <div
-          ref={keyFactorFormRef}
-          className="mt-3 flex flex-col gap-5 rounded border border-blue-800 bg-gray-0 p-4 dark:border-blue-800-dark dark:bg-gray-0-dark md:p-6"
+        <CommentForm
+          onSubmit={handleSubmit}
+          onCancel={onCancel}
+          cancelDisabled={isPending}
+          submitDisabled={
+            isPending ||
+            (!keyFactors.some((k) => k.trim() !== "") &&
+              !suggestedKeyFactors.some((k) => k.selected))
+          }
         >
           <AddKeyFactorsForm
             keyFactors={keyFactors}
@@ -930,31 +937,7 @@ const Comment: FC<CommentProps> = ({
             setSuggestedKeyFactors={setSuggestedKeyFactors}
           />
           <FormError errors={keyFactorsErrors} />
-          <div className="flex w-full items-end gap-3">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onCancel}
-              className="ml-auto"
-              disabled={isPending}
-            >
-              {t("close")}
-            </Button>
-
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSubmit}
-              disabled={
-                isPending ||
-                (!keyFactors.some((k) => k.trim() !== "") &&
-                  !suggestedKeyFactors.some((k) => k.selected))
-              }
-            >
-              {t("submit")}
-            </Button>
-          </div>
-        </div>
+        </CommentForm>
       )}
 
       {isCommentJustCreated && postData && (
