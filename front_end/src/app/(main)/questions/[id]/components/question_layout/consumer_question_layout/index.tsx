@@ -14,6 +14,7 @@ import QuestionTimeline, {
   hasTimeline as hasTimelineFn,
 } from "../../question_view/consumer_question_view/timeline";
 import NewsMatch from "../../sidebar/news_match";
+import NewsPresence from "../../sidebar/news_match/news_presence";
 import QuestionInfo from "../question_info";
 import QuestionSection from "../question_section";
 
@@ -40,7 +41,9 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               {hasTimeline && (
                 <TabsTab value="timeline">{t("timeline")}</TabsTab>
               )}
-              <TabsTab value="news">{t("inNews")}</TabsTab>
+              <NewsPresence questionId={postData.id}>
+                <TabsTab value="news">{t("inNews")}</TabsTab>
+              </NewsPresence>
               <TabsTab value="info">{t("info")}</TabsTab>
             </TabsList>
 
@@ -56,11 +59,13 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 />
               </TabsSection>
             )}
-            <TabsSection value="news">
-              <Suspense fallback={null}>
-                <NewsMatch questionId={postData.id} withoutToggle />
-              </Suspense>
-            </TabsSection>
+            <NewsPresence questionId={postData.id}>
+              <TabsSection value="news">
+                <Suspense fallback={null}>
+                  <NewsMatch questionId={postData.id} withoutToggle />
+                </Suspense>
+              </TabsSection>
+            </NewsPresence>
             <TabsSection value="info">
               <QuestionInfo
                 postData={postData}
