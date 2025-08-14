@@ -134,16 +134,17 @@ const CreateCoherenceLink = (
       const constraintName =
         message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
       setValidationErrors(getLinkCreationError(constraintName));
-    } else {
-      await cancelLink();
     }
 
     return result;
   }
 
   async function saveQuestionLinkAndUpdate() {
-    await saveQuestionLink();
-    await updateCoherenceLinks();
+    const result = await saveQuestionLink();
+    if (result === null) {
+      await cancelLink();
+      await updateCoherenceLinks();
+    }
   }
 
   useImperativeHandle(forwardedRef, () => ({
