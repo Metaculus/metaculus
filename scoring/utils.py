@@ -520,10 +520,7 @@ def calculate_medals_points_at_time(at_time):
     # Look only at leaderboard entries which are closed before the timestamp
     relevant_entries_qs = LeaderboardEntry.objects.filter(
         Q(leaderboard__end_time__lte=at_time)
-        | Q(
-            leaderboard__end_time__isnull=True,
-            leaderboard__project__close_date__lte=at_time,
-        ),
+        | Q(leaderboard__project__close_date__lte=at_time),
         leaderboard__project__default_permission=ObjectPermission.FORECASTER,
     )
 
