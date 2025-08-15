@@ -40,27 +40,31 @@ const QuestionPredictionTooltip: FC<Props> = ({
   }
 
   return (
-    <div className="w-max rounded border border-gray-300 py-2 dark:border-gray-300-dark">
+    <div className="relative w-max min-w-[200px] rounded border border-gray-300 px-3 py-2.5 dark:border-gray-300-dark">
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-8 px-3">
-          <span className="font-medium capitalize text-olive-700 dark:text-olive-700-dark">
+        <div className="flex w-full items-center justify-between">
+          <span className="text-sm font-medium capitalize text-olive-700 dark:text-olive-700-dark">
             {t("community")}
           </span>
-          <span>{communityPrediction ? communityPrediction : "?"}</span>
+          <span className="text-sm tabular-nums">
+            {communityPrediction ? communityPrediction : "?"}
+          </span>
         </div>
 
         {userPrediction && (
-          <div className="flex items-center justify-between gap-8 px-3">
-            <span className="font-medium capitalize text-orange-700 dark:text-orange-700-dark">
+          <div className="flex w-full items-center justify-between">
+            <span className="text-xsfont-medium capitalize text-orange-700 dark:text-orange-700-dark">
               {t("myPrediction")}
             </span>
-            <span>{userPrediction}</span>
+            <span className="text-sm tabular-nums">{userPrediction}</span>
           </div>
         )}
-        <hr className="border-gray-200 dark:border-gray-200-dark" />
-        <div className="flex items-center justify-between gap-8 px-3">
-          <span className="font-medium">{t("totalForecastersLabel")}</span>
-          <span>{totalForecasters}</span>
+        <hr className="relative mx-[-12px] border-gray-300 dark:border-gray-300-dark" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-sm font-medium">
+            {t("totalForecastersLabel")}
+          </span>
+          <span className="text-sm tabular-nums">{totalForecasters}</span>
         </div>
       </div>
     </div>
