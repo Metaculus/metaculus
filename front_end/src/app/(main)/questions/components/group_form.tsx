@@ -338,6 +338,14 @@ const GroupForm: React.FC<Props> = ({
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<boolean[]>(
     subQuestions.map(() => true)
   );
+  const allExpanded = collapsedSubQuestions.every(Boolean);
+
+  const toggleAllSubQuestions = useCallback(() => {
+    setCollapsedSubQuestions(() =>
+      Array(subQuestions.length).fill(!allExpanded)
+    );
+  }, [subQuestions.length, allExpanded]);
+
   const groupQuestionSchema = createGroupQuestionSchema(t);
   const form = useForm<any>({
     mode: "all",
@@ -610,7 +618,17 @@ const GroupForm: React.FC<Props> = ({
           />
         </InputContainer>
         <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">
-          <h4 className="m-0 capitalize">{t("subquestions")}</h4>
+          <div className="-m-4 mb-0 flex items-center justify-between bg-gray-200/80 p-4 pb-0 backdrop-blur supports-[backdrop-filter]:bg-gray-200/60 dark:bg-gray-200-dark/80">
+            <h4 className="m-0 capitalize">{t("subquestions")}</h4>
+            <Button
+              onClick={toggleAllSubQuestions}
+              size="xs"
+              variant="tertiary"
+              className="ml-2"
+            >
+              {allExpanded ? t("collapseAll") : t("expandAll")}
+            </Button>
+          </div>
           <InputContainer
             labelText={t("groupSorting")}
             explanation={t("groupSortingDescription")}
