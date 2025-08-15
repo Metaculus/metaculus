@@ -52,55 +52,49 @@ const MCPredictionsTooltip: FC<Props> = ({
       </thead>
       <tbody>
         {communityPredictions.map(
-          ({ color, choiceLabel, valueElement }, idx) => (
-            <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
-              {!!color && (
+          ({ color, choiceLabel, valueElement }, idx) => {
+            const choiceValueElement =
+              userPredictions?.find((item) => item.choiceLabel === choiceLabel)
+                ?.valueElement || "?";
+
+            return (
+              <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
+                {!!color && (
+                  <td
+                    className={cn(
+                      "w-6 pl-3",
+                      idx === 0 ? "pb-1.5 pt-2.5" : "py-2"
+                    )}
+                  >
+                    <ChoiceIcon color={color} />
+                  </td>
+                )}
+                <th
+                  className={cn(
+                    "max-w-[150px] truncate pl-2 pr-1 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark",
+                    idx === 0 ? "pb-1 pt-2.5" : "py-1"
+                  )}
+                  colSpan={color ? 1 : 2}
+                >
+                  {choiceLabel}
+                </th>
+                <td className="px-1.5 py-1 text-right text-sm font-normal tabular-nums text-olive-800 dark:text-olive-800-dark">
+                  {valueElement}
+                </td>
+
                 <td
                   className={cn(
-                    "w-6 pl-3",
-                    idx === 0 ? "pb-1.5 pt-2.5" : "py-2"
+                    "px-2.5 py-1 text-sm font-normal tabular-nums",
+                    choiceValueElement === "?" || choiceValueElement === "..."
+                      ? "text-center text-gray-500 dark:text-gray-500-dark"
+                      : "text-right text-orange-800 dark:text-orange-800-dark"
                   )}
                 >
-                  <ChoiceIcon color={color} />
+                  {choiceValueElement}
                 </td>
-              )}
-              <th
-                className={cn(
-                  "max-w-[150px] truncate pl-2 pr-1 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark",
-                  idx === 0 ? "pb-1 pt-2.5" : "py-1"
-                )}
-                colSpan={color ? 1 : 2}
-              >
-                {choiceLabel}
-              </th>
-              <td className="px-1.5 py-1 text-right text-sm font-normal tabular-nums text-olive-800 dark:text-olive-800-dark">
-                {valueElement}
-              </td>
-
-              <td
-                className={cn("px-2.5 py-1 text-sm font-normal tabular-nums", {
-                  "text-right text-orange-800 dark:text-orange-800-dark":
-                    userPredictions?.find(
-                      (item) => item.choiceLabel === choiceLabel
-                    )?.valueElement !== "?" &&
-                    userPredictions?.find(
-                      (item) => item.choiceLabel === choiceLabel
-                    )?.valueElement !== "...",
-                  "text-center text-gray-500 dark:text-gray-500-dark":
-                    userPredictions?.find(
-                      (item) => item.choiceLabel === choiceLabel
-                    )?.valueElement === "?" ||
-                    userPredictions?.find(
-                      (item) => item.choiceLabel === choiceLabel
-                    )?.valueElement === "...",
-                })}
-              >
-                {userPredictions?.find(
-                  (item) => item.choiceLabel === choiceLabel
-                )?.valueElement || "?"}
-              </td>
-            </tr>
-          )
+              </tr>
+            );
+          }
         )}
         {FooterRow}
       </tbody>
