@@ -1459,5 +1459,12 @@
   "maAndCorporateActions": "Fusões e Aquisições e Ações Corporativas",
   "economicIndicatorForecasting": "Previsão de Indicadores Econômicos",
   "otherFinancialForecasting": "Outras Previsões Financeiras",
+  "createQuestionLinkCommentPrompt": "Gostaria de criar um Link de Pergunta?",
+  "createQuestionLinkCommentPromptBody": "Notamos que você adicionou uma URL para outra pergunta no Metaculus. Se quiser, você pode criar um link causal entre essas duas perguntas.",
+  "createQuestionLinkCommentPromptDisclaimer": "Os Links de Perguntas são privados e só são visíveis para você.",
+  "createQuestionLinkCommentPromptMultiple": "Você gostaria de criar Links de Perguntas?",
+  "createQuestionLinkCommentPromptBodyMultiple": "Notamos que você adicionou várias URLs para outras perguntas do Metaculus. Se desejar, você pode criar links causais entre a pergunta atual e as perguntas vinculadas.",
+  "questionLinkCreated": "Link de Pergunta criado com sucesso!",
+  "questionLinkCreatedMultiple": "Links de Pergunta criados com sucesso!",
   "withdrawAfterPercentSetting2": "da duração total da pergunta"
 }

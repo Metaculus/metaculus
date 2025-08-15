@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { deleteCoherenceLink } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
@@ -16,7 +17,6 @@ type Props = {
   link: CoherenceLink;
   post: Post;
   compact: boolean;
-  linkModified: () => Promise<void>;
 };
 
 const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
@@ -49,15 +49,11 @@ const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
   }
 };
 
-export const DisplayCoherenceLink: FC<Props> = ({
-  link,
-  post,
-  compact,
-  linkModified,
-}) => {
+export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   const isFirstQuestion = link.question1_id === post.question?.id;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [canceled, setCanceled] = useState<boolean>(false);
+  const { updateCoherenceLinks } = useCoherenceLinksContext();
   const t = useTranslations();
 
   useEffect(() => {
@@ -76,7 +72,7 @@ export const DisplayCoherenceLink: FC<Props> = ({
   async function deleteLink() {
     setCanceled(true);
     await deleteCoherenceLink(link);
-    await linkModified();
+    await updateCoherenceLinks();
   }
 
   if (!otherQuestion || canceled) return null;

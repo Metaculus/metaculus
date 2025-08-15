@@ -1449,6 +1449,11 @@
   "expandAll": "Expand All",
   "cpAggregationMethod": "Community Prediction Aggregation Method",
   "collapseAll": "Collapse All",
+  "createQuestionLinkCommentPrompt": "Would you like to create a Question Link?",
+  "createQuestionLinkCommentPromptMultiple": "Would you like to create Question Links?",
+  "createQuestionLinkCommentPromptBody": "We noticed you added a URL to another Metaculus question. If you'd like, you can create a causal link between these two questions.",
+  "createQuestionLinkCommentPromptBodyMultiple": "We noticed you added multiple URLs to other Metaculus questions. If you'd like, you can create causal links between the current question and the linked questions.",
+  "createQuestionLinkCommentPromptDisclaimer": "Question Links are private and only visible to you.",
   "marketTimingAndTradingSignals": "Market Timing and Trading Signals",
   "portfolioRiskAssessment": "Portfolio Risk Assessment",
   "regulatoryImpactAnalysis": "Regulatory Impact Analysis",
@@ -1456,5 +1461,7 @@
   "maAndCorporateActions": "M&A and Corporate Actions",
   "economicIndicatorForecasting": "Economic Indicator Forecasting",
   "otherFinancialForecasting": "Other Financial Forecasting",
+  "questionLinkCreated" : "Question Link successfully created!",
+  "questionLinkCreatedMultiple" : "Question Links successfully created!",
   "returnToHomePage": "Return to Home page"
 }
