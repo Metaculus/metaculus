@@ -26,21 +26,20 @@ const GroupPredictionsTooltip: FC<Props> = ({
     !userPredictions.every((choice) => choice.valueElement === "?");
 
   return (
-    <table className="w-max px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark">
+    <table className="block w-max rounded border border-gray-300 pb-1 font-sans dark:border-gray-300-dark">
       <thead>
         <tr className="border-b border-gray-300 dark:border-gray-300-dark">
           <th
-            className="px-1.5 py-2 pl-3 text-left text-xs font-normal text-gray-700 dark:text-gray-700-dark"
+            className="max-w-[250px] truncate px-3 pb-2 pt-2.5 text-left text-sm font-medium text-olive-800 dark:text-olive-800-dark"
             colSpan={2}
           >
             {title}
           </th>
-          <td className="px-1.5 py-2 text-center">
+          <td className="text-center">
             <FontAwesomeIcon
               icon={faUserGroup}
-              size="sm"
               className={cn(
-                "align-middle text-olive-700 dark:text-olive-700-dark",
+                "size-3.5 align-middle text-olive-700 dark:text-olive-700-dark",
                 {
                   "pr-3": !containUserChoices,
                 }
@@ -48,7 +47,7 @@ const GroupPredictionsTooltip: FC<Props> = ({
             />
           </td>
           {containUserChoices && (
-            <td className="px-1.5 py-2 pr-3 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
+            <td className="px-5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
               {t("me")}
             </td>
           )}
@@ -59,28 +58,52 @@ const GroupPredictionsTooltip: FC<Props> = ({
           ({ color, choiceLabel, valueElement }, idx) => (
             <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
               {!!color && (
-                <td className="px-1.5 py-1 pl-3">
+                <td
+                  className={cn(
+                    "w-6 pl-3",
+                    idx === 0 ? "pb-1.5 pt-2.5" : "py-2"
+                  )}
+                >
                   <ChoiceIcon color={color} />
                 </td>
               )}
               <th
                 className={cn(
-                  "px-1.5 py-1 text-left font-normal text-gray-600 dark:text-gray-600-dark",
+                  "max-w-[250px] truncate pl-2 pr-1 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark",
                   {
-                    "font-medium text-gray-800 dark:text-gray-800-dark":
+                    "font-bold text-gray-800 dark:text-gray-800-dark":
                       choiceLabel.toLowerCase() === "median",
-                    "pl-3": !color,
-                  }
+                  },
+                  idx === 0 ? "pb-1 pt-2.5" : "py-1",
+                  !color && "pl-3"
                 )}
                 colSpan={color ? 1 : 2}
               >
                 {choiceLabel}
               </th>
-              <td className="px-1.5 py-1 text-center text-xs text-olive-800 dark:text-olive-800-dark">
+              <td
+                className={cn(
+                  "px-1.5 text-right text-sm tabular-nums text-olive-800 dark:text-olive-800-dark",
+                  {
+                    "font-bold": choiceLabel.toLowerCase() === "median",
+                    "font-normal": choiceLabel.toLowerCase() !== "median",
+                  },
+                  idx === 0 ? "pb-1 pt-2.5" : "py-1"
+                )}
+              >
                 {valueElement}
               </td>
               {containUserChoices && (
-                <td className="px-1.5 py-1 pr-3 text-center text-xs text-orange-800 dark:text-orange-800-dark">
+                <td
+                  className={cn(
+                    "px-2.5 text-center text-sm tabular-nums text-orange-800 dark:text-orange-800-dark",
+                    {
+                      "font-bold": choiceLabel.toLowerCase() === "median",
+                      "font-normal": choiceLabel.toLowerCase() !== "median",
+                    },
+                    idx === 0 ? "pb-1 pt-2.5" : "py-1"
+                  )}
+                >
                   {userPredictions?.find(
                     (item) => item.choiceLabel === choiceLabel
                   )?.valueElement || "?"}

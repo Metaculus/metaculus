@@ -178,12 +178,12 @@ const ChartFanTooltip: FC<Props> = ({
           userPredictions={userPredictions}
           FooterRow={
             resolved ? (
-              <tr className="w-full border-t border-gray-300 pb-2.5 pt-2 dark:border-gray-300-dark">
-                <th className="font-medim px-1.5 py-2 pl-3 text-left text-xs capitalize text-gray-800 dark:text-gray-800-dark">
+              <tr className="border-t border-gray-300 dark:border-gray-300-dark">
+                <th className="px-3 pb-1 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
                   {t("resolution")}
                 </th>
                 <td
-                  className="px-1.5 py-2 pr-3 text-center text-xs text-purple-800 dark:text-purple-800-dark"
+                  className="px-2.5 pb-1 pt-2 text-center text-sm font-normal text-purple-800 dark:text-purple-800-dark"
                   colSpan={3}
                 >
                   <div>
@@ -221,7 +221,7 @@ const MinifiedTooltip: FC<
       <div
         ref={ref}
         className={cn(
-          "pointer-events-none absolute z-100 max-w-[200px] rounded border bg-gray-0 p-2 text-center text-sm shadow-lg dark:bg-gray-0-dark",
+          "pointer-events-none absolute z-100 max-w-[200px] rounded border border-gray-300 bg-gray-0 p-2.5 text-center text-sm shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark",
           { "opacity-0": !width && !height },
           className
         )}
