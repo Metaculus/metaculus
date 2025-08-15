@@ -566,34 +566,38 @@ function buildChartData({
         )
       : Date.now() / 1000;
 
+  const activeItems = choiceItems.filter((c) => c.active);
+  const shouldNormalize = activeItems.length > 1;
+
   // for MC questions userTimestamps will be the same array for every choice item
   const userTimestamps = choiceItems[0]?.userTimestamps ?? [];
   const userScatters: ColoredLine = [];
   userTimestamps.forEach((timestamp, timestampIndex) => {
-    choiceItems.forEach((choiceItem, choiceIndex) => {
-      const scatterValue = choiceItem.userValues[timestampIndex];
-      const previousScatterValue =
-        userScatters[choiceIndex + choiceItems.length * timestampIndex - 1]?.y2;
+    const denom = shouldNormalize
+      ? activeItems.reduce((sum, it) => {
+          const v = it.userValues[timestampIndex];
+          return v != null ? sum + v : sum;
+        }, 0)
+      : 1;
 
-      if (!scatterValue) return;
-      if (choiceIndex === 0) {
-        userScatters.push({
-          x: timestamp,
-          y: scatterValue,
-          y1: 0,
-          y2: scatterValue,
-          color: choiceItem.color,
-        });
-      }
-      if (previousScatterValue && choiceIndex > 0) {
-        userScatters.push({
-          x: timestamp,
-          y: scatterValue,
-          y1: previousScatterValue,
-          y2: roundToDecimals(previousScatterValue + scatterValue),
-          color: choiceItem.color,
-        });
-      }
+    if (shouldNormalize && denom === 0) return;
+
+    let cum = 0;
+    activeItems.forEach((it) => {
+      const raw = it.userValues[timestampIndex];
+      if (raw == null) return;
+      const v = shouldNormalize ? raw / (denom || 1) : raw;
+      const y1 = cum;
+      const y2 = roundToDecimals(cum + v);
+      cum = y2;
+
+      userScatters.push({
+        x: timestamp,
+        y: v,
+        y1,
+        y2,
+        color: it.color,
+      });
     });
   });
 
@@ -662,15 +666,36 @@ function buildChartData({
             aggregationTimestamps.forEach((timestamp, timestampIndex) => {
               const aggregationValue = aggregationValues[timestampIndex];
               // build line (CP data)
-              if (
-                !line.length ||
-                aggregationValue ||
-                isNil(line[line.length - 1]?.y)
-              ) {
+              const val =
+                aggregationValue != null ? rescale(aggregationValue) : null;
+
+              const denom = shouldNormalize
+                ? activeItems.reduce((sum, it) => {
+                    const av = it.aggregationValues[timestampIndex];
+                    if (av == null) return sum;
+                    const rv =
+                      scaling && it.scaling
+                        ? unscaleNominalLocation(
+                            scaleInternalLocation(av, it.scaling),
+                            scaling
+                          )
+                        : av;
+                    return sum + rv;
+                  }, 0)
+                : 1;
+
+              const y =
+                val != null
+                  ? shouldNormalize
+                    ? val / (denom || 1)
+                    : val
+                  : null;
+
+              if (!line.length || y || isNil(line[line.length - 1]?.y)) {
                 // we are either starting or have a real value or previous value is null
                 line.push({
                   x: timestamp,
-                  y: aggregationValue ? rescale(aggregationValue) : null,
+                  y,
                 });
               } else {
                 // we have a null vlalue while previous was real
@@ -709,15 +734,48 @@ function buildChartData({
           // Resolved item will be alwasys the first on the chart so we are good
           // to simply set y as last value of it without any additional calculations
           if (!isNil(resolution)) {
+            const lastIdx = Math.max(
+              0,
+              (choiceItems[0]?.aggregationValues.length ?? 1) - 1
+            );
+
+            const denom = shouldNormalize
+              ? activeItems.reduce((sum, it) => {
+                  const av = it.aggregationValues[lastIdx];
+                  if (av == null) return sum;
+                  const rv =
+                    scaling && it.scaling
+                      ? unscaleNominalLocation(
+                          scaleInternalLocation(av, it.scaling),
+                          scaling
+                        )
+                      : av;
+                  return sum + rv;
+                }, 0)
+              : 1;
+
             let y = 0;
             for (const choiceItem of choiceItems) {
+              if (shouldNormalize && !choiceItem.active) continue;
+
               const lastValue = choiceItem.aggregationValues.at(-1);
               if (isNil(lastValue)) continue;
 
+              const rv =
+                scaling && choiceItem.scaling
+                  ? unscaleNominalLocation(
+                      scaleInternalLocation(lastValue, choiceItem.scaling),
+                      scaling
+                    )
+                  : lastValue;
+
+              const contrib = shouldNormalize ? (denom ? rv / denom : 0) : rv;
+
               if (choiceItem.choice === choice) {
-                y = y + lastValue / 2;
+                y = y + contrib / 2;
                 break;
               }
+              y = y + contrib;
             }
 
             if (resolution === choice) {
