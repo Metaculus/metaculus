@@ -749,7 +749,6 @@
   "copyFromBranch": "從{branch}複製",
   "parentResolvesAsYes": "家長決定是",
   "parentResolvesAsNo": "家長決定不",
-  "othersCount": "{count}其他",
   "selectAll": "選擇全部",
   "deselectAll": "取消全選",
   "forecastDataIsEmpty": "預測資料為空",
@@ -1451,5 +1450,6 @@
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> 未读)</purple> <strong>{total_count_formatted}</strong> 总计",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> 条评论",
+  "othersCount": "其他（{count}）",
   "toggledTimelines": "切换时间线"
 }

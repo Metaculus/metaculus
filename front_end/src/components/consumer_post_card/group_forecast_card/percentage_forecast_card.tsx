@@ -1,5 +1,7 @@
+"use client";
+
 import { useLocale, useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useMemo, useState } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -25,50 +27,76 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
   const t = useTranslations();
-  if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) {
-    return null;
-  }
+  const [expanded, setExpanded] = useState(false);
+
+  const allChoices = useMemo(() => {
+    const raw = generateChoiceItems(post, visibleChoicesCount, locale);
+    return raw.map((choice) => {
+      const valueStr = getPredictionDisplayValue(
+        choice.aggregationValues.at(-1),
+        {
+          questionType: QuestionType.Binary,
+          scaling: choice.scaling,
+          actual_resolve_time: choice.actual_resolve_time ?? null,
+          emptyLabel: t("Upcoming"),
+        }
+      );
+      const percent =
+        typeof valueStr === "string"
+          ? Number(valueStr.replace("%", "")) || 0
+          : 0;
+
+      const isChoiceClosed = choice.closeTime
+        ? choice.closeTime < Date.now()
+        : false;
+
+      return {
+        ...choice,
+        valueStr,
+        percent,
+        isChoiceClosed,
+      };
+    });
+  }, [post, locale, t]);
+
+  if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) return null;
 
   const isPostClosed = post.status === PostStatus.CLOSED;
-  const choices = generateChoiceItems(post, visibleChoicesCount, locale);
-  const visibleChoices = choices.slice(0, visibleChoicesCount);
-  const otherItemsCount = choices.length - visibleChoices.length;
+
+  const visible = expanded
+    ? allChoices
+    : allChoices.slice(0, visibleChoicesCount);
+  const hidden = expanded ? [] : allChoices.slice(visibleChoicesCount);
+
+  const othersTotal = Math.max(
+    0,
+    Math.min(100, Math.round(hidden.reduce((sum, c) => sum + c.percent, 0)))
+  );
 
   return (
-    <ForecastCardWrapper otherItemsCount={otherItemsCount}>
-      {visibleChoices.map((choice) => {
-        const choiceValue = getPredictionDisplayValue(
-          choice.aggregationValues.at(-1),
-          {
-            questionType: QuestionType.Binary,
-            scaling: choice.scaling,
-            actual_resolve_time: choice.actual_resolve_time ?? null,
-            emptyLabel: t("Upcoming"),
-          }
-        );
-        const isChoiceClosed = choice.closeTime
-          ? choice.closeTime < Date.now()
-          : false;
-
-        return (
-          <ForecastChoiceBar
-            key={choice.id ?? choice.choice}
-            choiceLabel={choice.choice}
-            choiceValue={choiceValue}
-            isClosed={isChoiceClosed || isPostClosed}
-            displayedResolution={choice.displayedResolution}
-            resolution={choice.resolution}
-            progress={Number(choiceValue.replace("%", ""))}
-            color={choice.color}
-            isBordered={true}
-            forceColorful={forceColorful}
-          />
-        );
-      })}
+    <ForecastCardWrapper
+      otherItemsCount={hidden.length}
+      othersTotal={othersTotal}
+      expanded={expanded}
+      onExpand={() => setExpanded(true)}
+    >
+      {visible.map((choice) => (
+        <ForecastChoiceBar
+          key={choice.id ?? choice.choice}
+          choiceLabel={choice.choice}
+          choiceValue={choice.valueStr}
+          isClosed={choice.isChoiceClosed || isPostClosed}
+          displayedResolution={choice.displayedResolution}
+          resolution={choice.resolution}
+          progress={choice.percent}
+          color={choice.color}
+          isBordered={true}
+          forceColorful={forceColorful}
+        />
+      ))}
     </ForecastCardWrapper>
   );
 };
-
 function generateChoiceItems(
   post: PostWithForecasts,
   visibleChoicesCount: number,

@@ -69,7 +69,7 @@ const IndividualQuestionPage: FC<{
               <div className="flex gap-4">
                 <div className="relative w-full">
                   {isCommunityQuestion && (
-                    <div className="absolute z-0 -mt-[41px] hidden w-full sm:block">
+                    <div className="absolute z-0 -mt-[34px] hidden w-full sm:block">
                       <CommunityDisclaimer
                         project={postData.projects.default_project}
                         variant="inline"

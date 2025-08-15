@@ -859,7 +859,6 @@
   "copyFromBranch": "copiar de {branch}",
   "parentResolvesAsYes": "Pai se resolve como Sim",
   "parentResolvesAsNo": "Pai se resolve como Não",
-  "othersCount": "{count} outros",
   "selectAll": "selecionar tudo",
   "deselectAll": "deselecionar tudo",
   "forecastDataIsEmpty": "Os dados de previsão estão vazios",
@@ -1447,5 +1446,6 @@
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> não lida)</purple> <strong>{total_count_formatted}</strong> no total",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {comentários} =1 {comentário} other {comentários}}",
+  "othersCount": "Outros ({count})",
   "toggledTimelines": "Linhas do Tempo Alternadas"
 }

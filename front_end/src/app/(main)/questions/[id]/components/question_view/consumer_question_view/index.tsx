@@ -57,7 +57,6 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           unreadCount={postData.unread_comment_count ?? 0}
           url={getPostLink(postData)}
           className="bg-gray-200 px-2 dark:bg-gray-200-dark"
-          compact
         />
         <ForecastersCounter
           forecasters={postData.nr_forecasters}

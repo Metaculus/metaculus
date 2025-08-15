@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { FC } from "react";
 
+import BinaryCompactForecastText from "@/app/(main)/questions/components/binary_compact_forecast_text";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isGroupOfQuestionsPost,
+  isQuestionPost,
+} from "@/utils/questions/helpers";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
 
@@ -18,6 +22,9 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
   const isGroup =
     isGroupOfQuestionsPost(post) ||
     post.question?.type === QuestionType.MultipleChoice;
+
+  const isBinary =
+    isQuestionPost(post) && post.question?.type === QuestionType.Binary;
 
   return (
     <Link href={getPostLink(post)} className="w-full no-underline">
@@ -32,13 +39,26 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
               {post.title}
             </h4>
 
-            <SimilarPredictionChip post={post} />
+            {!isBinary && <SimilarPredictionChip post={post} />}
           </div>
 
-          <ForecastersCounter
-            forecasters={post.nr_forecasters}
-            className="mt-0.5 px-0"
-          />
+          {isBinary ? (
+            <div className="flex items-center gap-3">
+              <BinaryCompactForecastText
+                question={post.question as QuestionWithNumericForecasts}
+              />
+              <ForecastersCounter
+                forecasters={post.nr_forecasters}
+                compact
+                className="px-0"
+              />
+            </div>
+          ) : (
+            <ForecastersCounter
+              forecasters={post.nr_forecasters}
+              className="mt-0.5 px-0"
+            />
+          )}
         </div>
       </div>
     </Link>
