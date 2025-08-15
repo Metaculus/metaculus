@@ -24,23 +24,28 @@ const MCPredictionsTooltip: FC<Props> = ({
   const t = useTranslations();
 
   return (
-    <table className={cn("w-max font-sans", getFontsString())}>
+    <table
+      className={cn(
+        "block w-max rounded border border-gray-300 pb-1 font-sans dark:border-gray-300-dark",
+        getFontsString()
+      )}
+    >
       <thead>
         <tr className="border-b border-gray-300 dark:border-gray-300-dark">
           <th
-            className="max-w-[150px] truncate px-3 pb-2 pt-2.5 text-left text-xs font-normal"
+            className="max-w-[150px] truncate px-3 pb-2 pt-2.5 text-left text-sm font-normal text-gray-600 dark:text-gray-600-dark"
             colSpan={2}
           >
             {title}
           </th>
-          <td className={"px-1.5 py-1 text-center"}>
+          <td className={" text-center"}>
             <FontAwesomeIcon
               icon={faUserGroup}
-              className="align-middle text-olive-700 dark:text-olive-700-dark"
+              className="size-3.5 align-middle text-olive-700 dark:text-olive-700-dark"
             />
           </td>
 
-          <td className="px-3 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
+          <td className="px-5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
             {t("me")}
           </td>
         </tr>
@@ -50,21 +55,46 @@ const MCPredictionsTooltip: FC<Props> = ({
           ({ color, choiceLabel, valueElement }, idx) => (
             <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
               {!!color && (
-                <td className="w-6 py-1 pl-3">
+                <td
+                  className={cn(
+                    "w-6 pl-3",
+                    idx === 0 ? "pb-1.5 pt-2.5" : "py-2"
+                  )}
+                >
                   <ChoiceIcon color={color} />
                 </td>
               )}
               <th
-                className="py-1 pl-2 pr-1 text-left text-xs font-medium"
+                className={cn(
+                  "max-w-[150px] truncate pl-2 pr-1 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark",
+                  idx === 0 ? "pb-1 pt-2.5" : "py-1"
+                )}
                 colSpan={color ? 1 : 2}
               >
                 {choiceLabel}
               </th>
-              <td className="px-1.5 py-1 text-center text-xs text-olive-800 dark:text-olive-800-dark">
+              <td className="px-1.5 py-1 text-right text-sm font-normal tabular-nums text-olive-800 dark:text-olive-800-dark">
                 {valueElement}
               </td>
 
-              <td className="px-1.5 py-1 text-center text-xs text-orange-800 dark:text-orange-800-dark">
+              <td
+                className={cn("px-2.5 py-1 text-sm font-normal tabular-nums", {
+                  "text-right text-orange-800 dark:text-orange-800-dark":
+                    userPredictions?.find(
+                      (item) => item.choiceLabel === choiceLabel
+                    )?.valueElement !== "?" &&
+                    userPredictions?.find(
+                      (item) => item.choiceLabel === choiceLabel
+                    )?.valueElement !== "...",
+                  "text-center text-gray-500 dark:text-gray-500-dark":
+                    userPredictions?.find(
+                      (item) => item.choiceLabel === choiceLabel
+                    )?.valueElement === "?" ||
+                    userPredictions?.find(
+                      (item) => item.choiceLabel === choiceLabel
+                    )?.valueElement === "...",
+                })}
+              >
                 {userPredictions?.find(
                   (item) => item.choiceLabel === choiceLabel
                 )?.valueElement || "?"}
