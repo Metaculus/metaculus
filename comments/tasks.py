@@ -39,12 +39,16 @@ def _get_week_start_for_date(today: date) -> date:
 
 
 @dramatiq.actor
-def job_finalize_and_send_weekly_top_comments():
+def job_finalize_and_send_weekly_top_comments(date_input, force_send: bool = False):
     # Import here to avoid circular imports
     from comments.services.common import update_top_comments_of_week
 
-    today = timezone.now().date()
-    last_sunday = _get_week_start_for_date(today)
+    # Handle both string and date inputs for JSON serialization
+    if isinstance(date_input, str):
+        date_obj = date.fromisoformat(date_input)
+    else:
+        date_obj = date_input or timezone.now().date()
+    last_sunday = _get_week_start_for_date(date_obj)
     # The function expects the week start to be the Sunday BEFORE the finalized week
     # So if we finalize the week that ended last_sunday, we pass two Sundays ago
     finalizing_week_start_date = last_sunday - timedelta(days=14)
@@ -62,7 +66,7 @@ def job_finalize_and_send_weekly_top_comments():
         email_sent=True,
     ).exists()
 
-    if already_notified:
+    if already_notified and not force_send:
         return
 
     notify_weekly_top_comments_subscribers(
