@@ -78,7 +78,7 @@ const ChoiceOption: FC<Props> = ({
 
       <div
         className={cn(
-          "resize-label line-clamp-2 w-full pr-1.5 text-left text-sm font-normal leading-4",
+          "resize-label line-clamp-2 min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
           labelClassName
         )}
       >
@@ -87,7 +87,7 @@ const ChoiceOption: FC<Props> = ({
       {isNil(resolution) ? (
         <div
           className={cn(
-            "resize-label w-full pr-1.5 text-right text-sm font-normal tabular-nums",
+            "resize-label flex-shrink-0 text-right text-sm font-normal tabular-nums",
             {
               "opacity-30": !hasValue,
             },
@@ -106,7 +106,7 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label leading-0 flex items-center gap-0.5 whitespace-nowrap  px-1.5 text-right text-sm font-medium tabular-nums">
+        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap px-1.5 text-right text-sm font-medium tabular-nums">
           <ChoiceResolutionIcon
             color={questionType === QuestionType.Date ? color : undefined}
           />

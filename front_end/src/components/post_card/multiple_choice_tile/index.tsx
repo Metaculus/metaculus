@@ -124,11 +124,11 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
       className={cn(
         "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-5 md:gap-8",
         {
-          "md:grid md:grid-cols-2": showChart,
+          "md:grid md:grid-cols-5": showChart,
         }
       )}
     >
-      <div className="resize-container w-full">
+      <div className="resize-container w-full md:col-span-2">
         {isResolvedView ? (
           <PredictionChip question={question} status={PostStatus.RESOLVED} />
         ) : (
@@ -144,7 +144,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
         )}
       </div>
       {showChart && !isResolvedView && (
-        <div className="relative w-full">
+        <div className="relative w-full md:col-span-3">
           {isNil(group) ? (
             <MultipleChoiceChart
               timestamps={timestamps}
@@ -221,11 +221,11 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
       className={cn(
         "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
         {
-          "md:grid md:grid-cols-2": showChart,
+          "md:grid md:grid-cols-5": showChart,
         }
       )}
     >
-      <div className="resize-container w-full">
+      <div className="resize-container w-full md:col-span-2">
         <MultipleChoiceTileLegend
           ref={ref}
           choices={choices}
@@ -238,7 +238,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
         />
       </div>
       {showChart && (
-        <div className="w-full">
+        <div className="w-full md:col-span-3">
           <FanChart
             group={group}
             height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
