@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
-import { CreateCoherenceLink } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
+import CreateCoherenceLink from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
 import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
@@ -41,7 +41,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   }
 
   async function deleteLink(key: number) {
-    setNewLinks(newLinks.filter((current) => current !== key));
+    setNewLinks((prevLinks) => prevLinks.filter((current) => current !== key));
   }
 
   useEffect(() => {
@@ -65,7 +65,6 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               link={link}
               post={post}
               compact={false}
-              linkModified={updateCoherenceLinks}
             ></DisplayCoherenceLink>
           ))}
 
@@ -73,7 +72,6 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
             <CreateCoherenceLink
               post={post}
               key={id}
-              linkCreated={updateCoherenceLinks}
               linkKey={id}
               deleteLink={deleteLink}
             ></CreateCoherenceLink>

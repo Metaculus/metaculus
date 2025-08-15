@@ -2,8 +2,16 @@ import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Select } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import {
+  FC,
+  useState,
+  useEffect,
+  forwardRef,
+  Ref,
+  useImperativeHandle,
+} from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
 import QuestionPicker, {
   SearchedQuestionType,
@@ -12,13 +20,19 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
-import { Question, QuestionWithForecasts } from "@/types/question";
+import { Question } from "@/types/question";
 
 type Props = {
   post: Post;
   linkKey: number;
-  linkCreated: () => Promise<void>;
   deleteLink: (key: number) => Promise<void>;
+  suggestedOtherQuestion?: Question;
+  shouldDisplayDelete?: boolean;
+  shouldDisplaySave?: boolean;
+};
+
+export type CreateCoherenceLinkRefType = {
+  save: () => Promise<boolean>;
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
@@ -53,23 +67,33 @@ enum LinkCreationErrors {
   questionMustDiffer = "questionMustDiffer",
 }
 
-export const CreateCoherenceLink: FC<Props> = ({
-  post,
-  linkCreated,
-  linkKey,
-  deleteLink,
-}) => {
+const CreateCoherenceLink = (
+  {
+    post,
+    linkKey,
+    deleteLink,
+    suggestedOtherQuestion,
+    shouldDisplayDelete,
+    shouldDisplaySave,
+  }: Props,
+  forwardedRef: Ref<CreateCoherenceLinkRefType>
+) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
   const [direction, setDirection] = useState(Directions.Positive);
   const [strength, setStrength] = useState(Strengths.Medium);
-  const [otherQuestion, setOtherQuestion] =
-    useState<QuestionWithForecasts | null>(null);
+  const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
   const [pickerInitialSearch, setPickerInitialSearch] = useState<string>("");
   const [validationErrors, setValidationErrors] =
     useState<LinkCreationErrors | null>(null);
+  const { updateCoherenceLinks } = useCoherenceLinksContext();
   const t = useTranslations();
+
+  useEffect(() => {
+    if (suggestedOtherQuestion)
+      void otherQuestionSelected(suggestedOtherQuestion);
+  }, [suggestedOtherQuestion]);
 
   function getLinkCreationError(constraintName: string | null) {
     switch (constraintName) {
@@ -82,12 +106,12 @@ export const CreateCoherenceLink: FC<Props> = ({
     }
   }
 
-  async function saveQuestion() {
+  async function saveQuestionLink() {
     let question1: Question | null;
     let question2: Question | null;
     const postQuestion = post.question;
 
-    if (!postQuestion || !otherQuestion) return;
+    if (!postQuestion || !otherQuestion) return null;
 
     if (isFirstQuestion) {
       question1 = postQuestion;
@@ -97,24 +121,39 @@ export const CreateCoherenceLink: FC<Props> = ({
       question2 = postQuestion;
     }
 
-    createCoherenceLink(
+    const result = await createCoherenceLink(
       question1,
       question2,
       direction,
       strength,
       LinkTypes.Causal
-    ).then(async (result) => {
-      if (result !== null) {
-        const message = result?.non_field_errors?.at(0);
-        const constraintName =
-          message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
-        setValidationErrors(getLinkCreationError(constraintName));
-      } else {
-        await cancelLink();
-        await linkCreated();
-      }
-    });
+    );
+
+    if (result !== null) {
+      const message = result?.non_field_errors?.at(0);
+      const constraintName =
+        message?.match(/Constraint “(.+)” is violated\./)?.[1] ?? null;
+      setValidationErrors(getLinkCreationError(constraintName));
+    } else {
+      await cancelLink();
+    }
+
+    return result;
   }
+
+  async function saveQuestionLinkAndUpdate() {
+    const result = await saveQuestionLink();
+    if (result === null) {
+      await updateCoherenceLinks();
+    }
+  }
+
+  useImperativeHandle(forwardedRef, () => ({
+    async save() {
+      const result = await saveQuestionLink();
+      return result === null;
+    },
+  }));
 
   async function cancelLink() {
     await deleteLink(linkKey);
@@ -125,7 +164,7 @@ export const CreateCoherenceLink: FC<Props> = ({
     setIsFirstQuestion(!isFirstQuestion);
   }
 
-  async function otherQuestionSelected(question: QuestionWithForecasts) {
+  async function otherQuestionSelected(question: Question) {
     setOtherQuestion(question);
     setIsPickerOpen(false);
   }
@@ -232,24 +271,28 @@ export const CreateCoherenceLink: FC<Props> = ({
           <Button onClick={swapFormat} variant="tertiary">
             {t("swap")}
           </Button>
+          {shouldDisplaySave !== false && (
+            <Button
+              onClick={saveQuestionLinkAndUpdate}
+              disabled={!otherQuestion}
+              variant="tertiary"
+            >
+              {t("save")}
+            </Button>
+          )}
+        </div>
+        {shouldDisplayDelete !== false && (
           <Button
-            onClick={saveQuestion}
-            disabled={!otherQuestion}
+            onClick={cancelLink}
+            className="size-8 border border-salmon-500 hover:border-salmon-600 dark:border-salmon-500-dark dark:hover:border-salmon-600-dark"
             variant="tertiary"
           >
-            {t("save")}
+            <FontAwesomeIcon
+              icon={faTrash}
+              className="text-salmon-600 dark:text-salmon-600-dark"
+            />
           </Button>
-        </div>
-        <Button
-          onClick={cancelLink}
-          className="size-8 border border-salmon-500 hover:border-salmon-600 dark:border-salmon-500-dark dark:hover:border-salmon-600-dark"
-          variant="tertiary"
-        >
-          <FontAwesomeIcon
-            icon={faTrash}
-            className="text-salmon-600 dark:text-salmon-600-dark"
-          />
-        </Button>
+        )}
       </div>
       {validationErrors && (
         <FormErrorMessage
@@ -260,3 +303,5 @@ export const CreateCoherenceLink: FC<Props> = ({
     </div>
   );
 };
+
+export default forwardRef(CreateCoherenceLink);
