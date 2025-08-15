@@ -119,11 +119,16 @@ class Leaderboard(TimeStampedModel):
         <tr><td>spot_peer_tournament</td><td> Sum of spot peer scores.</td></tr>
         <tr><td>spot_baseline_tournament</td><td> Sum of spot baseline scores.</td></tr>
         <tr><td>relative_legacy</td><td> Old site scoring.</td></tr>
-        <tr><td>baseline_global</td><td> Sum of baseline scores.</td></tr>
-        <tr><td>peer_global</td><td> Coverage-weighted average of peer scores.</td></tr>
-        <tr><td>peer_global_legacy</td><td> Average of peer scores.</td></tr>
-        <tr><td>comment_insight</td><td> H-index of upvotes for comments on questions.</td></tr>
-        <tr><td>question_writing</td><td> H-index of number of forecasters / 10 on questions.</td></tr>
+        <tr><td>baseline_global</td><td> Sum of baseline scores. 
+            <br> Normally only used for global leaderboards, but does work in tournaments.</td></tr>
+        <tr><td>peer_global</td><td> Coverage-weighted average of peer scores. 
+            <br> Normally only used for global leaderboards. Doesn't work well in tournaments unless there are well over 50 questions.</td></tr>
+        <tr><td>peer_global_legacy</td><td> Average of peer scores. 
+            <br> Only used for global leaderboards before 2024. This is not what you're looking for.</td></tr>
+        <tr><td>comment_insight</td><td> H-index of upvotes for comments on questions. 
+            <br> Nromally used for global leaderboards, but can be used in tournaments.</td></tr>
+        <tr><td>question_writing</td><td> H-index of number of forecasters / 10 on questions. 
+            <br> Normally used for global leaderboards, but can be used in tournaments.</td></tr>
         <tr><td>manual</td><td> Does not automatically update. Manually set all entries.</td></tr>
     </table>
     """,
