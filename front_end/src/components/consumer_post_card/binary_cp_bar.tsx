@@ -63,7 +63,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       className={cn(
         "relative flex origin-top items-center justify-center",
         {
-          "scale-[0.75]": size === "sm",
+          "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
           "scale-[1.25]": size === "lg",
         },
@@ -138,7 +138,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           textClass
         )}
       >
-        <span className="text-lg font-bold leading-8">
+        <span className="text-xl font-bold leading-8">
           {!isNil(questionCP) && cpPercentage}%
         </span>
         <span className="text-xs font-normal uppercase leading-none">
