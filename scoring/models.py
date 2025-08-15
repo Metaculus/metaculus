@@ -193,6 +193,22 @@ class Leaderboard(TimeStampedModel):
         """,
     )
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    Q(
+                        project__type=Project.ProjectTypes.SITE_MAIN,
+                        start_time__isnull=False,
+                        end_time__isnull=False,
+                    )
+                    | ~Q(project__type=Project.ProjectTypes.SITE_MAIN)
+                    | Q(project__isnull=True)
+                ),
+                name="leaderboard_project_site_main_requires_start_and_end_time",
+            ),
+        ]
+
     def __str__(self):
         if self.name:
             return f"Leaderboard {self.name}"
