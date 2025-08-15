@@ -91,6 +91,23 @@ const MultiChoicesChartView: FC<Props> = ({
     );
   }, [chartHeight]);
 
+  const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
+  const leftChoices = useMemo(
+    () => choiceItems.slice(0, maxPrimary),
+    [choiceItems, maxPrimary]
+  );
+  const leftActiveCount = useMemo(
+    () => leftChoices.filter((c) => c.active).length,
+    [leftChoices]
+  );
+  const [othersVisible, setOthersVisible] = useState(true);
+
+  useEffect(() => {
+    if (leftActiveCount !== 1 && !othersVisible) {
+      setOthersVisible(true);
+    }
+  }, [leftActiveCount, othersVisible]);
+
   const {
     isActive: isTooltipActive,
     getReferenceProps,
@@ -138,8 +155,8 @@ const MultiChoicesChartView: FC<Props> = ({
   );
 
   const chartChoiceItems = useMemo(
-    () => buildChartChoiceItems(choiceItems, embedMode),
-    [choiceItems, embedMode]
+    () => buildChartChoiceItems(choiceItems, embedMode, othersVisible),
+    [choiceItems, embedMode, othersVisible]
   );
 
   const singleActive = useMemo(
@@ -234,6 +251,9 @@ const MultiChoicesChartView: FC<Props> = ({
             onChoiceHighlight={handleChoiceHighlight}
             onToggleAll={toggleSelectAll}
             maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
+            othersToggle={othersVisible}
+            onOthersToggle={setOthersVisible}
+            othersDisabled={leftActiveCount !== 1}
           />
         </div>
       )}
@@ -270,7 +290,8 @@ function resolveDefaultZoom(
 
 function buildChartChoiceItems(
   all: ChoiceItem[],
-  embedMode: boolean
+  embedMode: boolean,
+  othersVisible = true
 ): ChoiceItem[] {
   const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
   const primary = all.slice(0, maxPrimary);
@@ -305,7 +326,7 @@ function buildChartChoiceItems(
   const othersItem = {
     choice: "Others",
     color: METAC_COLORS.gray["400"],
-    active: anyActive,
+    active: anyActive && othersVisible,
     highlighted: false,
     aggregationTimestamps: aggTs,
     aggregationValues,
