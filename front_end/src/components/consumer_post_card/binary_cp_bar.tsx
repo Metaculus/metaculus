@@ -93,9 +93,10 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         <path
           d={backgroundArc.path}
           fill="none"
-          stroke={undefined}
+          stroke={hex}
+          strokeOpacity={0.15}
           strokeWidth={strokeWidth}
-          className={cn("opacity-15", strokeClass)}
+          className={strokeClass}
         />
 
         {/* Progress arc */}
@@ -125,6 +126,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
               progressArc.endPoint.y +
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
+            stroke={hex}
             className={strokeClass}
             strokeWidth={strokeCursorWidth}
           />
