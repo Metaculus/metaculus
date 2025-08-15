@@ -220,10 +220,6 @@ def generate_comment_insight_leaderboard_entries(
                 Post.CurationStatus.DELETED,
             ]
         )
-        timing_query = Q(
-            created_at__gte=leaderboard.start_time,
-            created_at__lte=leaderboard.end_time,
-        )
     else:
         posts = Post.objects.filter(
             Q(project=leaderboard.project) | Q(default_project=leaderboard.project)
@@ -234,7 +230,6 @@ def generate_comment_insight_leaderboard_entries(
                 Post.CurationStatus.DELETED,
             ]
         )
-        timing_query = Q()
 
     comments = (
         Comment.objects.filter(
@@ -244,7 +239,12 @@ def generate_comment_insight_leaderboard_entries(
             vote_score=Coalesce(
                 SubqueryAggregate(
                     "comment_votes__direction",
-                    filter=timing_query,
+                    filter=Q(
+                        created_at__gte=leaderboard.start_time
+                        or make_aware(datetime.min),
+                        created_at__lte=leaderboard.end_time
+                        or make_aware(datetime.max),
+                    ),
                     aggregate=Sum,
                 ),
                 0,
@@ -866,10 +866,6 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
                 Post.CurationStatus.DELETED,
             ]
         )
-        timing_query = Q(
-            created_at__gte=leaderboard.start_time,
-            created_at__lte=leaderboard.end_time,
-        )
     else:
         posts = Post.objects.filter(
             Q(project=leaderboard.project) | Q(default_project=leaderboard.project)
@@ -880,7 +876,6 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
                 Post.CurationStatus.DELETED,
             ]
         )
-        timing_query = Q()
 
     comments = (
         Comment.objects.filter(
@@ -892,7 +887,10 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
         .annotate(
             vote_score=SubqueryAggregate(
                 "comment_votes__direction",
-                filter=timing_query,
+                filter=Q(
+                    created_at__gte=leaderboard.start_time or make_aware(datetime.min),
+                    created_at__lte=leaderboard.end_time or make_aware(datetime.max),
+                ),
                 aggregate=Sum,
             )
         )
