@@ -18,7 +18,7 @@ export default async function Layout({
   if (!token || !currentUser) return redirect("/");
 
   return (
-    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 p-8 dark:bg-gray-0-dark lg:my-8">
+    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 p-4 dark:bg-gray-0-dark lg:my-8">
       <SettingsHeader />
       <section className="mt-6">{children}</section>
     </main>
