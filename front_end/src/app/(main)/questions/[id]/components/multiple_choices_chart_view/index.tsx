@@ -180,6 +180,20 @@ const MultiChoicesChartView: FC<Props> = ({
     [singleActive]
   );
 
+  const handleOthersToggle = useCallback(
+    (checked: boolean) => {
+      setOthersVisible(checked);
+
+      const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
+      const updated = choiceItems.map((item, idx) =>
+        idx >= maxPrimary ? { ...item, active: checked } : item
+      );
+
+      onChoiceItemsUpdate(updated);
+    },
+    [choiceItems, onChoiceItemsUpdate, embedMode]
+  );
+
   const commonChartProps = {
     actualCloseTime,
     timestamps,
@@ -252,7 +266,7 @@ const MultiChoicesChartView: FC<Props> = ({
             onToggleAll={toggleSelectAll}
             maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
             othersToggle={othersVisible}
-            onOthersToggle={setOthersVisible}
+            onOthersToggle={handleOthersToggle}
             othersDisabled={leftActiveCount !== 1}
           />
         </div>
@@ -295,12 +309,17 @@ function buildChartChoiceItems(
 ): ChoiceItem[] {
   const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
   const primary = all.slice(0, maxPrimary);
-  const others = all.slice(maxPrimary);
+  const right = all.slice(maxPrimary);
+  if (right.length === 0 && primary.every((p) => p.active)) return all;
 
-  if (others.length === 0) return all;
+  const leftInactive = primary.filter((c) => !c.active);
+  const pool = [...right, ...leftInactive];
+  if (pool.length === 0) return all;
 
-  const aggTs = others[0]?.aggregationTimestamps ?? [];
-  const userTs = others[0]?.userTimestamps ?? [];
+  const leftInactiveSet = new Set(leftInactive.map((c) => c.choice));
+
+  const aggTs = pool[0]?.aggregationTimestamps ?? [];
+  const userTs = pool[0]?.userTimestamps ?? [];
 
   const sumNullable = (vals: Array<number | null | undefined>) => {
     let sum = 0;
@@ -315,18 +334,29 @@ function buildChartChoiceItems(
   };
 
   const aggregationValues = aggTs.map((_, i) =>
-    sumNullable(others.map((o) => (o.active ? o.aggregationValues[i] : 0)))
-  );
-  const userValues = userTs.map((_, i) =>
-    sumNullable(others.map((o) => (o.active ? o.userValues[i] : 0)))
+    sumNullable(
+      pool.map((o) =>
+        o.active || leftInactiveSet.has(o.choice) ? o.aggregationValues[i] : 0
+      )
+    )
   );
 
-  const anyActive = others.some((o) => o.active);
+  const userValues = userTs.map((_, i) =>
+    sumNullable(
+      pool.map((o) =>
+        o.active || leftInactiveSet.has(o.choice) ? o.userValues[i] : 0
+      )
+    )
+  );
+
+  const anyIncluded = pool.some(
+    (o) => o.active || leftInactiveSet.has(o.choice)
+  );
 
   const othersItem = {
     choice: "Others",
     color: METAC_COLORS.gray["400"],
-    active: anyActive && othersVisible,
+    active: anyIncluded && othersVisible,
     highlighted: false,
     aggregationTimestamps: aggTs,
     aggregationValues,
