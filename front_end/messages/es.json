@@ -1461,5 +1461,16 @@
   "maAndCorporateActions": "Fusiones y adquisiciones y acciones corporativas",
   "economicIndicatorForecasting": "Pronóstico de indicadores económicos",
   "otherFinancialForecasting": "Otras previsiones financieras",
+  "current_week": "Semana actual",
+  "placementFirst": "1er lugar",
+  "placementSecond": "2º lugar",
+  "placementThird": "3er lugar",
+  "placementOther": "{placement}º lugar",
+  "exclude": "Excluir",
+  "unexclude": "Incluir",
+  "mindsChanged": "mentes cambiadas",
+  "weeklyTopComments": "Top Comentarios de la Semana",
+  "weeklyTopCommentsShort": "Top Comentarios",
+  "keyFactorImpact": "impacto de factor clave",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

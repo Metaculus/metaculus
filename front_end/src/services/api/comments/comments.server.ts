@@ -76,6 +76,16 @@ class ServerCommentsApiClass extends CommentsApi {
       voteData
     );
   }
+
+  async setCommentExcludedFromWeekTop(
+    commentId: number,
+    excluded: boolean
+  ): Promise<Response> {
+    return await this.post(
+      `/comments/${commentId}/set-excluded-from-week-top/`,
+      { excluded }
+    );
+  }
 }
 
 const ServerCommentsApi = new ServerCommentsApiClass(serverFetcher);

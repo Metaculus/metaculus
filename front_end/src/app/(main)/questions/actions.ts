@@ -351,3 +351,13 @@ export async function deleteCoherenceLink(link: CoherenceLink) {
     };
   }
 }
+
+export async function setExcludedFromWeekTopComments(
+  commentId: number,
+  excluded: boolean
+) {
+  return await ServerCommentsApi.setCommentExcludedFromWeekTop(
+    commentId,
+    excluded
+  );
+}
