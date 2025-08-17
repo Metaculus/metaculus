@@ -79,6 +79,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     def get_scaling(self, question: Question):
         continuous_range = None
+        nominal_min = question.range_min
+        nominal_max = question.range_max
         if question.type in QUESTION_CONTINUOUS_TYPES:
 
             def format_value(val):
@@ -95,9 +97,14 @@ class QuestionSerializer(serializers.ModelSerializer):
             ):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
+            if question.type == Question.QuestionType.DISCRETE:
+                nominal_min = np.average(continuous_range[:2])
+                nominal_max = np.average(continuous_range[-2:])
         return {
-            "range_max": question.range_max,
             "range_min": question.range_min,
+            "range_max": question.range_max,
+            "nominal_min": nominal_min,
+            "nominal_max": nominal_max,
             "zero_point": question.zero_point,
             "open_upper_bound": question.open_upper_bound,
             "open_lower_bound": question.open_lower_bound,
