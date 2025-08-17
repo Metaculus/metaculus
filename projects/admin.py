@@ -3,7 +3,6 @@ import random
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -316,7 +315,6 @@ class ProjectAdminForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get("start_date")
-        project_type = cleaned_data.get("type")
         forecasting_end_date = cleaned_data.get("forecasting_end_date")
         close_date = cleaned_data.get("close_date")
 
