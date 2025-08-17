@@ -320,13 +320,6 @@ class ProjectAdminForm(forms.ModelForm):
         forecasting_end_date = cleaned_data.get("forecasting_end_date")
         close_date = cleaned_data.get("close_date")
 
-        if project_type == Project.ProjectTypes.TOURNAMENT and bool(close_date) != bool(
-            forecasting_end_date
-        ):
-            raise ValidationError(
-                "Both 'Close Date' and 'Forecasting End Date' must be set or both must be empty."
-            )
-
         if forecasting_end_date and close_date and forecasting_end_date > close_date:
             self.add_error(
                 "forecasting_end_date",
