@@ -22,6 +22,7 @@ from django.core.exceptions import DisallowedHost
 from dramatiq.errors import RateLimitExceeded
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
+from sentry_sdk.scrubber import EventScrubber
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,7 +81,7 @@ INSTALLED_APPS = [
     "notifications",
     "fab_management",
     "django_select2",
-    "coherence"
+    "coherence",
 ]
 
 MIDDLEWARE = [
@@ -463,18 +464,6 @@ def traces_sampler(sampling_context):
     return SENTRY_SAMPLE_RATE
 
 
-def sentry_before_send_transaction(event, hint=None):
-    """
-    Keep only insensitive user data for sentry.
-    """
-    user = event.get("user")
-    if isinstance(user, dict):
-        if "email" in user:
-            del user["email"]
-
-    return event
-
-
 if SENTRY_DNS:
     sentry_sdk.init(
         dsn=SENTRY_DNS,
@@ -494,7 +483,7 @@ if SENTRY_DNS:
             DisallowedHost,
         ],
         send_default_pii=True,
-        before_send_transaction=sentry_before_send_transaction,
+        event_scrubber=EventScrubber(pii_denylist=["email"]),
     )
 
 
