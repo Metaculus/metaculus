@@ -55,7 +55,7 @@ class Command(BaseCommand):
         to_unsubscribe_qs = User.objects.exclude(id__in=active_user_ids).exclude(
             unsubscribed_mailing_tags__contains=[weekly_tag]
         )
-        to_unsubscribe_qs.update(
+        unsubscribed_count = to_unsubscribe_qs.update(
             unsubscribed_mailing_tags=Func(
                 F("unsubscribed_mailing_tags"),
                 Value(weekly_tag),
@@ -63,18 +63,33 @@ class Command(BaseCommand):
             )
         )
 
-        subscribed_users_count = User.objects.exclude(
+        # 2) Subscribe active users (remove the tag if present)
+        to_subscribe_qs = User.objects.filter(
+            id__in=active_user_ids, unsubscribed_mailing_tags__contains=[weekly_tag]
+        )
+        subscribed_count = to_subscribe_qs.update(
+            unsubscribed_mailing_tags=Func(
+                F("unsubscribed_mailing_tags"),
+                Value(weekly_tag),
+                function="array_remove",
+            )
+        )
+
+        # Get final counts for reporting
+        final_subscribed_count = User.objects.exclude(
             unsubscribed_mailing_tags__contains=[weekly_tag]
         ).count()
 
-        unsubscribed_users_count = User.objects.filter(
+        final_unsubscribed_count = User.objects.filter(
             unsubscribed_mailing_tags__contains=[weekly_tag]
         ).count()
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Active users: {len(active_user_ids)}. "
-                f"Subscribed: {subscribed_users_count}. "
-                f"Unsubscribed: {unsubscribed_users_count}."
+                f"Users unsubscribed: {unsubscribed_count}. "
+                f"Active users subscribed: {subscribed_count}. "
+                f"Final subscribed: {final_subscribed_count}. "
+                f"Final unsubscribed: {final_unsubscribed_count}."
             )
         )
