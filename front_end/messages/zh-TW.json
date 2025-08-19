@@ -1465,5 +1465,16 @@
   "createQuestionLinkCommentPromptBodyMultiple": "我們注意到您添加了多個指向其他 Metaculus 問題的網址。如果您願意，您可以在當前問題和鏈接問題之間創建因果關聯。",
   "questionLinkCreated": "問題鏈結成功建立！",
   "questionLinkCreatedMultiple": "問題鏈結已成功建立！",
+  "current_week": "本週",
+  "placementFirst": "第 1 名",
+  "placementSecond": "第 2 名",
+  "placementThird": "第 3 名",
+  "placementOther": "第 {placement} 名",
+  "exclude": "排除",
+  "unexclude": "取消排除",
+  "mindsChanged": "改變想法",
+  "weeklyTopComments": "本週熱評",
+  "weeklyTopCommentsShort": "熱評",
+  "keyFactorImpact": "關鍵因素影響",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

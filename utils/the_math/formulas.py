@@ -85,9 +85,7 @@ def unscaled_location_to_scaled_location(
         return unscaled_location
 
     if zero_point is not None:
-        deriv_ratio = (range_max - zero_point) / max(
-            (range_min - zero_point), 0.0000001
-        )
+        deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
         return range_min + (range_max - range_min) * (
             deriv_ratio**unscaled_location - 1
         ) / (deriv_ratio - 1)
@@ -107,9 +105,7 @@ def scaled_location_to_unscaled_location(
         question.range_min,
     )
     if zero_point is not None:
-        deriv_ratio = (range_max - zero_point) / max(
-            (range_min - zero_point), 0.0000001
-        )
+        deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
         return (
             np.log(
                 (scaled_location - range_min) * (deriv_ratio - 1)
