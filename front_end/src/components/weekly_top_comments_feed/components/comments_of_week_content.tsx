@@ -1,6 +1,6 @@
 "use client";
 
-import { addWeeks, isAfter, format } from "date-fns";
+import { addWeeks, isAfter, format, parse } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useCallback, useEffect, useMemo } from "react";
 
@@ -18,13 +18,13 @@ import WeekSelector from "./week_selector";
 
 type Props = {
   comments: CommentOfWeekType[];
-  weekStart: Date;
+  weekStartStr: string;
   currentUser: CurrentUser | null;
 };
 
 const CommentsOfWeekContent: FC<Props> = ({
   comments: initialComments,
-  weekStart: initialWeekStart,
+  weekStartStr: initialWeekStart,
   currentUser,
 }) => {
   const t = useTranslations();
@@ -33,7 +33,9 @@ const CommentsOfWeekContent: FC<Props> = ({
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
   const [comments, setComments] =
     useState<CommentOfWeekType[]>(initialComments);
-  const [weekStart, setWeekStart] = useState<Date>(initialWeekStart);
+  const [weekStart, setWeekStart] = useState<Date>(
+    parse(initialWeekStart, "yyyy-MM-dd", new Date())
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,11 +72,10 @@ const CommentsOfWeekContent: FC<Props> = ({
     const fetchComments = async () => {
       setIsLoading(true);
       setError(null);
-      setWeekStart(new Date(startDateParam));
+      setWeekStart(parse(startDateParam, "yyyy-MM-dd", new Date()));
       try {
-        const newComments = await ClientCommentsApi.getCommentsOfWeek(
-          format(startDateParam, "yyyy-MM-dd")
-        );
+        const newComments =
+          await ClientCommentsApi.getCommentsOfWeek(startDateParam);
         setComments(newComments);
       } catch (err) {
         setError("Failed to load comments for this week");
@@ -83,7 +84,8 @@ const CommentsOfWeekContent: FC<Props> = ({
         setIsLoading(false);
       }
     };
-    if (startDateParam !== format(initialWeekStart, "yyyy-MM-dd")) {
+    if (startDateParam !== initialWeekStart) {
+      // First page load contains comments fetched by the server
       fetchComments();
     }
   }, [startDateParam, initialWeekStart]);
