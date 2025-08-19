@@ -1,4 +1,4 @@
-import { startOfWeek, format, getDay, addWeeks } from "date-fns";
+import { startOfWeek, format, getDay, addDays, parse } from "date-fns";
 import { redirect } from "next/navigation";
 import { FC } from "react";
 
@@ -12,33 +12,35 @@ import { WEEK_START_DAY } from "./components/constants";
 const AwaitedWeeklyTopCommentsFeed: FC<{
   searchParams: SearchParams;
 }> = async ({ searchParams }) => {
-  const defaultWeekStart = addWeeks(
-    startOfWeek(new Date(), {
-      weekStartsOn: WEEK_START_DAY,
-    }),
-    -2
-  );
+  const currentWeekStart = startOfWeek(new Date(), {
+    weekStartsOn: WEEK_START_DAY,
+  });
+  const defaultWeekStart = addDays(currentWeekStart, -14);
+  const defaultWeekStartStr = format(defaultWeekStart, "yyyy-MM-dd");
 
-  const startDate =
+  const startDateStr =
     typeof searchParams.start_date === "string"
-      ? new Date(searchParams.start_date)
-      : defaultWeekStart;
+      ? searchParams.start_date
+      : defaultWeekStartStr;
 
   // Redirect to the last Sunday if the provided date is not a Sunday
   if (
     typeof searchParams.start_date === "string" &&
-    getDay(startDate) !== WEEK_START_DAY
+    getDay(parse(startDateStr, "yyyy-MM-dd", new Date())) !== WEEK_START_DAY
   ) {
-    const lastSunday = startOfWeek(startDate, {
-      weekStartsOn: WEEK_START_DAY,
-    });
+    const lastSunday = format(
+      startOfWeek(parse(startDateStr, "yyyy-MM-dd", new Date()), {
+        weekStartsOn: WEEK_START_DAY,
+      }),
+      "yyyy-MM-dd"
+    );
     redirect(
       `/questions/?weekly_top_comments=true&start_date=${format(lastSunday, "yyyy-MM-dd")}`
     );
   }
 
   const requests = [
-    ServerCommentsApi.getCommentsOfWeek(format(startDate, "yyyy-MM-dd")),
+    ServerCommentsApi.getCommentsOfWeek(startDateStr),
     ServerProfileApi.getMyProfile(),
   ] as const;
 
@@ -47,7 +49,7 @@ const AwaitedWeeklyTopCommentsFeed: FC<{
   return (
     <CommentsOfWeekContent
       comments={commentsData}
-      weekStart={startDate}
+      weekStartStr={startDateStr}
       currentUser={currentUser}
     />
   );
