@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from posts.models import Post
 from projects.models import Project, ProjectIndexQuestion
 from projects.services.indexes import calculate_project_index_timeline
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, AggregateForecast
 from questions.types import AggregationMethod
 from tests.unit.test_posts.factories import factory_post
@@ -22,22 +23,74 @@ def index_project():
 
 @freeze_time("2025-01-10")
 def test_calculate_project_index_timeline(index_project):
+    question_annulled_overlap = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 5),
+        actual_close_time=datetime_aware(2025, 1, 5),
+        # Actual resolution time happened before last forecast was made
+        actual_resolve_time=datetime_aware(2025, 1, 5),
+        resolution=UnsuccessfulResolutionType.ANNULLED,
+    )
     question = create_question(
         question_type=Question.QuestionType.BINARY,
         scheduled_close_time=datetime_aware(2025, 1, 7),
         actual_close_time=datetime_aware(2025, 1, 7),
         # TODO: what if resolve time < close time?
         actual_resolve_time=datetime_aware(2025, 1, 8),
+        resolution="no",
     )
     factory_post(
         question=question,
         curation_status=Post.CurationStatus.APPROVED,
         default_project=index_project,
     )
+    factory_post(
+        question=question_annulled_overlap,
+        curation_status=Post.CurationStatus.APPROVED,
+        default_project=index_project,
+    )
     ProjectIndexQuestion.objects.create(
         question=question, project=index_project, weight=1
     )
+    ProjectIndexQuestion.objects.create(
+        question=question_annulled_overlap, project=index_project, weight=1
+    )
 
+    # Question #1
+    AggregateForecast(
+        question=question_annulled_overlap,
+        start_time=datetime_aware(2025, 1, 1),
+        end_time=datetime_aware(2025, 1, 2),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.55, 0.45],
+        forecast_values=[0.55, 0.45],
+    ).save()
+    AggregateForecast(
+        question=question_annulled_overlap,
+        start_time=datetime_aware(2025, 1, 2),
+        end_time=datetime_aware(2025, 1, 3),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.33, 0.67],
+        forecast_values=[0.33, 0.67],
+    ).save()
+    AggregateForecast(
+        question=question_annulled_overlap,
+        start_time=datetime_aware(2025, 1, 3),
+        end_time=datetime_aware(2025, 1, 4),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.33, 0.67],
+        forecast_values=[0.33, 0.67],
+    ).save()
+    # Overlapping score
+    AggregateForecast(
+        question=question_annulled_overlap,
+        start_time=datetime_aware(2025, 1, 4),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.45, 0.55],
+        forecast_values=[0.45, 0.55],
+    ).save()
+
+    # Question #2
     AggregateForecast(
         question=question,
         start_time=datetime_aware(2025, 1, 4),
@@ -67,6 +120,117 @@ def test_calculate_project_index_timeline(index_project):
     def find_point(dt: datetime.datetime):
         return next(x for x in data if x["x"] == dt.timestamp())["y"]
 
-    assert find_point(datetime_aware(2025, 1, 4)) == pytest.approx(-20)
+    # Aggregations from question #1 only!
+    assert find_point(datetime_aware(2025, 1, 1)) == pytest.approx(-10)
+    assert find_point(datetime_aware(2025, 1, 2)) == pytest.approx(34)
+    assert find_point(datetime_aware(2025, 1, 3)) == pytest.approx(34)
+
+    # Overlapped aggregation
+    assert find_point(datetime_aware(2025, 1, 4)) == pytest.approx(-5)
+
+    # Aggregations from question #2 only! First question was annulled,
+    # so its weights won't be included
     assert find_point(datetime_aware(2025, 1, 5)) == pytest.approx(20)
     assert find_point(datetime_aware(2025, 1, 6)) == pytest.approx(50)
+    assert find_point(datetime_aware(2025, 1, 7)) == pytest.approx(50)
+    # Date of resolution was added to the timeline
+    assert find_point(datetime_aware(2025, 1, 8)) == pytest.approx(-100)
+    # Today's date was added automatically
+    assert find_point(datetime_aware(2025, 1, 10)) == pytest.approx(-100)
+
+
+@freeze_time("2025-01-10")
+def test_calculate_project_index_timeline__unsuccessfully_resolved(index_project):
+    question = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 8),
+        actual_close_time=datetime_aware(2025, 1, 8),
+        actual_resolve_time=datetime_aware(2025, 1, 5),
+        resolution=UnsuccessfulResolutionType.ANNULLED,
+    )
+    factory_post(
+        question=question,
+        curation_status=Post.CurationStatus.APPROVED,
+        default_project=index_project,
+    )
+    ProjectIndexQuestion.objects.create(
+        question=question, project=index_project, weight=1
+    )
+
+    AggregateForecast(
+        question=question,
+        start_time=datetime_aware(2025, 1, 4),
+        end_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.25, 0.75],
+        forecast_values=[0.25, 0.75],
+    ).save()
+    AggregateForecast(
+        question=question,
+        start_time=datetime_aware(2025, 1, 5),
+        end_time=datetime_aware(2025, 1, 6),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.55, 0.45],
+        forecast_values=[0.55, 0.45],
+    ).save()
+    AggregateForecast(
+        question=question,
+        start_time=datetime_aware(2025, 1, 6),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.3, 0.7],
+        forecast_values=[0.3, 0.7],
+    ).save()
+
+    data = calculate_project_index_timeline(index_project)
+
+    def find_point(dt: datetime.datetime):
+        return next(x for x in data if x["x"] == dt.timestamp())["y"]
+
+    print(data)
+
+    assert find_point(datetime_aware(2025, 1, 4)) == pytest.approx(50)
+    assert find_point(datetime_aware(2025, 1, 5)) == 0
+    assert find_point(datetime_aware(2025, 1, 6)) == 0
+    assert find_point(datetime_aware(2025, 1, 10)) == 0
+
+
+@freeze_time("2025-01-10")
+def test_calculate_project_index_timeline__ongoing(index_project):
+    question = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 10),
+    )
+    factory_post(
+        question=question,
+        curation_status=Post.CurationStatus.APPROVED,
+        default_project=index_project,
+    )
+    ProjectIndexQuestion.objects.create(
+        question=question, project=index_project, weight=1
+    )
+
+    AggregateForecast(
+        question=question,
+        start_time=datetime_aware(2025, 1, 4),
+        end_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.25, 0.75],
+        forecast_values=[0.25, 0.75],
+    ).save()
+    AggregateForecast(
+        question=question,
+        start_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.55, 0.45],
+        forecast_values=[0.55, 0.45],
+    ).save()
+
+    data = calculate_project_index_timeline(index_project)
+
+    def find_point(dt: datetime.datetime):
+        return next(x for x in data if x["x"] == dt.timestamp())["y"]
+
+    assert find_point(datetime_aware(2025, 1, 4)) == pytest.approx(50)
+
+    for day in range(5, 10):
+        assert find_point(datetime_aware(2025, 1, 5)) == pytest.approx(-10)

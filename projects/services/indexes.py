@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from posts.models import Post
 from projects.models import Project, ProjectIndexQuestion
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Question
 from questions.utils import get_last_forecast_in_the_past
 from utils.dtypes import generate_map_from_list
@@ -66,6 +67,21 @@ def _value_from_forecast(question: Question, forecast: AggregateForecast) -> flo
     return sum((1.0 - float(v)) for v in cdf) / float(len(cdf))
 
 
+def _value_from_resolved_question(question: Question) -> float | None:
+    """
+    Generating index value from resolved question.
+    """
+
+    if not question.resolution or question.resolution in UnsuccessfulResolutionType:
+        return
+
+    if question.type == Question.QuestionType.BINARY:
+        return 1 if question.resolution == "yes" else -1
+
+    # TODO: implement for Continuous questions!
+    return 0
+
+
 def calculate_project_index_timeline(
     project: Project, max_points: int = 400
 ) -> list[IndexPoint] | None:
@@ -76,8 +92,6 @@ def calculate_project_index_timeline(
       - line: List[IndexPoint as dict]
       - timestamps: List[int] (unix seconds)
     where y values are scaled to [-100, 100].
-
-    # TODO: exclude unsuccessfully resolved/closed questions
     """
 
     pairs = _get_index_questions_with_weights(project)
@@ -85,8 +99,6 @@ def calculate_project_index_timeline(
         return
 
     questions = [q for q, _ in pairs]
-
-    # TODO: don't take in the future!
 
     aggregate_forecasts = (
         AggregateForecast.objects.filter_default_aggregation()
@@ -99,7 +111,16 @@ def calculate_project_index_timeline(
         aggregate_forecasts,
         lambda agg: agg.question_id,
     )
-    all_datetimes = [agg.start_time for agg in aggregate_forecasts]
+    all_datetimes = list(
+        {agg.start_time for agg in aggregate_forecasts}
+        # Append actual resolution dates when accurate
+        | {q.actual_resolve_time for q in questions if q.actual_resolve_time}
+        # Append actual close dates when accurate
+        | {q.actual_close_time for q in questions if q.actual_close_time}
+    )
+
+    # Sort dates again
+    all_datetimes.sort()
 
     # TODO: probably include dates of actual resolution/closure if needed!
     # TODO: and then, add sorting!
@@ -118,8 +139,6 @@ def calculate_project_index_timeline(
     line: list[IndexPoint] = []
 
     for dt in sampled_datetimes:
-        ts = dt.timestamp()
-
         # Some questions might not have forecasts for the given period
         # So we should not include their weights to the denominator
         # So we need to calculate weight_sum individually for each iteration
@@ -132,24 +151,23 @@ def calculate_project_index_timeline(
             if not history:
                 continue
 
-            # TODO: WE SHOULD NOT TAKE or history[-1]! (+ exclude its weight)
-            #   BUT only if question has not started before the timeline
-            #   hmm, so it's probably okay to keep it None then
-            # TODO: this one is not very optimized, so I'd propose a different solution for loop!
-            agg = get_last_forecast_in_the_past(history, at_time=dt)
+            value = None
 
-            if not agg:
-                continue
+            # Handle resolved questions index
+            if question.actual_resolve_time and dt >= question.actual_resolve_time:
+                value = _value_from_resolved_question(question)
+            else:
+                # TODO: this one is not very optimized, so need to propose different solution for loop!
+                if agg := get_last_forecast_in_the_past(history, at_time=dt):
+                    value = _value_from_forecast(question, agg)
 
-            # TODO: what should we do with resolved + closed questions?
+            if value is not None:
+                weight_sum += abs(weight)
+                score_sum += weight * value
 
-            weight_sum += abs(weight)
-            score_sum += weight * _value_from_forecast(question, agg)
-
-        if weight_sum != 0:
-            # Normalize and scale to [-100, 100]
-            y_norm = score_sum / weight_sum
-            line.append({"x": int(ts), "y": y_norm * 100})
+        # Normalize and scale to [-100, 100]
+        y = score_sum / weight_sum if weight_sum != 0 else 0
+        line.append({"x": int(dt.timestamp()), "y": y * 100})
 
     return line
 
@@ -162,8 +180,6 @@ def get_project_index_payload(project: Project) -> dict:
 
     timeline = calculate_project_index_timeline(project)
     return {
-        # TODO: why?
-        # "index": 100.0 * index_now,
         "index": timeline[-1]["y"] if timeline else None,
         "index_timeline": timeline,
     }
