@@ -12,6 +12,9 @@ from utils.the_math.aggregations import minimize_history
 
 IndexPoint = TypedDict("IndexPoint", {"x": int, "y": float})
 
+# TODO: add caching
+# TODO: ensure we don't make N+1 queries
+
 
 def _get_index_questions_with_weights(project: Project) -> list[tuple[Question, float]]:
     """
@@ -77,7 +80,7 @@ def _value_from_resolved_question(question: Question) -> float | None:
 
 def calculate_project_index_timeline(
     project: Project, max_points: int = 400
-) -> list[IndexPoint] | None:
+) -> list[IndexPoint]:
     """
     Build a minimized timeline of the project's index.
 
@@ -89,7 +92,7 @@ def calculate_project_index_timeline(
 
     pairs = _get_index_questions_with_weights(project)
     if not pairs:
-        return
+        return []
 
     questions = [q for q, _ in pairs]
 
