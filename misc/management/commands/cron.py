@@ -201,14 +201,6 @@ class Command(BaseCommand):
             replace_existing=True,
         )
 
-        try:
-            logger.info("Starting scheduler...")
-            scheduler.start()
-        except KeyboardInterrupt:
-            logger.info("Stopping scheduler...")
-            scheduler.shutdown()
-            logger.info("Scheduler shut down successfully!")
-
         #
         # Comment Jobs
         #
@@ -219,3 +211,11 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+
+        try:
+            logger.info("Starting scheduler...")
+            scheduler.start()
+        except KeyboardInterrupt:
+            logger.info("Stopping scheduler...")
+            scheduler.shutdown()
+            logger.info("Scheduler shut down successfully!")
