@@ -140,6 +140,77 @@ def test_calculate_project_index_timeline(index_project):
 
 
 @freeze_time("2025-01-10")
+def test_calculate_project_index_timeline__negative_values(index_project):
+    question_1 = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 10),
+    )
+    question_2 = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 10),
+    )
+    factory_post(
+        question=question_1,
+        curation_status=Post.CurationStatus.APPROVED,
+        default_project=index_project,
+    )
+    factory_post(
+        question=question_2,
+        curation_status=Post.CurationStatus.APPROVED,
+        default_project=index_project,
+    )
+    ProjectIndexQuestion.objects.create(
+        question=question_1, project=index_project, weight=-2
+    )
+    ProjectIndexQuestion.objects.create(
+        question=question_2, project=index_project, weight=0.5
+    )
+
+    # Question #1
+    AggregateForecast(
+        question=question_1,
+        start_time=datetime_aware(2025, 1, 4),
+        end_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.55, 0.45],
+        forecast_values=[0.55, 0.45],
+    ).save()
+    AggregateForecast(
+        question=question_1,
+        start_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.33, 0.67],
+        forecast_values=[0.33, 0.67],
+    ).save()
+
+    # Question #2
+    AggregateForecast(
+        question=question_2,
+        start_time=datetime_aware(2025, 1, 4),
+        end_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.35, 0.65],
+        forecast_values=[0.35, 0.65],
+    ).save()
+    AggregateForecast(
+        question=question_2,
+        start_time=datetime_aware(2025, 1, 5),
+        method=AggregationMethod.RECENCY_WEIGHTED,
+        centers=[0.23, 0.77],
+        forecast_values=[0.23, 0.77],
+    ).save()
+
+    data = calculate_project_index_timeline(index_project)
+
+    def find_point(dt: datetime.datetime):
+        return next(x for x in data if x["x"] == dt.timestamp())["y"]
+
+    # Aggregations from question #1 only!
+    assert find_point(datetime_aware(2025, 1, 4)) == pytest.approx(14)
+    assert find_point(datetime_aware(2025, 1, 5)) == pytest.approx(-16.4)
+
+
+@freeze_time("2025-01-10")
 def test_calculate_project_index_timeline__unsuccessfully_resolved(index_project):
     question = create_question(
         question_type=Question.QuestionType.BINARY,
@@ -185,8 +256,6 @@ def test_calculate_project_index_timeline__unsuccessfully_resolved(index_project
 
     def find_point(dt: datetime.datetime):
         return next(x for x in data if x["x"] == dt.timestamp())["y"]
-
-    print(data)
 
     assert find_point(datetime_aware(2025, 1, 4)) == pytest.approx(50)
     assert find_point(datetime_aware(2025, 1, 5)) == 0
