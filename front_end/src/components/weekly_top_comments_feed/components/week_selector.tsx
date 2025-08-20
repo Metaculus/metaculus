@@ -158,6 +158,10 @@ const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
     [weekStart, onWeekChange]
   );
 
+  // Check if the week start is earlier than June 1st, 2025
+  const minDate = new Date("2025-06-01");
+  const isPrevButtonDisabled = weekStart < minDate;
+
   return (
     <div
       className={cn(
@@ -169,6 +173,7 @@ const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
         size="sm"
         variant="text"
         onClick={() => navigateWeek("prev")}
+        disabled={isPrevButtonDisabled}
         className="mr-2 flex items-center justify-center  bg-gray-0 p-0 dark:bg-gray-0-dark"
       >
         <FontAwesomeIcon
