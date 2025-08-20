@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Iterable, TypedDict
 
 from django.utils import timezone
@@ -22,7 +20,7 @@ def _get_index_questions_with_weights(project: Project) -> list[tuple[Question, 
     """
 
     q_objs: Iterable[ProjectIndexQuestion] = (
-        # TODO: normalize filters
+        # TODO: make a small refactoring of this!
         project.index_questions.filter(
             question__related_posts__post__curation_status=Post.CurationStatus.APPROVED
         )
@@ -30,12 +28,7 @@ def _get_index_questions_with_weights(project: Project) -> list[tuple[Question, 
         .order_by("question_id")
         .all()
     )
-    return [
-        (obj.question, float(obj.weight))
-        for obj in q_objs
-        # TODO: do we need this condition?
-        if obj.weight is not None and float(obj.weight) != 0.0
-    ]
+    return [(obj.question, float(obj.weight)) for obj in q_objs]
 
 
 def _value_from_forecast(question: Question, forecast: AggregateForecast) -> float:
@@ -117,25 +110,15 @@ def calculate_project_index_timeline(
         | {q.actual_resolve_time for q in questions if q.actual_resolve_time}
         # Append actual close dates when accurate
         | {q.actual_close_time for q in questions if q.actual_close_time}
+        # Always include now
+        | {timezone.now()}
     )
 
     # Sort dates again
     all_datetimes.sort()
 
-    # TODO: probably include dates of actual resolution/closure if needed!
-    # TODO: and then, add sorting!
-
-    if not all_datetimes:
-        return
-
     # Down-sample timeline
     sampled_datetimes = minimize_history(all_datetimes, max_size=max_points)
-
-    # Always include "now"
-    now_dt = timezone.now()
-    if not sampled_datetimes or sampled_datetimes[-1] < now_dt:
-        sampled_datetimes.append(now_dt)
-
     line: list[IndexPoint] = []
 
     for dt in sampled_datetimes:
