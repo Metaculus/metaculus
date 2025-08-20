@@ -11,6 +11,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC, Fragment, useCallback } from "react";
 
 import Button from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
 import { getDateFnsLocale } from "@/utils/formatters/date";
 
@@ -30,6 +31,7 @@ const DateSelect: FC<Props> = ({
   const t = useTranslations();
   const localeStr = useLocale();
   const locale = getDateFnsLocale(localeStr);
+  const { user } = useAuth();
 
   const currentWeekStart = startOfWeek(new Date(), {
     weekStartsOn: WEEK_START_DAY,
@@ -39,7 +41,7 @@ const DateSelect: FC<Props> = ({
     format(currentWeekStart, "yyyy-MM-dd");
 
   const weeksCount = 10;
-  const pastWeeksMenuItems = Array.from({ length: weeksCount }, (_, i) => {
+  let pastWeeksMenuItems = Array.from({ length: weeksCount }, (_, i) => {
     const itemWeekStart = addWeeks(currentWeekStart, -(i + 1));
     const itemLastWeekDay = addDays(itemWeekStart, 6);
     return {
@@ -56,6 +58,11 @@ const DateSelect: FC<Props> = ({
     };
   });
   const lastWeekDay = addDays(selectedWeekStart, 6);
+
+  if (!user?.is_staff) {
+    // Remove the week before the current week for non-staff users - contains non-finalized comments
+    pastWeeksMenuItems = pastWeeksMenuItems.slice(1);
+  }
 
   const currentWeekItem = {
     id: "current",
@@ -108,19 +115,23 @@ const DateSelect: FC<Props> = ({
             {/* Scrollable Items */}
             <div className="flex max-h-[187px] flex-col items-center overflow-y-auto py-1">
               {/* Current Week Option */}
-              <MenuItem as={Fragment} key={currentWeekItem.id}>
-                {({}) => (
-                  <button
-                    onClick={() => handleWeekSelect(currentWeekItem.weekStart)}
-                    className={cn(
-                      "block w-full border-b border-blue-200 px-2.5 py-1 text-left text-sm leading-5 text-blue-700 hover:bg-gray-100 dark:border-blue-200-dark dark:text-blue-700-dark hover:dark:bg-gray-100-dark",
-                      currentWeekItem.isSelected ? "font-bold" : "font-medium"
-                    )}
-                  >
-                    {currentWeekItem.name}
-                  </button>
-                )}
-              </MenuItem>
+              {user?.is_staff && (
+                <MenuItem as={Fragment} key={currentWeekItem.id}>
+                  {({}) => (
+                    <button
+                      onClick={() =>
+                        handleWeekSelect(currentWeekItem.weekStart)
+                      }
+                      className={cn(
+                        "block w-full border-b border-blue-200 px-2.5 py-1 text-left text-sm leading-5 text-blue-700 hover:bg-gray-100 dark:border-blue-200-dark dark:text-blue-700-dark hover:dark:bg-gray-100-dark",
+                        currentWeekItem.isSelected ? "font-bold" : "font-medium"
+                      )}
+                    >
+                      {currentWeekItem.name}
+                    </button>
+                  )}
+                </MenuItem>
+              )}
 
               {/* Historical Weeks */}
               {pastWeeksMenuItems.map((item) => (
@@ -148,7 +159,7 @@ const DateSelect: FC<Props> = ({
 
 const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
   const weekEnd = addWeeks(weekStart, 1);
-
+  const { user } = useAuth();
   const navigateWeek = useCallback(
     (direction: "prev" | "next") => {
       const weeksToMove = direction === "prev" ? -1 : 1;
@@ -162,6 +173,8 @@ const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
   const minDate = new Date("2025-06-01");
   const isPrevButtonDisabled = weekStart < minDate;
 
+  // Don't show to non-staff users the last two weeks
+  const maxDate = user?.is_staff ? new Date() : addWeeks(new Date(), -2);
   return (
     <div
       className={cn(
@@ -191,7 +204,7 @@ const WeekSelector: FC<Props> = ({ weekStart, className, onWeekChange }) => {
         variant="text"
         onClick={() => navigateWeek("next")}
         className="ml-2 flex items-center justify-center bg-gray-0 p-0 dark:bg-gray-0-dark"
-        disabled={weekEnd > new Date()}
+        disabled={weekEnd > maxDate}
       >
         <FontAwesomeIcon
           icon={faChevronRight}
