@@ -156,7 +156,8 @@ const people: Person[] = [
   {
     userId: 111848,
     name: "Juan Cambeiro",
-    position: "Senior Advisor for Biosecurity, U.S. Center for AI Standards and Innovation",
+    position:
+      "Senior Advisor for Biosecurity, U.S. Center for AI Standards and Innovation",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/juan_cambeiro.webp",
     introduction:
@@ -383,7 +384,7 @@ const groups: Groups = {
     "Nikitas Angeletos Chrysaitis",
     "Abhimanyu Pallavi Sudhir",
     "John Bash",
-    "Felipe Oliveira"
+    "Felipe Oliveira",
   ],
   board: [
     "Anthony Aguirre",
@@ -402,7 +403,7 @@ const groups: Groups = {
   ],
 };
 
-const TeamBlock: FC = ({ }) => {
+const TeamBlock: FC = ({}) => {
   const [randomizedGroups, setRandomizedGroups] = useState(groups);
   const [openPerson, setOpenPerson] = useState<{
     groupName: Group;
