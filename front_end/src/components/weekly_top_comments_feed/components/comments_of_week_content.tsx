@@ -47,6 +47,7 @@ const CommentsOfWeekContent: FC<Props> = ({
       setParam("weekly_top_comments", "true", false);
       setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
       shallowNavigateToSearchParams();
+      fetchComments(newWeekStart);
     },
     [setParam, shallowNavigateToSearchParams]
   );
@@ -65,30 +66,36 @@ const CommentsOfWeekContent: FC<Props> = ({
     [debouncedFetchComments]
   );
 
+  const fetchComments = useCallback(async (weekStart: Date) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const newComments = await ClientCommentsApi.getCommentsOfWeek(
+        format(weekStart, "yyyy-MM-dd")
+      );
+      setComments(newComments);
+    } catch (err) {
+      setError("Failed to load comments for this week");
+      console.error("Error fetching comments:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!startDateParam) {
       return;
     }
-    const fetchComments = async () => {
-      setIsLoading(true);
-      setError(null);
-      setWeekStart(parse(startDateParam, "yyyy-MM-dd", new Date()));
-      try {
-        const newComments =
-          await ClientCommentsApi.getCommentsOfWeek(startDateParam);
-        setComments(newComments);
-      } catch (err) {
-        setError("Failed to load comments for this week");
-        console.error("Error fetching comments:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (startDateParam !== initialWeekStart) {
-      // First page load contains comments fetched by the server
-      fetchComments();
+
+    const weekStartStr = format(weekStart, "yyyy-MM-dd");
+    if (startDateParam !== weekStartStr) {
+      const newWeekStart = parse(startDateParam, "yyyy-MM-dd", new Date());
+      fetchComments(newWeekStart);
+      setWeekStart(newWeekStart);
     }
-  }, [startDateParam, initialWeekStart]);
+    // Listen only for changes in startDateParam - we want to fetch comments only when the user
+    // navigates with the browser back/forward in history, and not via the week selector button
+  }, [startDateParam, fetchComments]);
 
   const onExcludeToggleFinished = (commentId: number, excluded: boolean) => {
     setComments(
