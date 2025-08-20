@@ -585,6 +585,11 @@ class Forecast(models.Model):
         return super().save(**kwargs)
 
 
+class AggregateForecastQuerySet(QuerySet):
+    def filter_default_aggregation(self):
+        return self.filter(method=F("question__default_aggregation_method"))
+
+
 class AggregateForecast(models.Model):
     id: int
     question_id: int
@@ -607,6 +612,8 @@ class AggregateForecast(models.Model):
     interval_upper_bounds = ArrayField(models.FloatField(), null=True)
     means = ArrayField(models.FloatField(), null=True)
     histogram = ArrayField(models.FloatField(), null=True, size=100)
+
+    objects = AggregateForecastQuerySet.as_manager()
 
     class Meta:
         indexes = [
