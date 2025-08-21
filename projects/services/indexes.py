@@ -162,7 +162,7 @@ def get_project_index_payload(project: Project) -> dict:
     Returns dict suitable for attaching to API response bodies later.
     """
 
-    timeline = calculate_project_index_timeline(
+    timeline = calculate_questions_index_timeline(
         _get_index_questions_with_weights(project)
     )
     return {
