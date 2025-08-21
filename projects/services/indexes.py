@@ -31,6 +31,7 @@ def _get_index_questions_with_weights(project: Project) -> dict[Question, float]
     return {obj.question: obj.weight for obj in q_objs}
 
 
+
 def _value_from_forecast(question: Question, forecast: AggregateForecast) -> float:
     """
     Convert a single question's AggregateForecast into a normalized index contribution.
@@ -56,7 +57,7 @@ def _value_from_forecast(question: Question, forecast: AggregateForecast) -> flo
 
     # We use this formula instead of the original
     # According to this ticket - https://github.com/Metaculus/metaculus/issues/2471
-    return sum((1.0 - float(v)) for v in cdf) / float(len(cdf))
+    return 1.0 - 2.0 * (sum(cdf) / len(cdf))
 
 
 def _value_from_resolved_question(question: Question) -> float | None:
