@@ -1470,5 +1470,16 @@
   "createQuestionLinkCommentPromptBodyMultiple": "我们注意到您添加了多个链接到其他 Metaculus 问题的 URL。如果您愿意，您可以在当前问题和链接问题之间创建因果链接。",
   "questionLinkCreated": "问题链接创建成功！",
   "questionLinkCreatedMultiple": "多个问题链接创建成功！",
+  "current_week": "本周",
+  "placementFirst": "第1名",
+  "placementSecond": "第2名",
+  "placementThird": "第3名",
+  "placementOther": "第{placement}名",
+  "exclude": "排除",
+  "unexclude": "取消排除",
+  "mindsChanged": "改变主意",
+  "weeklyTopComments": "本周热评",
+  "weeklyTopCommentsShort": "热评",
+  "keyFactorImpact": "关键因素影响",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }

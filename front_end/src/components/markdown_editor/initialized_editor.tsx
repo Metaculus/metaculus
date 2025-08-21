@@ -21,7 +21,7 @@ import {
 } from "@mdxeditor/editor";
 import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
 import { useTranslations } from "next-intl";
-import React, {
+import {
   FC,
   ForwardedRef,
   useCallback,
@@ -47,6 +47,7 @@ import { processMarkdown } from "./helpers";
 import { equationPlugin } from "./plugins/equation";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
+// import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
 
 type EditorMode = "write" | "read";
 
@@ -253,6 +254,7 @@ const InitializedMarkdownEditor: FC<
         jsxPlugin({ jsxComponentDescriptors }),
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
+        // ...(mode === "read" ? [trimTrailingParagraphPlugin()] : []),
       ]}
       lexicalTheme={{
         beautifulMentions: beautifulMentionsTheme,

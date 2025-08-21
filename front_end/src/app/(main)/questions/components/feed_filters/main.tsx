@@ -127,6 +127,10 @@ const MainFeedFilters: FC<Props> = ({
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
       {
+        value: QuestionOrder.UnreadCommentCountDesc,
+        label: t("newComments"),
+      },
+      {
         value: QuestionOrder.PredictionCountDesc,
         label: t("mostPredictions"),
       },

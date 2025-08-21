@@ -31,6 +31,8 @@ from projects.services.common import (
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
+from scoring.constants import LeaderboardScoreTypes
+from scoring.models import Leaderboard
 from users.services.common import get_users_by_usernames
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
@@ -201,7 +203,22 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
 def project_create_api_view(request: Request):
     serializer = ProjectSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    project: Project = serializer.save()
+    if not project.primary_leaderboard:
+        leaderboard = Leaderboard.objects.create(
+            project=project,
+            score_type=request.data.get(
+                "leaderboard_score_type", LeaderboardScoreTypes.PEER_TOURNAMENT
+            ),
+        )
+        project.primary_leaderboard = leaderboard
+        project.save()
+    elif project.primary_leaderboard:
+        leaderboard = project.primary_leaderboard
+        leaderboard.score_type = request.data.get(
+            "leaderboard_score_type", LeaderboardScoreTypes.PEER_TOURNAMENT
+        )
+        leaderboard.save()
 
     return Response(serializer.data)
 
