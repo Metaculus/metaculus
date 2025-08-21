@@ -31,7 +31,6 @@ def _get_index_questions_with_weights(project: Project) -> dict[Question, float]
     return {obj.question: obj.weight for obj in q_objs}
 
 
-
 def _value_from_forecast(question: Question, forecast: AggregateForecast) -> float:
     """
     Convert a single question's AggregateForecast into a normalized index contribution.
