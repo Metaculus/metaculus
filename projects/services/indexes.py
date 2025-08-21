@@ -12,11 +12,12 @@ from utils.the_math.aggregations import minimize_history
 
 IndexPoint = TypedDict("IndexPoint", {"x": int, "y": float})
 
+
 # TODO: add caching
 # TODO: ensure we don't make N+1 queries
 
 
-def _get_index_questions_with_weights(project: Project) -> list[tuple[Question, float]]:
+def _get_index_questions_with_weights(project: Project) -> dict[Question, float]:
     """
     Returns list of (question, weight) pairs for project's index.
     Excludes zero-weight entries.
@@ -31,7 +32,8 @@ def _get_index_questions_with_weights(project: Project) -> list[tuple[Question, 
         .order_by("question_id")
         .all()
     )
-    return [(obj.question, float(obj.weight)) for obj in q_objs]
+
+    return {obj.question: obj.weight for obj in q_objs}
 
 
 def _value_from_forecast(question: Question, forecast: AggregateForecast) -> float:
@@ -78,8 +80,8 @@ def _value_from_resolved_question(question: Question) -> float | None:
     return 0
 
 
-def calculate_project_index_timeline(
-    project: Project, max_points: int = 400
+def calculate_questions_index_timeline(
+    question_indexes_map: dict[Question, float], max_points: int = 400
 ) -> list[IndexPoint]:
     """
     Build a minimized timeline of the project's index.
@@ -90,11 +92,7 @@ def calculate_project_index_timeline(
     where y values are scaled to [-100, 100].
     """
 
-    pairs = _get_index_questions_with_weights(project)
-    if not pairs:
-        return []
-
-    questions = [q for q, _ in pairs]
+    questions = question_indexes_map.keys()
 
     aggregate_forecasts = (
         AggregateForecast.objects.filter_default_aggregation()
@@ -131,7 +129,7 @@ def calculate_project_index_timeline(
         weight_sum = 0.0
         score_sum = 0.0
 
-        for question, weight in pairs:
+        for question, weight in question_indexes_map.items():
             history = forecasts_by_question.get(question.id)
 
             if not history:
@@ -164,7 +162,9 @@ def get_project_index_payload(project: Project) -> dict:
     Returns dict suitable for attaching to API response bodies later.
     """
 
-    timeline = calculate_project_index_timeline(project)
+    timeline = calculate_project_index_timeline(
+        _get_index_questions_with_weights(project)
+    )
     return {
         "index": timeline[-1]["y"] if timeline else None,
         "index_timeline": timeline,
