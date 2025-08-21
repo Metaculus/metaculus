@@ -49,12 +49,11 @@ def _value_from_forecast(question: Question, forecast: AggregateForecast) -> flo
             return 2.0 * p_yes - 1.0
         return 0.0
 
-    # Continuous-like (numeric/date/discrete)
+    # Continuous
     cdf = forecast.forecast_values or []
     if not cdf:
         return 0.0
 
-    # average survival mass in [0, 1]
     # We use this formula instead of the original
     # According to this ticket - https://github.com/Metaculus/metaculus/issues/2471
     return sum((1.0 - float(v)) for v in cdf) / float(len(cdf))
