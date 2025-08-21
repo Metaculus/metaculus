@@ -1,10 +1,10 @@
-from typing import Iterable, TypedDict
+from typing import TypedDict
 
 from django.utils import timezone
 
 from posts.models import Post
-from projects.models import Project, ProjectIndexQuestion
-from questions.constants import UnsuccessfulResolutionType
+from projects.models import Project
+from questions.constants import UnsuccessfulResolutionType, QuestionStatus
 from questions.models import AggregateForecast, Question
 from questions.utils import get_last_forecast_in_the_past
 from utils.dtypes import generate_map_from_list
@@ -13,19 +13,14 @@ from utils.the_math.aggregations import minimize_history
 IndexPoint = TypedDict("IndexPoint", {"x": int, "y": float})
 
 
-# TODO: add caching
-# TODO: ensure we don't make N+1 queries
-
-
 def _get_index_questions_with_weights(project: Project) -> dict[Question, float]:
     """
-    Returns list of (question, weight) pairs for project's index.
-    Excludes zero-weight entries.
+    Returns list of (question, weight) pairs for project's index
     """
 
-    q_objs: Iterable[ProjectIndexQuestion] = (
-        # TODO: make a small refactoring of this!
+    q_objs = (
         project.index_questions.filter(
+            # TODO: improve this (maybe filter by active posts)
             question__related_posts__post__curation_status=Post.CurationStatus.APPROVED
         )
         .select_related("question")
@@ -77,7 +72,7 @@ def _value_from_resolved_question(question: Question) -> float | None:
         return 1 if question.resolution == "yes" else -1
 
     # TODO: implement for Continuous questions!
-    return 0
+    return
 
 
 def calculate_questions_index_timeline(
@@ -156,16 +151,37 @@ def calculate_questions_index_timeline(
     return line
 
 
-def get_project_index_payload(project: Project) -> dict:
-    """
-    Convenience utility to compute both current index values and timeline.
-    Returns dict suitable for attaching to API response bodies later.
-    """
+def _get_index_data(question_indexes_map: dict[Question, float]):
+    resolved_questions = [
+        q for q in question_indexes_map.keys() if q.status == QuestionStatus.RESOLVED
+    ]
 
-    timeline = calculate_questions_index_timeline(
-        _get_index_questions_with_weights(project)
-    )
+    all_resolved = len(resolved_questions) == len(question_indexes_map)
+    timeline = calculate_questions_index_timeline(question_indexes_map)
+    # Resolution value is the last value in timeline if is resolved
+    resolution_value = timeline[-1]["y"] if timeline and all_resolved else None
+
     return {
-        "index": timeline[-1]["y"] if timeline else None,
-        "index_timeline": timeline,
+        "line": timeline,
+        "status": QuestionStatus.RESOLVED if all_resolved else QuestionStatus.OPEN,
+        "resolved_at": (
+            max(
+                [
+                    q.actual_resolve_time
+                    for q in resolved_questions
+                    if q.actual_resolve_time
+                ],
+                default=None,
+            )
+            if all_resolved
+            else None
+        ),
+        "resolution": resolution_value,
     }
+
+
+def get_project_single_index_data(project: Project) -> dict:
+    # TODO: add caching
+    question_weights = _get_index_questions_with_weights(project)
+
+    return _get_index_data(question_weights)

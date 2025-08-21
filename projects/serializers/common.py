@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
+from projects.services.indexes import get_project_single_index_data
 from users.serializers import UserPublicSerializer
 
 
@@ -165,39 +166,6 @@ def serialize_projects(
     return data
 
 
-def serialize_project_index_weights(project: Project):
-    """
-    Serialize project index posts with weight mapping
-    """
-
-    from posts.serializers import serialize_post_many
-
-    index_weights = []
-    qs = project.index_questions.prefetch_related("question__related_posts")
-    posts_map = {
-        x["id"]: x
-        for x in serialize_post_many(
-            {x.question.get_post_id() for x in qs},
-            with_cp=True,
-            include_cp_history=True,
-        )
-    }
-
-    for project_question in qs:
-        post = posts_map.get(project_question.question.get_post_id())
-
-        if post:
-            index_weights.append(
-                {
-                    "post": post,
-                    "question_id": project_question.question_id,
-                    "weight": project_question.weight,
-                }
-            )
-
-    return index_weights
-
-
 def validate_categories(lookup_field: str, lookup_values: list):
     categories = Project.objects.filter_category().filter(
         **{f"{lookup_field}__in": lookup_values}
@@ -261,3 +229,22 @@ class ProjectUserSerializer(serializers.ModelSerializer):
             "user",
             "permission",
         )
+
+
+def serialize_index_data(project: Project):
+    index_questions = project.index_questions.prefetch_related(
+        "question__related_posts"
+    )
+
+    return {
+        "weights": {
+            # Temporary workaround.
+            # In the future, multi-year indexes will use a direct Post<>Project relation
+            # instead of the old Question<>Project mapping.
+            # The frontend already expects a PostId<>Weight map (not questionId),
+            # but we’re skipping the DB change in this PR.
+            x.question.get_post_id(): x.weight
+            for x in index_questions
+        },
+        "series": get_project_single_index_data(project),
+    }
