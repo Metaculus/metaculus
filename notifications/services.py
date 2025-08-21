@@ -768,6 +768,30 @@ def send_forecast_autowidrawal_notification(
             "number_of_posts": len(posts_data),
         },
         use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+    return True
+
+
+def send_weekly_top_comments_notification(
+    recipients: list[str] | str,
+    top_comments: list[Comment],
+    top_comments_url: str,
+    other_usernames: str,
+    account_settings_url: str,
+):
+    send_email_with_template(
+        to=recipients,
+        subject=_("Last week’s top Metaculus comments"),
+        template_name="emails/weekly_top_comments.html",
+        context={
+            "top_comments": top_comments,
+            "top_comments_url": top_comments_url,
+            "other_usernames": other_usernames,
+            "account_settings_url": account_settings_url,
+        },
+        use_async=False,
     )
 
     return True

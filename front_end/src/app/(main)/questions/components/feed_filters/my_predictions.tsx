@@ -73,6 +73,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ScoreDesc, label: t("bestScores") },
       { value: QuestionOrder.ScoreAsc, label: t("worstScores") },
+      { value: QuestionOrder.LastPredictionTimeAsc, label: t("stale") },
       { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
     [t]

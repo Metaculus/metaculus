@@ -4,11 +4,9 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import {
-  getDropdownSortOptions,
   getFilterSectionPostStatus,
   getFilterSectionPostType,
   getFilterSectionUsername,
-  getMainOrderOptions,
 } from "@/app/(main)/questions/helpers/filters";
 import {
   FilterOptionType,
@@ -27,6 +25,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 import { CurrentUser } from "@/types/users";
+import cn from "@/utils/core/cn";
 
 const OPEN_STATUS_FILTERS = [
   QuestionOrder.PublishTimeDesc,
@@ -38,12 +37,15 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.ScoreDesc,
   QuestionOrder.ScoreAsc,
   QuestionOrder.NewsHotness,
+  QuestionOrder.UserNextWithdrawTimeAsc,
+  QuestionOrder.LastPredictionTimeAsc,
 ];
 const RESOLVED_STATUS_FILTERS = [QuestionOrder.HotAsc];
 const FORECASTER_ID_FILTERS = [
   QuestionOrder.LastPredictionTimeAsc,
   QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.DivergenceDesc,
+  QuestionOrder.UserNextWithdrawTimeAsc,
 ];
 
 const TournamentFilters: FC = () => {
@@ -55,13 +57,63 @@ const TournamentFilters: FC = () => {
     return getTournamentPostsFilters({ user, t, params });
   }, [params, t, user]);
 
-  const mainSortOptions = useMemo(() => {
-    return getMainOrderOptions(t);
-  }, [t]);
+  const mainSortOptions = useMemo(
+    () => [
+      {
+        value: QuestionOrder.ActivityDesc,
+        label: t("hot"),
+      },
+      {
+        value: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        value: QuestionOrder.OpenTimeDesc,
+        label: t("new"),
+      },
+    ],
+    [t]
+  );
 
-  const sortOptions = useMemo(() => {
-    return getDropdownSortOptions(t, !!user);
-  }, [t, user]);
+  const sortOptions = useMemo(
+    () => [
+      { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
+      { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
+      {
+        value: QuestionOrder.PredictionCountDesc,
+        label: t("mostPredictions"),
+      },
+      { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
+      { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+      ...(!!user
+        ? [
+            {
+              value: QuestionOrder.UnreadCommentCountDesc,
+              label: t("unreadComments"),
+            },
+            {
+              value: QuestionOrder.LastPredictionTimeAsc,
+              label: t("stale"),
+            },
+            {
+              value: QuestionOrder.LastPredictionTimeDesc,
+              label: t("newestPredictions"),
+              className: cn("block lg:hidden"),
+            },
+            {
+              value: QuestionOrder.UserNextWithdrawTimeAsc,
+              label: t("withdrawingSoon"),
+            },
+            {
+              value: QuestionOrder.DivergenceDesc,
+              label: t("divergence"),
+            },
+          ]
+        : []),
+      { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
+    ],
+    [t, user]
+  );
 
   const handleOrderChange = (
     order: QuestionOrder,

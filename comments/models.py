@@ -209,6 +209,12 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
             or 0
         )
 
+    def get_votes_count(self) -> int:
+        """
+        Counts the number of votes for the key factor
+        """
+        return self.votes.aggregate(Count("id")).get("id__count") or 0
+
     def update_vote_score(self):
         self.votes_score = self.get_votes_score()
         self.save(update_fields=["votes_score"])
@@ -269,3 +275,24 @@ class KeyFactorVote(TimeStampedModel):
         indexes = [
             models.Index(fields=["key_factor", "score"]),
         ]
+
+
+class CommentsOfTheWeekEntry(TimeStampedModel):
+    comment = models.OneToOneField(
+        Comment, models.CASCADE, related_name="comments_of_the_week_entry"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    week_start_date = models.DateField()
+    score = models.FloatField(default=0)
+    excluded = models.BooleanField(default=False)
+
+
+class CommentsOfTheWeekNotification(TimeStampedModel):
+    """
+    Used to keep track of the last time a notification was sent for
+    a given week, so we avoid sending duplicate notifications
+    """
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    week_start_date = models.DateField()
+    email_sent = models.BooleanField(default=False)
