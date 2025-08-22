@@ -885,12 +885,22 @@ class ProjectAdmin(CustomTranslationAdmin):
 
 
 class ProjectIndexQuestionInline(admin.TabularInline):
-    # TODO: pre-populate project questions when edited
-
     model = ProjectIndexQuestion
     extra = 0
     autocomplete_fields = ["post"]
     fields = ("post", "weight", "order")
+
+    class Form(forms.ModelForm):
+        class Meta:
+            model = ProjectIndexQuestion
+            fields = "__all__"
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            if getattr(self.instance, "pk", None):
+                self.fields["post"].disabled = True
+
+    form = Form
 
 
 @admin.register(ProjectIndex)

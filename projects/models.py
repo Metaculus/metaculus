@@ -562,3 +562,15 @@ class ProjectIndexQuestion(TimeStampedModel):
                 fields=["index", "post"],
             )
         ]
+
+    def save(self, *args, **kwargs):
+        # Always add index post to the project
+        self.post.projects.add(self.index.project)
+
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # On removal from index, also remove the post from the project
+        self.post.projects.remove(self.index.project)
+
+        return super().delete(*args, **kwargs)
