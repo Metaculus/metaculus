@@ -40,7 +40,7 @@ const IndexSection: FC<Props> = ({ indexWeights, tournament }) => {
       showWeeklyMovement={indexWeeklyMovement !== 0}
       HeadingSection={
         <div
-          key={"index_timeline"} // fix react key error for Table rendor method
+          key="index_timeline"
           className="flex flex-col items-center border-b border-gray-300 bg-gray-0 px-4 py-4 text-center leading-4 dark:border-gray-300-dark dark:bg-gray-0-dark"
         >
           <IndexTimeline tournament={tournament} />

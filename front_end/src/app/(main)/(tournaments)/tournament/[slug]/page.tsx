@@ -20,8 +20,12 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import { ProjectPermissions } from "@/types/post";
-import { ProjectVisibility, TournamentType } from "@/types/projects";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  ProjectIndexWeights,
+  ProjectVisibility,
+  TournamentType,
+} from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -94,7 +98,16 @@ export default async function TournamentSlug(props: Props) {
     ? t("SeriesContents")
     : t("questions");
 
-  const indexWeights = tournament.index_weights ?? [];
+  const legacyIndexWeights = tournament.index_weights ?? [];
+  let indexWeights: ProjectIndexWeights[] = legacyIndexWeights;
+  const weightsMap = tournament.index_data?.weights ?? {};
+  const postIdKeys = Object.keys(weightsMap);
+
+  if (postIdKeys.length > 0 && legacyIndexWeights.length === 0) {
+    const ids = postIdKeys.map(Number);
+    const { results: posts } = await ServerPostsApi.getPostsWithCP({ ids });
+    indexWeights = buildIndexRowsFromPostsAndWeights(posts, weightsMap);
+  }
 
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
@@ -224,4 +237,24 @@ export default async function TournamentSlug(props: Props) {
         )}
     </main>
   );
+}
+
+function buildIndexRowsFromPostsAndWeights(
+  posts: PostWithForecasts[],
+  weightsByPostId: Record<string, number>
+): ProjectIndexWeights[] {
+  const rows: ProjectIndexWeights[] = [];
+
+  for (const post of posts) {
+    const w = weightsByPostId[String(post.id)];
+    if (w == null) continue;
+    let questionId: number | null = null;
+    if (post.question) {
+      questionId = post.question.id;
+    }
+    if (questionId != null) {
+      rows.push({ post, question_id: questionId, weight: w });
+    }
+  }
+  return rows;
 }
