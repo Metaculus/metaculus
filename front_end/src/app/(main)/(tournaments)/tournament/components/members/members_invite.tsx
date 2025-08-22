@@ -39,6 +39,7 @@ const MembersInvite: FC<Props> = ({ projectId, members }) => {
 
       setIsSubmitting(true);
       const responses = await inviteProjectUsers(projectId, usernames);
+      setIsSubmitting(false);
 
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);

@@ -4,9 +4,7 @@ import {
   FilterOptionType,
   FilterSection,
 } from "@/components/popover_filter/types";
-import { GroupButton } from "@/components/ui/button_group";
 import { ChipColor } from "@/components/ui/chip";
-import { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ACCESS_FILTER,
   POST_AUTHOR_FILTER,
@@ -38,9 +36,8 @@ import {
   PostStatus,
 } from "@/types/post";
 import { TournamentPreview } from "@/types/projects";
-import { QuestionOrder, QuestionType } from "@/types/question";
+import { QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
-import cn from "@/utils/core/cn";
 
 // TODO: translate
 const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
@@ -352,65 +349,6 @@ const mapForecastTypeOptions = (
     value: type,
     active: params.getAll(POST_TYPE_FILTER).includes(type),
   }));
-
-export function getMainOrderOptions(
-  t: ReturnType<typeof useTranslations>
-): GroupButton<QuestionOrder>[] {
-  return [
-    {
-      value: QuestionOrder.ActivityDesc,
-      label: t("hot"),
-    },
-    {
-      value: QuestionOrder.WeeklyMovementDesc,
-      label: t("movers"),
-    },
-    {
-      value: QuestionOrder.OpenTimeDesc,
-      label: t("new"),
-    },
-  ];
-}
-
-export function getDropdownSortOptions(
-  t: ReturnType<typeof useTranslations>,
-  isAuthenticated: boolean
-): SelectOption<QuestionOrder>[] {
-  return [
-    { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
-    { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
-    {
-      value: QuestionOrder.PredictionCountDesc,
-      label: t("mostPredictions"),
-    },
-    { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
-    { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
-    ...(isAuthenticated
-      ? [
-          {
-            value: QuestionOrder.UnreadCommentCountDesc,
-            label: t("unreadComments"),
-          },
-          {
-            value: QuestionOrder.LastPredictionTimeAsc,
-            label: t("oldestPredictions"),
-            className: cn("block lg:hidden"),
-          },
-          {
-            value: QuestionOrder.LastPredictionTimeDesc,
-            label: t("newestPredictions"),
-            className: cn("block lg:hidden"),
-          },
-          {
-            value: QuestionOrder.DivergenceDesc,
-            label: t("myDivergence"),
-            className: cn("block lg:hidden"),
-          },
-        ]
-      : []),
-    { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
-  ];
-}
 
 export function getFilterChipColor(id: string): ChipColor {
   if (id === POST_CATEGORIES_FILTER) {
