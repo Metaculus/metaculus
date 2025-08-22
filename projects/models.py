@@ -528,9 +528,9 @@ class ProjectIndex(TimeStampedModel):
         verbose_name_plural = "Indexes"
 
 
-class ProjectIndexQuestion(TimeStampedModel):
+class ProjectIndexPost(TimeStampedModel):
     """
-    Index project question weights
+    Index project post weights
     """
 
     index = models.ForeignKey(
@@ -546,7 +546,8 @@ class ProjectIndexQuestion(TimeStampedModel):
             "Weight of the post within the index. "
             "If the post includes a group of questions, "
             "the same weight will be applied to all subquestions."
-        )
+        ),
+        default=1.0,
     )
 
     order = models.IntegerField(
@@ -558,7 +559,7 @@ class ProjectIndexQuestion(TimeStampedModel):
         ordering = ("order",)
         constraints = [
             models.UniqueConstraint(
-                name="projectindexquestion_unique_project_question",
+                name="projectindexpost_unique_project_question",
                 fields=["index", "post"],
             )
         ]

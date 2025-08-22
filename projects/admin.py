@@ -17,7 +17,7 @@ from projects.models import (
     Project,
     ProjectUserPermission,
     ProjectIndex,
-    ProjectIndexQuestion,
+    ProjectIndexPost,
 )
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -884,15 +884,15 @@ class ProjectAdmin(CustomTranslationAdmin):
         return fields
 
 
-class ProjectIndexQuestionInline(admin.TabularInline):
-    model = ProjectIndexQuestion
+class ProjectIndexPostInline(admin.TabularInline):
+    model = ProjectIndexPost
     extra = 0
     autocomplete_fields = ["post"]
     fields = ("post", "weight", "order")
 
     class Form(forms.ModelForm):
         class Meta:
-            model = ProjectIndexQuestion
+            model = ProjectIndexPost
             fields = "__all__"
 
         def __init__(self, *args, **kwargs):
@@ -907,7 +907,7 @@ class ProjectIndexQuestionInline(admin.TabularInline):
 class ProjectIndexAdmin(admin.ModelAdmin):
     list_display = ["id", "project_link", "type", "increasing_is_good"]
     fields = ("type", "min_label", "max_label", "increasing_is_good")
-    inlines = [ProjectIndexQuestionInline]
+    inlines = [ProjectIndexPostInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
