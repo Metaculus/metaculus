@@ -98,12 +98,11 @@ export default async function TournamentSlug(props: Props) {
     ? t("SeriesContents")
     : t("questions");
 
-  const legacyIndexWeights = tournament.index_weights ?? [];
-  let indexWeights: ProjectIndexWeights[] = legacyIndexWeights;
+  let indexWeights: ProjectIndexWeights[] = [];
   const weightsMap = tournament.index_data?.weights ?? {};
   const postIdKeys = Object.keys(weightsMap);
 
-  if (postIdKeys.length > 0 && legacyIndexWeights.length === 0) {
+  if (postIdKeys.length > 0) {
     const ids = postIdKeys.map(Number);
     const { results: posts } = await ServerPostsApi.getPostsWithCP({ ids });
     indexWeights = buildIndexRowsFromPostsAndWeights(posts, weightsMap);
