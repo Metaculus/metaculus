@@ -1082,9 +1082,11 @@ def calculate_period_movement_for_questions(
         question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
             # Only forecasted questions
             compare_periods_map.keys(),
-            aggregated_forecast_qs=AggregateForecast.objects.filter(
-                method=F("question__default_aggregation_method"),
-            ).only("id", "start_time", "question_id", "end_time"),
+            aggregated_forecast_qs=(
+                AggregateForecast.objects.filter_default_aggregation().only(
+                    "id", "start_time", "question_id", "end_time"
+                )
+            ),
             include_cp_history=True,
         )
 
