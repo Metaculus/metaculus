@@ -338,8 +338,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=True, help_text="Enables new forecast flow for tournaments"
     )
 
-    objects = models.Manager.from_queryset(ProjectsQuerySet)()
-
     # Stored counters
     followers_count = models.PositiveIntegerField(
         default=0, db_index=True, editable=False
@@ -347,10 +345,17 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     forecasts_count = models.PositiveIntegerField(default=0, editable=False)
     forecasters_count = models.PositiveIntegerField(default=0, editable=False)
 
+    # Index Project Data
+    index = models.OneToOneField(
+        "ProjectIndex", models.SET_NULL, related_name="project", null=True, blank=True
+    )
+
     # Annotated fields
     posts_count: int = 0
     is_subscribed: bool = False
     user_permission: ObjectPermission = None
+
+    objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     class Meta:
         ordering = ("order",)
@@ -370,6 +375,15 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             raise ValueError(
                 "Primary leaderboard must be associated with this project."
             )
+
+        # Auto-create index object
+        if self.type == self.ProjectTypes.INDEX and not self.index_id:
+            self.index = ProjectIndex.objects.create()
+
+        # Delete index for non-index projects
+        if self.type != self.ProjectTypes.INDEX and self.index:
+            self.index.delete()
+            self.index = None
 
         super().save(*args, **kwargs)
         if (
@@ -483,20 +497,57 @@ class ProjectSubscription(TimeStampedModel):
         ]
 
 
+class ProjectIndex(TimeStampedModel):
+    class IndexType(models.TextChoices):
+        DEFAULT = "default"
+        MULTI_YEAR = "multi_year"
+
+    type = models.CharField(
+        max_length=32, choices=IndexType.choices, default=IndexType.DEFAULT
+    )
+    min_label = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Label at the minimum end of the scale (left). Example: “Less democratic”",
+    )
+    max_label = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Label at the maximum end of the scale (right). Example: “More democratic”",
+    )
+    increasing_is_good = models.BooleanField(
+        default=True,
+        help_text=(
+            "Color polarity: if on, higher values are good (green → right, red → left); "
+            "if off, invert the colors"
+        ),
+    )
+
+    class Meta:
+        verbose_name = "Index"
+        verbose_name_plural = "Indexes"
+
+
 class ProjectIndexQuestion(TimeStampedModel):
     """
     Index project question weights
     """
 
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="index_questions"
+    index = models.ForeignKey(
+        ProjectIndex, on_delete=models.CASCADE, related_name="question_weights"
     )
-    question = models.ForeignKey(
-        Question,
+    post = models.ForeignKey(
+        "posts.Post",
         on_delete=models.CASCADE,
-        help_text="Index Post Question",
+        help_text="Index Post",
     )
-    weight = models.FloatField()
+    weight = models.FloatField(
+        help_text=(
+            "Weight of the post within the index. "
+            "If the post includes a group of questions, "
+            "the same weight will be applied to all subquestions."
+        )
+    )
 
     order = models.IntegerField(
         help_text="Will be displayed ordered by this field inside each section",
@@ -508,6 +559,6 @@ class ProjectIndexQuestion(TimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 name="projectindexquestion_unique_project_question",
-                fields=["project", "question"],
+                fields=["index", "post"],
             )
         ]

@@ -155,7 +155,9 @@ def _get_index_data(question_indexes_map: dict[Question, float]):
         q for q in question_indexes_map.keys() if q.status == QuestionStatus.RESOLVED
     ]
 
-    all_resolved = len(resolved_questions) == len(question_indexes_map)
+    all_resolved = len(resolved_questions) and len(resolved_questions) == len(
+        question_indexes_map
+    )
     timeline = calculate_questions_index_timeline(question_indexes_map)
     # Resolution value is the last value in timeline if is resolved
     resolution_value = timeline[-1]["y"] if timeline and all_resolved else None

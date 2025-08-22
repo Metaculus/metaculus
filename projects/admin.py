@@ -13,12 +13,17 @@ from django_select2.forms import ModelSelect2MultipleWidget
 from rest_framework.authtoken.models import Token
 
 from posts.models import Post
-from projects.models import Project, ProjectUserPermission, ProjectIndexQuestion
+from projects.models import (
+    Project,
+    ProjectUserPermission,
+    ProjectIndex,
+    ProjectIndexQuestion,
+)
 from projects.permissions import ObjectPermission
 from questions.models import Question
-from users.models import User
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
+from users.models import User
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 from utils.tasks import email_all_data_for_questions_task
@@ -83,15 +88,6 @@ class ProjectUserPermissionInline(admin.TabularInline):
         if project_id and qs.filter(project_id=project_id).count() > 100:
             return qs.none()
         return qs.filter(project_id=project_id)
-
-
-class ProjectIndexQuestionsInline(admin.TabularInline):
-    verbose_name = "Index: question weight"
-
-    model = ProjectIndexQuestion
-    extra = 1
-    # TODO: try to pre-populate only questions related to the given Project
-    autocomplete_fields = ("question",)
 
 
 class PostSelect2MultipleWidget(ModelSelect2MultipleWidget):
@@ -336,6 +332,7 @@ class ProjectAdminForm(forms.ModelForm):
 @admin.register(Project)
 class ProjectAdmin(CustomTranslationAdmin):
     form = ProjectAdminForm
+    exclude = ("index",)
     list_display = [
         "name",
         "type",
@@ -351,6 +348,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         "questions_summary",
         "latest_resolving_time",
         "primary_leaderboard_finalize_time",
+        "index_configuration",
     ]
     list_filter = [
         "type",
@@ -379,20 +377,19 @@ class ProjectAdmin(CustomTranslationAdmin):
 
     change_form_template = "admin/projects/project_change_form.html"
 
+    def index_configuration(self, obj: Project):
+        if not obj or obj.type != Project.ProjectTypes.INDEX or not obj.index_id:
+            return ''
+        url = reverse("admin:projects_projectindex_change", args=[obj.index_id])
+        return format_html('<a class="button" href="{}">Configure Index</a>', url)
+
+    index_configuration.short_description = "Index"
+
     def get_actions(self, request):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
-
-    def get_inlines(self, request, obj=None):
-        inlines = list(self.inlines)
-
-        # Only show ProjectIndexQuestionsInline if project type is Index
-        if obj and obj.type == Project.ProjectTypes.INDEX:
-            inlines.insert(0, ProjectIndexQuestionsInline)
-
-        return inlines
 
     def save_model(self, request, obj: Project, form, change):
         # Force visibility states for such project types
@@ -879,8 +876,41 @@ class ProjectAdmin(CustomTranslationAdmin):
             "latest_resolving_time",
             "questions_summary",
             "posts_summary",
+            "index_configuration",
         ]:
             if field in fields:
                 fields.remove(field)
             fields.insert(0, field)
         return fields
+
+
+class ProjectIndexQuestionInline(admin.TabularInline):
+    # TODO: pre-populate project questions when edited
+
+    model = ProjectIndexQuestion
+    extra = 0
+    autocomplete_fields = ["post"]
+    fields = ("post", "weight", "order")
+
+
+@admin.register(ProjectIndex)
+class ProjectIndexAdmin(admin.ModelAdmin):
+    list_display = ["id", "project_link", "type", "increasing_is_good"]
+    fields = ("type", "min_label", "max_label", "increasing_is_good")
+    inlines = [ProjectIndexQuestionInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(project__type=Project.ProjectTypes.INDEX)
+
+    def get_model_perms(self, request):
+        # Hide from the admin homepage
+        return {}
+
+    def project_link(self, obj: ProjectIndex):
+        if hasattr(obj, "project") and obj.project_id:
+            url = reverse("admin:projects_project_change", args=[obj.project_id])
+            return format_html('<a href="{}">{}</a>', url, obj.project.name)
+        return "-"
+
+    project_link.short_description = "Project"
