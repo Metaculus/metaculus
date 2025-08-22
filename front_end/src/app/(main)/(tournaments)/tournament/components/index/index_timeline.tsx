@@ -54,9 +54,14 @@ function buildIndexChartData({
   width: number;
   zoom: TimelineChartZoomOption;
 }) {
-  const indexWeights = tournament.index_weights ?? [];
   const Y_DOMAIN_PADDING = 5;
-  const { line, timestamps } = calculateIndexTimeline(indexWeights);
+
+  const beLine = tournament.index_data?.series?.line ?? [];
+  const linePoints = beLine.length
+    ? beLine
+    : calculateIndexTimeline(tournament.index_weights ?? []).line;
+
+  const timestamps = linePoints.map((p) => p.x as number);
   const earliestTimestamp = timestamps[0] ?? 0;
   const latestTimestamp = timestamps[timestamps.length - 1] ?? 1;
 
@@ -72,7 +77,7 @@ function buildIndexChartData({
     width
   );
   return {
-    line: line as Line,
+    line: linePoints,
     area: [] as Area,
     points: [] as Line,
     yDomain: [-100 - Y_DOMAIN_PADDING, 100 + Y_DOMAIN_PADDING] as DomainTuple,
