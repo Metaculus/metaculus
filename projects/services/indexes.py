@@ -38,7 +38,7 @@ def _value_from_forecast(question: Question, forecast: AggregateForecast) -> flo
     Returns a value in [-1, 1]. Later we scale to [-100, 100] for presentation.
     Mapping rules:
       - Binary: use probability of "yes" (centers[1]) mapped to [-1, 1] via (2p - 1)
-      - Numeric/Date/Discrete: use mean survival mass = average(1 - CDF)
+      - Numeric/Date/Discrete: use mean survival mass = average(1 - 2*CDF)
     If necessary data is missing, returns 0.
     """
 
