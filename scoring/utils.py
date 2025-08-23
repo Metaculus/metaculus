@@ -71,10 +71,8 @@ def score_question(
         ]
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     if not spot_scoring_time:
-        if question.spot_scoring_time:
-            spot_scoring_time = question.spot_scoring_time.timestamp()
-        elif question.cp_reveal_time:
-            spot_scoring_time = question.cp_reveal_time.timestamp()
+        sst = question.get_spot_scoring_time()
+        spot_scoring_time = sst.timestamp() if sst else None
     score_types = score_types or [
         c[0] for c in ScoreTypes.choices if c[0] != ScoreTypes.MANUAL
     ]
