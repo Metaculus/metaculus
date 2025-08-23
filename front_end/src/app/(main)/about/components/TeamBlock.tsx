@@ -156,7 +156,8 @@ const people: Person[] = [
   {
     userId: 111848,
     name: "Juan Cambeiro",
-    position: "Presidential Management Fellow; NIH Office of Science Policy",
+    position:
+      "Senior Advisor for Biosecurity, U.S. Center for AI Standards and Innovation",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/juan_cambeiro.webp",
     introduction:
@@ -172,11 +173,18 @@ const people: Person[] = [
       "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
   },
   {
+    userId: 127582,
     name: "Leonard Barrett",
-    position: "Chief of Staff",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png",
+    position: "Chief Operating Officer",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Leonard.webp",
     introduction:
-      "Leonard’s work spans Metaculus’ various teams and initiatives, advancing our strategic direction, growth, and operational efficiency. Prior to Metaculus, he worked in real estate development and asset management, overseeing complex real estate development projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various forecasting platforms and competitions. Leonard is passionate about elevating the crowd forecasting ecosystem to unlock its full potential in guiding policy and decision-making to mitigate global risks.",
+      "Leonard joined Metaculus as Chief of Staff in 2024, after several years as a highly ranked forecaster and question contributor on the platform. Now, as COO, he leads our operations and spearheads strategic initiatives. Before Metaculus, Leonard was a principal at a real estate development and asset management firm, overseeing complex office and mixed-use projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various platforms and tournaments.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/leonard-barrett/",
+        platform: "LinkedIn",
+      },
+    ],
   },
   {
     name: "Molly Hickman",
@@ -186,9 +194,16 @@ const people: Person[] = [
       "Molly is a computer scientist specializing in crowdsourced intelligence. She previously worked at the MITRE Corporation, focusing on testing and evaluation for forecasting projects. At the Forecasting Research Institute, Molly concentrated on developing metrics and methods to identify the most impactful questions. She forecasts as part of the Samotsvety team and as a Pro at INFER.",
   },
   {
+    name: "Felipe Oliveira",
+    position: "Operations Lead",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Felipe.webp",
+    introduction:
+      "Felipe Oliveira is the Operations Lead at Metaculus, where he oversees finance, HR, and internal systems. With over 15 years of experience in financial planning, operations, and accounting, he specializes in building efficient, scalable structures that support mission-driven organizations. Felipe has worked across the nonprofit and private sectors with a strong focus on accountability, aligning operations with strategy, and enabling responsible expansion.",
+  },
+  {
     userId: 137979,
     name: "Elis Popescu",
-    position: "Senior Software Engineer",
+    position: "Head of Engineering",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/elis_popescu.webp",
     introduction:
@@ -294,7 +309,7 @@ const people: Person[] = [
   {
     userId: 104761,
     name: "Tamay Besiroglu",
-    position: "Research Scientist, MIT; Associate Director, Epoch",
+    position: "Co-founder & CEO, Mechanize",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tamay_besiroglu.webp",
     introduction:
@@ -308,7 +323,7 @@ const people: Person[] = [
   },
   {
     name: "Welton Chang",
-    position: "Co-founder and CEO, Pyrra Technologies",
+    position: "Co-founder & CEO, Pyrra Technologies",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/welton_chang.webp",
     introduction:
@@ -369,6 +384,7 @@ const groups: Groups = {
     "Nikitas Angeletos Chrysaitis",
     "Abhimanyu Pallavi Sudhir",
     "John Bash",
+    "Felipe Oliveira",
   ],
   board: [
     "Anthony Aguirre",

@@ -18,8 +18,8 @@ from projects.serializers.common import (
     ProjectUserSerializer,
     TournamentShortSerializer,
     NewsCategorySerialize,
-    serialize_project_index_weights,
     LeaderboardTagSerializer,
+    serialize_index_data,
 )
 from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
@@ -175,7 +175,7 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
 
-    data["index_weights"] = serialize_project_index_weights(obj)
+    data["index_data"] = serialize_index_data(obj)
 
     return Response(data)
 
