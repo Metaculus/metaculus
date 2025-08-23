@@ -339,6 +339,21 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             else DEFAULT_INBOUND_OUTCOME_COUNT
         )
 
+    def get_spot_scoring_time(self) -> datetime | None:
+        if self.spot_scoring_time:
+            return self.spot_scoring_time.timestamp()
+        elif (
+            self.cp_reveal_time
+            and self.open_time
+            and self.cp_reveal_time > self.open_time
+        ):
+            return self.cp_reveal_time.timestamp()
+        elif self.actual_close_time:
+            return self.actual_close_time.timestamp()
+        elif self.scheduled_close_time:
+            return self.scheduled_close_time.timestamp()
+        return None
+
 
 QUESTION_CONTINUOUS_TYPES = [
     Question.QuestionType.NUMERIC,

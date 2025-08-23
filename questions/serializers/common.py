@@ -113,12 +113,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         }
 
     def get_spot_scoring_time(self, question: Question):
-        return (
-            question.spot_scoring_time
-            or question.cp_reveal_time
-            or question.actual_close_time
-            or question.scheduled_close_time
-        )
+        spot_scoring_time = question.get_spot_scoring_time()
+        return spot_scoring_time.timestamp() if spot_scoring_time else None
 
     def get_actual_close_time(self, question: Question):
         if question.actual_close_time:
