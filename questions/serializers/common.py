@@ -116,6 +116,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         return (
             question.spot_scoring_time
             or question.cp_reveal_time
+            or question.actual_close_time
             or question.scheduled_close_time
         )
 
