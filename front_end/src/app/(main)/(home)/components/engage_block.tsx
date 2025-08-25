@@ -5,9 +5,11 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
+import { useModal } from "@/contexts/modal_context";
 
 const EngageBlock: FC = () => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   return (
     <div className="my-6 flex flex-col gap-10 rounded-md bg-blue-900 p-10 dark:bg-blue-900-dark sm:p-16 md:my-12 lg:my-16 lg:flex-row xl:px-24">
@@ -39,7 +41,7 @@ const EngageBlock: FC = () => {
           variant="tertiary"
           size="lg"
           className="whitespace-nowrap hover:!no-underline"
-          href="/services/#contact-us"
+          onClick={() => setCurrentModal({ type: "contactUs" })}
         >
           {t("contactUs")}
         </Button>
