@@ -1476,5 +1476,8 @@
   "weeklyTopComments": "本週熱評",
   "weeklyTopCommentsShort": "熱評",
   "keyFactorImpact": "關鍵因素影響",
+  "currentValue": "目前值",
+  "timeline": "時間線",
+  "baseline": "基準線",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

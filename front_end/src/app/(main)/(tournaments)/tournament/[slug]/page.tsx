@@ -9,7 +9,6 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
-import IndexSection from "@/app/(main)/(tournaments)/tournament/components/index";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -22,6 +21,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
+  MultiYearIndexData,
   ProjectIndexWeights,
   ProjectVisibility,
   TournamentType,
@@ -31,11 +31,13 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
 import HeaderBlockNav from "../components/header_block_navigation";
+import IndexSection from "../components/index";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
 import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
+import { mockMultiYearIndexData } from "../constants/multi-year-mock";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -71,6 +73,21 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
+  const idxType =
+    tournament?.index_data?.type ?? tournament?.index_data?.type ?? "default";
+
+  const multiYearIndexData: MultiYearIndexData | null =
+    tournament?.type === TournamentType.Index &&
+    idxType === "multi_year" &&
+    tournament?.index_data?.years &&
+    tournament?.index_data?.series_by_year
+      ? {
+          years: tournament.index_data.years,
+          series_by_year: tournament.index_data.series_by_year,
+          dimensions: tournament.index_data.dimensions ?? [],
+          weights: tournament.index_data.weights ?? {},
+        }
+      : mockMultiYearIndexData;
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
   // Ensure project has a correct link.
@@ -152,7 +169,10 @@ export default async function TournamentSlug(props: Props) {
             </div>
           </div>
 
-          <HeaderBlockInfo tournament={tournament} />
+          <HeaderBlockInfo
+            tournament={tournament}
+            multiYearIndexData={multiYearIndexData}
+          />
         </div>
       </div>
 
@@ -169,7 +189,8 @@ export default async function TournamentSlug(props: Props) {
         <div>
           <HtmlContent content={tournament.description} />
 
-          {indexWeights.length > 0 &&
+          {!multiYearIndexData &&
+            indexWeights.length > 0 &&
             tournament.type === TournamentType.Index && (
               <IndexSection
                 indexWeights={indexWeights}
@@ -222,7 +243,10 @@ export default async function TournamentSlug(props: Props) {
             )}
           </div>
           <TournamentFilters />
-          <TournamentFeed tournament={tournament} />
+          <TournamentFeed
+            multiYearIndexData={multiYearIndexData}
+            tournament={tournament}
+          />
         </section>
       </div>
 

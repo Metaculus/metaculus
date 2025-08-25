@@ -13,6 +13,7 @@ type Props = ComponentProps<typeof Point> & {
   resolvedPointColor?: string;
   bgColor?: string;
   pointSize?: number;
+  indexVariant?: boolean;
 };
 
 const FanPoint: FC<Props> = ({
@@ -24,12 +25,17 @@ const FanPoint: FC<Props> = ({
   resolvedPointColor,
   bgColor,
   pointSize = 10,
+  indexVariant,
 }) => {
   const { getThemeColor } = useAppTheme();
 
   const resolvedColor =
     resolvedPointColor ?? getThemeColor(METAC_COLORS.purple["800"]);
-  const color = pointColor ?? getThemeColor(METAC_COLORS.olive["800"]);
+  const color =
+    pointColor ??
+    getThemeColor(
+      indexVariant ? METAC_COLORS.blue["700"] : METAC_COLORS.olive["800"]
+    );
   const backgroundColor = bgColor ?? getThemeColor(METAC_COLORS.gray["0"]);
 
   const resolved = datum?.resolved;

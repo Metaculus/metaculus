@@ -39,6 +39,7 @@ import {
   generateScale,
   generateYDomain,
   getAxisLeftPadding,
+  getAxisRightPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
 import {
@@ -72,8 +73,10 @@ type Props = {
   yLabel?: string;
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
+  suppressAvailabilityBanner?: boolean;
   pointSize?: number;
   hideCP?: boolean;
+  indexVariant?: boolean;
 };
 
 const FanChart: FC<Props> = ({
@@ -84,6 +87,8 @@ const FanChart: FC<Props> = ({
   extraTheme,
   pointSize,
   hideCP,
+  suppressAvailabilityBanner,
+  indexVariant,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -110,13 +115,62 @@ const FanChart: FC<Props> = ({
     resolutionPoints,
     yScale,
     yDomain,
-  } = useMemo(() => buildChartData({ options, height }), [height, options]);
+  } = useMemo(
+    () =>
+      buildChartData({
+        options,
+        height,
+        forceTickCount: indexVariant ? 5 : undefined,
+      }),
+    [height, options, indexVariant]
+  );
+  const yAxisStyle = indexVariant
+    ? {
+        ticks: { stroke: "transparent" },
+        axisLabel: {
+          fontFamily: "Inter",
+          fontSize: tickLabelFontSize,
+          fill: getThemeColor(METAC_COLORS.gray["600"]),
+        },
+        tickLabels: {
+          fontFamily: "Inter",
+          padding: 5,
+          fontSize: tickLabelFontSize,
+          fill: getThemeColor(METAC_COLORS.gray["600"]),
+        },
+        axis: { stroke: "transparent" },
+        grid: {
+          stroke: getThemeColor(METAC_COLORS.gray["400"]),
+          strokeWidth: 1,
+          strokeDasharray: "2, 5",
+        },
+      }
+    : undefined;
+
+  const xAxisStyle = indexVariant
+    ? {
+        ticks: { stroke: "transparent" },
+        axis: { stroke: "transparent" },
+        tickLabels: {
+          fontFamily: "Inter",
+          fontSize: tickLabelFontSize,
+          fill: getThemeColor(METAC_COLORS.gray["600"]),
+        },
+      }
+    : undefined;
 
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
+
+  const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
+    return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+
+  const maxLeftPadding = Math.max(leftPadding, MIN_LEFT_PADDING);
+  const maxRightPadding = Math.max(rightPadding, MIN_RIGHT_PADDING);
 
   const shouldDisplayChart = !!chartWidth;
   return (
@@ -135,13 +189,14 @@ const FanChart: FC<Props> = ({
             y: yDomain,
           }}
           domainPadding={{
-            x: TOOLTIP_WIDTH / 2,
+            x: indexVariant ? [20, 20] : TOOLTIP_WIDTH / 2,
+            y: indexVariant ? [12, 0] : undefined,
           }}
           padding={{
-            left: Math.max(leftPadding, MIN_LEFT_PADDING),
+            left: indexVariant ? 10 : maxLeftPadding,
             top: 10,
-            right: 10,
-            bottom: 20,
+            right: indexVariant ? maxRightPadding - 10 : 10,
+            bottom: indexVariant ? 15 : 20,
           }}
           containerComponent={
             withTooltip ? (
@@ -199,6 +254,11 @@ const FanChart: FC<Props> = ({
               style={{
                 data: {
                   opacity: 0.3,
+                  fill: getThemeColor(
+                    indexVariant
+                      ? METAC_COLORS.blue["500"]
+                      : METAC_COLORS.olive["500"]
+                  ),
                 },
               }}
             />
@@ -214,7 +274,19 @@ const FanChart: FC<Props> = ({
             }}
           />
           {!hideCP && (
-            <VictoryLine name="communityFanLine" data={communityLine} />
+            <VictoryLine
+              style={{
+                data: {
+                  stroke: getThemeColor(
+                    indexVariant
+                      ? METAC_COLORS.blue["700"]
+                      : METAC_COLORS.olive["800"]
+                  ),
+                },
+              }}
+              name="communityFanLine"
+              data={communityLine}
+            />
           )}
           <VictoryLine
             name="userFanLine"
@@ -230,17 +302,21 @@ const FanChart: FC<Props> = ({
             label={yLabel}
             tickValues={ticks}
             tickFormat={tickFormat}
-            style={{ ticks: { strokeWidth: 1 } }}
-            offsetX={Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)}
-            axisLabelComponent={
-              <VictoryLabel
-                dy={-Math.max(leftPadding - 40, MIN_LEFT_PADDING - 40)}
-              />
+            style={yAxisStyle ?? { ticks: { strokeWidth: 1 } }}
+            offsetX={
+              indexVariant
+                ? isNil(yLabel)
+                  ? chartWidth + 5
+                  : chartWidth - (tickLabelFontSize as number) + 5
+                : Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)
             }
+            axisLabelComponent={<VictoryLabel x={chartWidth} />}
           />
+
           <VictoryAxis
             tickValues={options.map((option) => option.name)}
             tickFormat={(_, index) => labels[index] ?? ""}
+            style={xAxisStyle}
           />
           {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
@@ -250,15 +326,29 @@ const FanChart: FC<Props> = ({
               }))}
               style={{
                 data: {
-                  fill: () => getThemeColor(METAC_COLORS.olive["800"]),
-                  stroke: () => getThemeColor(METAC_COLORS.olive["800"]),
+                  fill: () =>
+                    getThemeColor(
+                      indexVariant
+                        ? METAC_COLORS.blue["700"]
+                        : METAC_COLORS.olive["800"]
+                    ),
+                  stroke: () =>
+                    getThemeColor(
+                      indexVariant
+                        ? METAC_COLORS.blue["700"]
+                        : METAC_COLORS.olive["800"]
+                    ),
                   strokeWidth: 6,
                   strokeOpacity: ({ datum }) =>
                     activePoint === datum.x ? 0.3 : 0,
                 },
               }}
               dataComponent={
-                <FanPoint activePoint={activePoint} pointSize={pointSize} />
+                <FanPoint
+                  activePoint={activePoint}
+                  pointSize={pointSize}
+                  indexVariant={indexVariant}
+                />
               }
             />
           )}
@@ -294,7 +384,7 @@ const FanChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-      {!withTooltip && (
+      {!withTooltip && !suppressAvailabilityBanner && (
         <ForecastAvailabilityChartOverflow
           forecastAvailability={forecastAvailability}
           className="text-xs lg:text-sm"
@@ -310,9 +400,11 @@ type FanGraphPoint = { x: string; y: number; resolved: boolean };
 function buildChartData({
   options,
   height,
+  forceTickCount,
 }: {
   options: FanOption[];
   height: number;
+  forceTickCount?: number;
 }) {
   // we expect fan graph to be rendered only for group questions, that expect some options
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -388,6 +480,7 @@ function buildChartData({
     direction: "vertical",
     scaling: scaling,
     domain: originalYDomain,
+    forceTickCount,
     zoomedDomain: zoomedYDomain,
   });
 

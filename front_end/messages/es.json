@@ -1479,5 +1479,8 @@
   "weeklyTopComments": "Top Comentarios de la Semana",
   "weeklyTopCommentsShort": "Top Comentarios",
   "keyFactorImpact": "impacto de factor clave",
+  "currentValue": "Valor Actual",
+  "timeline": "Cronología",
+  "baseline": "Línea base",
   "withdrawAfterPercentSetting2": "del tiempo de vida total de la pregunta"
 }

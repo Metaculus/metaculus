@@ -1472,7 +1472,10 @@
   "maAndCorporateActions": "M&A and Corporate Actions",
   "economicIndicatorForecasting": "Economic Indicator Forecasting",
   "otherFinancialForecasting": "Other Financial Forecasting",
-  "questionLinkCreated" : "Question Link successfully created!",
-  "questionLinkCreatedMultiple" : "Question Links successfully created!",
+  "questionLinkCreated": "Question Link successfully created!",
+  "questionLinkCreatedMultiple": "Question Links successfully created!",
+  "currentValue": "Current Value",
+  "timeline": "Timeline",
+  "baseline": "Baseline",
   "returnToHomePage": "Return to Home page"
 }

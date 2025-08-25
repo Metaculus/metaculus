@@ -1,31 +1,48 @@
 "use client";
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { DomainTuple } from "victory";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import { METAC_COLORS } from "@/constants/colors";
 import { Area, Line, TimelineChartZoomOption } from "@/types/charts";
-import { Tournament } from "@/types/projects";
+import { IndexSeries } from "@/types/projects";
 import {
   generateNumericXDomain,
   generateTimestampXScale,
 } from "@/utils/charts/axis";
 
+import VerticalGradientArrow from "../vertical_legend_arrow";
+
 type Props = {
-  tournament: Tournament;
+  series: IndexSeries;
   height?: number;
+  chartTitle?: string;
 };
 
-const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
+const IndexTimelineByYear: FC<Props> = ({
+  series,
+  height = 170,
+  chartTitle,
+}) => {
   const buildChartData = useCallback(
     (width: number, zoom: TimelineChartZoomOption) =>
-      buildIndexChartData({ tournament, width, zoom }),
-    [tournament]
+      buildChart({ series, width, zoom }),
+    [series]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
-  const handleCursorChange = (value: number | null) => {
+  const handleCursorChange = (value: number | null) =>
     setCursorTimestamp(value);
-  };
+
+  const resolutionPoint = useMemo(() => {
+    if (series.status !== "resolved") return undefined;
+    const last = series.line.at(-1);
+    const x =
+      series.resolved_at != null
+        ? Math.floor(new Date(series.resolved_at).getTime() / 1000)
+        : last?.x;
+    const y = series.resolution_value ?? last?.y;
+    return x != null && y != null ? [{ x, y }] : undefined;
+  }, [series]);
 
   return (
     <NumericChart
@@ -34,40 +51,48 @@ const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
       height={height}
       cursorTimestamp={cursorTimestamp}
       onCursorChange={handleCursorChange}
+      chartTitle={chartTitle}
       colorOverride={METAC_COLORS.blue["600"]}
+      resolutionPoint={resolutionPoint}
+      leftLegend={
+        <>
+          <VerticalGradientArrow className="hidden sm:block" />
+          <VerticalGradientArrow
+            stemThickness={3}
+            stemHeight={82}
+            className="max-w-[66px] border-none p-0 sm:hidden"
+          />
+        </>
+      }
     />
   );
 };
 
-function buildIndexChartData({
-  tournament,
+function buildChart({
+  series,
   width,
   zoom,
 }: {
-  tournament: Tournament;
+  series: IndexSeries;
   width: number;
   zoom: TimelineChartZoomOption;
 }) {
   const Y_DOMAIN_PADDING = 5;
-
-  const beLine = tournament.index_data?.series?.line ?? [];
-  const timestamps = beLine.map((p) => p.x as number);
+  const linePoints = series.line;
+  const timestamps = linePoints.map((p) => p.x as number);
   const earliestTimestamp = timestamps[0] ?? 0;
   const latestTimestamp = timestamps[timestamps.length - 1] ?? 1;
 
-  // add small padding for x axis data
   const timestampPadding = (latestTimestamp - earliestTimestamp) * 0.03;
-  const xDomain = generateNumericXDomain(
-    [earliestTimestamp - timestampPadding, ...timestamps],
-    zoom
-  );
-  // for scale we take actual domain without the padding
+  const domainStart = earliestTimestamp - timestampPadding;
+  const xDomain = generateNumericXDomain([domainStart, ...timestamps], zoom);
   const xScale = generateTimestampXScale(
     [earliestTimestamp, latestTimestamp],
     width
   );
+
   return {
-    line: beLine,
+    line: linePoints,
     area: [] as Area,
     points: [] as Line,
     yDomain: [-100 - Y_DOMAIN_PADDING, 100 + Y_DOMAIN_PADDING] as DomainTuple,
@@ -80,4 +105,4 @@ function buildIndexChartData({
   };
 }
 
-export default IndexTimeline;
+export default IndexTimelineByYear;
