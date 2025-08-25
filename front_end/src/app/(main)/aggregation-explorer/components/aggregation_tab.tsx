@@ -77,7 +77,10 @@ const AggregationsTab: FC<Props> = ({
     [actual_close_time]
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
-  const aggregationTimestamp = useDebouncedValue(cursorTimestamp, 500);
+  const aggregationTimestamp = useDebouncedValue(
+    cursorTimestamp ?? activeAggregation?.history?.at(-1)?.start_time ?? null,
+    500
+  );
 
   const cursorData = useMemo(() => {
     if (!activeAggregation) {
