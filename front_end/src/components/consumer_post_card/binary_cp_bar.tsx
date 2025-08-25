@@ -1,35 +1,39 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { getBinaryGaugeColors } from "@/utils/colors/binary_gauge_colors";
 import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  size?: "sm" | "md" | "lg";
+  className?: string;
 };
 
-const BinaryCPBar: FC<Props> = ({ question }) => {
+const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
+
   const questionCP =
-    question.aggregations[question.default_aggregation_method].latest
+    question.aggregations[question.default_aggregation_method]?.latest
       ?.centers?.[0];
+
   if (question.type !== QuestionType.Binary || !questionCP) {
     return null;
   }
-  const isClosed = question.status === QuestionStatus.CLOSED;
-  const cpPercentage = Math.round(questionCP * 1000) / 10;
 
-  // SVG configurations
-  const strokeWidth = 12;
+  const isClosed = question.status === QuestionStatus.CLOSED;
+  const cpPercentage = Math.round((questionCP ?? 0) * 1000) / 10;
+
   const width = 112;
   const height = 66;
-  const radius = (width - strokeWidth / 2) / 2;
+  const strokeWidth = 12;
+  const strokeCursorWidth = 17;
+  const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
-  const center = {
-    x: width / 2,
-    y: height - strokeWidth,
-  };
+  const center = { x: width / 2, y: height - strokeWidth };
 
   const backgroundArc = describeArc({
     percentage: 100,
@@ -45,9 +49,10 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
     center,
     radius,
   });
-  const { textColor, strokeColor, progressColor } = getColorStyles(
+
+  const { textClass, strokeClass, hex } = getBinaryGaugeColors(
     cpPercentage,
-    isClosed
+    isClosed || isNil(questionCP)
   );
 
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
@@ -58,21 +63,31 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
   const gradientEndY = center.y + radius * Math.sin(endAngle);
 
   return (
-    <div className="relative flex min-w-[200px] max-w-[200px] items-center justify-center">
+    <div
+      className={cn(
+        "relative flex origin-top items-center justify-center",
+        {
+          "scale-[0.85]": size === "sm",
+          "scale-100": size === "md",
+          "scale-[1.25]": size === "lg",
+        },
+        className
+      )}
+    >
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
-            id={`progressGradient-${question.id}`}
+            id={`progressGradient-${question.id}-${size}`}
             x1={gradientStartX}
             y1={gradientStartY}
             x2={gradientEndX}
             y2={gradientEndY}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={progressColor} stopOpacity="0" />
+            <stop offset="0%" stopColor={hex} stopOpacity="0" />
             <stop
               offset={`${Math.min(100, (cpPercentage / 15) * 100)}%`}
-              stopColor={progressColor}
+              stopColor={hex}
               stopOpacity="1"
             />
           </linearGradient>
@@ -82,16 +97,17 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
         <path
           d={backgroundArc.path}
           fill="none"
-          stroke={undefined}
+          stroke={hex}
+          strokeOpacity={0.15}
           strokeWidth={strokeWidth}
-          className={cn("opacity-15", strokeColor)}
+          className={strokeClass}
         />
 
         {/* Progress arc */}
         <path
           d={progressArc.path}
           fill="none"
-          stroke={`url(#progressGradient-${question.id})`}
+          stroke={`url(#progressGradient-${question.id}-${size})`}
           strokeWidth={strokeWidth}
         />
 
@@ -114,19 +130,24 @@ const BinaryCPBar: FC<Props> = ({ question }) => {
               progressArc.endPoint.y +
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
-            className={strokeColor}
-            strokeWidth="17"
+            stroke={hex}
+            className={strokeClass}
+            strokeWidth={strokeCursorWidth}
           />
         )}
       </svg>
       <div
         className={cn(
           "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
-          textColor
+          textClass
         )}
       >
-        <span className="text-2xl font-bold leading-8">{cpPercentage}%</span>
-        <span className="leading text-xs uppercase">{t("chance")}</span>
+        <span className="text-xl font-bold leading-8">
+          {!isNil(questionCP) && cpPercentage}%
+        </span>
+        <span className="text-xs font-normal uppercase leading-none">
+          {t("chance")}
+        </span>
       </div>
     </div>
   );
@@ -153,70 +174,10 @@ function describeArc({
   const endY = center.y + radius * Math.sin(endAngle);
 
   return {
-    path: `
-        M ${startX} ${startY}
-        A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}
-      `,
+    path: `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`,
     endPoint: { x: endX, y: endY },
     angle: endAngle,
   };
 }
 
-function getColorStyles(percentage: number, isClosed: boolean) {
-  if (isClosed) {
-    return {
-      textColor: `text-gray-600 dark:text-gray-600-dark`,
-      strokeColor: `stroke-gray-600 dark:stroke-gray-600-dark`,
-      progressColor: "#777777",
-    };
-  }
-  if (percentage > 85) {
-    return {
-      textColor: `text-[#66A566]`,
-      strokeColor: `stroke-[#66A566]`,
-      progressColor: "#66A566",
-    };
-  } else if (percentage > 75) {
-    return {
-      textColor: `text-[#7BA06B]`,
-      strokeColor: `stroke-[#7BA06B]`,
-      progressColor: "#7BA06B",
-    };
-  } else if (percentage > 50) {
-    return {
-      textColor: `text-[#899D6E]`,
-      strokeColor: `stroke-[#899D6E]`,
-      progressColor: "#899D6E",
-    };
-  } else if (percentage > 35) {
-    return {
-      textColor: `text-[#979A72]`,
-      strokeColor: `stroke-[#979A72]`,
-      progressColor: "#979A72",
-    };
-  } else if (percentage > 25) {
-    return {
-      textColor: `text-[#A59775]`,
-      strokeColor: `stroke-[#A59775]`,
-      progressColor: "#A59775",
-    };
-  } else if (percentage > 15) {
-    return {
-      textColor: `text-[#B29378]`,
-      strokeColor: `stroke-[#B29378]`,
-      progressColor: "#B29378",
-    };
-  } else if (percentage > 10) {
-    return {
-      textColor: `text-[#C0907B]`,
-      strokeColor: `stroke-[#C0907B]`,
-      progressColor: "#C0907B",
-    };
-  }
-  return {
-    textColor: `text-[#D58B80]`,
-    strokeColor: `stroke-[#D58B80]`,
-    progressColor: "#D58B80",
-  };
-}
 export default BinaryCPBar;

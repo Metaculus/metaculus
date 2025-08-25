@@ -180,6 +180,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         hideLabels
                         hideCP={!showCP}
                         question={question}
+                        withResolutionChip={false}
+                        withTodayLine={false}
                       />
                     </div>
                   </div>
@@ -206,6 +208,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           title={title}
+          className="pt-header"
         >
           {children}
         </MobileAccordionModal>

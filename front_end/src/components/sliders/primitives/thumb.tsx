@@ -54,7 +54,7 @@ const SliderThumb: FC<Props> = ({
         onClickIn?.();
       }}
       className={cn(
-        "flex items-center border border-gray-900 bg-blue-100 text-center dark:border-gray-900-dark dark:bg-blue-100-dark",
+        "flex items-center border-2 border-gray-600 bg-blue-100 text-center font-medium dark:border-gray-600-dark dark:bg-blue-100-dark",
         "active:bg-blue-400 active:dark:bg-blue-400-dark",
         active ? "size-5 text-center" : "size-4 rounded-full",
         { "h-8 w-14 rounded-full": showValue }

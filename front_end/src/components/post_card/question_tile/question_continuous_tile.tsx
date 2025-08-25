@@ -1,23 +1,24 @@
 import { isNil, round } from "lodash";
 import React, { FC, useCallback } from "react";
 
-import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
+import { QuestionResolutionChipFacade } from "@/components/consumer_post_card/question_resolution_chip";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
 } from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
+import PredictionContinuousInfo from "@/components/post_card/question_tile/prediction_continuous_info";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
-import PredictionChip from "@/components/prediction_chip";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { PostStatus, QuestionStatus } from "@/types/post";
+import { QuestionStatus } from "@/types/post";
 import {
   ForecastAvailability,
   QuestionType,
@@ -28,24 +29,22 @@ import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-const HEIGHT = 100;
+const HEIGHT = 90;
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  curationStatus: PostStatus | QuestionStatus;
   defaultChartZoom?: TimelineChartZoomOption;
-  forecasters?: number;
   forecastAvailability: ForecastAvailability;
   canPredict?: boolean;
+  showChart?: boolean;
 };
 
 const QuestionContinuousTile: FC<Props> = ({
   question,
-  curationStatus,
   defaultChartZoom,
-  forecasters,
   forecastAvailability,
   canPredict,
+  showChart = true,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
 
@@ -54,6 +53,7 @@ const QuestionContinuousTile: FC<Props> = ({
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
+    isClosed: question.status === QuestionStatus.CLOSED,
   });
 
   // generate data to submit based on user forecast and question type
@@ -122,59 +122,77 @@ const QuestionContinuousTile: FC<Props> = ({
   );
 
   return (
-    <div className="flex justify-between">
-      <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
-        <PredictionChip
-          question={question}
-          status={curationStatus as PostStatus}
-          showUserForecast
-          hideCP={hideCP}
-          onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-          canPredict={canPredict}
-          showWeeklyMovement
-          enforceCPDisplay
-        />
-
-        <ForecastersCounter forecasters={forecasters} className="p-1" />
-      </div>
-      <div className="relative my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
-        {question.type === QuestionType.Binary ? (
-          <NumericTimeline
-            nonInteractive={true}
-            aggregation={
-              question.aggregations[question.default_aggregation_method]
-            }
-            myForecasts={question.my_forecasts}
-            height={HEIGHT}
-            questionType={question.type}
-            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-            scaling={question.scaling}
-            defaultZoom={defaultChartZoom}
-            resolution={question.resolution}
-            resolveTime={question.actual_resolve_time}
-            hideCP={hideCP}
-            isEmptyDomain={
-              !!forecastAvailability?.isEmpty ||
-              !!forecastAvailability?.cpRevealsOn
-            }
-            openTime={getPostDrivenTime(question.open_time)}
-            unit={question.unit}
-            tickFontSize={9}
-          />
-        ) : (
-          <ContinuousAreaChart
-            data={continuousAreaChartData}
-            height={HEIGHT}
+    <div className="flex justify-between gap-6 md:gap-8">
+      <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
+        {question.type === QuestionType.Binary && (
+          <PredictionBinaryInfo
             question={question}
-            hideCP={hideCP}
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            canPredict={canPredict}
+            showMyPrediction={true}
+            renderResolutionStatus={(q) => (
+              <QuestionResolutionChipFacade question={q} />
+            )}
           />
         )}
-
-        <ForecastAvailabilityChartOverflow
-          forecastAvailability={forecastAvailability}
-          className="pl-3 text-xs md:text-sm"
-        />
+        {[
+          QuestionType.Numeric,
+          QuestionType.Discrete,
+          QuestionType.Date,
+        ].includes(question.type) && (
+          <PredictionContinuousInfo
+            question={question}
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            canPredict={canPredict}
+            showMyPrediction={true}
+          />
+        )}
       </div>
+      {showChart && (
+        <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
+          {question.type === QuestionType.Binary ? (
+            <NumericTimeline
+              nonInteractive={true}
+              aggregation={
+                question.aggregations[question.default_aggregation_method]
+              }
+              myForecasts={question.my_forecasts}
+              height={HEIGHT}
+              questionType={question.type}
+              actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+              scaling={question.scaling}
+              defaultZoom={defaultChartZoom}
+              resolution={question.resolution}
+              resolveTime={question.actual_resolve_time}
+              hideCP={hideCP}
+              isEmptyDomain={
+                !!forecastAvailability?.isEmpty ||
+                !!forecastAvailability?.cpRevealsOn
+              }
+              openTime={getPostDrivenTime(question.open_time)}
+              unit={question.unit}
+              tickFontSize={9}
+              questionStatus={question.status}
+              forecastAvailability={forecastAvailability}
+              forFeedPage
+            />
+          ) : (
+            <>
+              <ContinuousAreaChart
+                data={continuousAreaChartData}
+                height={HEIGHT}
+                question={question}
+                hideCP={hideCP}
+                forceTickCount={3}
+              />
+              <ForecastAvailabilityChartOverflow
+                forecastAvailability={forecastAvailability}
+                className="pl-3 text-xs md:text-sm"
+              />
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -3,13 +3,14 @@ import { useState } from "react";
 
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { QuestionStatus } from "@/types/post";
 import { QuestionType, UserForecastHistory } from "@/types/question";
 
 import { getNumericMockData } from "./mock_data";
 import { metaArgTypes } from "../config";
 
 const meta = {
-  title: "Numeric Question Timeline",
+  title: "Numeric Timeline/Numeric Question",
   component: NumericTimeline,
   argTypes: {
     ...metaArgTypes,
@@ -43,7 +44,8 @@ export const Ongoing: Story = {
     height: 150,
     actualCloseTime: null,
     simplifiedCursor: true,
-    unit: "$",
+    unit: "units",
+    questionStatus: QuestionStatus.OPEN,
   },
 };
 
@@ -82,6 +84,7 @@ export const Closed: Story = {
     ...Ongoing.args,
     aggregation: closedArgs.aggregation,
     actualCloseTime: closedArgs.actualCloseTime,
+    questionStatus: QuestionStatus.CLOSED,
   },
 };
 
@@ -100,6 +103,7 @@ export const Resolved: Story = {
     ...Closed.args,
     resolution: closedArgs.resolution,
     resolveTime: closedArgs.actualResolveTime,
+    questionStatus: QuestionStatus.RESOLVED,
   },
 };
 

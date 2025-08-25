@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 const useContainerSize = <T extends HTMLElement>() => {
