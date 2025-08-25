@@ -6,16 +6,24 @@ import React, { FC, useMemo } from "react";
 
 import PostStatusIcon from "@/components/post_status/status_icon";
 import { Post, PostStatus as PostStatusEnum, Resolution } from "@/types/post";
+import cn from "@/utils/core/cn";
 
 import LocalDaytime from "../ui/local_daytime";
 
 type Props = {
   resolution: Resolution | null;
   post: Post;
+  compact?: boolean;
+  className?: string;
 };
 
 // TODO: revisit this component once BE provide all data, required for status definition
-const PostStatus: FC<Props> = ({ resolution, post }) => {
+const PostStatus: FC<Props> = ({
+  resolution,
+  post,
+  compact = false,
+  className,
+}) => {
   const t = useTranslations();
   const {
     status,
@@ -39,20 +47,29 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
       if (new Date(open_time).getTime() > Date.now()) {
         return (
           <>
-            {t("opens")} <LocalDaytime date={open_time} />
+            {t("opens")}{" "}
+            <span className="font-medium tabular-nums">
+              <LocalDaytime date={open_time} />
+            </span>
           </>
         );
       }
       return (
         <>
-          {t("closes")} <LocalDaytime date={scheduled_close_time} />
+          {t("closes")}{" "}
+          <span className="font-medium tabular-nums">
+            <LocalDaytime date={scheduled_close_time} />
+          </span>
         </>
       );
     }
     if (status === PostStatusEnum.RESOLVED) {
       return (
         <>
-          {t("resolved")} <LocalDaytime date={actual_close_time} />
+          {t("resolved")}{" "}
+          <span className="font-medium tabular-nums">
+            <LocalDaytime date={actual_close_time} />
+          </span>
         </>
       );
     }
@@ -71,16 +88,27 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
   }
 
   return (
-    <div className="flex flex-row items-center gap-1.5 truncate text-gray-900 dark:text-gray-900-dark">
+    <div
+      className={cn(
+        "flex h-6 flex-row items-center gap-2 truncate rounded-xs bg-gray-200 px-1.5 text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark md:bg-transparent dark:md:bg-transparent",
+        className
+      )}
+    >
       <PostStatusIcon
         status={status}
         published_at={post.published_at}
         scheduled_close_time={scheduled_close_time}
         resolution={resolution}
       />
-      <span className="whitespace-nowrap text-sm" suppressHydrationWarning>
-        {statusText}
-      </span>
+      {/* Show text only in non-compact mode */}
+      {!compact && (
+        <span
+          className="whitespace-nowrap text-xs font-normal"
+          suppressHydrationWarning
+        >
+          {statusText}
+        </span>
+      )}
     </div>
   );
 };

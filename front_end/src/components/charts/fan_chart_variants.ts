@@ -9,6 +9,7 @@ export type VariantArgs = {
   tickLabelFontSize: number;
   maxLeftPadding: number;
   maxRightPadding: number;
+  isEmbedded?: boolean;
   getThemeColor: (c: ThemeColor) => string;
 };
 
@@ -52,8 +53,30 @@ export type VariantConfig = {
 export const fanVariants: Record<FanChartVariant, VariantConfig> = {
   default: {
     id: "default",
-    yAxisStyle: () => undefined,
-    xAxisStyle: () => undefined,
+    yAxisStyle: ({ getThemeColor, tickLabelFontSize }) => ({
+      ticks: { stroke: "transparent" },
+      axisLabel: {
+        fontFamily: "Inter",
+        fontSize: tickLabelFontSize,
+        fill: getThemeColor(METAC_COLORS.gray["600"]),
+      },
+      tickLabels: {
+        fontFamily: "Inter",
+        padding: 5,
+        fontSize: tickLabelFontSize,
+        fill: getThemeColor(METAC_COLORS.gray["600"]),
+      },
+      axis: { stroke: "transparent" },
+      grid: {
+        stroke: getThemeColor(METAC_COLORS.gray["400"]),
+        strokeWidth: 1,
+        strokeDasharray: "2, 5",
+      },
+    }),
+    xAxisStyle: () => ({
+      ticks: { stroke: "transparent" },
+      axis: { stroke: "transparent" },
+    }),
     domainPadding: () => ({ x: [150 / 2, 150 / 2] }),
     padding: ({ maxLeftPadding }) => ({
       left: maxLeftPadding,

@@ -68,6 +68,7 @@ type Props = {
   id?: string;
   inNotebook?: boolean;
   showTitle?: boolean;
+  compactVersion?: boolean;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -98,6 +99,7 @@ const CommentFeed: FC<Props> = ({
   id,
   inNotebook = false,
   showTitle = true,
+  compactVersion = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -372,48 +374,51 @@ const CommentFeed: FC<Props> = ({
           {
             "w-[48rem] border-transparent bg-gray-0 px-3 py-2 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark xs:px-4 lg:border":
               !inNotebook,
-          }
+          },
+          compactVersion && "p-0 xs:p-0"
         )}
       >
-        <div className="mb-4 mt-2 flex flex-col items-start gap-3">
-          <div
-            className={cn(
-              "flex w-full flex-row justify-between gap-4 md:gap-3",
-              {
-                "justify-center sm:justify-start": !showTitle,
-              }
-            )}
-          >
-            {showTitle && (
-              <h2
-                className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-                id="comments"
-              >
-                {t("comments")}
-              </h2>
-            )}
-            {!profileId &&
-              user &&
-              (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
-                <ButtonGroup
-                  value={feedFilters.is_private ? "private" : "public"}
-                  buttons={feedOptions}
-                  onChange={(section) => {
-                    handleFilterChange("is_private", section === "private");
-                  }}
-                  variant="tertiary"
-                />
+        {!compactVersion && (
+          <div className="mb-4 mt-2 flex flex-col items-start gap-3">
+            <div
+              className={cn(
+                "flex w-full flex-row justify-between gap-4 md:gap-3",
+                {
+                  "justify-center sm:justify-start": !showTitle,
+                }
               )}
+            >
+              {showTitle && (
+                <h2
+                  className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+                  id="comments"
+                >
+                  {t("comments")}
+                </h2>
+              )}
+              {!profileId &&
+                user &&
+                (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
+                  <ButtonGroup
+                    value={feedFilters.is_private ? "private" : "public"}
+                    buttons={feedOptions}
+                    onChange={(section) => {
+                      handleFilterChange("is_private", section === "private");
+                    }}
+                    variant="tertiary"
+                  />
+                )}
+            </div>
+            {postId && showWelcomeMessage && (
+              <CommentWelcomeMessage
+                onClick={() => {
+                  setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
+                }}
+              />
+            )}
           </div>
-          {postId && showWelcomeMessage && (
-            <CommentWelcomeMessage
-              onClick={() => {
-                setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
-              }}
-            />
-          )}
-        </div>
-        {postId && (
+        )}
+        {!compactVersion && postId && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
               <CommentEditor

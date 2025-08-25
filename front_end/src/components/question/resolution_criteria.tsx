@@ -28,7 +28,7 @@ const ResolutionCriteria: FC<Props> = ({
     const { condition, condition_child } = post.conditional;
 
     return (
-      <div className={cn("my-4 flex flex-col gap-2.5", className)}>
+      <div className={cn("flex flex-col gap-2.5", className)}>
         <SectionToggle
           title={t("parentResolutionCriteria")}
           defaultOpen={defaultOpen}
@@ -98,7 +98,7 @@ const ResolutionCriteria: FC<Props> = ({
   return (
     <SectionToggle
       title={t("resolutionCriteria")}
-      wrapperClassName={cn("my-4", className)}
+      wrapperClassName={cn(className)}
       defaultOpen={defaultOpen}
     >
       <ExpandableContent

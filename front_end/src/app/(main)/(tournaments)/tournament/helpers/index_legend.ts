@@ -16,8 +16,9 @@ export function getIndexBounds(base?: {
 
 export function getVerticalLegendProps(base?: IndexBase | null) {
   const { MIN, MAX } = getIndexBounds(base ?? undefined);
-  const minLabel = base?.min_label ?? String(MIN);
-  const maxLabel = base?.max_label ?? String(MAX);
+  console.log({ MIN, MAX, base });
+  const minLabel = base?.min_label ? base?.min_label : String(MIN);
+  const maxLabel = base?.max_label ? base?.max_label : String(MAX);
   const highIsGood = !!base?.increasing_is_good;
 
   return {

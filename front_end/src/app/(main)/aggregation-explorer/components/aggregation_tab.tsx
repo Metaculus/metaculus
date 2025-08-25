@@ -213,10 +213,12 @@ const AggregationsTab: FC<Props> = ({
           actualCloseTime={actualCloseTime}
           scaling={aggregationData.scaling}
           resolution={resolution}
+          resolveTime={aggregationData.actual_resolve_time}
           cursorTimestamp={cursorTimestamp}
           onCursorChange={handleCursorChange}
           unit={unit}
           simplifiedCursor={aggregationData.type !== QuestionType.Binary}
+          questionStatus={aggregationData.status}
         />
 
         {!!cursorData && (

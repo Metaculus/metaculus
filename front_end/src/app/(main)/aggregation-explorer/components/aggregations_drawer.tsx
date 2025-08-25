@@ -12,7 +12,7 @@ import {
   useRef,
 } from "react";
 
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import GroupChart from "@/components/charts/group_chart";
 import { useAuth } from "@/contexts/auth_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -141,7 +141,7 @@ const AggregationsDrawer: FC<Props> = ({
   return (
     <>
       {aggregationData && (
-        <MultipleChoiceChart
+        <GroupChart
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
           choiceItems={choiceItems}

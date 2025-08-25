@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { LanguageService } from "@/services/language_service";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
@@ -53,6 +55,11 @@ export default async function loginAction(
 
   await setServerSession(response.token);
 
+  // Set user's language preference as the active locale
+  if (response.user.language) {
+    await LanguageService.setLocaleCookie(response.user.language);
+  }
+
   const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
     getPublicSettings();
 
@@ -71,9 +78,15 @@ export type SignUpActionState =
   | null;
 
 export async function signUpAction(
-  validatedSignupData: SignUpSchema & { redirectUrl?: string }
+  validatedSignupData: SignUpSchema & {
+    redirectUrl?: string;
+    appTheme?: string;
+  }
 ): Promise<SignUpActionState> {
   const headersList = await headers();
+
+  // Get current language from cookie or autodetected locale
+  const currentLanguage = await getLocale();
 
   const ipAddress =
     headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
@@ -91,6 +104,8 @@ export async function signUpAction(
         redirect_url: validatedSignupData.redirectUrl,
         invite_token: validatedSignupData.inviteToken,
         newsletter_optin: validatedSignupData.newsletterOptin,
+        language: currentLanguage,
+        app_theme: validatedSignupData.appTheme,
       },
       {
         ...(validatedSignupData.turnstileToken
@@ -104,6 +119,11 @@ export async function signUpAction(
 
     if (response.is_active && response.token) {
       await setServerSession(response.token);
+
+      // Set user's language preference as the active locale
+      if (response.user?.language) {
+        await LanguageService.setLocaleCookie(response.user.language);
+      }
 
       revalidatePath("/");
 

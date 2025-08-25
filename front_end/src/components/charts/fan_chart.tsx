@@ -1,4 +1,5 @@
 "use client";
+
 import { isNil, merge } from "lodash";
 import { FC, useMemo, useState } from "react";
 import {
@@ -9,6 +10,7 @@ import {
   VictoryContainer,
   VictoryLabel,
   VictoryLine,
+  VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
   VictoryVoronoiContainer,
@@ -16,8 +18,10 @@ import {
 
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
+import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import {
@@ -26,6 +30,7 @@ import {
   FanDatum,
   GroupFanDatum,
   Line,
+  ScaleDirection,
   YDomain,
 } from "@/types/charts";
 import { PostGroupOfQuestions } from "@/types/post";
@@ -63,8 +68,12 @@ import {
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/math";
-import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
+import {
+  getGroupForecastAvailability,
+  getQuestionForecastAvailability,
+} from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { FanChartVariant, fanVariants } from "./fan_chart_variants";
 
@@ -79,6 +88,9 @@ type Props = {
   hideCP?: boolean;
   variant?: FanChartVariant;
   fixedYDomain?: [number, number];
+  isEmbedded?: boolean;
+  optionsLimit?: number;
+  forFeedPage?: boolean;
 };
 
 type NormalizedFanDatum = {
@@ -101,15 +113,18 @@ const FanChart: FC<Props> = ({
   yLabel,
   withTooltip = false,
   extraTheme,
-  pointSize,
+  pointSize = 10,
   hideCP,
   variant,
   fixedYDomain,
+  isEmbedded = false,
+  optionsLimit,
+  forFeedPage,
 }) => {
   const effectiveVariant: FanChartVariant = variant ?? "default";
+
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
-
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -124,7 +139,7 @@ const FanChart: FC<Props> = ({
     return { isEmpty: false, cpRevealsOn: null };
   }, [group]);
 
-  const optionsLike = useMemo<NormalizedFanDatum[]>(() => {
+  const normOptions: NormalizedFanDatum[] = useMemo(() => {
     if (options?.length) {
       const firstType = options[0]?.type ?? QuestionType.Numeric;
       return options.map((o) => ({
@@ -139,8 +154,9 @@ const FanChart: FC<Props> = ({
         type: o.type ?? firstType,
       }));
     }
-    const legacy = group ? getFanOptions(group) : [];
-    return legacy.map((opt) => ({
+    if (!group) return [];
+    const legacy = getFanOptions(group);
+    const mapped = legacy.map((opt) => ({
       name: opt.name,
       communityQuartiles: opt.communityQuartiles,
       userQuartiles: opt.userQuartiles,
@@ -149,37 +165,73 @@ const FanChart: FC<Props> = ({
       resolved: opt.resolved,
       optionScaling: opt.question?.scaling ?? null,
       question: opt.question,
-      type:
-        opt.question?.type === QuestionType.Binary
-          ? QuestionType.Binary
-          : QuestionType.Numeric,
+      type: (opt.question?.type === QuestionType.Binary
+        ? QuestionType.Binary
+        : QuestionType.Numeric) as QuestionType.Binary | QuestionType.Numeric,
     }));
-  }, [group, options]);
+    return typeof optionsLimit === "number"
+      ? mapped.slice(0, optionsLimit)
+      : mapped;
+  }, [group, options, optionsLimit]);
+
   const {
-    communityLine,
-    userLine,
-    communityArea,
-    userArea,
+    communityLines,
+    communityAreas,
     communityPoints,
     userPoints,
     resolutionPoints,
+    emptyPoints,
     yScale,
     yDomain,
   } = useMemo(
     () =>
       buildChartData({
-        options: optionsLike,
+        options: normOptions,
         height,
-        forceTickCount: effectiveVariant === "index" ? 5 : undefined,
+        forceTickCount: fanVariants[effectiveVariant].forceTickCount,
         fixedYDomain,
+        forFeedPage,
       }),
-    [height, optionsLike, effectiveVariant, fixedYDomain]
+    [normOptions, height, effectiveVariant, fixedYDomain, forFeedPage]
   );
 
-  const labels = adjustLabelsForDisplay(optionsLike, chartWidth, actualTheme);
+  const labels = adjustLabelsForDisplay(
+    normOptions.map((o) => ({ name: o.name })),
+    chartWidth,
+    actualTheme
+  );
+
+  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
+    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+  const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
+    return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+
+  const maxLeftPadding = Math.max(leftPadding, MIN_LEFT_PADDING);
+  const maxRightPadding = Math.max(rightPadding, MIN_RIGHT_PADDING);
+
+  const v = fanVariants[effectiveVariant];
+  const palette = v.palette({ getThemeColor });
+
+  const shouldDisplayChart = !!chartWidth;
+
+  const variantArgs = {
+    chartWidth,
+    yLabel,
+    tickLabelFontSize,
+    maxLeftPadding: isEmbedded ? maxLeftPadding : maxLeftPadding,
+    maxRightPadding: isEmbedded
+      ? Math.max(10, maxRightPadding)
+      : maxRightPadding,
+    getThemeColor,
+  };
+
+  const bottomPadForPoints = v.padding(variantArgs).bottom;
+
   const tooltipOptions: GroupFanDatum[] = useMemo(
     () =>
-      optionsLike
+      normOptions
         .filter(
           (
             o
@@ -196,24 +248,9 @@ const FanChart: FC<Props> = ({
           resolved: o.resolved,
           question: o.question,
         })),
-    [optionsLike]
+    [normOptions]
   );
-  const { ticks, tickFormat } = yScale;
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
 
-  const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
-    return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-
-  const maxLeftPadding = Math.max(leftPadding, MIN_LEFT_PADDING);
-  const maxRightPadding = Math.max(rightPadding, MIN_RIGHT_PADDING);
-
-  const v = fanVariants[effectiveVariant];
-  const palette = v.palette({ getThemeColor });
-
-  const shouldDisplayChart = !!chartWidth;
   return (
     <div
       id="fan-graph-container"
@@ -226,25 +263,9 @@ const FanChart: FC<Props> = ({
           width={chartWidth}
           height={height}
           theme={actualTheme}
-          domain={{
-            y: yDomain,
-          }}
-          domainPadding={v.domainPadding({
-            chartWidth,
-            yLabel,
-            tickLabelFontSize,
-            maxLeftPadding,
-            maxRightPadding,
-            getThemeColor,
-          })}
-          padding={v.padding({
-            chartWidth,
-            yLabel,
-            tickLabelFontSize,
-            maxLeftPadding,
-            maxRightPadding,
-            getThemeColor,
-          })}
+          domain={{ y: yDomain }}
+          domainPadding={v.domainPadding(variantArgs)}
+          padding={v.padding(variantArgs)}
           containerComponent={
             withTooltip ? (
               <VictoryVoronoiContainer
@@ -254,14 +275,8 @@ const FanChart: FC<Props> = ({
                   "communityFanLine",
                   "userFanLine",
                 ]}
-                style={{
-                  touchAction: "pan-y",
-                }}
-                labels={({
-                  datum,
-                }: {
-                  datum: { x: string; xName?: string; y?: number };
-                }) => datum.x}
+                style={{ touchAction: "pan-y" }}
+                labels={({ datum }: { datum: { x: string } }) => datum.x}
                 labelComponent={
                   <ChartFanTooltip
                     chartHeight={height}
@@ -272,9 +287,7 @@ const FanChart: FC<Props> = ({
                 }
                 onActivated={(points: { x: string }[]) => {
                   const x = points[0]?.x;
-                  if (!isNil(x)) {
-                    setActivePoint(x);
-                  }
+                  if (!isNil(x)) setActivePoint(x);
                 }}
               />
             ) : (
@@ -291,75 +304,83 @@ const FanChart: FC<Props> = ({
             {
               target: "parent",
               eventHandlers: {
-                onMouseOutCapture: () => {
-                  setActivePoint(null);
-                },
+                onMouseOutCapture: () => setActivePoint(null),
               },
             },
           ]}
         >
-          {!hideCP && (
-            <VictoryArea
-              name="communityFanArea"
-              data={communityArea}
-              style={{ data: { opacity: 0.3, fill: palette.communityArea } }}
-            />
-          )}
-          <VictoryArea
-            name="userFanArea"
-            data={userArea}
-            style={{ data: { opacity: 0.3, fill: palette.userArea } }}
-          />
-          {!hideCP && (
-            <VictoryLine
-              style={{ data: { stroke: palette.communityLine } }}
-              name="communityFanLine"
-              data={communityLine}
-            />
-          )}
-          <VictoryLine
-            name="userFanLine"
-            data={userLine}
-            style={{ data: { stroke: palette.userLine } }}
-          />
           <VictoryAxis
             dependentAxis
             label={yLabel}
-            tickValues={ticks}
-            tickFormat={tickFormat}
-            style={
-              v.yAxisStyle({
-                tickLabelFontSize,
-                getThemeColor,
-                maxLeftPadding,
-                maxRightPadding,
-              }) ?? { ticks: { strokeWidth: 1 } }
-            }
-            offsetX={v.axisLabelOffsetX({
-              chartWidth,
-              yLabel,
+            tickValues={yScale.ticks}
+            tickFormat={yScale.tickFormat}
+            style={v.yAxisStyle({
               tickLabelFontSize,
               maxLeftPadding,
               maxRightPadding,
               getThemeColor,
             })}
+            offsetX={v.axisLabelOffsetX(variantArgs)}
             axisLabelComponent={<VictoryLabel x={chartWidth} />}
           />
 
-          <VictoryAxis
-            tickValues={optionsLike.map((option) => option.name)}
-            tickFormat={(_, index) => labels[index] ?? ""}
-            style={v.xAxisStyle({
-              tickLabelFontSize,
-              getThemeColor,
-              maxLeftPadding,
-              maxRightPadding,
-            })}
+          <VictoryPortal>
+            <VictoryAxis
+              tickValues={normOptions.map((o) => o.name)}
+              tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
+              style={v.xAxisStyle({
+                tickLabelFontSize,
+                maxLeftPadding,
+                maxRightPadding,
+                getThemeColor,
+              })}
+            />
+          </VictoryPortal>
+
+          {!hideCP &&
+            communityAreas.map((area, idx) => (
+              <VictoryArea
+                key={`c-area-${idx}`}
+                name={`communityFanArea-${idx}`}
+                data={area ?? []}
+                style={{
+                  data: {
+                    opacity: 0.3,
+                    fill: ({ datum }) =>
+                      (datum as any)?.resolved
+                        ? getThemeColor(METAC_COLORS.purple["500"])
+                        : palette.communityArea,
+                  },
+                }}
+              />
+            ))}
+          {!hideCP &&
+            communityLines.map((line, idx) => (
+              <VictoryLine
+                key={`c-line-${idx}`}
+                name={`communityFanLine-${idx}`}
+                data={line ?? []}
+                style={{
+                  data: {
+                    stroke: ({ datum }) =>
+                      (datum as any)?.resolved
+                        ? getThemeColor(METAC_COLORS.purple["700"])
+                        : palette.communityLine,
+                  },
+                }}
+              />
+            ))}
+
+          <VictoryScatter
+            data={userPoints}
+            dataComponent={<PredictionWithRange />}
           />
+
           {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
-              data={communityPoints.map((point) => ({
-                ...point,
+              data={communityPoints.map((p) => ({
+                ...p,
+                resolved: false,
                 symbol: "square",
               }))}
               style={{
@@ -368,7 +389,7 @@ const FanChart: FC<Props> = ({
                   stroke: () => palette.communityPoint,
                   strokeWidth: 6,
                   strokeOpacity: ({ datum }) =>
-                    activePoint === datum.x ? 0.3 : 0,
+                    activePoint === (datum as any).x ? 0.3 : 0,
                 },
               }}
               dataComponent={
@@ -376,46 +397,53 @@ const FanChart: FC<Props> = ({
                   activePoint={activePoint}
                   pointSize={pointSize}
                   pointColor={palette.communityPoint}
+                  bottomPadding={bottomPadForPoints}
                 />
               }
             />
           )}
-          <VictoryScatter
-            data={userPoints.map((point) => ({
-              ...point,
-              symbol: "square",
-            }))}
-            dataComponent={
-              <FanPoint
-                activePoint={activePoint}
-                pointSize={pointSize}
-                pointColor={palette.communityPoint}
-              />
-            }
-          />
-          <VictoryScatter
-            data={resolutionPoints.map((point) => ({
-              ...point,
-              symbol: "diamond",
-            }))}
-            style={{
-              data: {
-                fill: v.resolutionPoint.fill({ getThemeColor }),
-                stroke: () => palette.resolutionStroke,
-                strokeWidth: 2,
-                strokeOpacity: 1,
-              },
-            }}
-            dataComponent={
-              <FanPoint
-                activePoint={null}
-                pointSize={v.resolutionPoint.size}
-                strokeWidth={v.resolutionPoint.strokeWidth}
-              />
-            }
-          />
+
+          {resolutionPoints.map((point) => (
+            <VictoryScatter
+              key={`res-${point.x}`}
+              data={[{ ...point, symbol: "diamond" }]}
+              style={{
+                data: {
+                  fill: v.resolutionPoint.fill({ getThemeColor }),
+                  stroke: () => palette.resolutionStroke,
+                  strokeWidth: 2,
+                  strokeOpacity: 1,
+                },
+              }}
+              dataComponent={
+                <FanPoint
+                  activePoint={null}
+                  pointSize={v.resolutionPoint.size}
+                  strokeWidth={v.resolutionPoint.strokeWidth}
+                />
+              }
+            />
+          ))}
+          {emptyPoints.map((point) => (
+            <VictoryScatter
+              key={`empty-${point.x}`}
+              data={[{ ...point, symbol: "diamond" }]}
+              dataComponent={
+                <FanPoint
+                  activePoint={activePoint}
+                  pointSize={v.resolutionPoint.size}
+                  strokeWidth={v.resolutionPoint.strokeWidth}
+                  unsuccessfullyResolved={point.unsuccessfullyResolved}
+                  bgColor={v.resolutionPoint.fill({ getThemeColor })}
+                  bottomPadding={bottomPadForPoints}
+                  isClosed
+                />
+              }
+            />
+          ))}
         </VictoryChart>
       )}
+
       {!withTooltip && (
         <ForecastAvailabilityChartOverflow
           forecastAvailability={forecastAvailability}
@@ -427,46 +455,49 @@ const FanChart: FC<Props> = ({
   );
 };
 
-type FanGraphPoint = { x: string; y: number; resolved: boolean };
+type FanGraphPoint = {
+  x: string;
+  y: number;
+  resolved?: boolean;
+  unsuccessfullyResolved?: boolean;
+};
 
 function buildChartData({
   options,
   height,
   forceTickCount,
   fixedYDomain,
+  forFeedPage,
 }: {
   options: NormalizedFanDatum[];
   height: number;
   forceTickCount?: number;
   fixedYDomain?: [number, number];
+  forFeedPage?: boolean;
 }) {
-  // we expect fan graph to be rendered only for group questions, that expect some options
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   if (!options.length) {
     return {
-      communityLine: [],
-      userLine: [],
-      communityArea: [],
-      userArea: [],
-      communityPoints: [],
-      userPoints: [],
-      resolutionPoints: [],
-      yScale: {
-        ticks: [],
-        tickFormat: (v: number) => String(v),
-      },
+      communityLines: [] as (Line<string> | null)[],
+      communityAreas: [] as (Area<string> | null)[],
+      communityPoints: [] as FanGraphPoint[],
+      userPoints: [] as FanGraphPoint[],
+      resolutionPoints: [] as FanGraphPoint[],
+      emptyPoints: [] as FanGraphPoint[],
+      yScale: { ticks: [], tickFormat: (v: number) => String(v) },
       yDomain: [0, 1] as Tuple<number>,
     };
   }
+
   const groupType: QuestionType = options[0]?.type ?? QuestionType.Numeric;
   const isBinaryGroup = groupType === QuestionType.Binary;
-  const communityLine: Line<string> = [];
-  const userLine: Line<string> = [];
-  const communityArea: Area<string> = [];
+
+  const communityLines: (Line<string> | null)[] = [];
+  const communityAreas: (Area<string> | null)[] = [];
   const userArea: Area<string> = [];
-  const communityPoints: Array<FanGraphPoint> = [];
-  const userPoints: Array<FanGraphPoint> = [];
-  const resolutionPoints: Array<FanGraphPoint> = [];
+  const communityPoints: FanGraphPoint[] = [];
+  const userPoints: FanGraphPoint[] = [];
+  const resolutionPoints: FanGraphPoint[] = [];
+  const emptyPoints: FanGraphPoint[] = [];
 
   const scaling = getFanGraphScaling(options);
 
@@ -482,7 +513,27 @@ function buildChartData({
     fixedInternal = [lo, hi];
   }
 
+  let lastPointResolved = false;
+
   for (const option of options) {
+    const unsuccessfullyResolved = option.question
+      ? isUnsuccessfullyResolved(option.question.resolution)
+      : false;
+
+    const questionForecastAvailability = option.question
+      ? getQuestionForecastAvailability(option.question)
+      : { isEmpty: false, cpRevealsOn: null as number | null };
+
+    const isResolved = option.resolved && !unsuccessfullyResolved;
+
+    if (
+      questionForecastAvailability.isEmpty ||
+      questionForecastAvailability.cpRevealsOn
+    ) {
+      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved });
+      continue;
+    }
+
     if (option.communityQuartiles) {
       const {
         linePoint: communityLinePoint,
@@ -494,73 +545,114 @@ function buildChartData({
         optionScaling: option.optionScaling,
         scaling,
         withoutScaling: isBinaryGroup,
+        resolved: isResolved,
       });
-      communityLine.push(communityLinePoint);
-      communityArea.push(communityAreaPoint);
-      communityPoints.push(communityPoint);
+
+      if (!unsuccessfullyResolved) {
+        if (communityLines.length === 0) {
+          communityLines.push([
+            { ...communityLinePoint, resolved: isResolved },
+          ]);
+          communityAreas.push([
+            { ...communityAreaPoint, resolved: isResolved },
+          ]);
+        } else {
+          communityLines.push([
+            {
+              ...(communityLines.at(-1)?.at(-1) ?? communityLinePoint),
+              resolved: lastPointResolved,
+            },
+            { ...communityLinePoint, resolved: isResolved },
+          ]);
+          communityAreas.push([
+            {
+              ...(communityAreas.at(-1)?.at(-1) ?? communityAreaPoint),
+              resolved: lastPointResolved,
+            },
+            { ...communityAreaPoint, resolved: isResolved },
+          ]);
+        }
+        communityPoints.push(communityPoint);
+        lastPointResolved = isResolved;
+      } else {
+        communityLines.push(null);
+        communityAreas.push(null);
+      }
     }
+
     if (option.resolved) {
-      resolutionPoints.push({
-        x: option.name,
-        y: Number.isFinite(option.resolvedValue)
+      const yVal =
+        Number.isFinite(option.resolvedValue) && option.resolvedValue != null
           ? (option.resolvedValue as number)
           : option.question
             ? getResolutionPosition({ question: option.question, scaling })
-            : NaN,
+            : NaN;
+
+      resolutionPoints.push({
+        x: option.name,
+        y: yVal,
+        unsuccessfullyResolved,
         resolved: true,
       });
     }
+
     if (option.userQuartiles) {
-      const {
-        linePoint: userLinePoint,
-        areaPoint: userAreaPoint,
-        point: userPoint,
-      } = getOptionGraphData({
-        name: option.name,
-        quartiles: option.userQuartiles,
-        optionScaling: option.optionScaling,
-        scaling,
-        withoutScaling: isBinaryGroup,
-      });
-      userLine.push(userLinePoint);
-      if (!isBinaryGroup) {
-        userArea.push(userAreaPoint);
-      }
+      const { areaPoint: userAreaPoint, point: userPoint } = getOptionGraphData(
+        {
+          name: option.name,
+          quartiles: option.userQuartiles,
+          optionScaling: option.optionScaling,
+          scaling,
+          withoutScaling: isBinaryGroup,
+          resolved: option.resolved ?? false,
+        }
+      );
+      if (!isBinaryGroup) userArea.push(userAreaPoint);
       userPoints.push(userPoint);
     }
   }
 
-  const computed = generateFanGraphYDomain({
-    communityArea,
+  const { originalYDomain, zoomedYDomain } = generateFanGraphYDomain({
+    communityAreas,
     userArea,
-    resolutionPoints,
+    resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
     includeClosestBoundOnZoom: isBinaryGroup,
   });
 
-  const yDomain = fixedInternal ?? computed.zoomedYDomain;
-  const domainForScale = fixedInternal ?? computed.originalYDomain;
-  const zoomForScale = fixedInternal ? undefined : yDomain;
+  const finalOriginal = fixedInternal ?? originalYDomain;
+  const finalZoom = fixedInternal ?? zoomedYDomain;
 
   const yScale = generateScale({
     displayType: groupType,
     axisLength: height,
-    direction: "vertical",
+    direction: ScaleDirection.Vertical,
     scaling,
-    domain: domainForScale,
-    forceTickCount,
-    zoomedDomain: zoomForScale,
+    domain: finalOriginal,
+    zoomedDomain: finalZoom,
+    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 5),
+    alwaysShowTicks: true,
+  });
+
+  resolutionPoints.forEach((pt) => {
+    if (pt.unsuccessfullyResolved) {
+      pt.y = Math.round(((finalZoom[0] + finalZoom[1]) / 2) * 100) / 100;
+    } else if (isBinaryGroup) {
+      pt.y = pt.y === 0 ? finalZoom[0] : finalZoom[1];
+    }
+  });
+  emptyPoints.forEach((pt) => {
+    pt.y = Math.round(((finalZoom[0] + finalZoom[1]) / 2) * 100) / 100;
   });
 
   return {
-    communityLine,
-    userLine,
-    communityArea,
-    userArea,
+    communityLines,
+    communityAreas,
     communityPoints,
     userPoints,
     resolutionPoints,
+    emptyPoints,
     yScale,
-    yDomain,
+    yDomain: finalZoom,
   };
 }
 
@@ -607,12 +699,12 @@ function getFanGraphScaling(options: NormalizedFanDatum[]): Scaling {
 }
 
 function generateFanGraphYDomain({
-  communityArea,
+  communityAreas,
   resolutionPoints,
   userArea,
   includeClosestBoundOnZoom,
 }: {
-  communityArea: Area<string>;
+  communityAreas: Array<Area<string> | null>;
   userArea: Area<string>;
   resolutionPoints: Array<FanGraphPoint>;
   includeClosestBoundOnZoom?: boolean;
@@ -620,35 +712,28 @@ function generateFanGraphYDomain({
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
-  const combinedAreaData = [...communityArea, ...userArea];
+  const combinedAreaData = [
+    ...communityAreas.map((a) => (a ? a : [])),
+    ...userArea,
+  ];
   const minValues: number[] = [];
   const maxValues: number[] = [];
-  for (const areaPoint of combinedAreaData) {
-    if (!isNil(areaPoint.y0)) {
-      minValues.push(areaPoint.y0);
-    }
-    if (!isNil(areaPoint.y)) {
-      maxValues.push(areaPoint.y);
-    }
+  for (const areaPoint of combinedAreaData.flat()) {
+    if (!isNil(areaPoint.y0)) minValues.push(areaPoint.y0);
+    if (!isNil(areaPoint.y)) maxValues.push(areaPoint.y);
   }
-  for (const resolutionPoint of resolutionPoints) {
-    if (!isNil(resolutionPoint.y)) {
-      minValues.push(resolutionPoint.y);
-      maxValues.push(resolutionPoint.y);
+  for (const rp of resolutionPoints) {
+    if (!isNil(rp.y)) {
+      minValues.push(rp.y);
+      maxValues.push(rp.y);
     }
   }
   const minValue = minValues.length ? Math.min(...minValues) : null;
   const maxValue = maxValues.length ? Math.max(...maxValues) : null;
 
-  if (isNil(minValue) || isNil(maxValue)) {
-    return fallback;
-  }
+  if (isNil(minValue) || isNil(maxValue)) return fallback;
 
-  return generateYDomain({
-    minValue,
-    maxValue,
-    includeClosestBoundOnZoom,
-  });
+  return generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom });
 }
 
 function getOptionGraphData({
@@ -657,12 +742,14 @@ function getOptionGraphData({
   scaling,
   optionScaling,
   withoutScaling,
+  resolved,
 }: {
   name: string;
   quartiles: Quartiles;
   optionScaling: Scaling | null;
   scaling: Scaling;
   withoutScaling: boolean;
+  resolved: boolean;
 }) {
   if (withoutScaling || !optionScaling) {
     return {
@@ -678,7 +765,7 @@ function getOptionGraphData({
       point: {
         x: name,
         y: quartiles.median,
-        resolved: false,
+        resolved,
       },
     };
   }
@@ -734,12 +821,10 @@ function adjustLabelsForDisplay(
     charWidth = calculateCharWidth(9);
   }
 
-  const labels = options.map((option) => option.name);
-  if (!charWidth) {
-    return labels;
-  }
+  const labels = options.map((o) => o.name);
+  if (!charWidth) return labels;
 
-  const maxLabelLength = Math.max(...labels.map((label) => label.length));
+  const maxLabelLength = Math.max(...labels.map((l) => l.length));
   const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
   const averageChartPaddingXAxis = 100;
   let availableSpacePerLabel =

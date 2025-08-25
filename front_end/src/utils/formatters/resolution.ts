@@ -126,7 +126,8 @@ export function formatResolution({
 
 export function formatMultipleChoiceResolution(
   resolution: number | string | null | undefined,
-  choice: string
+  choice: string,
+  showNoResolutions: boolean = true
 ) {
   if (resolution === null || resolution === undefined) {
     return "-";
@@ -138,5 +139,9 @@ export function formatMultipleChoiceResolution(
     return capitalize(resolution);
   }
 
-  return choice.toLowerCase() === resolution.toLowerCase() ? "Yes" : "No";
+  return choice.toLowerCase() === resolution.toLowerCase()
+    ? "Yes"
+    : showNoResolutions
+      ? "No"
+      : null;
 }

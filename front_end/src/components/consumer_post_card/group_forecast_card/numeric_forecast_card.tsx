@@ -1,5 +1,5 @@
 import { isNil } from "lodash";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -14,11 +14,13 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 
 type Props = {
   post: PostWithForecasts;
+  forceColorful?: boolean;
 };
 
-const NumericForecastCard: FC<Props> = ({ post }) => {
+const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
+  const t = useTranslations();
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
@@ -89,13 +91,14 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               questionType: QuestionType.Numeric,
               scaling: normalizedScaling,
               actual_resolve_time: actual_resolve_time ?? null,
-              emptyLabel: "?",
+              emptyLabel: t("Upcoming"),
             }
           );
-          const scaledChoiceValue = scaleInternalLocation(
-            rawChoiceValue ?? 0,
-            normalizedScaling
-          );
+
+          const scaledChoiceValue = !isNil(rawChoiceValue)
+            ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
+            : NaN;
+
           const relativeWidth = !isNil(resolution)
             ? 100
             : calculateRelativeWidth({
@@ -115,6 +118,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               progress={relativeWidth}
               color={color}
               unit={unit}
+              forceColorful={forceColorful}
             />
           );
         }
@@ -132,6 +136,8 @@ function calculateRelativeWidth({
   maxScaledValue: number;
   minScaledValue: number;
 }) {
+  if (isNaN(scaledChoiceValue)) return scaledChoiceValue;
+
   if (maxScaledValue === 0 && minScaledValue < 0) {
     if (scaledChoiceValue === 0) {
       return 100;

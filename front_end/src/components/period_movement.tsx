@@ -11,16 +11,20 @@ type Props = {
   className?: string;
   iconClassName?: string;
   highIsGood?: boolean;
+  size?: "xs" | "sm";
+  chip?: string | ReactNode;
 };
 
 const MovementIcon = ({
   direction,
   iconClassName,
+  size,
   highIsGood = true,
 }: {
   direction: MovementDirection;
   iconClassName?: string;
   highIsGood?: boolean;
+  size?: "xs" | "sm";
 }) => {
   switch (direction) {
     case MovementDirection.UP:
@@ -50,9 +54,27 @@ const MovementIcon = ({
         />
       );
     case MovementDirection.EXPANDED:
-      return <span className="mr-1 align-text-bottom text-[10px]">←→</span>;
+      return (
+        <span
+          className={cn("mr-1 align-text-bottom", {
+            "text-[8px]": size === "xs",
+            "text-[10px]": size === "sm",
+          })}
+        >
+          ←→
+        </span>
+      );
     case MovementDirection.CONTRACTED:
-      return <span className="mr-1 align-text-bottom text-[10px]">→←</span>;
+      return (
+        <span
+          className={cn("mr-1 align-text-bottom", {
+            "text-[8px]": size === "xs",
+            "text-[10px]": size === "sm",
+          })}
+        >
+          →←
+        </span>
+      );
   }
 };
 
@@ -62,6 +84,8 @@ const PeriodMovement: FC<Props> = ({
   className,
   iconClassName,
   highIsGood,
+  size = "sm",
+  chip,
 }) => {
   const noChange = !direction || direction == MovementDirection.UNCHANGED;
   return (
@@ -78,14 +102,42 @@ const PeriodMovement: FC<Props> = ({
             MovementDirection.UP,
             MovementDirection.DOWN,
           ].includes(direction),
+          "text-[10px]": size === "xs",
+          "text-xs": size === "sm",
         })}
       >
-        {!noChange && (
-          <MovementIcon
-            highIsGood={highIsGood}
-            iconClassName={iconClassName}
-            direction={direction}
-          />
+        {!!chip ? (
+          <span
+            className={cn("rounded-xs px-1.5 py-0.5", {
+              "bg-salmon-200 dark:bg-salmon-200-dark":
+                direction === MovementDirection.DOWN,
+              "bg-olive-300 dark:bg-olive-300-dark":
+                direction === MovementDirection.UP,
+              "bg-gray-200 dark:bg-gray-200-dark": ![
+                MovementDirection.UP,
+                MovementDirection.DOWN,
+              ].includes(direction),
+            })}
+          >
+            {!noChange && (
+              <MovementIcon
+                iconClassName={iconClassName}
+                direction={direction}
+                highIsGood={highIsGood}
+                size={size}
+              />
+            )}
+            {chip}
+          </span>
+        ) : (
+          !noChange && (
+            <MovementIcon
+              iconClassName={iconClassName}
+              direction={direction}
+              size={size}
+              highIsGood={highIsGood}
+            />
+          )
         )}
         {message}
       </span>
