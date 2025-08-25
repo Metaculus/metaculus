@@ -1479,5 +1479,8 @@
   "weeklyTopCommentsShort": "Top Komentáře",
   "entryExcluded": "Tento příspěvek není způsobilý získat umístění nebo cenu. Zde by se umístili, pokud by byli způsobilí.",
   "keyFactorImpact": "dopad klíčového faktoru",
+  "currentValue": "Aktuální hodnota",
+  "timeline": "Časová osa",
+  "baseline": "Základní linie",
   "withdrawAfterPercentSetting2": "z celkové životnosti otázky"
 }

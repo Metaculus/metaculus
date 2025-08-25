@@ -1481,5 +1481,8 @@
   "weeklyTopComments": "本周热评",
   "weeklyTopCommentsShort": "热评",
   "keyFactorImpact": "关键因素影响",
+  "currentValue": "当前值",
+  "timeline": "时间线",
+  "baseline": "基线",
   "withdrawAfterPercentSetting2": "的问题总生命周期"
 }
