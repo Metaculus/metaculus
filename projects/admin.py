@@ -379,7 +379,7 @@ class ProjectAdmin(CustomTranslationAdmin):
 
     def index_configuration(self, obj: Project):
         if not obj or obj.type != Project.ProjectTypes.INDEX or not obj.index_id:
-            return ''
+            return ""
         url = reverse("admin:projects_projectindex_change", args=[obj.index_id])
         return format_html('<a class="button" href="{}">Configure Index</a>', url)
 
