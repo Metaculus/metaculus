@@ -15,6 +15,10 @@ const LoadingSpinner: FC<Props> = ({ className, size = "2x" }) => {
     <span
       className={cn(
         "flex items-center justify-center overflow-hidden",
+        {
+          "w-2.5": size === "sm",
+          "w-3": size === "1x",
+        },
         className
       )}
     >

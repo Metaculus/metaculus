@@ -15,6 +15,7 @@ import {
   withdrawForecasts,
 } from "@/app/(main)/questions/actions";
 import ForecastMakerConditionalResolutionMessage from "@/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_resolution_message";
+import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -425,11 +426,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         </div>
       ))}
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-        {predictionMessage && (
-          <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-            {predictionMessage}
-          </div>
-        )}
+        <ForecastPredictionMessage predictionMessage={predictionMessage} />
         {canPredict && (
           <>
             {!!user && (

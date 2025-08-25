@@ -125,11 +125,13 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
 
               <PredictionFlowQuestionCard post={detailedPost} />
 
-              <ForecastMaker
-                post={detailedPost}
-                onPredictionSubmit={onPredictionSubmit}
-                disableResolveButtons={true}
-              />
+              <div className="my-4">
+                <ForecastMaker
+                  post={detailedPost}
+                  onPredictionSubmit={onPredictionSubmit}
+                  disableResolveButtons={true}
+                />
+              </div>
 
               <div className="flex flex-col gap-2">
                 <ResolutionCriteria

@@ -9,7 +9,12 @@ import {
 import { isNil, range, uniq } from "lodash";
 import { Tuple, VictoryThemeDefinition } from "victory";
 
-import { Scale, TimelineChartZoomOption, YDomain } from "@/types/charts";
+import {
+  Scale,
+  ScaleDirection,
+  TimelineChartZoomOption,
+  YDomain,
+} from "@/types/charts";
 import {
   DefaultInboundOutcomeCount,
   GraphingQuestionProps,
@@ -83,6 +88,7 @@ export function getAxisRightPadding(
   labelsFontSize: number,
   yLabel?: string | undefined
 ) {
+  const SCATTER_POINT_PADDING = 5;
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.min(
     Math.max(...labels.map((label) => label.length)),
@@ -90,9 +96,9 @@ export function getAxisRightPadding(
   );
   const fontSizeScale = yLabel ? 11 : 9;
   return {
-    rightPadding: Math.round(
-      (longestLabelLength * labelsFontSize * fontSizeScale) / 10
-    ),
+    rightPadding:
+      Math.round((longestLabelLength * labelsFontSize * fontSizeScale) / 10) +
+      SCATTER_POINT_PADDING,
     MIN_RIGHT_PADDING: 35,
   };
 }
@@ -176,11 +182,11 @@ export function generateYDomain({
       zoomedYDomain =
         distanceToZero < distanceToOne
           ? [0, Math.min(1, maxValue + zoomDomainPadding)]
-          : [Math.max(0, minValue - zoomDomainPadding), 1];
+          : [Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)), 1];
     }
   } else {
     zoomedYDomain = [
-      Math.max(0, minValue - zoomDomainPadding),
+      Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)),
       Math.min(1, maxValue + zoomDomainPadding),
     ];
   }
@@ -299,7 +305,7 @@ function minimumSignificantRounding(values: number[]): number[] {
   const EPS = 1e-12;
 
   function sigfigRound(val: number, sigfigs: number): number {
-    if (val === 0) return 0;
+    if (val === 0) return 0; // Special case for zero
     const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
     return Math.round(val * divisor) / divisor;
   }
@@ -418,12 +424,11 @@ function findOptimalTickCount(
 type GenerateScaleParams = {
   displayType: QuestionType;
   axisLength: number;
-  direction?: "horizontal" | "vertical";
+  direction?: ScaleDirection;
   domain?: Tuple<number>;
   zoomedDomain?: Tuple<number>;
   scaling?: Scaling | null;
   unit?: string;
-  forcedTickCount?: number;
   withCursorFormat?: boolean;
   cursorDisplayLabel?: string | null;
   shortLabels?: boolean;
@@ -456,7 +461,7 @@ type GenerateScaleParams = {
 export function generateScale({
   displayType,
   axisLength,
-  direction = "horizontal",
+  direction = ScaleDirection.Horizontal,
   domain = [0, 1],
   zoomedDomain = [0, 1],
   scaling = null,
@@ -511,7 +516,10 @@ export function generateScale({
   // determine the number of ticks to label
   // based on the axis length and direction
   let maxLabelCount: number;
-  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+  if (
+    displayType === QuestionType.Discrete &&
+    direction === ScaleDirection.Horizontal
+  ) {
     // get last label width to determine the number of labels
     const lastLabel = getPredictionDisplayValue(
       1 - 0.5 / inbound_outcome_count,
@@ -530,23 +538,28 @@ export function generateScale({
       lastLabel.length ? axisLength / (12 * lastLabel.length) : 15,
       inbound_outcome_count + openBoundCount
     );
+  } else if (axisLength < 100) {
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 2 : 3;
   } else if (axisLength < 150) {
-    maxLabelCount = direction === "horizontal" ? 3 : 5;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 3 : 5;
   } else if (axisLength < 300) {
-    maxLabelCount = direction === "horizontal" ? 5 : 6;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 5 : 6;
   } else if (axisLength < 500) {
-    maxLabelCount = direction === "horizontal" ? 6 : 11;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 6 : 11;
   } else if (axisLength < 800) {
-    maxLabelCount = direction === "horizontal" ? 7 : 21;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 7 : 21;
   } else if (axisLength < 1200) {
-    maxLabelCount = direction === "horizontal" ? 11 : 21;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 11 : 21;
   } else {
-    maxLabelCount = direction === "horizontal" ? 21 : 26;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 21 : 26;
   }
 
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
-  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+  if (
+    displayType === QuestionType.Discrete &&
+    direction === ScaleDirection.Horizontal
+  ) {
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
       : inbound_outcome_count + openBoundCount;
@@ -668,7 +681,16 @@ export function generateScale({
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
     const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
-    minorTicks = majorTicks.map((x) => x);
+    minorTicks = forceTickCount
+      ? Array.from(
+          { length: forceTickCount },
+          (_, i) =>
+            zoomedDomainMin +
+            (i * ((zoomedDomainMax - zoomedDomainMin) * 10000)) /
+              (forceTickCount - 1) /
+              10000
+        )
+      : majorTicks.map((x) => x);
     range(0, bestTicks.length - 1).forEach((i) => {
       const prevMajor = bestTicks.at(i) ?? 0;
       const nextMajor = bestTicks.at(i + 1) ?? 1;

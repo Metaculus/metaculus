@@ -4,24 +4,30 @@ import { FC, PropsWithChildren } from "react";
 
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
+import cn from "@/utils/core/cn";
 
 type MobileAccordionModalProps = {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  className?: string;
 };
 
 const MobileAccordionModal: FC<
   PropsWithChildren<MobileAccordionModalProps>
-> = ({ isOpen, onClose, title, children }) => {
+> = ({ isOpen, onClose, title, className, children }) => {
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       isImmersive={true}
-      className="m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 lg:hidden"
+      dialogClassName="z-[201]"
+      className={cn(
+        "m-0 h-full w-full max-w-none overscroll-contain rounded-none p-0 lg:hidden",
+        className
+      )}
     >
-      <div className="flex h-full flex-col bg-white dark:bg-blue-200-dark">
+      <div className={"flex h-full flex-col bg-white dark:bg-blue-200-dark"}>
         <div className="flex items-center justify-between px-4 py-2">
           <h2 className="text-xl font-medium leading-7">{title}</h2>
           <Button

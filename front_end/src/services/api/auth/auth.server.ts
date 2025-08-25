@@ -20,6 +20,8 @@ export type SignUpProps = {
   redirect_url?: string;
   invite_token?: string;
   newsletter_optin?: boolean;
+  language?: string;
+  app_theme?: string;
 };
 
 class ServerAuthApiClass extends ApiService {
