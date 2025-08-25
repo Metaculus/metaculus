@@ -1,9 +1,11 @@
+from collections import defaultdict
 from typing import TypedDict
 
+from django.db.models import F
 from django.utils import timezone
 
 from posts.models import Post
-from projects.models import Project
+from projects.models import ProjectIndex
 from questions.constants import UnsuccessfulResolutionType, QuestionStatus
 from questions.models import AggregateForecast, Question
 from questions.utils import get_last_forecast_in_the_past
@@ -13,22 +15,18 @@ from utils.the_math.aggregations import minimize_history
 IndexPoint = TypedDict("IndexPoint", {"x": int, "y": float})
 
 
-def _get_index_questions_with_weights(project: Project) -> dict[Question, float]:
+def _get_index_posts_with_weights(index: ProjectIndex) -> dict[Post, float]:
     """
-    Returns list of (question, weight) pairs for project's index
+    Return a {post: weight} mapping for the given project's index.
     """
-
-    q_objs = (
-        project.index_questions.filter(
-            # TODO: improve this (maybe filter by active posts)
-            question__related_posts__post__curation_status=Post.CurationStatus.APPROVED
-        )
-        .select_related("question")
-        .order_by("question_id")
-        .all()
+    posts = (
+        Post.objects.filter(index_weights__index=index)
+        .filter_published()
+        .prefetch_questions()
+        .annotate(_weight=F("index_weights__weight"))
     )
 
-    return {obj.question: obj.weight for obj in q_objs}
+    return {post: float(post._weight) for post in posts}
 
 
 def _value_from_forecast(question: Question, forecast: AggregateForecast) -> float:
@@ -181,8 +179,33 @@ def _get_index_data(question_indexes_map: dict[Question, float]):
     }
 
 
-def get_project_single_index_data(project: Project) -> dict:
+def get_default_index_data(index: ProjectIndex) -> dict:
     # TODO: add caching
-    question_weights = _get_index_questions_with_weights(project)
+    post_weights = _get_index_posts_with_weights(index)
+    question_weights = {
+        q: weight for post, weight in post_weights.items() for q in post.get_questions()
+    }
 
-    return _get_index_data(question_weights)
+    return {"series": _get_index_data(question_weights)}
+
+
+def get_multi_year_index_data(index: ProjectIndex) -> dict:
+    # TODO: add caching
+    post_weights = _get_index_posts_with_weights(index)
+
+    # Get all years
+    index_segments: dict[str, dict[Question, float]] = defaultdict(dict)
+
+    for post, weight in post_weights.items():
+        for question in post.get_questions():
+            index_segments[question.label][question] = weight
+
+    # Generating individual indexes for each segment
+    series_by_year = {
+        segment: _get_index_data(q_map) for segment, q_map in index_segments.items()
+    }
+
+    return {
+        "years": list(index_segments.keys()),
+        "series_by_year": series_by_year,
+    }

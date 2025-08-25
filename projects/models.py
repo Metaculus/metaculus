@@ -534,12 +534,13 @@ class ProjectIndexPost(TimeStampedModel):
     """
 
     index = models.ForeignKey(
-        ProjectIndex, on_delete=models.CASCADE, related_name="question_weights"
+        ProjectIndex, on_delete=models.CASCADE, related_name="post_weights"
     )
     post = models.ForeignKey(
         "posts.Post",
         on_delete=models.CASCADE,
         help_text="Index Post",
+        related_name="index_weights"
     )
     weight = models.FloatField(
         help_text=(

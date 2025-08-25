@@ -5,9 +5,9 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from projects.models import Project, ProjectUserPermission
+from projects.models import Project, ProjectUserPermission, ProjectIndex
 from projects.serializers.communities import CommunitySerializer
-from projects.services.indexes import get_project_single_index_data
+from projects.services.indexes import get_multi_year_index_data, get_default_index_data
 from users.serializers import UserPublicSerializer
 
 
@@ -232,19 +232,12 @@ class ProjectUserSerializer(serializers.ModelSerializer):
 
 
 def serialize_index_data(project: Project):
-    index_questions = project.index_questions.prefetch_related(
-        "question__related_posts"
-    )
+    index = project.index
+    index_posts = index.post_weights.all()
 
-    return {
-        "weights": {
-            # Temporary workaround.
-            # In the future, multi-year indexes will use a direct Post<>Project relation
-            # instead of the old Question<>Project mapping.
-            # The frontend already expects a PostId<>Weight map (not questionId),
-            # but we’re skipping the DB change in this PR.
-            x.question.get_post_id(): x.weight
-            for x in index_questions
-        },
-        "series": get_project_single_index_data(project),
-    }
+    if index.type == ProjectIndex.IndexType.MULTI_YEAR:
+        data = get_multi_year_index_data(index)
+    else:
+        data = get_default_index_data(index)
+
+    return {"weights": {x.post_id: x.weight for x in index_posts}, **data}

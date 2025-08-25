@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
                     "index",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="question_weights",
+                        related_name="post_weights",
                         to="projects.projectindex",
                     ),
                 ),
@@ -149,6 +149,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         help_text="Index Post",
                         on_delete=django.db.models.deletion.CASCADE,
+                        related_name="index_weights",
                         to="posts.post",
                     ),
                 ),
