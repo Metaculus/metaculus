@@ -240,4 +240,8 @@ def serialize_index_data(project: Project):
     else:
         data = get_default_index_data(index)
 
-    return {"weights": {x.post_id: x.weight for x in index_posts}, **data}
+    return {
+        "type": index.type,
+        "weights": {x.post_id: x.weight for x in index_posts},
+        **data,
+    }
