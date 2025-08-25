@@ -27,6 +27,7 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
+import { isMultiYearIndexData } from "@/utils/projects/helpers";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
@@ -73,19 +74,16 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
-  const idxType =
-    tournament?.index_data?.type ?? tournament?.index_data?.type ?? "default";
+  const idx = tournament?.index_data;
 
   const multiYearIndexData: MultiYearIndexData | null =
-    tournament?.type === TournamentType.Index &&
-    idxType === "multi_year" &&
-    tournament?.index_data?.years &&
-    tournament?.index_data?.series_by_year
+    tournament?.type === TournamentType.Index && isMultiYearIndexData(idx)
       ? {
-          years: tournament.index_data.years,
-          series_by_year: tournament.index_data.series_by_year,
-          dimensions: tournament.index_data.dimensions ?? [],
-          weights: tournament.index_data.weights ?? {},
+          type: "multi_year",
+          years: idx.years,
+          series_by_year: idx.series_by_year,
+          dimensions: idx.dimensions ?? [],
+          weights: idx.weights ?? {},
         }
       : mockMultiYearIndexData;
   invariant(tournament, `Tournament not found: ${params.slug}`);

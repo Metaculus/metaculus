@@ -1,6 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -18,18 +18,19 @@ import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
-import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import {
   Area,
   ContinuousForecastInputType,
-  FanOption,
+  FanDatum,
+  GroupFanDatum,
   Line,
   YDomain,
 } from "@/types/charts";
 import { PostGroupOfQuestions } from "@/types/post";
 import {
+  Bounds,
   Quartiles,
   QuestionType,
   QuestionWithNumericForecasts,
@@ -65,31 +66,45 @@ import {
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
-const TOOLTIP_WIDTH = 150;
+import { FanChartVariant, fanVariants } from "./fan_chart_variants";
 
 type Props = {
-  group: PostGroupOfQuestions<QuestionWithNumericForecasts>;
+  group?: PostGroupOfQuestions<QuestionWithNumericForecasts>;
+  options?: FanDatum[];
   height?: number;
   yLabel?: string;
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
-  suppressAvailabilityBanner?: boolean;
   pointSize?: number;
   hideCP?: boolean;
-  indexVariant?: boolean;
+  variant?: FanChartVariant;
+};
+
+type NormalizedFanDatum = {
+  name: string;
+  communityQuartiles: Quartiles | null;
+  userQuartiles: Quartiles | null;
+  communityBounds: Bounds | null;
+  userBounds: Bounds | null;
+  resolved: boolean;
+  resolvedValue?: number | null;
+  optionScaling: Scaling | null;
+  question?: QuestionWithNumericForecasts;
+  type: QuestionType.Binary | QuestionType.Numeric;
 };
 
 const FanChart: FC<Props> = ({
   group,
+  options,
   height = 220,
   yLabel,
   withTooltip = false,
   extraTheme,
   pointSize,
   hideCP,
-  suppressAvailabilityBanner,
-  indexVariant,
+  variant,
 }) => {
+  const effectiveVariant: FanChartVariant = variant ?? "default";
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
@@ -102,9 +117,42 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
-  const forecastAvailability = getGroupForecastAvailability(group.questions);
+  const forecastAvailability = useMemo(() => {
+    if (group) return getGroupForecastAvailability(group.questions);
+    return { isEmpty: false, cpRevealsOn: null };
+  }, [group]);
 
-  const options = useMemo(() => getFanOptions(group), [group]);
+  const optionsLike = useMemo<NormalizedFanDatum[]>(() => {
+    if (options?.length) {
+      const firstType = options[0]?.type ?? QuestionType.Numeric;
+      return options.map((o) => ({
+        name: o.name,
+        communityQuartiles: o.communityQuartiles ?? null,
+        userQuartiles: o.userQuartiles ?? null,
+        communityBounds: null,
+        userBounds: null,
+        resolved: Number.isFinite(o.resolvedValue ?? null),
+        resolvedValue: o.resolvedValue ?? null,
+        optionScaling: o.optionScaling ?? null,
+        type: o.type ?? firstType,
+      }));
+    }
+    const legacy = group ? getFanOptions(group) : [];
+    return legacy.map((opt) => ({
+      name: opt.name,
+      communityQuartiles: opt.communityQuartiles,
+      userQuartiles: opt.userQuartiles,
+      communityBounds: opt.communityBounds,
+      userBounds: opt.userBounds,
+      resolved: opt.resolved,
+      optionScaling: opt.question?.scaling ?? null,
+      question: opt.question,
+      type:
+        opt.question?.type === QuestionType.Binary
+          ? QuestionType.Binary
+          : QuestionType.Numeric,
+    }));
+  }, [group, options]);
   const {
     communityLine,
     userLine,
@@ -118,48 +166,35 @@ const FanChart: FC<Props> = ({
   } = useMemo(
     () =>
       buildChartData({
-        options,
+        options: optionsLike,
         height,
-        forceTickCount: indexVariant ? 5 : undefined,
+        forceTickCount: effectiveVariant === "index" ? 5 : undefined,
       }),
-    [height, options, indexVariant]
+    [height, optionsLike, effectiveVariant]
   );
-  const yAxisStyle = indexVariant
-    ? {
-        ticks: { stroke: "transparent" },
-        axisLabel: {
-          fontFamily: "Inter",
-          fontSize: tickLabelFontSize,
-          fill: getThemeColor(METAC_COLORS.gray["600"]),
-        },
-        tickLabels: {
-          fontFamily: "Inter",
-          padding: 5,
-          fontSize: tickLabelFontSize,
-          fill: getThemeColor(METAC_COLORS.gray["600"]),
-        },
-        axis: { stroke: "transparent" },
-        grid: {
-          stroke: getThemeColor(METAC_COLORS.gray["400"]),
-          strokeWidth: 1,
-          strokeDasharray: "2, 5",
-        },
-      }
-    : undefined;
 
-  const xAxisStyle = indexVariant
-    ? {
-        ticks: { stroke: "transparent" },
-        axis: { stroke: "transparent" },
-        tickLabels: {
-          fontFamily: "Inter",
-          fontSize: tickLabelFontSize,
-          fill: getThemeColor(METAC_COLORS.gray["600"]),
-        },
-      }
-    : undefined;
-
-  const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
+  const labels = adjustLabelsForDisplay(optionsLike, chartWidth, actualTheme);
+  const tooltipOptions: GroupFanDatum[] = useMemo(
+    () =>
+      optionsLike
+        .filter(
+          (
+            o
+          ): o is NormalizedFanDatum & {
+            question: QuestionWithNumericForecasts;
+          } => Boolean(o.question)
+        )
+        .map((o) => ({
+          name: o.name,
+          communityQuartiles: o.communityQuartiles,
+          communityBounds: o.communityBounds,
+          userQuartiles: o.userQuartiles,
+          userBounds: o.userBounds,
+          resolved: o.resolved,
+          question: o.question,
+        })),
+    [optionsLike]
+  );
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
@@ -171,6 +206,9 @@ const FanChart: FC<Props> = ({
 
   const maxLeftPadding = Math.max(leftPadding, MIN_LEFT_PADDING);
   const maxRightPadding = Math.max(rightPadding, MIN_RIGHT_PADDING);
+
+  const v = fanVariants[effectiveVariant];
+  const palette = v.palette({ getThemeColor });
 
   const shouldDisplayChart = !!chartWidth;
   return (
@@ -188,16 +226,22 @@ const FanChart: FC<Props> = ({
           domain={{
             y: yDomain,
           }}
-          domainPadding={{
-            x: indexVariant ? [20, 20] : TOOLTIP_WIDTH / 2,
-            y: indexVariant ? [12, 0] : undefined,
-          }}
-          padding={{
-            left: indexVariant ? 10 : maxLeftPadding,
-            top: 10,
-            right: indexVariant ? maxRightPadding - 10 : 10,
-            bottom: indexVariant ? 15 : 20,
-          }}
+          domainPadding={v.domainPadding({
+            chartWidth,
+            yLabel,
+            tickLabelFontSize,
+            maxLeftPadding,
+            maxRightPadding,
+            getThemeColor,
+          })}
+          padding={v.padding({
+            chartWidth,
+            yLabel,
+            tickLabelFontSize,
+            maxLeftPadding,
+            maxRightPadding,
+            getThemeColor,
+          })}
           containerComponent={
             withTooltip ? (
               <VictoryVoronoiContainer
@@ -210,16 +254,20 @@ const FanChart: FC<Props> = ({
                 style={{
                   touchAction: "pan-y",
                 }}
-                labels={({ datum }: { datum: any }) => datum.x}
+                labels={({
+                  datum,
+                }: {
+                  datum: { x: string; xName?: string; y?: number };
+                }) => datum.x}
                 labelComponent={
                   <ChartFanTooltip
                     chartHeight={height}
-                    options={options}
+                    options={tooltipOptions}
                     hideCp={hideCP}
                     forecastAvailability={forecastAvailability}
                   />
                 }
-                onActivated={(points: any) => {
+                onActivated={(points: { x: string }[]) => {
                   const x = points[0]?.x;
                   if (!isNil(x)) {
                     setActivePoint(x);
@@ -251,39 +299,17 @@ const FanChart: FC<Props> = ({
             <VictoryArea
               name="communityFanArea"
               data={communityArea}
-              style={{
-                data: {
-                  opacity: 0.3,
-                  fill: getThemeColor(
-                    indexVariant
-                      ? METAC_COLORS.blue["500"]
-                      : METAC_COLORS.olive["500"]
-                  ),
-                },
-              }}
+              style={{ data: { opacity: 0.3, fill: palette.communityArea } }}
             />
           )}
           <VictoryArea
             name="userFanArea"
             data={userArea}
-            style={{
-              data: {
-                fill: getThemeColor(METAC_COLORS.orange["500"]),
-                opacity: 0.3,
-              },
-            }}
+            style={{ data: { opacity: 0.3, fill: palette.userArea } }}
           />
           {!hideCP && (
             <VictoryLine
-              style={{
-                data: {
-                  stroke: getThemeColor(
-                    indexVariant
-                      ? METAC_COLORS.blue["700"]
-                      : METAC_COLORS.olive["800"]
-                  ),
-                },
-              }}
+              style={{ data: { stroke: palette.communityLine } }}
               name="communityFanLine"
               data={communityLine}
             />
@@ -291,32 +317,41 @@ const FanChart: FC<Props> = ({
           <VictoryLine
             name="userFanLine"
             data={userLine}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.orange["700"]),
-              },
-            }}
+            style={{ data: { stroke: palette.userLine } }}
           />
           <VictoryAxis
             dependentAxis
             label={yLabel}
             tickValues={ticks}
             tickFormat={tickFormat}
-            style={yAxisStyle ?? { ticks: { strokeWidth: 1 } }}
-            offsetX={
-              indexVariant
-                ? isNil(yLabel)
-                  ? chartWidth + 5
-                  : chartWidth - (tickLabelFontSize as number) + 5
-                : Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)
+            style={
+              v.yAxisStyle({
+                tickLabelFontSize,
+                getThemeColor,
+                maxLeftPadding,
+                maxRightPadding,
+              }) ?? { ticks: { strokeWidth: 1 } }
             }
+            offsetX={v.axisLabelOffsetX({
+              chartWidth,
+              yLabel,
+              tickLabelFontSize,
+              maxLeftPadding,
+              maxRightPadding,
+              getThemeColor,
+            })}
             axisLabelComponent={<VictoryLabel x={chartWidth} />}
           />
 
           <VictoryAxis
-            tickValues={options.map((option) => option.name)}
+            tickValues={optionsLike.map((option) => option.name)}
             tickFormat={(_, index) => labels[index] ?? ""}
-            style={xAxisStyle}
+            style={v.xAxisStyle({
+              tickLabelFontSize,
+              getThemeColor,
+              maxLeftPadding,
+              maxRightPadding,
+            })}
           />
           {!hideCP && !forecastAvailability?.cpRevealsOn && (
             <VictoryScatter
@@ -326,18 +361,8 @@ const FanChart: FC<Props> = ({
               }))}
               style={{
                 data: {
-                  fill: () =>
-                    getThemeColor(
-                      indexVariant
-                        ? METAC_COLORS.blue["700"]
-                        : METAC_COLORS.olive["800"]
-                    ),
-                  stroke: () =>
-                    getThemeColor(
-                      indexVariant
-                        ? METAC_COLORS.blue["700"]
-                        : METAC_COLORS.olive["800"]
-                    ),
+                  fill: () => palette.communityPoint,
+                  stroke: () => palette.communityPoint,
                   strokeWidth: 6,
                   strokeOpacity: ({ datum }) =>
                     activePoint === datum.x ? 0.3 : 0,
@@ -347,7 +372,7 @@ const FanChart: FC<Props> = ({
                 <FanPoint
                   activePoint={activePoint}
                   pointSize={pointSize}
-                  indexVariant={indexVariant}
+                  pointColor={palette.communityPoint}
                 />
               }
             />
@@ -361,7 +386,7 @@ const FanChart: FC<Props> = ({
               <FanPoint
                 activePoint={activePoint}
                 pointSize={pointSize}
-                pointColor={getThemeColor(METAC_COLORS.orange["700"])}
+                pointColor={palette.communityPoint}
               />
             }
           />
@@ -373,7 +398,7 @@ const FanChart: FC<Props> = ({
             style={{
               data: {
                 fill: "none",
-                stroke: () => getThemeColor(METAC_COLORS.purple["800"]),
+                stroke: () => palette.resolutionStroke,
                 strokeWidth: 2,
                 strokeOpacity: 1,
               },
@@ -384,7 +409,7 @@ const FanChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-      {!withTooltip && !suppressAvailabilityBanner && (
+      {!withTooltip && (
         <ForecastAvailabilityChartOverflow
           forecastAvailability={forecastAvailability}
           className="text-xs lg:text-sm"
@@ -402,15 +427,30 @@ function buildChartData({
   height,
   forceTickCount,
 }: {
-  options: FanOption[];
+  options: NormalizedFanDatum[];
   height: number;
   forceTickCount?: number;
 }) {
   // we expect fan graph to be rendered only for group questions, that expect some options
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const groupType = options[0]!.question.type;
+  if (!options.length) {
+    return {
+      communityLine: [],
+      userLine: [],
+      communityArea: [],
+      userArea: [],
+      communityPoints: [],
+      userPoints: [],
+      resolutionPoints: [],
+      yScale: {
+        ticks: [],
+        tickFormat: (v: number) => String(v),
+      },
+      yDomain: [0, 1] as Tuple<number>,
+    };
+  }
+  const groupType: QuestionType = options[0]?.type ?? QuestionType.Numeric;
   const isBinaryGroup = groupType === QuestionType.Binary;
-
   const communityLine: Line<string> = [];
   const userLine: Line<string> = [];
   const communityArea: Area<string> = [];
@@ -430,7 +470,7 @@ function buildChartData({
       } = getOptionGraphData({
         name: option.name,
         quartiles: option.communityQuartiles,
-        optionScaling: option.question.scaling,
+        optionScaling: option.optionScaling,
         scaling,
         withoutScaling: isBinaryGroup,
       });
@@ -441,10 +481,11 @@ function buildChartData({
     if (option.resolved) {
       resolutionPoints.push({
         x: option.name,
-        y: getResolutionPosition({
-          question: option.question,
-          scaling,
-        }),
+        y: Number.isFinite(option.resolvedValue)
+          ? (option.resolvedValue as number)
+          : option.question
+            ? getResolutionPosition({ question: option.question, scaling })
+            : NaN,
         resolved: true,
       });
     }
@@ -456,7 +497,7 @@ function buildChartData({
       } = getOptionGraphData({
         name: option.name,
         quartiles: option.userQuartiles,
-        optionScaling: option.question.scaling,
+        optionScaling: option.optionScaling,
         scaling,
         withoutScaling: isBinaryGroup,
       });
@@ -497,24 +538,20 @@ function buildChartData({
   };
 }
 
-function getFanGraphScaling(options: FanOption[]): Scaling {
+function getFanGraphScaling(options: NormalizedFanDatum[]): Scaling {
   const zeroPoints: number[] = [];
   const rangeMaxValues: number[] = [];
   const rangeMinValues: number[] = [];
   for (const option of options) {
-    if (
-      !isNil(option.question.scaling.zero_point) &&
-      !!option.communityQuartiles
-    ) {
-      zeroPoints.push(option.question.scaling.zero_point);
+    const sc = option.optionScaling;
+    if (sc && typeof sc.zero_point === "number" && option.communityQuartiles) {
+      zeroPoints.push(sc.zero_point);
     }
-
-    if (!isNil(option.question.scaling.range_max)) {
-      rangeMaxValues.push(option.question.scaling.range_max);
+    if (sc && typeof sc.range_max === "number") {
+      rangeMaxValues.push(sc.range_max);
     }
-
-    if (!isNil(option.question.scaling.range_min)) {
-      rangeMinValues.push(option.question.scaling.range_min);
+    if (sc && typeof sc.range_min === "number") {
+      rangeMinValues.push(sc.range_min);
     }
   }
 
@@ -597,11 +634,11 @@ function getOptionGraphData({
 }: {
   name: string;
   quartiles: Quartiles;
-  optionScaling: Scaling;
+  optionScaling: Scaling | null;
   scaling: Scaling;
   withoutScaling: boolean;
 }) {
-  if (withoutScaling) {
+  if (withoutScaling || !optionScaling) {
     return {
       linePoint: {
         x: name,
@@ -654,7 +691,7 @@ function getOptionGraphData({
 }
 
 function adjustLabelsForDisplay(
-  options: FanOption[],
+  options: { name: string }[],
   chartWidth: number,
   theme: VictoryThemeDefinition
 ) {
@@ -702,7 +739,7 @@ function adjustLabelsForDisplay(
 
 function getFanOptions(
   group: PostGroupOfQuestions<QuestionWithNumericForecasts>
-): FanOption[] {
+): GroupFanDatum[] {
   const { questions } = group;
 
   const groupType = questions.at(0)?.type;
@@ -726,7 +763,7 @@ function getFanOptions(
 
 function getFanOptionsFromContinuousGroup(
   questions: QuestionWithNumericForecasts[]
-): FanOption[] {
+): GroupFanDatum[] {
   return questions
     .map((q) => {
       const latest = q.my_forecasts?.latest;
@@ -774,7 +811,7 @@ function getFanOptionsFromContinuousGroup(
 
 function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
-): FanOption[] {
+): GroupFanDatum[] {
   return questions.map((q) => {
     const aggregation = q.aggregations[q.default_aggregation_method].latest;
     const resolved = q.resolution !== null;

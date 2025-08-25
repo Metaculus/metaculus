@@ -129,6 +129,12 @@ export enum BotLeaderboardStatus {
   BotsOnly = "bots_only",
 }
 
+type IndexBase = {
+  min_label?: string | null;
+  max_label?: string | null;
+  increasing_is_good?: boolean | null;
+};
+
 type IndexStatus = "open" | "resolved";
 export type IndexPoint = { x: number; y: number };
 
@@ -140,7 +146,6 @@ export type IndexSeries = {
 };
 
 type IndexWeights = Record<string, number>;
-
 type IndexDimension = {
   key: string;
   quartiles: Quartiles;
@@ -149,23 +154,18 @@ type IndexDimension = {
   resolution_value?: number;
 };
 
-export type IndexData = {
-  series?: IndexSeries | null;
-  weights?: IndexWeights | null;
-
-  years?: number[] | null;
-  series_by_year?: Record<string, IndexSeries> | null;
-  dimensions?: IndexDimension[] | null;
-
-  type?: "default" | "multi_year";
-  min_label?: string | null;
-  max_label?: string | null;
-  increasing_is_good?: boolean | null;
+export type DefaultIndexData = IndexBase & {
+  type?: "default";
+  series: IndexSeries | null;
+  weights: IndexWeights | null;
 };
 
-export type MultiYearIndexData = {
+export type MultiYearIndexData = IndexBase & {
+  type: "multi_year";
   years: number[];
   series_by_year: Record<string, IndexSeries>;
   dimensions: IndexDimension[];
   weights: IndexWeights;
 };
+
+export type IndexData = DefaultIndexData | MultiYearIndexData;

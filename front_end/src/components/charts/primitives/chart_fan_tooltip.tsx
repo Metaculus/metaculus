@@ -1,6 +1,6 @@
 import { FloatingPortal } from "@floating-ui/react";
 import { useLocale, useTranslations } from "next-intl";
-import React, {
+import {
   ComponentProps,
   FC,
   ReactNode,
@@ -12,7 +12,7 @@ import React, {
 import { VictoryLabel } from "victory";
 
 import CPRevealTime from "@/components/cp_reveal_time";
-import { FanOption } from "@/types/charts";
+import { GroupFanDatum } from "@/types/charts";
 import { ChoiceTooltipItem } from "@/types/choices";
 import {
   Bounds,
@@ -30,7 +30,7 @@ import GroupPredictionsTooltip from "./group_predictions_tooltip";
 const TOOLTIP_PADDING = 10;
 
 type Props = ComponentProps<typeof VictoryLabel> & {
-  options: FanOption[];
+  options: GroupFanDatum[];
   chartHeight: number;
   forecastAvailability?: ForecastAvailability;
   hideCp?: boolean;
@@ -51,7 +51,7 @@ const ChartFanTooltip: FC<Props> = ({
 
   const optionsMap = useMemo(
     () =>
-      options.reduce<Record<string, FanOption>>(
+      options.reduce<Record<string, GroupFanDatum>>(
         (acc, el) => ({ ...acc, [el.name]: el }),
         {}
       ),

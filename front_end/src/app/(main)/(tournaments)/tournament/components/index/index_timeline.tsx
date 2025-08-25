@@ -5,11 +5,12 @@ import { DomainTuple } from "victory";
 import NumericChart from "@/components/charts/numeric_chart";
 import { METAC_COLORS } from "@/constants/colors";
 import { Area, Line, TimelineChartZoomOption } from "@/types/charts";
-import { Tournament } from "@/types/projects";
+import { IndexPoint, Tournament } from "@/types/projects";
 import {
   generateNumericXDomain,
   generateTimestampXScale,
 } from "@/utils/charts/axis";
+import { isDefaultIndexData } from "@/utils/projects/helpers";
 
 type Props = {
   tournament: Tournament;
@@ -50,7 +51,10 @@ function buildIndexChartData({
 }) {
   const Y_DOMAIN_PADDING = 5;
 
-  const beLine = tournament.index_data?.series?.line ?? [];
+  const series = isDefaultIndexData(tournament.index_data)
+    ? tournament.index_data.series
+    : null;
+  const beLine: IndexPoint[] = series?.line ?? [];
   const timestamps = beLine.map((p) => p.x as number);
   const earliestTimestamp = timestamps[0] ?? 0;
   const latestTimestamp = timestamps[timestamps.length - 1] ?? 1;
