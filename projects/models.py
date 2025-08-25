@@ -15,7 +15,6 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
@@ -540,7 +539,7 @@ class ProjectIndexPost(TimeStampedModel):
         "posts.Post",
         on_delete=models.CASCADE,
         help_text="Index Post",
-        related_name="index_weights"
+        related_name="index_weights",
     )
     weight = models.FloatField(
         help_text=(
