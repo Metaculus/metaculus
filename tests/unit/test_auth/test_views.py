@@ -1,5 +1,5 @@
 import pytest
-from django.conf import settings
+from django.test import override_settings
 from rest_framework.reverse import reverse
 
 from authentication.services import SignupInviteService
@@ -56,8 +56,8 @@ class TestVerifyEmail:
         assert response.data["token"]
         mock_send_activation_email.assert_not_called()
 
+    @override_settings(PUBLIC_ALLOW_SIGNUP=False)
     def test_signup_invitation(self, anon_client):
-        settings.PUBLIC_ALLOW_SIGNUP = False
         token = SignupInviteService()._generate_token("invitedUser@metaculus.com")
 
         # Wrong email + token

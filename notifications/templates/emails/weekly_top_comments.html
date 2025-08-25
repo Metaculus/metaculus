@@ -172,7 +172,7 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:12px;line-height:24px;text-align:left;color:#666666;">{% blocktrans with account_settings_url=account_settings_url %} You can manage your notification settings on your Metaculus <a href="{{ account_settings_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings</a> page. {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:12px;line-height:24px;text-align:left;color:#666666;">{% blocktrans with account_settings_url=account_settings_url %} You can manage your notification settings on your Metaculus {% endblocktrans %} <a href="{% tag_notification_settings_url %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{% trans "settings page" %}</a>.</div>
                       </td>
                     </tr>
                   </tbody>
