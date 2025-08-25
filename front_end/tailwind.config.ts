@@ -1,3 +1,4 @@
+import containerQueries from "@tailwindcss/container-queries";
 import { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
@@ -10,9 +11,10 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/utils/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    screens: Object.assign({ xs: "480px" }, defaultTheme.screens),
+    screens: Object.assign({ xs: "480px", xxs: "400px" }, defaultTheme.screens),
     extend: {
       colors: METAC_COLORS,
       boxShadow: {
@@ -64,10 +66,13 @@ const config: Config = {
       spacing: {
         header: "3rem",
       },
+      borderRadius: {
+        xs: "2px",
+      },
     },
   },
   plugins: [
-    require("@tailwindcss/container-queries"),
+    containerQueries,
     // @ts-ignore
     function ({ addVariant }) {
       addVariant("no-hover", "@media (hover: none)");
@@ -97,6 +102,9 @@ const config: Config = {
         },
         ".list-lower-roman": {
           "list-style-type": "lower-roman",
+        },
+        ".text-xs": {
+          "text-rendering": "geometricPrecision",
         },
       });
     }),

@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import React, { FC } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
-import ResolutionIcon from "@/components/icons/resolution";
+import ChoiceResolutionIcon from "@/components/choice_resolution_icon";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
@@ -17,9 +17,9 @@ type Props = {
   resolution?: Resolution | null;
   questionType?: QuestionType;
   scaling?: Scaling;
-  hideIcon?: boolean;
   labelClassName?: string;
   actual_resolve_time?: string | null;
+  withIcon?: boolean;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -30,9 +30,9 @@ const ChoiceOption: FC<Props> = ({
   resolution,
   questionType,
   scaling,
-  hideIcon,
   labelClassName,
   actual_resolve_time,
+  withIcon = true,
 }) => {
   const resolutionWords = String(displayedResolution)?.split(" ");
   const adjustedResolution = resolutionWords.length
@@ -43,7 +43,10 @@ const ChoiceOption: FC<Props> = ({
           );
           if (
             (outOfBoundsResolution && index === 0) ||
-            (!outOfBoundsResolution && index === 1)
+            (!outOfBoundsResolution &&
+              index === 1 &&
+              // A small adjustment to keep date resolutions in one line
+              String(displayedResolution).length > 15)
           ) {
             return word + "\n";
           }
@@ -51,28 +54,46 @@ const ChoiceOption: FC<Props> = ({
         })
         .join(" ")
     : resolution;
+
+  const hasValue = !isNil(values.at(-1));
+
   return (
     <div
       key={`choice-option-${choice}`}
-      className="flex h-auto flex-row items-center self-start sm:self-stretch"
+      className={cn(
+        "flex h-auto flex-row items-center self-stretch text-gray-900 dark:text-gray-900-dark",
+        {
+          "text-gray-800 dark:text-gray-800-dark": !hasValue,
+        }
+      )}
     >
-      {!hideIcon && (
-        <div className="py-0.5 pr-1.5">
-          <ChoiceIcon color={color} className="resize-icon" />
+      {withIcon && (
+        <div className="pr-3">
+          <ChoiceIcon
+            color={hasValue ? color : undefined}
+            className="resize-icon size-3 rounded-full"
+          />
         </div>
       )}
 
       <div
         className={cn(
-          "resize-label line-clamp-2 w-full py-0.5 pr-1.5 text-left text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark",
-          { "pl-1.5}": !hideIcon },
+          "resize-label line-clamp-2 min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
           labelClassName
         )}
       >
         {choice}
       </div>
       {isNil(resolution) ? (
-        <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
+        <div
+          className={cn(
+            "resize-label flex-shrink-0 text-right text-sm font-normal tabular-nums",
+            {
+              "opacity-30": !hasValue,
+            },
+            "leading-0"
+          )}
+        >
           {getPredictionDisplayValue(values.at(-1), {
             questionType: questionType ?? QuestionType.Binary,
             scaling: scaling ?? {
@@ -81,12 +102,14 @@ const ChoiceOption: FC<Props> = ({
               zero_point: null,
             },
             actual_resolve_time: actual_resolve_time ?? null,
-            emptyLabel: "?",
+            emptyLabel: "N/A",
           })}
         </div>
       ) : (
-        <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
-          <ResolutionIcon />
+        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap px-1.5 text-right text-sm font-medium tabular-nums">
+          <ChoiceResolutionIcon
+            color={questionType === QuestionType.Date ? color : undefined}
+          />
           <div className="whitespace-pre text-right">{adjustedResolution}</div>
         </div>
       )}

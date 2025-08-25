@@ -49,7 +49,8 @@ export function abbreviatedNumber(
   val: number | string,
   sigfigs = 3,
   trailingZeros: boolean = false,
-  scaling?: Scaling
+  scaling?: Scaling,
+  minThousandsPow: number = 4
 ) {
   val = +val;
   if (!val) {
@@ -74,7 +75,7 @@ export function abbreviatedNumber(
     suffix = "M";
     val /= 1e6;
     leadingNumbers = pow - 5;
-  } else if (pow >= 4) {
+  } else if (pow >= minThousandsPow) {
     suffix = "k";
     val /= 1e3;
     leadingNumbers = pow - 2;
@@ -94,4 +95,28 @@ export function abbreviatedNumber(
   return (
     toScientificNotation(val, sigfigs, leadingNumbers, trailingZeros) + suffix
   );
+}
+
+export function formatNumberWithUnit(
+  val: number | string,
+  unit?: string,
+  sigfigs = 3,
+  trailingZeros = false,
+  scaling?: Scaling,
+  minThousandsPow = 4
+): string {
+  const formattedNumber = abbreviatedNumber(
+    val,
+    sigfigs,
+    trailingZeros,
+    scaling,
+    minThousandsPow
+  );
+
+  if (!unit) return formattedNumber;
+
+  if (typeof val === "number" && Math.abs(val) === 1) {
+    return `${formattedNumber} ${unit}`;
+  }
+  return `${formattedNumber} ${unit}`;
 }

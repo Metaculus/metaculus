@@ -14,6 +14,7 @@ import {
 import ChoiceIcon from "@/components/choice_icon";
 import ResolutionIcon from "@/components/icons/resolution";
 import Slider from "@/components/sliders/slider";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
@@ -72,6 +73,7 @@ const ForecastChoiceOption = <T = string,>({
     : "—";
   const [inputValue, setInputValue] = useState(inputDisplayValue);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const { getThemeColor } = useAppTheme();
 
   const { resolution, type: resolutionType } = optionResolution ?? {};
   const isQuestionResolved =
@@ -92,9 +94,11 @@ const ForecastChoiceOption = <T = string,>({
 
     return (
       <>
-        {communityForecast
-          ? getForecastPctDisplayValue(communityForecast)
-          : "-"}
+        {communityForecast ? (
+          getForecastPctDisplayValue(communityForecast)
+        ) : (
+          <span className="opacity-35">—</span>
+        )}
       </>
     );
   }, [communityForecast, resolution, resolutionType]);
@@ -122,11 +126,11 @@ const ForecastChoiceOption = <T = string,>({
   );
 
   const SliderElement = (
-    <div className="ml-5 mr-7">
+    <div className="sm:ml-5 sm:mr-7">
       <Slider
         inputMin={inputMin}
         inputMax={inputMax}
-        defaultValue={forecastValue ?? defaultSliderValue}
+        defaultValue={disabled ? 0 : forecastValue ?? defaultSliderValue}
         onChange={handleSliderForecastChange}
         step={1}
         arrowStep={0.1}
@@ -145,7 +149,18 @@ const ForecastChoiceOption = <T = string,>({
             : undefined
         }
         disabled={disabled}
-        styles={disabled ? { handle: { display: "none" } } : {}}
+        styles={
+          disabled
+            ? {
+                handle: { display: "none" },
+                rail: {
+                  height: "1px",
+                  opacity: 0.35,
+                  backgroundColor: getThemeColor(METAC_COLORS.gray["1000"]),
+                },
+              }
+            : {}
+        }
       />
     </div>
   );
@@ -162,7 +177,7 @@ const ForecastChoiceOption = <T = string,>({
         })}
         onClick={() => onOptionClick?.(id)}
       >
-        <th className="w-full border-t border-gray-300 p-2 text-left text-sm font-bold leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
+        <th className="w-full border-t border-gray-300 px-3 py-2 text-left text-sm font-medium leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
           <div className="flex gap-2">
             <ChoiceIcon className="mt-1 shrink-0" color={choiceColor} />
             <div className="flex flex-col">
@@ -178,7 +193,7 @@ const ForecastChoiceOption = <T = string,>({
         <td className="border-t border-gray-300 p-2 text-right text-sm font-medium dark:border-gray-300-dark">
           {forecastColumnValue}
         </td>
-        <td className="border-t border-gray-300 p-2 text-center dark:border-gray-300-dark">
+        <td className="border-t border-gray-300 px-3 text-center dark:border-gray-300-dark sm:px-2 sm:py-2">
           <ForecastTextInput
             onChange={handleInputChange}
             onForecastChange={handleInputForecastChange}
@@ -205,7 +220,10 @@ const ForecastChoiceOption = <T = string,>({
         onClick={() => onOptionClick?.(id)}
       >
         <td
-          className="w-full border-t border-none border-gray-300 p-2 px-6 pt-0 dark:border-gray-300-dark"
+          className={cn(
+            "w-full border-t border-none border-gray-300 px-3 py-2 pt-0 dark:border-gray-300-dark sm:px-6",
+            { "hidden sm:table-cell": disabled }
+          )}
           colSpan={4}
         >
           {SliderElement}

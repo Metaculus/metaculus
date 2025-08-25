@@ -7,7 +7,7 @@
                 <a href="%unsubscribe_url%">unsubscribe here</a>.
                 You can also manage your notification settings on your Metaculus
                 {% endblocktrans %}
-                <a href="{% tag_settings_url %}">{% trans "settings page" %}</a>.
+                <a href="{% tag_notification_settings_url %}">{% trans "settings page" %}</a>.
             </p>
         </mj-text>
     </mj-column>

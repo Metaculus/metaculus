@@ -57,7 +57,7 @@ const NavUserButton: FC<Props> = ({ btnClassName }) => {
       </MenuButton>
       <MenuItems
         anchor="bottom"
-        className="z-50 border border-blue-200-dark bg-blue-900 text-sm text-white"
+        className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-white"
       >
         <MenuItem>
           <Link

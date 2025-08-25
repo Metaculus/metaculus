@@ -53,7 +53,7 @@ const Sidebar: FC<Props> = ({
         <div className="mb-5 flex w-full items-center justify-between gap-2">
           <div className="flex gap-1">
             {postData.curation_status == PostStatus.APPROVED && (
-              <PostSubscribeButton post={postData} />
+              <PostSubscribeButton />
             )}
             <QuestionEmbedButton />
           </div>

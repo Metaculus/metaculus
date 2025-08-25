@@ -1,7 +1,8 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuItem, MenuItems, MenuButton } from "@headlessui/react";
-import { Fragment, useEffect } from "react";
+import { isNil } from "lodash";
+import { Fragment, useEffect, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -12,9 +13,11 @@ export type MenuItemProps = {
   name?: string;
   onClick?: (...args: unknown[]) => unknown;
   link?: string;
+  items?: MenuItemProps[];
   openNewTab?: boolean;
   hidden?: boolean;
   element?: React.ReactElement<any>;
+  className?: string;
 };
 
 interface DropdownMenuProps extends React.PropsWithChildren {
@@ -46,11 +49,21 @@ function InnerMenuContent({
   className,
   onClose,
 }: DropdownMenuProps & { open: boolean }) {
+  const [prevItems, setPrevItems] = useState<MenuItemProps[]>(items);
+  const [activeItems, setActiveItems] = useState<MenuItemProps[]>(items);
+
+  // Track prop change
   useEffect(() => {
-    if (!open && onClose) {
-      onClose();
+    setPrevItems(items);
+    setActiveItems(items);
+  }, [items]);
+
+  useEffect(() => {
+    if (!open) {
+      setActiveItems(prevItems);
+      if (onClose) onClose();
     }
-  }, [open, onClose]);
+  }, [open, onClose, prevItems]);
 
   return (
     <>
@@ -58,11 +71,11 @@ function InnerMenuContent({
       <MenuItems
         as="div"
         className={cn(
-          "absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark",
+          "absolute right-0 z-100 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark",
           className
         )}
       >
-        {items
+        {activeItems
           .filter((x) => x.hidden !== true)
           .map((item) => (
             <MenuItem as={Fragment} key={item.id}>
@@ -76,7 +89,8 @@ function InnerMenuContent({
                       "w-full whitespace-nowrap p-2 no-underline hover:bg-gray-200 hover:dark:bg-gray-200-dark",
                       { "text-right": textAlign === "right" },
                       { "text-left": textAlign === "left" },
-                      itemClassName
+                      itemClassName,
+                      item.className
                     )}
                     onClick={item.onClick}
                   >
@@ -90,9 +104,18 @@ function InnerMenuContent({
                       "w-full self-stretch whitespace-nowrap p-2 hover:bg-gray-200 hover:dark:bg-gray-200-dark",
                       { "text-right": textAlign === "right" },
                       { "text-left": textAlign === "left" },
-                      itemClassName
+                      itemClassName,
+                      item.className
                     )}
-                    onClick={item.onClick}
+                    onClick={(e: any) => {
+                      // Handle nested click
+                      if (!isNil(item.items) && item.items.length > 0) {
+                        e.preventDefault();
+                        setActiveItems(item.items);
+                      }
+
+                      if (!isNil(item.onClick)) item.onClick(e);
+                    }}
                   >
                     {item.name}
                   </button>

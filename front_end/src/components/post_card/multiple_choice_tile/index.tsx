@@ -5,12 +5,12 @@ import React, { FC, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import FanChart from "@/components/charts/fan_chart";
+import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
 } from "@/components/forecast_maker/forecast_expiration";
-import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousQuestionTypes } from "@/constants/questions";
@@ -28,6 +28,7 @@ import {
   Scaling,
 } from "@/types/question";
 import { CurrentUser } from "@/types/users";
+import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
@@ -38,6 +39,8 @@ type BaseProps = {
   hideCP?: boolean;
   chartHeight?: number;
   canPredict?: boolean;
+  showChart?: boolean;
+  optionsLimit?: number;
 };
 
 type QuestionProps = {
@@ -86,6 +89,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   hideCP,
   forecastAvailability,
   canPredict,
+  showChart = true,
 }) => {
   const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
@@ -116,8 +120,15 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
-      <div className="resize-container">
+    <div
+      className={cn(
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-5 md:gap-8",
+        {
+          "md:grid md:grid-cols-5": showChart,
+        }
+      )}
+    >
+      <div className="resize-container w-full md:col-span-2">
         {isResolvedView ? (
           <PredictionChip question={question} status={PostStatus.RESOLVED} />
         ) : (
@@ -132,40 +143,50 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
           />
         )}
       </div>
-      {!isResolvedView && (
-        <div className="relative w-full">
-          <MultipleChoiceChart
-            timestamps={timestamps}
-            actualCloseTime={actualCloseTime}
-            choiceItems={choices}
-            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-            extraTheme={chartTheme}
-            defaultZoom={defaultChartZoom}
-            withZoomPicker={withZoomPicker}
-            questionType={groupType}
-            scaling={scaling}
-            isEmptyDomain={
-              !!forecastAvailability?.isEmpty ||
-              !!forecastAvailability?.cpRevealsOn
-            }
-            openTime={openTime}
-            hideCP={hideCP}
-          />
-          <ForecastAvailabilityChartOverflow
-            forecastAvailability={forecastAvailability}
-            className="text-xs lg:text-sm"
-          />
+      {showChart && !isResolvedView && (
+        <div className="relative w-full md:col-span-3">
+          {isNil(group) ? (
+            <MultipleChoiceChart
+              timestamps={timestamps}
+              actualCloseTime={actualCloseTime}
+              choiceItems={choices}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
+              scaling={scaling}
+              forecastAvailability={forecastAvailability}
+              openTime={openTime}
+              hideCP={hideCP}
+              forFeedPage
+            />
+          ) : (
+            <GroupChart
+              questionType={groupType}
+              timestamps={timestamps}
+              actualCloseTime={actualCloseTime}
+              choiceItems={choices}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
+              scaling={scaling}
+              forecastAvailability={forecastAvailability}
+              forceShowLinePoints={true}
+              openTime={openTime}
+              hideCP={hideCP}
+              forFeedPage
+            />
+          )}
         </div>
       )}
     </div>
   );
 };
 
-type FanGraphMultipleChoiceTileProps = BaseProps & GroupProps;
+type FanGraphTileProps = BaseProps & GroupProps;
 
-export const FanGraphMultipleChoiceTile: FC<
-  FanGraphMultipleChoiceTileProps
-> = ({
+export const FanGraphTile: FC<FanGraphTileProps> = ({
   group,
   choices,
   visibleChoicesCount,
@@ -173,6 +194,8 @@ export const FanGraphMultipleChoiceTile: FC<
   chartHeight,
   groupType,
   canPredict,
+  showChart = true,
+  optionsLimit,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -194,29 +217,39 @@ export const FanGraphMultipleChoiceTile: FC<
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
-      <div className="resize-container">
+    <div
+      className={cn(
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
+        {
+          "md:grid md:grid-cols-5": showChart,
+        }
+      )}
+    >
+      <div className="resize-container w-full md:col-span-2">
         <MultipleChoiceTileLegend
           ref={ref}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           hideCP={hideCP}
           questionType={groupType}
-          hideChoiceIcon
-          optionLabelClassName="text-olive-800 dark:text-olive-800-dark"
           canPredict={canPredict && canReaffirm}
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+          withChoiceIcon={false}
         />
       </div>
-      <div className="w-full">
-        <FanChart
-          group={group}
-          height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-          pointSize={8}
-          hideCP={hideCP}
-          withTooltip={false}
-        />
-      </div>
+      {showChart && (
+        <div className="w-full md:col-span-3">
+          <FanChart
+            group={group}
+            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+            pointSize={9}
+            hideCP={hideCP}
+            withTooltip={false}
+            optionsLimit={optionsLimit}
+            forFeedPage
+          />
+        </div>
+      )}
     </div>
   );
 };

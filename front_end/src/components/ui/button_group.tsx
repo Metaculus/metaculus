@@ -1,9 +1,11 @@
+import { ReactNode } from "react";
+
 import Button, { ButtonVariant } from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 export type GroupButton<T> = {
   value: T;
-  label: string;
+  label: string | ReactNode;
   href?: string;
 };
 
@@ -11,7 +13,7 @@ type Props<T> = {
   value: T;
   buttons: GroupButton<T>[];
   onChange: (value: T) => void;
-  onClick?: (value: string) => void;
+  onClick?: (value: string | ReactNode) => void;
   variant?: ButtonVariant;
   activeVariant?: ButtonVariant;
   className?: string;

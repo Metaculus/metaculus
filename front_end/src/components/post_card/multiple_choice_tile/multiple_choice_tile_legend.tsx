@@ -14,11 +14,11 @@ type Props = {
   visibleChoicesCount: number;
   questionType?: QuestionType;
   hideCP?: boolean;
-  hideChoiceIcon?: boolean;
   optionLabelClassName?: string;
   onReaffirm?: () => void;
   canPredict?: boolean;
   ref?: RefObject<HTMLDivElement | null>;
+  withChoiceIcon?: boolean;
 };
 
 const MultipleChoiceTileLegend: FC<Props> = ({
@@ -26,11 +26,11 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   visibleChoicesCount,
   hideCP,
   questionType,
-  hideChoiceIcon,
   optionLabelClassName,
   onReaffirm,
   canPredict = false,
   ref,
+  withChoiceIcon = true,
 }) => {
   const t = useTranslations();
 
@@ -38,7 +38,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
-    <div className="embed-gap flex flex-col gap-2" ref={ref}>
+    <div className="embed-gap flex flex-col gap-2.5" ref={ref}>
       {visibleChoices.map(
         ({
           choice,
@@ -58,38 +58,43 @@ const MultipleChoiceTileLegend: FC<Props> = ({
             displayedResolution={displayedResolution}
             questionType={questionType}
             scaling={scaling}
-            hideIcon={hideChoiceIcon}
             labelClassName={optionLabelClassName}
             actual_resolve_time={actual_resolve_time}
+            withIcon={withChoiceIcon}
           />
         )
       )}
       {otherItemsCount > 0 && (
-        <div className="flex flex-row text-gray-600 dark:text-gray-600-dark">
-          <div className="self-center py-0 pr-1.5 text-center">
-            <FontAwesomeIcon
-              icon={faEllipsis}
-              size="xl"
-              className="resize-ellipsis"
-            />
-          </div>
-          <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-            {t("otherWithCount", { count: otherItemsCount })}
+        <div className="flex flex-row items-center justify-between text-gray-600 dark:text-gray-600-dark">
+          <div className="flex flex-row items-center">
+            <div className="self-center py-0 pr-3.5 text-center leading-none">
+              <FontAwesomeIcon
+                icon={faEllipsis}
+                size="xs"
+                className="resize-ellipsis w-[10px]"
+              />
+            </div>
+            <div className="resize-label whitespace-nowrap pr-1.5 text-left text-sm font-normal leading-4">
+              {t("otherWithCount", { count: otherItemsCount })}
+            </div>
           </div>
           {canPredict && !!onReaffirm && (
             <ReaffirmButton
               onClick={onReaffirm}
-              combined
-              className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
+              className="resize-label flex text-left text-sm leading-4"
+              all
             />
           )}
         </div>
       )}
       {!otherItemsCount && canPredict && !!onReaffirm && (
-        <ReaffirmButton
-          onClick={onReaffirm}
-          className="resize-label flex py-0.5 text-left text-sm font-medium leading-4"
-        />
+        <div>
+          <ReaffirmButton
+            onClick={onReaffirm}
+            className="resize-label flex text-left text-sm leading-4"
+            all
+          />
+        </div>
       )}
     </div>
   );

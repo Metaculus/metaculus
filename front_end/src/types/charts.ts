@@ -30,10 +30,19 @@ export type LinePoint<X = number, Y = number | null> = {
   y2?: Y;
   symbol?: string;
   size?: number;
+  resolved?: boolean;
 };
 
 export type Line<X = number, Y = number | null> = Array<LinePoint<X, Y>>;
-export type Area<X = number, Y = number | null> = Array<{ x: X; y: Y; y0?: Y }>;
+
+export type AreaPoint<X = number, Y = number | null> = {
+  x: X;
+  y: Y;
+  y0?: Y;
+  resolved?: boolean;
+};
+
+export type Area<X = number, Y = number | null> = Array<AreaPoint<X, Y>>;
 
 export type YDomain = {
   originalYDomain: Tuple<number>;
@@ -79,4 +88,9 @@ export enum ContinuousForecastInputType {
 export enum EmbedChartType {
   Timeline = "timeline",
   Current = "current",
+}
+
+export enum ScaleDirection {
+  Horizontal = "horizontal",
+  Vertical = "vertical",
 }
