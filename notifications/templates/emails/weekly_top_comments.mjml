@@ -53,8 +53,9 @@
 
                 <mj-text font-size="12px" color="#666666">
                     {% blocktrans with account_settings_url=account_settings_url %}
-                    You can manage your notification settings on your Metaculus <a href="{{ account_settings_url }}">settings</a> page.
+                    You can manage your notification settings on your Metaculus
                     {% endblocktrans %}
+                     <a href="{% tag_notification_settings_url %}">{% trans "settings page" %}</a>.
                 </mj-text>
 
             </mj-column>
