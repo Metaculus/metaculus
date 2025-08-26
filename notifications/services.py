@@ -185,7 +185,9 @@ class CPChangeData:
             Question.QuestionType.NUMERIC,
             Question.QuestionType.DISCRETE,
         ]:
-            return format_value_unit(abbreviated_number(value), self.question.unit)
+            return format_value_unit(
+                abbreviated_number(round(value, 2)), self.question.unit
+            )
 
         return value
 
