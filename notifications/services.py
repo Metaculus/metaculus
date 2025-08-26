@@ -128,8 +128,8 @@ class CPChangeData:
         if not self.cp_change_value:
             return ""
         return {
-            "goneUp": _("gone up"),
-            "goneDown": _("gone down"),
+            "up": _("gone up"),
+            "down": _("gone down"),
             "expanded": _("expanded"),
             "contracted": _("contracted"),
             "changed": _("changed"),
@@ -139,8 +139,8 @@ class CPChangeData:
         if not self.cp_change_value:
             return ""
         return {
-            "goneUp": "+",
-            "goneDown": "-",
+            "up": "+",
+            "down": "-",
             "expanded": "←→",
             "contracted": "→←",
             "changed": "↕",
