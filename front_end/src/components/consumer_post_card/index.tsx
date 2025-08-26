@@ -11,6 +11,7 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
+  isNotebookPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
@@ -35,7 +36,11 @@ const ConsumerPostCard: FC<PropsWithChildren<Props>> = ({
 
   return (
     <PostCardErrorBoundary>
-      <BasicConsumerPostCard post={post} forCommunityFeed={forCommunityFeed}>
+      <BasicConsumerPostCard
+        post={post}
+        forCommunityFeed={forCommunityFeed}
+        isNotebook={isNotebookPost(post)}
+      >
         <HideCPProvider post={post}>
           {isQuestionPost(post) && !isMultipleChoicePost(post) && (
             <ConsumerQuestionTile question={post.question} />
