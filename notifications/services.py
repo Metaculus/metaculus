@@ -138,11 +138,12 @@ class CPChangeData:
     def get_cp_change_symbol(self):
         if not self.cp_change_value:
             return ""
+
         return {
             "up": "+",
             "down": "-",
-            "expanded": "←→",
-            "contracted": "→←",
+            "expanded": "↔ ",
+            "contracted": "→← ",
             "changed": "↕",
         }.get(self.cp_change_label, self.cp_change_label)
 
