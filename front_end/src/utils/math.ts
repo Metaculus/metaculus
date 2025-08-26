@@ -90,7 +90,7 @@ export function cdfFromSliders(
   const params = logisticDistributionParamsFromSliders(left, center, right);
   const step = 1 / inboundOutcomeCount;
   const xArr = Array.from(
-    { length: Math.floor(1 / step) + 1 },
+    { length: inboundOutcomeCount + 1 },
     (_, i) => i * step
   );
   let cdf = [
