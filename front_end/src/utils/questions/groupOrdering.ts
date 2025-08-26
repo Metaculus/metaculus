@@ -12,9 +12,9 @@ export function sortGroupPredictionOptions<QT>(
 ) {
   return [...questions].sort((a, b) => {
     const aMean =
-      a.aggregations[a.default_aggregation_method].latest?.centers?.[0] ?? 0;
+      a.aggregations[a.default_aggregation_method]?.latest?.centers?.[0] ?? 0;
     const bMean =
-      b.aggregations[b.default_aggregation_method].latest?.centers?.[0] ?? 0;
+      b.aggregations[b.default_aggregation_method]?.latest?.centers?.[0] ?? 0;
     const aValueScaled = scaleInternalLocation(aMean, {
       range_min: a.scaling?.range_min ?? 0,
       range_max: a.scaling?.range_max ?? 1,

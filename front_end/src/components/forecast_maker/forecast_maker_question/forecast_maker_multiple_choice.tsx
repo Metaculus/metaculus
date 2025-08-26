@@ -334,7 +334,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
-            <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
+            <th className="rounded-tl bg-blue-100 px-3 py-2 text-left text-xs font-normal dark:bg-blue-100-dark">
               {question.group_variable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
@@ -345,12 +345,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               />
             </th>
             <th
-              className="hidden bg-blue-100 p-2 text-left text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:table-cell"
+              className="hidden rounded-tr bg-blue-100 p-2 text-left text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:table-cell"
               colSpan={2}
             >
               My Prediction
             </th>
-            <th className="bg-blue-100 p-2 text-center text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:hidden">
+            <th className="rounded-tr bg-blue-100 p-2 text-center text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:hidden">
               Me
             </th>
           </tr>
@@ -381,24 +381,24 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         </tbody>
       </table>
       {predictionMessage && (
-        <div className="my-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+        <div className="mt-2 text-center text-sm text-gray-700 dark:text-gray-700-dark">
           {predictionMessage}
         </div>
       )}
 
-      <div className="flex flex-col  border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-4 ">
-          <div className="mx-auto text-center sm:ml-0 sm:text-left">
-            <div>
-              <span className="text-2xl font-bold">
-                Total: {getForecastPctString(forecastsSum)}
+      {canPredict && (
+        <div className="flex flex-col pb-5">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-4 ">
+            <div className="mx-auto text-center sm:ml-0 sm:text-left">
+              <div>
+                <span className="text-2xl font-bold">
+                  Total: {getForecastPctString(forecastsSum)}
+                </span>
+              </div>
+              <span className="mt-1 text-sm">
+                ({getForecastPctString(remainingSum)} remaining)
               </span>
             </div>
-            <span className="mt-1 text-sm">
-              ({getForecastPctString(remainingSum)} remaining)
-            </span>
-          </div>
-          {canPredict && (
             <div className="flex flex-wrap justify-center gap-2">
               <div className="w-full text-center sm:w-auto">
                 <Button
@@ -445,37 +445,39 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                 }
               />
             </div>
+          </div>
+
+          {previousForecastExpiration && (
+            <div
+              className={cn(
+                "border-b-lue mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark md:ml-auto",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionWithdrawnText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillBeWithdrawInText", {
+                    time: previousForecastExpiration.string,
+                  })}
+            </div>
           )}
         </div>
-
-        {previousForecastExpiration && (
-          <div
-            className={cn(
-              "border-b-lue ml-auto mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark",
-              previousForecastExpiration.expiresSoon &&
-                "text-salmon-800 dark:text-salmon-800-dark"
-            )}
-          >
-            {previousForecastExpiration.isExpired
-              ? t("predictionWithdrawnText", {
-                  time: previousForecastExpiration.string,
-                })
-              : t("predictionWillBeWithdrawInText", {
-                  time: previousForecastExpiration.string,
-                })}
-          </div>
-        )}
-      </div>
+      )}
 
       <FormError
         errors={submitError}
         className="ml-auto mt-2 flex w-full justify-center"
         detached
       />
-      <div className="h-[32px] w-full">
-        {(isPending || withdrawalIsPending) && <LoadingIndicator />}
-      </div>
-      <div className="flex flex-col items-center justify-center">
+      {(isPending || withdrawalIsPending) && (
+        <div className="h-[32px] w-full">
+          <LoadingIndicator />
+        </div>
+      )}
+      <div className="mt-2 flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
 
         {canResolve && (

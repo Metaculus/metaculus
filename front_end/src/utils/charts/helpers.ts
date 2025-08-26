@@ -121,3 +121,29 @@ export function getLineGraphTypeFromQuestion(
 
   return type;
 }
+
+export function findLastIndexBefore(line: Line, timestamp: number): number {
+  if (!line.length) return -1;
+
+  let left = 0;
+  let right = line.length - 1;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    const point = line[mid];
+    if (!point) return -1;
+
+    if (point.x <= timestamp) {
+      if (
+        mid === line.length - 1 ||
+        (line[mid + 1]?.x ?? Infinity) > timestamp
+      ) {
+        return mid;
+      }
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+  return -1;
+}

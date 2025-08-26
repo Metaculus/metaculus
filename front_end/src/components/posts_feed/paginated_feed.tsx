@@ -4,13 +4,13 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useState } from "react";
 
+import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
-import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -20,7 +20,7 @@ import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { safeSessionStorage } from "@/utils/core/storage";
-import { isConditionalPost, isNotebookPost } from "@/utils/questions/helpers";
+import { isNotebookPost } from "@/utils/questions/helpers";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
@@ -46,7 +46,6 @@ const PaginatedPostsFeed: FC<Props> = ({
   const t = useTranslations();
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const { user } = useAuth();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -139,10 +138,15 @@ const PaginatedPostsFeed: FC<Props> = ({
       return <NewsCard post={post} />;
     }
 
-    if (isNil(user) && !isNotebookPost(post) && !isConditionalPost(post)) {
-      return <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />;
-    }
-    return <PostCard post={post} forCommunityFeed={isCommunity} />;
+    return (
+      <QuestionVariantComposer
+        postData={post}
+        consumer={
+          <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />
+        }
+        forecaster={<PostCard post={post} forCommunityFeed={isCommunity} />}
+      />
+    );
   };
 
   return (

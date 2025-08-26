@@ -14,7 +14,7 @@
     "translations:generate": "node ./scripts/add_missing_translations.mjs",
     "pm2-runtime": "pm2 list && pm2-runtime start ecosystem.config.js",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "build-storybook": "storybook build --test",
     "test": "jest"
   },
   "dependencies": {
@@ -73,7 +73,7 @@
     "negotiator": "^0.6.3",
     "next": "15.2.4",
     "next-intl": "^3.26.4",
-    "next-themes": "^0.4.4",
+    "next-themes": "^0.4.6",
     "nextjs-toploader": "^1.6.12",
     "next-router-mock": "^1.0.2",
     "numeric": "^1.2.6",

@@ -1,4 +1,4 @@
-import { TimelineChartZoomOption } from "@/types/charts";
+import { ScaleDirection, TimelineChartZoomOption } from "@/types/charts";
 import { QuestionType } from "@/types/question";
 
 import { generateScale, generateTimeSeriesYDomain } from "../axis";
@@ -134,7 +134,7 @@ describe("generateScale", () => {
       const params = {
         displayType: QuestionType.Numeric,
         axisLength: 200,
-        direction: "vertical" as const,
+        direction: ScaleDirection.Vertical,
       };
 
       // When
@@ -189,7 +189,7 @@ describe("generateScale", () => {
           number,
           number,
         ],
-        direction: "vertical" as const,
+        direction: ScaleDirection.Vertical,
       };
 
       // When
@@ -216,7 +216,7 @@ describe("generateScale", () => {
         },
         domain: [0, 1] as [number, number],
         zoomedDomain: [0, 1] as [number, number],
-        direction: "vertical" as const,
+        direction: ScaleDirection.Vertical,
       };
 
       // When
@@ -244,7 +244,7 @@ describe("generateScale", () => {
         },
         domain: [0, 1] as [number, number],
         zoomedDomain: [0, 1] as [number, number],
-        direction: "vertical" as const,
+        direction: ScaleDirection.Vertical,
         forceTickCount: FORCE_TICK_COUNT,
       };
 

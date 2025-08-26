@@ -37,8 +37,8 @@ def post_url(
 
 
 @register.simple_tag
-def tag_settings_url():
-    return _build_frontend_url("/accounts/settings/")
+def tag_notification_settings_url():
+    return _build_frontend_url("/accounts/settings/notifications/")
 
 
 @register.simple_tag
