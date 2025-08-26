@@ -50,7 +50,7 @@
                         {% endwith %}
                     {% else %}
                             {% blocktrans with last_sent=notification.format_last_sent %}
-                            Movement is calculated against {{last_sent}}.
+                            Movement is calculated against {{last_sent}}
                             {% endblocktrans %}
                         <table style="background-color: #eff4f4">
                             <tr>
