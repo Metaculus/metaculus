@@ -65,6 +65,7 @@ type Props = {
   shortLabels?: boolean;
   alignChartTabs?: boolean;
   forceTickCount?: number;
+  variant?: "feed" | "question";
 };
 
 const MinifiedContinuousAreaChart: FC<Props> = ({
@@ -78,6 +79,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
+  variant = "feed",
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -266,7 +268,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                                 ]
                               );
                             case "green":
-                              return getThemeColor(METAC_COLORS.olive["500"]);
+                              return getThemeColor(METAC_COLORS.olive["600"]);
                             case "gray":
                               return getThemeColor(METAC_COLORS.gray["500"]);
                             default:
@@ -312,6 +314,34 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               );
             })}
 
+          {/* Upper edge border lines */}
+          {charts
+            .filter((chart) => chart.type !== "user_components")
+            .map((chart, index) => (
+              <VictoryLine
+                key={`border-${index}`}
+                data={chart.graphLine}
+                style={{
+                  data: {
+                    stroke: (() => {
+                      switch (chart.color) {
+                        case "orange":
+                          return getThemeColor(METAC_COLORS.orange["600"]);
+                        case "green":
+                          return getThemeColor(METAC_COLORS.olive["600"]);
+                        case "gray":
+                          return getThemeColor(METAC_COLORS.gray["600"]);
+                        default:
+                          return getThemeColor(METAC_COLORS.olive["600"]);
+                      }
+                    })(),
+                    strokeWidth: 1,
+                    fill: "none",
+                  },
+                }}
+              />
+            ))}
+
           <VictoryAxis
             tickValues={xScale.ticks}
             tickFormat={hideCP || hideLabels ? () => "" : xScale.tickFormat}
@@ -321,12 +351,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                 stroke: "transparent",
               },
               axis: {
-                stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                strokeWidth: 1,
+                stroke: getThemeColor(METAC_COLORS.olive["100"]),
+                strokeWidth: 0,
                 strokeDasharray: "4, 4",
               },
               tickLabels: {
-                fontSize: 10,
+                fontSize: variant === "feed" ? 10 : 8,
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
                   index === 0
@@ -355,36 +385,80 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["500"]);
                           default:
-                            return getThemeColor(METAC_COLORS.olive["900"]);
+                            return getThemeColor(METAC_COLORS.olive["700"]);
                         }
                       })(),
-                      strokeWidth: 1.5,
+                      strokeWidth: 1,
                     },
                   }}
                 />
               ) : null
             )
           )}
-          {/* Resolution point */}
-          {resolutionPoint && (
-            <VictoryScatter
-              data={[
-                {
-                  x: resolutionPoint.y,
-                  y: 0,
-                  symbol: "diamond",
-                  size: 4,
-                },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
-                  fill: getThemeColor(METAC_COLORS.gray["200"]),
-                  strokeWidth: 2.5,
-                },
-              }}
-            />
+          {/* Circles at median line tops */}
+          {charts.map((chart, k) =>
+            chart.verticalLines.map((line, index) =>
+              index === 1 && chart.color !== "orange" ? (
+                <VictoryScatter
+                  key={`median-circle-${k}-${index}`}
+                  data={[{ x: line.x, y: line.y }]}
+                  style={{
+                    data: {
+                      fill: (() => {
+                        switch (chart.color) {
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["600"]);
+                          default:
+                            return getThemeColor(METAC_COLORS.olive["800"]);
+                        }
+                      })(),
+                      stroke: (() => {
+                        switch (chart.color) {
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["600"]);
+                          default:
+                            return getThemeColor(METAC_COLORS.olive["800"]);
+                        }
+                      })(),
+                      strokeWidth: 1,
+                    },
+                  }}
+                  size={3}
+                />
+              ) : null
+            )
           )}
+          {/* Resolution point - Enhanced with debugging */}
+          {(() => {
+            // Debug logging
+            console.log("MinifiedContinuousAreaChart Debug:", {
+              hasResolution: !isNil(question.resolution),
+              resolution: question.resolution,
+              resolutionPoint: resolutionPoint,
+              questionType: question.type,
+              scaling: question.scaling,
+            });
+
+            return resolutionPoint ? (
+              <VictoryScatter
+                data={[
+                  {
+                    x: resolutionPoint.y,
+                    y: yDomain[0], // Use bottom of domain
+                    symbol: "diamond",
+                    size: 3.5, // Much larger for visibility
+                  },
+                ]}
+                style={{
+                  data: {
+                    stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                    fill: getThemeColor(METAC_COLORS.gray["0"]),
+                    strokeWidth: 2,
+                  },
+                }}
+              />
+            ) : null;
+          })()}
         </VictoryChart>
       )}
     </div>

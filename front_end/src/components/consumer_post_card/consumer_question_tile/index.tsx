@@ -47,6 +47,7 @@ const ConsumerQuestionTile: FC<Props> = ({ question }) => {
               data={continuousAreaChartData}
               height={50}
               forceTickCount={2}
+              variant="feed"
             />
           )}
         </div>
