@@ -16,6 +16,12 @@ type Props = {
 };
 
 const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {
+  const forecastAvailability = getQuestionForecastAvailability(question);
+
+  // Hide chart if no forecasts or CP not yet revealed
+  const shouldHideChart =
+    forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn;
+
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
     isClosed: question.status === QuestionStatus.CLOSED,
@@ -25,15 +31,19 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {
     <div className="mx-auto mb-7 flex max-w-[270px] flex-col items-center gap-2.5">
       <ConsumerContinuousTile
         question={question}
-        forecastAvailability={getQuestionForecastAvailability(question)}
+        forecastAvailability={forecastAvailability}
       />
-      <MinifiedContinuousAreaChart
-        question={question}
-        data={continuousAreaChartData}
-        height={50}
-        forceTickCount={2}
-      />
-      <ContinuousQuestionRange question={question} />
+      {!shouldHideChart && (
+        <>
+          <MinifiedContinuousAreaChart
+            question={question}
+            data={continuousAreaChartData}
+            height={50}
+            forceTickCount={2}
+          />
+          <ContinuousQuestionRange question={question} />
+        </>
+      )}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import PercentageForecastCard from "@/components/consumer_post_card/group_foreca
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
   checkGroupOfQuestionsPostType,
@@ -27,17 +28,29 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
       postData.group_of_questions?.graph_type ===
       GroupOfQuestionsGraphType.FanGraph
     ) {
-      const sortedQuestions = sortGroupPredictionOptions(
-        postData.group_of_questions?.questions,
-        postData.group_of_questions
-      );
-      content = (
-        <TimeSeriesChart
-          questions={sortedQuestions}
-          variant="colorful"
-          height={180}
-        />
-      );
+      // Check forecast availability for fan graphs
+      const forecastAvailability = postData.group_of_questions
+        ? getGroupForecastAvailability(postData.group_of_questions.questions)
+        : null;
+
+      // Hide chart if no forecasts or CP not yet revealed
+      const shouldHideChart =
+        forecastAvailability &&
+        (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn);
+
+      if (!shouldHideChart) {
+        const sortedQuestions = sortGroupPredictionOptions(
+          postData.group_of_questions?.questions,
+          postData.group_of_questions
+        );
+        content = (
+          <TimeSeriesChart
+            questions={sortedQuestions}
+            variant="colorful"
+            height={180}
+          />
+        );
+      }
     } else {
       content = <NumericForecastCard post={postData} />;
     }
