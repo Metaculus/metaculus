@@ -37,7 +37,7 @@
                         {% with question_data=notification.question_data.0 %}
 
                         {% blocktrans with direction=question_data.get_cp_change_label cp_change_value=question_data.format_cp_change_value user_forecast_date=question_data.format_forecast_date last_sent=notification.format_last_sent median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %}
-                        The community prediction has {{direction}} by <b>{{cp_change_value}}</b> since {{last_sent}}.
+                        The community prediction has {{direction}} by <b>{{cp_change_value}}</b> since {{last_sent}}
                         It is now <b>{{median}}</b>.
                         {% endblocktrans %}
 
