@@ -231,8 +231,9 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       label={t("followModalCustomiseNotifications")}
       isOpen={isOpen}
       onClose={onClose}
+      className="[&>h2]:mb-0"
     >
-      <div className="max-w-md">
+      <div className="max-w-md [&_p]:my-2">
         <p className="text-base leading-tight">
           {t("followModalCustomiseNotificationsParagraph")}
         </p>
@@ -246,7 +247,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
             </Link>
           </div>
         )}
-        <div className="mt-8 flex flex-col gap-4 pb-16">
+        <div className="mt-4 flex flex-col gap-3 pb-6">
           {subscriptionTypes.map(({ type, title, render }, idx) => {
             const enabled = checkSubscriptionEnabled(type);
             const subscription = modalSubscriptions.find(
@@ -268,7 +269,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
                   <>
                     <div>{!!render && render(subscription)}</div>
                     {!!render && idx < subscriptionTypes.length - 1 && (
-                      <hr className="mb-4 mt-8 border-gray-400 dark:border-gray-400-dark" />
+                      <hr className="mb-2 mt-4 border-gray-400 dark:border-gray-400-dark" />
                     )}
                   </>
                 )}

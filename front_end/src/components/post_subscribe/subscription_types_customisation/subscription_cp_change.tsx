@@ -1,53 +1,63 @@
-import { Radio, RadioGroup } from "@headlessui/react";
+"use client";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import RadioButton from "@/components/ui/radio_button";
+import ButtonGroup, { type GroupButton } from "@/components/ui/button_group";
 import { CPChangeThreshold, PostSubscriptionCPCHange } from "@/types/post";
 
 import { SubscriptionSectionProps } from "./types";
+
+type CpKey = "small" | "medium" | "large";
+
+const toKey = (v: CPChangeThreshold): CpKey =>
+  v === CPChangeThreshold.SMALL
+    ? "small"
+    : v === CPChangeThreshold.MEDIUM
+      ? "medium"
+      : "large";
+
+const fromKey = (k: CpKey): CPChangeThreshold =>
+  k === "small"
+    ? CPChangeThreshold.SMALL
+    : k === "medium"
+      ? CPChangeThreshold.MEDIUM
+      : CPChangeThreshold.LARGE;
 
 const SubscriptionSectionCPChange: FC<
   SubscriptionSectionProps<PostSubscriptionCPCHange, "cp_change_threshold">
 > = ({ subscription, onChange }) => {
   const t = useTranslations();
 
-  const options = useMemo(
+  const buttons: GroupButton<CpKey>[] = useMemo(
     () => [
-      {
-        name: `${t("followModalSmallChanges")} (45% → 55%)`,
-        id: CPChangeThreshold.SMALL,
-      },
-      {
-        name: `${t("followModalMediumChanges")} (40% → 60%)`,
-        id: CPChangeThreshold.MEDIUM,
-      },
-      {
-        name: `${t("followModalLargeChanges")} (35% → 65%)`,
-        id: CPChangeThreshold.LARGE,
-      },
+      { value: "small", label: "small" },
+      { value: "medium", label: "medium" },
+      { value: "large", label: "large" },
     ],
-    [t]
+    []
   );
 
   return (
-    <div>
-      <p>{t("followModalNotifyMeFor")}: </p>
-      <RadioGroup
-        value={subscription.cp_change_threshold}
-        onChange={(value) => onChange("cp_change_threshold", value)}
-        as="ul"
-      >
-        {options.map((option) => (
-          <Radio as="li" key={option.id} value={option.id}>
-            {({ checked, disabled }) => (
-              <RadioButton checked={checked} disabled={disabled} size="small">
-                {option.name}
-              </RadioButton>
-            )}
-          </Radio>
-        ))}
-      </RadioGroup>
+    <div className="mt-2 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-sm">{t("followModalNotifyMeFor")} </span>
+        <ButtonGroup
+          value={toKey(subscription.cp_change_threshold)}
+          buttons={buttons}
+          onChange={(k) => onChange("cp_change_threshold", fromKey(k))}
+          variant="secondary"
+          activeVariant="primary"
+          className="px-2 py-1 text-xs"
+          activeClassName="px-2 py-1 text-xs"
+        />
+        <span className="text-sm">{t("changes", { default: "changes." })}</span>
+      </div>
+
+      <ul className="list-disc pl-[14px] text-xs opacity-80">
+        <li>{t("followModalSmallChanges")} (45% → 55% / 90% → 95%)</li>
+        <li>{t("followModalMediumChanges")} (40% → 60% / 90% → 98%)</li>
+        <li>{t("followModalLargeChanges")} (35% → 65% / 90% → 99.7%)</li>
+      </ul>
     </div>
   );
 };
