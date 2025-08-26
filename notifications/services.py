@@ -128,8 +128,8 @@ class CPChangeData:
         if not self.cp_change_value:
             return ""
         return {
-            "goneUp": _("gone up"),
-            "goneDown": _("gone down"),
+            "up": _("gone up"),
+            "down": _("gone down"),
             "expanded": _("expanded"),
             "contracted": _("contracted"),
             "changed": _("changed"),
@@ -138,11 +138,12 @@ class CPChangeData:
     def get_cp_change_symbol(self):
         if not self.cp_change_value:
             return ""
+
         return {
-            "goneUp": "+",
-            "goneDown": "-",
-            "expanded": "←→",
-            "contracted": "→←",
+            "up": "+",
+            "down": "-",
+            "expanded": "↔ ",
+            "contracted": "→← ",
             "changed": "↕",
         }.get(self.cp_change_label, self.cp_change_label)
 
@@ -184,7 +185,9 @@ class CPChangeData:
             Question.QuestionType.NUMERIC,
             Question.QuestionType.DISCRETE,
         ]:
-            return format_value_unit(abbreviated_number(value), self.question.unit)
+            return format_value_unit(
+                abbreviated_number(round(value, 2)), self.question.unit
+            )
 
         return value
 
