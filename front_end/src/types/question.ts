@@ -14,6 +14,7 @@ export enum QuestionType {
   Discrete = "discrete",
   Date = "date",
 }
+
 export type ContinuousQuestionType = (typeof ContinuousQuestionTypes)[number];
 export type SimpleQuestionType = Exclude<
   QuestionType,
@@ -371,6 +372,7 @@ export type AggregationQuestion = {
   short_title: string;
   type: QuestionType;
   unit?: string;
+  forecasters_count?: number | null;
 };
 
 export enum CurveQuestionLabels {

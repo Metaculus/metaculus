@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet, Q, F
+from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
@@ -353,6 +353,15 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         elif self.scheduled_close_time:
             return self.scheduled_close_time
         return None
+
+    def get_forecasters(self) -> QuerySet["User"]:
+        return User.objects.filter(
+            Exists(
+                Forecast.objects.filter(
+                    question=self, author=OuterRef("id")
+                ).filter_within_question_period()
+            )
+        )
 
 
 QUESTION_CONTINUOUS_TYPES = [
