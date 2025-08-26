@@ -56,8 +56,8 @@ const ContinuousCPBar: FC<Props> = ({ question, size = "md" }) => {
       )}
     >
       <div
-        className={cn("text-sm font-bold", {
-          "mb-1 text-base": size === "lg",
+        className={cn("text-base font-bold", {
+          "mb-1 text-lg": size === "lg",
         })}
       >
         {centerLabel}

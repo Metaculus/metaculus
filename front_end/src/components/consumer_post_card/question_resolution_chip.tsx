@@ -49,10 +49,10 @@ const QuestionResolutionChip: FC<Props> = ({
         )}
         <span
           className={cn(
-            "text-center text-lg font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
+            "text-center text-base font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
             {
               "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
-              "text-2xl": size === "lg",
+              "text-lg": size === "lg",
             }
           )}
         >
