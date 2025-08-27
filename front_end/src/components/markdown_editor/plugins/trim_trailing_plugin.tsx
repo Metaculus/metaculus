@@ -20,12 +20,19 @@ export const trimTrailingParagraphPlugin = realmPlugin({
 
           const prev = last.getPreviousSibling();
           if (prev instanceof DecoratorNode) return;
+          const lastChildren = last.getChildren();
+          const hasNonTextChild = lastChildren.some((c) =>
+            typeof c.getType === "function" ? c.getType() !== "text" : true
+          );
+          if (hasNonTextChild) return;
 
           const text = last
             .getTextContent()
             .replace(/\u200B/g, "")
             .trim();
-          const isEffectivelyEmpty = text === "" && last.getChildrenSize() <= 1;
+          const isEffectivelyEmpty =
+            lastChildren.length === 0 ||
+            (text === "" && lastChildren.length >= 1);
           if (isEffectivelyEmpty) last.remove();
         });
         running = false;
