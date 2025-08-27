@@ -84,7 +84,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       !forecastAvailability.isEmpty && (
         <div
           className={cn(
-            "flex flex-col rounded-md border border-olive-800/20 p-2 dark:border-olive-800-dark md:px-3 md:py-2.5",
+            "flex min-w-[110px] flex-col rounded-md border border-olive-800/20 p-2 dark:border-olive-800-dark md:px-3 md:py-2.5",
             {
               "h-full w-[200px]": size === "lg" && hideLabel,
               "w-max max-w-[200px]": size === "lg" && !hideLabel,
