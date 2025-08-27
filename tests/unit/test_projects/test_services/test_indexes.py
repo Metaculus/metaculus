@@ -258,7 +258,7 @@ def test_value_from_resolved_question__binary(resolution, index):
         ["8375", -0.75],
     ],
 )
-def test_value_from_resolved_question__binary(resolution, index):
+def test_value_from_resolved_question__numeric(resolution, index):
     question = create_question(
         question_type=Question.QuestionType.NUMERIC,
         resolution=resolution,

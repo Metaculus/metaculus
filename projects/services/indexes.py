@@ -79,8 +79,6 @@ def _value_from_resolved_question(question: Question) -> float | None:
     unscaled_resolution = max(unscaled_resolution, 0)
 
     # For binary, this will always be -1 or 1
-    # For numeric, this follows Sylvain’s proposed formula:
-    # n = len(cdf); v2 = (2*i - n + 1) / (n - 1)
     return 2 * unscaled_resolution - 1
 
 
