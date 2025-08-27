@@ -243,5 +243,8 @@ def serialize_index_data(project: Project):
     return {
         "type": index.type,
         "weights": {x.post_id: x.weight for x in index_posts},
+        "min_label": index.min_label,
+        "max_label": index.max_label,
+        "increasing_is_good": index.increasing_is_good,
         **data,
     }
