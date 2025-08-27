@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TypedDict
+from typing import TypedDict, Iterable
 
 from django.db.models import F
 from django.utils import timezone
@@ -9,11 +9,12 @@ from projects.models import ProjectIndex
 from questions.constants import QuestionStatus
 from questions.models import AggregateForecast, Question
 from questions.utils import get_last_forecast_in_the_past
-from utils.dtypes import generate_map_from_list
+from utils.dtypes import generate_map_from_list, flatten
 from utils.the_math.aggregations import minimize_history
 from utils.the_math.formulas import string_location_to_unscaled_location
 
 IndexPoint = TypedDict("IndexPoint", {"x": int, "y": float})
+QuestionsAggMap = dict[int, list[AggregateForecast]]
 
 
 def _get_index_posts_with_weights(index: ProjectIndex) -> dict[Post, float]:
@@ -28,6 +29,31 @@ def _get_index_posts_with_weights(index: ProjectIndex) -> dict[Post, float]:
     )
 
     return {post: float(post._weight) for post in posts}
+
+
+def _generate_questions_agg_map(
+    questions: Iterable[Question],
+) -> QuestionsAggMap:
+    aggregate_forecasts = (
+        AggregateForecast.objects.filter_default_aggregation()
+        .filter(question__in=questions)
+        .filter(start_time__lte=timezone.now())
+        .only(
+            "question_id",
+            "forecast_values",
+            "start_time",
+            "end_time",
+            "centers",
+            "interval_upper_bounds",
+            "interval_lower_bounds",
+        )
+        .order_by("start_time")
+    )
+
+    return generate_map_from_list(
+        aggregate_forecasts,
+        lambda agg: agg.question_id,
+    )
 
 
 def _value_from_forecast(question: Question, forecast: AggregateForecast) -> float:
@@ -58,6 +84,10 @@ def _value_from_forecast(question: Question, forecast: AggregateForecast) -> flo
     return 1.0 - 2.0 * (sum(cdf) / len(cdf))
 
 
+def _value_form_bounds(points: list[float]) -> float:
+    return 2.0 * float(points[-1]) - 1.0 if points else 0.0
+
+
 def _value_from_resolved_question(question: Question) -> float | None:
     """
     Generating index value from resolved question.
@@ -77,11 +107,13 @@ def _value_from_resolved_question(question: Question) -> float | None:
     unscaled_resolution = max(unscaled_resolution, 0)
 
     # For binary, this will always be -1 or 1
-    return 2 * unscaled_resolution - 1
+    return 2.0 * unscaled_resolution - 1.0
 
 
 def calculate_questions_index_timeline(
-    question_indexes_map: dict[Question, float], max_points: int = 400
+    question_indexes_map: dict[Question, float],
+    forecasts_by_question: QuestionsAggMap,
+    max_points: int = 400,
 ) -> list[IndexPoint]:
     """
     Build a minimized timeline of the project's index.
@@ -93,26 +125,21 @@ def calculate_questions_index_timeline(
     """
 
     questions = question_indexes_map.keys()
-
-    aggregate_forecasts = (
-        AggregateForecast.objects.filter_default_aggregation()
-        .filter(question__in=questions)
-        .filter(start_time__lte=timezone.now())
-        .only("question_id", "forecast_values", "start_time", "end_time", "centers")
-        .order_by("start_time")
-    )
-    forecasts_by_question = generate_map_from_list(
-        aggregate_forecasts,
-        lambda agg: agg.question_id,
-    )
     all_datetimes = list(
-        {agg.start_time for agg in aggregate_forecasts}
-        # Append actual resolution dates when accurate
-        | {q.actual_resolve_time for q in questions if q.actual_resolve_time}
-        # Append actual close dates when accurate
-        | {q.actual_close_time for q in questions if q.actual_close_time}
-        # Always include now
-        | {timezone.now()}
+        {
+            # Extract start times from all grouped forecasts
+            *(
+                agg.start_time
+                for forecasts in forecasts_by_question.values()
+                for agg in forecasts
+            ),
+            # Append actual resolution dates when accurate
+            *(q.actual_resolve_time for q in questions if q.actual_resolve_time),
+            # Append actual close dates when accurate
+            *(q.actual_close_time for q in questions if q.actual_close_time),
+            # Always include now
+            timezone.now(),
+        }
     )
 
     # Sort dates again
@@ -156,7 +183,43 @@ def calculate_questions_index_timeline(
     return line
 
 
-def _get_index_data(question_indexes_map: dict[Question, float]):
+def calculate_questions_index_bounds(
+    question_indexes_map: dict[Question, float],
+    forecasts_by_question: QuestionsAggMap,
+) -> tuple[float, float]:
+    """
+    Compute lower/upper index values for the current date
+    """
+    now = timezone.now()
+    weight_sum = lower_sum = upper_sum = 0.0
+
+    for question, weight in question_indexes_map.items():
+        history = forecasts_by_question.get(question.id) or []
+
+        if question.status == QuestionStatus.RESOLVED:
+            value = _value_from_resolved_question(question)
+            if value is None:
+                continue
+
+            weight_sum += abs(weight)
+            contrib = value * weight
+            lower_sum += contrib
+            upper_sum += contrib
+        elif agg := get_last_forecast_in_the_past(history, at_time=now):
+            weight_sum += abs(weight)
+            lower_sum += _value_form_bounds(agg.interval_lower_bounds) * weight
+            upper_sum += _value_form_bounds(agg.interval_upper_bounds) * weight
+
+    if not weight_sum:
+        return 0.0, 0.0
+
+    # Negative weights can invert bounds; sort to enforce (low, high).
+    return tuple(sorted((100 * lower_sum / weight_sum, 100 * upper_sum / weight_sum)))
+
+
+def _get_index_data(
+    question_indexes_map: dict[Question, float], forecasts_by_question: QuestionsAggMap
+):
     resolved_questions = [
         q for q in question_indexes_map.keys() if q.status == QuestionStatus.RESOLVED
     ]
@@ -164,7 +227,16 @@ def _get_index_data(question_indexes_map: dict[Question, float]):
     all_resolved = len(resolved_questions) and len(resolved_questions) == len(
         question_indexes_map
     )
-    timeline = calculate_questions_index_timeline(question_indexes_map)
+
+    # Generate timeline
+    timeline = calculate_questions_index_timeline(
+        question_indexes_map, forecasts_by_question
+    )
+    # Generate lower & upper bound indexes for the current date
+    lower_bound_index, upper_bound_index = calculate_questions_index_bounds(
+        question_indexes_map, forecasts_by_question
+    )
+
     # Resolution value is the last value in timeline if is resolved
     resolution_value = timeline[-1]["y"] if timeline and all_resolved else None
 
@@ -184,6 +256,8 @@ def _get_index_data(question_indexes_map: dict[Question, float]):
             else None
         ),
         "resolution": resolution_value,
+        "interval_lower_bounds": lower_bound_index,
+        "interval_upper_bounds": upper_bound_index,
     }
 
 
@@ -194,7 +268,11 @@ def get_default_index_data(index: ProjectIndex) -> dict:
         q: weight for post, weight in post_weights.items() for q in post.get_questions()
     }
 
-    return {"series": _get_index_data(question_weights)}
+    return {
+        "series": _get_index_data(
+            question_weights, _generate_questions_agg_map(question_weights.keys())
+        )
+    }
 
 
 def get_multi_year_index_data(index: ProjectIndex) -> dict:
@@ -211,9 +289,12 @@ def get_multi_year_index_data(index: ProjectIndex) -> dict:
             if question.label.isdigit():
                 index_segments[question.label][question] = weight
 
+    agg_map = _generate_questions_agg_map(flatten(index_segments.values()))
+
     # Generating individual indexes for each segment
     series_by_year = {
-        segment: _get_index_data(q_map) for segment, q_map in index_segments.items()
+        segment: _get_index_data(q_map, agg_map)
+        for segment, q_map in index_segments.items()
     }
 
     return {
