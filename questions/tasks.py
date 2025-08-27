@@ -66,7 +66,7 @@ def resolve_question_and_send_notifications(question_id: int):
         ScoreTypes.PEER,
         ScoreTypes.RELATIVE_LEGACY,
     ]
-    spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
+    spot_scoring_time = question.get_spot_scoring_time()
     if spot_scoring_time:
         score_types.append(ScoreTypes.SPOT_PEER)
         score_types.append(ScoreTypes.SPOT_BASELINE)

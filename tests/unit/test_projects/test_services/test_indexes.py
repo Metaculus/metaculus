@@ -3,7 +3,11 @@ import datetime
 import pytest
 from freezegun import freeze_time
 
-from projects.services.indexes import calculate_questions_index_timeline, IndexPoint
+from projects.services.indexes import (
+    calculate_questions_index_timeline,
+    IndexPoint,
+    _value_from_resolved_question,
+)
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, AggregateForecast
 from questions.types import AggregationMethod
@@ -229,3 +233,37 @@ def test_calculate_questions_index_timeline__ongoing():
     assert find_point(data, datetime_aware(2025, 1, 4)) == pytest.approx(50)
     assert find_point(data, datetime_aware(2025, 1, 5)) == pytest.approx(-10)
     assert find_point(data, datetime_aware(2025, 1, 10)) == pytest.approx(-10)
+
+
+@pytest.mark.parametrize(
+    "resolution,index", [["yes", 1], ["no", -1], [None, None], ["ambiguous", None]]
+)
+def test_value_from_resolved_question__binary(resolution, index):
+    question = create_question(
+        question_type=Question.QuestionType.BINARY, resolution=resolution
+    )
+
+    assert _value_from_resolved_question(question) == index
+
+
+@pytest.mark.parametrize(
+    "resolution,index",
+    [
+        # Below lower bound
+        ["3000", -1],
+        # Above upper bound
+        ["150000", 1],
+        # Within range
+        ["15250", 0.5],
+        ["8375", -0.75],
+    ],
+)
+def test_value_from_resolved_question__numeric(resolution, index):
+    question = create_question(
+        question_type=Question.QuestionType.NUMERIC,
+        resolution=resolution,
+        range_min=7_000,
+        range_max=18_000,
+    )
+
+    assert _value_from_resolved_question(question) == index
