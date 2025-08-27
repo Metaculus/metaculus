@@ -13,8 +13,6 @@ import {
   generateTimestampXScale,
 } from "@/utils/charts/axis";
 
-import { calculateIndexTimeline } from "./helpers";
-
 type Props = {
   tournament: Tournament;
   height?: number;
@@ -54,9 +52,10 @@ function buildIndexChartData({
   width: number;
   zoom: TimelineChartZoomOption;
 }) {
-  const indexWeights = tournament.index_weights ?? [];
   const Y_DOMAIN_PADDING = 5;
-  const { line, timestamps } = calculateIndexTimeline(indexWeights);
+
+  const beLine = tournament.index_data?.series?.line ?? [];
+  const timestamps = beLine.map((p) => p.x as number);
   const earliestTimestamp = timestamps[0] ?? 0;
   const latestTimestamp = timestamps[timestamps.length - 1] ?? 1;
 
@@ -72,7 +71,7 @@ function buildIndexChartData({
     width
   );
   return {
-    line: line as Line,
+    line: beLine,
     area: [] as Area,
     points: [] as Line,
     yDomain: [-100 - Y_DOMAIN_PADDING, 100 + Y_DOMAIN_PADDING] as DomainTuple,
