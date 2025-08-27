@@ -207,14 +207,29 @@ def generate_comment_insight_leaderboard_entries(
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
+    if not leaderboard.project:
+        return []
 
-    posts = Post.objects.filter_for_main_feed().exclude(
-        curation_status__in=[
-            Post.CurationStatus.REJECTED,
-            Post.CurationStatus.DRAFT,
-            Post.CurationStatus.DELETED,
-        ]
-    )
+    if leaderboard.project.type == Project.ProjectTypes.SITE_MAIN:
+        posts = Post.objects.filter_for_main_feed().exclude(
+            curation_status__in=[
+                Post.CurationStatus.DRAFT,
+                Post.CurationStatus.PENDING,
+                Post.CurationStatus.REJECTED,
+                Post.CurationStatus.DELETED,
+            ]
+        )
+    else:
+        posts = Post.objects.filter(
+            Q(project=leaderboard.project) | Q(default_project=leaderboard.project)
+        ).exclude(
+            curation_status__in=[
+                Post.CurationStatus.DRAFT,
+                Post.CurationStatus.PENDING,
+                Post.CurationStatus.REJECTED,
+                Post.CurationStatus.DELETED,
+            ]
+        )
 
     comments = (
         Comment.objects.filter(
@@ -225,8 +240,10 @@ def generate_comment_insight_leaderboard_entries(
                 SubqueryAggregate(
                     "comment_votes__direction",
                     filter=Q(
-                        created_at__gte=leaderboard.start_time,
-                        created_at__lte=leaderboard.end_time,
+                        created_at__gte=leaderboard.start_time
+                        or make_aware(datetime.min),
+                        created_at__lte=leaderboard.end_time
+                        or make_aware(datetime.max),
                     ),
                     aggregate=Sum,
                 ),
@@ -272,8 +289,8 @@ def generate_question_writing_leaderboard_entries(
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
             question__in=questions,
-            start_time__gte=leaderboard.start_time,
-            start_time__lte=leaderboard.end_time,
+            start_time__gte=leaderboard.start_time or make_aware(datetime.min),
+            start_time__lte=leaderboard.end_time or make_aware(datetime.max),
         ).only("question_id", "author_id"),
         key=lambda forecast: forecast.question_id,
     )
@@ -839,16 +856,32 @@ class Contribution:
 
 
 def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
-    main_feed_posts = Post.objects.filter_for_main_feed().exclude(
-        curation_status__in=[
-            Post.CurationStatus.REJECTED,
-            Post.CurationStatus.DRAFT,
-            Post.CurationStatus.DELETED,
-        ]
-    )
+    if not leaderboard.project:
+        return []
+    if leaderboard.project.type == Project.ProjectTypes.SITE_MAIN:
+        posts = Post.objects.filter_for_main_feed().exclude(
+            curation_status__in=[
+                Post.CurationStatus.DRAFT,
+                Post.CurationStatus.PENDING,
+                Post.CurationStatus.REJECTED,
+                Post.CurationStatus.DELETED,
+            ]
+        )
+    else:
+        posts = Post.objects.filter(
+            Q(project=leaderboard.project) | Q(default_project=leaderboard.project)
+        ).exclude(
+            curation_status__in=[
+                Post.CurationStatus.DRAFT,
+                Post.CurationStatus.PENDING,
+                Post.CurationStatus.REJECTED,
+                Post.CurationStatus.DELETED,
+            ]
+        )
+
     comments = (
         Comment.objects.filter(
-            on_post__in=main_feed_posts,
+            on_post__in=posts,
             author=user,
             created_at__lte=leaderboard.end_time or make_aware(datetime.max),
             comment_votes__isnull=False,
