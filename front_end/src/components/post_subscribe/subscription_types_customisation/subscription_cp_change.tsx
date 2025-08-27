@@ -56,7 +56,7 @@ const SubscriptionSectionCPChange: FC<
       <ul className="list-disc pl-[14px] text-xs opacity-80">
         <li>{t("followModalSmallChanges")} (45% → 55% / 90% → 95%)</li>
         <li>{t("followModalMediumChanges")} (40% → 60% / 90% → 98%)</li>
-        <li>{t("followModalLargeChanges")} (35% → 65% / 90% → 99.7%)</li>
+        <li>{t("followModalLargeChanges")} (35% → 65% / 90% → 99.8%)</li>
       </ul>
     </div>
   );
