@@ -143,6 +143,7 @@ const NumericChart: FC<Props> = ({
     isNil(tickFontSize) || !isNil(extraTheme)
       ? getTickLabelFontSize(actualTheme)
       : tickFontSize;
+  const hasExternalTheme = !!extraTheme;
 
   const highlightedLine = useMemo(() => {
     const lastIndex = findLastIndexBefore(line, cursorValue);
@@ -238,7 +239,9 @@ const NumericChart: FC<Props> = ({
           <VictoryPortal>
             <ChartCursorLabel
               positionY={height - 10}
-              fill={getThemeColor(METAC_COLORS.gray["700"])}
+              {...(hasExternalTheme
+                ? {}
+                : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
               style={{
                 fontFamily: LABEL_FONT_FAMILY,
               }}
@@ -332,19 +335,25 @@ const NumericChart: FC<Props> = ({
                 axisLabel: {
                   fontFamily: LABEL_FONT_FAMILY,
                   fontSize: tickLabelFontSize,
-                  fill: getThemeColor(METAC_COLORS.gray["700"]),
+                  ...(hasExternalTheme
+                    ? {}
+                    : { fill: getThemeColor(METAC_COLORS.gray["700"]) }),
                 },
                 tickLabels: {
                   fontFamily: LABEL_FONT_FAMILY,
                   padding: 5,
                   fontSize: tickLabelFontSize,
-                  fill: getThemeColor(METAC_COLORS.gray["700"]),
+                  ...(hasExternalTheme
+                    ? {}
+                    : { fill: getThemeColor(METAC_COLORS.gray["700"]) }),
                 },
                 axis: {
                   stroke: "transparent",
                 },
                 grid: {
-                  stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                  ...(hasExternalTheme
+                    ? {}
+                    : { stroke: getThemeColor(METAC_COLORS.gray["300"]) }),
                   strokeWidth: 1,
                   strokeDasharray: "2, 5",
                 },
@@ -379,12 +388,14 @@ const NumericChart: FC<Props> = ({
                 <VictoryPortal>
                   <XTickLabel
                     chartWidth={chartWidth}
-                    withCursor={true}
+                    withCursor
                     fontSize={tickLabelFontSize}
-                    style={{
-                      fontFamily: LABEL_FONT_FAMILY,
-                      fill: getThemeColor(METAC_COLORS.gray["700"]),
-                    }}
+                    {...(!extraTheme && {
+                      style: {
+                        fontFamily: LABEL_FONT_FAMILY,
+                        fill: getThemeColor(METAC_COLORS.gray["700"]),
+                      },
+                    })}
                   />
                 </VictoryPortal>
               }
