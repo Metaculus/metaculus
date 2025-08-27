@@ -198,7 +198,10 @@ def get_multi_year_index_data(index: ProjectIndex) -> dict:
 
     for post, weight in post_weights.items():
         for question in post.get_questions():
-            index_segments[question.label][question] = weight
+            # We want to take only questions with year labels
+            # So ignoring other type of labels
+            if question.label.isdigit():
+                index_segments[question.label][question] = weight
 
     # Generating individual indexes for each segment
     series_by_year = {
