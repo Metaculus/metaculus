@@ -196,6 +196,8 @@ def calculate_questions_index_bounds(
     for question, weight in question_indexes_map.items():
         history = forecasts_by_question.get(question.id) or []
 
+        # I think we still need to include Resolved questions in the calculations
+        # Using their resolution as value for upper/lower bounds
         if question.status == QuestionStatus.RESOLVED:
             value = _value_from_resolved_question(question)
             if value is None:
