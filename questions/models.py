@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet, Q, F
+from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
@@ -339,6 +339,30 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             else DEFAULT_INBOUND_OUTCOME_COUNT
         )
 
+    def get_spot_scoring_time(self) -> datetime | None:
+        if self.spot_scoring_time:
+            return self.spot_scoring_time
+        elif (
+            self.cp_reveal_time
+            and self.open_time
+            and self.cp_reveal_time > self.open_time
+        ):
+            return self.cp_reveal_time
+        elif self.actual_close_time:
+            return self.actual_close_time
+        elif self.scheduled_close_time:
+            return self.scheduled_close_time
+        return None
+
+    def get_forecasters(self) -> QuerySet["User"]:
+        return User.objects.filter(
+            Exists(
+                Forecast.objects.filter(
+                    question=self, author=OuterRef("id")
+                ).filter_within_question_period()
+            )
+        )
+
 
 QUESTION_CONTINUOUS_TYPES = [
     Question.QuestionType.NUMERIC,
@@ -585,6 +609,11 @@ class Forecast(models.Model):
         return super().save(**kwargs)
 
 
+class AggregateForecastQuerySet(QuerySet):
+    def filter_default_aggregation(self):
+        return self.filter(method=F("question__default_aggregation_method"))
+
+
 class AggregateForecast(models.Model):
     id: int
     question_id: int
@@ -607,6 +636,8 @@ class AggregateForecast(models.Model):
     interval_upper_bounds = ArrayField(models.FloatField(), null=True)
     means = ArrayField(models.FloatField(), null=True)
     histogram = ArrayField(models.FloatField(), null=True, size=100)
+
+    objects = AggregateForecastQuerySet.as_manager()
 
     class Meta:
         indexes = [

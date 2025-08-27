@@ -618,7 +618,7 @@ def unresolve_question(question: Question):
         ScoreTypes.PEER,
         ScoreTypes.RELATIVE_LEGACY,
     ]
-    spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
+    spot_scoring_time = question.get_spot_scoring_time()
     if spot_scoring_time:
         score_types.append(ScoreTypes.SPOT_PEER)
         score_types.append(ScoreTypes.SPOT_BASELINE)
@@ -1082,9 +1082,11 @@ def calculate_period_movement_for_questions(
         question_aggregated_forecasts_map = get_aggregated_forecasts_for_questions(
             # Only forecasted questions
             compare_periods_map.keys(),
-            aggregated_forecast_qs=AggregateForecast.objects.filter(
-                method=F("question__default_aggregation_method"),
-            ).only("id", "start_time", "question_id", "end_time"),
+            aggregated_forecast_qs=(
+                AggregateForecast.objects.filter_default_aggregation().only(
+                    "id", "start_time", "question_id", "end_time"
+                )
+            ),
             include_cp_history=True,
         )
 

@@ -93,6 +93,7 @@ export type Tournament = TournamentPreview & {
   index_weights?: ProjectIndexWeights[];
   timeline: TournamentTimeline;
   forecasts_flow_enabled: boolean;
+  index_data?: IndexData | null;
 };
 
 export type ProjectIndexWeights = {
@@ -125,3 +126,13 @@ export enum BotLeaderboardStatus {
   Include = "include",
   BotsOnly = "bots_only",
 }
+
+export type IndexData = {
+  series: {
+    line: { x: number; y: number }[];
+    status: "open" | "resolved";
+    resolved_at?: string;
+    resolution_value?: number;
+  };
+  weights: Record<string, number>;
+};

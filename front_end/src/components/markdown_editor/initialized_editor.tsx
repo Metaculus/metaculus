@@ -47,7 +47,7 @@ import { processMarkdown } from "./helpers";
 import { equationPlugin } from "./plugins/equation";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
-// import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
+import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
 
 type EditorMode = "write" | "read";
 
@@ -254,7 +254,7 @@ const InitializedMarkdownEditor: FC<
         jsxPlugin({ jsxComponentDescriptors }),
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
-        // ...(mode === "read" ? [trimTrailingParagraphPlugin()] : []),
+        ...(mode === "read" ? [trimTrailingParagraphPlugin()] : []),
       ]}
       lexicalTheme={{
         beautifulMentions: beautifulMentionsTheme,

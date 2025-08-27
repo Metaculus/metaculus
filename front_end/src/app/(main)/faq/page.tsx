@@ -573,122 +573,12 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets.jpg"
+          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
           alt="Metaculus and Markets Comparison"
           className="my-4"
           width={700}
           height={207}
         />
-
-        <h4 className="text-lg font-semibold">
-          Advantages of Metaculus over prediction markets
-        </h4>
-        <p>
-          Metaculus has several advantages over prediction markets, described
-          below, but we want to preface this by saying that despite the
-          potential issues with prediction markets that we describe here, we
-          think prediction markets are valuable, are glad they exist, and would
-          be glad to see more use of them.
-        </p>
-
-        <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
-          <li>
-            <b>Poor incentives for longer term forecasts.</b> It&apos;s usually
-            not a good use of your funds to lock them up in a prediction market
-            for the long term, since you can usually get much better returns by
-            investing, which means longer term markets are likely to have low
-            liquidity. For an example see{" "}
-            <a href="https://wip.gatspress.com/wp-content/uploads/2024/05/thu9F-cumulative-traded-volume-on-the-2020-us-election-4-1024x897.png">
-              this plot
-            </a>{" "}
-            from a{" "}
-            <a href="https://worksinprogress.co/issue/why-prediction-markets-arent-popular/">
-              Works in Progress article
-            </a>{" "}
-            showing the trading volume on Betfair for the 2020 US presidential
-            election. There was very little volume far in advance of the
-            election, with most of the trading volume occurring only a month out
-            from the election.
-          </li>
-          <li>
-            <b>Problems with low probabilities.</b> Prediction markets have
-            market frictions that make them less useful for low probabilities.
-            The return on using your money to bring a probability from 2% to 1%
-            is negligible, or potentially negative if the prediction market
-            extract a fee from traders. That&apos;s why you get weird results
-            like Michelle Obama at 6% chance of becoming the Democratic nominee
-            for the 2024 US presidential election in June of 2024, as was the
-            case{" "}
-            <a href="https://polymarket.com/event/democratic-nominee-2024?tid=1724174308005">
-              on Polymarket
-            </a>
-            .
-          </li>
-          <li>
-            <b>The focus isn&apos;t always forecasting.</b> Prediction market
-            incentives aren&apos;t always aligned with making the most accurate
-            predictions. Consider that one potential use for prediction markets
-            is hedging against risky outcomes. Additionally, people who are
-            irrational but willing to put a ton of money behind their beliefs
-            may skew the outcome. Sure, ideally a liquid market will correct for
-            these skews, but it&apos;s possible that they could have an effect
-            on the price. See{" "}
-            <a href="https://asteriskmag.com/issues/05/prediction-markets-have-an-elections-problem-jeremiah-johnson">
-              this piece in Asterisk Magazine
-            </a>{" "}
-            for more on &quot;dumb money&quot; in prediction markets.
-          </li>
-          <li>
-            <b>What do individuals think will happen?</b> Participants in
-            prediction markets are expressing whether they think the probability
-            is higher or lower than the market price, not making a forecast. If
-            someone thinks the market is too low at 35% and bets accordingly,
-            you don&apos;t know whether they think the true probability is 40%
-            or 80%. This doesn&apos;t really impact the usefulness of the
-            aggregate, but it does make the data less rich and informative, and
-            harder to see the full distribution of forecasts like you can with
-            the histograms for binary questions on Metaculus.
-          </li>
-          <li>
-            <b>
-              Individual market performance is not always a clear indication of
-              forecasting skill.
-            </b>{" "}
-            Excellent individual market performance might just signal
-            proficiency at operating in markets, or ability to take advantage of
-            bad bets made by others. For example, see{" "}
-            <a href="https://www.cspicenter.com/p/salem-tournament-5-days-in#:~:text=The%20first%20problem%20we%20saw%20was%20that%20there%20were%20some%20individuals%20who%20made%20a%20killing%20by%20taking%20advantage%20of%20those%20who%20did%20not%20know%20how%20the%20markets%20work%20(see%20discussion%20here).">
-              this post
-            </a>{" "}
-            about a tournament organized on Manifold where traders took a large
-            early lead just due to intelligent use of limit orders. Since
-            Metaculus elicits individual probabilities from every forecaster, we
-            can better assess and recruit excellent forecasters.
-          </li>
-          <li>
-            <b>
-              Metaculus performs comparably to markets without the need to
-              manage a portfolio.
-            </b>{" "}
-            There are only a handful of apples-to-apples comparisons between
-            platforms, but{" "}
-            <a href="https://www.metaculus.com/notebooks/15359/predictive-performance-on-metaculus-vs-manifold-markets/">
-              these
-            </a>{" "}
-            <a href="https://firstsigma.substack.com/p/midterm-elections-forecast-comparison-analysis">
-              find
-            </a>{" "}
-            an{" "}
-            <a href="https://www.astralcodexten.com/p/who-predicted-2023">
-              advantage
-            </a>{" "}
-            for Metaculus over prediction markets. Note that sample sizes tend
-            to be small. However, there is also an{" "}
-            <a href="https://calibration.city/">indirect comparison</a>{" "}
-            (indirect because it does not consider the same questions across
-            platforms) which found that prediction markets are more calibrated.
-          </li>
-        </ol>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="justpolling">
           Are Metaculus Questions Polls?
