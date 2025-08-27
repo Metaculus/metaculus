@@ -905,7 +905,7 @@ class ProjectIndexPostInline(admin.TabularInline):
 
 @admin.register(ProjectIndex)
 class ProjectIndexAdmin(admin.ModelAdmin):
-    list_display = ["id", "project_link", "type", "increasing_is_good"]
+    list_display = ["id", "type", "increasing_is_good"]
     fields = ("type", "min_label", "max_label", "increasing_is_good")
     inlines = [ProjectIndexPostInline]
 
@@ -916,11 +916,3 @@ class ProjectIndexAdmin(admin.ModelAdmin):
     def get_model_perms(self, request):
         # Hide from the admin homepage
         return {}
-
-    def project_link(self, obj: ProjectIndex):
-        if hasattr(obj, "project") and obj.project_id:
-            url = reverse("admin:projects_project_change", args=[obj.project_id])
-            return format_html('<a href="{}">{}</a>', url, obj.project.name)
-        return "-"
-
-    project_link.short_description = "Project"
