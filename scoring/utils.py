@@ -522,7 +522,7 @@ def calculate_medals_points_at_time(at_time):
         leaderboard__project__default_permission=ObjectPermission.FORECASTER,
     )
 
-    # Get the age, in yeaers, for each leaderboard, and use it to
+    # Get the age, in years, for each leaderboard, and use it to
     # exp-decay the points associated with each medal (older medals weigh less)
     leaderboard_age_expr = Case(
         When(
@@ -608,7 +608,7 @@ def calculate_medals_points_at_time(at_time):
             points_type=points_type_expr,
         )
         .values("points_type")
-        .annotate(total_participants=Count("user"))
+        .annotate(total_participants=Count("user", distinct=True))
     )
 
     points = (
