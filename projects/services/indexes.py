@@ -4,11 +4,12 @@ from django.utils import timezone
 
 from posts.models import Post
 from projects.models import Project
-from questions.constants import UnsuccessfulResolutionType, QuestionStatus
+from questions.constants import QuestionStatus
 from questions.models import AggregateForecast, Question
 from questions.utils import get_last_forecast_in_the_past
 from utils.dtypes import generate_map_from_list
 from utils.the_math.aggregations import minimize_history
+from utils.the_math.formulas import string_location_to_unscaled_location
 
 IndexPoint = TypedDict("IndexPoint", {"x": int, "y": float})
 
@@ -64,14 +65,23 @@ def _value_from_resolved_question(question: Question) -> float | None:
     Generating index value from resolved question.
     """
 
-    if not question.resolution or question.resolution in UnsuccessfulResolutionType:
+    unscaled_resolution = string_location_to_unscaled_location(
+        question.resolution, question
+    )
+
+    if unscaled_resolution is None:
         return
 
-    if question.type == Question.QuestionType.BINARY:
-        return 1 if question.resolution == "yes" else -1
+    # Handle resolutions outside the lower/upper bounds
+    # < the lower bound -> 0 -> results in -1
+    # > the upper bound -> 1 -> results in +1
+    unscaled_resolution = min(unscaled_resolution, 1.0)
+    unscaled_resolution = max(unscaled_resolution, 0)
 
-    # TODO: implement for Continuous questions!
-    return
+    # For binary, this will always be -1 or 1
+    # For numeric, this follows Sylvain’s proposed formula:
+    # n = len(cdf); v2 = (2*i - n + 1) / (n - 1)
+    return 2 * unscaled_resolution - 1
 
 
 def calculate_questions_index_timeline(
