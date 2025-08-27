@@ -53,9 +53,27 @@ const ChartValueBox: FC<{
       : chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET;
   const chipHeight = 16;
   const chipFontSize = 12;
+  const hasResolution = !!resolution && !isCursorActive;
 
   return (
     <g>
+      {/* "RESOLVED" label above the chip for resolution values */}
+      {hasResolution && (
+        <text
+          x={adjustedX}
+          y={y - chipHeight - 1 - (isDistributionChip ? chipHeight : 0)}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={getThemeColor(METAC_COLORS.purple["800"])}
+          fontWeight="600"
+          fontSize={11}
+          style={{ textTransform: "uppercase", letterSpacing: "0.5px" }}
+        >
+          RESOLVED
+        </text>
+      )}
+
+      {/* Original chip background - unchanged */}
       <rect
         x={adjustedX - textWidth / 2}
         y={y - chipHeight / 2 - (isDistributionChip ? chipHeight : 0)}
@@ -70,10 +88,12 @@ const ChartValueBox: FC<{
         rx={2}
         ry={2}
       />
+
+      {/* Original value text - unchanged */}
       <text
         ref={textRef}
         x={adjustedX}
-        y={y + chipFontSize / 10 - (isDistributionChip ? chipHeight : 0)} // fix vertical alignment
+        y={y + chipFontSize / 10 - (isDistributionChip ? chipHeight : 0)}
         textAnchor="middle"
         dominantBaseline="middle"
         fill={getThemeColor(METAC_COLORS.gray["0"])}

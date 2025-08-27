@@ -26,10 +26,10 @@ const QuestionContinuousResolutionChip: FC<Props> = ({
           <ContinuousForecastIcon className="w-5" />
         </div>
 
-        <div className="resize-label line-clamp-2 w-full pr-1.5 text-left text-sm font-normal capitalize text-olive-800 dark:text-olive-800-dark">
+        <div className="resize-label line-clamp-2 w-full pr-1.5 text-left text-xs font-normal capitalize text-olive-800 dark:text-olive-800-dark md:text-sm">
           {t("community")}
         </div>
-        <div className="resize-label whitespace-pre pl-7 text-right text-base font-bold text-olive-900 dark:text-olive-900-dark">
+        <div className="resize-label whitespace-pre pl-7 text-right text-sm font-bold text-olive-900 dark:text-olive-900-dark md:text-base">
           {formattedCP}
         </div>
       </div>
@@ -45,10 +45,10 @@ const QuestionContinuousResolutionChip: FC<Props> = ({
           />
         </div>
 
-        <div className="resize-label line-clamp-2 w-full pr-1.5 text-left text-sm font-normal capitalize text-purple-800 dark:text-purple-800-dark">
+        <div className="resize-label line-clamp-2 w-full pr-1.5 text-left text-xs font-normal capitalize text-purple-800 dark:text-purple-800-dark md:text-sm">
           {t("result")}
         </div>
-        <div className="resize-label whitespace-pre pl-7 text-right text-base font-bold text-purple-800 dark:text-purple-800-dark">
+        <div className="resize-label whitespace-pre pl-7 text-right text-sm font-bold text-purple-800 dark:text-purple-800-dark md:text-base">
           {formatedResolution}
         </div>
       </div>

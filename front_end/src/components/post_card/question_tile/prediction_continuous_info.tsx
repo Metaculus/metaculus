@@ -38,6 +38,13 @@ const PredictionContinuousInfo: FC<Props> = ({
       longBounds: true,
     });
     const successfullyResolved = isSuccessfullyResolved(question.resolution);
+
+    // Only hide chip for successfully resolved continuous questions
+    // Show chip for Ambiguous/Annulled questions
+    if (successfullyResolved) {
+      return null; // Let chart handle successfully resolved display
+    }
+
     return (
       <QuestionResolutionChip
         formatedResolution={formatedResolution}
@@ -49,12 +56,12 @@ const PredictionContinuousInfo: FC<Props> = ({
 
   return (
     <>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 md:gap-1.5">
         <ContinuousCPBar question={question} />
         <QuestionCPMovement
           question={question}
           unit={""}
-          className="mx-auto max-w-[110px]"
+          className="mx-auto max-w-[110px] md:mx-0"
           size={"xs"}
           boldValueUnit={true}
         />

@@ -753,31 +753,24 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             )}
 
-          {/* Today's date line for date questions */}
+          {/* Today's date dot for date questions */}
           {question.type === QuestionType.Date && withTodayLine && (
-            <VictoryLine
+            <VictoryScatter
               data={[
                 {
                   x: unscaleNominalLocation(
                     Math.floor(Date.now() / 1000),
                     question.scaling
                   ),
-                  y: 0,
-                },
-                {
-                  x: unscaleNominalLocation(
-                    Math.floor(Date.now() / 1000),
-                    question.scaling
-                  ),
-                  y: yDomain[1] * 0.9,
+                  y: yDomain[0], // Bottom of the chart
+                  symbol: "circle",
+                  size: 3,
                 },
               ]}
               style={{
                 data: {
-                  stroke: getThemeColor(METAC_COLORS.blue["700"]),
-                  strokeDasharray: "4,4",
-                  strokeWidth: 1,
-                  opacity: 0.5,
+                  fill: getThemeColor(METAC_COLORS.blue["700"]),
+                  stroke: "none",
                 },
               }}
             />
@@ -788,10 +781,10 @@ const ContinuousAreaChart: FC<Props> = ({
               <VictoryPortal>
                 <VictoryLabel
                   x={todayLabelPosition.x}
-                  y={todayLabelPosition.y}
+                  y={height - BOTTOM_PADDING - 12} // Position above the dot
                   text="Today"
                   style={{
-                    fill: getThemeColor(METAC_COLORS.gray["500"]),
+                    fill: getThemeColor(METAC_COLORS.blue["700"]),
                     fontSize: 12,
                   }}
                   textAnchor="middle"

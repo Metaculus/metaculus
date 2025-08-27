@@ -121,10 +121,11 @@ const QuestionContinuousTile: FC<Props> = ({
     [onReaffirm, question.id, question.type]
   );
 
-  return (
-    <div className="flex justify-between gap-6 md:gap-8">
-      <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
-        {question.type === QuestionType.Binary && (
+  // Binary questions use original side-by-side layout
+  if (question.type === QuestionType.Binary) {
+    return (
+      <div className="flex justify-between gap-6 md:gap-8">
+        <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
           <PredictionBinaryInfo
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
@@ -134,23 +135,9 @@ const QuestionContinuousTile: FC<Props> = ({
               <QuestionResolutionChipFacade question={q} />
             )}
           />
-        )}
-        {[
-          QuestionType.Numeric,
-          QuestionType.Discrete,
-          QuestionType.Date,
-        ].includes(question.type) && (
-          <PredictionContinuousInfo
-            question={question}
-            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-            canPredict={canPredict}
-            showMyPrediction={true}
-          />
-        )}
-      </div>
-      {showChart && (
-        <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
-          {question.type === QuestionType.Binary ? (
+        </div>
+        {showChart && (
+          <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
             <NumericTimeline
               nonInteractive={true}
               aggregation={
@@ -176,8 +163,43 @@ const QuestionContinuousTile: FC<Props> = ({
               forecastAvailability={forecastAvailability}
               forFeedPage
             />
-          ) : (
-            <>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Continuous questions (Numeric, Discrete, Date) use overlay layout
+
+  // Check if we should use overlay layout or regular layout
+  const isResolved =
+    question.status === QuestionStatus.RESOLVED && question.resolution;
+  const shouldUseOverlayLayout =
+    !isResolved &&
+    !forecastAvailability.isEmpty &&
+    !forecastAvailability.cpRevealsOn;
+
+  if (shouldUseOverlayLayout) {
+    // Use overlay layout for mobile, side-by-side for large screens
+    return (
+      <div className="w-full">
+        {/* Mobile: Overlay layout */}
+        <div className="flex flex-col items-center md:hidden">
+          {/* CP values container - positioned first */}
+          <div className="pointer-events-none relative flex w-full items-center justify-center">
+            <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
+              <PredictionContinuousInfo
+                question={question}
+                onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+                canPredict={canPredict}
+                showMyPrediction={true}
+              />
+            </div>
+          </div>
+
+          {/* Full-width chart background - overlapping with negative margin */}
+          {showChart && (
+            <div className="relative -mt-6 flex w-full flex-col overflow-visible">
               <ContinuousAreaChart
                 data={continuousAreaChartData}
                 height={HEIGHT}
@@ -189,8 +211,69 @@ const QuestionContinuousTile: FC<Props> = ({
                 forecastAvailability={forecastAvailability}
                 className="pl-3 text-xs md:text-sm"
               />
-            </>
+            </div>
           )}
+        </div>
+
+        {/* Large screens: Side-by-side layout (like binary questions) */}
+        <div className="hidden justify-between gap-6 md:flex">
+          <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
+            <PredictionContinuousInfo
+              question={question}
+              onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+              canPredict={canPredict}
+              showMyPrediction={true}
+            />
+          </div>
+          {showChart && (
+            <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
+              <ContinuousAreaChart
+                data={continuousAreaChartData}
+                height={HEIGHT}
+                question={question}
+                hideCP={hideCP}
+                forceTickCount={3}
+              />
+              <ForecastAvailabilityChartOverflow
+                forecastAvailability={forecastAvailability}
+                className="pl-3 text-xs md:text-sm"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Use regular layout for resolved questions, no forecasts, or CP not revealed
+  return (
+    <div className="flex flex-col">
+      {/* CP values container - regular positioning */}
+      <div className="flex justify-center">
+        <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
+          <PredictionContinuousInfo
+            question={question}
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            canPredict={canPredict}
+            showMyPrediction={true}
+          />
+        </div>
+      </div>
+
+      {/* Chart below CP values */}
+      {showChart && (
+        <div className="relative w-full overflow-visible">
+          <ContinuousAreaChart
+            data={continuousAreaChartData}
+            height={HEIGHT}
+            question={question}
+            hideCP={hideCP}
+            forceTickCount={3}
+          />
+          <ForecastAvailabilityChartOverflow
+            forecastAvailability={forecastAvailability}
+            className="pl-3 text-xs text-gray-700 dark:text-gray-700-dark md:text-sm"
+          />
         </div>
       )}
     </div>

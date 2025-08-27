@@ -23,9 +23,14 @@ import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 type Props = {
   question: QuestionWithForecasts;
   size: "md" | "lg";
+  hideLabel?: boolean;
 };
 
-const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
+const QuestionHeaderCPStatus: FC<Props> = ({
+  question,
+  size,
+  hideLabel = false,
+}) => {
   const locale = useLocale();
   const t = useTranslations();
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -78,31 +83,52 @@ const QuestionHeaderCPStatus: FC<Props> = ({ question, size }) => {
     return (
       !forecastAvailability.isEmpty && (
         <div
-          className={cn("flex w-max flex-col", {
-            "max-w-[200px] gap-4": size === "lg",
-            "max-w-[130px] gap-3": size === "md",
-          })}
+          className={cn(
+            "flex flex-col rounded-md border border-olive-800/20 p-2 dark:border-olive-800-dark md:px-3 md:py-2.5",
+            {
+              "h-full w-[200px]": size === "lg" && hideLabel,
+              "w-max max-w-[200px]": size === "lg" && !hideLabel,
+              "max-w-[130px]": size === "md",
+              "gap-1": !hideLabel && size === "lg",
+              "gap-0": size === "md", // Remove gap for mobile (both hideLabel true/false)
+              "-gap-2": size === "md" && hideLabel, // More negative gap for mobile continuous questions
+            }
+          )}
         >
           <div>
-            <div className="mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block">
-              {question.status === QuestionStatus.CLOSED
-                ? t("closed")
-                : t("communityPredictionLabel")}
-            </div>
+            {!hideLabel && (
+              <div className="mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block">
+                {question.status === QuestionStatus.CLOSED
+                  ? t("closed")
+                  : t("communityPredictionLabel")}
+              </div>
+            )}
             <ContinuousCPBar
               question={question as QuestionWithNumericForecasts}
               size={size}
+              variant="question"
             />
           </div>
-          <MinifiedContinuousAreaChart
-            question={question}
-            data={continuousAreaChartData}
-            height={50}
-            forceTickCount={2}
-          />
+          <div
+            className={cn({
+              "flex min-h-0 flex-1 items-center": hideLabel, // Desktop timeline: flex and center
+              "": !hideLabel, // Mobile: no special styling
+            })}
+          >
+            <MinifiedContinuousAreaChart
+              question={question}
+              data={continuousAreaChartData}
+              height={hideLabel && size === "lg" ? 120 : 50}
+              forceTickCount={2}
+              hideLabels={hideLabel}
+            />
+          </div>
           <QuestionCPMovement
             question={question}
-            className="mx-auto"
+            className={cn("mx-auto min-w-[100px]", {
+              "-mt-2 text-center": size === "md" && hideLabel, // Center + negative margin for mobile continuous
+              "text-center": size === "md" && !hideLabel, // Just center for mobile binary
+            })}
             size={"sm"}
             // Hide unit on small sizes
             unit={size === "md" ? "" : undefined}
