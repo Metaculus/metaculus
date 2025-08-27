@@ -103,7 +103,7 @@ const SubscriptionSectionSpecificTime: FC<
       >
         {t("addAnother")}
       </Button>
-      <p className="mt-4 opacity-70">
+      <p className="mt-4 text-xs opacity-70">
         {t("followModalReminderThisQuestionOpened", {
           published_at:
             post.published_at &&
