@@ -99,6 +99,10 @@ def aggregation_explorer_api_view(request):
         aggregate_forecasts=aggregate_forecasts,
         full_forecast_values=True,
     )
+
+    # Add forecasters count
+    data["forecasters_count"] = question.get_forecasters().count()
+
     return Response(data)
 
 

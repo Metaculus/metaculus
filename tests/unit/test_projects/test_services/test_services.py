@@ -7,7 +7,7 @@ from questions.models import Question
 from tests.unit.test_posts.factories import factory_post, factory_notebook
 from tests.unit.test_questions.factories import create_question
 from tests.unit.test_users.factories import factory_user
-from .factories import factory_project
+from tests.unit.test_projects.factories import factory_project
 
 
 def test_notify_project_subscriptions_post_open_notification(user1, user2):

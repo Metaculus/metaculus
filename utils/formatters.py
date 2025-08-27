@@ -35,6 +35,9 @@ def abbreviated_number(
 
     pow = math.floor(math.log10(abs(val)))
 
+    if -3 <= pow < 3:
+        return f"{val:.{sigfigs}g}"
+
     if pow >= 12:
         return to_scientific_notation(val, 2, 1, False)
 

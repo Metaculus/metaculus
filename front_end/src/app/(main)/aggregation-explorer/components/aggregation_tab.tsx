@@ -44,6 +44,7 @@ const AggregationsTab: FC<Props> = ({
     actual_close_time,
     resolution,
     unit,
+    forecasters_count = 0,
   } = aggregationData ?? {};
 
   const tabData =
@@ -75,10 +76,11 @@ const AggregationsTab: FC<Props> = ({
     () => getPostDrivenTime(actual_close_time),
     [actual_close_time]
   );
-  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
-    activeAggregation?.history?.at(-1)?.start_time ?? null
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const aggregationTimestamp = useDebouncedValue(
+    cursorTimestamp ?? activeAggregation?.history?.at(-1)?.start_time ?? null,
+    500
   );
-  const aggregationTimestamp = useDebouncedValue(cursorTimestamp, 500);
 
   const cursorData = useMemo(() => {
     if (!activeAggregation) {
@@ -102,21 +104,19 @@ const AggregationsTab: FC<Props> = ({
 
     return {
       timestamp: forecast.start_time ?? cursorTimestamp,
-      forecasterCount: forecast.forecaster_count,
+      forecasterCount:
+        cursorTimestamp === null
+          ? forecasters_count
+          : forecast.forecaster_count,
       interval_lower_bound: forecast.interval_lower_bounds?.[0] ?? 0,
       center: forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0,
       interval_upper_bound: forecast.interval_upper_bounds?.[0] ?? 0,
     };
-  }, [activeAggregation, cursorTimestamp]);
+  }, [activeAggregation, cursorTimestamp, forecasters_count]);
 
-  const handleCursorChange = useCallback(
-    (value: number | null) => {
-      const fallback = activeAggregation?.history?.at(-1)?.start_time ?? null;
-
-      setCursorTimestamp(value ?? fallback);
-    },
-    [activeAggregation]
-  );
+  const handleCursorChange = useCallback((value: number | null) => {
+    setCursorTimestamp(value);
+  }, []);
 
   if (!activeAggregation) {
     return null;
@@ -222,7 +222,11 @@ const AggregationsTab: FC<Props> = ({
         {!!cursorData && (
           <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
             <CursorDetailItem
-              title={t("totalForecastersLabel")}
+              title={
+                cursorTimestamp
+                  ? t("activeForecastersLabel")
+                  : t("totalForecastersLabel")
+              }
               content={cursorData.forecasterCount?.toString()}
             />
             <CursorDetailItem

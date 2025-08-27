@@ -128,8 +128,8 @@ class CPChangeData:
         if not self.cp_change_value:
             return ""
         return {
-            "goneUp": _("gone up"),
-            "goneDown": _("gone down"),
+            "up": _("gone up"),
+            "down": _("gone down"),
             "expanded": _("expanded"),
             "contracted": _("contracted"),
             "changed": _("changed"),
@@ -138,11 +138,12 @@ class CPChangeData:
     def get_cp_change_symbol(self):
         if not self.cp_change_value:
             return ""
+
         return {
-            "goneUp": "+",
-            "goneDown": "-",
-            "expanded": "←→",
-            "contracted": "→←",
+            "up": "+",
+            "down": "-",
+            "expanded": "↔ ",
+            "contracted": "→← ",
             "changed": "↕",
         }.get(self.cp_change_label, self.cp_change_label)
 
@@ -184,7 +185,9 @@ class CPChangeData:
             Question.QuestionType.NUMERIC,
             Question.QuestionType.DISCRETE,
         ]:
-            return format_value_unit(abbreviated_number(value), self.question.unit)
+            return format_value_unit(
+                abbreviated_number(round(value, 2)), self.question.unit
+            )
 
         return value
 
@@ -769,6 +772,29 @@ def send_forecast_autowidrawal_notification(
         },
         use_async=False,
         from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+    return True
+
+
+def send_weekly_top_comments_notification(
+    recipients: list[str] | str,
+    top_comments: list[Comment],
+    top_comments_url: str,
+    other_usernames: str,
+    account_settings_url: str,
+):
+    send_email_with_template(
+        to=recipients,
+        subject=_("Last week’s top Metaculus comments"),
+        template_name="emails/weekly_top_comments.html",
+        context={
+            "top_comments": top_comments,
+            "top_comments_url": top_comments_url,
+            "other_usernames": other_usernames,
+            "account_settings_url": account_settings_url,
+        },
+        use_async=False,
     )
 
     return True
