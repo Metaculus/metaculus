@@ -1,7 +1,8 @@
+import { FC } from "react";
 import "./styles.css";
-import React, { FC } from "react";
 
-import { ProjectIndexWeights, Tournament } from "@/types/projects";
+import { IndexPoint, ProjectIndexWeights, Tournament } from "@/types/projects";
+import { isDefaultIndexData } from "@/utils/projects/helpers";
 
 import { computeIndexDeltaFromSeries } from "./helpers";
 import IndexQuestionsTable from "./index_questions_table";
@@ -13,7 +14,11 @@ type Props = {
 };
 
 const IndexSection: FC<Props> = ({ indexWeights, tournament }) => {
-  const beLine = tournament.index_data?.series?.line ?? [];
+  const series = isDefaultIndexData(tournament.index_data)
+    ? tournament.index_data.series
+    : null;
+  const beLine: IndexPoint[] = series?.line ?? [];
+
   const { delta } = computeIndexDeltaFromSeries(beLine);
 
   return (

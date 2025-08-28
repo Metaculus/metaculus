@@ -1,6 +1,7 @@
 import { MultiYearIndexData } from "@/types/projects";
 
 export const mockMultiYearIndexData: MultiYearIndexData = {
+  type: "multi_year",
   years: [2026, 2028, 2030],
   series_by_year: {
     "2026": {

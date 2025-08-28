@@ -3,8 +3,9 @@ import { FC } from "react";
 
 import PeriodMovement from "@/components/period_movement";
 import RichText from "@/components/rich_text";
-import { Tournament } from "@/types/projects";
+import { IndexPoint, Tournament } from "@/types/projects";
 import { MovementDirection } from "@/types/question";
+import { isDefaultIndexData } from "@/utils/projects/helpers";
 
 import { computeIndexDeltaFromSeries } from "./helpers";
 
@@ -15,7 +16,10 @@ type Props = {
 const IndexGauge: FC<Props> = async ({ tournament }) => {
   const t = await getTranslations();
 
-  const beLine = tournament.index_data?.series?.line ?? [];
+  const series = isDefaultIndexData(tournament.index_data)
+    ? tournament.index_data.series
+    : null;
+  const beLine: IndexPoint[] = series?.line ?? [];
   const { latest, delta } = computeIndexDeltaFromSeries(beLine);
 
   let direction = MovementDirection.UNCHANGED;

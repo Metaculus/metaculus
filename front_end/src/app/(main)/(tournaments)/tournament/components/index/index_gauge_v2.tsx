@@ -12,6 +12,7 @@ import {
   Tournament,
 } from "@/types/projects";
 import { MovementDirection } from "@/types/question";
+import { isDefaultIndexData } from "@/utils/projects/helpers";
 
 import { GREEN_R, NEUTRAL, RED_L } from "../../constants/colors";
 
@@ -36,8 +37,9 @@ const IndexGaugeV2: FC<Props> = ({
 
   const series =
     pickSeries(multiYearIndexData, year) ??
-    tournament.index_data?.series ??
-    null;
+    (isDefaultIndexData(tournament.index_data)
+      ? tournament.index_data.series
+      : null);
 
   if (!series?.line?.length) {
     return null;
