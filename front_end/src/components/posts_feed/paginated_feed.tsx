@@ -2,7 +2,7 @@
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useEffect, useState } from "react";
+import { FC, Fragment, useEffect, useMemo, useState } from "react";
 
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
@@ -17,6 +17,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
+import { MultiYearIndexData } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { safeSessionStorage } from "@/utils/core/storage";
@@ -35,6 +36,7 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
+  multiYearIndexData?: MultiYearIndexData | null;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
@@ -42,6 +44,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   filters,
   type = "posts",
   isCommunity,
+  multiYearIndexData,
 }) => {
   const t = useTranslations();
   const pathname = usePathname();
@@ -58,6 +61,18 @@ const PaginatedPostsFeed: FC<Props> = ({
       ? pageNumber * POSTS_PER_PAGE
       : POSTS_PER_PAGE
   );
+  const weightByPostId = useMemo(() => {
+    const map = new Map<number, number>();
+    const multi = multiYearIndexData?.weights;
+    if (multi && Object.keys(multi).length) {
+      for (const [key, weight] of Object.entries(multi)) {
+        const id = Number(key);
+        if (Number.isFinite(id)) map.set(id, weight);
+      }
+    }
+    return map;
+  }, [multiYearIndexData]);
+
   const [hasMoreData, setHasMoreData] = useState(
     initialQuestions.length >= POSTS_PER_PAGE
   );
@@ -135,6 +150,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   };
 
   const renderPost = (post: PostWithForecasts) => {
+    const indexWeight = weightByPostId.get(post.id);
     if (isNotebookPost(post) && type === "news") {
       return <NewsCard post={post} />;
     }
@@ -142,7 +158,13 @@ const PaginatedPostsFeed: FC<Props> = ({
     if (isNil(user) && !isNotebookPost(post) && !isConditionalPost(post)) {
       return <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />;
     }
-    return <PostCard post={post} forCommunityFeed={isCommunity} />;
+    return (
+      <PostCard
+        post={post}
+        forCommunityFeed={isCommunity}
+        indexWeight={indexWeight}
+      />
+    );
   };
 
   return (

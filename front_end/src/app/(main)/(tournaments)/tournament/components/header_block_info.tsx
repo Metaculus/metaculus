@@ -2,15 +2,25 @@ import { isNil } from "lodash";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 
-import { Tournament, TournamentType } from "@/types/projects";
+import {
+  MultiYearIndexData,
+  Tournament,
+  TournamentType,
+} from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
 
 import TournamentTimeline from "../components/tournament_timeline";
-import IndexGauge from "./index/index_gauge";
+import IndexHeaderBlock from "./index/index_header_block";
 
-type Props = { tournament: Tournament };
+type Props = {
+  tournament: Tournament;
+  multiYearIndexData?: MultiYearIndexData | null;
+};
 
-const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
+const HeaderBlockInfo: FC<Props> = async ({
+  tournament,
+  multiYearIndexData,
+}) => {
   const t = await getTranslations();
   const locale = await getLocale();
 
@@ -22,7 +32,12 @@ const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
         </Suspense>
       );
     case TournamentType.Index:
-      return <IndexGauge tournament={tournament} />;
+      return (
+        <IndexHeaderBlock
+          tournament={tournament}
+          multiYearIndexData={multiYearIndexData ?? null}
+        />
+      );
     default:
       return (
         <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">

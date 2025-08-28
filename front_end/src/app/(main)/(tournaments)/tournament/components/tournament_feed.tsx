@@ -12,16 +12,17 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { Tournament } from "@/types/projects";
+import { MultiYearIndexData, Tournament } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 
 type Props = {
-  tournament: Tournament;
+  tournament: Tournament | null;
+  multiYearIndexData?: MultiYearIndexData | null;
 };
 
-const TournamentFeed: FC<Props> = ({ tournament }) => {
+const TournamentFeed: FC<Props> = ({ tournament, multiYearIndexData }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
     Object.fromEntries(searchParams),
@@ -33,7 +34,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
     ...questionFilters,
-    tournaments: tournament.id.toString(),
+    tournaments: tournament?.id.toString(),
   };
 
   const [questions, setQuestions] = useState<PostWithForecasts[]>([]);
@@ -86,7 +87,11 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   ) : error ? (
     <FormErrorMessage errors={error?.digest} />
   ) : (
-    <PaginatedPostsFeed filters={pageFilters} initialQuestions={questions} />
+    <PaginatedPostsFeed
+      filters={pageFilters}
+      initialQuestions={questions}
+      multiYearIndexData={multiYearIndexData}
+    />
   );
 };
 

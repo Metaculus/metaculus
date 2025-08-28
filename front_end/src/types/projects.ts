@@ -1,6 +1,8 @@
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { UserBase, UserProfile } from "@/types/users";
 
+import { Quartiles } from "./question";
+
 export enum ProjectVisibility {
   Normal = "normal",
   NotInMainFeed = "not_in_main_feed",
@@ -127,12 +129,43 @@ export enum BotLeaderboardStatus {
   BotsOnly = "bots_only",
 }
 
+type IndexStatus = "open" | "resolved";
+export type IndexPoint = { x: number; y: number };
+
+export type IndexSeries = {
+  line: IndexPoint[];
+  status: IndexStatus;
+  resolved_at?: string;
+  resolution_value?: number;
+};
+
+type IndexWeights = Record<string, number>;
+
+type IndexDimension = {
+  key: string;
+  quartiles: Quartiles;
+  status: IndexStatus;
+  resolved_at?: string;
+  resolution_value?: number;
+};
+
 export type IndexData = {
-  series: {
-    line: { x: number; y: number }[];
-    status: "open" | "resolved";
-    resolved_at?: string;
-    resolution_value?: number;
-  };
-  weights: Record<string, number>;
+  series?: IndexSeries | null;
+  weights?: IndexWeights | null;
+
+  years?: number[] | null;
+  series_by_year?: Record<string, IndexSeries> | null;
+  dimensions?: IndexDimension[] | null;
+
+  type?: "default" | "multi_year";
+  min_label?: string | null;
+  max_label?: string | null;
+  increasing_is_good?: boolean | null;
+};
+
+export type MultiYearIndexData = {
+  years: number[];
+  series_by_year: Record<string, IndexSeries>;
+  dimensions: IndexDimension[];
+  weights: IndexWeights;
 };
