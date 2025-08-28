@@ -880,6 +880,12 @@ class ProjectAdmin(CustomTranslationAdmin):
         ]:
             if field in fields:
                 fields.remove(field)
+
+            if field == "index_configuration" and (
+                not obj or obj.type != Project.ProjectTypes.INDEX
+            ):
+                continue
+
             fields.insert(0, field)
         return fields
 
