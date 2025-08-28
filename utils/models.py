@@ -59,27 +59,6 @@ class CustomTranslationAdmin(admin.ModelAdmin):
             extra_fields += localized_field_names
         return uniques_ordered_list(fields + extra_fields)
 
-    def get_readonly_fields(self, request, obj=None):
-        model_class = self.model
-        translation_fields = get_translation_fields_for_model(model_class)
-        ro_fields = list(super().get_readonly_fields(request, obj))
-
-        if obj and not obj.is_automatically_translated:
-            return uniques_ordered_list(ro_fields + translation_fields)
-
-        # We are showing the language specific fields as read only
-        extra_ro_fields = []
-        for field_name in translation_fields:
-            localized_field_names = [
-                build_supported_localized_fieldname(field_name, lang[0])
-                for lang in settings.LANGUAGES
-            ]
-            extra_ro_fields += localized_field_names
-
-        extra_ro_fields.append("content_last_md5")
-
-        return uniques_ordered_list(ro_fields + extra_ro_fields)
-
     @admin.action(description="Update translations")
     def update_translations(self, request, queryset):
         for obj in queryset:
