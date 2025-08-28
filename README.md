@@ -81,7 +81,7 @@ If on a Mac and using a [supported postgres version](https://github.com/pgvector
 >6. `make install`
 >Other installations and detailed instructions - https://github.com/pgvector/pgvector
 
-Then enable the extension:
+Then enable the extension by running the following in your Postgres shell:
 ```sql
 CREATE EXTENSION vector;
 ```
