@@ -915,10 +915,6 @@ class ProjectIndexAdmin(admin.ModelAdmin):
     fields = ("type", "min_label", "max_label", "increasing_is_good")
     inlines = [ProjectIndexPostInline]
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(project__type=Project.ProjectTypes.INDEX)
-
     def get_model_perms(self, request):
         # Hide from the admin homepage
         return {}
