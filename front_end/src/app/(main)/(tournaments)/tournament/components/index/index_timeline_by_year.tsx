@@ -11,24 +11,36 @@ import {
   generateTimestampXScale,
 } from "@/utils/charts/axis";
 
+import { getVerticalLegendProps } from "../../helpers/index_legend";
 import VerticalGradientArrow from "../vertical_legend_arrow";
 
 type Props = {
   series: IndexSeries;
   height?: number;
   chartTitle?: string;
+  minLabel?: string | null;
+  maxLabel?: string | null;
+  increasingIsGood?: boolean | null;
 };
 
 const IndexTimelineByYear: FC<Props> = ({
   series,
   height = 170,
   chartTitle,
+  minLabel,
+  maxLabel,
+  increasingIsGood,
 }) => {
   const buildChartData = useCallback(
     (width: number, zoom: TimelineChartZoomOption) =>
       buildChart({ series, width, zoom }),
     [series]
   );
+  const legend = getVerticalLegendProps({
+    min_label: minLabel,
+    max_label: maxLabel,
+    increasing_is_good: increasingIsGood,
+  });
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const handleCursorChange = (value: number | null) =>
     setCursorTimestamp(value);
@@ -56,10 +68,10 @@ const IndexTimelineByYear: FC<Props> = ({
       resolutionPoint={resolutionPoint}
       leftLegend={
         <>
-          <VerticalGradientArrow className="hidden sm:block" />
+          <VerticalGradientArrow {...legend} className="hidden sm:block" />
           <VerticalGradientArrow
+            {...legend}
             stemThickness={3}
-            stemHeight={82}
             className="max-w-[66px] border-none p-0 sm:hidden"
           />
         </>

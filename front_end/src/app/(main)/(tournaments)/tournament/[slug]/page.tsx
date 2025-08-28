@@ -80,10 +80,11 @@ export default async function TournamentSlug(props: Props) {
     tournament?.type === TournamentType.Index && isMultiYearIndexData(idx)
       ? {
           type: "multi_year",
-          years: idx.years,
           series_by_year: idx.series_by_year,
-          dimensions: idx.dimensions ?? [],
           weights: idx.weights ?? {},
+          min_label: idx.min_label ?? null,
+          max_label: idx.max_label ?? null,
+          increasing_is_good: idx.increasing_is_good ?? null,
         }
       : mockMultiYearIndexData;
   invariant(tournament, `Tournament not found: ${params.slug}`);

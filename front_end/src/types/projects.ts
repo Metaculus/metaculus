@@ -1,8 +1,6 @@
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { UserBase, UserProfile } from "@/types/users";
 
-import { Quartiles } from "./question";
-
 export enum ProjectVisibility {
   Normal = "normal",
   NotInMainFeed = "not_in_main_feed",
@@ -145,14 +143,12 @@ export type IndexSeries = {
   resolution_value?: number;
 };
 
-type IndexWeights = Record<string, number>;
-type IndexDimension = {
-  key: string;
-  quartiles: Quartiles;
-  status: IndexStatus;
-  resolved_at?: string;
-  resolution_value?: number;
+export type IndexSeriesWithBounds = IndexSeries & {
+  interval_lower_bounds?: number;
+  interval_upper_bounds?: number;
 };
+
+type IndexWeights = Record<string, number>;
 
 export type DefaultIndexData = IndexBase & {
   type?: "default";
@@ -161,10 +157,8 @@ export type DefaultIndexData = IndexBase & {
 };
 
 export type MultiYearIndexData = IndexBase & {
-  type: "multi_year";
-  years: number[];
-  series_by_year: Record<string, IndexSeries>;
-  dimensions: IndexDimension[];
+  type?: "multi_year";
+  series_by_year: Record<string, IndexSeriesWithBounds>;
   weights: IndexWeights;
 };
 

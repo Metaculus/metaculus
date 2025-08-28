@@ -45,6 +45,8 @@ const IndexGaugeV2: FC<Props> = ({
     return null;
   }
 
+  const baseIndex = multiYearIndexData ?? tournament.index_data ?? null;
+
   const lastIdx = series.line.length - 1;
   const last = series.line[lastIdx];
   const nowTs = last?.x ?? 0;
@@ -52,13 +54,11 @@ const IndexGaugeV2: FC<Props> = ({
 
   const indexValue = clamp100(last?.y ?? 0);
   const indexWeekAgo = clamp100(valueAt(series.line, weekAgoTs) ?? indexValue);
-
   const deltaWeek = Number((indexValue - indexWeekAgo).toFixed(1));
 
-  const leftLabel = tournament.index_data?.min_label ?? "Less democratic";
-  const rightLabel = tournament.index_data?.max_label ?? "More democratic";
-  const lowIsGood: boolean =
-    Boolean(tournament.index_data?.increasing_is_good) ?? false;
+  const leftLabel = baseIndex?.min_label ?? "Less democratic";
+  const rightLabel = baseIndex?.max_label ?? "More democratic";
+  const lowIsGood = !!baseIndex?.increasing_is_good;
 
   const leftColor = lowIsGood ? GREEN_R : RED_L;
   const rightColor = lowIsGood ? RED_L : GREEN_R;
@@ -146,17 +146,24 @@ const IndexGaugeV2: FC<Props> = ({
 
 export default IndexGaugeV2;
 
+function getYears(multi?: MultiYearIndexData | null): number[] {
+  if (!multi?.series_by_year) return [];
+  return Object.keys(multi.series_by_year)
+    .map((k) => Number(k))
+    .filter((n) => Number.isFinite(n))
+    .sort((a, b) => a - b);
+}
+
 function pickSeries(
   multi?: MultiYearIndexData | null,
   year?: number
 ): IndexSeries | null {
-  if (multi?.years?.length) {
-    const key = year
-      ? String(year)
-      : String(multi.years[multi.years.length - 1]);
-    return multi.series_by_year?.[key] ?? null;
-  }
-  return null;
+  if (!multi?.series_by_year) return null;
+  const years = getYears(multi);
+  if (!years.length) return null;
+  const key = String(year ?? years[years.length - 1]);
+  const s = multi.series_by_year[key];
+  return s ?? null;
 }
 
 function valueAt(line: IndexPoint[], ts: number): number | null {

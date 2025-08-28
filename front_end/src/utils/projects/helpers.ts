@@ -6,7 +6,8 @@ import {
 
 export const isMultiYearIndexData = (
   d: IndexData | null | undefined
-): d is MultiYearIndexData => !!d && d.type === "multi_year";
+): d is MultiYearIndexData =>
+  !!d && typeof d === "object" && "series_by_year" in d;
 
 export const isDefaultIndexData = (
   d: IndexData | null | undefined

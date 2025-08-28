@@ -13,6 +13,7 @@ import VerticalGradientArrow from "../vertical_legend_arrow";
 import IndexGaugeV2 from "./index_gauge_v2";
 import IndexTimeline from "./index_timeline";
 import IndexTimelineByYear from "./index_timeline_by_year";
+import { getVerticalLegendProps } from "../../helpers/index_legend";
 
 type YearTab = "overview" | string;
 
@@ -27,7 +28,12 @@ const IndexHeaderBlock: React.FC<Props> = ({
 }) => {
   const t = useTranslations();
   const years = useMemo(
-    () => multiYearIndexData?.years ?? [],
+    () =>
+      multiYearIndexData
+        ? Object.keys(multiYearIndexData.series_by_year)
+            .map(Number)
+            .sort((a, b) => a - b)
+        : [],
     [multiYearIndexData]
   );
   const buttons: GroupButton<YearTab>[] = useMemo(
@@ -53,8 +59,11 @@ const IndexHeaderBlock: React.FC<Props> = ({
     [multiYearIndexData]
   );
 
+  const baseIndex = multiYearIndexData ?? tournament.index_data ?? undefined;
+  const legend = getVerticalLegendProps(baseIndex);
+
   return (
-    <div className="mt-4 flex flex-col gap-6 sm:mt-6 sm:items-center">
+    <div className="mt-4 flex flex-col gap-6 sm:mt-6 sm:items-center [&>*:first-child::-webkit-scrollbar]:hidden [&>*:first-child]:overflow-x-auto [&>*:first-child]:[-ms-overflow-style:none] [&>*:first-child]:[scrollbar-width:none]">
       {hasMultiYear && (
         <ButtonGroup<YearTab>
           value={tab}
@@ -82,10 +91,10 @@ const IndexHeaderBlock: React.FC<Props> = ({
       <div className="w-full">
         {hasMultiYear && isOverview && overviewOptions && (
           <div className="flex gap-4 sm:gap-6">
-            <VerticalGradientArrow className="hidden sm:block" />
+            <VerticalGradientArrow {...legend} className="hidden sm:block" />
             <VerticalGradientArrow
+              {...legend}
               stemThickness={3}
-              stemHeight={94}
               className="mt-4 max-w-[66px] border-none p-0 sm:hidden"
             />
             <FanChart
@@ -102,6 +111,9 @@ const IndexHeaderBlock: React.FC<Props> = ({
             height={200}
             series={selectedYearSeries}
             chartTitle={t("timeline")}
+            minLabel={baseIndex?.min_label ?? null}
+            maxLabel={baseIndex?.max_label ?? null}
+            increasingIsGood={baseIndex?.increasing_is_good ?? null}
           />
         )}
 
@@ -126,35 +138,47 @@ const toInternal = (v: number) => {
 export function buildOverviewFanOptions(
   data: MultiYearIndexData
 ): FanDatum[] | null {
-  if (!data?.dimensions?.length) return null;
+  if (!data?.series_by_year) return null;
 
-  const options: FanDatum[] = data.years
-    .map((y) => String(y))
-    .map((key) => {
-      const dim = data.dimensions.find((d) => d.key === key);
-      if (!dim) return null;
+  const entries = Object.entries(data.series_by_year)
+    .map(([year, s]) => {
+      const last = s.line.length ? s.line[s.line.length - 1] : null;
 
-      const q = dim.quartiles;
+      const lower =
+        typeof s.interval_lower_bounds === "number"
+          ? s.interval_lower_bounds
+          : Math.min(...(s.line.map((p) => p.y) || [0]));
+
+      const upper =
+        typeof s.interval_upper_bounds === "number"
+          ? s.interval_upper_bounds
+          : Math.max(...(s.line.map((p) => p.y) || [0]));
+
+      const median =
+        (typeof s.resolution_value === "number" ? s.resolution_value : null) ??
+        last?.y ??
+        (lower + upper) / 2;
+
       const hasAll =
-        Number.isFinite(q?.lower25) &&
-        Number.isFinite(q?.median) &&
-        Number.isFinite(q?.upper75);
+        Number.isFinite(lower) &&
+        Number.isFinite(median) &&
+        Number.isFinite(upper);
       if (!hasAll) return null;
 
-      const l = toInternal(Number(q.lower25));
-      const m = toInternal(Number(q.median));
-      const u = toInternal(Number(q.upper75));
-
       return {
-        name: key,
-        communityQuartiles: { lower25: l, median: m, upper75: u },
+        name: year,
+        communityQuartiles: {
+          lower25: toInternal(Number(lower)),
+          median: toInternal(Number(median)),
+          upper75: toInternal(Number(upper)),
+        },
         optionScaling: SCALING,
         type: QuestionType.Numeric,
-      };
+      } as FanDatum;
     })
     .filter(Boolean) as FanDatum[];
 
-  return options.length ? options : null;
+  return entries.length ? entries : null;
 }
 
 export default IndexHeaderBlock;

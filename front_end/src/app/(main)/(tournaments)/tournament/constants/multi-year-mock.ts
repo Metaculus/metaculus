@@ -2,7 +2,6 @@ import { MultiYearIndexData } from "@/types/projects";
 
 export const mockMultiYearIndexData: MultiYearIndexData = {
   type: "multi_year",
-  years: [2026, 2028, 2030],
   series_by_year: {
     "2026": {
       line: [
@@ -16,6 +15,8 @@ export const mockMultiYearIndexData: MultiYearIndexData = {
         { x: 1771848000, y: -6.0 },
       ],
       status: "open",
+      interval_lower_bounds: -20,
+      interval_upper_bounds: 8,
     },
     "2028": {
       line: [
@@ -29,6 +30,8 @@ export const mockMultiYearIndexData: MultiYearIndexData = {
         { x: 1834747200, y: 9.0 },
       ],
       status: "open",
+      interval_lower_bounds: -20,
+      interval_upper_bounds: -9,
     },
     "2030": {
       line: [
@@ -42,25 +45,10 @@ export const mockMultiYearIndexData: MultiYearIndexData = {
         { x: 1898251200, y: 8.0 },
       ],
       status: "open",
+      interval_lower_bounds: -2,
+      interval_upper_bounds: 10,
     },
   },
-  dimensions: [
-    {
-      key: "2026",
-      quartiles: { lower25: -20, median: -11, upper75: 8 },
-      status: "open",
-    },
-    {
-      key: "2028",
-      quartiles: { lower25: -15, median: 0, upper75: -3 },
-      status: "open",
-    },
-    {
-      key: "2030",
-      quartiles: { lower25: -2, median: 4, upper75: 10 },
-      status: "open",
-    },
-  ],
   weights: {
     "31688": 1.2,
     "31689": 0.9,
@@ -70,4 +58,7 @@ export const mockMultiYearIndexData: MultiYearIndexData = {
     "31711": 0.7,
     "31712": 1.3,
   },
+  min_label: undefined,
+  max_label: undefined,
+  increasing_is_good: null,
 };

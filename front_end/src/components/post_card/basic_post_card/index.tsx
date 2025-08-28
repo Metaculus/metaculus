@@ -70,12 +70,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
       >
         <Link href={getPostLink(post)} className="block p-4 no-underline">
           {!hideTitle && (
-            <div className="flex gap-3">
-              <h4 className="relative mb-3 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
+            <div className="mb-[18px] flex flex-col gap-[10px] sm:mb-0 sm:flex-row sm:gap-3">
+              <h4 className="relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3">
                 {title}
               </h4>
               {typeof indexWeight === "number" && (
-                <div className="ml-auto">
+                <div className="sm:ml-auto">
                   <WeightBadge value={indexWeight} />
                 </div>
               )}

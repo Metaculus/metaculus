@@ -12,7 +12,6 @@ type Props = {
   fromColor?: string;
   midColor?: string;
   toColor?: string;
-  stemHeight?: number;
   stemThickness?: number;
   headSize?: number;
   className?: string;
@@ -24,13 +23,13 @@ const VerticalGradientArrow: FC<Props> = ({
   fromColor = RED_L,
   midColor = NEUTRAL,
   toColor = GREEN_R,
-  stemHeight = 52,
   stemThickness = 4,
   headSize = 16,
   className,
 }) => {
   const stemStyle: React.CSSProperties = {
-    height: stemHeight,
+    flex: "1 1 auto",
+    minHeight: 0,
     width: stemThickness,
     background: `linear-gradient(180deg, ${fromColor} 0%, ${midColor} 50%, ${toColor} 100%)`,
     borderRadius: stemThickness / 2,
@@ -40,27 +39,31 @@ const VerticalGradientArrow: FC<Props> = ({
     borderLeft: `${headSize / 2}px solid transparent`,
     borderRight: `${headSize / 2}px solid transparent`,
     borderBottom: `${headSize}px solid ${fromColor}`,
+    height: 0,
+    width: 0,
   };
 
   const downHeadStyle: React.CSSProperties = {
     borderLeft: `${headSize / 2}px solid transparent`,
     borderRight: `${headSize / 2}px solid transparent`,
     borderTop: `${headSize}px solid ${toColor}`,
+    height: 0,
+    width: 0,
   };
 
   return (
     <div
       className={cn(
-        "max-w-[111px] rounded-[8px] border border-blue-400 bg-white p-4 text-center dark:border-blue-400-dark",
+        "min-h-full max-w-[111px] self-stretch rounded-[8px] border border-blue-400 bg-gray-0 p-4 text-center dark:border-blue-400-dark dark:bg-gray-0-dark",
         className
       )}
     >
-      <div className="mx-auto space-y-3">
+      <div className="mx-auto flex h-full flex-col">
         <div className="text-xs font-normal leading-[16px] text-gray-800 dark:text-gray-800-dark sm:text-sm">
           {topLabel}
         </div>
 
-        <div className="mx-auto flex w-min flex-col items-center">
+        <div className="mx-auto my-1 flex min-h-0 w-min flex-1 flex-col items-center">
           <span aria-hidden style={upHeadStyle} className="block" />
           <span aria-hidden style={stemStyle} className="-my-[3px] block" />
           <span aria-hidden style={downHeadStyle} className="-mt-[3px] block" />
