@@ -4,29 +4,27 @@ import {
   FilterOptionType,
   FilterSection,
 } from "@/components/popover_filter/types";
-import { GroupButton } from "@/components/ui/button_group";
 import { ChipColor } from "@/components/ui/chip";
-import { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ACCESS_FILTER,
   POST_AUTHOR_FILTER,
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
+  POST_FOLLOWING_FILTER,
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
-  POST_WITHDRAWN_FILTER,
+  POST_LEADERBOARD_TAGS_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
-  POST_STATUS_FILTER,
   POST_PAGE_FILTER,
-  POST_TAGS_FILTER,
+  POST_PROJECT_FILTER,
+  POST_STATUS_FILTER,
   POST_TEXT_SEARCH_FILTER,
   POST_TOPIC_FILTER,
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
   POST_USERNAMES_FILTER,
-  POST_FOLLOWING_FILTER,
-  POST_PROJECT_FILTER,
+  POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import ClientProfileApi from "@/services/api/profile/profile.client";
@@ -38,9 +36,8 @@ import {
   PostStatus,
 } from "@/types/post";
 import { TournamentPreview } from "@/types/projects";
-import { QuestionOrder, QuestionType } from "@/types/question";
+import { QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
-import cn from "@/utils/core/cn";
 
 // TODO: translate
 const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
@@ -109,8 +106,8 @@ export function generateFiltersFromSearchParams(
     filters.categories = searchParams[POST_CATEGORIES_FILTER];
   }
 
-  if (searchParams[POST_TAGS_FILTER]) {
-    filters.tags = searchParams[POST_TAGS_FILTER];
+  if (searchParams[POST_LEADERBOARD_TAGS_FILTER]) {
+    filters.leaderboard_tags = searchParams[POST_LEADERBOARD_TAGS_FILTER];
   }
 
   if (searchParams[POST_USERNAMES_FILTER]) {
@@ -352,64 +349,6 @@ const mapForecastTypeOptions = (
     value: type,
     active: params.getAll(POST_TYPE_FILTER).includes(type),
   }));
-
-export function getMainOrderOptions(
-  t: ReturnType<typeof useTranslations>
-): GroupButton<QuestionOrder>[] {
-  return [
-    {
-      value: QuestionOrder.ActivityDesc,
-      label: t("hot"),
-    },
-    {
-      value: QuestionOrder.WeeklyMovementDesc,
-      label: t("movers"),
-    },
-    {
-      value: QuestionOrder.OpenTimeDesc,
-      label: t("new"),
-    },
-  ];
-}
-
-export function getDropdownSortOptions(
-  t: ReturnType<typeof useTranslations>,
-  isAuthenticated: boolean
-): SelectOption<QuestionOrder>[] {
-  return [
-    { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
-    { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
-    {
-      value: QuestionOrder.PredictionCountDesc,
-      label: t("mostPredictions"),
-    },
-    { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
-    { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
-    ...(isAuthenticated
-      ? [
-          {
-            value: QuestionOrder.UnreadCommentCountDesc,
-            label: t("unreadComments"),
-          },
-          {
-            value: QuestionOrder.LastPredictionTimeAsc,
-            label: t("oldestPredictions"),
-            className: cn("block lg:hidden"),
-          },
-          {
-            value: QuestionOrder.LastPredictionTimeDesc,
-            label: t("newestPredictions"),
-            className: cn("block lg:hidden"),
-          },
-          {
-            value: QuestionOrder.DivergenceDesc,
-            label: t("myDivergence"),
-            className: cn("block lg:hidden"),
-          },
-        ]
-      : []),
-  ];
-}
 
 export function getFilterChipColor(id: string): ChipColor {
   if (id === POST_CATEGORIES_FILTER) {

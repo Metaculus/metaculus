@@ -1,4 +1,5 @@
 import { formatISO, fromUnixTime, getUnixTime } from "date-fns";
+import { isNil } from "lodash";
 import { FC } from "react";
 
 import AbreviatedNumericInput from "@/components/ui/abreviated_numeric_input";
@@ -49,8 +50,9 @@ const ContinuousTableInput: FC<Props> = ({
       defaultValue={dateValue}
       onChange={(isoString) => {
         onQuantileChange({
-          value:
-            isoString === "" ? undefined : getUnixTime(new Date(isoString)),
+          value: isNil(isoString)
+            ? undefined
+            : getUnixTime(new Date(isoString)),
           isDirty: true,
         });
       }}

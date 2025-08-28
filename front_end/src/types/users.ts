@@ -59,7 +59,8 @@ export type CurrentUser = User & {
   hide_community_prediction: boolean;
   is_onboarding_complete: boolean;
   registered_campaigns: { key: string; details: object }[];
-  has_key_factors: boolean;
+  should_suggest_keyfactors: boolean;
+  prediction_expiration_percent: number | null;
 };
 
 export enum ProfilePageMode {

@@ -50,8 +50,8 @@ from questions.serializers.common import QuestionApproveSerializer
 from utils.csv_utils import export_data_for_questions
 from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
-from utils.views import validate_data_request
 from utils.tasks import email_data_task
+from utils.views import validate_data_request
 
 spam_error = ValidationError(
     detail="This post seems to be spam. Please contact "
@@ -69,6 +69,15 @@ def posts_list_api_view(request):
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("with_cp")
+    )
+    include_descriptions = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_descriptions", True)
+    )
+    include_cp_history = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_history")
+    )
+    include_movements = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_movements")
     )
     group_cutoff = (
         serializers.IntegerField(
@@ -91,6 +100,9 @@ def posts_list_api_view(request):
         current_user=request.user,
         group_cutoff=group_cutoff,
         with_key_factors=True,
+        include_descriptions=include_descriptions,
+        include_cp_history=include_cp_history,
+        include_movements=include_movements,
     )
 
     return paginator.get_paginated_response(data)
@@ -106,7 +118,9 @@ def posts_list_homeage_api_view(request):
 
     qs = get_posts_feed(Post.objects.all(), show_on_homepage=True)
 
-    return Response(serialize_post_many(qs, with_cp=True, group_cutoff=3))
+    return Response(
+        serialize_post_many(qs, with_cp=True, include_cp_history=True, group_cutoff=3)
+    )
 
 
 @api_view(["GET"])
@@ -165,6 +179,7 @@ def posts_list_oldapi_view(request):
         posts,
         with_cp=True,
         current_user=request.user,
+        include_descriptions=True,
     )
 
     # Given we limit the feed to binary questions, we expect each post to have a question with a description
@@ -211,6 +226,8 @@ def post_detail(request: Request, pk):
         with_cp=with_cp,
         with_subscriptions=True,
         with_key_factors=True,
+        include_descriptions=True,
+        include_cp_history=True,
     )
 
     if not posts:
@@ -238,14 +255,15 @@ def post_create_api_view(request):
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
 
-    should_delete = check_and_handle_post_spam(request.user, post)
+    user_permission = get_post_permission_for_user(post, user=request.user)
+    is_user_admin = user_permission == ObjectPermission.ADMIN
+
+    should_delete = not is_user_admin and check_and_handle_post_spam(request.user, post)
 
     if should_delete:
         post.curation_status = Post.CurationStatus.DELETED
         post.save(update_fields=["curation_status"])
         raise spam_error
-
-    trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
         serialize_post(post, current_user=request.user),
@@ -373,7 +391,9 @@ def post_delete_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    post.delete()
+    post.update_curation_status(Post.CurationStatus.DELETED)
+    post.save(update_fields=["curation_status"])
+
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 

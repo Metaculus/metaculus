@@ -16,7 +16,12 @@ import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
-import { POST_ORDER_BY_FILTER, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import {
+  POST_ORDER_BY_FILTER,
+  POST_PAGE_FILTER,
+  POST_STATUS_FILTER,
+  POST_WITHDRAWN_FILTER,
+} from "@/constants/posts_feed";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
@@ -165,6 +170,11 @@ const PostsFilters: FC<Props> = ({
 
     if (replaceInfo) {
       const { optionId, replaceIds } = replaceInfo;
+
+      // Globally handle Withdrawn conditions
+      if (optionId === POST_WITHDRAWN_FILTER) {
+        extraValues = { ...(extraValues ?? {}), [POST_STATUS_FILTER]: "open" };
+      }
 
       if (!optionValue) {
         deleteParam(optionId);

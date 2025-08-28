@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { PredictionSuccessLinks } from "@/components/forecast_maker/forecast_maker_question/prediction_success_links";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
@@ -31,12 +32,10 @@ const PredictionSuccessBox: FC<PredictionSuccessBoxProps> = ({
         className
       )}
     >
-      <h4 className="m-0">
+      <h4 className="m-0 text-balance">
         {t("youPredicted")}{" "}
-        <span className="text-orange-800 dark:text-orange-800-dark">
-          <span className="whitespace-nowrap font-bold text-orange-800 dark:text-orange-800-dark">
-            {forecastValue}
-          </span>
+        <span className="whitespace-normal break-words font-bold text-orange-800 dark:text-orange-800-dark">
+          {forecastValue}
         </span>
       </h4>
       <div className="mx-1 flex flex-wrap items-center justify-center gap-2">
@@ -50,6 +49,8 @@ const PredictionSuccessBox: FC<PredictionSuccessBoxProps> = ({
           {t("shareInComment")}
         </Button>
       </div>
+
+      <PredictionSuccessLinks post={post}></PredictionSuccessLinks>
     </div>
   );
 };

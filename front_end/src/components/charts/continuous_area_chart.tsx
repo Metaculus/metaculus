@@ -38,6 +38,7 @@ import {
   interpolateYValue,
 } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -75,7 +76,7 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   shortLabels?: boolean;
-  readOnly?: boolean;
+  alignChartTabs?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -89,7 +90,7 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   shortLabels = false,
-  readOnly,
+  alignChartTabs,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -225,20 +226,21 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massAboveBounds = dataset[dataset.length - 1];
   const horizontalPadding = useMemo(() => {
     if (
-      (!readOnly && graphType === "cdf") ||
+      alignChartTabs ||
+      graphType === "cdf" ||
       question.type === QuestionType.Discrete
     ) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
       );
-      const longestLabelWidth = Math.max(5, longestLabelLength) * 9;
+      const longestLabelWidth = Math.max(5, longestLabelLength) * 5;
 
       return HORIZONTAL_PADDING + longestLabelWidth;
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type, readOnly]);
+  }, [graphType, yScale, question.type, alignChartTabs]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -465,6 +467,9 @@ const ContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (extraTheme?.area?.style?.data?.fill) {
+                            return extraTheme.area.style.data.fill;
+                          }
                           switch (chart.color) {
                             case "orange":
                               return getThemeColor(
@@ -493,6 +498,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       fill: (() => {
+                        if (extraTheme?.area?.style?.data?.fill) {
+                          return extraTheme.area.style.data.fill;
+                        }
                         switch (chart.color) {
                           case "orange":
                             return getThemeColor(
@@ -523,6 +531,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (extraTheme?.line?.style?.data?.stroke) {
+                          return extraTheme?.line?.style?.data?.stroke;
+                        }
                         switch (chart.color) {
                           case "orange":
                             return getThemeColor(
@@ -591,9 +602,12 @@ const ContinuousAreaChart: FC<Props> = ({
               tickLabels: {
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
-                  index === 0
+                  // except for discrete questions, whose first and last ticks are not
+                  // at the edges of the chart
+                  index === 0 && question.type !== QuestionType.Discrete
                     ? "start"
-                    : index === ticks.length - 1
+                    : index === ticks.length - 1 &&
+                        question.type !== QuestionType.Discrete
                       ? "end"
                       : "middle",
               },
@@ -805,10 +819,11 @@ export function getContinuousAreaChartData({
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const userForecast = question.my_forecasts?.latest;
 
-  if (latest && !latest.end_time) {
+  if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
@@ -822,7 +837,7 @@ export function getContinuousAreaChartData({
       cdf: userForecastOverride.cdf,
       type: "user" as ContinuousAreaType,
     });
-  } else if (!!userForecast && !userForecast.end_time) {
+  } else if (!!userForecast && isForecastActive(userForecast)) {
     chartData.push({
       pmf: cdfToPmf(userForecast.forecast_values),
       cdf: userForecast.forecast_values,

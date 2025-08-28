@@ -38,10 +38,12 @@ const SimilarPredictionChip: FC<Props> = ({
     return null;
   }
   const isForecastEmpty =
-    question.aggregations.recency_weighted.history.length === 0;
+    question.aggregations[question.default_aggregation_method].history
+      .length === 0;
   if (isForecastEmpty) return null;
 
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const prediction = latest?.centers?.[0];
 
   {

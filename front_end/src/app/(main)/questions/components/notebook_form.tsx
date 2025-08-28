@@ -19,11 +19,12 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
-import { Category, Post, PostWithForecasts } from "@/types/post";
+import { Post, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
 import {
@@ -73,6 +74,7 @@ type Props = {
   news_category_id?: number;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const NotebookForm: React.FC<Props> = ({
@@ -84,6 +86,7 @@ const NotebookForm: React.FC<Props> = ({
   tournaments,
   siteMain,
   news_category_id,
+  shouldUseDraftValue,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
@@ -133,8 +136,6 @@ const NotebookForm: React.FC<Props> = ({
       categories: categoriesList.map((x) => x.id),
       notebook: {
         markdown: data["markdown"],
-        type:
-          post?.notebook?.type ?? (news_category_id ? "news" : "discussion"),
       },
     };
 
@@ -145,7 +146,9 @@ const NotebookForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(draftKey);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(draftKey);
+        }
       }
       router.push(getPostLink(resp.post));
     } catch (e) {
@@ -158,7 +161,7 @@ const NotebookForm: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         setCategoriesList(draft.categories ?? []);
@@ -182,14 +185,14 @@ const NotebookForm: React.FC<Props> = ({
   }, []);
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       saveQuestionDraft(draftKey, {
         ...formData,
         categories: categoriesList,
       });
     }
-  }, [form, mode, categoriesList, draftKey]);
+  }, [form, shouldUseDraftValue, categoriesList, draftKey]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -198,12 +201,12 @@ const NotebookForm: React.FC<Props> = ({
   // update draft when form values changes
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">

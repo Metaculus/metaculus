@@ -18,7 +18,7 @@ import {
   Scaling,
 } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
-import { unscaleNominalLocation } from "@/utils/math";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 import { formatValueUnit, isUnitCompact } from "@/utils/questions/units";
 
 export function generateNumericXDomain(
@@ -65,7 +65,10 @@ export function getAxisLeftPadding(
   yLabel?: string | undefined
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
-  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+  const longestLabelLength = Math.min(
+    Math.max(...labels.map((label) => label.length)),
+    12
+  );
   const fontSizeScale = yLabel ? 9 : 8;
   return {
     leftPadding: Math.round(
@@ -81,7 +84,10 @@ export function getAxisRightPadding(
   yLabel?: string | undefined
 ) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
-  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+  const longestLabelLength = Math.min(
+    Math.max(...labels.map((label) => label.length)),
+    12
+  );
   const fontSizeScale = yLabel ? 11 : 9;
   return {
     rightPadding: Math.round(
@@ -282,6 +288,133 @@ export function generateTimestampXScale(
   };
 }
 
+/**
+ * Takes an array of values and rounds them to the minimum
+ * number of significant digits such that no two values
+ * are rounded to the same value.
+ * Values must be sorted in ascending order.
+ */
+function minimumSignificantRounding(values: number[]): number[] {
+  const roundedValues: number[] = [];
+  const EPS = 1e-12;
+
+  function sigfigRound(val: number, sigfigs: number): number {
+    if (val === 0) return 0;
+    const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
+    return Math.round(val * divisor) / divisor;
+  }
+  // TODO: more intelligent ordering for rounded tick value selection
+  // TODO: add dextrous rounding reflecting sig fig cost algorithm
+  values.forEach((value, i) => {
+    if (i === 0 || i === values.length - 1) {
+      roundedValues.push(value);
+      return;
+    }
+    const prevValue = values[i - 1];
+    const nextValue = values[i + 1];
+
+    if (prevValue == null || nextValue == null) {
+      roundedValues.push(value);
+      return;
+    }
+
+    // flat/duplicate guards
+    if (
+      Math.abs(value - prevValue) < EPS ||
+      Math.abs(nextValue - value) < EPS
+    ) {
+      roundedValues.push(value);
+      return;
+    }
+
+    let candidate = value;
+    for (let digits = 1; digits <= 12; digits++) {
+      candidate = sigfigRound(value, digits);
+      const denom = value - prevValue;
+      if (
+        Math.abs(denom) < EPS ||
+        Math.abs((value - candidate) / denom) < 0.2
+      ) {
+        break;
+      }
+    }
+    roundedValues.push(candidate);
+  });
+
+  return roundedValues;
+}
+
+function getSigFigCost(value: number, logarithmic: boolean = false): number {
+  const absValue = Math.abs(value);
+  // take the length of mantissa of the exponential rounded
+  // to 7 digits to avoid floating point precision issues
+  const mantissa = absValue
+    .toExponential(7)
+    .replace(/e.*$/, "")
+    .replace(".", "")
+    .replace(/^0+|0+$/g, "");
+  if (mantissa === "0") {
+    return 0;
+  }
+  if (mantissa === "1") {
+    return 0.5;
+  }
+  // TODO: consider discounting 25 and 75 more than 20, 40, 60, 80
+  // but less than plain 50
+  const lastDigit = mantissa.at(-1);
+  if (!logarithmic) {
+    if (mantissa === "5") {
+      return 0.8;
+    }
+    // discount if the mantissa ends with a 5 by 0.5
+    if (lastDigit === "5") {
+      return mantissa.length - 0.5;
+    }
+    // discount if the mantissa ends with a 2, 4, 6, or 8 by 0.2
+    if (["2", "4", "6", "8"].includes(lastDigit ?? "")) {
+      return mantissa.length - 0.2;
+    }
+  } else {
+    if (mantissa === "3") {
+      return 0.8;
+    }
+    // discount if the mantissa ends with a 3 or 5
+    if (["3", "5"].includes(lastDigit ?? "")) {
+      return mantissa.length - 0.5;
+    }
+  }
+  return mantissa.length;
+}
+
+/**
+ * Take a range's min and max and finds the tick spacing that minimizes
+ * the average number of significant digits in the tick values.
+ * If two tick counts are equally good, returns the higher one.
+ * Only works for linear scales.
+ */
+function findOptimalTickCount(
+  rangeMin: number,
+  rangeMax: number,
+  minTicks: number,
+  maxTicks: number
+): number {
+  // TODO: refactor to make this more generic, instead returning optimal ticks
+  // and accepting logarithmic scaling
+  let bestTickCount = maxTicks;
+  let bestAvgDigits = Infinity;
+  for (let i = maxTicks; i >= minTicks; i--) {
+    const stepSize = (rangeMax - rangeMin) / (i - 1);
+    const tickValues = range(0, i).map((j) => rangeMin + j * stepSize);
+    const sigFigCosts = tickValues.map((value) => getSigFigCost(value));
+    const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
+    if (avgDigits < bestAvgDigits) {
+      bestAvgDigits = avgDigits;
+      bestTickCount = i;
+    }
+  }
+  return bestTickCount;
+}
+
 type GenerateScaleParams = {
   displayType: QuestionType;
   axisLength: number;
@@ -298,6 +431,7 @@ type GenerateScaleParams = {
   inboundOutcomeCount?: number | null;
   question?: Question | GraphingQuestionProps;
   forceTickCount?: number;
+  alwaysShowTicks?: boolean;
 };
 
 /**
@@ -332,6 +466,7 @@ export function generateScale({
   inboundOutcomeCount,
   question,
   forceTickCount,
+  alwaysShowTicks,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -356,13 +491,45 @@ export function generateScale({
     range_max: rangeMax,
     zero_point: zeroPoint,
   };
-  const zoomedDomainMin = zoomedDomain[0];
-  const zoomedDomainMax = zoomedDomain[1];
+  const [zoomedDomainMin, zoomedDomainMax] = zoomedDomain;
+  let discreteValueOptions: number[] | undefined = undefined;
+  if (
+    displayType === QuestionType.Discrete &&
+    inbound_outcome_count &&
+    !isNil(rangeMin) &&
+    !isNil(rangeMax)
+  ) {
+    discreteValueOptions = [];
+    for (let i = 0; i < inbound_outcome_count; i++) {
+      discreteValueOptions.push(
+        rangeMin + ((rangeMax - rangeMin) * (i + 0.5)) / inbound_outcome_count
+      );
+    }
+  }
+  const openBoundCount =
+    (question?.open_lower_bound ? 1 : 0) + (question?.open_upper_bound ? 1 : 0);
   // determine the number of ticks to label
   // based on the axis length and direction
   let maxLabelCount: number;
-  if (axisLength < 100) {
-    maxLabelCount = direction === "horizontal" ? 2 : 3;
+  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+    // get last label width to determine the number of labels
+    const lastLabel = getPredictionDisplayValue(
+      1 - 0.5 / inbound_outcome_count,
+      {
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 3,
+        actual_resolve_time: null,
+        dateFormatString: shortLabels ? "yyyy" : undefined,
+        adjustLabels,
+        skipQuartilesBorders: false,
+        discreteValueOptions,
+      }
+    );
+    maxLabelCount = Math.min(
+      lastLabel.length ? axisLength / (12 * lastLabel.length) : 15,
+      inbound_outcome_count + openBoundCount
+    );
   } else if (axisLength < 150) {
     maxLabelCount = direction === "horizontal" ? 3 : 5;
   } else if (axisLength < 300) {
@@ -370,90 +537,147 @@ export function generateScale({
   } else if (axisLength < 500) {
     maxLabelCount = direction === "horizontal" ? 6 : 11;
   } else if (axisLength < 800) {
-    maxLabelCount = direction === "horizontal" ? 6 : 21;
+    maxLabelCount = direction === "horizontal" ? 7 : 21;
   } else if (axisLength < 1200) {
     maxLabelCount = direction === "horizontal" ? 11 : 21;
   } else {
     maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
-  const tickCount =
-    displayType === QuestionType.Discrete
-      ? inbound_outcome_count
-        ? 2 + inbound_outcome_count
-        : forceTickCount ?? (maxLabelCount - 1) * 5 + 1
-      : forceTickCount ?? (maxLabelCount - 1) * 5 + 1;
 
-  // TODO: this does not support choosing values intelligently in
-  // real scaling. The y-axis is always a domain of 0-1 with
-  // linear scaling as that is the native format for the
-  // forecast data. To get this to intelligently choose ticks and
-  // labels, this operation will have to be done in the real
-  // scaling first, then transformed back into the domain scale.
-  const zoomedRange = zoomedDomainMax - zoomedDomainMin;
-  let minorRes: number = 1;
-  let majorRes: number = 1;
-  let minorTickInterval: number;
-  let tickStart: number;
-  let tickEnd: number;
-  let minorTicks: number[];
-  let majorTickStart: number;
-  let majorTickInterval: number;
-  let majorTicks: number[];
+  let majorTicks: number[] = [];
+  let minorTicks: number[] = [];
+  if (displayType === QuestionType.Discrete && direction === "horizontal") {
+    const tickCount = forceTickCount
+      ? Math.min(forceTickCount, inbound_outcome_count)
+      : inbound_outcome_count + openBoundCount;
 
-  if (displayType === QuestionType.Discrete) {
-    // First and last ticks are 1/2 a bucket width away from the
-    // boarders
-    tickStart = Math.round(1e7 * (-0.5 / (tickCount - 2))) / 1e7;
-    tickEnd = Math.round(1e7 * (1 + 0.5 / (tickCount - 2))) / 1e7;
-    minorTickInterval = Math.round(1e9 / (tickCount - 2)) / 1e9;
-    minorTicks = range(tickStart, tickEnd + 1e-4, minorTickInterval).map(
-      (x) => Math.round(x * 10000) / 10000
+    const halfBucket = 0.5 / inbound_outcome_count;
+    const tickStart = question?.open_lower_bound ? -halfBucket : halfBucket;
+    const tickEnd = 1 + (question?.open_upper_bound ? halfBucket : -halfBucket);
+
+    minorTicks = range(
+      tickStart,
+      tickEnd + 1e-4,
+      1 / (tickCount - openBoundCount)
+    ).map((x) => Math.round(x * 100000) / 100000);
+    const step =
+      Math.max(1, Math.ceil((tickCount - openBoundCount) / maxLabelCount)) /
+      (tickCount - openBoundCount);
+    majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
+      (x) => Math.round(x * 100000) / 100000
     );
-    majorTickStart = tickStart;
-    majorTickInterval =
-      minorTickInterval *
-      Math.max(1, Math.round((tickCount - 2) / maxLabelCount));
-    majorTicks = range(majorTickStart, tickEnd + 1e-4, majorTickInterval).map(
-      (x) => Math.round(x * 10000) / 10000
+    majorTicks.push(minorTicks.at(-1) ?? 1);
+  } else if (
+    displayType === QuestionType.Discrete &&
+    direction === "vertical"
+  ) {
+    // expect to have a foreced tick count, and never include
+    // out of bounds values
+    const tickCount = forceTickCount
+      ? Math.min(forceTickCount, inbound_outcome_count)
+      : inbound_outcome_count;
+
+    const halfBucket = 0.5 / inbound_outcome_count;
+    const tickStart = halfBucket;
+    const tickEnd = 1 - halfBucket;
+
+    minorTicks = range(0, tickCount).map((i) => {
+      // round to the nearest outcome value
+      const x =
+        Math.round((i / (tickCount - 1)) * (inbound_outcome_count - 1)) /
+        (inbound_outcome_count - 1);
+      return (
+        Math.round((tickStart + (tickEnd - tickStart) * x) * 100000) / 100000
+      );
+    });
+
+    const step =
+      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
+    majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
+      (x) => Math.round(x * 100000) / 100000
     );
-    if (!(majorTicks.at(-1) === tickEnd)) {
-      majorTicks.push(tickEnd);
-    }
+    majorTicks.push(minorTicks.at(-1) ?? 1);
+  } else if (isNil(zeroPoint)) {
+    // Linear Scaling
+    // Typical scaling, evenly spaced ticks
+    // choose optimal tick count to minimize the number
+    // of significant digits in the tick labels
+    const majorTickCount = forceTickCount
+      ? forceTickCount
+      : findOptimalTickCount(rangeMin, rangeMax, 4, maxLabelCount);
+    majorTicks = range(0, majorTickCount).map(
+      (i) =>
+        Math.round(
+          (zoomedDomainMin +
+            (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
+            100000
+        ) / 100000
+    );
+    const minorTicksPerMajor = findOptimalTickCount(
+      rangeMin,
+      rangeMin + (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTickCount),
+      direction === "horizontal" ? 4 : 2,
+      direction === "horizontal" ? 10 : 5
+    );
+    const minorTickCount = forceTickCount
+      ? forceTickCount
+      : (majorTickCount - 1) * minorTicksPerMajor + 1;
+    minorTicks = range(0, minorTickCount).map(
+      (i) =>
+        Math.round(
+          (zoomedDomainMin +
+            (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
+            100000
+        ) / 100000
+    );
   } else {
-    if (zoomedRange > 0.7) {
-      minorRes = 0.02; // only tick on multiples of 0.05
-      majorRes = 0.1; // only label on multiples of 0.25
-    } else if (zoomedRange > 0.5) {
-      minorRes = 0.005; // only tick on multiples of 0.025
-      majorRes = 0.05; // only label on multiples of 0.10
-    } else if (zoomedRange > 0.1) {
-      minorRes = 0.005; // only tick on multiples of 0.01
-      majorRes = 0.025; // only label on multiples of 0.05
-    } else if (zoomedRange > 0.05) {
-      minorRes = 0.002; // only tick on multiples of 0.005
-      majorRes = 0.01; // only label on multiples of 0.025
-    } else {
-      minorRes = 0.001; // only tick on multiples of 0.0025
-      majorRes = 0.005; // only label on multiples of 0.01
+    // Logarithmic Scaling
+    // Labeled ticks are not spaced evenly, but rather rounded to the nearby
+    // values that have the fewest significant digits
+    // Then, minor ticks are spaced evenly in real space, showcasing the
+    // strength of the logarithmic scaling
+    const minLabelCount = forceTickCount ?? Math.ceil(maxLabelCount / 2) + 1;
+    let bestTicks: number[] = [];
+    let bestAvgDigits = Infinity;
+    for (let i = maxLabelCount; i >= minLabelCount; i--) {
+      const unscaledTargets = Array.from(
+        { length: i },
+        (_, j) =>
+          zoomedDomainMin +
+          ((zoomedDomainMax - zoomedDomainMin) * (j * 1)) / (i - 1)
+      );
+      const scaledTargets = unscaledTargets.map((x) =>
+        scaleInternalLocation(x, rangeScaling)
+      );
+      const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
+      const sigFigCosts = roundedScaledTargets.map((x) =>
+        getSigFigCost(x, true)
+      );
+      const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
+      if (avgDigits < bestAvgDigits) {
+        bestAvgDigits = avgDigits;
+        bestTicks = roundedScaledTargets;
+      }
     }
-
-    minorTickInterval =
-      Math.round(zoomedRange / (tickCount - 1) / minorRes) * minorRes;
-    tickStart = Math.round(zoomedDomainMin / minorRes) * minorRes;
-    tickEnd =
-      Math.round((zoomedDomainMax + minorTickInterval / 100) / minorRes) *
-      minorRes *
-      1.001;
-    minorTicks = range(tickStart, tickEnd, minorTickInterval).map(
-      (x) => Math.round(x * 10000) / 10000
+    majorTicks = bestTicks.map(
+      (x) =>
+        Math.round(unscaleNominalLocation(x, rangeScaling) * 100000) / 100000
     );
 
-    majorTickInterval =
-      Math.round(zoomedRange / (maxLabelCount - 1) / majorRes) * majorRes;
-    majorTickStart = Math.round(zoomedDomainMin / majorRes) * majorRes;
-    majorTicks = range(majorTickStart, tickEnd, majorTickInterval).map(
-      (x) => Math.round(x * 10000) / 10000
-    );
+    const tickCount = forceTickCount
+      ? forceTickCount
+      : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
+    const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
+    minorTicks = majorTicks.map((x) => x);
+    range(0, bestTicks.length - 1).forEach((i) => {
+      const prevMajor = bestTicks.at(i) ?? 0;
+      const nextMajor = bestTicks.at(i + 1) ?? 1;
+      const step = (nextMajor - prevMajor) / minorTicksPerMajorInterval;
+      for (let j = 0; j < minorTicksPerMajorInterval - 1; j++) {
+        const newMinorTick = prevMajor + (j + 1) * step;
+        minorTicks.push(unscaleNominalLocation(newMinorTick, rangeScaling));
+      }
+    });
   }
 
   const conditionallyShowUnit = (value: string, idx?: number): string => {
@@ -470,22 +694,12 @@ export function generateScale({
 
     return value;
   };
-  let discreteValueOptions: number[] | undefined = undefined;
-  if (
-    displayType === QuestionType.Discrete &&
-    inbound_outcome_count &&
-    !isNil(rangeMin) &&
-    !isNil(rangeMax)
-  ) {
-    discreteValueOptions = [];
-    for (let i = 0; i < inbound_outcome_count; i++) {
-      discreteValueOptions.push(
-        rangeMin + ((rangeMax - rangeMin) * (i + 0.5)) / inbound_outcome_count
-      );
-    }
-  }
+
   function tickFormat(x: number, idx?: number) {
-    if (majorTicks.includes(Math.round(x * 10000) / 10000)) {
+    if (
+      alwaysShowTicks ||
+      majorTicks.includes(Math.round(x * 100000) / 100000)
+    ) {
       if (displayType === QuestionType.Discrete) {
         return conditionallyShowUnit(
           getPredictionDisplayValue(x, {
@@ -543,55 +757,92 @@ export function generateScale({
     );
   }
 
-  // if (displayType === "discrete") {
+  // if (!true && displayType === "numeric" && direction === "horizontal") {
   //   // Debugging - do not remove
   //   console.log(
-  //     "\n displayType:",
+  //     "\n displayType",
   //     displayType,
-  //     "\n axisLength:",
+  //     "\n axisLength",
   //     axisLength,
-  //     "\n domain:",
+  //     "\n direction",
+  //     direction,
+  //     "\n domain",
   //     domain,
-  //     "\n zoomedDomain:",
+  //     "\n zoomedDomain",
   //     zoomedDomain,
-  //     "\n zoomedRange:",
-  //     zoomedRange,
-  //     "\n scaling:",
+  //     "\n scaling",
   //     scaling,
+  //     "\n unit",
+  //     unit,
+  //     "\n shortLabels",
+  //     shortLabels,
+  //     "\n adjustLabels",
+  //     adjustLabels,
+  //     "\n inboundOutcomeCount",
+  //     inboundOutcomeCount,
+  //     "\n question",
+  //     question,
+  //     "\n forceTickCount",
+  //     forceTickCount,
+  //     "\n alwaysShowTicks",
+  //     alwaysShowTicks,
+  //     "\n",
+  //     "\n domainMin",
+  //     domainMin,
+  //     "\n domainMax",
+  //     domainMax,
+  //     "\n domainScaling",
+  //     domainScaling,
+  //     "\n rangeMin",
+  //     rangeMin,
+  //     "\n rangeMax",
+  //     rangeMax,
+  //     "\n zeroPoint",
+  //     zeroPoint,
+  //     "\n inbound_outcome_count",
+  //     inbound_outcome_count,
+  //     "\n rangeScaling",
+  //     rangeScaling,
+  //     "\n zoomedDomainMin",
+  //     zoomedDomainMin,
+  //     "\n zoomedDomainMax",
+  //     zoomedDomainMax,
+  //     "\n",
+  //     "\n maxLabelCount",
+  //     maxLabelCount,
+  //     // "\n zoomedRange",
+  //     // zoomedRange,
+  //     // "\n minorRes",
+  //     // minorRes,
+  //     // "\n majorRes",
+  //     // majorRes,
+  //     // "\n minorTickInterval",
+  //     // minorTickInterval,
+  //     // "\n tickStart",
+  //     // tickStart,
+  //     // "\n tickEnd",
+  //     // tickEnd,
+  //     // "\n unscaledTargets",
+  //     // unscaledTargets,
+  //     // "\n scaledTargets",
+  //     // scaledTargets,
+  //     // "\n roundedScaledTargets",
+  //     // roundedScaledTargets,
+  //     // "\n minorTicksPerMajorInterval",
+  //     // minorTicksPerMajorInterval,
+  //     // "\n majorTickStart",
+  //     // majorTickStart,
+  //     // "\n majorTickInterval",
+  //     // majorTickInterval,
+  //     "\n minorTicks",
+  //     minorTicks,
+  //     "\n majorTicks",
+  //     majorTicks,
+  //     "\n",
   //     "\n discreteValueOptions:",
   //     discreteValueOptions,
-  //     "\n inboundOutcomeCount:",
-  //     inboundOutcomeCount,
-  //     "\n unit:",
-  //     unit,
-  //     "\n question:",
-  //     question,
-  //     "\n maxLabelCount:",
-  //     maxLabelCount,
-  //     "\n tickCount:",
-  //     tickCount,
-  //     "\n domainScaling:",
-  //     domainScaling,
-  //     "\n rangeScaling:",
-  //     rangeScaling,
-  //     "\n minorRes:",
-  //     minorRes,
-  //     "\n majorRes:",
-  //     majorRes,
-  //     "\n tickStart:",
-  //     tickStart,
-  //     "\n tickEnd:",
-  //     tickEnd,
-  //     "\n minorTickInterval:",
-  //     minorTickInterval,
-  //     "\n minorTicks:",
-  //     minorTicks,
-  //     "\n majorTickInterval:",
-  //     majorTickInterval,
-  //     "\n majorTicks:",
-  //     majorTicks,
-  //     "\n major tick labels:",
-  //     majorTicks.map((x) => tickFormat(x))
+  //     "\n tick labels:",
+  //     minorTicks.map((x) => tickFormat(x))
   //   );
   // }
 

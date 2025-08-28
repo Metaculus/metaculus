@@ -12,7 +12,7 @@ import {
   PredictionFlowPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { DataParams, Require } from "@/types/utils";
+import { DataParams, Require, WhitelistStatus } from "@/types/utils";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -25,7 +25,7 @@ export type PostsParams = PaginationParams & {
   statuses?: string | string[];
   categories?: string | string[];
   usernames?: string | string[];
-  tags?: string | string[];
+  leaderboard_tags?: string | string[];
   forecaster_id?: string;
   withdrawn?: string;
   not_forecaster_id?: string;
@@ -38,20 +38,19 @@ export type PostsParams = PaginationParams & {
   community?: string;
   for_main_feed?: string;
   ids?: number[];
-  news_type?: string;
+  news_type?: string | string[];
   public_figure?: number;
   curation_status?: string;
-  notebook_type?: string;
   similar_to_post_id?: number;
   default_project_id?: string;
 };
 
 export type ApprovePostParams = {
-  published_at: string;
-  open_time: string;
-  cp_reveal_time: string;
-  scheduled_close_time: string;
-  scheduled_resolve_time: string;
+  published_at: string | undefined;
+  open_time: string | undefined;
+  cp_reveal_time: string | undefined;
+  scheduled_close_time: string | undefined;
+  scheduled_resolve_time: string | undefined;
 };
 
 export type BoostDirection = 1 | -1;
@@ -100,6 +99,9 @@ class PostsApi extends ApiService {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
+      include_descriptions: false,
+      include_cp_history: true,
+      include_movements: true,
     });
 
     return await this.get<PaginatedPayload<PostWithForecasts>>(
@@ -205,6 +207,16 @@ class PostsApi extends ApiService {
 
     return await this.get<Blob>(
       `/posts/${postId}/download-data/${queryParams}`
+    );
+  }
+
+  async getWhitelistStatus(params: {
+    post_id?: number;
+    project_id?: number;
+  }): Promise<WhitelistStatus> {
+    const queryParams = encodeQueryParams(params);
+    return await this.get<WhitelistStatus>(
+      `/get-whitelist-status/${queryParams}`
     );
   }
 }

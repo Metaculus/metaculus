@@ -1,4 +1,5 @@
-import { differenceInMilliseconds } from "date-fns";
+import { isValid } from "date-fns";
+import { toDate } from "date-fns-tz";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -81,10 +82,17 @@ export default async function Tournaments() {
         items={archivedTournaments}
         cardsPerPage={12}
         initialCardsCount={4}
+        disableClientSort
       />
     </main>
   );
 }
+
+const archiveEndTs = (t: TournamentPreview) =>
+  [t.forecasting_end_date, t.close_date, t.start_date]
+    .map((s) => (s ? toDate(s.trim(), { timeZone: "UTC" }) : null))
+    .find((d) => d && isValid(d))
+    ?.getTime() ?? 0;
 
 function extractTournamentLists(tournaments: TournamentPreview[]) {
   const activeTournaments: TournamentPreview[] = [];
@@ -92,23 +100,20 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   const questionSeries: TournamentPreview[] = [];
   const indexes: TournamentPreview[] = [];
 
-  const sortedTournaments = [...tournaments].sort((a, b) =>
-    differenceInMilliseconds(new Date(b.start_date), new Date(a.start_date))
-  );
-
-  for (const tournament of sortedTournaments) {
-    if (tournament.is_ongoing) {
-      if (tournament.type === TournamentType.QuestionSeries) {
-        questionSeries.push(tournament);
-      } else if (tournament.type === TournamentType.Index) {
-        indexes.push(tournament);
+  for (const t of tournaments) {
+    if (t.is_ongoing) {
+      if (t.type === TournamentType.QuestionSeries) {
+        questionSeries.push(t);
+      } else if (t.type === TournamentType.Index) {
+        indexes.push(t);
       } else {
-        activeTournaments.push(tournament);
+        activeTournaments.push(t);
       }
     } else {
-      archivedTournaments.push(tournament);
+      archivedTournaments.push(t);
     }
   }
 
+  archivedTournaments.sort((a, b) => archiveEndTs(b) - archiveEndTs(a));
   return { activeTournaments, archivedTournaments, questionSeries, indexes };
 }

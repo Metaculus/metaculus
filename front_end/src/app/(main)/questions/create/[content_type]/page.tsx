@@ -11,6 +11,7 @@ import { extractMode } from "@/app/(main)/questions/create/helpers";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
+import { QuestionType, SimpleQuestionType } from "@/types/question";
 
 import ConditionalForm from "../../components/conditional_form";
 import NotebookForm from "../../components/notebook_form";
@@ -66,6 +67,8 @@ export default async function QuestionCreator(props: Props) {
     ? communitiesResponse.results[0]
     : undefined;
 
+  const shouldUseDraftValue = mode === "create" && isNil(post);
+
   const componentProps = {
     post,
     mode,
@@ -74,13 +77,14 @@ export default async function QuestionCreator(props: Props) {
     allCategories,
     tournaments,
     siteMain,
+    shouldUseDraftValue,
   };
   let component = undefined;
 
   if (content_type === "question") {
-    const question_type: string = post
-      ? (post.question?.type as string)
-      : (searchParams["type"] as string);
+    const question_type: QuestionType = post
+      ? (post.question?.type as QuestionType)
+      : (searchParams["type"] as QuestionType);
 
     invariant(question_type, "Type is required");
 
@@ -92,7 +96,7 @@ export default async function QuestionCreator(props: Props) {
   if (content_type === "group") {
     const subtype = post
       ? post.group_of_questions?.questions[0]?.type
-      : (searchParams["subtype"] as string);
+      : (searchParams["subtype"] as SimpleQuestionType);
 
     invariant(subtype, "Subtype is required");
 

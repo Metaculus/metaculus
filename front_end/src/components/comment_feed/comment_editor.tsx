@@ -3,13 +3,13 @@
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/form_field";
+import { FormErrorMessage, Textarea } from "@/components/ui/form_field";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -17,6 +17,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
+import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseComment } from "@/utils/comments";
 import {
@@ -67,7 +68,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const debouncedMarkdown = useDebouncedValue(markdown, 1000);
-  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
+  const [clientError, setClientError] = useState<React.ReactNode>(null);
+  const [serverError, setServerError] = useState<string | ErrorResponse>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -127,16 +129,19 @@ const CommentEditor: FC<CommentEditorProps> = ({
   }, [params, clearParams, shallowNavigateToSearchParams]);
 
   const handleSubmit = async () => {
-    setErrorMessage("");
+    setClientError(null);
+    setServerError(undefined);
     setIsLoading(true);
+
     if (user && !PUBLIC_MINIMAL_UI) {
-      const validateMessage = validateComment(markdown, user, t);
-      if (validateMessage) {
-        setErrorMessage(validateMessage);
+      const validateNode = validateComment(markdown.trim(), user, t);
+      if (validateNode) {
+        setClientError(validateNode);
         setIsLoading(false);
         return;
       }
     }
+
     sendAnalyticsEvent("postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
@@ -155,15 +160,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
       });
 
       if (!response) {
-        setErrorMessage(t("outdatedServerActionMessage"));
+        setServerError(t("outdatedServerActionMessage"));
         return;
       }
-
       if (!!response && "errors" in response) {
-        const errorMessage =
-          response.errors?.message ?? response.errors?.non_field_errors?.[0];
-
-        setErrorMessage(errorMessage);
+        setServerError(response.errors as ErrorResponse);
         return;
       }
 
@@ -206,8 +207,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   return (
     <>
-      {/* TODO: this box can only be shown in create, not edit mode */}
+      {clientError && (
+        <div className="mt-3 rounded-tl-md rounded-tr-md border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950 dark:text-red-200">
+          {clientError}
+        </div>
+      )}
 
+      {/* TODO: this box can only be shown in create, not edit mode */}
       {shouldIncludeForecast && (
         <Checkbox
           checked={hasIncludedForecast}
@@ -253,11 +259,10 @@ const CommentEditor: FC<CommentEditorProps> = ({
           </Button>
         </div>
       )}
-      {!!errorMessage && (
-        <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
-          {errorMessage}
-        </div>
-      )}
+      <FormErrorMessage
+        errors={serverError}
+        containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
+      />
     </>
   );
 };

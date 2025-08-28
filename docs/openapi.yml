@@ -487,13 +487,13 @@ components:
           format: date-time
         type:
           type: string
-          enum: [ binary, numeric, date, multiple_choice ]
+          enum: [ binary, multiple_choice, numeric, discrete, date ]
           example: "binary"
         options:
           type: array
           items:
             type: string
-          description: "List of options for categorical questions"
+          description: "List of options for multiple_choice questions"
         status:
           type: string
           enum: [ upcoming, open, closed, resolved ]
@@ -548,16 +548,47 @@ components:
           type: number
           format: float
           nullable: true
+          description: "The lower boundary of the input range. If the question is Discrete, it will be 1/2 a bucket width below the nominal lowest inbound outcome."
         range_min:
           type: number
           format: float
           nullable: true
+          description: "The upper boundary of the input range. If the question is Discrete, it will be 1/2 a bucket width above the nominal highest inbound outcome."
         zero_point:
           type: number
           format: float
           nullable: true
+          description: "Only populated if the question has logaritmic scaling. See 'continuous_range' for exact locations where the CDF gets evaluated."
+        open_upper_bound:
+          type: boolean
+          nullable: true
+          description: "Whether the upper bound is open."
+        open_lower_bound:
+          type: boolean
+          nullable: true
+          description: "Whether the lower bound is open."
+        inbound_outcome_count:
+          type: integer
+          example: 200
+          nullable: true
+          description: "Total number of possible outcomes within the question's range (does not include out of bounds)."
+        continuous_range:
+          type: array
+          example: [
+            "2023-01-01T00:00:00Z",
+            "2023-01-02T00:00:00Z",
+            "...",
+            "2023-01-03T00:00:00Z",
+          ]
+          nullable: true
+          description: "List of real-value locations corresponding to where the CDF is evaluated"
+          items:
+            type: string
+            example: "2023-01-01T00:00:00Z"
+
 
     QuestionPossibilities:
+      description: "WARNING: this is a deprecated field and may be removed without notice."
       oneOf:
         - type: object
           properties:
@@ -619,6 +650,10 @@ components:
           type: number
           format: float
           description: Probability for a binary outcome
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     ContinuousForecast:
       type: object
@@ -648,7 +683,7 @@ components:
 
             At least 1% of the probability mass must be assigned uniformly within 
             bounds, which means that the CDF must be strictly increasing by at 
-            least 0.01/200 = 0.0005 per step. No two adjacent values of the CDF 
+            least 0.01/200 = 0.00005 per step. No two adjacent values of the CDF 
             can differ by more than 0.59, which is the largest number obtainable 
             via the sliders.
           type: array
@@ -683,6 +718,10 @@ components:
                   weight:
                     type: number
                     format: float
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     MultipleChoiceForecast:
       type: object
@@ -698,6 +737,10 @@ components:
             type: number
             format: float
           description: Probability distribution for multiple categories. Sum of values must equal 1.0.
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     ConditionalForecast:
       type: array
@@ -713,6 +756,10 @@ components:
           probability_yes:
             type: number
             format: float
+        end_time:
+          type: string
+          format: date-time
+          description: The timestamp when the forecast is automatically withdrawn
 
     GroupForecast:
       type: array
@@ -803,6 +850,7 @@ components:
           description: Current user's vote on this comment (-1, 0, 1).
     
     QuestionDataCSV:
+      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information."
       type: object
       properties:
         Question ID:
@@ -835,7 +883,7 @@ components:
         Question Type:
           type: string
           description: The type of the question.
-          enum: [ binary, multiple_choice, numeric, date ]
+          enum: [ binary, multiple_choice, numeric, numeric, date ]
           example: binary
         MC Options:
           type: array
@@ -937,6 +985,7 @@ components:
           description: For Continuous Questions only. The CDF of the prediction.
           example: [0.01, 0.02, 0.03, ..., 0.74, 0.75]
     ScoreDataCSV:
+      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information."
       type: object
       properties:
         Question ID:
@@ -967,6 +1016,7 @@ components:
           description: The coverage that earned this score.
           example: 0.95
     CommentDataCSV:
+      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information."
       type: object
       properties:
         Post ID:
@@ -1002,7 +1052,7 @@ components:
 
     DataZip:
       type: object
-      description: A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data and Comment data.
+      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information. A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data and Comment data."
       properties:
         question_data.csv:
           $ref: '#/components/schemas/QuestionDataCSV'
@@ -1064,8 +1114,22 @@ paths:
           name: with_cp
           schema:
             type: boolean
+            default: false
             example: true
           description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+        - in: query
+          name: include_cp_history
+          schema:
+            type: boolean
+            default: false
+            example: true
+          description: "When this flag is enabled, each post question response will include aggregations with the full history for each method. By default, question aggregations contain an empty history."
+        - in: query
+          name: include_descriptions
+          schema:
+            type: boolean
+            example: true
+          description: "With this flag enabled, each post question will include the description, fine_print, and resolution_criteria fields in its response."
         - in: query
           name: not_forecaster_id
           schema:
@@ -1224,6 +1288,43 @@ paths:
                             range_max: 100000000.0
                             range_min: 200.0
                             zero_point: 0.0
+                            open_upper_bound: true
+                            open_lower_bound: true
+                            inbound_outcome_count: 200
+                            continuous_range: [
+                              200.0,213.6328,228.1949,243.7497,260.3647,278.1123,297.0696,317.3191,
+                              338.9489,362.0531,386.7322,413.0935,441.2517,471.3293,503.4572,
+                              537.7749,574.4320,613.5877,655.4124,700.0882,747.8091,798.7830,853.2315,
+                              911.3913,973.5157,1039.8746,1110.7569,1186.4708,1267.3457,1353.7334,
+                              1446.0096,1544.5758,1649.8607,1762.3222,1882.4496,2010.7653,2147.8277,
+                              2294.2327,2450.6174,2617.6619,2796.0929,2986.6865,3190.2718,3407.7342,
+                              3640.0199,3888.1392,4153.1713,4436.2691,4738.6641,5061.6716,5406.6966,
+                              5775.2401,6168.9050,6589.4038,7038.5656,7518.3442,8030.8265,8578.2418,
+                              9162.9713,9787.5584,10454.7200,11167.3582,11928.5729,12741.6751,13610.2019,
+                              14537.9312,15528.8984,16587.4142,17718.0829,18925.8228,20215.8874,21593.8883,
+                              23065.8196,24638.0840,26317.5206,28111.4347,30027.6297,32074.4407,34260.7710,
+                              36596.1309,39090.6789,41755.2659,44601.4824,47641.7092,50889.1707,54357.9931,
+                              58063.2651,62021.1043,66248.7266,70764.5216,75588.1325,80740.5411,86244.1599,
+                              92122.9287,98402.4194,105109.9469,112274.6880,119927.8083,128102.5979,
+                              136834.6159,146161.8454,156124.8586,166766.9931,178134.5408,190276.9488,
+                              203247.0351,217101.2176,231899.7601,247707.0343,264591.7994,282627.5020,
+                              301892.5949,322470.8784,344451.8652,367931.1696,393010.9233,419800.2196,
+                              448415.5884,478981.5024,511630.9192,546505.8591,583758.0232,623549.4533,
+                              666053.2366,711454.2585,759950.0073,811751.4325,867083.8633,926187.9879,
+                              989320.9011,1056757.2222,1128790.2898,1205733.4377,1287921.3579,1375711.5564,
+                              1469485.9082,1569652.3188,1676646.4980,1790933.8556,1913011.5257,2043410.5291,
+                              2182698.0833,2331480.0696,2490403.6691,2660160.1771,2841488.0109,3035175.9211,
+                              3242066.4233,3463059.4622,3699116.3267,3951263.8312,4220598.7823,4508292.7493,
+                              4815597.1610,5143848.7486,5494475.3608,5869002.1744,6269058.3288,6696384.0126,
+                              7152838.0327,7640405.9005,8161208.4683,8717511.1546,9311733.7984,9946461.1854,
+                              10624454.2911,11348662.2911,12122235.3891,12948538.5201,13831165.9876,
+                              14773957.0979,15781012.8607,16856713.8284,18005739.1499,19233086.9251,
+                              20544095.9458,21944468.9182,23440297.2695,25038087.6444,26744790.2080,
+                              28567828.8785,30515133.6199,32595174.9361,34817000.7167,37190275.5940,
+                              39725322.9826,42433169.9851,45325595.3583,48415180.7489,51715365.4227,
+                              55240504.7225,59005932.5125,63028027.8786,67324286.3744,71913396.1252,
+                              76815319.1183,82051378.0350,87644349.0011,93618560.6603,100000000.0
+                            ]
                           post_id: 3530
                           aggregations:
                             recency_weighted:
@@ -1361,6 +1462,10 @@ paths:
                             range_max: null
                             range_min: null
                             zero_point: null
+                            open_upper_bound: null
+                            open_lower_bound: null
+                            inbound_outcome_count: null
+                            continuous_range: null
                           post_id: 1
                           aggregations: { }
                         user_permission: "forecaster"
@@ -1421,7 +1526,14 @@ paths:
                           open_upper_bound: null
                           open_lower_bound: null
                           unit: ""
-                          scaling: { }
+                          scaling:
+                            range_max: null
+                            range_min: null
+                            zero_point: null
+                            open_upper_bound: null
+                            open_lower_bound: null
+                            inbound_outcome_count: null
+                            continuous_range: null
                           post_id: 20772
                           aggregations: { }
                         user_permission: "forecaster"
@@ -1484,6 +1596,10 @@ paths:
                               range_max: null
                               range_min: null
                               zero_point: null
+                              open_upper_bound: null
+                              open_lower_bound: null
+                              inbound_outcome_count: null
+                              continuous_range: null
                             post_id: 11379
                             aggregations: { }
                           condition_child:
@@ -1513,6 +1629,10 @@ paths:
                               range_max: null
                               range_min: null
                               zero_point: null
+                              open_upper_bound: null
+                              open_lower_bound: null
+                              inbound_outcome_count: null
+                              continuous_range: null
                             post_id: 6478
                             aggregations: { }
                           question_yes:
@@ -1542,6 +1662,10 @@ paths:
                               range_max: null
                               range_min: null
                               zero_point: null
+                              open_upper_bound: null
+                              open_lower_bound: null
+                              inbound_outcome_count: null
+                              continuous_range: null
                             post_id: 21475
                             aggregations: { }
                           question_no:
@@ -1571,6 +1695,10 @@ paths:
                               range_max: null
                               range_min: null
                               zero_point: null
+                              open_upper_bound: null
+                              open_lower_bound: null
+                              inbound_outcome_count: null
+                              continuous_range: null
                             post_id: 21475
                             aggregations: { }
                         user_permission: "forecaster"
@@ -1638,6 +1766,10 @@ paths:
                                 range_max: null
                                 range_min: null
                                 zero_point: null
+                                open_upper_bound: null
+                                open_lower_bound: null
+                                inbound_outcome_count: null
+                                continuous_range: null
                               post_id: 11480
                               aggregations: { }
                             - id: 10923
@@ -1666,6 +1798,10 @@ paths:
                                 range_max: null
                                 range_min: null
                                 zero_point: null
+                                open_upper_bound: null
+                                open_lower_bound: null
+                                inbound_outcome_count: null
+                                continuous_range: null
                               post_id: 11480
                               aggregations: { }
                         user_permission: "forecaster"

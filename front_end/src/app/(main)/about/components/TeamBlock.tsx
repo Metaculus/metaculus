@@ -39,11 +39,28 @@ const people: Person[] = [
     ],
   },
   {
-    name: "Tobi Alafin",
+    name: "Alex Costea",
     position: "Research Engineer",
-    imgSrc: "https://metaculus-web-media.s3.amazonaws.com/tobi_1.webp",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/alex-costea-modified.webp",
     introduction:
-      "Tobi is a research engineer working on PRISM-AI, developing coherence checking systems for Metaculus forecasts. Prior to Metaculus he undertook a masters degree in theoretical computer science from the University of Liverpool and before that worked as a software developer at Bluechip Technologies in Nigeria. His interests include AI safety and ensuring the longterm future of humanity is robustly beneficial. He enjoys weightlifting, reading fiction and discussing it with fellow fans.",
+      "Alex Costea is a Research Engineer at Metaculus, developing the PRISM-CC project. His passion lies in bridging the gap between technology and societal systems. Prior to Metaculus, he worked as a Software Engineer for SAP, developing e-commerce solutions for large multi-national corporations. He received a Bachelor's degree in Sociology from the University of Amsterdam. In his free time, he enjoys learning new things and creating various projects, software and otherwise.",
+  },
+  {
+    name: "Jordan Rubin",
+    position: "Quantitative Finance Executive",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/jordan-rubin-modified.webp",
+    introduction:
+      "Jordan is on garden leave after building the systematic buy-side alpha capture business at Two Sigma Investments. He currently blogs at FUTURE TOKENS on Substack. Jordan received a BS/BA degree in Economics from Wharton School at University of Pennsylvania. As advisor to Metaculus, he focuses on commercialization and monetization.",
+  },
+  {
+    name: "Abhimanyu Pallavi Sudhir",
+    position: "Research Fellow",
+    imgSrc:
+      "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
+    introduction:
+      "Abhimanyu focuses on three primary research areas: (1) exploring analogies between economics and AI systems, particularly examining market dynamics and bounded rationality frameworks, (2) developing information markets and scalable oversight mechanisms to enhance epistemic processes and advance AI alignment, and (3) investigating applications of thermodynamics to these domains.",
   },
   {
     userId: 126463,
@@ -66,7 +83,7 @@ const people: Person[] = [
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/christian_williams.webp",
     introduction:
-      "Christian oversees Metaculus’ communications and marketing efforts, working closely with the operations and program teams. Previously, he worked in the aerospace and defense industry as a marketing operations lead. He received his master’s in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before entering the science world, he wrote for <cite>The Onion AV Club</cite> and contributed material to <cite>Saturday Night Live</cite>.",
+      "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
     name: "Nikitas Angeletos Chrysaitis",
@@ -139,7 +156,8 @@ const people: Person[] = [
   {
     userId: 111848,
     name: "Juan Cambeiro",
-    position: "Presidential Management Fellow; NIH Office of Science Policy",
+    position:
+      "Senior Advisor for Biosecurity, U.S. Center for AI Standards and Innovation",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/juan_cambeiro.webp",
     introduction:
@@ -155,11 +173,18 @@ const people: Person[] = [
       "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
   },
   {
+    userId: 127582,
     name: "Leonard Barrett",
-    position: "Chief of Staff",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png",
+    position: "Chief Operating Officer",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Leonard.webp",
     introduction:
-      "Leonard’s work spans Metaculus’ various teams and initiatives, advancing our strategic direction, growth, and operational efficiency. Prior to Metaculus, he worked in real estate development and asset management, overseeing complex real estate development projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various forecasting platforms and competitions. Leonard is passionate about elevating the crowd forecasting ecosystem to unlock its full potential in guiding policy and decision-making to mitigate global risks.",
+      "Leonard joined Metaculus as Chief of Staff in 2024, after several years as a highly ranked forecaster and question contributor on the platform. Now, as COO, he leads our operations and spearheads strategic initiatives. Before Metaculus, Leonard was a principal at a real estate development and asset management firm, overseeing complex office and mixed-use projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various platforms and tournaments.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/leonard-barrett/",
+        platform: "LinkedIn",
+      },
+    ],
   },
   {
     name: "Molly Hickman",
@@ -169,9 +194,16 @@ const people: Person[] = [
       "Molly is a computer scientist specializing in crowdsourced intelligence. She previously worked at the MITRE Corporation, focusing on testing and evaluation for forecasting projects. At the Forecasting Research Institute, Molly concentrated on developing metrics and methods to identify the most impactful questions. She forecasts as part of the Samotsvety team and as a Pro at INFER.",
   },
   {
+    name: "Felipe Oliveira",
+    position: "Operations Lead",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Felipe.webp",
+    introduction:
+      "Felipe Oliveira is the Operations Lead at Metaculus, where he oversees finance, HR, and internal systems. With over 15 years of experience in financial planning, operations, and accounting, he specializes in building efficient, scalable structures that support mission-driven organizations. Felipe has worked across the nonprofit and private sectors with a strong focus on accountability, aligning operations with strategy, and enabling responsible expansion.",
+  },
+  {
     userId: 137979,
     name: "Elis Popescu",
-    position: "Senior Software Engineer",
+    position: "Head of Engineering",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/elis_popescu.webp",
     introduction:
@@ -193,7 +225,7 @@ const people: Person[] = [
     imgSrc:
       "https://metaculus-public.s3.us-west-2.amazonaws.com/peter-wildeford.webp",
     introduction:
-      "Peter Wildeford helps run the Institute for AI Policy and Strategy, a think tank that experts across the U.S. and allied nations to deliver concrete, technically sound policy research to ensure geopolitical stability and mitigate emerging risks while protecting the space for innovation to thrive. Prior to work at IAPS, Peter was a co-founder of a multi-issue think-and-do tank, as well as a data scientist in industry. Throughout his career, Peter has been an avid forecaster, ranking highly in forecasting tournaments, and specializing in geopolitical and electoral forecasting.",
+      "Peter Wildeford helps run the Institute for AI Policy and Strategy, a think tank that convenes experts across the US and allied nations to deliver concrete, technically sound policy research to ensure geopolitical stability and mitigate emerging risks while protecting the space for innovation to thrive. Prior to work at IAPS, Peter was a co-founder of a multi-issue think-and-do tank, as well as a data scientist in industry. Throughout his career, Peter has been an avid forecaster, ranking highly in forecasting tournaments, and specializing in geopolitical and electoral forecasting.",
     socials: [
       {
         link: "https://www.linkedin.com/in/peterhurford8/",
@@ -277,7 +309,7 @@ const people: Person[] = [
   {
     userId: 104761,
     name: "Tamay Besiroglu",
-    position: "Research Scientist, MIT; Associate Director, Epoch",
+    position: "Co-founder & CEO, Mechanize",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tamay_besiroglu.webp",
     introduction:
@@ -291,7 +323,7 @@ const people: Person[] = [
   },
   {
     name: "Welton Chang",
-    position: "Co-founder and CEO, Pyrra Technologies",
+    position: "Co-founder & CEO, Pyrra Technologies",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/welton_chang.webp",
     introduction:
@@ -336,7 +368,7 @@ const people: Person[] = [
 const groups: Groups = {
   team: [
     "Deger Turan",
-    "Tobi Alafin",
+    "Alex Costea",
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
@@ -350,7 +382,9 @@ const groups: Groups = {
     "Nikita Oleinykof",
     "Luke Sabor",
     "Nikitas Angeletos Chrysaitis",
+    "Abhimanyu Pallavi Sudhir",
     "John Bash",
+    "Felipe Oliveira",
   ],
   board: [
     "Anthony Aguirre",
@@ -364,6 +398,7 @@ const groups: Groups = {
     "Tamay Besiroglu",
     "Welton Chang",
     "Burak Nehbit",
+    "Jordan Rubin",
     "Steven Schkolne",
   ],
 };

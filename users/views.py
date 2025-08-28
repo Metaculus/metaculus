@@ -18,6 +18,7 @@ from comments.models import Comment
 from posts.models import Post
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from scoring.models import Score
 from users.models import User, UserSpamActivity
 from users.serializers import (
@@ -51,7 +52,7 @@ def get_score_scatter_plot_data(
     scores: list[Score] | None = None,
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
-    score_type: Score.ScoreTypes | None = None,
+    score_type: ScoreTypes | None = None,
 ) -> dict:
     """must provide either
     1) scores
@@ -64,9 +65,9 @@ def get_score_scatter_plot_data(
         ):
             raise ValueError("Either user or aggregation_method must be provided only")
         if user is not None and score_type is None:
-            score_type = Score.ScoreTypes.PEER
+            score_type = ScoreTypes.PEER
         if aggregation_method is not None and score_type is None:
-            score_type = Score.ScoreTypes.BASELINE
+            score_type = ScoreTypes.BASELINE
         public_questions = Question.objects.filter_public()
         # TODO: support archived scores
         score_qs = Score.objects.filter(
@@ -101,7 +102,7 @@ def get_score_histogram_data(
     scores: list[Score] | None = None,
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
-    score_type: Score.ScoreTypes | None = None,
+    score_type: ScoreTypes | None = None,
 ) -> dict:
     """must provide either
     1) scores
@@ -114,9 +115,9 @@ def get_score_histogram_data(
         ):
             raise ValueError("Either user or aggregation_method must be provided only")
         if user is not None and score_type is None:
-            score_type = Score.ScoreTypes.PEER
+            score_type = ScoreTypes.PEER
         if aggregation_method is not None and score_type is None:
-            score_type = Score.ScoreTypes.BASELINE
+            score_type = ScoreTypes.BASELINE
         public_questions = Question.objects.filter_public()
         # TODO: support archived scores
         score_qs = Score.objects.filter(
@@ -282,7 +283,7 @@ def get_forecasting_stats_data(
     scores: list[Score] | None = None,
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
-    score_type: Score.ScoreTypes | None = None,
+    score_type: ScoreTypes | None = None,
 ) -> dict:
     # set up
     if (user is None and aggregation_method is None) or (
@@ -290,9 +291,9 @@ def get_forecasting_stats_data(
     ):
         raise ValueError("Either user or aggregation_method must be provided only")
     if user is not None and score_type is None:
-        score_type = Score.ScoreTypes.PEER
+        score_type = ScoreTypes.PEER
     if aggregation_method is not None and score_type is None:
-        score_type = Score.ScoreTypes.BASELINE
+        score_type = ScoreTypes.BASELINE
     public_questions = Question.objects.filter_public()
     if scores is None:
         # TODO: support archived scores
@@ -352,7 +353,7 @@ def get_authoring_stats_data(
         .count()
     )
     comment_count = Comment.objects.filter(
-        author=user, on_post__in=Post.objects.filter_public()
+        author=user, on_post__in=Post.objects.filter_public(), is_private=False
     ).count()
 
     return {
@@ -372,7 +373,7 @@ def get_user_profile_data(
 def serialize_profile(
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
-    score_type: Score.ScoreTypes | None = None,
+    score_type: ScoreTypes | None = None,
     current_user: User | None = None,
 ) -> dict:
     if (user is None and aggregation_method is None) or (
@@ -380,9 +381,9 @@ def serialize_profile(
     ):
         raise ValueError("Either user or aggregation_method must be provided only")
     if user is not None and score_type is None:
-        score_type = Score.ScoreTypes.PEER
+        score_type = ScoreTypes.PEER
     if aggregation_method is not None and score_type is None:
-        score_type = Score.ScoreTypes.BASELINE
+        score_type = ScoreTypes.BASELINE
     public_questions = Question.objects.filter_public()
     # TODO: support archived scores
     score_qs = Score.objects.filter(

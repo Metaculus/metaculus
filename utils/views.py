@@ -99,18 +99,19 @@ def aggregation_explorer_api_view(request):
         aggregate_forecasts=aggregate_forecasts,
         full_forecast_values=True,
     )
+
+    # Add forecasters count
+    data["forecasters_count"] = question.get_forecasters().count()
+
     return Response(data)
 
 
 def validate_data_request(request: Request, **kwargs):
     if request.method == "GET":
         data = (request.GET or {}).copy()
-        data.update(kwargs)
-        SerializerClass = DataGetRequestSerializer
     else:
         data = (request.data or {}).copy()
-        data.update(kwargs)
-        SerializerClass = DataPostRequestSerializer
+    data.update(kwargs)
 
     user: User = request.user
 
@@ -145,23 +146,23 @@ def validate_data_request(request: Request, **kwargs):
 
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
-    is_whitelisted = (
-        user.is_authenticated
-        and WhitelistUser.objects.filter(
-            (
-                (Q(post=post) if post else Q())
-                | (Q(project=project) if project else Q())
-            ),
-            user=user,
-        ).exists()
+    project_ids = [project.id] if project else []
+    if post:
+        project_ids.extend(post.projects.values_list("id", flat=True))
+    whitelistings = WhitelistUser.objects.filter(
+        (Q(post=post) if post else Q())
+        | (Q(project_id__in=project_ids) if project_ids else Q())
+        | Q(project__isnull=True, post__isnull=True),
+        user_id=user.id or 0,
     )
+    is_whitelisted = user.is_authenticated and whitelistings.exists()
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
         "is_whitelisted": is_whitelisted,
     }
 
-    serializer = SerializerClass(data=data, context=serializer_context)
+    serializer = DataPostRequestSerializer(data=data, context=serializer_context)
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
 
@@ -170,13 +171,17 @@ def validate_data_request(request: Request, **kwargs):
     include_comments = params.get("include_comments", False)
     include_scores = params.get("include_scores", True)
     include_user_data = params.get("include_user_data", False)
+    include_future = params.get("include_future", False)
 
     user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     if is_staff:
         anonymized = params.get("anonymized", False)
     elif is_whitelisted:
-        anonymized = True
+        if whitelistings.filter(view_deanonymized_data=True).exists():
+            anonymized = params.get("anonymized", False)
+        else:
+            anonymized = True
     else:
         anonymized = False
 
@@ -221,6 +226,7 @@ def validate_data_request(request: Request, **kwargs):
         "user_ids": user_ids,
         "include_bots": include_bots,
         "anonymized": anonymized,
+        "include_future": include_future,
     }
 
 

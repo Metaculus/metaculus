@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from questions.constants import UnsuccessfulResolutionType
 from scoring.models import Leaderboard, LeaderboardEntry
 from users.serializers import BaseUserSerializer
 
@@ -10,6 +11,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     score = serializers.FloatField()
     rank = serializers.IntegerField()
     excluded = serializers.BooleanField()
+    show_when_excluded = serializers.BooleanField()
     medal = serializers.CharField()
     prize = serializers.FloatField()
     coverage = serializers.FloatField()
@@ -26,6 +28,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "score",
             "rank",
             "excluded",
+            "show_when_excluded",
             "medal",
             "prize",
             "coverage",
@@ -46,7 +49,9 @@ class LeaderboardSerializer(serializers.Serializer):
     start_time = serializers.DateTimeField()
     end_time = serializers.DateTimeField()
     finalize_time = serializers.DateTimeField()
+    finalized = serializers.BooleanField()
     prize_pool = serializers.SerializerMethodField()
+    max_coverage = serializers.SerializerMethodField()
 
     class Meta:
         model = Leaderboard
@@ -60,7 +65,9 @@ class LeaderboardSerializer(serializers.Serializer):
             "start_time",
             "end_time",
             "finalize_time",
+            "finalized",
             "prize_pool",
+            "max_coverage",
         ]
 
     def get_prize_pool(self, obj: Leaderboard):
@@ -68,6 +75,20 @@ class LeaderboardSerializer(serializers.Serializer):
             return obj.prize_pool
         if obj.project:
             return obj.project.prize_pool
+
+    def get_max_coverage(self, obj: Leaderboard):
+        if self.context.get("include_max_coverage", False):
+            return (
+                obj.get_questions()
+                .filter(resolution__isnull=False)
+                .exclude(
+                    resolution__in=[
+                        UnsuccessfulResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.AMBIGUOUS,
+                    ]
+                )
+                .count()
+            )
 
 
 class ContributionSerializer(serializers.Serializer):

@@ -1,9 +1,9 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { DomainTuple } from "victory";
 
-import NewNumericChart from "@/components/charts/new_numeric_chart";
+import NumericChart from "@/components/charts/numeric_chart";
 import { METAC_COLORS } from "@/constants/colors";
 import { Area, Line } from "@/types/charts";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -12,8 +12,6 @@ import {
   generateNumericXDomain,
   generateTimestampXScale,
 } from "@/utils/charts/axis";
-
-import { calculateIndexTimeline } from "./helpers";
 
 type Props = {
   tournament: Tournament;
@@ -27,12 +25,18 @@ const IndexTimeline: FC<Props> = ({ tournament, height = 170 }) => {
       buildIndexChartData({ tournament, width, zoom }),
     [tournament]
   );
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const handleCursorChange = (value: number | null) => {
+    setCursorTimestamp(value);
+  };
 
   return (
-    <NewNumericChart
+    <NumericChart
       buildChartData={buildChartData}
       withZoomPicker={true}
       height={height}
+      cursorTimestamp={cursorTimestamp}
+      onCursorChange={handleCursorChange}
       chartTitle={t("indexTimeline")}
       colorOverride={METAC_COLORS.blue["600"]}
     />
@@ -48,9 +52,10 @@ function buildIndexChartData({
   width: number;
   zoom: TimelineChartZoomOption;
 }) {
-  const indexWeights = tournament.index_weights ?? [];
   const Y_DOMAIN_PADDING = 5;
-  const { line, timestamps } = calculateIndexTimeline(indexWeights);
+
+  const beLine = tournament.index_data?.series?.line ?? [];
+  const timestamps = beLine.map((p) => p.x as number);
   const earliestTimestamp = timestamps[0] ?? 0;
   const latestTimestamp = timestamps[timestamps.length - 1] ?? 1;
 
@@ -66,7 +71,7 @@ function buildIndexChartData({
     width
   );
   return {
-    line: line as Line,
+    line: beLine,
     area: [] as Area,
     points: [] as Line,
     yDomain: [-100 - Y_DOMAIN_PADDING, 100 + Y_DOMAIN_PADDING] as DomainTuple,

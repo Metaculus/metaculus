@@ -33,21 +33,23 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import Select from "@/components/ui/select";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
-  Category,
+  GroupOfQuestionsGraphType,
   Post,
   PostGroupOfQuestionsSubquestionsOrder,
-  PostStatus,
   PostWithForecasts,
 } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   DefaultInboundOutcomeCount,
+  SimpleQuestionType,
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
@@ -108,18 +110,17 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
         z.literal(PostGroupOfQuestionsSubquestionsOrder.CP_DESC),
       ])
       .optional(),
+    graph_type: z
+      .union([
+        z.literal(GroupOfQuestionsGraphType.FanGraph),
+        z.literal(GroupOfQuestionsGraphType.MultipleChoiceGraph),
+      ])
+      .optional(),
   });
 };
 
-type SupportedType =
-  | QuestionType.Binary
-  | QuestionType.Numeric
-  | QuestionType.Discrete
-  | QuestionType.Date
-  | string;
-
 type Props = {
-  subtype: SupportedType;
+  subtype: SimpleQuestionType;
   tournament_id?: number;
   community_id?: number;
   post?: PostWithForecasts | null;
@@ -127,6 +128,7 @@ type Props = {
   allCategories: Category[];
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const GroupForm: React.FC<Props> = ({
@@ -138,6 +140,7 @@ const GroupForm: React.FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -180,7 +183,7 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions.map((x) => {
+    const groupData = subQuestions.map((x, idx) => {
       const subquestionData = {
         id: x.id,
         type: subtype,
@@ -190,7 +193,7 @@ const GroupForm: React.FC<Props> = ({
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
         cp_reveal_time: x.cp_reveal_time,
-        group_rank: x.group_rank,
+        group_rank: idx,
       };
 
       if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
@@ -277,6 +280,7 @@ const GroupForm: React.FC<Props> = ({
         group_variable: data["group_variable"],
         questions: groupData,
         subquestions_order: data["subquestions_order"],
+        graph_type: data["graph_type"],
       },
     };
     let resp: { post: Post };
@@ -285,7 +289,9 @@ const GroupForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(draftKey);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(draftKey);
+        }
       }
 
       router.push(getPostLink(resp.post));
@@ -318,7 +324,9 @@ const GroupForm: React.FC<Props> = ({
         scaling: x.scaling,
         open_lower_bound: x.open_lower_bound,
         open_upper_bound: x.open_upper_bound,
-        has_forecasts: (x.nr_forecasters || 0) > 0,
+        has_forecasts:
+          (x.aggregations[x.default_aggregation_method].latest
+            ?.forecaster_count || 0) > 0,
         group_rank: x.group_rank ?? idx,
       };
     });
@@ -330,6 +338,14 @@ const GroupForm: React.FC<Props> = ({
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<boolean[]>(
     subQuestions.map(() => true)
   );
+  const allExpanded = collapsedSubQuestions.every(Boolean);
+
+  const toggleAllSubQuestions = useCallback(() => {
+    setCollapsedSubQuestions(() =>
+      Array(subQuestions.length).fill(!allExpanded)
+    );
+  }, [subQuestions.length, allExpanded]);
+
   const groupQuestionSchema = createGroupQuestionSchema(t);
   const form = useForm<any>({
     mode: "all",
@@ -338,6 +354,9 @@ const GroupForm: React.FC<Props> = ({
       subquestions_order:
         post?.group_of_questions?.subquestions_order ??
         PostGroupOfQuestionsSubquestionsOrder.MANUAL,
+      graph_type:
+        post?.group_of_questions?.graph_type ??
+        GroupOfQuestionsGraphType.MultipleChoiceGraph,
     },
   });
 
@@ -375,9 +394,6 @@ const GroupForm: React.FC<Props> = ({
     );
   };
 
-  const isEditingActivePost =
-    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
-
   /**
    * Shifts an element in an array by a specified number of positions
    */
@@ -409,7 +425,7 @@ const GroupForm: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         setCategoriesList(draft.categories ?? []);
@@ -437,7 +453,7 @@ const GroupForm: React.FC<Props> = ({
   }, []);
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       saveQuestionDraft(draftKey, {
         ...formData,
@@ -445,7 +461,7 @@ const GroupForm: React.FC<Props> = ({
         subQuestions: subQuestions,
       });
     }
-  }, [form, mode, categoriesList, subQuestions, draftKey]);
+  }, [form, shouldUseDraftValue, categoriesList, subQuestions, draftKey]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -455,19 +471,23 @@ const GroupForm: React.FC<Props> = ({
   // update draft when form values changes
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   // update draft when subquestions state changes
   useEffect(() => {
-    if (mode === "create" && isDraftMounted.current) {
+    if (shouldUseDraftValue && isDraftMounted.current) {
       debouncedHandleFormChange();
     }
-  }, [form, mode, debouncedHandleFormChange, subQuestions]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange, subQuestions]);
+
+  const isManual =
+    form.watch("subquestions_order") ===
+    PostGroupOfQuestionsSubquestionsOrder.MANUAL;
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -598,7 +618,17 @@ const GroupForm: React.FC<Props> = ({
           />
         </InputContainer>
         <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">
-          <h4 className="m-0 capitalize">{t("subquestions")}</h4>
+          <div className="-m-4 mb-0 flex items-center justify-between bg-gray-200/80 p-4 pb-0 backdrop-blur supports-[backdrop-filter]:bg-gray-200/60 dark:bg-gray-200-dark/80">
+            <h4 className="m-0 capitalize">{t("subquestions")}</h4>
+            <Button
+              onClick={toggleAllSubQuestions}
+              size="xs"
+              variant="tertiary"
+              className="ml-2"
+            >
+              {allExpanded ? t("collapseAll") : t("expandAll")}
+            </Button>
+          </div>
           <InputContainer
             labelText={t("groupSorting")}
             explanation={t("groupSortingDescription")}
@@ -624,6 +654,29 @@ const GroupForm: React.FC<Props> = ({
                 post?.group_of_questions?.subquestions_order ??
                 PostGroupOfQuestionsSubquestionsOrder.MANUAL
               }
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={t("mainGraphType")}
+            explanation={t("mainGraphTypeDescription")}
+          >
+            <Select
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              options={[
+                {
+                  value: GroupOfQuestionsGraphType.FanGraph,
+                  label: t("fanGraph"),
+                },
+                {
+                  value: GroupOfQuestionsGraphType.MultipleChoiceGraph,
+                  label: t("toggledTimelines"),
+                },
+              ]}
+              defaultValue={
+                post?.group_of_questions?.graph_type ??
+                GroupOfQuestionsGraphType.MultipleChoiceGraph
+              }
+              {...form.register("graph_type")}
             />
           </InputContainer>
           {subQuestions.map((subQuestion, index) => {
@@ -762,54 +815,54 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                     </div>
-                    {isEditingActivePost && (
-                      <div className="flex flex-row gap-4">
-                        <InputContainer
-                          labelText={t("openTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.open_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.open_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                        <InputContainer
-                          labelText={t("cpRevealTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.cp_reveal_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.cp_reveal_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                      </div>
-                    )}
-                    {(subtype === QuestionType.Numeric ||
-                      subtype === QuestionType.Discrete ||
-                      subtype === QuestionType.Date) && (
+                    <div className="flex flex-row gap-4">
+                      <InputContainer
+                        labelText={t("openTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.open_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.open_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                      <InputContainer
+                        labelText={t("cpRevealTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.cp_reveal_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.cp_reveal_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                    </div>
+                    {ContinuousQuestionTypes.some(
+                      (type) => type === subtype
+                    ) && (
                       <NumericQuestionInput
-                        draftKey={mode === "edit" ? undefined : draftKey}
-                        questionType={subtype}
+                        draftKey={shouldUseDraftValue ? draftKey : undefined}
+                        questionType={
+                          subtype as (typeof ContinuousQuestionTypes)[number]
+                        }
                         defaultMin={subQuestion.scaling?.range_min}
                         defaultMax={subQuestion.scaling?.range_max}
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
@@ -875,40 +928,63 @@ const GroupForm: React.FC<Props> = ({
                         : t("collapse")}
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === 0}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, -1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, -1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronUp} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === subQuestions.length - 1}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, 1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, 1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronDown} />
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        disabled={!isManual || index === 0}
+                        title={
+                          isManual
+                            ? undefined
+                            : "Switch Group Sorting to Manual to reorder"
+                        }
+                        onClick={() => {
+                          if (!isManual) return;
+                          setSubQuestions(
+                            shiftArrayElement(subQuestions, index, -1).map(
+                              (q, idx) => ({
+                                ...q,
+                                group_rank: idx,
+                              })
+                            )
+                          );
+                          setCollapsedSubQuestions(
+                            shiftArrayElement(collapsedSubQuestions, index, -1)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faChevronUp} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        disabled={
+                          !isManual || index === subQuestions.length - 1
+                        }
+                        title={
+                          isManual
+                            ? undefined
+                            : "Switch Group Sorting to Manual to reorder"
+                        }
+                        onClick={() => {
+                          if (!isManual) return;
+                          setSubQuestions(
+                            shiftArrayElement(subQuestions, index, 1).map(
+                              (q, idx) => ({
+                                ...q,
+                                group_rank: idx,
+                              })
+                            )
+                          );
+                          setCollapsedSubQuestions(
+                            shiftArrayElement(collapsedSubQuestions, index, 1)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faChevronDown} />
+                      </Button>
+                    </>
                   </div>
 
                   <Button
@@ -1063,9 +1139,8 @@ const GroupForm: React.FC<Props> = ({
           fields={[
             "scheduled_close_time",
             "scheduled_resolve_time",
-            ...(isEditingActivePost
-              ? (["open_time", "cp_reveal_time"] as const)
-              : []),
+            "open_time",
+            "cp_reveal_time",
           ]}
         />
       </form>

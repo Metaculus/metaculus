@@ -62,8 +62,12 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
     @classmethod
     def can_comment(cls, permission: Self, raise_exception=False):
-        # TODO: who can comment: viewers or forecasters only?
-        can = bool(permission)
+        can = permission in (
+            cls.FORECASTER,
+            cls.CURATOR,
+            cls.ADMIN,
+            cls.CREATOR,
+        )
 
         if raise_exception and not can:
             raise PermissionDenied("You do not have permission to comment this project")
@@ -72,9 +76,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
     @classmethod
     def can_pin_comment(cls, permission: Self, raise_exception=False):
-        can = permission in (
-            cls.ADMIN,
-        )
+        can = permission in (cls.ADMIN,)
 
         if raise_exception and not can:
             raise PermissionDenied("You do not have permission to pin this comment")
@@ -161,6 +163,15 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
         if raise_exception and not can:
             raise PermissionDenied("You do not have permission to close this question")
+
+        return can
+
+    @classmethod
+    def can_edit_project(cls, permission: Self, raise_exception=False):
+        can = permission in (cls.ADMIN,)
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to edit this project")
 
         return can
 

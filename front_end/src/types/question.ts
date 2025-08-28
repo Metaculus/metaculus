@@ -1,6 +1,9 @@
-import { Category, QuestionStatus, Resolution } from "@/types/post";
+import { ContinuousQuestionTypes } from "@/constants/questions";
+import { QuestionStatus, Resolution } from "@/types/post";
+import { Category } from "@/types/projects";
 
 import { ContinuousForecastInputType } from "./charts";
+import { ScoreType } from "./scoring";
 
 export const DefaultInboundOutcomeCount = 200;
 
@@ -12,6 +15,11 @@ export enum QuestionType {
   Date = "date",
 }
 
+export type ContinuousQuestionType = (typeof ContinuousQuestionTypes)[number];
+export type SimpleQuestionType = Exclude<
+  QuestionType,
+  QuestionType.MultipleChoice
+>;
 export type QuestionLinearGraphType = "binary" | "continuous";
 
 export enum QuestionOrder {
@@ -21,11 +29,13 @@ export enum QuestionOrder {
   OpenTimeDesc = "-open_time",
   LastPredictionTimeAsc = "user_last_forecasts_date",
   LastPredictionTimeDesc = "-user_last_forecasts_date",
+  UserNextWithdrawTimeAsc = "user_next_withdraw_time",
   DivergenceDesc = "-divergence",
   VotesDesc = "-vote_score",
   CommentCountDesc = "-comment_count",
   UnreadCommentCountDesc = "-unread_comment_count",
   PredictionCountDesc = "-forecasts_count",
+  ForecastersCountDesc = "-forecasters_count",
   CloseTimeAsc = "scheduled_close_time",
   ScoreDesc = "-score",
   ScoreAsc = "score",
@@ -89,7 +99,7 @@ export type ScoreData = {
   spot_baseline_score?: number | null;
   spot_peer_score?: number | null;
   relative_legacy_score?: number | null;
-  relative_legacy_arvhived_score?: number | null;
+  relative_legacy_archived_score?: number | null;
   coverage?: number | null;
   weighted_coverage?: number | null;
 };
@@ -159,9 +169,9 @@ export type AggregateForecastHistory = {
 
 export type Aggregations = {
   recency_weighted: AggregateForecastHistory;
-  unweighted?: AggregateForecastHistory;
-  single_aggregation?: AggregateForecastHistory;
-  metaculus_prediction?: AggregateForecastHistory;
+  unweighted: AggregateForecastHistory;
+  single_aggregation: AggregateForecastHistory;
+  metaculus_prediction: AggregateForecastHistory;
 };
 
 export type BaseForecast = {
@@ -238,11 +248,12 @@ export type Question = {
   resolution: Resolution | null;
   include_bots_in_aggregates: boolean;
   question_weight: number;
+  default_score_type: ScoreType;
+  default_aggregation_method: AggregationMethod;
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;
   unit: string;
-  nr_forecasters: number;
   author_username: string;
   post_id: number;
   display_divergences?: number[][];
@@ -360,6 +371,7 @@ export type AggregationQuestion = {
   short_title: string;
   type: QuestionType;
   unit?: string;
+  forecasters_count?: number | null;
 };
 
 export enum CurveQuestionLabels {

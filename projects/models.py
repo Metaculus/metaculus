@@ -14,8 +14,9 @@ from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
-from questions.constants import ResolutionType
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question
+from scoring.constants import LeaderboardScoreTypes
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
@@ -39,11 +40,8 @@ class ProjectsQuerySet(models.QuerySet):
             )
         )
 
-    def filter_news(self):
-        return self.filter(type=Project.ProjectTypes.NEWS_CATEGORY)
-
-    def filter_tags(self):
-        return self.filter(type=Project.ProjectTypes.TAG)
+    def filter_leaderboard_tags(self):
+        return self.filter(type=Project.ProjectTypes.LEADERBOARD_TAG)
 
     def filter_communities(self):
         return self.filter(type=Project.ProjectTypes.COMMUNITY)
@@ -82,8 +80,8 @@ class ProjectsQuerySet(models.QuerySet):
                 )
                 & ~Q(
                     posts__related_questions__question__resolution__in=[
-                        ResolutionType.AMBIGUOUS,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.AMBIGUOUS,
+                        UnsuccessfulResolutionType.ANNULLED,
                     ]
                 ),
                 distinct=True,
@@ -96,8 +94,8 @@ class ProjectsQuerySet(models.QuerySet):
                 )
                 & ~Q(
                     default_posts__related_questions__question__resolution__in=[
-                        ResolutionType.AMBIGUOUS,
-                        ResolutionType.ANNULLED,
+                        UnsuccessfulResolutionType.AMBIGUOUS,
+                        UnsuccessfulResolutionType.ANNULLED,
                     ]
                 ),
                 distinct=True,
@@ -192,7 +190,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         PERSONAL_PROJECT = "personal_project"
         NEWS_CATEGORY = "news_category"
         CATEGORY = "category"
-        TAG = "tag"
+        LEADERBOARD_TAG = "leaderboard_tag"
         TOPIC = "topic"
         COMMUNITY = "community"
 
@@ -389,7 +387,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
             leaderboard = Leaderboard.objects.create(
                 project=self,
-                score_type=Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+                score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
             )
             Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
 
@@ -438,7 +436,11 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         from posts.models import PostUserSnapshot
 
         self.forecasters_count = (
-            PostUserSnapshot.objects.filter(last_forecast_date__isnull=False)
+            PostUserSnapshot.objects.filter(
+                last_forecast_date__isnull=False,
+                user__is_staff=False,
+                # TODO: don't count project admins
+            )
             .filter(Q(post__default_project=self) | Q(post__projects=self))
             .values("user_id")
             .distinct()

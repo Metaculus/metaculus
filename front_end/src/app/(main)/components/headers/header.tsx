@@ -72,7 +72,7 @@ const Header: FC = () => {
               </MenuButton>
               <MenuItems
                 anchor="bottom"
-                className="z-50 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
+                className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
               >
                 {menuLinks.map((link) => (
                   <LinkMenuItem

@@ -32,7 +32,7 @@ const AsyncTrackRecord: FC = async () => {
                 : "-"}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-              AVERAGE PEER SCORE
+              AVERAGE BASELINE SCORE
             </span>
           </div>
           <div className={keyStatStyles}>

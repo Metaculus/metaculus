@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { CoherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
 import ServerCommentsApi from "@/services/api/comments/comments.server";
 import {
   CommentReportReason,
@@ -21,8 +22,11 @@ import ServerQuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/api/questions/questions.server";
+import { CoherenceLink } from "@/types/coherence";
+import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
+import { Question } from "@/types/question";
 import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 import { ApiError } from "@/utils/core/errors";
@@ -315,4 +319,45 @@ export async function getPostZipData(params: DataParams) {
 
 export async function emailData(params: DataParams) {
   return await ServerPostsApi.emailData(params);
+}
+
+export async function createCoherenceLink(
+  question1: Question,
+  question2: Question,
+  direction: string,
+  strength: string,
+  type: string
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.createCoherenceLink({
+      question1_id: question1.id,
+      question2_id: question2.id,
+      direction,
+      strength,
+      type,
+    });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
+export async function deleteCoherenceLink(link: CoherenceLink) {
+  try {
+    return await CoherenceLinksApiClass.deleteCoherenceLink(link.id);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}
+
+export async function setExcludedFromWeekTopComments(
+  commentId: number,
+  excluded: boolean
+) {
+  return await ServerCommentsApi.setCommentExcludedFromWeekTop(
+    commentId,
+    excluded
+  );
 }

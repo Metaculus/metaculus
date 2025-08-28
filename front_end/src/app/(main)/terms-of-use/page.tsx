@@ -19,9 +19,9 @@ export default async function TermsOfUse() {
     <PageWrapper>
       <h1 className="mb-6 text-3xl font-bold">Terms of Use</h1>
 
-      <p className="mb-4">Last Modified: May 8, 2024</p>
+      <p className="mb-4">Last Modified: Jun 13, 2025</p>
 
-      <p className="mb-4 font-bold">WELCOME TO METACULUS!</p>
+      <p className="mb-4 font-bold">Welcome to Metaculus!</p>
 
       <p className="mb-4 font-bold">
         IMPORTANT! PLEASE CAREFULLY READ THESE TERMS OF USE, AS THEY AFFECT YOUR
@@ -31,11 +31,11 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         The following terms and conditions, together with any documents they
         expressly incorporate by reference (collectively, &quot;Terms of
-        Use&quot;) apply to the Metaculus.com web site including any content,
+        Use&quot;) apply to the Metaculus.com website including any content,
         functionality, and services offered on or through the Metaculus.com
-        website (the &quot;Service&quot; or &quot;Site&quot; or
-        &quot;Website&quot;), whether as a guest or registered user. Metaculus,
-        Inc. is referred to in these Terms of Use as
+        website (the &quot;Service&quot; or &quot;Services&quot; or
+        &quot;Site&quot; or &quot;Website&quot;), whether as a guest or
+        registered user. Metaculus, Inc. is referred to in these Terms of Use as{" "}
         <strong>Metaculus</strong>, <strong>Metaculus Website</strong>,{" "}
         <strong>we</strong> or <strong>our</strong>.<strong>You</strong>,{" "}
         <strong>your</strong> and <strong>user</strong> refer to any person or
@@ -58,7 +58,7 @@ export default async function TermsOfUse() {
           </a>
           , found at{" "}
           <a
-            href="http://www.metaculus.com/privacy-policy"
+            href="https://www.metaculus.com/privacy-policy/"
             className="text-blue-600 hover:underline"
           >
             https://www.metaculus.com/privacy-policy/
@@ -104,21 +104,8 @@ export default async function TermsOfUse() {
         or share or otherwise transfer your membership or any membership rights.
         You agree to notify Metaculus immediately if you suspect any
         unauthorized use of your account or access to your password. Metaculus
-        has the right to terminate your account for any reason at our sole
-        discretion without notice and without liability.
-      </p>
-      <p className="mb-4">
-        Competitions on Metaculus are skills-based, designed to evaluate
-        participants&apos; forecasting and reasoning skills. No purchase, fee,
-        or payment is required to participate. All entries are judged by an
-        algorithm, described at{" "}
-        <a
-          href="https://www.metaculus.com/help/scores-faq/#proper-scoring"
-          className="text-blue-600 hover:underline"
-        >
-          https://www.metaculus.com/help/scores-faq/#proper-scoring
-        </a>
-        , that applies objective criteria.
+        has the right to terminate, suspend, or limit your account for any
+        reason at our sole discretion without notice and without liability.
       </p>
 
       <h2
@@ -135,12 +122,11 @@ export default async function TermsOfUse() {
         The Service is not intended or authorized for distribution or use in any
         jurisdiction or country where such distribution or use would be contrary
         to law or regulation or which would subject Metaculus to any
-        registration requirement within such jurisdiction or country, and meet
-        all of the foregoing eligibility requirements. By using this Website,
-        you represent and warrant that you of legal age to form a binding
-        contract with the Company, are not on any list of restricted persons
-        with whom it is unlawful for a U.S. company to do business. Metaculus
-        operates the Service in the United States. Metaculus makes no
+        registration requirement within such jurisdiction or country. By using
+        this Website, you represent and warrant that you of legal age to form a
+        binding contract with Metaculus, are not on any list of restricted
+        persons with whom it is unlawful for a U.S. company to do business.
+        Metaculus operates the Service in the United States. Metaculus makes no
         representations or warranties that the Service is appropriate for use or
         access in other locations. Anyone using or accessing the Service from
         other locations does so on their own initiative and is responsible for
@@ -168,9 +154,17 @@ export default async function TermsOfUse() {
         images, as well as the selection, assembly and arrangement thereof and
         the &quot;look and feel&quot; of the Service (collectively,
         &quot;Metaculus Content&quot;), are owned, controlled, or licensed by
-        Metaculus. Metaculus Content is protected from unauthorized use, copying
-        and dissemination by copyright, trademark, patent, and other laws,
-        rules, regulations and treaties.{" "}
+        Metaculus. A list of open source software employed by the Service, which
+        is not Metaculus Content may be found{" "}
+        <a
+          href="https://github.com/Metaculus/metaculus/tree/main/licenses"
+          className="text-blue-600 hover:underline"
+        >
+          here
+        </a>
+        . Metaculus Content is protected from unauthorized use, copying and
+        dissemination by copyright, trademark, patent, and other laws, rules,
+        regulations and treaties.{" "}
         <strong>
           <em>Any unauthorized use of Metaculus Content is prohibited.</em>
         </strong>{" "}
@@ -191,28 +185,31 @@ export default async function TermsOfUse() {
         procure content or information from the Service by automated means (such
         as scripts, bots, spiders, crawlers, or scrapers), or to use other data
         mining technology or processes to frame, mask, extract data or other
-        materials from the Metaculus Content (except as may be a result of
-        standard search engine or Internet browser usage), unless formally
-        authorized by Metaculus under separate written agreement. No materials
-        from the Service may be copied, reproduced, modified, republished,
-        downloaded, uploaded, posted, transmitted, or distributed in any form or
-        by any means without Metaculus&apos;s prior written permission or as
-        expressly provided in these Terms of Use. You may not use the Service,
-        any Metaculus Content, or any User Content accessed through the Service
-        to train or otherwise create or develop any artificial intelligence or
-        machine learning model or algorithm without Metaculus&apos;s prior
-        written permission. When you download or use the Metaculus Content as
-        authorized by these Terms of Use, you must: (a) keep intact all
-        copyright and other proprietary notices; (b) make no modifications to
-        the Metaculus Content; and (c) not copy or adapt any object code
-        associated with the Service or reverse engineer, modify or attempt to
-        discover any source code associated with the Service, nor allow or
-        assist any third party (whether or not for your benefit) to do so. All
-        rights not expressly granted herein are reserved. Metaculus may impose
-        reasonable limits on your scope of access to Metaculus Content,
-        including limits on time or number of materials accessed or machines
-        used to access such Content, to prevent unauthorized third party access
-        to or use of that Content.
+        materials from the Metaculus Content, except as may be a result of
+        standard search engine or Internet browser usage or through and subject
+        to the terms of an API provided by Metaculus (which Metaculus may choose
+        to provide from time to time), or unless formally authorized by
+        Metaculus under separate written agreement. No materials from the
+        Service may be copied, reproduced, modified, republished, downloaded,
+        uploaded, posted, transmitted, or distributed in any form or by any
+        means without Metaculus&apos;s prior written permission or as expressly
+        provided in these Terms of Use or in any license granted by Metaculus.
+        You may not use the Service, any Metaculus Content, or any User Content
+        accessed through the Service to train or otherwise create or develop any
+        artificial intelligence or machine learning model or algorithm without
+        Metaculus&apos;s prior written permission. When you download or use the
+        Metaculus Content as authorized by these Terms of Use, you must: (a)
+        keep intact all copyright and other proprietary notices; (b) make no
+        modifications to the Metaculus Content; and (c) not copy or adapt any
+        object code associated with the Service or reverse engineer, modify or
+        attempt to discover any source code associated with the Service unless
+        permitted by a license granted by Metaculus, nor allow or assist any
+        third party (whether or not for your benefit) to do so. All rights not
+        expressly granted herein are reserved. Metaculus may impose reasonable
+        limits on your scope of access to Metaculus Content, including limits on
+        time or number of materials accessed or machines used to access such
+        Content, to prevent unauthorized third-party access to or use of that
+        Content.
       </p>
 
       <h2
@@ -227,21 +224,21 @@ export default async function TermsOfUse() {
         ability to share certain Metaculus Content with others (&quot;Social
         Distribution&quot;). For example, the Service may allow you to send
         certain Metaculus Content to friends, display Metaculus Content on your
-        personal web site or post Metaculus Content on a third party web site.
-        You agree that you will not imply that you and Metaculus are affiliated
-        in any way or that Metaculus approves of your comments. We reserve the
-        right to revoke our permission for Social Distribution at any time and
-        for any reason, and you agree to immediately cease Social Distribution
-        upon notice of revocation and to comply with any terms we post in
-        connection with the Social Distribution of Metaculus Content.
+        personal website or post Metaculus Content on a third party website. You
+        agree that you will not state or imply that you and Metaculus are
+        affiliated in any way or that Metaculus approves of your comments. We
+        reserve the right to revoke our permission for Social Distribution at
+        any time and for any reason, and you agree to immediately cease Social
+        Distribution upon notice of revocation and to comply with any terms we
+        post in connection with the Social Distribution of Metaculus Content.
       </p>
 
       <p className="mb-4">
         Similarly, the Service may provide content that you may choose to embed
-        on your personal web page, third party web site or social networking
-        site by pasting the HTML or other code provided by us (typically labeled
-        as an embed code) (&quot;Widgets&quot;). Widgets are Metaculus Content
-        and subject to the limited, revocable license described above. We may
+        on your personal web page, third party website or social networking site
+        by pasting the HTML or other code provided by us (typically labeled as
+        an embed code) (&quot;Widgets&quot;). Widgets are Metaculus Content and
+        subject to the limited, revocable license described above. We may
         discontinue providing the Service necessary for the Widgets to operate
         or we may disable Widgets you have embedded at any time for any reason
         without any liability to you. You agree that our permission to you to
@@ -272,9 +269,9 @@ export default async function TermsOfUse() {
         When you submit, post, upload, embed, display, communicate, link to,
         email or otherwise distribute or publish any question, prediction,
         review, problem, suggestion, idea, solution, question, answer, feedback,
-        message, image, video, text, profile data or other material (
-        <strong>User Content</strong>) to Metaculus, any Metaculus employee or
-        contractor, or a Metaculus web site,{" "}
+        message, image, video, text, profile data or other material (&quot;User
+        Content&quot;) to Metaculus, any Metaculus employee or contractor, or a
+        Metaculus website,{" "}
         <strong>
           you grant Metaculus and our affiliates, licensees, distributors,
           agents, representatives and other entities or individuals authorized
@@ -286,7 +283,7 @@ export default async function TermsOfUse() {
           modify, sell, offer for sale, create derivative works based upon and
           otherwise use the User Content
         </strong>
-        . You also grant each user of the service the right to access your
+        . You also grant each user of the service the right to access your User
         Content through the Website.
       </p>
       <p className="mb-4">
@@ -341,22 +338,13 @@ export default async function TermsOfUse() {
         provide.
       </p>
       <p className="mb-4">
-        It is our policy not to accept or consider content, information, ideas,
-        suggestions or other materials other than those we have specifically
-        requested, to which certain specific terms, conditions and requirements
-        may apply. This is to avoid any misunderstandings if your ideas are
-        similar to those we have developed or are developing independently.
-        Accordingly, Metaculus does not accept unsolicited materials or ideas,
-        and takes no responsibility for any materials or ideas so transmitted.
-      </p>
-      <p className="mb-4">
-        You understand that any predictions made on or through the Website as
+        You understand that any predictions made on or through the Website are
         not guarantees – the future is not knowable, and the User Content on the
         Website is at most simply a prediction, forecast, or surmise about what
-        may happen in the future. Acting in reliance on any User Content is at
-        your own risk, and we advise you to do your own research and consult
-        with your own professional advisors prior to taking any action relying
-        on the User Content.
+        may happen in the future. Acting in reliance on any User Content or
+        content published by Metaculus is at your own risk, and we advise you to
+        do your own research and consult with your own professional advisors
+        prior to taking any action relying on the User Content.
       </p>
       <p className="mb-4">
         You agree that Metaculus has no obligation to monitor or enforce your
@@ -367,10 +355,11 @@ export default async function TermsOfUse() {
         or may not monitor, display or accept your User Content and may delete
         it at any time. We may, but are not obligated to, review User Content
         prior to posting it on or distributing it through the Service, or
-        allowing them to be distributed through the Service. This includes
-        private messages exchanged by you and other users through the Service.
-        This &quot;User Content and Activities&quot; section shall survive any
-        expiration or termination of your relationship with Metaculus.
+        allowing User Content to be distributed through the Service. This
+        includes private messages exchanged by you and other users through the
+        Service. This &quot;User Content and Activities&quot; section shall
+        survive any expiration or termination of your relationship with
+        Metaculus.
       </p>
       <p className="mb-4">
         You understand and agree that Metaculus may, at various times, make a
@@ -400,14 +389,15 @@ export default async function TermsOfUse() {
         in connection with our Service, and any material or information that you
         transmit to other users and for your interactions with other users. When
         you contribute, upload or otherwise provide User Content via the
-        Service, you agree to comply with the following Community Usage Rules.
+        Service, you agree to comply with the following community usage rules.
         In addition to removing prohibited materials, Metaculus may terminate
         the responsible accounts, and/or report such activities to law
         enforcement authorities as appropriate.
       </p>
+
       <p className="mb-4">
         Prohibited User Content includes, but is not limited to, material that
-        Metaculus determines:
+        Metaculus determines, in its sole discretion:
       </p>
       <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
         <li>
@@ -422,8 +412,8 @@ export default async function TermsOfUse() {
           an adult or otherwise objectionable website;
         </li>
         <li>
-          posts information that poses or creates a privacy or security risk to
-          any person;
+          contains information that poses or creates a privacy or security risk
+          to any person;
         </li>
         <li>
           constitutes or promotes information that you know is false or
@@ -500,7 +490,8 @@ export default async function TermsOfUse() {
         </li>
         <li>
           any automated use of the Service, such as, but not limited to, using
-          scripts to send messages or posts;
+          scripts to send messages or posts (except through and subject to the
+          terms of an API provided by Metaculus);
         </li>
         <li>
           use of the Service, any Metaculus Content, or any User Content
@@ -545,7 +536,7 @@ export default async function TermsOfUse() {
         Metaculus reserves the right, in our sole discretion, to make changes to
         or discontinue any of the Service at any time. Any description of the
         Service provided by Metaculus is not a representation that the Service
-        are working or will always work in that manner, as Metaculus is
+        is working or will always work in that manner, as Metaculus is
         continuously updating the Service, and these updates may not always be
         reflected in the Terms of Use.
       </p>
@@ -557,25 +548,17 @@ export default async function TermsOfUse() {
         Mobile Use
       </h2>
       <p className="mb-4">
-        The Service may offer features and Service that are available to you via
-        your mobile device. These features and Service may include, without
+        The Service may offer features and Services that are available to you
+        via your mobile device. These features and Services may include, without
         limitation, the ability to upload content to the Service, receive
         messages from the Service, download applications to your mobile phone or
-        access features from the Service (collectively, the &quot;
-        <strong>Mobile Features</strong>&quot;). We may charge for Mobile
-        Features and these charges will be disclosed prior to completion of
-        registration for the Mobile Feature. Also, standard messaging, data and
-        other fees may be charged by your carrier. Carrier fees and charges will
-        appear on your mobile bill or be deducted from your pre-paid balance.
-        Your carrier may prohibit or restrict certain Mobile Features and
-        certain Mobile Features may be incompatible with your carrier or mobile
-        device. Contact your carrier with questions regarding these issues.
-      </p>
-      <p className="mb-4">
-        If you change or terminate your mobile account, you are responsible for
-        promptly updating your Metaculus account information so that any
-        messages or notices from Metaculus regarding the Service are sent to you
-        and not to the person who is assigned your old number.
+        access features from the Service (collectively, the &quot;Mobile
+        Features&quot;). Standard messaging, data and other fees may be charged
+        by your carrier. Carrier fees and charges will appear on your mobile
+        bill or be deducted from your pre-paid balance. Your carrier may
+        prohibit or restrict certain Mobile Features and certain Mobile Features
+        may be incompatible with your carrier or mobile device. Contact your
+        carrier with questions regarding these issues.
       </p>
 
       <h2
@@ -585,15 +568,14 @@ export default async function TermsOfUse() {
         Email and Text Message Notifications
       </h2>
       <p className="mb-4">
-        Notifications or receipts from Metaculus will be delivered to you by
-        email at the address you provided to Metaculus when you created your
-        account or as later updated. You hereby agree and acknowledge that
-        Metaculus is not responsible to notify you in any way other than by
-        email. Metaculus will not ask you for your personal information, account
-        username, and password, or any of your credit or debit card information
-        via email or text message. Metaculus will have no responsibility for any
-        misuse of such information if you provide such information via email or
-        text message.
+        Metaculus may communicate with you using email or any other means of
+        communication for which you have provided contact information, in
+        Metaculus&apos;s sole discretion. You are responsible for keeping all of
+        your contact information up to date to ensure that you receive all
+        notifications. Metaculus will not ask you for your password or any of
+        your credit or debit card information via email or text message.
+        Metaculus will have no responsibility for any misuse of such information
+        if you provide such information via email or text message.
       </p>
 
       <h2
@@ -604,11 +586,12 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         You may cancel your account at any time throughout our Service.
-        Metaculus may cancel your account in its sole discretion any reason,
+        Metaculus may cancel your account in its sole discretion for any reason,
         including but not limited to inactivity or misuse of the Service. Even
-        if your account in cancelled, your information, posts, and any other
-        data you have shared via the Service may persist within the Service
-        after cancellation of your account.
+        if your account is canceled, your User Content, (including any
+        information, posts, and any other data you have shared via the Service)
+        may persist within the Service after cancellation of your account
+        consistent with our Privacy Policy.
       </p>
 
       <h2
@@ -619,13 +602,13 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         There may be links from the Service, or from communications you receive
-        from the Service, to third party web sites or online features. The
+        from the Service, to third party websites or online features. The
         Service also may include third party content that we do not control,
         maintain or endorse.
       </p>
       <p className="mb-4">
         Functionality on the Service may also permit interactions between the
-        Service and a third party web site or online feature, including
+        Service and a third party website or online feature, including
         applications that connect the Service or your profile on the Service
         with a third party site. For example, the Service may include a button
         enabling you to indicate, on your social networking page, that you
@@ -633,17 +616,18 @@ export default async function TermsOfUse() {
         lets you post to your social networking page a link to a specific
         product or the ability to share content from the Service or your User
         Content with a third party, which may be publicly posted on that third
-        party&apos;s web site. Using this functionality typically requires you
-        to login to your account on the third party website, and you do so at
-        your own risk. We do not control any of these third party sites or any
-        of their content. Accordingly, you expressly acknowledge and agree that
-        we are in no way responsible or liable for any of those third party
-        sites or online features. YOUR CORRESPONDENCE AND BUSINESS DEALINGS WITH
-        THIRD PARTIES FOUND THROUGH THE SERVICE INCLUDING, WITHOUT LIMITATION,
-        THE PAYMENT AND DELIVERY OF PRODUCTS AND SERVICE, AND ANY TERMS,
-        CONDITIONS, WARRANTIES AND REPRESENTATIONS ASSOCIATED WITH ANY SUCH
-        DEALINGS, ARE SOLELY BETWEEN YOU AND THE THIRD PARTY.
+        party&apos;s website. Using this functionality typically requires you to
+        login to your account on the third party website, and you do so at your
+        own risk. We do not control any of these third party sites or any of
+        their content. Accordingly, you expressly acknowledge and agree that we
+        are in no way responsible or liable for any of those third party sites
+        or online features. YOUR CORRESPONDENCE AND BUSINESS DEALINGS WITH THIRD
+        PARTIES FOUND THROUGH THE SERVICE INCLUDING, WITHOUT LIMITATION, THE
+        PAYMENT AND DELIVERY OF PRODUCTS AND SERVICE, AND ANY TERMS, CONDITIONS,
+        WARRANTIES AND REPRESENTATIONS ASSOCIATED WITH ANY SUCH DEALINGS, ARE
+        SOLELY BETWEEN YOU AND THE THIRD PARTY.
       </p>
+
       <h2
         className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold"
         id="linking-policy"
@@ -651,29 +635,30 @@ export default async function TermsOfUse() {
         Linking Policy
       </h2>
       <p className="mb-4">
-        Metaculus grants you the revocable permission to link to the web sites
-        on which these Terms of Use are posted; provided, however, that any link
-        to such a web site: (a) must not frame or create a browser or border
-        environment around any of the content on such web sites or otherwise
-        mirror any part of such web sites; (b) must not imply that Metaculus or
-        the Service are endorsing or sponsoring any third party or its products
-        or Service, unless Metaculus has given the third party prior written
-        consent; (c) must not present false information about, or disparage,
-        tarnish, or otherwise, in Metaculus&apos;s sole opinion, harm Metaculus
-        or its products or Service; (d) must not use any Metaculus trademarks
-        without the prior written permission from Metaculus; (e) must not
-        contain content that could be construed as distasteful, offensive or
+        Metaculus grants you the revocable permission to link to the websites on
+        which these Terms of Use are posted; provided, however, that any link to
+        such a website: (a) must not frame or create a browser or border
+        environment around any of the content on such websites or otherwise
+        mirror any part of such websites (except for purpose-built functionality
+        we may offer on the site from time to time); (b) must not imply that
+        Metaculus or the Service are endorsing or sponsoring any third party or
+        its products or Service, unless Metaculus has given the third party
+        prior written consent; (c) must not present false information about, or
+        disparage, tarnish, or otherwise, in Metaculus&apos;s sole opinion, harm
+        Metaculus or its products or Service; (d) must not use any Metaculus
+        trademarks without the prior written permission from Metaculus; (e) must
+        not contain content that could be construed as distasteful, offensive or
         controversial or otherwise objectionable (in Metaculus&apos;s sole
         opinion); and (f) must be owned and controlled by you or the person or
         entity placing the link, or otherwise permit you to enable such link
-        subject to these Terms of Use. By linking to a Metaculus web site, you
+        subject to these Terms of Use. By linking to a Metaculus website, you
         agree that you do and will continue to comply with the above linking
         requirements.
       </p>
       <p className="mb-4">
         Notwithstanding anything to the contrary contained in these Terms of
         Use, Metaculus reserves the right to prohibit linking to any Metaculus
-        web site for any reason in our sole and absolute discretion.
+        website for any reason in our sole and absolute discretion.
       </p>
 
       <h2
@@ -687,7 +672,7 @@ export default async function TermsOfUse() {
         &quot;AS AVAILABLE,&quot; AND &quot;WITH ALL FAULTS&quot; BASIS AND
         WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE
         FULLEST EXTENT PERMISSIBLE UNDER APPLICABLE LAW, METACULUS AND ITS
-        DIRECTORS, EMPLOYEES, MANAGERS, OFFICERS, AGENTS, REPRESENTATIVES OR
+        DIRECTORS, EMPLOYEES, MANAGERS, OFFICERS, AGENTS, REPRESENTATIVES AND
         VENDORS (COLLECTIVELY THE &quot;METACULUS PARTIES&quot;) SPECIFICALLY
         MAKE NO REPRESENTATIONS, WARRANTIES, OR ENDORSEMENTS OF ANY KIND,
         WHETHER EXPRESS OR IMPLIED, AS TO (A) THE SERVICE; (B) THE METACULUS
@@ -695,10 +680,11 @@ export default async function TermsOfUse() {
         TRANSMISSION OF INFORMATION TO METACULUS OR VIA THE SERVICE. IN
         ADDITION, THE METACULUS PARTIES DISCLAIM ALL WARRANTIES, EXPRESS,
         IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF
-        FITNESS FOR A PARTICULAR PURPOSE, OF MERCHANTABILITY,NON-INFRINGEMENT,
+        FITNESS FOR A PARTICULAR PURPOSE, OF MERCHANTABILITY, NON-INFRINGEMENT,
         TITLE, CUSTOM, TRADE, QUIET ENJOYMENT, SYSTEM INTEGRATION, AND FREEDOM
         FROM COMPUTER VIRUS.
       </p>
+
       <p className="mb-4">
         WITHOUT LIMITING THE FOREGOING, THE METACULUS PARTIES SPECIFICALLY DO
         NOT WARRANT THAT THE SERVICE WILL BE ERROR-FREE, THAT DEFECTS WILL BE
@@ -709,39 +695,42 @@ export default async function TermsOfUse() {
         OR REGARDING THE RESULTS OF THE USE OF THE SERVICE IN TERMS OF THEIR
         COMPLETENESS, CORRECTNESS, ACCURACY, RELIABILITY, USEFULNESS OR
         OTHERWISE, UNLESS SPECIFICALLY SET OUT ON THE SERVICE. YOU ACKNOWLEDGE
-        THAT YOUR USE OF THE SERVICE ARE AT YOUR SOLE RISK. THE METACULUS
-        PARTIES DO NOT WARRANT THAT YOUR USE OF THE SERVICE ARE LAWFUL IN ANY
-        PARTICULAR JURISDICTION, AND THE METACULUS PARTIES SPECIFICALLY DISCLAIM
-        SUCH WARRANTIES. SOME JURISDICTIONS LIMIT OR DO NOT ALLOW THE DISCLAIMER
-        OF IMPLIED OR OTHER WARRANTIES SO THE ABOVE DISCLAIMER MAY NOT APPLY TO
-        THE EXTENT SUCH JURISDICTION&apos;S LAW IS APPLICABLE TO THESE TERMS.
+        THAT YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK. THE METACULUS PARTIES
+        DO NOT WARRANT THAT YOUR USE OF THE SERVICE IS LAWFUL IN ANY PARTICULAR
+        JURISDICTION, AND THE METACULUS PARTIES SPECIFICALLY DISCLAIM SUCH
+        WARRANTIES. SOME JURISDICTIONS LIMIT OR DO NOT ALLOW THE DISCLAIMER OF
+        IMPLIED OR OTHER WARRANTIES SO THE ABOVE DISCLAIMER MAY NOT APPLY TO THE
+        EXTENT SUCH JURISDICTION&apos;S LAW IS APPLICABLE TO THESE TERMS.
       </p>
+
       <p className="mb-4">
         BY ACCESSING OR USING THE SERVICE YOU REPRESENT AND WARRANT THAT YOUR
         ACTIVITIES ARE LAWFUL IN EVERY JURISDICTION WHERE YOU ACCESS OR USE THE
         SERVICE.
       </p>
+
       <p className="mb-4">
         THE METACULUS PARTIES ARE NOT RESPONSIBLE FOR THE USER CONTENT, ACCURACY
         OR OPINIONS EXPRESSED IN USER CONTENT POSTED OR PROVIDED BY THIRD
-        PARTIES ON THE SERVICE OR LINKED SERVICE, AND SUCH SERVICE ARE NOT
-        NECESSARILY INVESTIGATED, MONITORED OR CHECKED FOR ACCURACY OR
-        COMPLETENESS BY METACULUS. INCLUSION OF ANY LINKED WEBSITE OR FEATURE ON
-        THE SERVICE DOES NOT IMPLY APPROVAL OR ENDORSEMENT OF THE LINKED WEBSITE
-        OR FEATURE BY METACULUS. IN ADDITION, THE METACULUS PARTIES ARE NOT
-        RESPONSIBLE FOR, AND SPECIFICALLY DISCLAIM ANY RESPONSIBILITY OR
-        LIABILITY TO ANY PERSON OR ANY ENTITY FOR ANY DAMAGE (WHETHER ACTUAL,
-        CONSEQUENTIAL, PUNITIVE OR OTHERWISE), INJURY, LOSS, CLAIM, OR LIABILITY
-        OR OTHER CAUSE OF ANY KIND OR CHARACTER BASED UPON OR RESULTING FROM ANY
-        USER CONTENT OR BY ANY OF THE EQUIPMENT OR PROGRAMMING ASSOCIATED WITH
-        OR UTILIZED IN THE SERVICE OR LINKED SERVICE. POSTS AND LINKED SERVICE
-        CREATED AND POSTED BY USERS ON, THOUGH OR IN CONNECTION WITH THE SERVICE
-        MAY CONTAIN LINKS TO OTHER WEBSITES OR SERVICE. METACULUS TAKES NO
-        RESPONSIBILITY FOR THIRD PARTY ADVERTISEMENTS OR LINKED SERVICE THAT ARE
-        POSTED ON, THROUGH OR IN CONNECTION WITH THE SERVICE OR LINKED SERVICE,
-        NOR DOES IT TAKE ANY RESPONSIBILITY FOR THE GOODS OR SERVICE PROVIDED BY
-        THESE THIRD PARTIES.
+        PARTIES ON THE SERVICE OR LINKED SERVICE, AND SUCH USER CONTENT AND
+        LINKED SERVICES ARE NOT NECESSARILY INVESTIGATED, MONITORED OR CHECKED
+        FOR ACCURACY OR COMPLETENESS BY METACULUS. INCLUSION OF ANY LINKED
+        WEBSITE OR FEATURE ON THE SERVICE DOES NOT IMPLY APPROVAL OR ENDORSEMENT
+        OF THE LINKED WEBSITE OR FEATURE BY METACULUS. IN ADDITION, THE
+        METACULUS PARTIES ARE NOT RESPONSIBLE FOR, AND SPECIFICALLY DISCLAIM ANY
+        RESPONSIBILITY OR LIABILITY TO ANY PERSON OR ANY ENTITY FOR ANY DAMAGE
+        (WHETHER ACTUAL, CONSEQUENTIAL, PUNITIVE OR OTHERWISE), INJURY, LOSS,
+        CLAIM, OR LIABILITY OR OTHER CAUSE OF ANY KIND OR CHARACTER BASED UPON
+        OR RESULTING FROM ANY USER CONTENT OR BY ANY OF THE EQUIPMENT OR
+        PROGRAMMING ASSOCIATED WITH OR UTILIZED IN THE SERVICE OR LINKED
+        SERVICE. POSTS AND LINKED SERVICES CREATED AND POSTED BY USERS ON,
+        THOUGH OR IN CONNECTION WITH THE SERVICE MAY CONTAIN LINKS TO OTHER
+        WEBSITES OR SERVICES. METACULUS TAKES NO RESPONSIBILITY FOR THIRD PARTY
+        ADVERTISEMENTS OR LINKED SERVICES THAT ARE POSTED ON, THROUGH OR IN
+        CONNECTION WITH THE SERVICE OR A LINKED SERVICE, NOR DOES IT TAKE ANY
+        RESPONSIBILITY FOR THE GOODS OR SERVICE PROVIDED BY THESE THIRD PARTIES.
       </p>
+
       <p className="mb-4">
         UNDER NO CIRCUMSTANCES WILL METACULUS BE RESPONSIBLE FOR ANY LOSS OR
         DAMAGE, INCLUDING, WITHOUT LIMITATION, PERSONAL INJURY OR DEATH,
@@ -763,7 +752,7 @@ export default async function TermsOfUse() {
         IN NO EVENT SHALL THE METACULUS PARTIES BE LIABLE FOR ANY LOSS OR
         DAMAGES OF ANY KIND (INCLUDING, WITHOUT LIMITATION, DIRECT, INDIRECT,
         ECONOMIC, EXEMPLARY, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
-        LOSSES OR DAMAGES)THAT ARE DIRECTLY OR INDIRECTLY RELATED TO: (A) THE
+        LOSSES OR DAMAGES) THAT ARE DIRECTLY OR INDIRECTLY RELATED TO: (A) THE
         SERVICE; (B) THE METACULUS CONTENT; (C) USER CONTENT; (D) YOUR USE OF,
         INABILITY TO USE, OR THE PERFORMANCE OF THE SITE; (E) ANY ACTION TAKEN
         IN CONNECTION WITH AN INVESTIGATION BY THE METACULUS PARTIES OR LAW
@@ -795,18 +784,20 @@ export default async function TermsOfUse() {
         ESSENTIAL PURPOSE OF ANY LIMITED REMEDY. THIS SECTION SHALL SURVIVE ANY
         EXPIRATION OR TERMINATION OF YOUR RELATIONSHIP WITH METACULUS.
       </p>
+
       <p className="mb-4">
         YOU AGREE THAT IN THE EVENT YOU INCUR ANY DAMAGES, LOSSES OR INJURIES
         THAT ARISE OUT OF THE METACULUS PARTIES&apos; ACTS OR OMISSIONS, THE
         DAMAGES, IF ANY, CAUSED TO YOU ARE NOT IRREPARABLE OR SUFFICIENT TO
-        ENTITLE YOU TO AN INJUNCTION PREVENTING ANY EXPLOITATION OF ANY WEB
-        SITE, PROPERTY, PRODUCT, SERVICE, OR OTHER METACULUS CONTENT OWNED OR
+        ENTITLE YOU TO AN INJUNCTION PREVENTING ANY EXPLOITATION OF ANY WEBSITE,
+        PROPERTY, PRODUCT, SERVICE, OR OTHER METACULUS CONTENT OWNED OR
         CONTROLLED BY THE METACULUS PARTIES, AND YOU WILL HAVE NO RIGHTS TO
         ENJOIN OR RESTRAIN THE DEVELOPMENT, PRODUCTION, DISTRIBUTION,
-        ADVERTISING, EXHIBITION OR EXPLOITATION OF ANY WEB SITE, PROPERTY,
+        ADVERTISING, EXHIBITION OR EXPLOITATION OF ANY WEBSITE, PROPERTY,
         PRODUCT, SERVICE, OR OTHER METACULUS CONTENT OWNED OR CONTROLLED BY THE
         METACULUS PARTIES.
       </p>
+
       <p className="mb-4">
         BY ACCESSING THE SERVICE, YOU UNDERSTAND THAT YOU MAY BE WAIVING RIGHTS
         WITH RESPECT TO CLAIMS THAT ARE AT THIS TIME UNKNOWN OR UNSUSPECTED, AND
@@ -824,7 +815,7 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         You agree to defend, indemnify and hold harmless the Metaculus Parties
-        from and against any and all loss, liability, damages, judgments,
+        from and against any and all losses, liabilities, damages, judgments,
         claims, demands, costs, investigations, settlements, and expenses
         (including, without limitation, reasonable attorneys&apos; fees) arising
         out of or directly or indirectly relating to (a) your User Content; (b)
@@ -856,66 +847,82 @@ export default async function TermsOfUse() {
         Reporting Copyright and Other Intellectual Property Violations
       </h2>
       <p className="mb-4">
-        Metaculus respects the intellectual property rights of others and takes
-        the protection of copyrights and other intellectual property seriously.
-        Only the intellectual property rights owner or person authorized to act
-        on behalf of the owner can report potentially infringing content. If you
-        believe your work has been infringed through the Service, please notify
-        us at Metaculus, Inc., Attention: Copyright Agent, 1112 Montana Avenue
-        Suite 464, Santa Monica, CA, US 90403, or at the email address{" "}
-        <a
-          href="mailto:copyright@metaculus.com"
-          className="text-blue-600 hover:underline"
-        >
-          copyright@metaculus.com
-        </a>{" "}
-        and provide the following information:
+        Metaculus, Inc. respects the intellectual property rights of others. Per
+        the DMCA, we will respond expeditiously to claims of copyright
+        infringement on the Site if submitted to our Copyright Agent as
+        described below. Upon receipt of a notice alleging copyright
+        infringement, We will take whatever action it deems appropriate within
+        its sole discretion, including removal of the allegedly infringing
+        materials and termination of access for repeat infringers of
+        copyright-protected content.
+      </p>
+      <p className="mb-4">
+        If you believe that your intellectual property rights have been violated
+        by us or by a third party who has uploaded materials to our website,
+        please provide the following information to the designated Copyright
+        Agent listed below:
       </p>
       <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
         <li>
-          Your contact information, including name, address, telephone number,
-          and e-mail address;
+          A description of the copyrighted work or other intellectual property
+          that you claim has been infringed;
         </li>
         <li>
-          A description of the copyrighted work you claim has been infringed;
+          A description of where the material that you claim is infringing is
+          located on the Site;
         </li>
         <li>
-          A reasonably specific description of where the allegedly infringing
-          material is located on the Service (including, e.g., the URL);
+          An address, telephone number, and email address where we can contact
+          you and, if different, an email address where the alleged infringing
+          party, if not we, can contact you;
         </li>
         <li>
-          A statement by you that you have a good-faith belief that the
-          allegedly infringing material is not authorized by the copyright
-          owner, its agent, or the law;
-        </li>
-        <li>Your electronic or physical signature;</li>
-        <li>
-          A statement by you, made under penalty of perjury, that the
-          information in your notice is accurate and that you are the copyright
-          owner or authorized to act on the copyright owner&apos;s behalf; and
+          A statement that you have a good-faith belief that the use is not
+          authorized by the copyright owner or other intellectual property
+          rights owner, by its agent, or by law;
         </li>
         <li>
-          Information reasonably sufficient to permit us to contact the
-          complaining party.
+          A statement by you under penalty of perjury that the information in
+          your notice is accurate and that you are the copyright or intellectual
+          property owner or are authorized to act on the owner&apos;s behalf;
         </li>
+        <li>Your electronic or physical signature.</li>
       </ul>
       <p className="mb-4">
-        NOTE: This contact information is for inquiries regarding potential
-        copyright and other infringement only.
+        Metaculus, Inc. may request additional information before removing any
+        allegedly infringing material. In the event we remove the allegedly
+        infringing materials, we will immediately notify the person responsible
+        for posting such materials that we removed or disabled access to the
+        materials. We may also provide the responsible person with your email
+        address so that the person may respond to your allegations.
       </p>
       <p className="mb-4">
-        It is often difficult to determine if your intellectual property rights
-        have been violated or if the DMCA requirements have been met. We may
-        request additional information before we remove any infringing material.
-        If a dispute develops as to the correct owner of the rights in question,
-        we reserve the right to remove your content along with that of the
-        alleged infringer pending resolution of the matter.
+        Pursuant to 17 U.S.C. 512(c). Metaculus, Inc. designated Copyright Agent
+        is:
       </p>
       <p className="mb-4">
-        Metaculus will provide you with notice if your materials have been
-        removed based on a third party complaint of alleged infringement of the
-        third party&apos;s intellectual property rights.
+        Jonathan Bailey
+        <br />
+        CopyByte
+        <br />
+        3157 Gentilly Blvd Suite # 2254
+        <br />
+        New Orleans, LA 70122
+        <br />
+        Phone:{" "}
+        <a href="tel:1-504-356-4555" className="text-blue-600 hover:underline">
+          1-504-356-4555
+        </a>
+        <br />
+        Email:{" "}
+        <a
+          href="mailto:metaculus-dmca@copybyte.com"
+          className="text-blue-600 hover:underline"
+        >
+          metaculus-dmca@copybyte.com
+        </a>
       </p>
+
       <p className="mb-4">
         IF YOU KNOWINGLY MISREPRESENT THAT MATERIAL IS OR IS NOT INFRINGING, YOU
         MAY BE SUBJECT TO CIVIL PENALTIES. THESE INCLUDE MONETARY DAMAGES, COURT
@@ -940,21 +947,17 @@ export default async function TermsOfUse() {
         If a dispute arises between you and Metaculus, you agree that we will
         resolve any claim or controversy at law or equity that relates to or
         arises out of the Terms of Use or the Service or your use of the Service
-        (a &quot;<strong>Claim</strong>&quot;) in accordance with the
-        subsections below.
+        (a &quot;Claim&quot;) in accordance with the subsections below.
       </p>
       <p className="mb-4">
         General. You and Metaculus agree that any dispute, claim or controversy
         arising out of or relating to these Terms of Use or the breach,
         termination, enforcement, interpretation or validity thereof
-        (collectively, &quot;<strong>Disputes</strong>&quot;) will be settled by
-        binding arbitration; except as set forth in the Judicial Resolution
-        section below.{" "}
-        <strong>
-          You acknowledge and agree that you and Metaculus are each waiving the
-          right to a trial by jury or to participate as a plaintiff or class
-          member in any purported class action or representative proceeding.
-        </strong>{" "}
+        (collectively, &quot;Disputes&quot;) will be settled by binding
+        arbitration; except as set forth in the Judicial Resolution section
+        below. You acknowledge and agree that you and Metaculus are each waiving
+        the right to a trial by jury or to participate as a plaintiff or class
+        member in any purported class action or representative proceeding.
         Further, unless both you and Metaculus otherwise agree, the arbitrator
         may not consolidate more than one person&apos;s claims, and may not
         otherwise preside over any form of any class or representative
@@ -971,32 +974,24 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         Arbitration Rules, Governing Law, Jurisdiction and Venue. The
         arbitration will be administered by the American Arbitration Association
-        (&quot;<strong>AAA</strong>&quot;) in accordance with the Commercial
-        Arbitration Rules and the Supplementary Procedures for Consumer Related
-        Disputes (the &quot;<strong>AAA Rules</strong>&quot;) then in effect,
-        except as modified by this Section of these Terms of Use. (The AAA Rules
-        are available at www.adr.org/arb_med or by calling the AAA at
-        1-800-778-7879.) The Federal Arbitration Act will govern the
-        interpretation and enforcement of this Section. These Terms and any
-        action related thereto will be governed by the laws of the State of
-        California without regard to its conflict of laws provisions. The
-        exclusive jurisdiction and venue of any action taken in a small claims
-        court as contemplated by these terms will be the courts located in the
-        Northern District of California and each of the parties hereto waives
-        any objection to jurisdiction and venue in such courts.
+        (&quot;AAA&quot;) in accordance with the Commercial Arbitration Rules
+        and the Supplementary Procedures for Consumer Related Disputes (the
+        &quot;AAA Rules&quot;) then in effect, except as modified by this
+        Section of these Terms of Use. The Federal Arbitration Act will govern
+        the interpretation and enforcement of this Section. These Terms of Use
+        and any action related thereto will be governed by the laws of the State
+        of California without regard to its conflict of laws provisions.
       </p>
       <p className="mb-4">
         Arbitration Process. A party who desires to initiate arbitration must
         provide the other party with a written Demand for Arbitration as
-        specified in the AAA Rules. (The AAA provides a form Demand for
-        Arbitration at www.adr.org/si.asp?id=3477 and a separate form for
-        California residents at www.adr.org/si.asp?id=3485.) The arbitrator will
-        be either a retired judge or an attorney licensed to practice law in the
-        state of California and will be selected by the parties from the
-        AAA&apos;s roster of consumer dispute arbitrators. If the parties are
-        unable to agree upon an arbitrator within seven (7) days of delivery of
-        the Demand for Arbitration, then the AAA will appoint the arbitrator in
-        accordance with the AAA Rules.
+        specified in the AAA Rules. The arbitrator will be either a retired
+        judge or an attorney licensed to practice law in the state of California
+        and will be selected by the parties from the AAA&apos;s roster of
+        consumer dispute arbitrators. If the parties are unable to agree upon an
+        arbitrator within seven (7) days of delivery of the Demand for
+        Arbitration, then the AAA will appoint the arbitrator in accordance with
+        the AAA Rules.
       </p>
       <p className="mb-4">
         Arbitration Location and Procedure. Unless you and Metaculus otherwise
@@ -1021,11 +1016,7 @@ export default async function TermsOfUse() {
         of damages for which a party may be held liable. The arbitrator may
         award declaratory or injunctive relief only in favor of the claimant and
         only to the extent necessary to provide relief warranted by the
-        claimant&apos;s individual claim. If you prevail in arbitration you will
-        be entitled to an award of attorneys&apos; fees and expenses, to the
-        extent provided under applicable law. Metaculus will not seek, and
-        hereby waives all rights it may have under applicable law to recover,
-        attorneys&apos; fees and expenses if it prevails in arbitration.
+        claimant&apos;s individual claim.
       </p>
       <p className="mb-4">
         Fees. Your responsibility to pay any AAA filing, administrative and
@@ -1038,23 +1029,24 @@ export default async function TermsOfUse() {
       </p>
       <p className="mb-4">
         Judicial Resolution. Notwithstanding the foregoing: (1) either party
-        retains the right to bring an individual action in small claims court;
-        (2) either party may apply to a court of competent jurisdiction or other
-        appropriate tribunal to secure preliminary or provisional relief as
-        available under applicable law in connection with a Dispute; and (3) any
-        Dispute involving or relating to (i) the ownership, infringement, or
-        misappropriation of any intellectual property right, including but not
-        limited to copyrights, patents, patent disclosures and inventions
-        (whether patentable or not), trademarks, service marks, trade secrets,
-        know-how, and other confidential information, trade dress, trade names,
-        logos, corporate names and domain names, together with all of the
-        goodwill associated therewith, or (ii) your breach of the License to Use
-        Site Content or the Acceptable Use Policy sections set forth above, may
-        be brought in the courts of the State of California or the courts of the
-        United States of America, in either case, situated in Santa Clara
-        County, California. Each party hereby submits to the jurisdiction of
-        such courts and waives any defense to the exercise of such jurisdiction
-        based on lack of personal jurisdiction or forum non conveniens.{" "}
+        retains the right to bring an individual action in small claims court in
+        the State of California; (2) either party may apply to a court of
+        competent jurisdiction or other appropriate tribunal to secure
+        preliminary or provisional relief as available under applicable law in
+        connection with a Dispute; and (3) any Dispute involving or relating to
+        (i) the ownership, infringement, or misappropriation of any intellectual
+        property right, including but not limited to copyrights, patents, patent
+        disclosures and inventions (whether patentable or not), trademarks,
+        service marks, trade secrets, know-how, and other confidential
+        information, trade dress, trade names, logos, corporate names and domain
+        names, together with all of the goodwill associated therewith, or (ii)
+        your breach of the License to Use Site Content or the Acceptable Use
+        Policy sections set forth above, may be brought in the courts of the
+        State of California or the courts of the United States of America, in
+        either case, situated in Santa Clara County, California. Each party
+        hereby submits to the jurisdiction of such courts and waives any defense
+        to the exercise of such jurisdiction based on lack of personal
+        jurisdiction or forum non conveniens.
       </p>
       <p className="mb-4">
         Changes. If Metaculus changes this Legal Disputes section, you may
@@ -1077,11 +1069,11 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         When using the Service, you are subject to any posted policies or rules
         applicable to features you use through the Service, including without
-        limitation the GENERAL POLICIES, FAQ/Help and all policies referenced in
-        the General Policies or elsewhere in this Agreement (&quot;
-        <strong>Additional Terms</strong>&quot;). All such policies or rules are
-        hereby incorporated into these Terms of Use. These policies may change
-        from time to time.
+        limitation the GENERAL POLICIES, FAQ/Help, Rules for Competitions on
+        Metaculus, and all policies referenced in the General Policies or
+        elsewhere in this Agreement (&quot;<strong>Additional Terms</strong>
+        &quot;). All such policies or rules are hereby incorporated into these
+        Terms of Use. These policies may change from time to time.
       </p>
 
       <h2
@@ -1150,9 +1142,9 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         If you have any questions or concerns regarding the Metaculus Websites
-        or Service, please write to us Metaculus Inc., 119 Merced Ave, Santa
-        Cruz CA 95060. All notices, authorizations, and requests to Metaculus
-        shall be deemed given on receipt.
+        or Service, please write to us Metaculus Inc., 1112 Montana Ave. Ste.
+        464, Santa Monica, CA, 90403. All notices, authorizations, and requests
+        to Metaculus shall be deemed given on receipt.
       </p>
     </PageWrapper>
   );
