@@ -6,64 +6,80 @@ import { useMemo, useState } from "react";
 import FanChart from "@/components/charts/fan_chart";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import { FanDatum } from "@/types/charts";
-import { MultiYearIndexData, Tournament } from "@/types/projects";
+import { IndexSeries, MultiYearIndexData, Tournament } from "@/types/projects";
 import { QuestionType, Scaling } from "@/types/question";
+import cn from "@/utils/core/cn";
+import {
+  isDefaultIndexData,
+  isMultiYearIndexData,
+} from "@/utils/projects/helpers";
 
 import VerticalGradientArrow from "../vertical_legend_arrow";
-import IndexGaugeV2 from "./index_gauge_v2";
+import IndexGauge from "./index_gauge";
 import IndexTimeline from "./index_timeline";
-import IndexTimelineByYear from "./index_timeline_by_year";
 import { getVerticalLegendProps } from "../../helpers/index_legend";
 
 type YearTab = "overview" | string;
 
 type Props = {
   tournament: Tournament;
-  multiYearIndexData: MultiYearIndexData | null;
 };
 
-const IndexHeaderBlock: React.FC<Props> = ({
-  tournament,
-  multiYearIndexData,
-}) => {
+export default function IndexHeaderBlock({ tournament }: Props) {
   const t = useTranslations();
+  const idx = tournament.index_data;
+
   const years = useMemo(
     () =>
-      multiYearIndexData
-        ? Object.keys(multiYearIndexData.series_by_year)
+      isMultiYearIndexData(idx)
+        ? Object.keys(idx.series_by_year)
             .map(Number)
             .sort((a, b) => a - b)
         : [],
-    [multiYearIndexData]
+    [idx]
   );
-  const buttons: GroupButton<YearTab>[] = useMemo(
-    () => [
-      { value: "overview", label: t("overview") },
-      ...years.map((y) => ({ value: String(y), label: String(y) })),
-    ],
-    [t, years]
-  );
-
-  const [tab, setTab] = useState<YearTab>("overview");
-  const isOverview = tab === "overview";
-  const selectedYearSeries =
-    !isOverview && multiYearIndexData
-      ? multiYearIndexData.series_by_year[tab]
-      : null;
-
   const hasMultiYear = years.length > 0;
 
+  const buttons: GroupButton<YearTab>[] = useMemo(
+    () =>
+      hasMultiYear
+        ? [
+            { value: "overview", label: t("overview") },
+            ...years.map((y) => ({ value: String(y), label: String(y) })),
+          ]
+        : [],
+    [t, years, hasMultiYear]
+  );
+  const [tab, setTab] = useState<YearTab>("overview");
+  const isOverview = hasMultiYear && tab === "overview";
   const overviewOptions = useMemo<FanDatum[] | null>(
     () =>
-      multiYearIndexData ? buildOverviewFanOptions(multiYearIndexData) : null,
-    [multiYearIndexData]
+      hasMultiYear && isMultiYearIndexData(idx)
+        ? buildOverviewFanOptions(idx)
+        : null,
+    [hasMultiYear, idx]
   );
 
-  const baseIndex = multiYearIndexData ?? tournament.index_data ?? undefined;
-  const legend = getVerticalLegendProps(baseIndex);
+  const legend = getVerticalLegendProps(idx);
+
+  const seriesForTimeline: IndexSeries | null = useMemo(() => {
+    if (hasMultiYear && !isOverview && isMultiYearIndexData(idx)) {
+      return idx.series_by_year[tab] ?? null;
+    }
+    if (!hasMultiYear && isDefaultIndexData(idx)) {
+      return idx.series ?? null;
+    }
+    return null;
+  }, [hasMultiYear, isOverview, idx, tab]);
 
   return (
-    <div className="mt-4 flex flex-col gap-6 sm:mt-6 sm:items-center [&>*:first-child::-webkit-scrollbar]:hidden [&>*:first-child]:overflow-x-auto [&>*:first-child]:[-ms-overflow-style:none] [&>*:first-child]:[scrollbar-width:none]">
+    <div
+      className={cn(
+        "mt-4 flex flex-col gap-6 sm:mt-6 sm:items-center",
+        hasMultiYear &&
+          "[&>*:first-child::-webkit-scrollbar]:hidden [&>*:first-child]:overflow-x-auto [&>*:first-child]:[-ms-overflow-style:none] [&>*:first-child]:[scrollbar-width:none]"
+      )}
+    >
       {hasMultiYear && (
         <ButtonGroup<YearTab>
           value={tab}
@@ -75,21 +91,18 @@ const IndexHeaderBlock: React.FC<Props> = ({
         />
       )}
 
-      {!isOverview && (
+      {((hasMultiYear && !isOverview) ||
+        (!hasMultiYear && isDefaultIndexData(tournament.index_data))) && (
         <div className="mb-12 w-full space-y-3 sm:mb-9">
           <p className="m-0 text-[16px] font-normal text-blue-900 dark:text-blue-900-dark">
             {t("currentValue")}
           </p>
-          <IndexGaugeV2
-            tournament={tournament}
-            multiYearIndexData={multiYearIndexData}
-            year={Number(tab)}
-          />
+          <IndexGauge tournament={tournament} year={Number(tab)} />
         </div>
       )}
 
       <div className="w-full">
-        {hasMultiYear && isOverview && overviewOptions && (
+        {isOverview && overviewOptions && (
           <div className="flex gap-4 sm:gap-6">
             <VerticalGradientArrow {...legend} className="hidden sm:block" />
             <VerticalGradientArrow
@@ -106,24 +119,20 @@ const IndexHeaderBlock: React.FC<Props> = ({
           </div>
         )}
 
-        {hasMultiYear && !isOverview && selectedYearSeries && (
-          <IndexTimelineByYear
+        {!isOverview && seriesForTimeline && (
+          <IndexTimeline
             height={200}
-            series={selectedYearSeries}
+            series={seriesForTimeline}
             chartTitle={t("timeline")}
-            minLabel={baseIndex?.min_label ?? null}
-            maxLabel={baseIndex?.max_label ?? null}
-            increasingIsGood={baseIndex?.increasing_is_good ?? null}
+            minLabel={idx?.min_label ?? null}
+            maxLabel={idx?.max_label ?? null}
+            increasingIsGood={idx?.increasing_is_good ?? null}
           />
-        )}
-
-        {!hasMultiYear && (
-          <IndexTimeline height={200} tournament={tournament} />
         )}
       </div>
     </div>
   );
-};
+}
 
 const SCALING: Scaling = { range_min: -100, range_max: 100, zero_point: null };
 const MIN = SCALING.range_min ?? -100;
@@ -180,5 +189,3 @@ export function buildOverviewFanOptions(
 
   return entries.length ? entries : null;
 }
-
-export default IndexHeaderBlock;

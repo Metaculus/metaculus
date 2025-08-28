@@ -18,8 +18,8 @@ type Props = {
 };
 
 const VerticalGradientArrow: FC<Props> = ({
-  topLabel = "Less democratic",
-  bottomLabel = "More democratic",
+  topLabel = "-100",
+  bottomLabel = "100",
   fromColor = RED_L,
   midColor = NEUTRAL,
   toColor = GREEN_R,

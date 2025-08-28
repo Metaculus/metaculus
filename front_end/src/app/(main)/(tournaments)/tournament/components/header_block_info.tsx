@@ -2,11 +2,7 @@ import { isNil } from "lodash";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 
-import {
-  MultiYearIndexData,
-  Tournament,
-  TournamentType,
-} from "@/types/projects";
+import { Tournament, TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
 
 import TournamentTimeline from "../components/tournament_timeline";
@@ -14,13 +10,9 @@ import IndexHeaderBlock from "./index/index_header_block";
 
 type Props = {
   tournament: Tournament;
-  multiYearIndexData?: MultiYearIndexData | null;
 };
 
-const HeaderBlockInfo: FC<Props> = async ({
-  tournament,
-  multiYearIndexData,
-}) => {
+const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
   const t = await getTranslations();
   const locale = await getLocale();
 
@@ -32,12 +24,7 @@ const HeaderBlockInfo: FC<Props> = async ({
         </Suspense>
       );
     case TournamentType.Index:
-      return (
-        <IndexHeaderBlock
-          tournament={tournament}
-          multiYearIndexData={multiYearIndexData ?? null}
-        />
-      );
+      return <IndexHeaderBlock tournament={tournament} />;
     default:
       return (
         <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">

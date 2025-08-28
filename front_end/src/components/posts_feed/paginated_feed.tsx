@@ -17,7 +17,6 @@ import useSearchParams from "@/hooks/use_search_params";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
-import { MultiYearIndexData } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { safeSessionStorage } from "@/utils/core/storage";
@@ -36,7 +35,7 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
-  multiYearIndexData?: MultiYearIndexData | null;
+  indexWeights?: Record<string, number>;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
@@ -44,7 +43,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   filters,
   type = "posts",
   isCommunity,
-  multiYearIndexData,
+  indexWeights = {},
 }) => {
   const t = useTranslations();
   const pathname = usePathname();
@@ -63,15 +62,12 @@ const PaginatedPostsFeed: FC<Props> = ({
   );
   const weightByPostId = useMemo(() => {
     const map = new Map<number, number>();
-    const multi = multiYearIndexData?.weights;
-    if (multi && Object.keys(multi).length) {
-      for (const [key, weight] of Object.entries(multi)) {
-        const id = Number(key);
-        if (Number.isFinite(id)) map.set(id, weight);
-      }
+    for (const [key, weight] of Object.entries(indexWeights)) {
+      const id = Number(key);
+      if (Number.isFinite(id)) map.set(id, weight);
     }
     return map;
-  }, [multiYearIndexData]);
+  }, [indexWeights]);
 
   const [hasMoreData, setHasMoreData] = useState(
     initialQuestions.length >= POSTS_PER_PAGE

@@ -19,26 +19,18 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  MultiYearIndexData,
-  ProjectIndexWeights,
-  ProjectVisibility,
-  TournamentType,
-} from "@/types/projects";
+import { ProjectPermissions } from "@/types/post";
+import { ProjectVisibility, TournamentType } from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
-import { isMultiYearIndexData } from "@/utils/projects/helpers";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
 import HeaderBlockNav from "../components/header_block_navigation";
-import IndexSection from "../components/index";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
 import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
-import { mockMultiYearIndexData } from "../constants/multi-year-mock";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -74,19 +66,6 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
-  const idx = tournament?.index_data;
-
-  const multiYearIndexData: MultiYearIndexData | null =
-    tournament?.type === TournamentType.Index && isMultiYearIndexData(idx)
-      ? {
-          type: "multi_year",
-          series_by_year: idx.series_by_year,
-          weights: idx.weights ?? {},
-          min_label: idx.min_label ?? null,
-          max_label: idx.max_label ?? null,
-          increasing_is_good: idx.increasing_is_good ?? null,
-        }
-      : mockMultiYearIndexData;
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
   // Ensure project has a correct link.
@@ -113,16 +92,6 @@ export default async function TournamentSlug(props: Props) {
   const questionsTitle = isQuestionSeries
     ? t("SeriesContents")
     : t("questions");
-
-  let indexWeights: ProjectIndexWeights[] = [];
-  const weightsMap = tournament.index_data?.weights ?? {};
-  const postIdKeys = Object.keys(weightsMap);
-
-  if (postIdKeys.length > 0) {
-    const ids = postIdKeys.map(Number);
-    const { results: posts } = await ServerPostsApi.getPostsWithCP({ ids });
-    indexWeights = buildIndexRowsFromPostsAndWeights(posts, weightsMap);
-  }
 
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
@@ -168,10 +137,7 @@ export default async function TournamentSlug(props: Props) {
             </div>
           </div>
 
-          <HeaderBlockInfo
-            tournament={tournament}
-            multiYearIndexData={multiYearIndexData}
-          />
+          <HeaderBlockInfo tournament={tournament} />
         </div>
       </div>
 
@@ -187,15 +153,6 @@ export default async function TournamentSlug(props: Props) {
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
           <HtmlContent content={tournament.description} />
-
-          {!multiYearIndexData &&
-            indexWeights.length > 0 &&
-            tournament.type === TournamentType.Index && (
-              <IndexSection
-                indexWeights={indexWeights}
-                tournament={tournament}
-              />
-            )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
@@ -242,10 +199,7 @@ export default async function TournamentSlug(props: Props) {
             )}
           </div>
           <TournamentFilters />
-          <TournamentFeed
-            multiYearIndexData={multiYearIndexData}
-            tournament={tournament}
-          />
+          <TournamentFeed tournament={tournament} />
         </section>
       </div>
 
@@ -259,24 +213,4 @@ export default async function TournamentSlug(props: Props) {
         )}
     </main>
   );
-}
-
-function buildIndexRowsFromPostsAndWeights(
-  posts: PostWithForecasts[],
-  weightsByPostId: Record<string, number>
-): ProjectIndexWeights[] {
-  const rows: ProjectIndexWeights[] = [];
-
-  for (const post of posts) {
-    const w = weightsByPostId[String(post.id)];
-    if (w == null) continue;
-    let questionId: number | null = null;
-    if (post.question) {
-      questionId = post.question.id;
-    }
-    if (questionId != null) {
-      rows.push({ post, question_id: questionId, weight: w });
-    }
-  }
-  return rows;
 }

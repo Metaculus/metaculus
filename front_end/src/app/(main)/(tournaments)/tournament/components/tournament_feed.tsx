@@ -12,17 +12,16 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { MultiYearIndexData, Tournament } from "@/types/projects";
+import { Tournament } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 
 type Props = {
   tournament: Tournament | null;
-  multiYearIndexData?: MultiYearIndexData | null;
 };
 
-const TournamentFeed: FC<Props> = ({ tournament, multiYearIndexData }) => {
+const TournamentFeed: FC<Props> = ({ tournament }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
     Object.fromEntries(searchParams),
@@ -82,15 +81,17 @@ const TournamentFeed: FC<Props> = ({ tournament, multiYearIndexData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(otherParams)]);
 
+  const weights = tournament?.index_data?.weights ?? {};
+
   return isLoading ? (
     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
   ) : error ? (
     <FormErrorMessage errors={error?.digest} />
   ) : (
     <PaginatedPostsFeed
+      indexWeights={weights}
       filters={pageFilters}
       initialQuestions={questions}
-      multiYearIndexData={multiYearIndexData}
     />
   );
 };
