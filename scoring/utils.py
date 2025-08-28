@@ -221,15 +221,8 @@ def generate_comment_insight_leaderboard_entries(
         )
     else:
         posts = Post.objects.filter(
-            Q(project=leaderboard.project) | Q(default_project=leaderboard.project)
-        ).exclude(
-            curation_status__in=[
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.PENDING,
-                Post.CurationStatus.REJECTED,
-                Post.CurationStatus.DELETED,
-            ]
-        )
+            Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+        ).filter_published()
 
     comments = (
         Comment.objects.filter(
@@ -859,25 +852,11 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
     if not leaderboard.project:
         return []
     if leaderboard.project.type == Project.ProjectTypes.SITE_MAIN:
-        posts = Post.objects.filter_for_main_feed().exclude(
-            curation_status__in=[
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.PENDING,
-                Post.CurationStatus.REJECTED,
-                Post.CurationStatus.DELETED,
-            ]
-        )
+        posts = Post.objects.filter_for_main_feed().filter_published()
     else:
         posts = Post.objects.filter(
-            Q(project=leaderboard.project) | Q(default_project=leaderboard.project)
-        ).exclude(
-            curation_status__in=[
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.PENDING,
-                Post.CurationStatus.REJECTED,
-                Post.CurationStatus.DELETED,
-            ]
-        )
+            Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+        ).filter_published()
 
     comments = (
         Comment.objects.filter(
