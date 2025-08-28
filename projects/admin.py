@@ -880,6 +880,12 @@ class ProjectAdmin(CustomTranslationAdmin):
         ]:
             if field in fields:
                 fields.remove(field)
+
+            if field == "index_configuration" and (
+                not obj or obj.type != Project.ProjectTypes.INDEX
+            ):
+                continue
+
             fields.insert(0, field)
         return fields
 
@@ -908,10 +914,6 @@ class ProjectIndexAdmin(admin.ModelAdmin):
     list_display = ["id", "type", "increasing_is_good"]
     fields = ("type", "min_label", "max_label", "increasing_is_good")
     inlines = [ProjectIndexPostInline]
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(project__type=Project.ProjectTypes.INDEX)
 
     def get_model_perms(self, request):
         # Hide from the admin homepage
