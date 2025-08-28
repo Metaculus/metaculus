@@ -231,8 +231,7 @@ class ProjectUserSerializer(serializers.ModelSerializer):
         )
 
 
-def serialize_index_data(project: Project):
-    index = project.index
+def serialize_index_data(index: ProjectIndex):
     index_posts = index.post_weights.all()
 
     if index.type == ProjectIndex.IndexType.MULTI_YEAR:
