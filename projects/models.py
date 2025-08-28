@@ -566,7 +566,8 @@ class ProjectIndexPost(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         # Always add index post to the project
-        self.post.projects.add(self.index.project)
+        if self.post.default_project_id != self.index.project.id:
+            self.post.projects.add(self.index.project)
 
         return super().save(*args, **kwargs)
 
