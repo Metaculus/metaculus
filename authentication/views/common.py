@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -28,7 +29,7 @@ from authentication.services import (
 from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
 from users.models import User
-from users.serializers import UserPrivateSerializer
+from users.serializers import UserPrivateSerializer, validate_username
 from users.services.common import register_user_to_campaign
 from utils.cloudflare import validate_turnstile_from_request
 
@@ -81,6 +82,7 @@ def signup_api_view(request):
     campaign_key = serializer.validated_data.get("campaign_key", None)
     campaign_data = serializer.validated_data.get("campaign_data", None)
     redirect_url = serializer.validated_data.get("redirect_url", None)
+    newsletter_optin = serializer.validated_data.get("newsletter_optin", None)
 
     is_active = not settings.AUTH_SIGNUP_VERIFY_EMAIL
 
@@ -103,6 +105,7 @@ def signup_api_view(request):
             password=password,
             is_active=is_active,
             is_bot=is_bot,
+            newsletter_optin=newsletter_optin,
         )
 
         if campaign_key is None and project is not None:
@@ -128,6 +131,44 @@ def signup_api_view(request):
     return Response(
         {
             "is_active": is_active,
+            "token": token,
+            "user": UserPrivateSerializer(user).data,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def signup_simplified_api_view(request):
+    auth_token = serializers.CharField().run_validation(request.data.get("auth_token"))
+
+    if (
+        not settings.AUTH_SIGNUP_SIMPLIFIED_TOKEN
+        or auth_token != settings.AUTH_SIGNUP_SIMPLIFIED_TOKEN
+    ):
+        raise ValidationError("Simplified signup flow is not available")
+
+    username = serializers.CharField().run_validation(request.data.get("username"))
+    validate_username(username)
+
+    user = User.objects.create_user(
+        username=username,
+        email=f"autouser+{username}@metaculus.com",
+        is_active=True,
+        is_bot=False,
+        is_onboarding_complete=True,
+        check_for_spam=True,
+        newsletter_optin=False,
+        last_login=timezone.now(),
+    )
+
+    token_obj, _ = Token.objects.get_or_create(user=user)
+    token = token_obj.key
+
+    return Response(
+        {
+            "is_active": user.is_active,
             "token": token,
             "user": UserPrivateSerializer(user).data,
         },

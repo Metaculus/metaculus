@@ -44,27 +44,44 @@ class PostAdmin(CustomTranslationAdmin):
         "coauthors",
     ]
     search_fields = ["id", "title_original"]
-    readonly_fields = ["notebook", "hotness_explanation"]
+    readonly_fields = ["notebook", "hotness_explanation", "view_questions"]
     actions = [
         "export_selected_posts_data",
         "export_selected_posts_data_anonymized",
         "update_translations",
         "rebuild_aggregation_history",
+        "mark_as_deleted",
     ]
 
     def hotness_explanation(self, obj):
         explanation = explain_post_hotness(obj)
-        components_html = "<ul style='margin-left: 0;'>"
-        for comp in explanation["components"]:
-            components_html += (
-                "<li style='list-style: disc;'>"
-                f"<strong>{comp['label']}</strong>: {comp['score']:.2f}"
-                "</li>"
-            )
-        components_html += "</ul>"
+
+        def render_components(items):
+            html = ["<ul style='margin-left: 0;'>"]
+            for comp in items or []:
+                score = comp.get("score", None)
+                html.append("<li style='list-style: disc;'>")
+
+                if isinstance(score, (int, float)):
+                    html.append(
+                        f"<strong>{comp.get('label', '')}</strong>: {score:.2f}"
+                    )
+                else:
+                    html.append(f"<strong>{comp.get('label', '')}</strong>")
+
+                # NEW: prefer 'children' (new schema), fallback to 'components' (old)
+                children = comp.get("children") or comp.get("components")
+                if children:
+                    html.append(render_components(children))
+
+                html.append("</li>")
+            html.append("</ul>")
+            return "".join(html)
+
+        components_html = render_components(explanation.get("components", []))
 
         full_html = f"""
-            <p><strong>Total Hotness:</strong> {explanation['hotness']:.2f}</p>
+            <p><strong>Total Hotness:</strong> {explanation.get('hotness', 0):.2f}</p>
             <p><strong>Components:</strong></p>
             {components_html}
         """
@@ -72,12 +89,21 @@ class PostAdmin(CustomTranslationAdmin):
 
     hotness_explanation.short_description = "Hotness Explanation"
 
+    def view_questions(self, obj):
+        url = (
+            reverse("admin:questions_question_changelist")
+            + f"?related_posts__post={obj.id}"
+        )
+        return format_html('<a href="{}">View Questions</a>', url)
+
     def other_project_count(self, obj):
         return obj.projects.count()
 
     def should_update_translations(self, obj):
         is_private = obj.default_project.default_permission is None
-        return not is_private
+        is_approved = obj.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -119,18 +145,36 @@ class PostAdmin(CustomTranslationAdmin):
             for question in post.get_questions():
                 build_question_forecasts(question)
 
+    def mark_as_deleted(self, request, queryset: QuerySet[Post]):
+        updated = 0
+        for post in queryset:
+            post.curation_status = Post.CurationStatus.DELETED
+            post.save()
+            updated += 1
+        self.message_user(request, f"Marked {updated} post(s) as DELETED.")
+
+    mark_as_deleted.short_description = "Mark as DELETED"
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        for field in ["view_questions"]:
+            if field in fields:
+                fields.remove(field)
+            fields.insert(0, field)
+        return fields
+
 
 @admin.register(Notebook)
 class NotebookAdmin(CustomTranslationAdmin):
     list_display = [
         "title",
-        "type",
         "author",
         "curation_status",
         "published_at",
         "comments",
         "votes",
         "post_link",
+        "markdown_summary",
     ]
     readonly_fields = ["post_link"]
     search_fields = ["post__title_original"]

@@ -12,6 +12,7 @@ export type LeaderboardType =
   | "peer_global_legacy"
   | "peer_tournament"
   | "spot_peer_tournament"
+  | "spot_baseline_tournament"
   | "baseline_global"
   | "comment_insight"
   | "question_writing"
@@ -48,6 +49,7 @@ export type LeaderboardEntry = {
   score: number;
   rank: number | null;
   excluded: boolean;
+  show_when_excluded: boolean;
   medal: MedalType | null;
   prize: number | null;
   coverage: number;
@@ -98,7 +100,9 @@ type BaseLeaderboardDetails = {
   start_time: string;
   end_time: string | null;
   finalize_time: string;
+  finalized: boolean;
   prize_pool: number | null;
+  max_coverage?: number;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {

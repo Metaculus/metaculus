@@ -5,6 +5,7 @@ import pytest
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_conditional, create_question
+from tests.unit.utils import datetime_aware
 
 __all__ = [
     "question_binary",
@@ -16,12 +17,54 @@ __all__ = [
 
 @pytest.fixture()
 def question_binary():
-    return create_question(question_type=Question.QuestionType.BINARY)
+    return create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 6, 1),
+    )
+
+
+@pytest.fixture()
+def question_multiple_choice():
+    return create_question(
+        question_type=Question.QuestionType.MULTIPLE_CHOICE,
+        options=["a", "b", "c", "d"],
+    )
 
 
 @pytest.fixture()
 def question_numeric():
-    return create_question(question_type=Question.QuestionType.NUMERIC)
+    return create_question(
+        question_type=Question.QuestionType.NUMERIC,
+        inbound_outcome_count=4,
+        range_min=10,
+        range_max=13,
+        open_lower_bound=False,
+        open_upper_bound=False,
+    )
+
+
+@pytest.fixture()
+def question_discrete():
+    return create_question(
+        question_type=Question.QuestionType.DISCRETE,
+        inbound_outcome_count=4,
+        range_min=9.5,
+        range_max=13.5,
+        open_lower_bound=False,
+        open_upper_bound=False,
+    )
+
+
+@pytest.fixture()
+def question_date():
+    return create_question(
+        question_type=Question.QuestionType.DATE,
+        inbound_outcome_count=4,
+        range_min=datetime(2025, 1, 1).timestamp(),
+        range_max=datetime(2028, 1, 1).timestamp(),
+        open_lower_bound=False,
+        open_upper_bound=False,
+    )
 
 
 @pytest.fixture()
@@ -30,10 +73,14 @@ def conditional_1(question_binary, question_numeric):
         condition=question_binary,
         condition_child=question_numeric,
         question_yes=create_question(
-            question_type=Question.QuestionType.NUMERIC, title="If Yes"
+            question_type=Question.QuestionType.NUMERIC,
+            title="If Yes",
+            scheduled_close_time=datetime_aware(2025, 6, 1),
         ),
         question_no=create_question(
-            question_type=Question.QuestionType.NUMERIC, title="If No"
+            question_type=Question.QuestionType.NUMERIC,
+            title="If No",
+            scheduled_close_time=datetime_aware(2025, 6, 1),
         ),
     )
 

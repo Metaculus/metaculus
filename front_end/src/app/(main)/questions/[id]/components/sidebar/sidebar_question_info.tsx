@@ -6,6 +6,7 @@ import { FC } from "react";
 
 import LocalDaytime from "@/components/ui/local_daytime";
 import { PostStatus, PostWithForecasts } from "@/types/post";
+import { AggregationMethod } from "@/types/question";
 
 import IncludeBotsInfo from "./question_info/include_bots_info";
 import QuestionWeightInfo from "./question_info/question_weight_info";
@@ -103,6 +104,19 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
             </span>
           </div>
         )}
+
+        {postData.question &&
+          postData.question?.default_aggregation_method !==
+            AggregationMethod.recency_weighted && (
+            <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+              <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+                {t("cpAggregationMethod")}:
+              </span>
+              <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+                {t(postData.question.default_aggregation_method)}
+              </span>
+            </div>
+          )}
 
         <QuestionWeightInfo
           questionWeight={postData.question?.question_weight}

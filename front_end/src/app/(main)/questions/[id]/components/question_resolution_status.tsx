@@ -12,13 +12,15 @@ type Props = {
 const QuestionResolutionStatus: FC<Props> = ({ post }) => {
   const question = post.question as QuestionWithForecasts;
 
-  const latest_cp = question.aggregations.recency_weighted.latest;
+  const latest_cp =
+    question.aggregations[question.default_aggregation_method].latest;
   if (!latest_cp?.centers) {
     return null;
   }
 
   switch (question.type) {
     case QuestionType.Numeric:
+    case QuestionType.Discrete:
     case QuestionType.Date:
       return (
         <PredictionChip

@@ -7,11 +7,15 @@ from notifications.services import (
     NotificationQuestionParams,
     NotificationPostStatusChange,
     NotificationProjectParams,
+    NotificationPredictedQuestionResolved,
+    delete_scheduled_question_resolution_notifications,
 )
 from posts.models import Post
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_notifications.factories import factory_notification
+from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_questions.conftest import *  # noqa
 
 
 class TestNotificationNewComments:
@@ -129,7 +133,11 @@ class TestNotificationCPChange:
                 question_data=[
                     CPChangeData(
                         question=NotificationQuestionParams(
-                            id=1, type="binary", title="Question Title"
+                            id=1,
+                            type="binary",
+                            title="Question Title",
+                            post_id=1,
+                            post_title="Question Title",
                         ),
                         cp_median=0.5,
                         cp_change_label="goneUp",
@@ -147,7 +155,11 @@ class TestNotificationCPChange:
                 question_data=[
                     CPChangeData(
                         question=NotificationQuestionParams(
-                            id=1, type="binary", title="Question Title"
+                            id=1,
+                            type="binary",
+                            title="Question Title",
+                            post_id=1,
+                            post_title="Question Title",
                         ),
                         cp_median=0.5,
                         cp_change_label="goneUp",
@@ -167,7 +179,11 @@ class TestNotificationCPChange:
                 question_data=[
                     CPChangeData(
                         question=NotificationQuestionParams(
-                            id=1, type="binary", title="Question Title"
+                            id=1,
+                            type="binary",
+                            title="Question Title",
+                            post_id=1,
+                            post_title="Question Title",
                         ),
                         cp_median=0.5,
                         cp_change_label="goneUp",
@@ -257,14 +273,28 @@ class TestNotificationPostStatusChange:
                 post=NotificationPostParams(
                     post_id=5, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                question=NotificationQuestionParams(
+                    id=1,
+                    title="",
+                    label="First",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.OPEN,
             ),
             cls(
                 post=NotificationPostParams(
                     post_id=5, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                question=NotificationQuestionParams(
+                    id=1,
+                    title="",
+                    label="First",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.CLOSED,
             ),
             # Same post, different subquestions, same events
@@ -272,19 +302,35 @@ class TestNotificationPostStatusChange:
                 post=NotificationPostParams(
                     post_id=6, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=1, title="", label="First", type="binary"),
+                question=NotificationQuestionParams(
+                    id=1,
+                    title="",
+                    label="First",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.OPEN,
             ),
             cls(
                 post=NotificationPostParams(
                     post_id=6, post_title="Post", post_type="question"
                 ),
-                question=NotificationQuestionParams(id=2, title="", label="Second", type="binary"),
+                question=NotificationQuestionParams(
+                    id=2,
+                    title="",
+                    label="Second",
+                    type="binary",
+                    post_id=1,
+                    post_title="Question Title",
+                ),
                 event=Post.PostStatusChange.OPEN,
             ),
         ]
 
-        result_params = NotificationPostStatusChange._generate_notification_params(params)
+        result_params = NotificationPostStatusChange._generate_notification_params(
+            params
+        )
 
         # Test from_projects
         from_projects = result_params["from_projects"]
@@ -319,3 +365,42 @@ class TestNotificationPostStatusChange:
         assert from_posts[3].event == Post.PostStatusChange.CLOSED
         assert from_posts[4].post.post_id == 6
         assert from_posts[4].post.post_title == "Post: First, Second"
+
+
+def test_delete_scheduled_question_resolution_notifications(
+    user1, post_binary_public, post_numeric_public
+):
+    unrelated = NotificationPredictedQuestionResolved.schedule(
+        user1,
+        NotificationPredictedQuestionResolved.ParamsType(
+            post=NotificationPostParams.from_post(post_numeric_public),
+            question=NotificationQuestionParams.from_question(
+                post_numeric_public.question
+            ),
+            resolution="100",
+            forecasts_count=10,
+            coverage=0.15,
+        ),
+    )
+    params = NotificationPredictedQuestionResolved.ParamsType(
+        post=NotificationPostParams.from_post(post_binary_public),
+        question=NotificationQuestionParams.from_question(post_binary_public.question),
+        resolution="yes",
+        forecasts_count=150,
+        coverage=0.75,
+    )
+
+    sent = NotificationPredictedQuestionResolved.schedule(user1, params)
+    sent.mark_as_sent()
+    sent.save()
+
+    pending = NotificationPredictedQuestionResolved.schedule(user1, params)
+
+    delete_scheduled_question_resolution_notifications(post_binary_public.question)
+
+    assert not Notification.objects.filter(id=pending.id).exists()
+    assert Notification.objects.filter(id=sent.id).exists()
+    assert Notification.objects.filter(id=unrelated.id).exists()
+
+    delete_scheduled_question_resolution_notifications(post_numeric_public.question)
+    assert not Notification.objects.filter(id=unrelated.id).exists()

@@ -11,6 +11,14 @@ class ContactSerializer(serializers.Serializer):
     subject = serializers.CharField(required=False, allow_blank=True)
 
 
+class ContactServicesSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField()
+    organization = serializers.CharField(required=False, allow_blank=True)
+    service = serializers.CharField(required=False, allow_blank=True)
+    message = serializers.CharField(required=False, allow_blank=True)
+
+
 class SidebarItemSerializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField()
     post = serializers.SerializerMethodField()

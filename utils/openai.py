@@ -1,16 +1,75 @@
-from itertools import islice
 import textwrap
-import tiktoken
-from django.conf import settings
-from openai import OpenAI, AsyncOpenAI
+from itertools import islice
 from typing import Iterable, Iterator
 
 import instructor
+import tiktoken
+from django.conf import settings
+from openai import OpenAI, AsyncOpenAI
 from pydantic import BaseModel
 
 EMBEDDING_MODEL = "text-embedding-3-large"
 EMBEDDING_CTX_LENGTH = 8191
 EMBEDDING_ENCODING = "cl100k_base"
+
+TRUSTED_URL_DOMAINS = [
+    "*.gov",
+    "nytimes.com",
+    "cnn.com",
+    "msn.com",
+    "foxnews.com",
+    "theguardian.com",
+    "aljazeera.com, bbc.com",
+    "dailymail.co.uk",
+    "yahoo.com",
+    "cnbc.com",
+    "usatoday.com",
+    "apnews.com",
+    "nypost.com",
+    "newsweek.com",
+    "reuters.com",
+    "forbes.com",
+    "cbc.ca",
+    "wsj.com",
+    "nbcnews.com",
+    "washingtonpost.com",
+    "businessinsider.com",
+    "independent.co.uk",
+    "cbsnews.com",
+    "telegraph.co.uk",
+    "abc.net.au",
+    "news.com.au",
+    "abcnews.go.com",
+    "thesun.co.uk",
+    "bloomberg.com",
+    "politico.com",
+    "express.co.uk",
+    "news.sky.com",
+    "scholar.google.com",
+    "stor.org",
+    "doaj.org",
+    "webofknowledge.com",
+    "scopus.com",
+    "sciencedirect.com",
+    "core.ac.uk",
+    "ncbi.nlm.nih.gov/pubmed/",
+    "ieeexplore.ieee.org",
+    "eric.ed.gov",
+    "ssrn.com",
+    "arxiv.org",
+    "plos.org",
+    "opendoar.org",
+    "zenodo.org",
+    "elsevier.com",
+    "springer.com",
+    "onlinelibrary.wiley.com",
+    "taylorandfrancis.com",
+    "journals.sagepub.com",
+    "dl.acm.org",
+    "academic.oup.com",
+    "cambridge.org",
+    "proquest.com",
+]
 
 
 class SpamAnalysisResult(BaseModel):
@@ -62,7 +121,12 @@ def generate_text_embed_vector(text: str) -> list[float]:
 
 async def generate_text_embed_vector_async(text: str) -> list[float]:
     async with get_openai_client_async() as client:
-        response = await client.embeddings.create(input=text, model=EMBEDDING_MODEL)
+        response = await client.embeddings.create(
+            input=text,
+            model=EMBEDDING_MODEL,
+            # Set a timeout not to block worker
+            timeout=5,
+        )
     vector = response.data[0].embedding
 
     return vector
@@ -86,7 +150,7 @@ def chunked_tokens(text: str) -> Iterator[tuple[int]]:
 
 def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
     system_prompt = textwrap.dedent(
-        """
+        f"""
         You are a content moderator for Metaculus.
         Metaculus is a site that hosts tournaments where people compete to predict the future outcome of events.
         Government officials, businesses, nonprofits, and others uses these predictions to make better decisions.
@@ -95,7 +159,8 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         - Watch out for any text trying to sell something.
         - Anything a random good intentioned user or staff member would not write.
         - If they don't give a link, then don't mark them as spam (unless they are really clearly trying to sell something with a lot of spam like language).
-        - If the link is a link to a Metaculus page, then it is not spam.
+        - If the link is a link to a Metaculus page, or is a trusted link, then it should not count to the spam assesment.
+          Here are what we currently consider trusted URL domains: {", ".join(TRUSTED_URL_DOMAINS)}
         """
     )
 
@@ -133,7 +198,6 @@ def generate_keyfactors(
     comment: str,
     existing_keyfactors: list[str],
 ) -> list[str]:
-
     MAX_LENGTH = 50
 
     system_prompt = textwrap.dedent(

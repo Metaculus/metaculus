@@ -25,7 +25,8 @@ const CommunityPrediction: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const movementPeriod = +(
-    post.question?.aggregations?.recency_weighted?.movement?.period || 0
+    post.question?.aggregations[post.question.default_aggregation_method]
+      .movement?.period || 0
   );
 
   if (isNil(rawValue)) {

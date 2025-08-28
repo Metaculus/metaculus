@@ -2,6 +2,7 @@ export enum FeedType {
   HOME = "home",
   MY_PREDICTIONS = "my_predictions",
   MY_QUESTIONS_AND_POSTS = "my_questions_and_posts",
+  WEEKLY_TOP_COMMENTS = "weekly_top_comments",
   FOLLOWING = "following",
   IN_REVIEW = "in_review",
   COMMUNITIES = "communities",
@@ -13,7 +14,7 @@ export const POST_TEXT_SEARCH_FILTER = "search";
 export const POST_TYPE_FILTER = "forecast_type";
 export const POST_STATUS_FILTER = "status";
 export const POST_CATEGORIES_FILTER = "categories";
-export const POST_TAGS_FILTER = "tags";
+export const POST_LEADERBOARD_TAGS_FILTER = "leaderboard_tags";
 export const POST_FORECASTER_ID_FILTER = "forecaster_id";
 export const POST_WITHDRAWN_FILTER = "withdrawn";
 export const POST_NOT_FORECASTER_ID_FILTER = "not_forecaster_id";
@@ -27,6 +28,7 @@ export const POST_ACCESS_FILTER = "access";
 export const POST_ORDER_BY_FILTER = "order_by";
 export const POST_NEWS_TYPE_FILTER = "news_type";
 export const POST_COMMUNITIES_FILTER = "communities";
+export const POST_WEEKLY_TOP_COMMENTS_FILTER = "weekly_top_comments";
 export const POST_PROJECT_FILTER = "default_project_id";
 
 export const POSTS_PER_PAGE = 10;

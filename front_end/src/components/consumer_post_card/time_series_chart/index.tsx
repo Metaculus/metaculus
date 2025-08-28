@@ -1,6 +1,6 @@
 import "./styles.scss";
 
-import { isNil } from "lodash";
+import { isNil, round } from "lodash";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 import {
@@ -185,7 +185,10 @@ function buildChartData(
     .filter(
       (question) =>
         !isUnsuccessfullyResolved(question.resolution) &&
-        !isNil(question.aggregations.recency_weighted.latest?.centers?.[0])
+        !isNil(
+          question.aggregations[question.default_aggregation_method].latest
+            ?.centers?.[0]
+        )
     )
     .map((question) => {
       const resolutionPoint = question.resolution
@@ -203,13 +206,15 @@ function buildChartData(
             scaling: question.scaling,
             completeBounds: true,
             actual_resolve_time: null,
+            sigfigs: 4,
           })
         : null;
 
       const point = getOptionPoint(
         {
           value:
-            question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
+            question.aggregations[question.default_aggregation_method].latest
+              ?.centers?.[0] ?? 0,
           optionScaling: question.scaling,
           questionScaling: scaling,
         },
@@ -222,7 +227,8 @@ function buildChartData(
         label: !isNil(formatedResolution)
           ? formatedResolution
           : getPredictionDisplayValue(
-              question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
+              question.aggregations[question.default_aggregation_method].latest
+                ?.centers?.[0] ?? 0,
               {
                 questionType: question.type,
                 scaling: question.scaling,
@@ -250,9 +256,12 @@ function getOptionPoint(
   if (withoutScaling) {
     return value;
   }
-  return unscaleNominalLocation(
-    scaleInternalLocation(value, optionScaling),
-    questionScaling
+  return round(
+    unscaleNominalLocation(
+      scaleInternalLocation(value, optionScaling),
+      questionScaling
+    ),
+    2
   );
 }
 

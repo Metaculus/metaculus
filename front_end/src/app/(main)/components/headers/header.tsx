@@ -32,7 +32,7 @@ const Header: FC = () => {
 
   return (
     <>
-      <header className="fixed left-0 top-0 z-100 flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
+      <header className="fixed left-0 top-0 z-[200] flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
         <NavbarLogo />
 
         {/* Global Search */}
@@ -72,7 +72,7 @@ const Header: FC = () => {
               </MenuButton>
               <MenuItems
                 anchor="bottom"
-                className="z-50 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
+                className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
               >
                 {menuLinks.map((link) => (
                   <LinkMenuItem

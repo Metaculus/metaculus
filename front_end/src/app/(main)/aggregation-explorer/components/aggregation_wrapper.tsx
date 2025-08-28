@@ -47,10 +47,11 @@ export const AggregationWrapper: FC<Props> = ({
 
       try {
         const adjustedQuestionId =
-          selectedSubQuestionOption && !isNaN(Number(selectedSubQuestionOption))
+          selectedSubQuestionOption &&
+          typeof selectedSubQuestionOption === "number" &&
+          !isNaN(Number(selectedSubQuestionOption))
             ? Number(selectedSubQuestionOption)
             : undefined;
-
         const response = await ClientAggregationExplorerApi.getAggregations({
           postId,
           questionId: adjustedQuestionId,

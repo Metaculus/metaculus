@@ -21,7 +21,8 @@ from notifications.services import (
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
-from questions.types import AggregationMethod
+from questions.types import Direction
+from questions.utils import get_last_forecast_in_the_past
 from users.models import User
 from utils.models import ArrayLength
 from utils.the_math.formulas import (
@@ -31,7 +32,6 @@ from utils.the_math.formulas import (
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
     get_difference_display,
-    Direction,
 )
 
 
@@ -157,7 +157,7 @@ def notify_post_cp_change(post: Post):
         question: list(
             AggregateForecast.objects.filter(
                 question=question,
-                method=AggregationMethod.RECENCY_WEIGHTED,
+                method=question.default_aggregation_method,
                 start_time__gte=question.cp_reveal_time or question.created_at,
             ).order_by("start_time")
         )
@@ -182,7 +182,11 @@ def notify_post_cp_change(post: Post):
             if entry is None:
                 continue
             old_forecast_values = entry.forecast_values
-            current_entry = forecast_summary[-1]
+            current_entry = get_last_forecast_in_the_past(forecast_summary)
+
+            if not current_entry:
+                continue
+
             current_forecast_values = current_entry.forecast_values
             difference = prediction_difference_for_sorting(
                 old_forecast_values,
@@ -440,7 +444,6 @@ def create_subscription_cp_change(
         cp_change_threshold=cp_change_threshold,
         last_sent_at=timezone.now(),
         is_global=is_global,
-        # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
     if save:

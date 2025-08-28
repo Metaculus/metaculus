@@ -50,6 +50,7 @@ import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   extractPrevBinaryForecastValue,
   extractPrevNumericForecastValue,
@@ -637,7 +638,9 @@ function getFanOptionsFromContinuousGroup(
     .map((q) => {
       const latest = q.my_forecasts?.latest;
       const userForecast = extractPrevNumericForecastValue(
-        latest && !latest.end_time ? latest.distribution_input : undefined
+        latest && isForecastActive(latest)
+          ? latest.distribution_input
+          : undefined
       );
 
       let userCdf: number[] | null = null;
@@ -645,8 +648,7 @@ function getFanOptionsFromContinuousGroup(
         userForecast.type === ContinuousForecastInputType.Slider
           ? (userCdf = getSliderNumericForecastDataset(
               userForecast.components,
-              q.open_lower_bound,
-              q.open_upper_bound
+              q
             ).cdf)
           : (userCdf = getQuantileNumericForecastDataset(
               userForecast.components,
@@ -657,7 +659,8 @@ function getFanOptionsFromContinuousGroup(
       return {
         name: q.label,
         communityCdf:
-          q.aggregations.recency_weighted.latest?.forecast_values ?? [],
+          q.aggregations[q.default_aggregation_method].latest
+            ?.forecast_values ?? [],
         userCdf: userCdf,
         resolved: q.resolution !== null,
         question: q,
@@ -680,12 +683,12 @@ function getFanOptionsFromBinaryGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
   return questions.map((q) => {
-    const aggregation = q.aggregations.recency_weighted.latest;
+    const aggregation = q.aggregations[q.default_aggregation_method].latest;
     const resolved = q.resolution !== null;
 
     const latest = q.my_forecasts?.latest;
     const userForecast = extractPrevBinaryForecastValue(
-      latest && !latest.end_time ? latest.forecast_values[1] : null
+      latest && isForecastActive(latest) ? latest.forecast_values[1] : null
     );
 
     return {

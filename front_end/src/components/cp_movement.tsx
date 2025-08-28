@@ -10,6 +10,7 @@ import {
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 import { formatValueUnit } from "@/utils/questions/units";
 
 import PeriodMovement from "./period_movement";
@@ -29,7 +30,8 @@ const QuestionCPMovement: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const movement = question.aggregations?.recency_weighted?.movement;
+  const movement =
+    question.aggregations[question.default_aggregation_method].movement;
 
   if (!movement || !movement.divergence || movement.divergence < threshold) {
     return null;
@@ -132,16 +134,18 @@ export function getMovementComponents(
       cpMovement.direction === MovementDirection.UP
         ? t("increased")
         : t("decreased");
-    const unit =
-      question.type === QuestionType.Numeric
-        ? isNil(question.unit)
-          ? question.type
-          : " " + question.unit
-        : " " + t("percentagePoints");
-    const amount =
-      question.type === QuestionType.Numeric
-        ? round(cpMovement.movement, 1) // for numeric questions we receive already scaled value
-        : round(cpMovement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
+    const unit = [QuestionType.Numeric, QuestionType.Discrete].includes(
+      question.type
+    )
+      ? isNil(question.unit)
+        ? question.type
+        : " " + question.unit
+      : " " + t("percentagePoints");
+    const amount = [QuestionType.Numeric, QuestionType.Discrete].includes(
+      question.type
+    )
+      ? abbreviatedNumber(round(cpMovement.movement, 1)) // for numeric questions we receive already scaled value
+      : round(cpMovement.movement * 100, 1); // for binary and MC questions we receive a percentage in 0-1 range
     if (
       [MovementDirection.UP, MovementDirection.DOWN].includes(
         cpMovement.direction

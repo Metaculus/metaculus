@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC } from "react";
 
@@ -57,4 +58,6 @@ export const KeyFactorItem: FC<Props> = ({
   }
 };
 
-export default KeyFactorItem;
+export default dynamic(() => Promise.resolve(KeyFactorItem), {
+  ssr: false,
+});

@@ -24,15 +24,22 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
-import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
+import { Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
-import { QuestionDraft, QuestionType } from "@/types/question";
+import {
+  ContinuousQuestionType,
+  DefaultInboundOutcomeCount,
+  QuestionDraft,
+  QuestionType,
+} from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
   deleteQuestionDraft,
@@ -74,7 +81,13 @@ const createQuestionSchemas = (
   post: PostWithForecasts | null
 ) => {
   const baseQuestionSchema = z.object({
-    type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
+    type: z.enum([
+      QuestionType.Binary,
+      QuestionType.MultipleChoice,
+      QuestionType.Numeric,
+      QuestionType.Discrete,
+      QuestionType.Date,
+    ]),
     title: z
       .string()
       .min(4, {
@@ -215,6 +228,7 @@ const createQuestionSchemas = (
       }),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
+      inbound_outcome_count: z.number().default(DefaultInboundOutcomeCount),
     })
   );
 
@@ -227,6 +241,7 @@ const createQuestionSchemas = (
       min: z.number().optional(),
     })
   );
+  const discreteQuestionSchema = numericQuestionSchema;
 
   const dateQuestionSchema = continuousQuestionSchema.merge(
     z.object({
@@ -254,15 +269,16 @@ const createQuestionSchemas = (
   return {
     baseQuestionSchema,
     binaryQuestionSchema,
+    multipleChoiceQuestionSchema,
     continuousQuestionSchema,
     numericQuestionSchema,
+    discreteQuestionSchema,
     dateQuestionSchema,
-    multipleChoiceQuestionSchema,
   };
 };
 
 type Props = {
-  questionType: string;
+  questionType: QuestionType;
   tournament_id?: number;
   community_id?: number;
   allCategories: Category[];
@@ -270,6 +286,7 @@ type Props = {
   mode: "create" | "edit";
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const QuestionForm: FC<Props> = ({
@@ -281,6 +298,7 @@ const QuestionForm: FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -315,13 +333,17 @@ const QuestionForm: FC<Props> = ({
       title: t("multipleChoice"),
       description: t("multipleChoiceDescription"),
     },
-    date: {
-      title: t("dateRange"),
-      description: t("dateRangeDescription"),
-    },
     numeric: {
       title: t("numericRange"),
       description: t("numericRangeDescription"),
+    },
+    discrete: {
+      title: t("discrete"),
+      description: t("discreteDescription"),
+    },
+    date: {
+      title: t("dateRange"),
+      description: t("dateRangeDescription"),
     },
   };
 
@@ -357,7 +379,9 @@ const QuestionForm: FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(questionType);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(questionType);
+        }
       }
       router.push(getPostLink(resp.post));
     } catch (e) {
@@ -380,6 +404,7 @@ const QuestionForm: FC<Props> = ({
 
   type BinaryQuestionType = z.infer<typeof schemas.binaryQuestionSchema>;
   type NumericQuestionType = z.infer<typeof schemas.numericQuestionSchema>;
+  type DiscreteQuestionType = z.infer<typeof schemas.discreteQuestionSchema>;
   type DateQuestionType = z.infer<typeof schemas.dateQuestionSchema>;
   type MultipleChoiceQuestionType = z.infer<
     typeof schemas.multipleChoiceQuestionSchema
@@ -395,23 +420,26 @@ const QuestionForm: FC<Props> = ({
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
-      case "binary":
+      case QuestionType.Binary:
         return schemas.binaryQuestionSchema;
-      case "numeric":
-        return schemas.numericQuestionSchema;
-      case "date":
-        return schemas.dateQuestionSchema;
-      case "multiple_choice":
+      case QuestionType.MultipleChoice:
         return schemas.multipleChoiceQuestionSchema;
+      case QuestionType.Numeric:
+        return schemas.numericQuestionSchema;
+      case QuestionType.Discrete:
+        return schemas.discreteQuestionSchema;
+      case QuestionType.Date:
+        return schemas.dateQuestionSchema;
       default:
         throw new Error("Invalid question type");
     }
   };
   type FormSchemaType =
     | BinaryQuestionType
+    | MultipleChoiceQuestionType
     | NumericQuestionType
-    | DateQuestionType
-    | MultipleChoiceQuestionType;
+    | DiscreteQuestionType
+    | DateQuestionType;
 
   // TODO: refactor validation schema setup to properly populate useForm generic
   const form = useForm<FormSchemaType>({
@@ -424,16 +452,17 @@ const QuestionForm: FC<Props> = ({
     },
   });
   if (
-    questionType === "binary" ||
-    questionType === "multiple_choice" ||
-    questionType === "date" ||
-    questionType === "numeric"
+    questionType === QuestionType.Binary ||
+    questionType === QuestionType.MultipleChoice ||
+    questionType === QuestionType.Numeric ||
+    questionType === QuestionType.Discrete ||
+    questionType === QuestionType.Date
   ) {
     form.setValue("type", questionType);
   }
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       // Explicitly convert to the ExtendedQuestionDraft type
       saveQuestionDraft(questionType, {
@@ -443,7 +472,7 @@ const QuestionForm: FC<Props> = ({
         type: formData.type as unknown as QuestionType,
       } as Partial<ExtendedQuestionDraft>);
     }
-  }, [form, mode, questionType, optionsList, categoriesList]);
+  }, [form, shouldUseDraftValue, questionType, optionsList, categoriesList]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -456,7 +485,12 @@ const QuestionForm: FC<Props> = ({
   ): FormSchemaType => {
     // Create a basic object with common properties
     const baseValues = {
-      type: draft.type as "binary" | "multiple_choice" | "date" | "numeric",
+      type: draft.type as
+        | QuestionType.Binary
+        | QuestionType.MultipleChoice
+        | QuestionType.Numeric
+        | QuestionType.Discrete
+        | QuestionType.Date,
       title: draft.title || "",
       short_title: draft.short_title || "",
       description: draft.description || "",
@@ -472,7 +506,13 @@ const QuestionForm: FC<Props> = ({
 
     // Depending on the question type, add specific properties
     switch (draft.type) {
-      case "numeric":
+      case QuestionType.MultipleChoice:
+        return {
+          ...baseValues,
+          group_variable: draft.group_variable || "",
+          options: draft.options || [],
+        } as MultipleChoiceQuestionType;
+      case QuestionType.Numeric:
         return {
           ...baseValues,
           scaling: draft.scaling || {
@@ -486,8 +526,24 @@ const QuestionForm: FC<Props> = ({
           min: draft.scaling?.range_min || undefined,
           max: draft.scaling?.range_max || undefined,
         } as NumericQuestionType;
+      case QuestionType.Discrete:
+        return {
+          ...baseValues,
+          scaling: draft.scaling || {
+            range_min: null,
+            range_max: null,
+            zero_point: null,
+          },
+          open_lower_bound: draft.open_lower_bound ?? true,
+          open_upper_bound: draft.open_upper_bound ?? true,
+          inbound_outcome_count:
+            draft.inbound_outcome_count ?? DefaultInboundOutcomeCount,
+          unit: draft.unit || "",
+          min: draft.scaling?.range_min || undefined,
+          max: draft.scaling?.range_max || undefined,
+        } as DiscreteQuestionType;
 
-      case "date":
+      case QuestionType.Date:
         return {
           ...baseValues,
           scaling: draft.scaling || {
@@ -505,20 +561,13 @@ const QuestionForm: FC<Props> = ({
             : undefined,
         } as DateQuestionType;
 
-      case "multiple_choice":
-        return {
-          ...baseValues,
-          group_variable: draft.group_variable || "",
-          options: draft.options || [],
-        } as MultipleChoiceQuestionType;
-
       default:
         return baseValues as BinaryQuestionType;
     }
   };
 
   useEffect(() => {
-    if (mode === "create" && !isDraftMounted.current) {
+    if (shouldUseDraftValue && !isDraftMounted.current) {
       const draft = getQuestionDraft(questionType);
       if (draft) {
         setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
@@ -545,12 +594,12 @@ const QuestionForm: FC<Props> = ({
   // update draft when form values change
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -610,7 +659,8 @@ const QuestionForm: FC<Props> = ({
             className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
-        {questionType === "numeric" && (
+        {(questionType === QuestionType.Numeric ||
+          questionType === QuestionType.Discrete) && (
           <InputContainer
             labelText={t("questionUnit")}
             explanation={t("questionUnitDescription")}
@@ -667,37 +717,40 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
-        {(questionType === QuestionType.Date ||
-          questionType === QuestionType.Numeric) && (
+        {ContinuousQuestionTypes.some((type) => type === questionType) && (
           <NumericQuestionInput
-            draftKey={mode === "edit" ? undefined : questionType}
-            questionType={questionType}
+            draftKey={shouldUseDraftValue ? questionType : undefined}
+            questionType={questionType as ContinuousQuestionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
+            defaultZeroPoint={post?.question?.scaling.zero_point}
             defaultOpenLowerBound={post?.question?.open_lower_bound}
             defaultOpenUpperBound={post?.question?.open_upper_bound}
-            defaultZeroPoint={post?.question?.scaling.zero_point}
+            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
             hasForecasts={hasForecasts && mode !== "create"}
+            unit={post?.question?.unit}
             control={form as any}
             onChange={({
-              min: rangeMin,
-              max: rangeMax,
-              open_upper_bound: openUpperBound,
-              open_lower_bound: openLowerBound,
-              zero_point: zeroPoint,
+              range_min,
+              range_max,
+              zero_point,
+              open_upper_bound,
+              open_lower_bound,
+              inbound_outcome_count,
             }) => {
               form.setValue("scaling", {
-                range_min: rangeMin,
-                range_max: rangeMax,
-                zero_point: zeroPoint,
+                range_min,
+                range_max,
+                zero_point,
               });
-              form.setValue("open_lower_bound", openLowerBound);
-              form.setValue("open_upper_bound", openUpperBound);
+              form.setValue("open_lower_bound", open_lower_bound);
+              form.setValue("open_upper_bound", open_upper_bound);
+              form.setValue("inbound_outcome_count", inbound_outcome_count);
             }}
           />
         )}
 
-        {questionType === "multiple_choice" && (
+        {questionType === QuestionType.MultipleChoice && (
           <>
             <InputContainer
               labelText={t("groupVariable")}

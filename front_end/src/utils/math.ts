@@ -1,8 +1,8 @@
 import { isNil } from "lodash";
-import * as math from "mathjs";
 
 import {
   Bounds,
+  DefaultInboundOutcomeCount,
   ExtendedQuartiles,
   Quartiles,
   Question,
@@ -21,7 +21,7 @@ export function logisticDistributionParamsFromSliders(
   // k == extremisation constant
   const k = 0.15;
   const mode = (1 + 2 * k) * center - k;
-  let scale = Number(math.pow(math.atanh(right - left), 2));
+  let scale = Number(Math.pow(Math.atanh(Math.min(0.999, right - left)), 2));
   let asymmetry = (right + left - 2 * center) / (right - left);
   if (asymmetry > 0.95) {
     asymmetry = 0.95;
@@ -41,11 +41,11 @@ export function logisticDistributionParamsFromSliders(
 }
 
 function Fprime(x: number) {
-  return Number(math.divide(1, math.add(math.pow(math.e, -x), 1)));
+  return Number(1 / (Math.pow(Math.E, -x) + 1));
 }
 
 function sprime(scale: number) {
-  return Number(math.divide(scale, math.log(3)));
+  return Number(scale / Math.log(3));
 }
 
 function logisticCDF(
@@ -60,13 +60,7 @@ function logisticCDF(
     c +
     k *
       (1 - asymmetry * k) *
-      Fprime(
-        k *
-          math.divide(
-            math.subtract(x, mode),
-            sprime(scale) * (1 - asymmetry * k)
-          )
-      )
+      Fprime((k * (x - mode)) / (sprime(scale) * (1 - asymmetry * k)))
   );
 }
 
@@ -90,12 +84,13 @@ export function cdfFromSliders(
   center: number,
   right: number,
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  inboundOutcomeCount: number = DefaultInboundOutcomeCount
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
-  const step = 1 / 200;
+  const step = 1 / inboundOutcomeCount;
   const xArr = Array.from(
-    { length: Math.floor(1 / step) + 1 },
+    { length: inboundOutcomeCount + 1 },
     (_, i) => i * step
   );
   let cdf = [
@@ -117,27 +112,33 @@ export function cdfFromSliders(
 
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles: true
+  extendedQuartiles: true,
+  discrete?: boolean
 ): ExtendedQuartiles;
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles?: false
+  extendedQuartiles?: false,
+  discrete?: boolean
 ): Quartiles;
 export function computeQuartilesFromCDF(cdf: number[]): Quartiles;
 export function computeQuartilesFromCDF(
   cdf: number[],
-  extendedQuartiles?: boolean
+  extendedQuartiles?: boolean,
+  discrete?: boolean
 ): Quartiles | ExtendedQuartiles {
   function findPercentile(cdf: number[], percentile: number) {
     if (cdf === null) {
       cdf = [];
     }
     const target = percentile / 100;
-
     for (let i = 0; i < cdf.length; i++) {
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
       if (cdf[i]! >= target) {
         if (i === 0) return 0;
+
+        if (discrete) {
+          return (i - 0.5) / (cdf.length - 1);
+        }
 
         const diff = cdf[i]! - cdf[i - 1]!;
         const adjustedPercentile = (target - cdf[i - 1]!) / diff;
@@ -197,6 +198,9 @@ export function nominalLocationToCdfLocation(
     throw new Error("range_min and range_max must be defined");
   }
   if (zero_point !== null) {
+    if (location === zero_point) {
+      return zero_point < range_min ? -1e-7 : 1 + 1e-7; // avoid log(0)
+    }
     const derivRatio = (range_max - zero_point) / (range_min - zero_point);
     return (
       (Math.log(

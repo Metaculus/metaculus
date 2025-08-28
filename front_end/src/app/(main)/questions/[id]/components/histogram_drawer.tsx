@@ -30,7 +30,9 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     const question = post.question;
 
     const histogram =
-      question.aggregations.recency_weighted.latest?.histogram?.at(0);
+      question.aggregations[
+        question.default_aggregation_method
+      ].latest?.histogram?.at(0);
     if (!histogram?.length) {
       return null;
     }
@@ -39,8 +41,11 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
       y: value,
     }));
     const median =
-      question?.aggregations?.recency_weighted?.latest?.centers?.[0];
-    const mean = question?.aggregations?.recency_weighted?.latest?.means?.[0];
+      question?.aggregations[question.default_aggregation_method].latest
+        ?.centers?.[0];
+    const mean =
+      question?.aggregations[question.default_aggregation_method].latest
+        ?.means?.[0];
 
     return (
       <div ref={chartContainerRef}>
@@ -64,7 +69,9 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     post.conditional?.question_no.type === "binary"
   ) {
     const latest_yes =
-      post.conditional.question_yes.aggregations.recency_weighted.latest;
+      post.conditional.question_yes.aggregations[
+        post.conditional.question_yes.default_aggregation_method
+      ].latest;
     if (!latest_yes) {
       return null;
     }
@@ -78,7 +85,9 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     const mean_yes = latest_yes.means?.[0];
 
     const latest_no =
-      post.conditional.question_no.aggregations.recency_weighted.latest;
+      post.conditional.question_no.aggregations[
+        post.conditional.question_no.default_aggregation_method
+      ].latest;
     if (!latest_no) {
       return null;
     }

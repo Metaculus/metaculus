@@ -526,18 +526,38 @@ export default function FAQ() {
           Metaculus é um mercado de previsão?
         </h3>
         <p>
-          Metaculus tem algumas semelhanças com um mercado de previsão, mas, em
-          última análise, não é um. O Metaculus visa agregar informações,
-          conhecimentos e poder preditivo de muitas pessoas em previsões de alta
+          O Metaculus tem algumas semelhanças com um mercado de previsão, mas,
+          em última análise, não é um. O Metaculus visa agregar informações,
+          expertise e poder preditivo de muitas pessoas em previsões de alta
           qualidade. No entanto, os mercados de previsão geralmente operam
           usando moeda real ou virtual, onde os participantes compram (ou
-          vendem) ações se acharem que os preços permanentes refletem muito
-          baixo (ou alto) uma probabilidade de um evento ocorrer. O Metaculus,
-          em contraste, solicita diretamente as probabilidades previstas de seus
+          vendem) ações se acharem que os preços vigentes refletem uma
+          probabilidade muito baixa (ou alta) de um evento ocorrer. O Metaculus,
+          por outro lado, solicita diretamente probabilidades previstas de seus
           usuários e, em seguida, agrega essas probabilidades. Acreditamos que
-          esse tipo de &Quot;agregador de previsão&Quot; tem vantagens e
-          desvantagens em relação a um mercado de previsão.
+          esse tipo de &#34;agregador de previses&#34; tem vantagens e
+          desvantagens em relação a um mercado de previsões. mercado de
+          previsão, e entraremos em detalhes sobre isso em nossa postagem do
+          blog{" "}
+          <i>
+            <Link
+              href="https://www.metaculus.com/notebooks/38198/metaculus-and-markets-whats-the-difference/"
+              target="_blank"
+            >
+              Metaculus e Mercados: Qual a Diferença?
+            </Link>
+          </i>
+          . Aqui está um gráfico dessa postagem com uma rápida visão geral:
         </p>
+
+        <Image
+          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets.jpg"
+          alt="Comparação de Metaculus e Mercados"
+          className="my-4"
+          width={700}
+          height={207}
+        />
+
         <h4 className="text-lg font-semibold">
           Vantagens do Metaculus em relação aos mercados de previsão
         </h4>
@@ -951,15 +971,16 @@ export default function FAQ() {
         </p>
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>
-            Uma &quot;fonte credível&quot; será considerada uma história on-line
-            ou impressa publicada de uma fonte jornalística, ou informações
-            publicadas publicamente em um site de uma organização por essa
-            organização que torna públicas informações pertencentes a essa
-            organização, ou em outra fonte onde a preponderância de evidências
-            sugere que a informação está correta e que não há controvérsia
-            significativa em torno das informações ou sua correção. Geralmente,
-            não inclui informações não obtidas em blogs, postagens no Facebook
-            ou no Twitter ou em sites de indivíduos.
+            Uma &#34;fonte credível&#34; será considerada um artigo publicado
+            online ou impresso de uma fonte jornalística ou acadêmica,
+            informações publicadas publicamente por uma fonte autorizada com
+            conhecimento ou responsabilidade específica sobre o assunto ou, em
+            geral, informações de uma fonte em que a preponderância de
+            evidências sugere que a informação está correta — desde que, em
+            todos os casos, não haja controvérsia significativa em torno de sua
+            correção. Fontes confiáveis geralmente não incluem informações sem
+            fontes encontradas em blogs, postagens em mídias sociais ou sites de
+            indivíduos.
           </li>
           <li>
             A frase &quot;Antes [data X] será tomada como significando antes do

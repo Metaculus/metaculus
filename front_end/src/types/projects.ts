@@ -10,16 +10,18 @@ export enum ProjectVisibility {
 export type Project = {
   id: number;
   name: string;
-  type: TournamentType;
+  type: TournamentType | TaxonomyProjectType;
   slug: string;
   posts_count: number;
 };
 
+export type LeaderboardTag = Project;
+
 export type Category = Project & {
   description: string;
+  emoji?: string;
 };
 
-export type Tag = Project;
 export type NewsCategory = Project & {
   type: TournamentType.NewsCategory;
   is_subscribed?: boolean;
@@ -37,7 +39,7 @@ export enum TournamentType {
 export enum TaxonomyProjectType {
   Topic = "topic",
   Category = "category",
-  Tag = "tag",
+  LeaderboardTag = "leaderboard_tag",
 }
 
 export enum TournamentsSortBy {
@@ -54,6 +56,8 @@ export type TournamentMember = {
 export type TournamentPreview = Project & {
   type: TournamentType;
   header_image: string;
+  forecasts_count: number;
+  forecasters_count: number;
   prize_pool: string | null;
   start_date: string;
   close_date?: string;
@@ -64,6 +68,7 @@ export type TournamentPreview = Project & {
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;
+  followers_count?: number;
 };
 
 export type TournamentTimeline = {
@@ -84,9 +89,11 @@ export type Tournament = TournamentPreview & {
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
   is_current_content_translated?: boolean;
+  bot_leaderboard_status?: BotLeaderboardStatus;
   index_weights?: ProjectIndexWeights[];
   timeline: TournamentTimeline;
   forecasts_flow_enabled: boolean;
+  index_data?: IndexData | null;
 };
 
 export type ProjectIndexWeights = {
@@ -112,3 +119,20 @@ export enum CommunitySettingsMode {
   Questions = "questions",
   Settings = "settings",
 }
+
+export enum BotLeaderboardStatus {
+  ExcludeAndHide = "exclude_and_hide",
+  ExcludeAndShow = "exclude_and_show",
+  Include = "include",
+  BotsOnly = "bots_only",
+}
+
+export type IndexData = {
+  series: {
+    line: { x: number; y: number }[];
+    status: "open" | "resolved";
+    resolved_at?: string;
+    resolution_value?: number;
+  };
+  weights: Record<string, number>;
+};

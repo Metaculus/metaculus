@@ -1,6 +1,8 @@
 import { isNil } from "lodash";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import invariant from "ts-invariant";
@@ -18,8 +20,13 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import { ProjectPermissions } from "@/types/post";
-import { ProjectVisibility, TournamentType } from "@/types/projects";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  ProjectIndexWeights,
+  ProjectVisibility,
+  TournamentType,
+} from "@/types/projects";
+import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
@@ -27,6 +34,7 @@ import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
+import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
 
 type Props = {
@@ -64,6 +72,17 @@ export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+
+  // Ensure project has a correct link.
+  // E.g. if tournament with /index/ url -> redirect to /tournament/
+  const correctLink = getProjectLink(tournament);
+  const headersList = await headers();
+  const originalUrl = headersList.get("x-url") || "";
+
+  if (!originalUrl.includes(correctLink)) {
+    redirect(correctLink);
+  }
+
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ServerProfileApi.getMyProfile();
   const isForecastsFlowEnabled =
@@ -79,12 +98,20 @@ export default async function TournamentSlug(props: Props) {
     ? t("SeriesContents")
     : t("questions");
 
-  const indexWeights = tournament.index_weights ?? [];
+  let indexWeights: ProjectIndexWeights[] = [];
+  const weightsMap = tournament.index_data?.weights ?? {};
+  const postIdKeys = Object.keys(weightsMap);
+
+  if (postIdKeys.length > 0) {
+    const ids = postIdKeys.map(Number);
+    const { results: posts } = await ServerPostsApi.getPostsWithCP({ ids });
+    indexWeights = buildIndexRowsFromPostsAndWeights(posts, weightsMap);
+  }
 
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
       {/* header block */}
-      <div className="overflow-hidden rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
+      <div className="rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
             <HeaderBlockNav
@@ -93,14 +120,16 @@ export default async function TournamentSlug(props: Props) {
               variant="image_overflow"
             />
 
-            <Image
-              src={tournament.header_image}
-              alt=""
-              fill
-              priority
-              className="size-full object-cover object-center"
-              unoptimized
-            />
+            <div className="overflow-hidden">
+              <Image
+                src={tournament.header_image}
+                alt=""
+                fill
+                priority
+                className="size-full object-cover object-center"
+                unoptimized
+              />
+            </div>
           </div>
         )}
         <div className="px-4 pb-5 pt-4 sm:p-8">
@@ -128,16 +157,25 @@ export default async function TournamentSlug(props: Props) {
       </div>
 
       <NavigationBlock tournament={tournament} />
-      <ParticipationBlock tournament={tournament} posts={predictionFlowPosts} />
+      {tournament.type !== TournamentType.Index && (
+        <ParticipationBlock
+          tournament={tournament}
+          posts={predictionFlowPosts}
+        />
+      )}
 
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
           <HtmlContent content={tournament.description} />
 
-          {indexWeights.length > 0 && (
-            <IndexSection indexWeights={indexWeights} tournament={tournament} />
-          )}
+          {indexWeights.length > 0 &&
+            tournament.type === TournamentType.Index && (
+              <IndexSection
+                indexWeights={indexWeights}
+                tournament={tournament}
+              />
+            )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
@@ -155,6 +193,16 @@ export default async function TournamentSlug(props: Props) {
             </div>
           )}
         </div>
+
+        {tournament.type === TournamentType.Index && (
+          <div className="mt-4">
+            <PredictionFlowButton tournament={tournament} />
+            <ParticipationBlock
+              tournament={tournament}
+              posts={predictionFlowPosts}
+            />
+          </div>
+        )}
       </div>
 
       {/* Questions block */}
@@ -188,4 +236,24 @@ export default async function TournamentSlug(props: Props) {
         )}
     </main>
   );
+}
+
+function buildIndexRowsFromPostsAndWeights(
+  posts: PostWithForecasts[],
+  weightsByPostId: Record<string, number>
+): ProjectIndexWeights[] {
+  const rows: ProjectIndexWeights[] = [];
+
+  for (const post of posts) {
+    const w = weightsByPostId[String(post.id)];
+    if (w == null) continue;
+    let questionId: number | null = null;
+    if (post.question) {
+      questionId = post.question.id;
+    }
+    if (questionId != null) {
+      rows.push({ post, question_id: questionId, weight: w });
+    }
+  }
+  return rows;
 }

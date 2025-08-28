@@ -49,7 +49,11 @@ def comment_extract_user_mentions(
                 continue
 
             if mention == "predictors":
-                query |= Q(pk__in=comment.on_post.get_forecasters())
+                query |= Q(
+                    pk__in=User.objects.filter(forecast__post=comment.on_post).distinct(
+                        "pk"
+                    )
+                )
                 continue
 
         # Fallback to username mention

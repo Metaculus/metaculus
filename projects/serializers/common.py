@@ -7,19 +7,49 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from projects.serializers.communities import CommunitySerializer
-from scoring.models import GLOBAL_LEADERBOARD_STRING
+from projects.services.indexes import get_project_single_index_data
 from users.serializers import UserPublicSerializer
 
 
-class TagSerializer(serializers.ModelSerializer):
-    is_global_leaderboard = serializers.SerializerMethodField()
-
+class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "type", "is_global_leaderboard")
+        fields = (
+            "created_at",
+            "edited_at",
+            "id",
+            "type",
+            "bot_leaderboard_status",
+            "name",
+            "slug",
+            "subtitle",
+            "description",
+            "header_image",
+            "header_logo",
+            "emoji",
+            "order",
+            "prize_pool",
+            "start_date",
+            "close_date",
+            "forecasting_end_date",
+            "meta_description",
+            "default_permission",
+            "visibility",
+            "show_on_homepage",
+            "show_on_services_page",
+            "forecasts_flow_enabled",
+        )
+        read_only_fields = (
+            "created_at",
+            "edited_at",
+            "id",
+        )
 
-    def get_is_global_leaderboard(self, obj: Project) -> bool:
-        return obj.name.endswith(GLOBAL_LEADERBOARD_STRING)
+
+class LeaderboardTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("id", "name", "slug", "type")
 
 
 class NewsCategorySerialize(serializers.ModelSerializer):
@@ -31,7 +61,7 @@ class NewsCategorySerialize(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "slug", "description", "type")
+        fields = ("id", "name", "slug", "emoji", "description", "type")
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -65,6 +95,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "default_permission",
             "visibility",
             "is_current_content_translated",
+            "bot_leaderboard_status",
         )
 
     def get_score_type(self, project: Project) -> str | None:
@@ -93,8 +124,8 @@ class TournamentSerializer(TournamentShortSerializer):
 
 def serialize_project(obj: Project):
     match obj.type:
-        case obj.ProjectTypes.TAG:
-            serializer = TagSerializer
+        case obj.ProjectTypes.LEADERBOARD_TAG:
+            serializer = LeaderboardTagSerializer
         case obj.ProjectTypes.TOPIC:
             serializer = TopicSerializer
         case obj.ProjectTypes.CATEGORY:
@@ -112,7 +143,7 @@ def serialize_project(obj: Project):
         case obj.ProjectTypes.COMMUNITY:
             serializer = CommunitySerializer
         case _:
-            serializer = TagSerializer
+            serializer = LeaderboardTagSerializer
 
     return serializer(obj).data
 
@@ -133,36 +164,6 @@ def serialize_projects(
         if obj == default_project:
             data["default_project"] = serialized_data
     return data
-
-
-def serialize_project_index_weights(project: Project):
-    """
-    Serialize project index posts with weight mapping
-    """
-
-    from posts.serializers import serialize_post_many
-
-    index_weights = []
-    qs = project.index_questions.prefetch_related("question__related_posts")
-    posts_map = {
-        x["id"]: x
-        for x in serialize_post_many(
-            {x.question.get_post_id() for x in qs}, with_cp=True
-        )
-    }
-
-    for project_question in qs:
-        post = posts_map[project_question.question.get_post_id()]
-
-        index_weights.append(
-            {
-                "post": post,
-                "question_id": project_question.question_id,
-                "weight": project_question.weight,
-            }
-        )
-
-    return index_weights
 
 
 def validate_categories(lookup_field: str, lookup_values: list):
@@ -228,3 +229,22 @@ class ProjectUserSerializer(serializers.ModelSerializer):
             "user",
             "permission",
         )
+
+
+def serialize_index_data(project: Project):
+    index_questions = project.index_questions.prefetch_related(
+        "question__related_posts"
+    )
+
+    return {
+        "weights": {
+            # Temporary workaround.
+            # In the future, multi-year indexes will use a direct Post<>Project relation
+            # instead of the old Question<>Project mapping.
+            # The frontend already expects a PostId<>Weight map (not questionId),
+            # but we’re skipping the DB change in this PR.
+            x.question.get_post_id(): x.weight
+            for x in index_questions
+        },
+        "series": get_project_single_index_data(project),
+    }

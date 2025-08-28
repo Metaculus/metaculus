@@ -1,6 +1,7 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -53,14 +54,18 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       { value: ANNULLED_RESOLUTION, label: "Annulled" },
     ];
 
-    if (["date", "numeric"].includes(question.type)) {
+    if (
+      [QuestionType.Numeric, QuestionType.Date, QuestionType.Discrete].includes(
+        question.type
+      )
+    ) {
       return [
         ...baseQuestionOptions,
         { value: "unambiguous", label: "Unambiguous" },
       ];
     }
 
-    if (question.type === "binary") {
+    if (question.type === QuestionType.Binary) {
       return [
         ...baseQuestionOptions,
         { value: "yes", label: "Yes" },
@@ -202,6 +207,44 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 {...register("resolutionValue")}
               />
             )}
+          {/* TODO: this logic doesn't allow choosing known values outside of bounds */}
+          {question.type === QuestionType.Discrete &&
+            resolutionType === "unambiguous" &&
+            unambiguousType === "knownValue" && (
+              <Input
+                type="number"
+                step={
+                  !isNil(question?.scaling.range_max) &&
+                  !isNil(question.scaling.range_min) &&
+                  !isNil(question.inbound_outcome_count)
+                    ? Math.round(
+                        1e10 *
+                          ((question.scaling.range_max -
+                            question.scaling.range_min) /
+                            question.inbound_outcome_count)
+                      ) / 1e10
+                    : "any"
+                }
+                placeholder="numeric resolution"
+                className="max-w-xs bg-transparent"
+                min={
+                  !isNil(question?.scaling.range_max) &&
+                  !isNil(question.scaling.range_min) &&
+                  !isNil(question.inbound_outcome_count)
+                    ? Math.round(
+                        1e10 *
+                          (question.scaling.range_min +
+                            0.5 *
+                              ((question.scaling.range_max -
+                                question.scaling.range_min) /
+                                question.inbound_outcome_count))
+                      ) / 1e10
+                    : undefined
+                }
+                max={question?.scaling.range_max ?? undefined}
+                {...register("resolutionValue")}
+              />
+            )}
           {question.type === QuestionType.Date &&
             resolutionType === "unambiguous" &&
             unambiguousType === "knownValue" && (
@@ -219,7 +262,9 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               className="bg-transparent pl-1"
               max={currentDateTime}
               defaultValue={watch("actualResolveTime")}
-              onChange={(val) => setValue("actualResolveTime", val)}
+              onChange={(val) =>
+                setValue("actualResolveTime", val ?? currentDateTime)
+              }
             />
           </label>
           <div className="flex justify-center">

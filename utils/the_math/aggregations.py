@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from django.db.models import Q
+from django.utils import timezone as django_timezone
 
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
@@ -154,10 +155,10 @@ def calculate_aggregation_entry(
         )
         aggregation = AggregateForecast(forecast_values=normalized_medians.tolist())
 
+    aggregation.start_time = forecast_set.timestep
+    aggregation.forecaster_count = len(forecast_set.forecasts_values)
     if include_stats:
         forecasts_values = np.array(forecast_set.forecasts_values)
-        aggregation.start_time = forecast_set.timestep
-        aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if question_type in [
             Question.QuestionType.BINARY,
             Question.QuestionType.MULTIPLE_CHOICE,
@@ -360,11 +361,12 @@ def minimize_history(
     # start with smallest interval, populating it with timestamps up to it's size. If
     # interval isn't saturated, distribute the remaining allotment to smaller intervals.
 
+    now_or_last = min(h[-1], django_timezone.now().timestamp())
     # Day interval
     day_history = []
     day_interval = []
     if day_size > 0:
-        first_index = bisect_left(h, h[-1] - day)
+        first_index = bisect_left(h, now_or_last - day)
         day_interval = h[first_index:]
         day_history = summarize_array(day_interval, day_size)
         remainder = day_size - len(day_history)
@@ -376,8 +378,8 @@ def minimize_history(
     week_history = []
     week_interval = []
     if week_size > 0:
-        first_index = bisect_left(h, h[-1] - day * 7)
-        last_index = bisect_right(h, h[-1] - day)
+        first_index = bisect_left(h, now_or_last - day * 7)
+        last_index = bisect_right(h, now_or_last - day)
         week_interval = h[first_index:last_index]
         week_history = summarize_array(week_interval, week_size)
         remainder = week_size - len(week_history)
@@ -388,8 +390,8 @@ def minimize_history(
     month_history = []
     month_interval = []
     if month_size > 0:
-        first_index = bisect_left(h, h[-1] - day * 60)
-        last_index = bisect_right(h, h[-1] - day * 7)
+        first_index = bisect_left(h, now_or_last - day * 60)
+        last_index = bisect_right(h, now_or_last - day * 7)
         month_interval = h[first_index:last_index]
         month_history = summarize_array(month_interval, month_size)
         remainder = month_size - len(month_history)
@@ -399,7 +401,7 @@ def minimize_history(
     all_history = []
     all_interval = []
     if all_size > 0:
-        last_index = bisect_right(h, h[-1] - day * 60)
+        last_index = bisect_right(h, now_or_last - day * 60)
         all_interval = h[:last_index]
         all_history = summarize_array(all_interval, all_size)
         remainder = all_size - len(all_history)
@@ -413,6 +415,7 @@ def get_user_forecast_history(
     forecasts: list[Forecast],
     minimize: bool = False,
     cutoff: datetime | None = None,
+    include_future: bool = True,
 ) -> list[ForecastSet]:
     timesteps = set()
     for forecast in forecasts:
@@ -488,6 +491,7 @@ def get_aggregation_history(
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,
+    include_future: bool = True,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
@@ -505,8 +509,16 @@ def get_aggregation_history(
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
 
+    if include_future:
+        cutoff = question.actual_close_time
+    else:
+        cutoff = min(
+            django_timezone.now(), question.actual_close_time or django_timezone.now()
+        )
     forecast_history = get_user_forecast_history(
-        forecasts, minimize, cutoff=question.actual_close_time
+        forecasts,
+        minimize,
+        cutoff=cutoff,
     )
 
     for method in aggregation_methods:
@@ -550,6 +562,13 @@ def get_aggregation_history(
                 )
                 continue
 
+        last_historical_entry_index = -1
+        now = django_timezone.now()
+        for entry in forecast_history:
+            if entry.timestep < now:
+                last_historical_entry_index += 1
+
+            break
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
             include_histogram = (
@@ -558,7 +577,7 @@ def get_aggregation_history(
                 and histogram
                 if histogram is not None
                 else question.type == Question.QuestionType.BINARY
-                and i == (len(forecast_history) - 1)
+                and i >= last_historical_entry_index
             )
 
             if forecast_set.forecasts_values:

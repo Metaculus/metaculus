@@ -72,7 +72,9 @@ const SubscriptionSectionSpecificTime: FC<
           <div key={index} className="mt-1 flex">
             <DatetimeUtc
               min={currentDateTime}
-              onChange={(dt) => onChange("next_trigger_datetime", dt, index)}
+              onChange={(dt) =>
+                onChange("next_trigger_datetime", dt ?? "", index)
+              }
               defaultValue={sub.next_trigger_datetime}
               className="max-w-[190px] !rounded-none"
             />
@@ -101,7 +103,7 @@ const SubscriptionSectionSpecificTime: FC<
       >
         {t("addAnother")}
       </Button>
-      <p className="mt-4 opacity-70">
+      <p className="mt-4 text-xs opacity-70">
         {t("followModalReminderThisQuestionOpened", {
           published_at:
             post.published_at &&

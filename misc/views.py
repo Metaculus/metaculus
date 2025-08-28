@@ -15,8 +15,13 @@ from rest_framework.response import Response
 
 from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
-from .serializers import ContactSerializer, SidebarItemSerializer
+from .serializers import (
+    ContactSerializer,
+    ContactServicesSerializer,
+    SidebarItemSerializer,
+)
 from .services.itn import remove_article
+from .utils import get_whitelist_status
 
 
 @api_view(["POST"])
@@ -30,6 +35,29 @@ def contact_api_view(request: Request):
         body=serializer.data["message"],
         from_email=settings.EMAIL_SENDER_NO_REPLY,
         to=[settings.EMAIL_FEEDBACK],
+        reply_to=[serializer.data["email"]],
+    ).send()
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_service_api_view(request: Request):
+    serializer = ContactServicesSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    EmailMessage(
+        subject="New form submission via Services page",
+        body=(
+            f"Your name: {serializer.data.get('name')}\n"
+            f"Email address: {serializer.data['email']}\n"
+            f"Organization: {serializer.data.get('organization')}\n"
+            f"Interested in: {serializer.data.get('service')}\n"
+            f"Message: {serializer.data.get('message')}\n"
+        ),
+        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        to=[settings.EMAIL_SUPPORT],
         reply_to=[serializer.data["email"]],
     ).send()
 
@@ -82,10 +110,11 @@ def get_bulletins(request):
 @permission_classes([AllowAny])
 def get_site_stats(request):
     now_year = datetime.now().year
+    public_questions = Question.objects.filter_public()
     stats = {
-        "predictions": Forecast.objects.count(),
-        "questions": Question.objects.count(),
-        "resolved_questions": Question.objects.filter(
+        "predictions": Forecast.objects.filter(question__in=public_questions).count(),
+        "questions": public_questions.count(),
+        "resolved_questions": public_questions.filter(
             actual_resolve_time__isnull=False
         ).count(),
         "years_of_predictions": now_year - 2015 + 1,
@@ -114,3 +143,23 @@ def sidebar_api_view(request: Request):
     )
 
     return Response(SidebarItemSerializer(sidebar_items, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_whitelist_status_api_view(request: Request):
+    data = request.query_params
+    post_id = data.get("post_id")
+    project_id = data.get("project_id")
+
+    is_whitelisted, view_deanonymized_data = get_whitelist_status(
+        request.user, post_id, project_id
+    )
+
+    return Response(
+        {
+            "is_whitelisted": is_whitelisted,
+            "view_deanonymized_data": view_deanonymized_data,
+        },
+        status=status.HTTP_200_OK,
+    )

@@ -22,9 +22,7 @@
                 </mj-raw>
 
                 <mj-text>
-                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                        {{ notification.question.title }}
-                    </a>
+                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">{{ notification.question.title}}</a>
 
                     {% if IS_SCREENSHOT_SERVICE_ENABLED %}
                     <a href="{% post_url notification.post.post_id notification.post.post_title %}">
@@ -33,13 +31,42 @@
                     </a>
                     {% endif %}
 
-                    {% blocktrans with resolution=notification.resolution coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score %}
+                    {% blocktrans with resolution=notification.resolution coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score forecasts_count=notification.forecasts_count %}
                     Just resolved to <b>{{resolution}}</b>.
-                    You made {{notification.forecasts_count}} predictions,
+                    You made {{forecasts_count}} predictions,
                     covering {{coverage}}% of the question lifetime.
                     You received a Peer score of {{peer_score}} and a baseline score of {{baseline_score}}.
                     {% endblocktrans %}
                 </mj-text>
+
+                <!-- Linked questions for this notification -->
+                <mj-raw>
+                    {% if notification.linked_questions %}
+                </mj-raw>
+                <mj-text>
+                    {% blocktrans %}
+                    <h4>🔗 Remember to update these linked questions:</h4>
+                    {% endblocktrans %}
+                </mj-text>
+                <mj-raw>
+                    {% for question in notification.linked_questions %}
+                </mj-raw>
+                <mj-text>
+                    <div style="margin-bottom: 8px">
+                        <a href="{% post_url question.post_id question.post_title %}">
+                            {{ question.title }}
+                        </a>
+                        {% if IS_SCREENSHOT_SERVICE_ENABLED %}
+                        <a href="{% post_url question.post_id question.post_title %}">
+                            <img class="question_graph_img" src='{% build_question_graph_image_url question.post_id %}'/>
+                        </a>
+                        {% endif %}
+                    </div>
+                </mj-text>
+                <mj-raw>
+                    {% endfor %}
+                    {% endif %}
+                </mj-raw>
 
                 <mj-raw>
                     {% endfor %}

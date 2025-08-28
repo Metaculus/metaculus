@@ -44,12 +44,16 @@ def await_queue(broker, worker):
 
 @pytest.fixture
 def user1() -> User:
-    return User.objects.create(email="user@metaculus.com", username="user1")
+    user, _ = User.objects.get_or_create(email="user@metaculus.com", username="user1")
+    return user
 
 
 @pytest.fixture
 def user2() -> User:
-    return User.objects.create(email="user-second@metaculus.com", username="user2")
+    user, _ = User.objects.get_or_create(
+        email="user-second@metaculus.com", username="user2"
+    )
+    return user
 
 
 @pytest.fixture
@@ -75,7 +79,7 @@ def create_client_for_user() -> Callable[[User | None], APIClient]:
 
 @pytest.fixture()
 def anon_client(
-    create_client_for_user: Callable[[User | None], APIClient]
+    create_client_for_user: Callable[[User | None], APIClient],
 ) -> APIClient:
     return create_client_for_user(None)
 
@@ -92,3 +96,10 @@ def user2_client(
     create_client_for_user: Callable[[User | None], APIClient], user2: User
 ) -> APIClient:
     return create_client_for_user(user2)
+
+
+@pytest.fixture
+def user_admin_client(
+    create_client_for_user: Callable[[User | None], APIClient], user_admin: User
+) -> APIClient:
+    return create_client_for_user(user_admin)

@@ -2,39 +2,42 @@ from django.http import HttpResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.serializers import serialize_posts_many_forecast_flow
 from posts.models import Post
+from posts.serializers import serialize_posts_many_forecast_flow
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
+    ProjectSerializer,
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
-    TagSerializer,
     ProjectUserSerializer,
     TournamentShortSerializer,
     NewsCategorySerialize,
-    serialize_project_index_weights,
+    LeaderboardTagSerializer,
+    serialize_index_data,
 )
+from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,
-    subscribe_project,
-    unsubscribe_project,
     get_site_main_project,
     get_project_timeline_data,
 )
+from projects.services.subscriptions import subscribe_project, unsubscribe_project
+from questions.models import Question
+from scoring.constants import LeaderboardScoreTypes
+from scoring.models import Leaderboard
 from users.services.common import get_users_by_usernames
-from utils.cache import cache_get_or_set
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
-from utils.views import validate_data_request
 from utils.tasks import email_data_task
+from utils.views import validate_data_request
 
 
 @api_view(["GET"])
@@ -94,33 +97,10 @@ def categories_list_api_view(request: Request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def tags_list_api_view(request: Request):
-    search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
-        request.query_params.get("search")
-    )
+def leaderboard_tags_list_api_view(request: Request):
+    qs = get_projects_qs().filter_leaderboard_tags()
 
-    def f():
-        qs = get_projects_qs().filter_tags().annotate_posts_count()
-
-        if search_query:
-            qs = qs.filter(name__icontains=search_query)
-        else:
-            qs = qs.order_by("-posts_count")
-
-        qs = qs[0:1000]
-
-        return [
-            {**TagSerializer(obj).data, "posts_count": obj.posts_count}
-            for obj in qs.all()
-        ]
-
-    data = (
-        f()
-        if search_query
-        else cache_get_or_set("tags_list_api_view", f, timeout=3600 * 6)
-    )
-
-    return Response(data)
+    return Response(LeaderboardTagSerializer(qs, many=True).data)
 
 
 @api_view(["GET"])
@@ -139,28 +119,39 @@ def tournaments_list_api_view(request: Request):
     show_on_homepage = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("show_on_homepage")
     )
+    show_on_services_page = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("show_on_services_page")
+    )
 
     qs = (
         get_projects_qs(
             user=request.user,
             permission=permission,
             show_on_homepage=show_on_homepage,
+            show_on_services_page=show_on_services_page,
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
-        .annotate_questions_count()
-        .order_by("-questions_count")
-        .defer("description")
         .prefetch_related("primary_leaderboard")
     )
 
-    data = []
+    # Get all projects without the expensive annotation
+    projects: list[Project] = list(qs.all())
 
-    for obj in qs.all():
+    # Get questions count using cached bulk operation
+    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
+
+    data = []
+    for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["questions_count"] = obj.questions_count
+        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
+        serialized_tournament["forecasts_count"] = obj.forecasts_count
+        serialized_tournament["forecasters_count"] = obj.forecasters_count
 
         data.append(serialized_tournament)
+
+    # Sort by questions_count descending
+    data.sort(key=lambda x: x["questions_count"], reverse=True)
 
     return Response(data)
 
@@ -168,22 +159,23 @@ def tournaments_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
-    qs = (
-        get_projects_qs(user=request.user)
-        .filter_tournament()
-        .annotate_questions_count()
-    )
+    qs = get_projects_qs(user=request.user).filter_tournament()
+    obj: Project = get_by_pk_or_slug(qs, slug)
 
-    obj = get_by_pk_or_slug(qs, slug)
+    # Get questions count using cached operation
+    questions_count_map = get_projects_questions_count_cached([obj.id])
 
     data = TournamentSerializer(obj).data
-    data["questions_count"] = getattr(obj, "questions_count", None)
+    data["questions_count"] = questions_count_map.get(obj.id) or 0
     data["timeline"] = get_project_timeline_data(obj)
+    data["forecasts_count"] = obj.forecasts_count
+    data["forecasters_count"] = obj.forecasters_count
+    data["followers_count"] = obj.followers_count
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
 
-    data["index_weights"] = serialize_project_index_weights(obj)
+    data["index_data"] = serialize_index_data(obj)
 
     return Response(data)
 
@@ -204,6 +196,67 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
     )
 
     return Response(serialize_posts_many_forecast_flow(posts, user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_create_api_view(request: Request):
+    serializer = ProjectSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    project: Project = serializer.save()
+    if not project.primary_leaderboard:
+        leaderboard = Leaderboard.objects.create(
+            project=project,
+            score_type=request.data.get(
+                "leaderboard_score_type", LeaderboardScoreTypes.PEER_TOURNAMENT
+            ),
+        )
+        project.primary_leaderboard = leaderboard
+        project.save()
+    elif project.primary_leaderboard:
+        leaderboard = project.primary_leaderboard
+        leaderboard.score_type = request.data.get(
+            "leaderboard_score_type", LeaderboardScoreTypes.PEER_TOURNAMENT
+        )
+        leaderboard.save()
+
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def project_delete_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj: Project = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Post.objects.filter(default_project=obj).delete()
+    obj.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["PATCH"])
+def project_update_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_edit_project(permission, raise_exception=True)
+
+    serializer = ProjectSerializer(
+        obj,
+        data=request.data,
+        partial=True,
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    return Response(serializer.data)
 
 
 @api_view(["GET"])

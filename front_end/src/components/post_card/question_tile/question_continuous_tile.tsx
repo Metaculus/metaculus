@@ -7,9 +7,14 @@ import ContinuousAreaChart, {
 } from "@/components/charts/continuous_area_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+} from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
+import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionStatus } from "@/types/post";
@@ -19,6 +24,7 @@ import {
   QuestionWithNumericForecasts,
   UserForecast,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
@@ -44,6 +50,7 @@ const QuestionContinuousTile: FC<Props> = ({
   const { onReaffirm } = useCardReaffirmContext();
 
   const { hideCP } = useHideCP();
+  const { user } = useAuth();
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
@@ -68,9 +75,14 @@ const QuestionContinuousTile: FC<Props> = ({
             BINARY_FORECAST_PRECISION
           );
 
+          const forecastExpiration = buildDefaultForecastExpiration(
+            question,
+            user?.prediction_expiration_percent ?? undefined
+          );
           onReaffirm([
             {
               questionId: question.id,
+              forecastEndTime: forecastExpirationToDate(forecastExpiration),
               forecastData: {
                 continuousCdf: null,
                 probabilityYes: forecastValue,
@@ -81,8 +93,9 @@ const QuestionContinuousTile: FC<Props> = ({
           break;
         }
         case QuestionType.Numeric:
+        case QuestionType.Discrete:
         case QuestionType.Date: {
-          const activeForecast = isNil(userForecast.end_time)
+          const activeForecast = isForecastActive(userForecast)
             ? userForecast
             : undefined;
 
@@ -128,7 +141,9 @@ const QuestionContinuousTile: FC<Props> = ({
         {question.type === QuestionType.Binary ? (
           <NumericTimeline
             nonInteractive={true}
-            aggregation={question.aggregations.recency_weighted}
+            aggregation={
+              question.aggregations[question.default_aggregation_method]
+            }
             myForecasts={question.my_forecasts}
             height={HEIGHT}
             questionType={question.type}
@@ -148,13 +163,10 @@ const QuestionContinuousTile: FC<Props> = ({
           />
         ) : (
           <ContinuousAreaChart
-            scaling={question.scaling}
             data={continuousAreaChartData}
             height={HEIGHT}
-            questionType={question.type}
-            resolution={question.resolution}
+            question={question}
             hideCP={hideCP}
-            unit={question.unit}
           />
         )}
 

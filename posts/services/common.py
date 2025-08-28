@@ -2,10 +2,12 @@ import logging
 from collections.abc import Iterable
 from datetime import date, datetime
 
+from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.utils import timezone
+from django.utils.translation import activate
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
@@ -13,6 +15,7 @@ from comments.services.feed import get_comments_feed
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import get_projects_staff_users, get_site_main_project
 from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
@@ -25,9 +28,7 @@ from questions.services import (
     update_notebook,
     update_question,
 )
-from questions.types import AggregationMethod
 from scoring.models import (
-    GLOBAL_LEADERBOARD_STRING,
     global_leaderboard_dates,
     name_and_slug_for_global_leaderboard_dates,
 )
@@ -63,52 +64,46 @@ def update_global_leaderboard_tags(post: Post):
     # set or update the tags for this post with respect to the global
     # leaderboard(s) this is a part of
 
-    projects: QuerySet[Project] = post.projects.all()
-
     # Skip if post is not eligible for global leaderboards
-    if not post.default_project.visibility == Project.Visibility.NORMAL and not next(
-        (p for p in projects if p.visibility == Project.Visibility.NORMAL), None
+    if not any(
+        p
+        for p in post.get_related_projects()
+        if p.visibility == Project.Visibility.NORMAL
     ):
         return
 
     # Get all global leaderboard dates and create/get corresponding tags
-    to_set_tags = []
+    desired_tags: list[Project] = []
     gl_dates = global_leaderboard_dates()
+
     for question in post.get_questions():
         dates = question.get_global_leaderboard_dates(gl_dates=gl_dates)
         if dates:
             tag_name, tag_slug = name_and_slug_for_global_leaderboard_dates(dates)
             try:
                 tag, _ = Project.objects.get_or_create(
-                    type=Project.ProjectTypes.TAG,
+                    type=Project.ProjectTypes.LEADERBOARD_TAG,
                     slug=tag_slug,
                     defaults={"name": tag_name, "order": 1},
                 )
             except IntegrityError:
-                # Unsure why this is happening, so for debugging purposes
-                # log error and continue - don't block the triggering event
-                # (e.g. question resolution)
-                logger.exception(
-                    f"Error creating/getting global leaderboard tag for post {post.id}."
-                    f" Context: tag_name: {tag_name}, tag_slug: {tag_slug}, "
-                    f"question: {question.id}, dates: {dates}"
+                # We might have a race condition when two concurrent events
+                # try to create the same tag simultaneously.
+                # In this case, an IntegrityError could be thrown by the database
+                # due to the unique slug constraint. This is absolutely okay,
+                # we just need to take the actual record from the db
+                tag = Project.objects.get(
+                    type=Project.ProjectTypes.LEADERBOARD_TAG, slug=tag_slug
                 )
-                tag = Project.objects.get(type=Project.ProjectTypes.TAG, slug=tag_slug)
-            to_set_tags.append(tag)
 
-    # Update post's global leaderboard tags
-    current_gl_tags = [
-        p
-        for p in projects
-        if p.type == Project.ProjectTypes.TAG
-        and p.name.endswith(GLOBAL_LEADERBOARD_STRING)
-    ]
-    for tag in current_gl_tags:
-        if tag not in to_set_tags:
-            post.projects.remove(tag)
-    for tag in to_set_tags:
-        if tag not in current_gl_tags:
-            post.projects.add(tag)
+            desired_tags.append(tag)
+
+    # Reconcile current vs desired tags in bulk
+    non_leaderboard_tags = post.projects.exclude(
+        type=Project.ProjectTypes.LEADERBOARD_TAG
+    )
+
+    post.projects.set([*non_leaderboard_tags, *desired_tags])
 
 
 def create_post(
@@ -124,6 +119,8 @@ def create_post(
     short_title: str = None,
     published_at: datetime = None,
 ) -> Post:
+    # We always want to create post & questions content in the original mode
+    activate(settings.ORIGINAL_LANGUAGE_CODE)
     site_main = get_site_main_project()
 
     categories = list(categories or [])
@@ -171,6 +168,9 @@ def create_post(
 
     # Run async tasks
     run_post_indexing.send(obj.id)
+
+    # Invalidate projects cache
+    invalidate_projects_questions_count_cache(obj.get_related_projects())
 
     return obj
 
@@ -236,6 +236,10 @@ def update_post(
     notebook: dict = None,
     **kwargs,
 ):
+    # We need to edit post & questions content in the original mode
+    # To override _original fields instead of _<language> ones
+    activate(settings.ORIGINAL_LANGUAGE_CODE)
+
     # Content for embedding generation before update
     original_embedding_content = generate_post_content_for_embedding_vectorization(post)
 
@@ -317,8 +321,8 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         if question.cp_reveal_time and question.cp_reveal_time > now:
             continue
         cp = get_aggregations_at_time(
-            question, now, [AggregationMethod.RECENCY_WEIGHTED]
-        ).get(AggregationMethod.RECENCY_WEIGHTED, None)
+            question, now, [question.default_aggregation_method]
+        ).get(question.default_aggregation_method, None)
         if cp is None:
             continue
 
@@ -409,11 +413,20 @@ def approve_post(
     )
 
     # Automatically update secondary and default project forecasting end date
-    for project in [post.default_project] + list(post.projects.all()):
-        if project.type == Project.ProjectTypes.TOURNAMENT:
+    for project in post.get_related_projects():
+        if project.type in [
+            Project.ProjectTypes.TOURNAMENT,
+            Project.ProjectTypes.QUESTION_SERIES,
+        ]:
             move_project_forecasting_end_date(project, post)
 
     post.update_pseudo_materialized_fields()
+
+    # Invalidate project questions count cache since approval affects visibility
+    invalidate_projects_questions_count_cache(post.get_related_projects())
+
+    # Translate approved post
+    trigger_update_post_translations(post, with_comments=False, force=False)
 
 
 @transaction.atomic

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { FC, Fragment, Suspense } from "react";
 
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 import cn from "@/utils/core/cn";
@@ -25,6 +26,7 @@ export default async function GlobalLeaderboards(props: {
   searchParams: Promise<SearchParams>;
 }) {
   const searchParams = await props.searchParams;
+  const leaderboardTags = await ServerProjectsApi.getLeaderboardTags();
 
   const t = await getTranslations();
   const filters = extractLeaderboardFiltersFromParams(searchParams, t);
@@ -46,7 +48,10 @@ export default async function GlobalLeaderboards(props: {
 
     return (
       <main className="mb-12 flex w-full flex-col items-center gap-3 p-2 sm:mb-24">
-        <LeaderboardHeader filters={filters} />
+        <LeaderboardHeader
+          filters={filters}
+          leaderboardTags={leaderboardTags}
+        />
         <Suspense key={JSON.stringify(filters)} fallback={<Skeleton />}>
           <GlobalLeaderboard
             leaderboardType={leaderboardType}
@@ -65,7 +70,10 @@ export default async function GlobalLeaderboards(props: {
   return (
     <LeaderboardMobileTabBarProvider>
       <main className="m-auto mb-12 flex w-full max-w-[81.5rem] flex-col items-center gap-3 p-3 sm:mb-24">
-        <LeaderboardHeader filters={filters} />
+        <LeaderboardHeader
+          filters={filters}
+          leaderboardTags={leaderboardTags}
+        />
 
         <section
           className={cn(

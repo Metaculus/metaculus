@@ -3,6 +3,7 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -30,6 +31,8 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
+import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
@@ -81,7 +84,7 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
       return false;
     }
     const latest = postData.question.my_forecasts?.latest;
-    return !!latest && isNil(latest.end_time);
+    return !!latest && isForecastActive(latest);
   }
 
   return false;
@@ -109,6 +112,11 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
+
+  const { isDone } = getQuestionStatus(postData ?? null);
+
+  const shouldSuggestKeyFactors =
+    user?.should_suggest_keyfactors && !postData?.notebook && !isDone;
 
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);
@@ -339,7 +347,12 @@ const CommentFeed: FC<Props> = ({
       PostStatus.PENDING_RESOLUTION,
     ].includes(postData?.status ?? PostStatus.CLOSED);
 
-    if (postId && isSimpleQuestion && user?.has_key_factors && isPostOpen) {
+    if (
+      postId &&
+      isSimpleQuestion &&
+      user?.should_suggest_keyfactors &&
+      isPostOpen
+    ) {
       setUserKeyFactorsComment(newComment);
     }
   };
@@ -452,7 +465,7 @@ const CommentFeed: FC<Props> = ({
               // This is the newly added comment, so we want to suggest key factors
               comment.id === userKeyFactorsComment?.id
             }
-            shouldSuggestKeyFactors={user?.has_key_factors}
+            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           />
         ))}
         {comments.length === 0 && !isLoading && (
@@ -523,4 +536,6 @@ function extractUniqueAuthors({
   }));
 }
 
-export default CommentFeed;
+export default dynamic(() => Promise.resolve(CommentFeed), {
+  ssr: false,
+});

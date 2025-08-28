@@ -2,22 +2,13 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Iterable
 
-from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.timezone import make_aware
 
-from notifications.constants import MailingTags
-from notifications.services import (
-    NotificationPostStatusChange,
-    NotificationPostParams,
-    NotificationProjectParams,
-    NotificationQuestionParams,
-)
 from posts.models import Post
-from projects.models import Project, ProjectUserPermission, ProjectSubscription
+from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
-from questions.models import Question
 from users.models import User
 from utils.dtypes import generate_map_from_list
 
@@ -26,6 +17,7 @@ def get_projects_qs(
     user: User = None,
     permission: ObjectPermission = None,
     show_on_homepage: bool = None,
+    show_on_services_page: bool = None,
 ):
     """
     Returns available projects for the user
@@ -36,6 +28,9 @@ def get_projects_qs(
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)
 
+    if show_on_services_page:
+        qs = qs.filter(show_on_services_page=True)
+
     return qs
 
 
@@ -43,24 +38,6 @@ def get_site_main_project():
     obj, _ = Project.objects.get_or_create(
         type=Project.ProjectTypes.SITE_MAIN,
         defaults={"visibility": Project.Visibility.NORMAL},
-    )
-
-    return obj
-
-
-def create_private_user_project(user: User):
-    """
-    All private user projects are created under the "Personal List" project type
-    """
-
-    if not user:
-        raise ValueError("User is required")
-
-    obj, _ = Project.objects.create(
-        type=Project.ProjectTypes.PERSONAL_PROJECT,
-        created_by=user,
-        name=f"{user.username}'s Personal List",
-        default_permission=None,
     )
 
     return obj
@@ -96,62 +73,6 @@ def invite_user_to_project(
     except IntegrityError:
         # User was already invited
         return
-
-
-@transaction.atomic
-def subscribe_project(project: Project, user: User):
-    obj = ProjectSubscription(
-        project=project,
-        user=user,
-    )
-
-    try:
-        obj.save()
-    except IntegrityError:
-        # Skip if use has been already subscribed
-        return
-
-    project.update_followers_count()
-    project.save()
-
-
-@transaction.atomic
-def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
-    ProjectSubscription.objects.filter(project=project, user=user).delete()
-
-    project.update_followers_count()
-    project.save()
-
-
-def notify_project_subscriptions_question_open(question: Question):
-    post = question.get_post()
-
-    subscriptions = (
-        ProjectSubscription.objects.filter(
-            Q(project__posts=post) | Q(project__default_posts=post)
-        )
-        .filter(
-            # Ensure notify users that have access to the question
-            user__in=post.default_project.get_users_for_permission(
-                ObjectPermission.VIEWER
-            )
-        )
-        .prefetch_related("project", "user")
-        .distinct("user")
-    )
-
-    # Ensure post is available for users
-    for subscription in subscriptions:
-        NotificationPostStatusChange.schedule(
-            subscription.user,
-            NotificationPostStatusChange.ParamsType(
-                post=NotificationPostParams.from_post(post),
-                event=Post.PostStatusChange.OPEN,
-                project=NotificationProjectParams.from_project(subscription.project),
-                question=NotificationQuestionParams.from_question(question),
-            ),
-            mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
-        )
 
 
 def get_projects_staff_users(
@@ -288,3 +209,16 @@ def get_project_timeline_data(project: Project):
         "all_questions_resolved": all_questions_resolved,
         "all_questions_closed": all_questions_closed,
     }
+
+
+def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
+    """
+    Returns a dict mapping each project_id to its questions_count
+    (0 if it doesn’t exist or has no questions).
+    """
+    qs = (
+        Project.objects.filter(id__in=project_ids)
+        .annotate_questions_count()
+        .values_list("id", "questions_count")
+    )
+    return {pid: count or 0 for pid, count in qs}
