@@ -222,6 +222,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     );
   }, [chartWidth, data, question, horizontalPadding]);
 
+  const bottomPadding = useMemo(() => {
+    // When labels are hidden, use minimal padding (just 2-3px for visual spacing)
+    // When labels are shown, use full padding to accommodate text
+    return hideCP || hideLabels ? 3 : BOTTOM_PADDING;
+  }, [hideCP, hideLabels]);
+
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
       {!!chartWidth && (
@@ -232,7 +238,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
           padding={{
             top: 0,
             left: horizontalPadding,
-            bottom: BOTTOM_PADDING,
+            bottom: bottomPadding,
             right: horizontalPadding,
           }}
           domain={{ x: xDomain, y: yDomain }}

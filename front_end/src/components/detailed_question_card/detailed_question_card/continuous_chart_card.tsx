@@ -21,7 +21,10 @@ import {
   getPredictionDisplayValue,
   getUserPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
-import { getPostDrivenTime } from "@/utils/questions/helpers";
+import {
+  getPostDrivenTime,
+  isContinuousQuestion,
+} from "@/utils/questions/helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -186,11 +189,13 @@ const DetailedContinuousChartCard: FC<Props> = ({
         <>
           {/* Large screens: side-by-side layout */}
           <div className="hidden items-stretch gap-4 md:flex">
-            <QuestionHeaderCPStatus
-              question={question}
-              size="lg"
-              hideLabel={true}
-            />
+            {isContinuousQuestion(question) && (
+              <QuestionHeaderCPStatus
+                question={question}
+                size="lg"
+                hideLabel={true}
+              />
+            )}
             <div className="relative flex-1">
               <NumericTimeline
                 aggregation={

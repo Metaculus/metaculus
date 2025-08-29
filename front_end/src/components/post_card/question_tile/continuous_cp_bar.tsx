@@ -53,7 +53,7 @@ const ContinuousCPBar: FC<Props> = ({
   return (
     <div
       className={cn(
-        "relative flex flex-col justify-center gap-0 tabular-nums text-olive-900 dark:text-olive-900-dark md:gap-0.5",
+        "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums text-olive-900 dark:text-olive-900-dark md:gap-0.5 md:pt-1",
         {
           "text-gray-800 dark:text-gray-800-dark":
             question.status === QuestionStatus.CLOSED,
