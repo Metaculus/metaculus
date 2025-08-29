@@ -37,30 +37,38 @@ const SolidBox: FC<{
   disabled?: boolean;
   color?: string;
   inputClassName?: string;
-}> = ({ checked, disabled, color, inputClassName }) => (
-  <span
-    className={cn(
-      "mr-[4px] inline-flex h-[17.75px] w-[22.5px] items-center justify-center"
-    )}
-    aria-hidden
-  >
+}> = ({ checked, disabled, color, inputClassName }) => {
+  const style = checked
+    ? { backgroundColor: color, borderColor: "transparent" }
+    : { backgroundColor: "transparent", borderColor: color };
+
+  return (
     <span
       className={cn(
-        "inline-flex h-[15.75px] w-[15.75px] items-center justify-center rounded-[2.25px] border-[1px]",
-        checked ? "border-transparent" : undefined,
-        inputClassName,
-        { "opacity-20": disabled }
+        "mr-[4px] inline-flex h-[17.75px] w-[22.5px] items-center justify-center"
       )}
-      style={
-        checked
-          ? { backgroundColor: color }
-          : { backgroundColor: "transparent", borderColor: color }
-      }
+      aria-hidden
     >
-      <FontAwesomeIcon icon={faCheckSolid} size="sm" color="#fff" fixedWidth />
+      <span
+        className={cn(
+          "inline-flex h-[15.75px] w-[15.75px] items-center justify-center rounded-[2.25px] border-[1px]",
+          inputClassName,
+          { "opacity-20": disabled }
+        )}
+        style={style}
+      >
+        {checked && (
+          <FontAwesomeIcon
+            icon={faCheckSolid}
+            size="sm"
+            color="#fff"
+            fixedWidth
+          />
+        )}
+      </span>
     </span>
-  </span>
-);
+  );
+};
 
 const Checkbox: FC<Props> = ({
   checked,
