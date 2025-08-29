@@ -5,6 +5,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { Resolution } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
 const ChartValueBox: FC<{
@@ -18,6 +19,7 @@ const ChartValueBox: FC<{
   getCursorValue?: (value: number) => string;
   resolution?: Resolution | null;
   isDistributionChip?: boolean;
+  questionType?: QuestionType;
 }> = (props) => {
   const { getThemeColor } = useAppTheme();
   const {
@@ -31,6 +33,7 @@ const ChartValueBox: FC<{
     getCursorValue,
     resolution,
     isDistributionChip,
+    questionType,
   } = props;
   const TEXT_PADDING = 4;
   const CHIP_OFFSET = !isNil(resolution) ? 8 : 0;
@@ -58,7 +61,7 @@ const ChartValueBox: FC<{
   return (
     <g>
       {/* "RESOLVED" label above the chip for resolution values */}
-      {hasResolution && (
+      {hasResolution && questionType !== QuestionType.Binary && (
         <text
           x={adjustedX}
           y={y - chipHeight - 1 - (isDistributionChip ? chipHeight : 0)}

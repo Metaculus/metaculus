@@ -45,7 +45,7 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { ForecastAvailability } from "@/types/question";
+import { ForecastAvailability, QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
   getAxisLeftPadding,
@@ -92,6 +92,7 @@ type Props = {
   resolution?: string | null;
   cursorTooltip?: ReactNode;
   isConsumerView?: boolean;
+  questionType?: QuestionType;
 };
 
 const BOTTOM_PADDING = 20;
@@ -121,6 +122,7 @@ const NumericChart: FC<Props> = ({
   resolution,
   cursorTooltip,
   isConsumerView,
+  questionType,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -567,6 +569,7 @@ const NumericChart: FC<Props> = ({
                           colorOverride={colorOverride ?? colorPalette.chip}
                           getCursorValue={getCursorValue}
                           resolution={resolution}
+                          questionType={questionType}
                         />
                       )}
                     </VictoryPortal>

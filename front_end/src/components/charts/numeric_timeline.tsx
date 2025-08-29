@@ -196,6 +196,7 @@ const NumericTimeline: FC<Props> = ({
       }
       cursorTooltip={cursorTooltip}
       isConsumerView={isConsumerView}
+      questionType={questionType}
     />
   );
 };

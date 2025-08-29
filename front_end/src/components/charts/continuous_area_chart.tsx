@@ -793,7 +793,7 @@ const ContinuousAreaChart: FC<Props> = ({
                       x: medianLine.x,
                       y: medianLine.y, // Use the actual height of the distribution at median
                       symbol: "circle",
-                      size: 3,
+                      size: 2,
                     },
                   ]}
                   style={{
