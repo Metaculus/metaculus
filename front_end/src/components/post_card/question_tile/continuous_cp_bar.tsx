@@ -12,9 +12,14 @@ import {
 type Props = {
   question: QuestionWithNumericForecasts;
   size?: "md" | "lg";
+  variant?: "feed" | "question";
 };
 
-const ContinuousCPBar: FC<Props> = ({ question, size = "md" }) => {
+const ContinuousCPBar: FC<Props> = ({
+  question,
+  size = "md",
+  variant = "feed",
+}) => {
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
 
@@ -48,15 +53,19 @@ const ContinuousCPBar: FC<Props> = ({ question, size = "md" }) => {
   return (
     <div
       className={cn(
-        "flex flex-col justify-center text-center text-olive-800 dark:text-olive-800-dark",
+        "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums text-olive-900 dark:text-olive-900-dark md:gap-0.5 md:pt-1",
         {
           "text-gray-800 dark:text-gray-800-dark":
             question.status === QuestionStatus.CLOSED,
+          // Feed variant: center on mobile, left on desktop
+          "text-center md:text-left": variant === "feed",
+          // Question variant: always center
+          "text-center": variant === "question",
         }
       )}
     >
       <div
-        className={cn("text-sm font-bold", {
+        className={cn("text-sm font-bold md:text-base", {
           "mb-1 text-base": size === "lg",
         })}
       >
@@ -64,7 +73,7 @@ const ContinuousCPBar: FC<Props> = ({ question, size = "md" }) => {
       </div>
       {!isNil(intervalLabel) && (
         <div
-          className={cn("text-xs font-normal", {
+          className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
             "text-sm": size === "lg",
           })}
         >

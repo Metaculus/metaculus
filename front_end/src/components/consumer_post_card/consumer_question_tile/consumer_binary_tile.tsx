@@ -46,14 +46,9 @@ const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
   }
 
   return (
-    <div className="flex max-w-[200px] flex-col items-center justify-center">
+    <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
       <BinaryCPBar question={question as QuestionWithNumericForecasts} />
-      <QuestionCPMovement
-        question={question}
-        unit={"%"}
-        boldValueUnit={true}
-        className="mt-3"
-      />
+      <QuestionCPMovement question={question} unit={"%"} boldValueUnit={true} />
       {!isNil(forecastAvailability?.cpRevealsOn) && (
         <UpcomingCP
           cpRevealsOn={forecastAvailability.cpRevealsOn}

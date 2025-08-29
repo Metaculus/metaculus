@@ -28,48 +28,47 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
 
   return (
     <div
-      className={cn("flex w-max justify-center", {
-        "max-w-[200px] gap-4": size === "lg",
-        "max-w-[130px]": size === "md",
-      })}
+      className={cn(
+        "flex min-w-[110px] flex-col rounded-[10px] border border-purple-500 p-2 dark:border-purple-500 md:px-3 md:py-2.5",
+        {
+          "border-gray-300 dark:border-gray-300-dark": !successfullyResolved,
+          "w-[200px]": size === "lg",
+          "max-w-[130px]": size === "md",
+          "gap-1 px-5 py-3": size === "lg",
+        }
+      )}
     >
-      <div
-        className={cn(
-          "flex w-fit flex-col items-center rounded-[10px] border border-purple-500 px-4 py-2.5 dark:border-purple-500",
-          {
-            "border-gray-300 dark:border-gray-300-dark": !successfullyResolved,
-            "gap-1 px-5 py-3": size === "lg",
-          }
-        )}
-      >
-        {successfullyResolved && (
-          <span
-            className={cn("font-normal text-gray-700 dark:text-gray-700-dark", {
-              "text-[10px] leading-[14px]": size === "md",
-              "text-sm leading-4": size === "lg",
-            })}
-          >
-            {t("resolved")}
-          </span>
-        )}
+      {successfullyResolved && (
         <span
           className={cn(
-            "text-center text-sm font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
+            "text-center font-normal text-gray-700 dark:text-gray-700-dark",
             {
-              "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
-              "text-base": size === "lg",
+              "text-[10px] leading-[14px]": size === "md",
+              "text-sm leading-4": size === "lg",
             }
           )}
         >
-          {formatedResolution}
+          {t("resolved")}
         </span>
-        <MinifiedContinuousAreaChart
-          question={question}
-          data={continuousAreaChartData}
-          height={50}
-          forceTickCount={2}
-        />
-      </div>
+      )}
+      <span
+        className={cn(
+          "text-center text-sm font-bold leading-6 text-purple-800 dark:text-purple-800-dark",
+          {
+            "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
+            "text-base": size === "lg",
+          }
+        )}
+      >
+        {formatedResolution}
+      </span>
+      <MinifiedContinuousAreaChart
+        question={question}
+        data={continuousAreaChartData}
+        height={size === "lg" ? 120 : 50}
+        forceTickCount={2}
+        hideLabels={size === "md"}
+      />
     </div>
   );
 };

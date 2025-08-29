@@ -86,12 +86,12 @@ const PeriodMovement: FC<Props> = ({
             direction === MovementDirection.DOWN,
           "text-olive-700 dark:text-olive-700-dark":
             direction == MovementDirection.UP,
-          "text-gray-500 dark:text-gray-500-dark": ![
+          "text-gray-700 dark:text-gray-700-dark": ![
             MovementDirection.UP,
             MovementDirection.DOWN,
           ].includes(direction),
-          "text-[10px]": size === "xs",
-          "text-xs": size === "sm",
+          "text-xs": size === "xs",
+          "text-sm": size === "sm",
         })}
       >
         {!!chip ? (

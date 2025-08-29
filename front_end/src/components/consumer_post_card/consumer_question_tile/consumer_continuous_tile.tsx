@@ -11,11 +11,13 @@ import { formatResolution } from "@/utils/formatters/resolution";
 type Props = {
   question: QuestionWithForecasts;
   forecastAvailability: ForecastAvailability;
+  variant?: "feed" | "question";
 };
 
 const ConsumerContinuousTile: FC<Props> = ({
   question,
   forecastAvailability,
+  variant = "feed",
 }) => {
   const locale = useLocale();
 
@@ -56,6 +58,7 @@ const ConsumerContinuousTile: FC<Props> = ({
         communityPredictionDisplayValue={communityPredictionDisplayValue}
         isClosed={question.status === QuestionStatus.CLOSED}
         forecastAvailability={forecastAvailability}
+        variant={variant}
       />
     </div>
   );
