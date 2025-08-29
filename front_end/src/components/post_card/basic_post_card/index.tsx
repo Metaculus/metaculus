@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
+import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
@@ -25,6 +26,7 @@ type Props = {
   borderVariant?: BorderVariant;
   borderColor?: BorderColor;
   forCommunityFeed?: boolean;
+  indexWeight?: number;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -34,6 +36,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   borderColor = "blue",
   children,
   forCommunityFeed,
+  indexWeight,
 }) => {
   const { title } = post;
   const resolutionData = extractPostResolution(post);
@@ -67,9 +70,16 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
       >
         <Link href={getPostLink(post)} className="block p-4 no-underline">
           {!hideTitle && (
-            <h4 className="relative mb-3 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
-              {title}
-            </h4>
+            <div className="mb-[18px] flex flex-col gap-[10px] sm:mb-0 sm:flex-row sm:gap-3">
+              <h4 className="relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3">
+                {title}
+              </h4>
+              {typeof indexWeight === "number" && (
+                <div className="sm:ml-auto">
+                  <WeightBadge value={indexWeight} />
+                </div>
+              )}
+            </div>
           )}
           {children}
         </Link>

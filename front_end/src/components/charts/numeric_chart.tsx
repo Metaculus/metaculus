@@ -14,6 +14,7 @@ import {
   DomainTuple,
   LineSegment,
   VictoryArea,
+  VictoryAxis,
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
@@ -24,7 +25,6 @@ import {
   VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
-import { VictoryAxis } from "victory";
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
@@ -79,6 +79,7 @@ type Props = {
   nonInteractive?: boolean;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
+  leftLegend?: React.ReactNode;
 };
 
 const BOTTOM_PADDING = 20;
@@ -100,6 +101,7 @@ const NumericChart: FC<Props> = ({
   onCursorChange,
   getCursorValue,
   colorOverride,
+  leftLegend,
   nonInteractive = false,
   isEmbedded = false,
   simplifiedCursor = false,
@@ -306,6 +308,7 @@ const NumericChart: FC<Props> = ({
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
         chartTitle={chartTitle}
+        leftLegend={leftLegend}
       >
         {shouldDisplayChart && (
           <VictoryChart

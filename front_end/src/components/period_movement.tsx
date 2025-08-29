@@ -57,7 +57,7 @@ const PeriodMovement: FC<Props> = ({
   return (
     <div className={cn("flex gap-1", className)}>
       <span
-        className={cn("font-medium leading-4", {
+        className={cn("text-nowrap font-medium leading-4", {
           "text-salmon-600 dark:text-salmon-600-dark":
             direction === MovementDirection.DOWN,
           "text-olive-700 dark:text-olive-700-dark":

@@ -7,6 +7,8 @@ from projects.services.indexes import (
     calculate_questions_index_timeline,
     IndexPoint,
     _value_from_resolved_question,
+    _generate_questions_agg_map,
+    calculate_questions_index_bounds,
 )
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, AggregateForecast
@@ -21,6 +23,7 @@ def add_agg(
     start: datetime.datetime,
     end: datetime.datetime | None = None,
     forecast_values: list[float] | None = None,
+    **kwargs,
 ):
     AggregateForecast(
         question=question,
@@ -29,6 +32,7 @@ def add_agg(
         method=AggregationMethod.RECENCY_WEIGHTED,
         centers=forecast_values,
         forecast_values=forecast_values,
+        **kwargs,
     ).save()
 
 
@@ -101,7 +105,8 @@ def test_calculate_questions_index_timeline():
     )
 
     data = calculate_questions_index_timeline(
-        {question: 1, question_annulled_overlap: 1}
+        {question: 1, question_annulled_overlap: 1},
+        _generate_questions_agg_map([question, question_annulled_overlap]),
     )
 
     # Aggregations from question #1 only!
@@ -164,7 +169,8 @@ def test_calculate_questions_index_timeline__negative_values():
         {
             question_1: -2,
             question_2: 0.5,
-        }
+        },
+        _generate_questions_agg_map([question_1, question_2]),
     )
 
     # Aggregations from question #1 only!
@@ -201,7 +207,9 @@ def test_calculate_questions_index_timeline__unsuccessfully_resolved():
         forecast_values=[0.3, 0.7],
     )
 
-    data = calculate_questions_index_timeline({question: 1})
+    data = calculate_questions_index_timeline(
+        {question: 1}, _generate_questions_agg_map([question])
+    )
 
     assert find_point(data, datetime_aware(2025, 1, 4)) == pytest.approx(50)
     assert find_point(data, datetime_aware(2025, 1, 5)) == 0
@@ -228,7 +236,9 @@ def test_calculate_questions_index_timeline__ongoing():
         forecast_values=[0.55, 0.45],
     )
 
-    data = calculate_questions_index_timeline({question: 1})
+    data = calculate_questions_index_timeline(
+        {question: 1}, _generate_questions_agg_map([question])
+    )
 
     assert find_point(data, datetime_aware(2025, 1, 4)) == pytest.approx(50)
     assert find_point(data, datetime_aware(2025, 1, 5)) == pytest.approx(-10)
@@ -267,3 +277,82 @@ def test_value_from_resolved_question__numeric(resolution, index):
     )
 
     assert _value_from_resolved_question(question) == index
+
+
+@freeze_time("2025-01-10")
+def test_calculate_questions_index_bounds():
+    question_binary = create_question(
+        question_type=Question.QuestionType.BINARY,
+        open_time=datetime_aware(2025, 1, 1),
+        scheduled_close_time=datetime_aware(2025, 2, 10),
+    )
+    question_numeric = create_question(
+        question_type=Question.QuestionType.NUMERIC,
+        range_min=7_000,
+        range_max=18_000,
+        open_time=datetime_aware(2025, 1, 1),
+        scheduled_close_time=datetime_aware(2025, 2, 10),
+    )
+    question_resolved = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 1),
+        actual_close_time=datetime_aware(2025, 1, 1),
+        open_time=datetime_aware(2025, 1, 1),
+        resolution="yes",
+    )
+    # Unsuccessfully resolved -> will be excluded
+    question_annulled = create_question(
+        question_type=Question.QuestionType.BINARY,
+        scheduled_close_time=datetime_aware(2025, 1, 1),
+        actual_close_time=datetime_aware(2025, 1, 1),
+        open_time=datetime_aware(2025, 1, 1),
+        resolution="annulled",
+    )
+
+    # Inactive forecast
+    add_agg(
+        question_binary,
+        start=datetime_aware(2025, 1, 1),
+        end=datetime_aware(2025, 1, 4),
+        forecast_values=[0.75, 0.25],
+        interval_lower_bounds=[0.5, 0.15],
+        interval_upper_bounds=[0.95, 0.30],
+    )
+
+    #
+    # Active forecasts
+    #
+
+    # This will result as (0, 0.9)
+    add_agg(
+        question_binary,
+        start=datetime_aware(2025, 1, 4),
+        forecast_values=[0.25, 0.75],
+        interval_lower_bounds=[0.15, 0.5],
+        interval_upper_bounds=[0.30, 0.95],
+    )
+    # This will result as (-0.8, -0.1)
+    add_agg(
+        question_numeric,
+        start=datetime_aware(2025, 1, 4),
+        forecast_values=[],
+        interval_lower_bounds=[0.1],
+        interval_upper_bounds=[0.45],
+    )
+    # Resolved will result as +1
+
+    # Final lower bound will be > upper bound, so it should be sorted before returning
+    lower_bound, upper_bound = calculate_questions_index_bounds(
+        {
+            question_binary: 1.5,
+            question_numeric: -3.0,
+            question_resolved: 2.0,
+            question_annulled: 10.0,
+        },
+        _generate_questions_agg_map(
+            [question_binary, question_numeric, question_resolved, question_annulled]
+        ),
+    )
+
+    assert lower_bound == pytest.approx(56.153, rel=0.1)
+    assert upper_bound == pytest.approx(67.69, rel=0.1)

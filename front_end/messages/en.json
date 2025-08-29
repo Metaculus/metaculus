@@ -1475,5 +1475,8 @@
   "questionLinkCreated": "Question Link successfully created!",
   "questionLinkCreatedMultiple": "Question Links successfully created!",
   "changes": "changes.",
+  "currentValue": "Current Value",
+  "timeline": "Timeline",
+  "baseline": "Baseline",
   "returnToHomePage": "Return to Home page"
 }

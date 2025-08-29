@@ -175,7 +175,8 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
 
-    data["index_data"] = serialize_index_data(obj)
+    if obj.index_id:
+        data["index_data"] = serialize_index_data(obj.index)
 
     return Response(data)
 
