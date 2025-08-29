@@ -428,37 +428,26 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               ) : null
             )
           )}
-          {/* Resolution point - Enhanced with debugging */}
-          {(() => {
-            // Debug logging
-            console.log("MinifiedContinuousAreaChart Debug:", {
-              hasResolution: !isNil(question.resolution),
-              resolution: question.resolution,
-              resolutionPoint: resolutionPoint,
-              questionType: question.type,
-              scaling: question.scaling,
-            });
-
-            return resolutionPoint ? (
-              <VictoryScatter
-                data={[
-                  {
-                    x: resolutionPoint.y,
-                    y: yDomain[0], // Use bottom of domain
-                    symbol: "diamond",
-                    size: 3.5, // Much larger for visibility
-                  },
-                ]}
-                style={{
-                  data: {
-                    stroke: getThemeColor(METAC_COLORS.purple["800"]),
-                    fill: getThemeColor(METAC_COLORS.gray["0"]),
-                    strokeWidth: 2,
-                  },
-                }}
-              />
-            ) : null;
-          })()}
+          {/* Resolution point */}
+          {resolutionPoint && (
+            <VictoryScatter
+              data={[
+                {
+                  x: resolutionPoint.y,
+                  y: yDomain[0], // Use bottom of domain
+                  symbol: "diamond",
+                  size: 3.5, // Much larger for visibility
+                },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: getThemeColor(METAC_COLORS.gray["0"]),
+                  strokeWidth: 2,
+                },
+              }}
+            />
+          )}
         </VictoryChart>
       )}
     </div>

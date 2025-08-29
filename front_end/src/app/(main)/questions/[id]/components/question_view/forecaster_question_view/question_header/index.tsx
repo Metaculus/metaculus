@@ -8,8 +8,12 @@ import QuestionHeaderInfo from "@/app/(main)/questions/[id]/components/question_
 import ConditionalTile from "@/components/conditional_tile";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { isConditionalPost, isQuestionPost } from "@/utils/questions/helpers";
+import { QuestionWithForecasts } from "@/types/question";
+import {
+  isContinuousQuestion,
+  isConditionalPost,
+  isQuestionPost,
+} from "@/utils/questions/helpers";
 
 import QuestionHeaderCPStatus from "./question_header_cp_status";
 import QuestionTitle from "../../shared/question_title";
@@ -17,14 +21,6 @@ import QuestionTitle from "../../shared/question_title";
 const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
-
-  const isContinuousQuestion = (question: QuestionWithForecasts) => {
-    return [
-      QuestionType.Numeric,
-      QuestionType.Discrete,
-      QuestionType.Date,
-    ].includes(question.type);
-  };
 
   useEffect(() => {
     if (post.is_current_content_translated) {

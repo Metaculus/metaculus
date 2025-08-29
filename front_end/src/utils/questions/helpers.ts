@@ -182,3 +182,11 @@ export function checkGroupOfQuestionsPostType<T extends QuestionType>(
     post.group_of_questions.questions[0]?.type === type
   );
 }
+
+export function isContinuousQuestion(question: QuestionWithForecasts): boolean {
+  return [
+    QuestionType.Numeric,
+    QuestionType.Discrete,
+    QuestionType.Date,
+  ].includes(question.type);
+}

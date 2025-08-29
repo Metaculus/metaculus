@@ -8,7 +8,11 @@ import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ForecastAvailability, Question, QuestionType } from "@/types/question";
+import {
+  ForecastAvailability,
+  QuestionType,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -20,7 +24,7 @@ import {
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 type Props = {
-  question: Question;
+  question: QuestionWithNumericForecasts;
   hideCP?: boolean;
   nrForecasters?: number;
   forecastAvailability?: ForecastAvailability;
@@ -183,7 +187,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           {/* Large screens: side-by-side layout */}
           <div className="hidden items-stretch gap-4 md:flex">
             <QuestionHeaderCPStatus
-              question={question as any}
+              question={question}
               size="lg"
               hideLabel={true}
             />
