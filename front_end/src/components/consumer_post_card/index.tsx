@@ -11,6 +11,7 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
+  isNotebookPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
@@ -41,6 +42,7 @@ const ConsumerPostCard: FC<Props> = ({
         post={post}
         forCommunityFeed={forCommunityFeed}
         indexWeight={indexWeight}
+        isNotebook={isNotebookPost(post)}
       >
         <HideCPProvider post={post}>
           {isQuestionPost(post) && !isMultipleChoicePost(post) && (

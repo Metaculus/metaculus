@@ -22,6 +22,7 @@ type Props = {
   showUserForecast?: boolean;
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
+  variant?: "binary" | "continuous";
 };
 
 const MyPredictionChip: FC<Props> = ({
@@ -30,6 +31,7 @@ const MyPredictionChip: FC<Props> = ({
   showUserForecast,
   onReaffirm,
   canPredict = false,
+  variant = "continuous", // Default to continuous for backward compatibility
 }) => {
   const t = useTranslations();
   const latest = question.my_forecasts?.latest;
@@ -63,23 +65,38 @@ const MyPredictionChip: FC<Props> = ({
     return (
       <div
         className={cn(
-          "flex flex-row items-center justify-center gap-1.5 border-t-[0.5px] border-gray-300 pt-2.5 text-center text-xs text-orange-800 dark:border-gray-200-dark dark:text-orange-800-dark",
-          className,
+          "flex w-full flex-row items-center gap-1 text-xs text-orange-800 dark:text-orange-800-dark",
           {
             "flex-col": question.type === QuestionType.Date,
-          }
+            // Variant-based styling
+            "justify-center text-center md:items-start md:justify-start md:text-left":
+              variant === "continuous",
+            "justify-start text-left": variant === "binary",
+          },
+          className
         )}
       >
-        <div>
+        <div
+          className={cn("flex flex-col gap-0.5", {
+            "items-center md:items-start": variant === "continuous",
+          })}
+        >
           <span
             className={cn("capitalize", {
-              "font-bold": range,
+              "text-xs font-light tabular-nums": range,
             })}
           >
             {t("me")}: <span className="font-bold">{centerLabel}</span>
           </span>
           {!isNil(intervalLabel) && (
-            <div className="text-xs font-normal">{intervalLabel}</div>
+            <div
+              className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
+                "text-center": variant === "continuous",
+                "text-left": variant === "binary",
+              })}
+            >
+              {intervalLabel}
+            </div>
           )}
         </div>
         {!!onReaffirm &&

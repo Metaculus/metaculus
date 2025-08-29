@@ -102,8 +102,8 @@ const PeriodMovement: FC<Props> = ({
             MovementDirection.UP,
             MovementDirection.DOWN,
           ].includes(direction),
-          "text-[10px]": size === "xs",
-          "text-xs": size === "sm",
+          "text-xs": size === "xs",
+          "text-sm": size === "sm",
         })}
       >
         {!!chip ? (

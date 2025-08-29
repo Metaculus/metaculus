@@ -28,7 +28,7 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({ post }) => {
     projectNameLength >= 30 || (hasUnreadMessages && projectNameLength > 15);
 
   return (
-    <div className="mt-4 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
+    <div className="mt-3 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
       <div className="flex items-center gap-1.5 md:gap-2">
         <PostVoter post={post} />
 

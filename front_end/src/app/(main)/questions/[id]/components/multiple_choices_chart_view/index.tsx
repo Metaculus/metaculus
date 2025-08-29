@@ -1,5 +1,6 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
+import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
@@ -51,6 +52,7 @@ const MultiChoicesChartView: FC<Props> = ({
   tooltipTitle,
   tooltipChoices,
   tooltipUserChoices,
+  forecastersCount,
   cursorTimestamp,
   onChoiceItemsUpdate,
   timestamps,
@@ -77,6 +79,7 @@ const MultiChoicesChartView: FC<Props> = ({
   const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => setIsChartReady(true), []);
+  const t = useTranslations();
 
   const legendContainerRef = useRef<HTMLDivElement>(null);
   const [normalizedChartHeight, setNormalizedChartHeight] = useState<
@@ -284,6 +287,24 @@ const MultiChoicesChartView: FC<Props> = ({
               title={tooltipTitle}
               communityPredictions={tooltipChoices}
               userPredictions={tooltipUserChoices}
+              FooterRow={
+                forecastersCount !== null && forecastersCount !== undefined ? (
+                  <tr className="border-t border-gray-300 dark:border-gray-300-dark">
+                    <th
+                      className="px-3 pb-1 pt-2 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark"
+                      colSpan={2}
+                    >
+                      {t("totalForecastersLabel")}
+                    </th>
+                    <td
+                      className="pr-5 pt-1 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
+                      colSpan={2}
+                    >
+                      {forecastersCount}
+                    </td>
+                  </tr>
+                ) : null
+              }
             />
           </div>
         </FloatingPortal>

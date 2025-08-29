@@ -6,6 +6,7 @@ import MyPredictionChip from "@/components/my_prediction_chip";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -34,24 +35,36 @@ const PredictionBinaryInfo: FC<Props> = ({
   }
 
   return (
-    <>
-      <BinaryCPBar question={question} size={size} />
-      <QuestionCPMovement
-        question={question}
-        className={cn("mx-auto max-w-[110px] justify-center text-center")}
-        size={size === "sm" ? "xs" : "sm"}
-        boldValueUnit={true}
-        variant={cpMovementVariant}
-      />
-      {showMyPrediction && (
-        <MyPredictionChip
+    <div className="flex w-full flex-col items-center gap-0.5">
+      <div
+        className={cn("flex w-full flex-col items-center justify-center", {
+          "gap-4": size === "lg", // Add gap for large size to accommodate scale
+        })}
+      >
+        <BinaryCPBar question={question} size={size} />
+        <QuestionCPMovement
           question={question}
-          showUserForecast
-          onReaffirm={onReaffirm}
-          canPredict={canPredict}
+          className={cn("mx-auto max-w-[110px] justify-center text-center")}
+          size={size === "sm" ? "xs" : "sm"}
+          boldValueUnit={true}
+          variant={cpMovementVariant}
         />
-      )}
-    </>
+      </div>
+
+      {showMyPrediction &&
+        question.my_forecasts?.latest &&
+        isForecastActive(question.my_forecasts.latest) && (
+          <div className="mt-1 w-full border-t-[0.5px] border-dashed border-gray-300 pt-2 dark:border-gray-300-dark">
+            <MyPredictionChip
+              question={question}
+              showUserForecast
+              onReaffirm={onReaffirm}
+              canPredict={canPredict}
+              variant="binary"
+            />
+          </div>
+        )}
+    </div>
   );
 };
 

@@ -51,7 +51,13 @@ export const QuestionCPMovement: FC<Props> = ({
   const amount = mc.amount.toString();
 
   const maybeBold = (n: React.ReactNode) =>
-    boldValueUnit ? <strong className="whitespace-nowrap">{n}</strong> : n;
+    boldValueUnit ? (
+      <span className="whitespace-nowrap text-sm font-bold tabular-nums md:text-sm">
+        {n}
+      </span>
+    ) : (
+      n
+    );
 
   const valueNode =
     variant === "message" ? maybeBold(formatValueUnit(amount, unit)) : <></>;
@@ -66,8 +72,8 @@ export const QuestionCPMovement: FC<Props> = ({
       message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
         value: () => valueNode,
       })}
-      className={cn("text-xs", className)}
-      iconClassName="text-xs"
+      className={cn("", className)}
+      iconClassName=""
       size={size}
     />
   );

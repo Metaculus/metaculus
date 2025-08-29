@@ -15,6 +15,10 @@ type Props = {
 const ConsumerQuestionTile: FC<Props> = ({ question }) => {
   const forecastAvailability = getQuestionForecastAvailability(question);
 
+  // Hide chart if no forecasts or CP not yet revealed
+  const shouldHideChart =
+    forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn;
+
   // Open/Closed - delegate to specific tile components based on question type
   switch (question.type) {
     case QuestionType.Binary:
@@ -37,12 +41,15 @@ const ConsumerQuestionTile: FC<Props> = ({ question }) => {
             question={question}
             forecastAvailability={forecastAvailability}
           />
-          <MinifiedContinuousAreaChart
-            question={question}
-            data={continuousAreaChartData}
-            height={50}
-            forceTickCount={2}
-          />
+          {!shouldHideChart && (
+            <MinifiedContinuousAreaChart
+              question={question}
+              data={continuousAreaChartData}
+              height={50}
+              forceTickCount={2}
+              variant="feed"
+            />
+          )}
         </div>
       );
     default:
