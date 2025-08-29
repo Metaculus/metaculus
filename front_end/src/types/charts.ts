@@ -3,7 +3,9 @@ import { Tuple } from "victory";
 import {
   Bounds,
   Quartiles,
+  QuestionType,
   QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
 
 export type TickFormat = (
@@ -40,7 +42,16 @@ export type YDomain = {
   zoomedYDomain: Tuple<number>;
 };
 
-export type FanOption = {
+export type FanDatum = {
+  name: string;
+  communityQuartiles?: Quartiles | null;
+  userQuartiles?: Quartiles | null;
+  resolvedValue?: number | null;
+  optionScaling?: Scaling | null;
+  type?: QuestionType.Binary | QuestionType.Numeric;
+};
+
+export type GroupFanDatum = {
   name: string;
   communityQuartiles: Quartiles | null;
   communityBounds: Bounds | null;

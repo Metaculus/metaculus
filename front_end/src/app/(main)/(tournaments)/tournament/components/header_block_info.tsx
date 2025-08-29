@@ -6,9 +6,11 @@ import { Tournament, TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
 
 import TournamentTimeline from "../components/tournament_timeline";
-import IndexGauge from "./index/index_gauge";
+import IndexHeaderBlock from "./index/index_header_block";
 
-type Props = { tournament: Tournament };
+type Props = {
+  tournament: Tournament;
+};
 
 const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
   const t = await getTranslations();
@@ -22,7 +24,7 @@ const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
         </Suspense>
       );
     case TournamentType.Index:
-      return <IndexGauge tournament={tournament} />;
+      return <IndexHeaderBlock tournament={tournament} />;
     default:
       return (
         <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">

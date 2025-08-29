@@ -18,7 +18,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 
 type Props = {
-  tournament: Tournament;
+  tournament: Tournament | null;
 };
 
 const TournamentFeed: FC<Props> = ({ tournament }) => {
@@ -33,7 +33,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
     ...questionFilters,
-    tournaments: tournament.id.toString(),
+    tournaments: tournament?.id.toString(),
   };
 
   const [questions, setQuestions] = useState<PostWithForecasts[]>([]);
@@ -81,12 +81,18 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(otherParams)]);
 
+  const weights = tournament?.index_data?.weights ?? {};
+
   return isLoading ? (
     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
   ) : error ? (
     <FormErrorMessage errors={error?.digest} />
   ) : (
-    <PaginatedPostsFeed filters={pageFilters} initialQuestions={questions} />
+    <PaginatedPostsFeed
+      indexWeights={weights}
+      filters={pageFilters}
+      initialQuestions={questions}
+    />
   );
 };
 
