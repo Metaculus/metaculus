@@ -32,6 +32,7 @@ type Props = {
   nrForecasters?: number;
   forecastAvailability?: ForecastAvailability;
   hideTitle?: boolean;
+  isConsumerView?: boolean;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -40,10 +41,11 @@ const DetailedContinuousChartCard: FC<Props> = ({
   nrForecasters,
   forecastAvailability,
   hideTitle,
+  isConsumerView: isConsumerViewProp,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const isConsumerView = !user;
+  const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
 
   const aggregation =

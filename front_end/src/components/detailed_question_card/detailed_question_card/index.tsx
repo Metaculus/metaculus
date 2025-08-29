@@ -15,9 +15,14 @@ import DetailedMultipleChoiceChartCard from "./multiple_choice_chart_card";
 type Props = {
   post: QuestionPost<QuestionWithForecasts>;
   hideTitle?: boolean;
+  isConsumerView?: boolean;
 };
 
-const DetailedQuestionCard: FC<Props> = ({ post, hideTitle }) => {
+const DetailedQuestionCard: FC<Props> = ({
+  post,
+  hideTitle,
+  isConsumerView,
+}) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
 
@@ -48,6 +53,7 @@ const DetailedQuestionCard: FC<Props> = ({ post, hideTitle }) => {
             forecastAvailability={forecastAvailability}
             nrForecasters={nr_forecasters}
             hideTitle={hideTitle}
+            isConsumerView={isConsumerView}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
