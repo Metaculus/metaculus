@@ -140,21 +140,21 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   } else if (question.type === QuestionType.Binary) {
     return (
       <div
-        className={cn("flex flex-col gap-5", {
-          "gap-5": size === "lg",
-          "gap-3": size === "md",
+        className={cn("flex flex-col", {
+          "gap-4": size === "lg", // Desktop: 16px gap
+          "gap-1.5": size === "md", // Mobile: 6px gap
         })}
       >
         <BinaryCPBar question={question} size={size === "lg" ? "lg" : "sm"} />
         <QuestionCPMovement
           question={question}
           className={cn("mx-auto pb-1 text-center", {
-            "w-max max-w-[120px]": size === "md",
+            "w-max max-w-[120px]": size === "md", // 🎯 Mobile constraint
           })}
           size="sm"
-          // Just to show % instead of pp
           unit={"%"}
           variant={"chip"}
+          boldValueUnit={true}
         />
       </div>
     );

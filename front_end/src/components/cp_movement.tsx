@@ -52,7 +52,7 @@ export const QuestionCPMovement: FC<Props> = ({
 
   const maybeBold = (n: React.ReactNode) =>
     boldValueUnit ? (
-      <span className="whitespace-nowrap text-xs font-bold tabular-nums md:text-sm">
+      <span className="whitespace-nowrap text-sm font-bold tabular-nums md:text-sm">
         {n}
       </span>
     ) : (

@@ -69,7 +69,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         {
           "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
-          "scale-[1.25]": size === "lg",
+          "mb-4 scale-[1.25]": size === "lg",
         },
         className
       )}

@@ -36,7 +36,11 @@ const PredictionBinaryInfo: FC<Props> = ({
 
   return (
     <div className="flex w-full flex-col items-center gap-0.5">
-      <div className="flex w-full flex-col items-center justify-center">
+      <div
+        className={cn("flex w-full flex-col items-center justify-center", {
+          "gap-4": size === "lg", // Add gap for large size to accommodate scale
+        })}
+      >
         <BinaryCPBar question={question} size={size} />
         <QuestionCPMovement
           question={question}
