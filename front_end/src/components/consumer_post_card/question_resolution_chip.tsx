@@ -11,7 +11,7 @@ type Props = {
   successfullyResolved: boolean;
   unit?: string;
   presentation?: "forecasterView" | "consumerView";
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg";
   className?: string;
 };
 
@@ -31,6 +31,7 @@ const QuestionResolutionChip: FC<Props> = ({
           "flex w-fit flex-col items-center rounded-[10px] border border-purple-500 px-4 py-2.5 dark:border-purple-500",
           {
             "border-gray-300 dark:border-gray-300-dark": !successfullyResolved,
+            "px-3 py-2": size === "sm",
             "px-5 py-3": size === "lg",
           }
         )}
@@ -41,6 +42,7 @@ const QuestionResolutionChip: FC<Props> = ({
               "font-normal uppercase leading-4 text-purple-700 dark:text-purple-700-dark",
               {
                 // Mobile-first responsive sizing
+                "text-[10px] md:text-xs": size === "sm",
                 "text-xs md:text-sm": size === "md",
                 "text-sm md:text-base": size === "lg",
               }
@@ -55,6 +57,7 @@ const QuestionResolutionChip: FC<Props> = ({
             {
               "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
               // Mobile-first responsive sizing
+              "text-sm md:text-base": size === "sm",
               "text-lg md:text-xl": size === "md",
               "text-xl md:text-2xl": size === "lg",
             }
@@ -74,7 +77,7 @@ const QuestionResolutionChip: FC<Props> = ({
 
 export const QuestionResolutionChipFacade: FC<{
   question: QuestionWithNumericForecasts;
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }> = ({ question, className, size = "md" }) => {
   const locale = useLocale();

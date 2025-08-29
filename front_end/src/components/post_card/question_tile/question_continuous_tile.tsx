@@ -132,7 +132,7 @@ const QuestionContinuousTile: FC<Props> = ({
             canPredict={canPredict}
             showMyPrediction={true}
             renderResolutionStatus={(q) => (
-              <QuestionResolutionChipFacade question={q} />
+              <QuestionResolutionChipFacade question={q} size="sm" />
             )}
           />
         </div>
