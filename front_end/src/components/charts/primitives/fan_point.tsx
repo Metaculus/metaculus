@@ -13,6 +13,7 @@ type Props = ComponentProps<typeof Point> & {
   resolvedPointColor?: string;
   bgColor?: string;
   pointSize?: number;
+  strokeWidth?: number;
 };
 
 const FanPoint: FC<Props> = ({
@@ -24,6 +25,7 @@ const FanPoint: FC<Props> = ({
   resolvedPointColor,
   bgColor,
   pointSize = 10,
+  strokeWidth = 2,
 }) => {
   const { getThemeColor } = useAppTheme();
 
@@ -61,7 +63,7 @@ const FanPoint: FC<Props> = ({
           y={y - innerSize / 2}
           fill={backgroundColor}
           stroke={resolvedColor}
-          strokeWidth={2}
+          strokeWidth={strokeWidth}
         />
       </g>
     );

@@ -163,10 +163,20 @@ export function buildOverviewFanOptions(
           ? s.interval_upper_bounds
           : Math.max(...(s.line.map((p) => p.y) || [0]));
 
+      const isResolved =
+        s.status === "resolved" || typeof s.resolution_value === "number";
+
       const median =
         (typeof s.resolution_value === "number" ? s.resolution_value : null) ??
         last?.y ??
         (lower + upper) / 2;
+
+      const resolvedValueRaw =
+        typeof s.resolution_value === "number"
+          ? s.resolution_value
+          : isResolved
+            ? last?.y
+            : undefined;
 
       const hasAll =
         Number.isFinite(lower) &&
@@ -183,6 +193,11 @@ export function buildOverviewFanOptions(
         },
         optionScaling: SCALING,
         type: QuestionType.Numeric,
+        resolved: isResolved,
+        resolvedValue:
+          typeof resolvedValueRaw === "number"
+            ? toInternal(resolvedValueRaw)
+            : undefined,
       } as FanDatum;
     })
     .filter(Boolean) as FanDatum[];

@@ -397,14 +397,18 @@ const FanChart: FC<Props> = ({
             }))}
             style={{
               data: {
-                fill: "none",
+                fill: v.resolutionPoint.fill({ getThemeColor }),
                 stroke: () => palette.resolutionStroke,
                 strokeWidth: 2,
                 strokeOpacity: 1,
               },
             }}
             dataComponent={
-              <FanPoint activePoint={null} pointSize={pointSize} />
+              <FanPoint
+                activePoint={null}
+                pointSize={v.resolutionPoint.size}
+                strokeWidth={v.resolutionPoint.strokeWidth}
+              />
             }
           />
         </VictoryChart>

@@ -12,6 +12,12 @@ export type VariantArgs = {
   getThemeColor: (c: ThemeColor) => string;
 };
 
+type ResolutionPointStyle = {
+  size: number;
+  strokeWidth: number;
+  fill: (args: Pick<VariantArgs, "getThemeColor">) => string;
+};
+
 export type VariantConfig = {
   id: FanChartVariant;
   yAxisStyle: (
@@ -20,7 +26,6 @@ export type VariantConfig = {
   xAxisStyle: (
     args: Omit<VariantArgs, "chartWidth" | "yLabel">
   ) => any | undefined;
-
   domainPadding: (args: VariantArgs) => {
     x: [number, number];
     y?: [number, number];
@@ -41,6 +46,7 @@ export type VariantConfig = {
     resolutionStroke: string;
     communityPoint: string;
   };
+  resolutionPoint: ResolutionPointStyle;
 };
 
 export const fanVariants: Record<FanChartVariant, VariantConfig> = {
@@ -64,6 +70,11 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       resolutionStroke: getThemeColor(METAC_COLORS.purple["800"]),
       communityPoint: getThemeColor(METAC_COLORS.olive["800"]),
     }),
+    resolutionPoint: {
+      size: 8,
+      strokeWidth: 2,
+      fill: () => "none",
+    },
   },
   index: {
     id: "index",
@@ -114,5 +125,10 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       resolutionStroke: getThemeColor(METAC_COLORS.purple["800"]),
       communityPoint: getThemeColor(METAC_COLORS.blue["700"]),
     }),
+    resolutionPoint: {
+      size: 13,
+      strokeWidth: 3,
+      fill: ({ getThemeColor }) => getThemeColor(METAC_COLORS.purple["800"]),
+    },
   },
 };
