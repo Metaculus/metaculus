@@ -775,6 +775,48 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
+
+          {/* Median dots for continuous questions */}
+          {charts
+            .filter((chart) => chart.type !== "user_components")
+            .map((chart, index) => {
+              const medianLine = chart.verticalLines.find(
+                (line, lineIndex) => lineIndex === 1
+              ); // Median is the second line (index 1)
+              if (!medianLine) return null;
+
+              return (
+                <VictoryScatter
+                  key={`median-dot-${index}`}
+                  data={[
+                    {
+                      x: medianLine.x,
+                      y: medianLine.y, // Use the actual height of the distribution at median
+                      symbol: "circle",
+                      size: 3,
+                    },
+                  ]}
+                  style={{
+                    data: {
+                      fill: (() => {
+                        switch (chart.type) {
+                          case "community":
+                            return getThemeColor(METAC_COLORS.olive["800"]);
+                          case "user":
+                          case "user_previous":
+                            return getThemeColor(METAC_COLORS.orange["800"]);
+                          case "community_closed":
+                            return getThemeColor(METAC_COLORS.gray["800"]);
+                          default:
+                            return getThemeColor(METAC_COLORS.gray["600"]); // fallback
+                        }
+                      })(),
+                      stroke: "none",
+                    },
+                  }}
+                />
+              );
+            })}
           {question.type === QuestionType.Date &&
             todayLabelPosition &&
             withTodayLine && (
