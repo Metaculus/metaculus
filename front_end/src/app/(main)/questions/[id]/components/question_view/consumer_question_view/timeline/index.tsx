@@ -27,7 +27,11 @@ const QuestionTimeline: React.FC<Props> = ({
     if (postData.question.status !== QuestionStatus.UPCOMING) {
       return (
         <div className={wrapperClass}>
-          <DetailedQuestionCard post={postData} hideTitle={hideTitle} />
+          <DetailedQuestionCard
+            post={postData}
+            hideTitle={hideTitle}
+            isConsumerView={true}
+          />
         </div>
       );
     }

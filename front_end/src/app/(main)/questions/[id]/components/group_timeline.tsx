@@ -239,10 +239,32 @@ const GroupTimeline: FC<Props> = ({
     const highlightedChoice = choiceItems.find(
       ({ highlighted }) => highlighted
     );
-    if (!highlightedChoice) {
-      return null;
+    if (highlightedChoice) {
+      return highlightedChoice.aggregationForecasterCounts?.at(-1) ?? null;
     }
-    return highlightedChoice.aggregationForecasterCounts?.at(-1) ?? null;
+
+    // fallback: when multiple choices are active, show cursor-based forecasters from first active choice
+    if (selectedChoices.length > 1) {
+      const firstActiveChoice = selectedChoices.at(0);
+      if (firstActiveChoice?.aggregationForecasterCounts) {
+        // Use cursor-based logic like single choice case
+        const actualTimestamps =
+          firstActiveChoice.aggregationTimestamps ?? timestamps;
+        const closestTimestamp = findPreviousTimestamp(
+          actualTimestamps,
+          cursorTimestamp
+        );
+        const cursorIndex = actualTimestamps.findIndex(
+          (timestamp) => timestamp === closestTimestamp
+        );
+
+        return (
+          firstActiveChoice.aggregationForecasterCounts[cursorIndex] ?? null
+        );
+      }
+    }
+
+    return null;
   }, [choiceItems, cursorTimestamp, timestamps]);
 
   return (

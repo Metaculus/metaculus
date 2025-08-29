@@ -7,6 +7,7 @@ import MyPredictionChip from "@/components/my_prediction_chip";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, UserForecast } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
@@ -38,6 +39,13 @@ const PredictionContinuousInfo: FC<Props> = ({
       longBounds: true,
     });
     const successfullyResolved = isSuccessfullyResolved(question.resolution);
+
+    // Only hide chip for successfully resolved continuous questions
+    // Show chip for Ambiguous/Annulled questions
+    if (successfullyResolved) {
+      return null; // Let chart handle successfully resolved display
+    }
+
     return (
       <QuestionResolutionChip
         formatedResolution={formatedResolution}
@@ -48,26 +56,31 @@ const PredictionContinuousInfo: FC<Props> = ({
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-1">
+    <div className="flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5">
+      <div className="flex w-full flex-col gap-1 md:gap-1.5">
         <ContinuousCPBar question={question} />
         <QuestionCPMovement
           question={question}
           unit={""}
-          className="mx-auto max-w-[110px]"
+          className="mx-auto max-w-[110px] md:mx-0"
           size={"xs"}
           boldValueUnit={true}
         />
       </div>
-      {showMyPrediction && (
-        <MyPredictionChip
-          question={question}
-          showUserForecast
-          onReaffirm={onReaffirm}
-          canPredict={canPredict}
-        />
-      )}
-    </>
+      {showMyPrediction &&
+        question.my_forecasts?.latest &&
+        isForecastActive(question.my_forecasts.latest) && (
+          <div className="mt-0 flex w-full w-full  border-0 border-dashed border-gray-300 pt-0 dark:border-gray-300-dark md:mt-1 md:border-t-[0.5px] md:pt-2">
+            <MyPredictionChip
+              question={question}
+              showUserForecast
+              onReaffirm={onReaffirm}
+              canPredict={canPredict}
+              variant="continuous"
+            />
+          </div>
+        )}
+    </div>
   );
 };
 

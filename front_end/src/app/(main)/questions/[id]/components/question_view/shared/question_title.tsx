@@ -10,7 +10,7 @@ const QuestionTitle: React.FC<HTMLAttributes<HTMLHeadingElement>> = ({
   return (
     <h1
       className={cn(
-        "m-0 pr-4 text-xl leading-tight text-blue-800 dark:text-blue-800-dark lg:pr-0 lg:text-3xl",
+        "m-0 w-full pr-4 text-xl leading-tight text-blue-800 dark:text-blue-800-dark lg:pr-0 lg:text-3xl",
         className
       )}
       {...props}
