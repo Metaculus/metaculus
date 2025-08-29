@@ -118,13 +118,13 @@ const QuestionContinuousTile: FC<Props> = ({
         }
       }
     },
-    [onReaffirm, question.id, question.type]
+    [onReaffirm, question, user?.prediction_expiration_percent]
   );
 
   // Binary questions use original side-by-side layout
   if (question.type === QuestionType.Binary) {
     return (
-      <div className="flex justify-between gap-6 md:gap-8">
+      <div className="flex min-h-24 justify-between gap-6">
         <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
           <PredictionBinaryInfo
             question={question}
@@ -137,7 +137,7 @@ const QuestionContinuousTile: FC<Props> = ({
           />
         </div>
         {showChart && (
-          <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
+          <div className="relative min-h-12 w-2/3 min-w-24 flex-1 overflow-visible">
             <NumericTimeline
               nonInteractive={true}
               aggregation={
@@ -186,8 +186,8 @@ const QuestionContinuousTile: FC<Props> = ({
         {/* Mobile: Overlay layout */}
         <div className="flex flex-col items-center md:hidden">
           {/* CP values container - positioned first */}
-          <div className="pointer-events-none relative flex w-full items-center justify-center">
-            <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
+          <div className="relative z-20 flex w-full items-stretch justify-stretch md:items-center md:justify-center">
+            <div className="flex w-full flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
               <PredictionContinuousInfo
                 question={question}
                 onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
@@ -199,7 +199,7 @@ const QuestionContinuousTile: FC<Props> = ({
 
           {/* Full-width chart background - overlapping with negative margin */}
           {showChart && (
-            <div className="relative -mt-6 flex w-full flex-col overflow-visible">
+            <div className="relative z-10 -mt-8 flex w-full flex-col overflow-visible">
               <ContinuousAreaChart
                 data={continuousAreaChartData}
                 height={HEIGHT}
