@@ -225,8 +225,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   const bottomPadding = useMemo(() => {
     // When labels are hidden, use minimal padding (just 2-3px for visual spacing)
     // When labels are shown, use full padding to accommodate text
-    return hideCP || hideLabels ? 3 : BOTTOM_PADDING;
-  }, [hideCP, hideLabels]);
+    // However, if there's a resolution point, we need extra padding to prevent clipping
+    const hasResolution =
+      !isNil(question.resolution) && question.resolution !== "";
+    const baseMinimalPadding = hasResolution ? 8 : 3; // Extra padding for resolution diamond
+    return hideCP || hideLabels ? baseMinimalPadding : BOTTOM_PADDING;
+  }, [hideCP, hideLabels, question.resolution]);
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -434,6 +438,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               ) : null
             )
           )}
+
           {/* Resolution point */}
           {resolutionPoint && (
             <VictoryScatter
