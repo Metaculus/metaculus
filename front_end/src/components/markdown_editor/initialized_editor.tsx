@@ -56,11 +56,6 @@ const beautifulMentionsTheme: BeautifulMentionsTheme = {
   "@Focused": "ring-2 ring-offset-1 ring-blue-500 dark:ring-blue-500-dark",
 };
 
-const jsxComponentDescriptors: JsxComponentDescriptor[] = [
-  embeddedQuestionDescriptor,
-  tweetDescriptor,
-];
-
 const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
   match: () => true,
   priority: 0,
@@ -149,42 +144,73 @@ const InitializedMarkdownEditor: FC<
     }
   }, [formattedMarkdown]);
 
-  const baseFormattingPlugins = [
-    headingsPlugin(),
-    listsPlugin(),
-    linkPlugin({
-      withUgcLinks,
-    }),
-    ...(withUserMentions
-      ? [
-          mentionsPlugin({
-            initialMention,
-            isStuff: user?.is_staff || user?.is_superuser,
-          }),
-        ]
-      : []),
-    quotePlugin(),
-    markdownShortcutPlugin(),
-    codeBlockPlugin({
-      codeBlockEditorDescriptors: [PlainTextCodeEditorDescriptor],
-    }),
-    thematicBreakPlugin(),
-    linkDialogPlugin(),
-    tablePlugin(),
-    imagePlugin({
-      disableImageSettingsButton: true,
-      imageUploadHandler,
-    }),
-    equationPlugin(),
-  ];
+  const jsxDescriptors: JsxComponentDescriptor[] = useMemo(
+    () => [embeddedQuestionDescriptor, tweetDescriptor],
+    []
+  );
 
-  const editorDiffSourcePlugin = useMemo(() => {
-    if (mode === "read") return null;
+  const imageUploadHandler = useCallback(
+    async (image: File) => {
+      const MAX_FILE_SIZE_MB = 3;
+      const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+      if (image.size > maxFileSizeBytes) {
+        const msg = t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB });
+        toast(msg);
+        return Promise.reject(new Error(msg));
+      }
 
-    return diffSourcePlugin({
-      viewMode: "rich-text",
-    });
-  }, [mode]);
+      const formData = new FormData();
+      formData.append("image", image);
+      const response = await uploadImage(formData);
+      if (!!response && "errors" in response) {
+        console.error(response.errors);
+        const msg = t("errorUploadingImage");
+        toast(msg);
+        return Promise.reject(
+          new Error(response.errors?.message ?? "Error uploading image")
+        );
+      } else {
+        return response.url;
+      }
+    },
+    [t]
+  );
+
+  const baseFormattingPlugins = useMemo(() => {
+    return [
+      headingsPlugin(),
+      listsPlugin(),
+      linkPlugin({ withUgcLinks }),
+      ...(withUserMentions
+        ? [
+            mentionsPlugin({
+              initialMention,
+              isStuff: user?.is_staff || user?.is_superuser,
+            }),
+          ]
+        : []),
+      quotePlugin(),
+      markdownShortcutPlugin(),
+      codeBlockPlugin({
+        codeBlockEditorDescriptors: [PlainTextCodeEditorDescriptor],
+      }),
+      thematicBreakPlugin(),
+      linkDialogPlugin(),
+      tablePlugin(),
+      imagePlugin({
+        disableImageSettingsButton: true,
+        imageUploadHandler,
+      }),
+      equationPlugin(),
+    ];
+  }, [
+    withUgcLinks,
+    withUserMentions,
+    initialMention,
+    user?.is_staff,
+    user?.is_superuser,
+    imageUploadHandler,
+  ]);
 
   const editorToolbarPlugin = useMemo(() => {
     if (mode === "read") return null;
@@ -194,29 +220,35 @@ const InitializedMarkdownEditor: FC<
     });
   }, [mode]);
 
-  async function imageUploadHandler(image: File) {
-    const MAX_FILE_SIZE_MB = 3;
-    const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
-    if (image.size > maxFileSizeBytes) {
-      toast(t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB }));
-      return Promise.reject(
-        new Error(t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB }))
-      );
-    }
+  const editorDiffSourcePlugin = useMemo(() => {
+    if (mode === "read") return null;
+    return diffSourcePlugin({ viewMode: "rich-text" });
+  }, [mode]);
 
-    const formData = new FormData();
-    formData.append("image", image);
-    const response = await uploadImage(formData);
-    if (!!response && "errors" in response) {
-      console.error(response.errors);
-      toast(t("errorUploadingImage"));
-      return Promise.reject(
-        new Error(response.errors?.message ?? "Error uploading image")
-      );
-    } else {
-      return response.url;
-    }
-  }
+  const plugins = useMemo(() => {
+    const list = [
+      ...baseFormattingPlugins,
+      jsxPlugin({ jsxComponentDescriptors: jsxDescriptors }),
+    ];
+    if (editorToolbarPlugin) list.push(editorToolbarPlugin);
+    if (mode === "read") list.push(trimTrailingParagraphPlugin());
+    if (editorDiffSourcePlugin) list.push(editorDiffSourcePlugin);
+    return list;
+  }, [
+    baseFormattingPlugins,
+    jsxDescriptors,
+    editorToolbarPlugin,
+    editorDiffSourcePlugin,
+    mode,
+  ]);
+
+  const lexicalTheme = useMemo(
+    () => ({
+      beautifulMentions: beautifulMentionsTheme,
+      text: { underline: "underline" },
+    }),
+    []
+  );
 
   if (errorMarkdown) {
     return <div className="whitespace-pre-line">{errorMarkdown}</div>;
@@ -249,19 +281,8 @@ const InitializedMarkdownEditor: FC<
         }
       }}
       readOnly={mode === "read"}
-      plugins={[
-        ...baseFormattingPlugins,
-        jsxPlugin({ jsxComponentDescriptors }),
-        ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
-        ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
-        ...(mode === "read" ? [trimTrailingParagraphPlugin()] : []),
-      ]}
-      lexicalTheme={{
-        beautifulMentions: beautifulMentionsTheme,
-        text: {
-          underline: "underline",
-        },
-      }}
+      plugins={plugins}
+      lexicalTheme={lexicalTheme}
     />
   );
 };
