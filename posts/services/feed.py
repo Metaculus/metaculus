@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
-from posts.models import Post
+from posts.models import Post, Vote
 from posts.serializers import PostFilterSerializer
 from posts.services.search import (
     perform_post_search,
@@ -206,7 +206,10 @@ def get_posts_feed(
         )
 
     if upvoted_by:
-        qs = qs.filter(votes__user=upvoted_by)
+        qs = qs.filter(
+            votes__user=upvoted_by,
+            votes__direction=Vote.VoteDirection.UP,
+        )
 
     # Followed posts
     if user and user.is_authenticated and following:
