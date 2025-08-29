@@ -152,7 +152,13 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
 
     if (isNil(user) && !isNotebookPost(post) && !isConditionalPost(post)) {
-      return <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />;
+      return (
+        <ConsumerPostCard
+          post={post}
+          forCommunityFeed={isCommunity}
+          indexWeight={indexWeight}
+        />
+      );
     }
     return (
       <PostCard

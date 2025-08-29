@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import RichText from "@/components/rich_text";
 import { ANNULLED_RESOLUTION } from "@/constants/questions";
@@ -26,9 +27,14 @@ import ConsumerPredictionInfo from "./prediction_info";
 type Props = {
   post: PostWithForecasts;
   forCommunityFeed?: boolean;
+  indexWeight?: number;
 };
 
-const ConsumerPostCard: FC<Props> = ({ post, forCommunityFeed }) => {
+const ConsumerPostCard: FC<Props> = ({
+  post,
+  forCommunityFeed,
+  indexWeight,
+}) => {
   const { title, key_factors } = post;
 
   const t = useTranslations();
@@ -82,9 +88,16 @@ const ConsumerPostCard: FC<Props> = ({ post, forCommunityFeed }) => {
               }
             )}
           >
-            <h4 className="m-0 max-w-xl text-center text-base font-medium @[500px]:text-left">
-              {title}
-            </h4>
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+              <h4 className="m-0 max-w-xl text-center text-base font-medium @[500px]:text-left">
+                {title}
+              </h4>
+              {typeof indexWeight === "number" && (
+                <div className="flex justify-center">
+                  <WeightBadge value={indexWeight} />
+                </div>
+              )}
+            </div>
             {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(
               post.status
             ) && (
