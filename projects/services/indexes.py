@@ -239,24 +239,38 @@ def _get_index_data(
         question_indexes_map, forecasts_by_question
     )
 
+    resolved_at = (
+        max(
+            [
+                q.actual_resolve_time
+                for q in resolved_questions
+                if q.actual_resolve_time
+            ],
+            default=None,
+        )
+        if all_resolved
+        else None
+    )
+
     # Resolution value is the last value in timeline if is resolved
     resolution_value = timeline[-1]["y"] if timeline and all_resolved else None
+
+    # Cut timeline after resolution
+    if resolved_at:
+        cutoff = next(
+            (
+                i
+                for i, point in enumerate(timeline)
+                if point["x"] >= resolved_at.timestamp()
+            ),
+            0,
+        )
+        timeline = timeline[: cutoff + 1]
 
     return {
         "line": timeline,
         "status": QuestionStatus.RESOLVED if all_resolved else QuestionStatus.OPEN,
-        "resolved_at": (
-            max(
-                [
-                    q.actual_resolve_time
-                    for q in resolved_questions
-                    if q.actual_resolve_time
-                ],
-                default=None,
-            )
-            if all_resolved
-            else None
-        ),
+        "resolved_at": resolved_at,
         "resolution": resolution_value,
         "interval_lower_bounds": lower_bound_index,
         "interval_upper_bounds": upper_bound_index,
