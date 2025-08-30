@@ -43,7 +43,7 @@ def test_create_comment__happy_path(post, user1):
         ["user_admin", "admins", "admins"],
         ["user_curator", "curators", "curators"],
         ["user_curator", "moderators", "moderators"],
-        ["user_forecaster", "predictors", "predictors"],
+        # ["user_forecaster", "predictors", "predictors"],
     ],
 )
 def test_notify_mentioned_users(

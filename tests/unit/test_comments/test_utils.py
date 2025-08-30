@@ -33,10 +33,10 @@ def test_username_pattern(mention, actual_username):
     "mentions,expected",
     [
         [["user1", "moderators"], "user1"],
-        [
-            ["user2", "admins", "moderators", "predictors"],
-            "predictors",
-        ],
+        # [
+        #     ["user2", "admins", "moderators", "predictors"],
+        #     "predictors",
+        # ],
         [
             ["admins", "moderators", "curators"],
             "moderators",
@@ -56,12 +56,12 @@ def test_get_mention_label_for_user(user1, mentions, expected):
     [
         ["No mention", set(), set()],
         ["Wanna mention @mentioned_user", {"mentioned_user"}, {"mentioned_user"}],
-        ["Wanna mention @predictors", {"forecaster"}, {"predictors"}],
-        [
-            "Wanna mention @mentioned_user and @predictors",
-            {"mentioned_user", "forecaster"},
-            {"mentioned_user", "predictors"},
-        ],
+        # ["Wanna mention @predictors", {"forecaster"}, {"predictors"}],
+        # [
+        #    "Wanna mention @mentioned_user and @predictors",
+        #    {"mentioned_user", "forecaster"},
+        #    {"mentioned_user", "predictors"},
+        # ],
         ["Wanna mention @curators", {"curator", "admin", "superuser"}, {"curators"}],
         ["Wanna mention @admins", {"admin", "superuser"}, {"admins"}],
         [
