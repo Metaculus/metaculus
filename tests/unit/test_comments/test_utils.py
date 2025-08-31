@@ -52,7 +52,7 @@ def test_get_mention_label_for_user(user1, mentions, expected):
 
 
 @pytest.mark.parametrize(
-    "text,author_name,expected_usernames,expected_mentions",
+    "text,comment_author_name,expected_usernames,expected_mentions",
     [
         ["No mention", "admin", set(), set()],
         [
@@ -111,7 +111,7 @@ def test_get_mention_label_for_user(user1, mentions, expected):
     ],
 )
 def test_comment_extract_user_mentions(
-    question_binary, text, author_name, expected_usernames, expected_mentions
+    question_binary, text, comment_author_name, expected_usernames, expected_mentions
 ):
     # Random user
     factory_user(username="mentioned_user")
@@ -122,13 +122,13 @@ def test_comment_extract_user_mentions(
     # Superuser
     factory_user(username="superuser", is_superuser=True)
 
-    match author_name:
+    match comment_author_name:
         case "forecaster":
-            author = forecaster
+            comment_author = forecaster
         case "curator":
-            author = curator
+            comment_author = curator
         case "admin":
-            author = admin
+            comment_author = admin
 
     post = factory_post(
         question=question_binary,
@@ -144,7 +144,7 @@ def test_comment_extract_user_mentions(
     factory_forecast(question=question_binary, author=forecaster)
 
     qs, mentions = comment_extract_user_mentions(
-        factory_comment(author=author, on_post=post, text_original=text)
+        factory_comment(author=comment_author, on_post=post, text_original=text)
     )
 
     assert {x.username for x in qs} == expected_usernames

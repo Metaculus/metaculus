@@ -37,7 +37,7 @@ def test_create_comment__happy_path(post, user1):
 
 
 @pytest.mark.parametrize(
-    "target_username,author_perms,mention,mention_label",
+    "target_username,comment_author_perms,mention,mention_label",
     [
         ["user2", "admin", "user2", "you"],
         ["user_admin", "admin", "admins", "admins"],
@@ -57,7 +57,7 @@ def test_notify_mentioned_users(
     user2,  # just make sure user2 exists
     question_binary,
     target_username,
-    author_perms,
+    comment_author_perms,
     mention,
     mention_label,
 ):
@@ -73,7 +73,7 @@ def test_notify_mentioned_users(
             override_permissions={
                 user_admin.id: ObjectPermission.ADMIN,
                 user_curator.id: ObjectPermission.CURATOR,
-                user1.id: author_perms,
+                user1.id: comment_author_perms,
             },
         ),
         question=question_binary,
@@ -89,6 +89,8 @@ def test_notify_mentioned_users(
     )
     if not mention_label:
         # If there's no mention label, there should be no email!
+        # This can happen if a user attempts to mention something they can't actually
+        # mention. Like a Forecaster trying to notify all predictors.
         mock_send_email_with_template.assert_not_called()
         return
 
