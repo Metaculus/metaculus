@@ -986,13 +986,20 @@ def get_contributions(
         return get_contribution_question_writing(user, leaderboard)
 
     # Scoring Leaderboards
-    questions = leaderboard.get_questions().prefetch_related(
-        "related_posts__post",
-        Prefetch(
-            "user_forecasts",
-            queryset=Forecast.objects.filter(author_id=user.id),
-            to_attr="filtered_user_forecasts",
-        ),
+    questions = (
+        leaderboard.get_questions()
+        .prefetch_related(
+            "related_posts__post",
+            Prefetch(
+                "user_forecasts",
+                queryset=Forecast.objects.filter(author_id=user.id),
+                to_attr="filtered_user_forecasts",
+            ),
+        )
+        .exclude(
+            Q(related_posts__post__published_at__isnull=True)
+            | Q(related_posts__post__published_at__gt=timezone.now())
+        )
     )
 
     score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
