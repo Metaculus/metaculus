@@ -28,7 +28,7 @@ def comment_extract_user_mentions(
         return User.objects.none(), set()
 
     # Build a case-insensitive query for each mention
-    query = Q()
+    query = Q(pk__in=User.objects.none())  # default to no users, rather than all
     for mention in unique_mentions:
         # Check static mentions
         if group_mentions:
