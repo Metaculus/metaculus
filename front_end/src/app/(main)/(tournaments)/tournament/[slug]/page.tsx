@@ -21,6 +21,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
+import { getValidString } from "@/utils/formatters/string";
 import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -31,7 +32,6 @@ import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
 import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
-import { getValidString } from "@/utils/formatters/string";
 
 type Props = {
   params: Promise<{ slug: string }>;
