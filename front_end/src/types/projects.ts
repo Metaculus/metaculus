@@ -83,7 +83,11 @@ export type Tournament = TournamentPreview & {
   subtitle: string;
   description: string;
   header_logo: string;
-  meta_description: string;
+  html_metadata_json?: {
+    title: string;
+    description: string;
+    image_url: string;
+  };
   is_subscribed?: boolean;
   add_posts_to_main_feed: boolean;
   visibility: ProjectVisibility;

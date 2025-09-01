@@ -55,9 +55,10 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     .split("\n")[0];
 
   return {
-    title: tournament.name,
+    title:
+      getValidString(tournament.html_metadata_json?.title) ?? tournament.name,
     description:
-      getValidString(tournament.meta_description) ??
+      getValidString(tournament.html_metadata_json?.description) ??
       getValidString(parsedDescription) ??
       defaultDescription,
     // Hide unlisted pages from search engines
