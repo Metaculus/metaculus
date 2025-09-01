@@ -3,7 +3,7 @@
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -63,13 +63,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
    * This is a workaround for MDX editor issue when`setMarkdown` method won't properly update editor state if the user is on the "source" mode
    */
   const [editorRenderKey, setEditorRenderKey] = useState(0);
-  const initialDraft = useMemo(() => text ?? "", [text, editorRenderKey]);
-  const markdownRef = useRef<string>(initialDraft);
+  const [draftReady, setDraftReady] = useState(false);
+  const [initialMarkdown, setInitialMarkdown] = useState<string>(text ?? "");
+  const markdownRef = useRef<string>(text ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [hasContent, setHasContent] = useState(
-    () => initialDraft.trim().length > 0
+    () => (text ?? "").trim().length > 0
   );
   const [clientError, setClientError] = useState<React.ReactNode>(null);
   const [serverError, setServerError] = useState<string | ErrorResponse>();
@@ -88,21 +89,37 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   // Load comment draft and remove old ones on mount
   useEffect(() => {
-    if (postId && user?.id) {
-      cleanupCommentDrafts();
-      const draft = getCommentDraft(user.id, postId, parentId);
-      if (draft) {
-        const md = draft.markdown ?? "";
+    let cancelled = false;
+    const loadDraft = () => {
+      if (postId && user?.id) {
+        cleanupCommentDrafts();
+        const draft = getCommentDraft(user.id, postId, parentId);
+        const md = draft?.markdown ?? text ?? "";
+        if (!cancelled) {
+          markdownRef.current = md;
+          setInitialMarkdown(md);
+          setHasIncludedForecast(draft?.includeForecast ?? false);
+          setHasContent(md.trim().length > 0);
+          setDraftReady(true);
+        }
+      } else {
+        const md = text ?? "";
         markdownRef.current = md;
-        setHasIncludedForecast(draft.includeForecast ?? false);
+        setInitialMarkdown(md);
         setHasContent(md.trim().length > 0);
-        editorRef.current?.setMarkdown(md);
+        setDraftReady(true);
       }
-    }
+    };
+
+    loadDraft();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [postId, parentId, user?.id, text]);
 
   const saveDraftDebounced = useDebouncedCallback((value: string) => {
+    if (!draftReady) return;
     if (!isNil(postId) && user) {
       saveCommentDraft({
         markdown: value,
@@ -116,6 +133,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   }, 1000);
 
   useEffect(() => {
+    if (!draftReady) return;
     if (!isNil(postId) && user) {
       saveCommentDraft({
         markdown: markdownRef.current ?? "",
@@ -127,7 +145,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasIncludedForecast]);
+  }, [hasIncludedForecast, draftReady]);
 
   useEffect(() => {
     if (params.get("action") === "comment-with-forecast") {
@@ -195,7 +213,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       setHasIncludedForecast(false);
       markdownRef.current = "";
       setHasContent(false);
-      editorRef.current?.setMarkdown("");
+      setInitialMarkdown("");
       setEditorRenderKey((prev) => prev + 1);
       onSubmit?.(parseComment(response));
     } finally {
@@ -205,13 +223,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const handleMarkdownChange = useCallback(
     (next: string) => {
       markdownRef.current = next;
+      if (!draftReady) return;
       if (!hasInteracted) {
         setHasInteracted(true);
       }
       setHasContent(next.trim().length > 0);
       saveDraftDebounced(next);
     },
-    [hasInteracted, saveDraftDebounced]
+    [draftReady, hasInteracted, saveDraftDebounced]
   );
 
   if (user == null)
@@ -257,16 +276,18 @@ const CommentEditor: FC<CommentEditorProps> = ({
         ref={editorWrapperRef}
         className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
-        <MarkdownEditor
-          key={editorRenderKey}
-          ref={editorRef}
-          mode="write"
-          markdown={initialDraft}
-          onChange={handleMarkdownChange}
-          withUgcLinks
-          withUserMentions
-          initialMention={!initialDraft.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
-        />
+        {draftReady && (
+          <MarkdownEditor
+            key={editorRenderKey}
+            ref={editorRef}
+            mode="write"
+            markdown={initialMarkdown}
+            onChange={handleMarkdownChange}
+            withUgcLinks
+            withUserMentions
+            initialMention={!initialMarkdown.trim() ? replyUsername : undefined}
+          />
+        )}
       </div>
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
