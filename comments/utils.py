@@ -49,19 +49,18 @@ def comment_extract_user_mentions(
                 continue
 
             if mention == "predictors":
+                # only curators and admins can notify predictors
                 if (
                     comment.author
-                    not in comment.on_post.default_project.get_users_for_permission(
+                    in comment.on_post.default_project.get_users_for_permission(
                         ObjectPermission.CURATOR
                     )
                 ):
-                    # only curators and admins can notify predictors
-                    continue
-                query |= Q(
-                    pk__in=User.objects.filter(forecast__post=comment.on_post).distinct(
-                        "pk"
+                    query |= Q(
+                        pk__in=User.objects.filter(
+                            forecast__post=comment.on_post
+                        ).distinct("pk")
                     )
-                )
                 continue
 
         # Fallback to username mention
