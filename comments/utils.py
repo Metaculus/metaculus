@@ -28,7 +28,7 @@ def comment_extract_user_mentions(
         return User.objects.none(), set()
 
     # Build a case-insensitive query for each mention
-    query = Q()
+    query = Q(pk__in=[])  # default to no users, rather than all
     for mention in unique_mentions:
         # Check static mentions
         if group_mentions:
@@ -49,11 +49,18 @@ def comment_extract_user_mentions(
                 continue
 
             if mention == "predictors":
-                query |= Q(
-                    pk__in=User.objects.filter(forecast__post=comment.on_post).distinct(
-                        "pk"
+                # only curators and admins can notify predictors
+                if (
+                    comment.author
+                    in comment.on_post.default_project.get_users_for_permission(
+                        ObjectPermission.CURATOR
                     )
-                )
+                ):
+                    query |= Q(
+                        pk__in=User.objects.filter(
+                            forecast__post=comment.on_post
+                        ).distinct("pk")
+                    )
                 continue
 
         # Fallback to username mention

@@ -31,6 +31,7 @@ import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
 import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
+import { getValidString } from "@/utils/formatters/string";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -49,8 +50,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     .split("\n")[0];
 
   return {
-    title: tournament.name,
-    description: !!parsedDescription ? parsedDescription : defaultDescription,
+    title:
+      getValidString(tournament.html_metadata_json?.title) ?? tournament.name,
+    description:
+      getValidString(tournament.html_metadata_json?.description) ??
+      getValidString(parsedDescription) ??
+      defaultDescription,
     // Hide unlisted pages from search engines
     ...(tournament.visibility === ProjectVisibility.Unlisted
       ? {
