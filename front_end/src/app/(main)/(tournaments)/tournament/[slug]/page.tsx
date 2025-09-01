@@ -26,6 +26,7 @@ import {
   ProjectVisibility,
   TournamentType,
 } from "@/types/projects";
+import { getValidString } from "@/utils/formatters/string";
 import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -54,8 +55,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     .split("\n")[0];
 
   return {
-    title: tournament.name,
-    description: !!parsedDescription ? parsedDescription : defaultDescription,
+    title:
+      getValidString(tournament.html_metadata_json?.title) ?? tournament.name,
+    description:
+      getValidString(tournament.html_metadata_json?.description) ??
+      getValidString(parsedDescription) ??
+      defaultDescription,
     // Hide unlisted pages from search engines
     ...(tournament.visibility === ProjectVisibility.Unlisted
       ? {

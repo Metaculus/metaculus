@@ -283,7 +283,12 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     )
 
     # SEO
-    meta_description = models.TextField(blank=True, default="")
+    html_metadata_json = models.JSONField(
+        help_text="Custom JSON for HTML meta tags. Supported fields are: title, description",
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     created_by = models.ForeignKey(
         User,

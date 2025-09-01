@@ -367,7 +367,7 @@ components:
           type: string
           format: date-time
           nullable: true
-        meta_description:
+        html_metadata_json:
           type: string
           example: ""
         is_ongoing:
@@ -1237,7 +1237,7 @@ paths:
                             prize_pool: "0.00"
                             start_date: null
                             close_date: null
-                            meta_description: ""
+                            html_metadata_json: ""
                             is_ongoing: null
                             user_permission: null
                             created_at: "2023-11-08T16:55:29.484707Z"
