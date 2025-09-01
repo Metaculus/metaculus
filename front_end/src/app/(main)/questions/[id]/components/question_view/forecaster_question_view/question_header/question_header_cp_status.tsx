@@ -9,6 +9,7 @@ import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import QuestionCPMovement from "@/components/cp_movement";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import {
   QuestionType,
@@ -33,6 +34,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
 }) => {
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
   const forecastAvailability = getQuestionForecastAvailability(question);
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
@@ -146,16 +148,18 @@ const QuestionHeaderCPStatus: FC<Props> = ({
         })}
       >
         <BinaryCPBar question={question} size={size === "lg" ? "lg" : "sm"} />
-        <QuestionCPMovement
-          question={question}
-          className={cn("mx-auto pb-1 text-center", {
-            "w-max max-w-[120px]": size === "md", // 🎯 Mobile constraint
-          })}
-          size="sm"
-          unit={"%"}
-          variant={"chip"}
-          boldValueUnit={true}
-        />
+        {!hideCP && (
+          <QuestionCPMovement
+            question={question}
+            className={cn("mx-auto pb-1 text-center", {
+              "w-max max-w-[120px]": size === "md", // 🎯 Mobile constraint
+            })}
+            size="sm"
+            unit={"%"}
+            variant={"chip"}
+            boldValueUnit={true}
+          />
+        )}
       </div>
     );
   }

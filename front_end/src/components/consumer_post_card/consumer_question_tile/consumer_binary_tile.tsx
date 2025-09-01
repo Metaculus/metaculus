@@ -6,6 +6,7 @@ import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import QuestionCPMovement from "@/components/cp_movement";
+import { useHideCP } from "@/contexts/cp_context";
 import {
   ForecastAvailability,
   QuestionWithForecasts,
@@ -20,6 +21,7 @@ type Props = {
 };
 
 const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
+  const { hideCP } = useHideCP();
   const locale = useLocale();
 
   // Resolved/Annulled/Ambiguous
@@ -48,7 +50,13 @@ const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
   return (
     <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
       <BinaryCPBar question={question as QuestionWithNumericForecasts} />
-      <QuestionCPMovement question={question} unit={"%"} boldValueUnit={true} />
+      {!hideCP && (
+        <QuestionCPMovement
+          question={question}
+          unit={"%"}
+          boldValueUnit={true}
+        />
+      )}
       {!isNil(forecastAvailability?.cpRevealsOn) && (
         <UpcomingCP
           cpRevealsOn={forecastAvailability.cpRevealsOn}
