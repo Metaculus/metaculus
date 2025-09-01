@@ -37,26 +37,31 @@ def test_create_comment__happy_path(post, user1):
 
 
 @pytest.mark.parametrize(
-    "target_username,mention,mention_label",
+    "target_username,comment_author_perms,mention,mention_label",
     [
-        ["user2", "user2", "you"],
-        ["user_admin", "admins", "admins"],
-        ["user_curator", "curators", "curators"],
-        ["user_curator", "moderators", "moderators"],
-        ["user_forecaster", "predictors", "predictors"],
+        ["user2", "admin", "user2", "you"],
+        ["user_admin", "admin", "admins", "admins"],
+        ["user_curator", "admin", "curators", "curators"],
+        ["user_curator", "admin", "moderators", "moderators"],
+        ["user_forecaster", "admin", "predictors", "predictors"],
+        ["user2", "forecaster", "user2", "you"],
+        ["user_admin", "forecaster", "admins", "admins"],
+        ["user_curator", "forecaster", "curators", "curators"],
+        ["user_curator", "forecaster", "moderators", "moderators"],
+        ["user_forecaster", "forecaster", "predictors", ""],
     ],
 )
 def test_notify_mentioned_users(
     mocker,
     user1,
-    user2,
+    user2,  # just make sure user2 exists
     question_binary,
     target_username,
+    comment_author_perms,
     mention,
     mention_label,
 ):
     user_admin = factory_user(username="user_admin")
-
     user_curator = factory_user(username="user_curator")
     user_forecaster = factory_user(username="user_forecaster")
 
@@ -68,6 +73,7 @@ def test_notify_mentioned_users(
             override_permissions={
                 user_admin.id: ObjectPermission.ADMIN,
                 user_curator.id: ObjectPermission.CURATOR,
+                user1.id: comment_author_perms,
             },
         ),
         question=question_binary,
@@ -81,6 +87,12 @@ def test_notify_mentioned_users(
     notify_mentioned_users(
         create_comment(user=user1, on_post=post, text=f"@{mention} How **are** you?")
     )
+    if not mention_label:
+        # If there's no mention label, there should be no email!
+        # This can happen if a user attempts to mention something they can't actually
+        # mention. Like a Forecaster trying to notify all predictors.
+        mock_send_email_with_template.assert_not_called()
+        return
 
     mock_send_email_with_template.assert_called()
 
