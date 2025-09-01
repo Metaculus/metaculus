@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             field=models.JSONField(
                 blank=True,
                 default=None,
-                help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
+                help_text="Custom JSON for HTML meta tags. Supported fields are: title, description",
                 null=True,
             ),
         ),
