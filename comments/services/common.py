@@ -32,7 +32,6 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
-
 from ..tasks import run_on_post_comment_create
 
 spam_error = ValidationError(
@@ -323,6 +322,25 @@ def update_top_comments_of_week(week_start_date: datetime.date):
             0.0,
             output_field=FloatField(),
         ),
+        # Votes count across all related key factors
+        # Is not used by score calculation
+        key_factor_votes_count=Coalesce(
+            Subquery(
+                KeyFactorVote.objects.filter(
+                    key_factor__comment_id=OuterRef("pk"),
+                    created_at__lt=(
+                        F("key_factor__comment__created_at")
+                        + datetime.timedelta(days=7)
+                    ),
+                )
+                .values("key_factor__comment")
+                .annotate(total=Count("id"))
+                .values("total")[:1],
+                output_field=IntegerField(),
+            ),
+            0,
+            output_field=IntegerField(),
+        ),
     )
 
     stats = comments_of_week.aggregate(
@@ -353,6 +371,11 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 score=comment_score,
                 created_at=timezone.now(),
                 week_start_date=week_start_date,
+                # Store snapshot of comment counters
+                # for the moment of week entry creation
+                votes_score=comment.vote_score,
+                changed_my_mind_count=comment.changed_my_mind_count,
+                key_factor_votes_count=comment.key_factor_votes_count,
             )
         )
 
@@ -369,7 +392,14 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         top_18,
         update_conflicts=True,
         unique_fields=["comment"],
-        update_fields=["score", "created_at", "week_start_date"],
+        update_fields=[
+            "score",
+            "created_at",
+            "week_start_date",
+            "votes_score",
+            "changed_my_mind_count",
+            "key_factor_votes_count",
+        ],
     )
 
     # Remove entries for this week that are not in the top 18

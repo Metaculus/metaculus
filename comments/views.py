@@ -23,6 +23,7 @@ from comments.serializers import (
     serialize_comment,
     serialize_comment_many,
     CommentFilterSerializer,
+    serialize_comments_of_the_week_many,
 )
 from comments.services.common import (
     set_comment_excluded_from_week_top,
@@ -400,20 +401,7 @@ def comments_of_week_view(request: Request):
             excluded=False
         )[:6]
 
-    serialized_comments = serialize_comment_many(
-        [c.comment for c in top_comments_of_week_entries], with_key_factors=True
-    )
-    excluded_map = {c.comment.id: c.excluded for c in top_comments_of_week_entries}
-
-    return Response(
-        [
-            {
-                **c,
-                "excluded": excluded_map[c["id"]],
-            }
-            for c in serialized_comments
-        ]
-    )
+    return Response(serialize_comments_of_the_week_many(top_comments_of_week_entries))
 
 
 @api_view(["POST"])

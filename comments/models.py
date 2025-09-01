@@ -286,6 +286,11 @@ class CommentsOfTheWeekEntry(TimeStampedModel):
     score = models.FloatField(default=0)
     excluded = models.BooleanField(default=False)
 
+    # Snapshots of comment stats at the given point of time
+    votes_score = models.IntegerField(default=0, db_index=True, editable=False)
+    changed_my_mind_count = models.PositiveIntegerField(default=0, db_index=True, editable=False)
+    key_factor_votes_count = models.PositiveIntegerField(default=0, db_index=True, editable=False)
+
 
 class CommentsOfTheWeekNotification(TimeStampedModel):
     """

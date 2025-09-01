@@ -1,12 +1,12 @@
 from typing import Iterable
-from django.db.models import Count
 
+from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment, KeyFactor, KeyFactorVote
+from comments.models import Comment, KeyFactor, KeyFactorVote, CommentsOfTheWeekEntry
 from comments.services.key_factors import get_user_votes_for_key_factors
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
@@ -234,7 +234,7 @@ def serialize_key_factors_many(
     # Get original ordering of the comments
     ids = [p.pk for p in key_factors]
     qs = (
-        KeyFactor.objects.filter(pk__in=[c.pk for c in key_factors])
+        KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
         .select_related("comment__author")
         .annotate(votes_count=Count("votes"))
@@ -254,4 +254,36 @@ def serialize_key_factors_many(
     return [
         serialize_key_factor(key_factor, user_votes=user_votes_map.get(key_factor.id))
         for key_factor in objects
+    ]
+
+
+def serialize_comments_of_the_week_many(
+    entries: Iterable[CommentsOfTheWeekEntry],
+):
+    # Get original ordering of the comments
+    ids = [p.pk for p in entries]
+    qs = CommentsOfTheWeekEntry.objects.filter(pk__in=ids).select_related("comment")
+
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    comments_map = {
+        c["id"]: c
+        for c in serialize_comment_many(
+            [c.comment for c in objects], with_key_factors=True
+        )
+    }
+
+    return [
+        {
+            "score": entry.score,
+            "votes_score": entry.votes_score,
+            "changed_my_mind_count": entry.changed_my_mind_count,
+            "key_factor_votes_count": entry.key_factor_votes_count,
+            "excluded": entry.excluded,
+            # Comment data
+            "comment": comments_map[entry.comment_id],
+        }
+        for entry in objects
     ]
