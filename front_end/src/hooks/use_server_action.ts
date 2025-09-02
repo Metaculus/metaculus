@@ -19,10 +19,16 @@ export const useServerAction = <P extends unknown[], R>(
 
   const runAction = async (...args: P): Promise<R | undefined> => {
     startTransition(() => {
-      action(...args).then((data) => {
-        setResult(data);
-        setFinished(true);
-      });
+      action(...args)
+        .then((data) => {
+          setResult(data);
+        })
+        .catch((err) => {
+          console.error(err);
+        })
+        .finally(() => {
+          setFinished(true);
+        });
     });
 
     return new Promise((resolve) => {
