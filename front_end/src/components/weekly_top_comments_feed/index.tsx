@@ -44,11 +44,11 @@ const AwaitedWeeklyTopCommentsFeed: FC<{
     ServerProfileApi.getMyProfile(),
   ] as const;
 
-  const [commentsData, currentUser] = await Promise.all(requests);
+  const [commentEntries, currentUser] = await Promise.all(requests);
 
   return (
     <CommentsOfWeekContent
-      comments={commentsData}
+      entries={commentEntries}
       weekStartStr={startDateStr}
       currentUser={currentUser}
     />

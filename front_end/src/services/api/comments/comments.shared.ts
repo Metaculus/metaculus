@@ -2,7 +2,7 @@ import { ApiService } from "@/services/api/api_service";
 import {
   CommentType,
   KeyFactorVoteType,
-  CommentOfWeekType,
+  CommentOfWeekEntry,
 } from "@/types/comment";
 import { encodeQueryParams } from "@/utils/navigation";
 
@@ -77,8 +77,8 @@ class CommentsApi extends ApiService {
     return response;
   }
 
-  async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekType[]> {
-    return await this.get<CommentOfWeekType[]>(
+  async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekEntry[]> {
+    return await this.get<CommentOfWeekEntry[]>(
       `/comments/comments-of-week/?start_date=${start_date}`
     );
   }

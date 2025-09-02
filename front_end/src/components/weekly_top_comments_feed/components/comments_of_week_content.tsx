@@ -8,7 +8,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
-import { CommentOfWeekType } from "@/types/comment";
+import { CommentOfWeekEntry } from "@/types/comment";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
@@ -17,13 +17,13 @@ import HighlightedCommentCard from "./highlighted_comment_card";
 import WeekSelector from "./week_selector";
 
 type Props = {
-  comments: CommentOfWeekType[];
+  entries: CommentOfWeekEntry[];
   weekStartStr: string;
   currentUser: CurrentUser | null;
 };
 
 const CommentsOfWeekContent: FC<Props> = ({
-  comments: initialComments,
+  entries: initialEntries,
   weekStartStr: initialWeekStart,
   currentUser,
 }) => {
@@ -31,8 +31,8 @@ const CommentsOfWeekContent: FC<Props> = ({
   const locale = useLocale();
 
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const [comments, setComments] =
-    useState<CommentOfWeekType[]>(initialComments);
+  const [commentEntries, setCommentEntries] =
+    useState<CommentOfWeekEntry[]>(initialEntries);
   const [weekStart, setWeekStart] = useState<Date>(
     parse(initialWeekStart, "yyyy-MM-dd", new Date())
   );
@@ -70,10 +70,10 @@ const CommentsOfWeekContent: FC<Props> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const newComments = await ClientCommentsApi.getCommentsOfWeek(
+      const newCommentEntries = await ClientCommentsApi.getCommentsOfWeek(
         format(weekStart, "yyyy-MM-dd")
       );
-      setComments(newComments);
+      setCommentEntries(newCommentEntries);
     } catch (err) {
       setError("Failed to load comments for this week");
       console.error("Error fetching comments:", err);
@@ -98,9 +98,9 @@ const CommentsOfWeekContent: FC<Props> = ({
   }, [startDateParam, fetchComments]);
 
   const onExcludeToggleFinished = (commentId: number, excluded: boolean) => {
-    setComments(
-      comments.map((comment) =>
-        comment.id === commentId ? { ...comment, excluded } : comment
+    setCommentEntries(
+      commentEntries.map((entry) =>
+        entry.comment.id === commentId ? { ...entry, excluded } : entry
       )
     );
   };
@@ -108,18 +108,18 @@ const CommentsOfWeekContent: FC<Props> = ({
   const commentsWithPlacements = useMemo(() => {
     const ret = [];
     let lastPlacement: number | null = null;
-    for (const comment of comments) {
-      const placement: number | null = comment.excluded
+    for (const entry of commentEntries) {
+      const placement: number | null = entry.excluded
         ? null
         : (lastPlacement ?? 0) + 1;
       lastPlacement = placement ?? lastPlacement;
       ret.push({
-        ...comment,
+        ...entry,
         placement,
       });
     }
     return ret;
-  }, [comments]);
+  }, [commentEntries]);
 
   return (
     <div className="mx-auto max-w-4xl px-1.5 md:px-0">
@@ -165,11 +165,11 @@ const CommentsOfWeekContent: FC<Props> = ({
 
       {!isLoading && !error && (
         <div className="space-y-4 pb-8">
-          {commentsWithPlacements.map((comment) => (
+          {commentsWithPlacements.map((commentEntry) => (
             <HighlightedCommentCard
-              key={comment.id}
-              comment={comment}
-              placement={comment.placement}
+              key={commentEntry.comment.id}
+              commentEntry={commentEntry}
+              placement={commentEntry.placement}
               currentUser={currentUser}
               onExcludeToggleFinished={onExcludeToggleFinished}
             />

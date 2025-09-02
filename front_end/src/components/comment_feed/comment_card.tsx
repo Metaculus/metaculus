@@ -23,6 +23,9 @@ import SquareArrowUpRight from "./SquareArrowUpRight";
 
 type Props = {
   comment: BECommentType;
+  votesScore: number;
+  changedMyMindCount: number;
+  keyFactorVotesScore: number;
   className?: string;
 };
 
@@ -126,7 +129,13 @@ const ExpandableCommentContent = ({
   );
 };
 
-const CommentCard: FC<Props> = ({ comment, className }) => {
+const CommentCard: FC<Props> = ({
+  comment,
+  className,
+  votesScore,
+  changedMyMindCount,
+  keyFactorVotesScore,
+}) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsExpand, setNeedsExpand] = useState(false);
@@ -162,9 +171,6 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
 
     return () => clearTimeout(timeoutId);
   }, [comment.text, comment.key_factors, HEIGHT_THRESHOLD, comment.id]);
-  const keyFactorsVotesCount =
-    comment.key_factors?.reduce((acc, factor) => acc + factor.votes_count, 0) ||
-    0;
 
   const handleGoToComment = () => {
     if (comment.on_post_data) {
@@ -211,29 +217,29 @@ const CommentCard: FC<Props> = ({ comment, className }) => {
         <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500-dark">
           <BottomStatContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
             <FontAwesomeIcon icon={faChevronUp} className={cn(``)} />
-            <span>{comment.vote_score}</span>
+            <span>{votesScore}</span>
             <FontAwesomeIcon icon={faChevronDown} className={cn(``)} />
           </BottomStatContainer>
 
-          {comment.changed_my_mind.count > 0 && (
+          {changedMyMindCount > 0 && (
             <BottomStatContainer className="leading-[114%]">
               <FontAwesomeIcon
                 icon={faCaretUp}
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
               />
-              <span>{comment.changed_my_mind.count} </span>
+              <span>{changedMyMindCount} </span>
               <span className="ml-1 hidden text-nowrap md:block">
                 {t("mindsChanged")}
               </span>
             </BottomStatContainer>
           )}
-          {comment.key_factors && comment.key_factors.length > 0 && (
+          {keyFactorVotesScore > 0 && (
             <BottomStatContainer className="leading-[114%]">
               <FontAwesomeIcon
                 icon={faDiagramProject}
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
               />
-              <span>{keyFactorsVotesCount}</span>
+              <span>{parseFloat(keyFactorVotesScore.toFixed(2))}</span>
               <span className="ml-1 hidden text-nowrap md:block">
                 {t("keyFactorImpact")}
               </span>
