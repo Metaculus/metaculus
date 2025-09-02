@@ -1,7 +1,9 @@
-import dramatiq
-from django.utils import timezone
 import logging
 from datetime import date, timedelta
+from typing import Union
+
+import dramatiq
+from django.utils import timezone
 
 from comments.models import Comment, CommentsOfTheWeekNotification
 from comments.services.notifications import (
@@ -9,7 +11,6 @@ from comments.services.notifications import (
     notify_weekly_top_comments_subscribers,
 )
 from posts.services.subscriptions import notify_new_comments
-
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,9 @@ def _get_week_start_for_date(today: date) -> date:
 
 
 @dramatiq.actor
-def job_finalize_and_send_weekly_top_comments(date_input, force_send: bool = False):
+def job_finalize_and_send_weekly_top_comments(
+    date_input: Union[date, str] = None, force_send: bool = False
+):
     # Import here to avoid circular imports
     from comments.services.common import update_top_comments_of_week
 
