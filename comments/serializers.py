@@ -280,7 +280,7 @@ def serialize_comments_of_the_week_many(
             "score": entry.score,
             "votes_score": entry.votes_score,
             "changed_my_mind_count": entry.changed_my_mind_count,
-            "key_factor_votes_count": entry.key_factor_votes_count,
+            "key_factor_votes_score": entry.key_factor_votes_score,
             "excluded": entry.excluded,
             # Comment data
             "comment": comments_map[entry.comment_id],
