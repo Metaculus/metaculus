@@ -10,14 +10,17 @@ from django.db.models import (
     Subquery,
     IntegerField,
     Count,
+    Avg,
+    FloatField,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Abs
 
 
 def backfill_votes_score(apps, schema_editor):
     # Historical models
     CommentsOfTheWeekEntry = apps.get_model("comments", "CommentsOfTheWeekEntry")
     CommentVote = apps.get_model("comments", "CommentVote")
+    KeyFactor = apps.get_model("comments", "KeyFactor")
     KeyFactorVote = apps.get_model("comments", "KeyFactorVote")
     ChangedMyMindEntry = apps.get_model("comments", "ChangedMyMindEntry")
 
@@ -50,22 +53,36 @@ def backfill_votes_score(apps, schema_editor):
             0,
             output_field=IntegerField(),
         ),
-        # TODO: double-check this one!
-        _key_factor_votes_count=Coalesce(
+        _key_factor_votes_score=Coalesce(
             Subquery(
-                KeyFactorVote.objects.filter(
-                    key_factor__comment_id=OuterRef("comment_id"),
-                    created_at__lt=(
-                        F("key_factor__comment__created_at") + timedelta(days=7)
-                    ),
+                KeyFactor.objects.filter(comment_id=OuterRef("comment_id"))
+                .annotate(
+                    avg_score=Coalesce(
+                        Subquery(
+                            KeyFactorVote.objects.filter(
+                                key_factor=OuterRef("pk"),
+                                created_at__lt=(
+                                    F("key_factor__comment__created_at")
+                                    + timedelta(days=7)
+                                ),
+                            )
+                            .exclude(user_id=OuterRef("comment__author_id"))
+                            .values("key_factor")
+                            .annotate(avg=Avg(Abs("score")))
+                            .values("avg")[:1],
+                            output_field=FloatField(),
+                        ),
+                        0.0,
+                        output_field=FloatField(),
+                    )
                 )
-                .values("key_factor__comment")
-                .annotate(total=Count("id"))
+                .values("comment")
+                .annotate(total=Sum("avg_score"))
                 .values("total")[:1],
-                output_field=IntegerField(),
+                output_field=FloatField(),
             ),
-            0,
-            output_field=IntegerField(),
+            0.0,
+            output_field=FloatField(),
         ),
     )
 
@@ -73,7 +90,7 @@ def backfill_votes_score(apps, schema_editor):
     qs.update(
         votes_score=F("_votes_score"),
         changed_my_mind_count=F("_changed_my_mind_count"),
-        key_factor_votes_count=F("_key_factor_votes_count"),
+        key_factor_votes_score=F("_key_factor_votes_score"),
     )
 
 
@@ -86,17 +103,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="commentsoftheweekentry",
             name="votes_score",
-            field=models.IntegerField(db_index=True, default=0, editable=False),
+            field=models.IntegerField(default=0, editable=False),
         ),
         migrations.AddField(
             model_name="commentsoftheweekentry",
             name="changed_my_mind_count",
-            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
+            field=models.PositiveIntegerField(default=0, editable=False),
         ),
         migrations.AddField(
             model_name="commentsoftheweekentry",
-            name="key_factor_votes_count",
-            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
+            name="key_factor_votes_score",
+            field=models.FloatField(default=0.0, editable=False),
         ),
         migrations.RunPython(
             backfill_votes_score, reverse_code=migrations.RunPython.noop

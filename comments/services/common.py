@@ -306,8 +306,8 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                                 created_at__lt=F("key_factor__comment__created_at")
                                 + datetime.timedelta(days=7),
                             ).exclude(user_id=OuterRef("comment__author_id"))
-                            # .values("key_factor")
-                            .annotate(avg=Avg("score")).values("avg")[:1],
+                            .values("key_factor")
+                            .annotate(avg=Avg(Abs("score"))).values("avg")[:1],
                             output_field=FloatField(),
                         ),
                         0.0,
@@ -315,31 +315,12 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                     )
                 )
                 .values("comment")
-                .annotate(total=Sum(Abs(F("avg_score"))))
+                .annotate(total=Sum("avg_score"))
                 .values("total")[:1],
                 output_field=FloatField(),
             ),
             0.0,
             output_field=FloatField(),
-        ),
-        # Votes count across all related key factors
-        # Is not used by score calculation
-        key_factor_votes_count=Coalesce(
-            Subquery(
-                KeyFactorVote.objects.filter(
-                    key_factor__comment_id=OuterRef("pk"),
-                    created_at__lt=(
-                        F("key_factor__comment__created_at")
-                        + datetime.timedelta(days=7)
-                    ),
-                )
-                .values("key_factor__comment")
-                .annotate(total=Count("id"))
-                .values("total")[:1],
-                output_field=IntegerField(),
-            ),
-            0,
-            output_field=IntegerField(),
         ),
     )
 
@@ -375,7 +356,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 # for the moment of week entry creation
                 votes_score=comment.vote_score,
                 changed_my_mind_count=comment.changed_my_mind_count,
-                key_factor_votes_count=comment.key_factor_votes_count,
+                key_factor_votes_score=comment.key_factor_votes_score,
             )
         )
 
@@ -398,7 +379,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
             "week_start_date",
             "votes_score",
             "changed_my_mind_count",
-            "key_factor_votes_count",
+            "key_factor_votes_score",
         ],
     )
 
