@@ -86,6 +86,14 @@ class Migration(migrations.Migration):
                         help_text="Color polarity: if on, higher values are good (green → right, red → left); if off, invert the colors",
                     ),
                 ),
+                (
+                    "max",
+                    models.SmallIntegerField(default=100, help_text="Y-axis max"),
+                ),
+                (
+                    "min",
+                    models.SmallIntegerField(default=-100, help_text="Y-axis min")
+                ),
             ],
             options={
                 "verbose_name": "Index",

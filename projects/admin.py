@@ -912,7 +912,7 @@ class ProjectIndexPostInline(admin.TabularInline):
 @admin.register(ProjectIndex)
 class ProjectIndexAdmin(admin.ModelAdmin):
     list_display = ["id", "type", "increasing_is_good"]
-    fields = ("type", "min_label", "max_label", "increasing_is_good")
+    fields = ("type", "min", "min_label", "max", "max_label", "increasing_is_good")
     inlines = [ProjectIndexPostInline]
 
     def get_model_perms(self, request):

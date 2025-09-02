@@ -509,11 +509,13 @@ class ProjectIndex(TimeStampedModel):
     type = models.CharField(
         max_length=32, choices=IndexType.choices, default=IndexType.DEFAULT
     )
+    min = models.SmallIntegerField(default=-100, help_text="Y-axis min")
     min_label = models.CharField(
         max_length=200,
         blank=True,
         help_text="Label at the minimum end of the scale (left). Example: “Less democratic”",
     )
+    max = models.SmallIntegerField(default=100, help_text="Y-axis max")
     max_label = models.CharField(
         max_length=200,
         blank=True,
