@@ -95,21 +95,38 @@ const MultiChoicesChartView: FC<Props> = ({
   }, [chartHeight]);
 
   const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
-  const leftChoices = useMemo(
-    () => choiceItems.slice(0, maxPrimary),
-    [choiceItems, maxPrimary]
-  );
-  const leftActiveCount = useMemo(
-    () => leftChoices.filter((c) => c.active).length,
-    [leftChoices]
-  );
-  const [othersVisible, setOthersVisible] = useState(true);
 
+  const normalizedInitRef = useRef(false);
   useEffect(() => {
-    if (leftActiveCount !== 1 && !othersVisible) {
-      setOthersVisible(true);
-    }
-  }, [leftActiveCount, othersVisible]);
+    if (normalizedInitRef.current) return;
+    if (!choiceItems.length) return;
+    const updated = choiceItems.map((it, idx) =>
+      idx >= maxPrimary ? { ...it, active: false } : it
+    );
+    const changed = updated.some(
+      (it, i) => it.active !== choiceItems[i]?.active
+    );
+    if (changed) onChoiceItemsUpdate(updated);
+    normalizedInitRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [choiceItems, maxPrimary, onChoiceItemsUpdate]);
+  const computeOthersVisible = useCallback(
+    (items: ChoiceItem[]) => {
+      const left = items.slice(0, maxPrimary);
+      const right = items.slice(maxPrimary);
+      const dropdown = [...left.filter((c) => !c.active), ...right];
+      if (dropdown.length === 0) return false; // nothing to aggregate
+      return dropdown.every((c) => c.active);
+    },
+    [maxPrimary]
+  );
+  const [othersVisible, setOthersVisible] = useState<boolean>(() =>
+    computeOthersVisible(choiceItems)
+  );
+  useEffect(() => {
+    const next = computeOthersVisible(choiceItems);
+    if (next !== othersVisible) setOthersVisible(next);
+  }, [choiceItems, computeOthersVisible, othersVisible]);
 
   const {
     isActive: isTooltipActive,
@@ -146,20 +163,34 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const toggleSelectAll = useCallback(
     (isAllSelected: boolean) => {
+      const left = choiceItems.slice(0, maxPrimary);
+      const leftInactive = new Set(
+        left.filter((c) => !c.active).map((c) => c.choice)
+      );
+      const rightChoices = new Set(
+        choiceItems.slice(maxPrimary).map((c) => c.choice)
+      );
+      const dropdownSet = new Set<string>([...leftInactive, ...rightChoices]);
+      const nextActive = !isAllSelected;
       onChoiceItemsUpdate(
         choiceItems.map((item) =>
-          isAllSelected
-            ? { ...item, active: false, highlighted: false }
-            : { ...item, active: true }
+          dropdownSet.has(item.choice)
+            ? { ...item, active: nextActive, highlighted: false }
+            : item
         )
       );
     },
-    [choiceItems, onChoiceItemsUpdate]
+    [choiceItems, maxPrimary, onChoiceItemsUpdate]
   );
 
   const chartChoiceItems = useMemo(
-    () => buildChartChoiceItems(choiceItems, embedMode, othersVisible),
-    [choiceItems, embedMode, othersVisible]
+    () => buildChartChoiceItems(choiceItems, embedMode),
+    [choiceItems, embedMode]
+  );
+
+  const totalActiveCount = useMemo(
+    () => choiceItems.filter((c) => c.active).length,
+    [choiceItems]
   );
 
   const singleActive = useMemo(
@@ -187,14 +218,18 @@ const MultiChoicesChartView: FC<Props> = ({
     (checked: boolean) => {
       setOthersVisible(checked);
 
-      const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
-      const updated = choiceItems.map((item, idx) =>
-        idx >= maxPrimary ? { ...item, active: checked } : item
-      );
-
+      const left = choiceItems.slice(0, maxPrimary);
+      const updated = choiceItems.map((item, idx) => {
+        const isRight = idx >= maxPrimary;
+        const isLeftInactive = idx < maxPrimary && !left[idx]?.active;
+        if (isRight || isLeftInactive) {
+          return { ...item, active: checked, highlighted: false };
+        }
+        return item;
+      });
       onChoiceItemsUpdate(updated);
     },
-    [choiceItems, onChoiceItemsUpdate, embedMode]
+    [choiceItems, onChoiceItemsUpdate, maxPrimary]
   );
 
   const commonChartProps = {
@@ -270,7 +305,7 @@ const MultiChoicesChartView: FC<Props> = ({
             maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
             othersToggle={othersVisible}
             onOthersToggle={handleOthersToggle}
-            othersDisabled={leftActiveCount !== 1}
+            othersDisabled={totalActiveCount !== 1}
           />
         </div>
       )}
@@ -325,19 +360,24 @@ function resolveDefaultZoom(
 
 function buildChartChoiceItems(
   all: ChoiceItem[],
-  embedMode: boolean,
-  othersVisible = true
+  embedMode: boolean
 ): ChoiceItem[] {
   const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
   const primary = all.slice(0, maxPrimary);
   const right = all.slice(maxPrimary);
-  if (right.length === 0 && primary.every((p) => p.active)) return all;
+  const series: ChoiceItem[] = [];
+  primary.forEach((p) => {
+    if (p.active) series.push(p);
+  });
+  right.forEach((r) => {
+    if (r.active) series.push(r);
+  });
 
-  const leftInactive = primary.filter((c) => !c.active);
-  const pool = [...right, ...leftInactive];
-  if (pool.length === 0) return all;
-
-  const leftInactiveSet = new Set(leftInactive.map((c) => c.choice));
+  const pool = [
+    ...primary.filter((p) => !p.active),
+    ...right.filter((r) => !r.active),
+  ];
+  if (pool.length === 0) return series.length ? series : primary;
 
   const aggTs = pool[0]?.aggregationTimestamps ?? [];
   const userTs = pool[0]?.userTimestamps ?? [];
@@ -355,29 +395,17 @@ function buildChartChoiceItems(
   };
 
   const aggregationValues = aggTs.map((_, i) =>
-    sumNullable(
-      pool.map((o) =>
-        o.active || leftInactiveSet.has(o.choice) ? o.aggregationValues[i] : 0
-      )
-    )
+    sumNullable(pool.map((o) => o.aggregationValues[i]))
   );
-
   const userValues = userTs.map((_, i) =>
-    sumNullable(
-      pool.map((o) =>
-        o.active || leftInactiveSet.has(o.choice) ? o.userValues[i] : 0
-      )
-    )
+    sumNullable(pool.map((o) => o.userValues[i]))
   );
 
-  const anyIncluded = pool.some(
-    (o) => o.active || leftInactiveSet.has(o.choice)
-  );
-
+  const anyIncluded = pool.length > 0;
   const othersItem = {
     choice: "Others",
     color: METAC_COLORS.gray["400"],
-    active: anyIncluded && othersVisible,
+    active: anyIncluded,
     highlighted: false,
     aggregationTimestamps: aggTs,
     aggregationValues,
@@ -385,7 +413,7 @@ function buildChartChoiceItems(
     userValues,
   } as unknown as ChoiceItem;
 
-  return [...primary, othersItem];
+  return [...series, othersItem];
 }
 
 function getSingleActive(all: ChoiceItem[]): ChoiceItem | null {

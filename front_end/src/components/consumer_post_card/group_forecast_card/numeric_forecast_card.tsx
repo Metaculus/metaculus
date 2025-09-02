@@ -1,6 +1,8 @@
+"use client";
+
 import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
@@ -21,6 +23,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
   const t = useTranslations();
+  const [expanded, setExpanded] = useState(false);
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
@@ -34,6 +37,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
       shortBounds: true,
     }
   );
+
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
     const aResolved = !isNil(a.resolution);
@@ -45,8 +49,11 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   });
 
   const isPostClosed = post.status === PostStatus.CLOSED;
-  const visibleChoices = sortedChoices.slice(0, visibleChoicesCount);
-  const otherItemsCount = sortedChoices.length - visibleChoices.length;
+
+  const visibleChoices = expanded
+    ? sortedChoices
+    : sortedChoices.slice(0, visibleChoicesCount);
+
   const scaledValues = [...sortedChoices]
     .filter((choice) => isNil(choice.resolution))
     .map(({ aggregationValues, scaling }) =>
@@ -63,7 +70,14 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const minScaledValue = Math.min(...scaledValues);
 
   return (
-    <ForecastCardWrapper otherItemsCount={otherItemsCount}>
+    <ForecastCardWrapper
+      otherItemsCount={
+        expanded ? 0 : Math.max(0, sortedChoices.length - visibleChoicesCount)
+      }
+      expanded={expanded}
+      onExpand={() => setExpanded(true)}
+      hideOthersValue
+    >
       {visibleChoices.map(
         ({
           closeTime,

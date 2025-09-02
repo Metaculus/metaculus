@@ -2,7 +2,6 @@
 import {
   autoUpdate,
   flip,
-  FloatingPortal,
   limitShift,
   offset,
   Placement,
@@ -14,6 +13,7 @@ import {
   useHover,
   useInteractions,
   useRole,
+  FloatingPortal,
 } from "@floating-ui/react";
 import { FC, PropsWithChildren, ReactNode, useState } from "react";
 
@@ -25,6 +25,7 @@ type Props = {
   tooltipClassName?: string;
   showDelayMs?: number;
   placement?: Placement;
+  renderInPortal?: boolean;
 };
 
 const Tooltip: FC<PropsWithChildren<Props>> = ({
@@ -34,6 +35,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
   className,
   tooltipClassName,
   children,
+  renderInPortal = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { refs, floatingStyles, context } = useFloating({
@@ -61,35 +63,37 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
     role,
   ]);
 
-  return (
-    <>
-      <div
-        className={cn("inline-block", className)}
-        tabIndex={0}
-        ref={refs.setReference}
-        {...getReferenceProps()}
-      >
-        {children}
-      </div>
-
-      {isOpen && (
-        <FloatingPortal>
-          <div
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.preventDefault()}
-            className={cn(
-              "z-10 w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md",
-              tooltipClassName
-            )}
-            ref={refs.setFloating}
-            style={floatingStyles}
-            {...getFloatingProps()}
-          >
-            {tooltipContent}
-          </div>
-        </FloatingPortal>
+  const TooltipNode = (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.preventDefault()}
+      className={cn(
+        "z-10 w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md",
+        tooltipClassName
       )}
-    </>
+      ref={refs.setFloating}
+      style={floatingStyles}
+      {...getFloatingProps()}
+    >
+      {tooltipContent}
+    </div>
+  );
+
+  return (
+    <div
+      className={cn("relative inline-block", className)}
+      tabIndex={0}
+      ref={refs.setReference}
+      {...getReferenceProps()}
+    >
+      {children}
+      {isOpen &&
+        (renderInPortal ? (
+          <FloatingPortal>{TooltipNode}</FloatingPortal>
+        ) : (
+          TooltipNode
+        ))}
+    </div>
   );
 };
 

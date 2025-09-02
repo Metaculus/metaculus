@@ -18,7 +18,7 @@ import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-const MAX_VISIBLE_CHECKBOXES = 6;
+const MAX_VISIBLE_CHECKBOXES = 3;
 
 const generateList = (question: QuestionWithMultipleChoiceForecasts) =>
   generateChoiceItemsFromMultipleChoiceForecast(question, {
