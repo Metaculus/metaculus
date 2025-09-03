@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getBinaryGaugeColors } from "@/utils/colors/binary_gauge_colors";
@@ -15,6 +16,7 @@ type Props = {
 
 const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
+  const { hideCP } = useHideCP();
 
   const questionCP =
     question.aggregations[question.default_aggregation_method]?.latest
@@ -25,7 +27,11 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   }
 
   const isClosed = question.status === QuestionStatus.CLOSED;
-  const cpPercentage = Math.round((questionCP ?? 0) * 1000) / 10;
+
+  const cpPercentage =
+    !hideCP && !isNil(questionCP)
+      ? Math.round((questionCP as number) * 1000) / 10
+      : null;
 
   const width = 112;
   const height = 66;
@@ -42,21 +48,25 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
     center,
     radius,
   });
-  const progressArc = describeArc({
-    percentage: cpPercentage,
-    isLargerFlag: cpPercentage > 90 ? 1 : 0,
-    arcAngle,
-    center,
-    radius,
-  });
+
+  const progressArc =
+    cpPercentage && cpPercentage > 0
+      ? describeArc({
+          percentage: cpPercentage,
+          isLargerFlag: cpPercentage > 90 ? 1 : 0,
+          arcAngle,
+          center,
+          radius,
+        })
+      : null;
 
   const { textClass, strokeClass, hex } = getBinaryGaugeColors(
-    cpPercentage,
-    isClosed || isNil(questionCP)
+    cpPercentage ?? 0,
+    isClosed || isNil(questionCP) || hideCP
   );
 
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
-  const endAngle = startAngle + (cpPercentage / 100) * arcAngle;
+  const endAngle = startAngle + ((cpPercentage ?? 0) / 100) * arcAngle;
   const gradientStartX = center.x + radius * Math.cos(startAngle);
   const gradientStartY = center.y + radius * Math.sin(startAngle);
   const gradientEndX = center.x + radius * Math.cos(endAngle);
@@ -69,7 +79,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         {
           "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
-          "scale-[1.25] mb-4": size === "lg",
+          "mb-4 scale-[1.25]": size === "lg",
         },
         className
       )}
@@ -86,7 +96,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           >
             <stop offset="0%" stopColor={hex} stopOpacity="0" />
             <stop
-              offset={`${Math.min(100, (cpPercentage / 15) * 100)}%`}
+              offset={`${Math.min(100, ((cpPercentage ?? 0) / 15) * 100)}%`}
               stopColor={hex}
               stopOpacity="1"
             />
@@ -104,15 +114,17 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         />
 
         {/* Progress arc */}
-        <path
-          d={progressArc.path}
-          fill="none"
-          stroke={`url(#progressGradient-${question.id}-${size})`}
-          strokeWidth={strokeWidth}
-        />
+        {progressArc && (
+          <path
+            d={progressArc.path}
+            fill="none"
+            stroke={`url(#progressGradient-${question.id}-${size})`}
+            strokeWidth={strokeWidth}
+          />
+        )}
 
         {/* Tick marker */}
-        {cpPercentage > 0 && (
+        {progressArc && (
           <line
             x1={
               progressArc.endPoint.x -
@@ -143,7 +155,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         )}
       >
         <span className="text-xl font-bold leading-8">
-          {!isNil(questionCP) && cpPercentage}%
+          {cpPercentage != null ? `${cpPercentage}%` : "%"}
         </span>
         <span className="text-xs font-normal uppercase leading-none">
           {t("chance")}
