@@ -3,11 +3,11 @@
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  Row,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  Row,
   useReactTable,
 } from "@tanstack/react-table";
 import { isNil } from "lodash";
@@ -23,7 +23,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@/components/ui/table";
-import useScreenSize from "@/hooks/use_screen_size";
+import { useBreakpoint } from "@/hooks/tailwind";
 import { PostWithForecasts } from "@/types/post";
 import { ProjectIndexWeights } from "@/types/projects";
 import cn from "@/utils/core/cn";
@@ -61,8 +61,7 @@ const IndexQuestionsTable: FC<Props> = ({
   const data = useMemo(() => getTableData(indexWeights), [indexWeights]);
   const questionsCount = data.length;
 
-  const { width } = useScreenSize();
-  const isLargeScreen = width >= 768;
+  const isLargeScreen = useBreakpoint("md");
 
   const columns = useMemo(() => {
     if (!isLargeScreen) {
