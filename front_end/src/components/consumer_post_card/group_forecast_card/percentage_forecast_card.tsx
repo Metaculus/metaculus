@@ -29,6 +29,13 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
 
+  const isMC = isMultipleChoicePost(post);
+  const isGroupBinary =
+    isGroupOfQuestionsPost(post) &&
+    post.group_of_questions?.questions?.every(
+      (q) => q.type === QuestionType.Binary
+    );
+
   const allChoices = useMemo(() => {
     const raw = generateChoiceItems(post, visibleChoicesCount, locale);
     return raw.map((choice) => {
@@ -59,7 +66,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
     });
   }, [post, locale, t]);
 
-  if (!isMultipleChoicePost(post) && !isGroupOfQuestionsPost(post)) return null;
+  if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 
   const isPostClosed = post.status === PostStatus.CLOSED;
 
@@ -68,10 +75,10 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
     : allChoices.slice(0, visibleChoicesCount);
   const hidden = expanded ? [] : allChoices.slice(visibleChoicesCount);
 
-  const othersTotal = Math.max(
-    0,
-    Math.min(100, Math.round(hidden.reduce((sum, c) => sum + c.percent, 0)))
-  );
+  const visibleSumMC = visible.reduce((s, c) => s + c.percent, 0);
+  const othersTotal = isMC
+    ? Math.max(0, Math.min(100, 100 - Math.round(visibleSumMC)))
+    : 0;
 
   return (
     <ForecastCardWrapper
@@ -79,6 +86,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
       othersTotal={othersTotal}
       expanded={expanded}
       onExpand={() => setExpanded(true)}
+      hideOthersValue={isGroupBinary}
     >
       {visible.map((choice) => (
         <ForecastChoiceBar

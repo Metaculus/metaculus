@@ -681,16 +681,7 @@ export function generateScale({
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
     const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
-    minorTicks = forceTickCount
-      ? Array.from(
-          { length: forceTickCount },
-          (_, i) =>
-            zoomedDomainMin +
-            (i * ((zoomedDomainMax - zoomedDomainMin) * 10000)) /
-              (forceTickCount - 1) /
-              10000
-        )
-      : majorTicks.map((x) => x);
+    minorTicks = majorTicks.slice();
     range(0, bestTicks.length - 1).forEach((i) => {
       const prevMajor = bestTicks.at(i) ?? 0;
       const nextMajor = bestTicks.at(i + 1) ?? 1;

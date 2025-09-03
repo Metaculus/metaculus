@@ -266,6 +266,7 @@ const NumericChart: FC<Props> = ({
               style={{
                 fontFamily: LABEL_FONT_FAMILY,
               }}
+              isActive={isCursorActive}
             />
           </VictoryPortal>
         }
@@ -285,6 +286,7 @@ const NumericChart: FC<Props> = ({
     getThemeColor,
     handleCursorChange,
     nonInteractive,
+    isCursorActive,
   ]);
 
   const chartEvents = useMemo(() => {

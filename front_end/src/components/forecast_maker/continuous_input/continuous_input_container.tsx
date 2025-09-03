@@ -105,6 +105,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             <Tooltip
               showDelayMs={200}
               placement={"bottom"}
+              renderInPortal={false}
               tooltipContent={
                 (questionType === QuestionType.Discrete
                   ? "PMF (Probability Mass Function) shows how likely different specific outcomes are,"

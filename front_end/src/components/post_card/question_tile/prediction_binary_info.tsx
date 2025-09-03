@@ -3,6 +3,7 @@ import { FC } from "react";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionCPMovement from "@/components/cp_movement";
 import MyPredictionChip from "@/components/my_prediction_chip";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -29,6 +30,8 @@ const PredictionBinaryInfo: FC<Props> = ({
   cpMovementVariant = "message",
   size = "sm",
 }) => {
+  const { hideCP } = useHideCP();
+
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
     return renderResolutionStatus(question);
@@ -42,13 +45,15 @@ const PredictionBinaryInfo: FC<Props> = ({
         })}
       >
         <BinaryCPBar question={question} size={size} />
-        <QuestionCPMovement
-          question={question}
-          className={cn("mx-auto max-w-[110px] justify-center text-center")}
-          size={size === "sm" ? "xs" : "sm"}
-          boldValueUnit={true}
-          variant={cpMovementVariant}
-        />
+        {!hideCP && (
+          <QuestionCPMovement
+            question={question}
+            className={cn("mx-auto max-w-[110px] justify-center text-center")}
+            size={size === "sm" ? "xs" : "sm"}
+            boldValueUnit
+            variant={cpMovementVariant}
+          />
+        )}
       </div>
 
       {showMyPrediction &&
