@@ -265,7 +265,14 @@ def _get_index_data(
             ),
             0,
         )
-        timeline = timeline[: cutoff + 1]
+        # Take slice right before the cutoff date
+        timeline = timeline[:cutoff]
+        # Manually add resolution date segment
+        resolution_point: IndexPoint = {
+            "x": int(resolved_at.timestamp()),
+            "y": resolution_value,
+        }
+        timeline.append(resolution_point)
 
     return {
         "line": timeline,
