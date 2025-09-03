@@ -463,23 +463,23 @@ def resolve_question(
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
-                        conditional.question_yes.actual_close_time,
+                        conditional.question_yes.scheduled_close_time,
                     )
                     resolve_question(
                         conditional.question_no,
                         UnsuccessfulResolutionType.ANNULLED,
-                        conditional.question_no.actual_close_time,
+                        conditional.question_no.scheduled_close_time,
                     )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
-                        conditional.question_no.actual_close_time,
+                        conditional.question_no.scheduled_close_time,
                     )
                     resolve_question(
                         conditional.question_yes,
                         UnsuccessfulResolutionType.ANNULLED,
-                        conditional.question_yes.actual_close_time,
+                        conditional.question_yes.scheduled_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
@@ -515,13 +515,13 @@ def resolve_question(
                         resolve_question(
                             conditional.question_yes,
                             question.resolution,
-                            conditional.question_yes.actual_close_time,
+                            conditional.question_yes.scheduled_close_time,
                         )
                     if condition.resolution == "no":
                         resolve_question(
                             conditional.question_no,
                             question.resolution,
-                            conditional.question_no.actual_close_time,
+                            conditional.question_no.scheduled_close_time,
                         )
 
     post = question.get_post()
