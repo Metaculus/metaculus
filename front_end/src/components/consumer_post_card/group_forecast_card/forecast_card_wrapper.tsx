@@ -8,6 +8,7 @@ type Props = {
   othersTotal?: number;
   expanded?: boolean;
   onExpand?: () => void;
+  hideOthersValue?: boolean;
 };
 
 const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
@@ -15,6 +16,7 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
   othersTotal = 0,
   expanded = false,
   onExpand,
+  hideOthersValue = false,
   children,
 }) => {
   const t = useTranslations();
@@ -30,7 +32,7 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
           onClick={onExpand}
           aria-pressed={false}
           className={cn(
-            "group relative flex w-full items-center justify-between gap-3 rounded-[8px] px-[10px] py-1",
+            "group relative flex h-8 w-full items-center justify-between gap-3 rounded-[8px] px-[10px] py-1",
             "border border-blue-400 bg-white",
             "dark:border-blue-400-dark dark:bg-transparent"
           )}
@@ -52,9 +54,11 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
             {t("otherWithCount", { count: otherItemsCount })}
           </span>
 
-          <span className="ml-auto font-semibold text-gray-900 dark:text-gray-900-dark">
-            {Math.round(othersTotal)}%
-          </span>
+          {!hideOthersValue && (
+            <span className="ml-auto font-semibold text-gray-900 dark:text-gray-900-dark">
+              {Math.round(othersTotal)}%
+            </span>
+          )}
         </button>
       )}
     </div>

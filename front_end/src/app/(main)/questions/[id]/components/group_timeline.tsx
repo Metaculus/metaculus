@@ -68,7 +68,7 @@ const GroupTimeline: FC<Props> = ({
 
   preselectedQuestionId,
   hideCP,
-  maxVisibleCheckboxes = 6,
+  maxVisibleCheckboxes = 3,
 
   defaultZoom,
   chartHeight,
