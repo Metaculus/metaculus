@@ -42,8 +42,12 @@ export type CommentType = BECommentType & {
   children: CommentType[];
 };
 
-export type CommentOfWeekType = BECommentType & {
+export type CommentOfWeekEntry = {
+  votes_score: number;
+  changed_my_mind_count: number;
+  key_factor_votes_score: number;
   excluded: boolean;
+  comment: BECommentType;
 };
 
 export type ForecastType = {

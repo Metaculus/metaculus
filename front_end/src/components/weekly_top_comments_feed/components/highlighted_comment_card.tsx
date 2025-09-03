@@ -6,14 +6,14 @@ import { FC, useState } from "react";
 import { setExcludedFromWeekTopComments } from "@/app/(main)/questions/actions";
 import CommentCard from "@/components/comment_feed/comment_card";
 import Button from "@/components/ui/button";
-import { CommentOfWeekType } from "@/types/comment";
+import { CommentOfWeekEntry } from "@/types/comment";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 
 import Trophy from "./trophy";
 
 type Props = {
-  comment: CommentOfWeekType;
+  commentEntry: CommentOfWeekEntry;
   placement: number | null;
   currentUser: CurrentUser | null;
   onExcludeToggleFinished: (commentId: number, excluded: boolean) => void;
@@ -50,7 +50,13 @@ const getPlacementColor = (placement: number) => {
 };
 
 const HighlightedCommentCard: FC<Props> = ({
-  comment,
+  commentEntry: {
+    comment,
+    changed_my_mind_count,
+    excluded,
+    votes_score,
+    key_factor_votes_score,
+  },
   placement,
   currentUser,
   onExcludeToggleFinished,
@@ -88,8 +94,8 @@ const HighlightedCommentCard: FC<Props> = ({
 
     setIsExcluding(true);
     try {
-      await setExcludedFromWeekTopComments(comment.id, !comment.excluded);
-      onExcludeToggleFinished(comment.id, !comment.excluded);
+      await setExcludedFromWeekTopComments(comment.id, !excluded);
+      onExcludeToggleFinished(comment.id, !excluded);
     } catch (error) {
       console.error("Error excluding comment:", error);
     } finally {
@@ -127,7 +133,7 @@ const HighlightedCommentCard: FC<Props> = ({
           disabled={isProcessing}
           className="absolute right-4 top-4 z-10 rounded-full border border-gray-800 bg-white px-3 py-2 dark:border-gray-800-dark dark:bg-gray-0-dark"
         >
-          {comment.excluded ? t("unexclude") : t("exclude")}
+          {excluded ? t("unexclude") : t("exclude")}
         </Button>
       )}
 
@@ -148,6 +154,9 @@ const HighlightedCommentCard: FC<Props> = ({
 
       <CommentCard
         comment={comment}
+        changedMyMindCount={changed_my_mind_count}
+        keyFactorVotesScore={key_factor_votes_score}
+        votesScore={votes_score}
         className="mt-3 border-t border-gray-300  dark:border-gray-300-dark  md:mt-4"
       />
     </div>

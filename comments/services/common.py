@@ -32,7 +32,6 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
-
 from ..tasks import run_on_post_comment_create
 
 spam_error = ValidationError(
@@ -307,8 +306,8 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                                 created_at__lt=F("key_factor__comment__created_at")
                                 + datetime.timedelta(days=7),
                             ).exclude(user_id=OuterRef("comment__author_id"))
-                            # .values("key_factor")
-                            .annotate(avg=Avg("score")).values("avg")[:1],
+                            .values("key_factor")
+                            .annotate(avg=Avg(Abs("score"))).values("avg")[:1],
                             output_field=FloatField(),
                         ),
                         0.0,
@@ -316,7 +315,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                     )
                 )
                 .values("comment")
-                .annotate(total=Sum(Abs(F("avg_score"))))
+                .annotate(total=Sum("avg_score"))
                 .values("total")[:1],
                 output_field=FloatField(),
             ),
@@ -353,6 +352,11 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 score=comment_score,
                 created_at=timezone.now(),
                 week_start_date=week_start_date,
+                # Store snapshot of comment counters
+                # for the moment of week entry creation
+                votes_score=comment.vote_score,
+                changed_my_mind_count=comment.changed_my_mind_count,
+                key_factor_votes_score=comment.key_factor_votes_score,
             )
         )
 
@@ -369,7 +373,14 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         top_18,
         update_conflicts=True,
         unique_fields=["comment"],
-        update_fields=["score", "created_at", "week_start_date"],
+        update_fields=[
+            "score",
+            "created_at",
+            "week_start_date",
+            "votes_score",
+            "changed_my_mind_count",
+            "key_factor_votes_score",
+        ],
     )
 
     # Remove entries for this week that are not in the top 18
