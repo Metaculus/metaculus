@@ -17,7 +17,10 @@ import {
 import VerticalGradientArrow from "../vertical_legend_arrow";
 import IndexGauge from "./index_gauge";
 import IndexTimeline from "./index_timeline";
-import { getVerticalLegendProps } from "../../helpers/index_legend";
+import {
+  getIndexBounds,
+  getVerticalLegendProps,
+} from "../../helpers/index_legend";
 
 type YearTab = "overview" | string;
 
@@ -61,6 +64,7 @@ export default function IndexHeaderBlock({ tournament }: Props) {
   );
 
   const legend = getVerticalLegendProps(idx);
+  const { MIN, MAX } = getIndexBounds(idx ?? undefined);
 
   const seriesForTimeline: IndexSeries | null = useMemo(() => {
     if (hasMultiYear && !isOverview && isMultiYearIndexData(idx)) {
@@ -115,6 +119,7 @@ export default function IndexHeaderBlock({ tournament }: Props) {
               height={220}
               withTooltip={false}
               variant="index"
+              fixedYDomain={[MIN, MAX]}
             />
           </div>
         )}
@@ -127,6 +132,8 @@ export default function IndexHeaderBlock({ tournament }: Props) {
             minLabel={idx?.min_label ?? null}
             maxLabel={idx?.max_label ?? null}
             increasingIsGood={idx?.increasing_is_good ?? null}
+            min={idx?.min ?? null}
+            max={idx?.max ?? null}
           />
         )}
       </div>
@@ -134,20 +141,19 @@ export default function IndexHeaderBlock({ tournament }: Props) {
   );
 }
 
-const SCALING: Scaling = { range_min: -100, range_max: 100, zero_point: null };
-const MIN = SCALING.range_min ?? -100;
-const MAX = SCALING.range_max ?? 100;
-
-const clamp = (v: number) => Math.min(MAX, Math.max(MIN, v));
-const toInternal = (v: number) => {
-  const span = MAX - MIN || 1;
-  return (clamp(v) - MIN) / span;
-};
-
 export function buildOverviewFanOptions(
   data: MultiYearIndexData
 ): FanDatum[] | null {
   if (!data?.series_by_year) return null;
+
+  const { MIN, MAX } = getIndexBounds(data);
+  const SCALING: Scaling = { range_min: MIN, range_max: MAX, zero_point: null };
+
+  const clamp = (v: number) => Math.min(MAX, Math.max(MIN, v));
+  const toInternal = (v: number) => {
+    const span = MAX - MIN || 1;
+    return (clamp(v) - MIN) / span;
+  };
 
   const entries = Object.entries(data.series_by_year)
     .map(([year, s]) => {

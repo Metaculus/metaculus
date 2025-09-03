@@ -131,7 +131,9 @@ export enum BotLeaderboardStatus {
   BotsOnly = "bots_only",
 }
 
-type IndexBase = {
+export type IndexBase = {
+  min?: number | null;
+  max?: number | null;
   min_label?: string | null;
   max_label?: string | null;
   increasing_is_good?: boolean | null;

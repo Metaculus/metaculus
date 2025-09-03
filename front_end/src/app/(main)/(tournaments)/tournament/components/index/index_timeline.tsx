@@ -11,7 +11,10 @@ import {
   generateTimestampXScale,
 } from "@/utils/charts/axis";
 
-import { getVerticalLegendProps } from "../../helpers/index_legend";
+import {
+  getIndexBounds,
+  getVerticalLegendProps,
+} from "../../helpers/index_legend";
 import VerticalGradientArrow from "../vertical_legend_arrow";
 
 type Props = {
@@ -21,6 +24,8 @@ type Props = {
   minLabel?: string | null;
   maxLabel?: string | null;
   increasingIsGood?: boolean | null;
+  min?: number | null;
+  max?: number | null;
 };
 
 const IndexTimeline: FC<Props> = ({
@@ -30,14 +35,18 @@ const IndexTimeline: FC<Props> = ({
   minLabel,
   maxLabel,
   increasingIsGood,
+  min,
+  max,
 }) => {
   const buildChartData = useCallback(
     (width: number, zoom: TimelineChartZoomOption) =>
-      buildChart({ series, width, zoom }),
-    [series]
+      buildChart({ series, width, zoom, min, max }),
+    [series, min, max]
   );
 
   const legend = getVerticalLegendProps({
+    min,
+    max,
     min_label: minLabel,
     max_label: maxLabel,
     increasing_is_good: increasingIsGood,
@@ -86,12 +95,15 @@ function buildChart({
   series,
   width,
   zoom,
+  min,
+  max,
 }: {
   series: IndexSeries;
   width: number;
   zoom: TimelineChartZoomOption;
+  min?: number | null;
+  max?: number | null;
 }) {
-  const Y_DOMAIN_PADDING = 5;
   const linePoints = series.line;
   const timestamps = linePoints.map((p) => p.x as number);
   const earliestTimestamp = timestamps[0] ?? 0;
@@ -105,18 +117,34 @@ function buildChart({
     width
   );
 
+  const { MIN, MAX } = getIndexBounds({ min, max });
+  const yDomain = [MIN, MAX] as DomainTuple;
+
+  const ticks = makeTicks(MIN, MAX, 5);
+  const showPlus = MIN < 0 && MAX > 0;
+  const tickFormat = (tick: number) =>
+    showPlus && tick > 0 ? `+${formatTick(tick)}` : formatTick(tick);
+
   return {
     line: linePoints,
     area: [] as Area,
     points: [] as Line,
-    yDomain: [-100 - Y_DOMAIN_PADDING, 100 + Y_DOMAIN_PADDING] as DomainTuple,
-    yScale: {
-      ticks: [-100, -50, 0, 50, 100],
-      tickFormat: (tick: number) => (tick > 0 ? `+${tick}` : tick.toString()),
-    },
+    yDomain,
+    yScale: { ticks, tickFormat },
     xDomain,
     xScale,
   };
+}
+
+function makeTicks(min: number, max: number, count = 5): number[] {
+  if (count <= 1) return [min, max];
+  const step = (max - min) / (count - 1);
+  return Array.from({ length: count }, (_, i) => min + i * step);
+}
+
+function formatTick(v: number): string {
+  const isInt = Math.abs(v % 1) < 1e-9;
+  return isInt ? v.toFixed(0) : v.toFixed(1);
 }
 
 export default IndexTimeline;

@@ -4,8 +4,6 @@ import { FC } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { GREEN_R, NEUTRAL, RED_L } from "../constants/colors";
-
 type Props = {
   topLabel?: string;
   bottomLabel?: string;
@@ -20,9 +18,9 @@ type Props = {
 const VerticalGradientArrow: FC<Props> = ({
   topLabel = "-100",
   bottomLabel = "100",
-  fromColor = RED_L,
-  midColor = NEUTRAL,
-  toColor = GREEN_R,
+  fromColor,
+  midColor,
+  toColor,
   stemThickness = 4,
   headSize = 16,
   className,
