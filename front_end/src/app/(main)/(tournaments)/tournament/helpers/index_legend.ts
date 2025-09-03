@@ -1,21 +1,30 @@
-import { GREEN_R, NEUTRAL, RED_L } from "../constants/colors";
+import { IndexBase } from "@/types/projects";
 
-type IndexBase = {
-  min_label?: string | null;
-  max_label?: string | null;
-  increasing_is_good?: boolean | null;
-};
+const NEUTRAL = "#979A72";
+const RED_L = "#D58B80";
+const GREEN_R = "#66A566";
+
+export function getIndexBounds(base?: {
+  min?: number | null;
+  max?: number | null;
+}) {
+  let MIN = Number.isFinite(base?.min as number) ? (base?.min as number) : -100;
+  let MAX = Number.isFinite(base?.max as number) ? (base?.max as number) : 100;
+  if (MIN > MAX) [MIN, MAX] = [MAX, MIN];
+  return { MIN, MAX };
+}
 
 export function getVerticalLegendProps(base?: IndexBase | null) {
-  const minLabel = base?.min_label ? base?.min_label : "-100";
-  const maxLabel = base?.max_label ? base?.max_label : "100";
-
+  const { MIN, MAX } = getIndexBounds(base ?? undefined);
+  const minLabel = base?.min_label ?? String(MIN);
+  const maxLabel = base?.max_label ?? String(MAX);
   const highIsGood = !!base?.increasing_is_good;
+
   return {
-    topLabel: minLabel,
-    bottomLabel: maxLabel,
-    fromColor: highIsGood ? RED_L : GREEN_R,
+    topLabel: maxLabel,
+    bottomLabel: minLabel,
+    fromColor: highIsGood ? GREEN_R : RED_L,
     midColor: NEUTRAL,
-    toColor: highIsGood ? GREEN_R : RED_L,
+    toColor: highIsGood ? RED_L : GREEN_R,
   };
 }

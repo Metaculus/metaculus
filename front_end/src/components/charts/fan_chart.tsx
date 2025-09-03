@@ -78,6 +78,7 @@ type Props = {
   pointSize?: number;
   hideCP?: boolean;
   variant?: FanChartVariant;
+  fixedYDomain?: [number, number];
 };
 
 type NormalizedFanDatum = {
@@ -430,10 +431,12 @@ function buildChartData({
   options,
   height,
   forceTickCount,
+  fixedYDomain,
 }: {
   options: NormalizedFanDatum[];
   height: number;
   forceTickCount?: number;
+  fixedYDomain?: [number, number];
 }) {
   // we expect fan graph to be rendered only for group questions, that expect some options
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -513,20 +516,24 @@ function buildChartData({
     }
   }
 
-  const { originalYDomain, zoomedYDomain } = generateFanGraphYDomain({
+  const computed = generateFanGraphYDomain({
     communityArea,
     userArea,
     resolutionPoints,
     includeClosestBoundOnZoom: isBinaryGroup,
   });
+
+  const yDomain = fixedYDomain ?? computed.zoomedYDomain;
+  const domainForScale = fixedYDomain ?? computed.originalYDomain;
+
   const yScale = generateScale({
     displayType: groupType,
     axisLength: height,
     direction: "vertical",
-    scaling: scaling,
-    domain: originalYDomain,
+    scaling,
+    domain: domainForScale,
     forceTickCount,
-    zoomedDomain: zoomedYDomain,
+    zoomedDomain: yDomain,
   });
 
   return {
@@ -538,7 +545,7 @@ function buildChartData({
     userPoints,
     resolutionPoints,
     yScale,
-    yDomain: zoomedYDomain,
+    yDomain,
   };
 }
 
