@@ -14,7 +14,9 @@ import { FC, FormEvent, useCallback, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import SectionToggle from "@/components/ui/section_toggle";
 import Select from "@/components/ui/select";
+import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { SearchParams } from "@/types/navigation";
@@ -25,6 +27,16 @@ import { parseQuestionId } from "@/utils/questions/helpers";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
 import { AggregationMethodWithBots } from "../types";
+
+function sanitizeUserIds(input: string): number[] {
+  if (!input) return [];
+  return input
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => Number(s))
+    .filter((n) => Number.isInteger(n) && isFinite(n));
+}
 
 type Props = { searchParams: SearchParams };
 
@@ -56,6 +68,13 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [userIdsText, setUserIdsText] = useState<string>(
+    (Array.isArray(searchParams.user_ids)
+      ? searchParams.user_ids[0]
+      : searchParams.user_ids
+    )?.toString() || ""
+  );
 
   // clear subquestion options when post id input changes
   useEffect(() => {
@@ -146,6 +165,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         : {}),
     });
 
+    const cleanedIds = sanitizeUserIds(userIdsText);
+    if (cleanedIds.length) {
+      params.set("user_ids", cleanedIds.join(","));
+    }
+
     router.push(`/aggregation-explorer?${params.toString()}`);
   };
 
@@ -189,6 +213,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             onTabChange={setActiveTab}
             data={data}
             selectedSubQuestionOption={selectedSubQuestionOption}
+            additionalParams={{ userIdsText }}
           />
         </>
       );
@@ -266,6 +291,34 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             value={selectedSubQuestionOption}
             onChange={handleSubQuestionSelectChange}
           />
+          {user?.is_staff && (
+            // TODO: move "include bots" to here instead of in each tab
+            // user ids should only be avilable to staff or whitelisted users
+            // copy logic and parameters from the download data modal
+            <div className="mt-3">
+              <SectionToggle
+                title="Advanced options"
+                variant="light"
+                defaultOpen={!!userIdsText}
+              >
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-sm">
+                      User Ids (comma-separated integers). Will act as if these
+                      are the only participants.
+                    </label>
+                    <Input
+                      name="user_ids"
+                      type="text"
+                      value={userIdsText}
+                      onChange={(e) => setUserIdsText(e.target.value)}
+                      className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-2 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
+                    />
+                  </div>
+                </div>
+              </SectionToggle>
+            </div>
+          )}
           <Button
             variant="primary"
             type="submit"
