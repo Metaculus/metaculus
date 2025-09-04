@@ -69,7 +69,6 @@ const IndexGauge: FC<Props> = ({ tournament, barHeight = 8, year }) => {
     <div className="mb-12 mt-4 flex w-full flex-col gap-2 sm:mb-9 sm:mt-6">
       <div className="flex items-center justify-between text-sm font-medium text-gray-500 dark:text-gray-500-dark">
         <span>{leftLabel}</span>
-        <span className="relative">{t("baseline")}</span>
         <span>{rightLabel}</span>
       </div>
 
@@ -82,16 +81,6 @@ const IndexGauge: FC<Props> = ({ tournament, barHeight = 8, year }) => {
         <div
           className="absolute top-1/2 -translate-y-1/2 bg-blue-700 dark:bg-blue-700-dark"
           style={{ left: 0, width: CAP_W, height: CAP_H }}
-          aria-hidden
-        />
-        <div
-          className="absolute top-1/2 -translate-y-1/2 bg-blue-700 dark:bg-blue-700-dark"
-          style={{
-            left: "50%",
-            width: CAP_W,
-            height: CAP_H,
-            transform: "translate(-50%, -50%)",
-          }}
           aria-hidden
         />
         <div

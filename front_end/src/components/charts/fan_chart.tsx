@@ -104,6 +104,7 @@ const FanChart: FC<Props> = ({
   pointSize,
   hideCP,
   variant,
+  fixedYDomain,
 }) => {
   const effectiveVariant: FanChartVariant = variant ?? "default";
   const { ref: chartContainerRef, width: chartWidth } =
@@ -170,8 +171,9 @@ const FanChart: FC<Props> = ({
         options: optionsLike,
         height,
         forceTickCount: effectiveVariant === "index" ? 5 : undefined,
+        fixedYDomain,
       }),
-    [height, optionsLike, effectiveVariant]
+    [height, optionsLike, effectiveVariant, fixedYDomain]
   );
 
   const labels = adjustLabelsForDisplay(optionsLike, chartWidth, actualTheme);
@@ -468,6 +470,18 @@ function buildChartData({
 
   const scaling = getFanGraphScaling(options);
 
+  let fixedInternal: [number, number] | undefined;
+  if (fixedYDomain && scaling.range_min != null && scaling.range_max != null) {
+    const [a, b] = fixedYDomain;
+    fixedInternal = [
+      unscaleNominalLocation(a, scaling),
+      unscaleNominalLocation(b, scaling),
+    ] as [number, number];
+    const lo = Math.max(0, Math.min(fixedInternal[0], fixedInternal[1]));
+    const hi = Math.min(1, Math.max(fixedInternal[0], fixedInternal[1]));
+    fixedInternal = [lo, hi];
+  }
+
   for (const option of options) {
     if (option.communityQuartiles) {
       const {
@@ -523,8 +537,9 @@ function buildChartData({
     includeClosestBoundOnZoom: isBinaryGroup,
   });
 
-  const yDomain = fixedYDomain ?? computed.zoomedYDomain;
-  const domainForScale = fixedYDomain ?? computed.originalYDomain;
+  const yDomain = fixedInternal ?? computed.zoomedYDomain;
+  const domainForScale = fixedInternal ?? computed.originalYDomain;
+  const zoomForScale = fixedInternal ? undefined : yDomain;
 
   const yScale = generateScale({
     displayType: groupType,
@@ -533,7 +548,7 @@ function buildChartData({
     scaling,
     domain: domainForScale,
     forceTickCount,
-    zoomedDomain: yDomain,
+    zoomedDomain: zoomForScale,
   });
 
   return {
