@@ -18,6 +18,9 @@ type Props = {
   onTabChange: (activeTab: AggregationMethodWithBots) => void;
   data: QuestionWithForecasts | PostWithForecasts;
   selectedSubQuestionOption: number | string | null;
+  additionalParams?: {
+    userIdsText?: string; // Array of user IDs as a comma-separated string
+  };
 };
 
 export const AggregationWrapper: FC<Props> = ({
@@ -25,8 +28,10 @@ export const AggregationWrapper: FC<Props> = ({
   onTabChange,
   selectedSubQuestionOption,
   data,
+  additionalParams = {},
 }) => {
   const postId = "post_id" in data ? data.post_id : data.id;
+  const userIdsText = additionalParams.userIdsText;
   const [selectedAggregationMethods, setSelectedAggregationMethods] = useState<
     AggregationMethodWithBots[]
   >([]);
@@ -57,6 +62,7 @@ export const AggregationWrapper: FC<Props> = ({
           questionId: adjustedQuestionId,
           includeBots,
           aggregationMethods: aggregationMethod,
+          userIdsText,
         });
 
         const fetchedAggregationData = response.aggregations[aggregationMethod];

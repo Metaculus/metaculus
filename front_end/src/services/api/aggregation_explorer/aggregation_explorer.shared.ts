@@ -6,6 +6,7 @@ type AggregationExplorerParams = {
   questionId?: number | string | null;
   includeBots?: boolean;
   aggregationMethods?: string;
+  userIdsText?: string;
 };
 
 class AggregationExplorerApi extends ApiService {
@@ -15,6 +16,7 @@ class AggregationExplorerApi extends ApiService {
       question_id: params.questionId?.toString() || "",
       include_bots: params.includeBots?.toString() || "false",
       aggregation_methods: params.aggregationMethods || "",
+      user_ids: params.userIdsText || "",
     };
 
     const queryString = new URLSearchParams(queryParams).toString();
