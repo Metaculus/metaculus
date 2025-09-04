@@ -17,7 +17,7 @@ import {
   POST_STATUS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useScreenSize from "@/hooks/use_screen_size";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
@@ -39,8 +39,7 @@ const MainFeedFilters: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
 
-  const { width } = useScreenSize();
-  const isLargeScreen = width >= 768;
+  const isLargeScreen = useBreakpoint("md");
 
   const [projectFilters, setProjectFilters] = useState<
     TournamentPreview[] | undefined
