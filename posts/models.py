@@ -577,10 +577,13 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     scheduled_close_time = models.DateTimeField(
         null=True, blank=True, db_index=True, editable=False
     )
+    actual_close_time = models.DateTimeField(null=True, blank=True, editable=False)
     scheduled_resolve_time = models.DateTimeField(
         null=True, blank=True, db_index=True, editable=False
     )
-    actual_close_time = models.DateTimeField(null=True, blank=True, editable=False)
+    actual_resolve_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
     resolved = models.BooleanField(default=False, editable=False)
 
     embedding_vector = VectorField(
@@ -681,6 +684,18 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         else:
             self.actual_close_time = None
 
+    def set_actual_resolve_time(self):
+        questions = self.get_questions()
+        actual_resolve_time = None
+
+        if questions:
+            actual_resolve_times = [q.actual_resolve_time for q in questions]
+
+            if all(actual_resolve_times):
+                actual_resolve_time = max(actual_resolve_times)
+
+        self.actual_resolve_time = actual_resolve_time
+
     def set_resolved(self):
         if self.question:
             if self.question.resolution:
@@ -745,6 +760,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         self.set_scheduled_close_time()
         self.set_actual_close_time()
         self.set_scheduled_resolve_time()
+        self.set_actual_resolve_time()
         self.set_open_time()
         self.set_resolved()
         self.save()
