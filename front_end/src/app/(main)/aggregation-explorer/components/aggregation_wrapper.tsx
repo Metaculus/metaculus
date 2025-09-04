@@ -31,7 +31,6 @@ export const AggregationWrapper: FC<Props> = ({
   additionalParams = {},
 }) => {
   const postId = "post_id" in data ? data.post_id : data.id;
-  const userIdsText = additionalParams.userIdsText;
   const [selectedAggregationMethods, setSelectedAggregationMethods] = useState<
     AggregationMethodWithBots[]
   >([]);
@@ -62,7 +61,7 @@ export const AggregationWrapper: FC<Props> = ({
           questionId: adjustedQuestionId,
           includeBots,
           aggregationMethods: aggregationMethod,
-          userIdsText,
+          ...additionalParams,
         });
 
         const fetchedAggregationData = response.aggregations[aggregationMethod];

@@ -28,6 +28,16 @@ import { parseQuestionId } from "@/utils/questions/helpers";
 import { AggregationWrapper } from "./aggregation_wrapper";
 import { AggregationMethodWithBots } from "../types";
 
+function sanitizeUserIds(input: string): number[] {
+  if (!input) return [];
+  return input
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => Number(s))
+    .filter((n) => Number.isInteger(n) && isFinite(n));
+}
+
 type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
@@ -59,8 +69,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-
-  // Additional fields (only available to staff users)
   const [userIdsText, setUserIdsText] = useState<string>(
     (Array.isArray(searchParams.user_ids)
       ? searchParams.user_ids[0]
@@ -157,12 +165,9 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         : {}),
     });
 
-    // Append additional fields for staff users
-    if (user?.is_staff) {
-      const cleanedIds = sanitizeUserIds(userIdsText);
-      if (cleanedIds.length) {
-        params.set("user_ids", cleanedIds.join(","));
-      }
+    const cleanedIds = sanitizeUserIds(userIdsText);
+    if (cleanedIds.length) {
+      params.set("user_ids", cleanedIds.join(","));
     }
 
     router.push(`/aggregation-explorer?${params.toString()}`);
@@ -287,6 +292,9 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             onChange={handleSubQuestionSelectChange}
           />
           {user?.is_staff && (
+            // TODO: move "include bots" to here instead of in each tab
+            // user ids should only be avilable to staff or whitelisted users
+            // copy logic and parameters from the download data modal
             <div className="mt-3">
               <SectionToggle
                 title="Advanced options"
@@ -433,13 +441,3 @@ function shouldRenderAggregation(
 }
 
 export default Explorer;
-
-function sanitizeUserIds(input: string): number[] {
-  if (!input) return [];
-  return input
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-    .map((s) => Number(s))
-    .filter((n) => Number.isInteger(n) && isFinite(n));
-}
