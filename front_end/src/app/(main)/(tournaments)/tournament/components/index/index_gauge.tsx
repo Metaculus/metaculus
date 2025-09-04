@@ -102,6 +102,7 @@ const IndexGauge: FC<Props> = ({ tournament, barHeight = 8, year }) => {
 
           <div className="mt-0.5 text-xs">
             <PeriodMovement
+              highIsGood={highIsGood}
               direction={direction}
               message={
                 direction === MovementDirection.UNCHANGED ? (
