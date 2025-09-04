@@ -84,6 +84,8 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             </p>
           )}
 
+          {isFanGraph && <QuestionTimeline postData={postData} />}
+
           <QuestionActionButton postData={postData} />
         </div>
 
@@ -102,7 +104,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             </div>
           )}
 
-        <QuestionTimeline postData={postData} />
+        {!isFanGraph && <QuestionTimeline postData={postData} />}
       </div>
     </div>
   );

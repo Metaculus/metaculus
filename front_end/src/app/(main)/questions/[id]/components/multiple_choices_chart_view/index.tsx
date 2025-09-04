@@ -81,10 +81,10 @@ const MultiChoicesChartView: FC<Props> = ({
   const handleChartReady = useCallback(() => setIsChartReady(true), []);
   const t = useTranslations();
 
+  const isMC = questionType === QuestionType.MultipleChoice;
+
   const legendContainerRef = useRef<HTMLDivElement>(null);
-  const [normalizedChartHeight, setNormalizedChartHeight] = useState<
-    number | undefined
-  >();
+  const [normalizedChartHeight, setNormalizedChartHeight] = useState<number>();
   useEffect(() => {
     if (!legendContainerRef.current || !chartHeight) return;
     setNormalizedChartHeight(
@@ -95,9 +95,11 @@ const MultiChoicesChartView: FC<Props> = ({
   }, [chartHeight]);
 
   const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
+  const showOthersToggle = isMC && choiceItems.length > maxPrimary;
 
   const normalizedInitRef = useRef(false);
   useEffect(() => {
+    if (!isMC) return;
     if (normalizedInitRef.current) return;
     if (!choiceItems.length) return;
     const updated = choiceItems.map((it, idx) =>
@@ -109,24 +111,26 @@ const MultiChoicesChartView: FC<Props> = ({
     if (changed) onChoiceItemsUpdate(updated);
     normalizedInitRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [choiceItems, maxPrimary, onChoiceItemsUpdate]);
+  }, [isMC, choiceItems, maxPrimary, onChoiceItemsUpdate]);
   const computeOthersVisible = useCallback(
     (items: ChoiceItem[]) => {
+      if (!isMC || items.length <= maxPrimary) return false;
       const left = items.slice(0, maxPrimary);
       const right = items.slice(maxPrimary);
       const dropdown = [...left.filter((c) => !c.active), ...right];
-      if (dropdown.length === 0) return false; // nothing to aggregate
+      if (dropdown.length === 0) return false;
       return dropdown.every((c) => c.active);
     },
-    [maxPrimary]
+    [isMC, maxPrimary]
   );
   const [othersVisible, setOthersVisible] = useState<boolean>(() =>
     computeOthersVisible(choiceItems)
   );
   useEffect(() => {
+    if (!showOthersToggle) return;
     const next = computeOthersVisible(choiceItems);
     if (next !== othersVisible) setOthersVisible(next);
-  }, [choiceItems, computeOthersVisible, othersVisible]);
+  }, [showOthersToggle, choiceItems, computeOthersVisible, othersVisible]);
 
   const {
     isActive: isTooltipActive,
@@ -163,29 +167,45 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const toggleSelectAll = useCallback(
     (isAllSelected: boolean) => {
-      const left = choiceItems.slice(0, maxPrimary);
-      const leftInactive = new Set(
-        left.filter((c) => !c.active).map((c) => c.choice)
-      );
-      const rightChoices = new Set(
-        choiceItems.slice(maxPrimary).map((c) => c.choice)
-      );
-      const dropdownSet = new Set<string>([...leftInactive, ...rightChoices]);
-      const nextActive = !isAllSelected;
-      onChoiceItemsUpdate(
-        choiceItems.map((item) =>
-          dropdownSet.has(item.choice)
-            ? { ...item, active: nextActive, highlighted: false }
-            : item
-        )
-      );
+      if (isMC && choiceItems.length > maxPrimary) {
+        const left = choiceItems.slice(0, maxPrimary);
+        const leftInactive = new Set(
+          left.filter((c) => !c.active).map((c) => c.choice)
+        );
+        const rightChoices = new Set(
+          choiceItems.slice(maxPrimary).map((c) => c.choice)
+        );
+        const dropdownSet = new Set<string>([...leftInactive, ...rightChoices]);
+        const nextActive = !isAllSelected;
+        onChoiceItemsUpdate(
+          choiceItems.map((item) =>
+            dropdownSet.has(item.choice)
+              ? { ...item, active: nextActive, highlighted: false }
+              : item
+          )
+        );
+      } else {
+        if (isAllSelected) {
+          onChoiceItemsUpdate(
+            choiceItems.map((item) => ({
+              ...item,
+              active: false,
+              highlighted: false,
+            }))
+          );
+        } else {
+          onChoiceItemsUpdate(
+            choiceItems.map((item) => ({ ...item, active: true }))
+          );
+        }
+      }
     },
-    [choiceItems, maxPrimary, onChoiceItemsUpdate]
+    [isMC, choiceItems, maxPrimary, onChoiceItemsUpdate]
   );
 
   const chartChoiceItems = useMemo(
-    () => buildChartChoiceItems(choiceItems, embedMode),
-    [choiceItems, embedMode]
+    () => (isMC ? buildChartChoiceItems(choiceItems, embedMode) : choiceItems),
+    [isMC, choiceItems, embedMode]
   );
 
   const totalActiveCount = useMemo(
@@ -193,43 +213,27 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems]
   );
 
+  const canTimeline = isMC && totalActiveCount === 1;
+
+  const [timelineMode, setTimelineMode] = useState(false);
+
+  useEffect(() => {
+    if (!canTimeline && timelineMode) setTimelineMode(false);
+  }, [canTimeline, timelineMode]);
+
+  const useBinaryView = canTimeline && timelineMode;
+
   const singleActive = useMemo(
     () => getSingleActive(choiceItems),
     [choiceItems]
   );
-  const forceBinaryView =
-    questionType === QuestionType.MultipleChoice && singleActive !== null;
 
   const binaryChoiceItems = useMemo(
     () =>
       singleActive
-        ? [
-            {
-              ...singleActive,
-              color: singleActive.color,
-              highlighted: true,
-            },
-          ]
+        ? [{ ...singleActive, color: singleActive.color, highlighted: true }]
         : [],
     [singleActive]
-  );
-
-  const handleOthersToggle = useCallback(
-    (checked: boolean) => {
-      setOthersVisible(checked);
-
-      const left = choiceItems.slice(0, maxPrimary);
-      const updated = choiceItems.map((item, idx) => {
-        const isRight = idx >= maxPrimary;
-        const isLeftInactive = idx < maxPrimary && !left[idx]?.active;
-        if (isRight || isLeftInactive) {
-          return { ...item, active: checked, highlighted: false };
-        }
-        return item;
-      });
-      onChoiceItemsUpdate(updated);
-    },
-    [choiceItems, onChoiceItemsUpdate, maxPrimary]
   );
 
   const commonChartProps = {
@@ -263,7 +267,7 @@ const MultiChoicesChartView: FC<Props> = ({
         {...getReferenceProps()}
         className="relative"
       >
-        {forceBinaryView ? (
+        {useBinaryView ? (
           <GroupChart
             {...commonChartProps}
             cursorTimestamp={null}
@@ -274,7 +278,7 @@ const MultiChoicesChartView: FC<Props> = ({
             }
             choiceItems={binaryChoiceItems}
           />
-        ) : questionType === QuestionType.MultipleChoice ? (
+        ) : isMC ? (
           <MultipleChoiceChart
             {...commonChartProps}
             isEmbedded={embedMode}
@@ -296,16 +300,18 @@ const MultiChoicesChartView: FC<Props> = ({
       </div>
 
       {withLegend && (
-        <div className="mt-3 md:pl-2.5" ref={legendContainerRef}>
+        <div className="-ml-1 mt-3" ref={legendContainerRef}>
           <ChoicesLegend
             choices={choiceItems}
             onChoiceChange={handleChoiceChange}
             onChoiceHighlight={handleChoiceHighlight}
             onToggleAll={toggleSelectAll}
             maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
-            othersToggle={othersVisible}
-            onOthersToggle={handleOthersToggle}
-            othersDisabled={totalActiveCount !== 1}
+            othersToggle={showOthersToggle ? timelineMode : undefined}
+            onOthersToggle={showOthersToggle ? setTimelineMode : undefined}
+            othersDisabled={
+              showOthersToggle ? totalActiveCount !== 1 : undefined
+            }
           />
         </div>
       )}
@@ -401,11 +407,10 @@ function buildChartChoiceItems(
     sumNullable(pool.map((o) => o.userValues[i]))
   );
 
-  const anyIncluded = pool.length > 0;
   const othersItem = {
     choice: "Others",
     color: METAC_COLORS.gray["400"],
-    active: anyIncluded,
+    active: true,
     highlighted: false,
     aggregationTimestamps: aggTs,
     aggregationValues,
