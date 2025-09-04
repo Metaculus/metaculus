@@ -9,7 +9,6 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
-import IndexSection from "@/app/(main)/(tournaments)/tournament/components/index";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -20,12 +19,8 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import {
-  ProjectIndexWeights,
-  ProjectVisibility,
-  TournamentType,
-} from "@/types/projects";
+import { ProjectPermissions } from "@/types/post";
+import { ProjectVisibility, TournamentType } from "@/types/projects";
 import { getValidString } from "@/utils/formatters/string";
 import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -103,16 +98,6 @@ export default async function TournamentSlug(props: Props) {
     ? t("SeriesContents")
     : t("questions");
 
-  let indexWeights: ProjectIndexWeights[] = [];
-  const weightsMap = tournament.index_data?.weights ?? {};
-  const postIdKeys = Object.keys(weightsMap);
-
-  if (postIdKeys.length > 0) {
-    const ids = postIdKeys.map(Number);
-    const { results: posts } = await ServerPostsApi.getPostsWithCP({ ids });
-    indexWeights = buildIndexRowsFromPostsAndWeights(posts, weightsMap);
-  }
-
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
       {/* header block */}
@@ -174,14 +159,6 @@ export default async function TournamentSlug(props: Props) {
         <div>
           <HtmlContent content={tournament.description} />
 
-          {indexWeights.length > 0 &&
-            tournament.type === TournamentType.Index && (
-              <IndexSection
-                indexWeights={indexWeights}
-                tournament={tournament}
-              />
-            )}
-
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
               <ProjectLeaderboard
@@ -241,24 +218,4 @@ export default async function TournamentSlug(props: Props) {
         )}
     </main>
   );
-}
-
-function buildIndexRowsFromPostsAndWeights(
-  posts: PostWithForecasts[],
-  weightsByPostId: Record<string, number>
-): ProjectIndexWeights[] {
-  const rows: ProjectIndexWeights[] = [];
-
-  for (const post of posts) {
-    const w = weightsByPostId[String(post.id)];
-    if (w == null) continue;
-    let questionId: number | null = null;
-    if (post.question) {
-      questionId = post.question.id;
-    }
-    if (questionId != null) {
-      rows.push({ post, question_id: questionId, weight: w });
-    }
-  }
-  return rows;
 }

@@ -15,7 +15,6 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
@@ -343,8 +342,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=True, help_text="Enables new forecast flow for tournaments"
     )
 
-    objects = models.Manager.from_queryset(ProjectsQuerySet)()
-
     # Stored counters
     followers_count = models.PositiveIntegerField(
         default=0, db_index=True, editable=False
@@ -352,10 +349,17 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     forecasts_count = models.PositiveIntegerField(default=0, editable=False)
     forecasters_count = models.PositiveIntegerField(default=0, editable=False)
 
+    # Index Project Data
+    index = models.OneToOneField(
+        "ProjectIndex", models.SET_NULL, related_name="project", null=True, blank=True
+    )
+
     # Annotated fields
     posts_count: int = 0
     is_subscribed: bool = False
     user_permission: ObjectPermission = None
+
+    objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     class Meta:
         ordering = ("order",)
@@ -375,6 +379,15 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             raise ValueError(
                 "Primary leaderboard must be associated with this project."
             )
+
+        # Auto-create index object
+        if self.type == self.ProjectTypes.INDEX and not self.index_id:
+            self.index = ProjectIndex.objects.create()
+
+        # Delete index for non-index projects
+        if self.type != self.ProjectTypes.INDEX and self.index:
+            self.index.delete()
+            self.index = None
 
         super().save(*args, **kwargs)
         if (
@@ -488,20 +501,61 @@ class ProjectSubscription(TimeStampedModel):
         ]
 
 
-class ProjectIndexQuestion(TimeStampedModel):
+class ProjectIndex(TimeStampedModel):
+    class IndexType(models.TextChoices):
+        DEFAULT = "default"
+        MULTI_YEAR = "multi_year"
+
+    type = models.CharField(
+        max_length=32, choices=IndexType.choices, default=IndexType.DEFAULT
+    )
+    min = models.SmallIntegerField(default=-100, help_text="Y-axis min")
+    min_label = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Label at the minimum end of the scale (left). Example: “Less democratic”",
+    )
+    max = models.SmallIntegerField(default=100, help_text="Y-axis max")
+    max_label = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Label at the maximum end of the scale (right). Example: “More democratic”",
+    )
+    increasing_is_good = models.BooleanField(
+        default=True,
+        help_text=(
+            "Color polarity: if on, higher values are good (green → right, red → left); "
+            "if off, invert the colors"
+        ),
+    )
+
+    class Meta:
+        verbose_name = "Index"
+        verbose_name_plural = "Indexes"
+
+
+class ProjectIndexPost(TimeStampedModel):
     """
-    Index project question weights
+    Index project post weights
     """
 
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="index_questions"
+    index = models.ForeignKey(
+        ProjectIndex, on_delete=models.CASCADE, related_name="post_weights"
     )
-    question = models.ForeignKey(
-        Question,
+    post = models.ForeignKey(
+        "posts.Post",
         on_delete=models.CASCADE,
-        help_text="Index Post Question",
+        help_text="Index Post",
+        related_name="index_weights",
     )
-    weight = models.FloatField()
+    weight = models.FloatField(
+        help_text=(
+            "Weight of the post within the index. "
+            "If the post includes a group of questions, "
+            "the same weight will be applied to all subquestions."
+        ),
+        default=1.0,
+    )
 
     order = models.IntegerField(
         help_text="Will be displayed ordered by this field inside each section",
@@ -512,7 +566,20 @@ class ProjectIndexQuestion(TimeStampedModel):
         ordering = ("order",)
         constraints = [
             models.UniqueConstraint(
-                name="projectindexquestion_unique_project_question",
-                fields=["project", "question"],
+                name="projectindexpost_unique_project_question",
+                fields=["index", "post"],
             )
         ]
+
+    def save(self, *args, **kwargs):
+        # Always add index post to the project
+        if self.post.default_project_id != self.index.project.id:
+            self.post.projects.add(self.index.project)
+
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # On removal from index, also remove the post from the project
+        self.post.projects.remove(self.index.project)
+
+        return super().delete(*args, **kwargs)

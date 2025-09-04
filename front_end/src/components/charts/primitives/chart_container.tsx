@@ -12,10 +12,12 @@ type Props = {
   zoom?: TimelineChartZoomOption;
   onZoomChange?: (zoom: TimelineChartZoomOption) => void;
   chartTitle?: string;
+
+  leftLegend?: React.ReactNode;
 };
 
 const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
-  ({ height, zoom, onZoomChange, children, chartTitle }, ref) => {
+  ({ height, zoom, onZoomChange, children, chartTitle, leftLegend }, ref) => {
     const tabOptions = getChartZoomOptions();
     const [selectedIndex, setSelectedIndex] = useState(
       tabOptions.findIndex((option) => option.value === zoom)
@@ -71,13 +73,28 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
             )}
           </div>
         )}
-        <div ref={ref} style={{ height }} className="w-full">
-          {children}
-        </div>
+
+        {leftLegend ? (
+          <div
+            className="mt-3 grid w-full grid-cols-[auto_1fr] gap-4 sm:gap-6"
+            style={{ height }}
+          >
+            <div className="h-full self-start">
+              <div className="flex h-full items-center">{leftLegend}</div>
+            </div>
+
+            <div ref={ref} style={{ height }} className="w-full">
+              {children}
+            </div>
+          </div>
+        ) : (
+          <div ref={ref} style={{ height }} className="w-full">
+            {children}
+          </div>
+        )}
       </div>
     );
   }
 );
 ChartContainer.displayName = "ChartContainer";
-
 export default ChartContainer;

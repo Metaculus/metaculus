@@ -23,9 +23,10 @@ import QuestionTile from "./question_tile";
 type Props = {
   post: PostWithForecasts;
   forCommunityFeed?: boolean;
+  indexWeight?: number;
 };
 
-const PostCard: FC<Props> = ({ post, forCommunityFeed }) => {
+const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
   const { user } = useAuth();
   const hideCP =
     user?.hide_community_prediction &&
@@ -47,6 +48,7 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed }) => {
           borderVariant={internalPost.notebook ? "highlighted" : "regular"}
           borderColor={internalPost.notebook ? "purple" : "blue"}
           forCommunityFeed={forCommunityFeed}
+          indexWeight={indexWeight}
         >
           <HideCPProvider post={internalPost}>
             {isQuestionPost(internalPost) && (
