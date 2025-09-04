@@ -36,18 +36,19 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "relative flex flex-col items-center overflow-hidden rounded border no-underline @container",
+          "relative z-0 flex flex-col items-center overflow-hidden rounded border no-underline @container",
           isNotebook
             ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 dark:border-purple-400-dark/50  dark:bg-purple-100-dark/40"
             : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 dark:border-blue-400-dark dark:bg-gray-0-dark"
         )}
       >
-        <div className="z-10 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
+        <div className="flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
           <CommentStatus
             totalCount={post.comment_count ?? 0}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
             variant="gray"
+            className="z-[101]"
           />
           <ForecastersCounter forecasters={post.nr_forecasters} />
         </div>
@@ -70,7 +71,7 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
         </div>
         <Link
           href={getPostLink(post)}
-          className="absolute top-0 z-0 h-full w-full @container"
+          className="absolute top-0 z-100 h-full w-full @container"
         ></Link>
       </div>
     </div>
