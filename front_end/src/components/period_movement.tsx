@@ -10,21 +10,27 @@ type Props = {
   message: string | ReactNode;
   className?: string;
   iconClassName?: string;
+  highIsGood?: boolean;
 };
 
 const MovementIcon = ({
   direction,
   iconClassName,
+  highIsGood = true,
 }: {
   direction: MovementDirection;
   iconClassName?: string;
+  highIsGood?: boolean;
 }) => {
   switch (direction) {
     case MovementDirection.UP:
       return (
         <FontAwesomeIcon
           className={cn(
-            "mr-1 text-olive-700 dark:text-olive-700-dark",
+            "mr-1",
+            highIsGood
+              ? "text-olive-700 dark:text-olive-700-dark"
+              : "text-salmon-600 dark:text-salmon-600-dark",
             iconClassName
           )}
           icon={faArrowUp}
@@ -34,7 +40,10 @@ const MovementIcon = ({
       return (
         <FontAwesomeIcon
           className={cn(
-            "mr-1 text-salmon-600 dark:text-salmon-600-dark",
+            "mr-1",
+            highIsGood
+              ? "text-salmon-600 dark:text-salmon-600-dark"
+              : "text-olive-700 dark:text-olive-700-dark",
             iconClassName
           )}
           icon={faArrowDown}
@@ -52,16 +61,19 @@ const PeriodMovement: FC<Props> = ({
   message,
   className,
   iconClassName,
+  highIsGood,
 }) => {
   const noChange = !direction || direction == MovementDirection.UNCHANGED;
   return (
     <div className={cn("flex gap-1", className)}>
       <span
         className={cn("text-nowrap font-medium leading-4", {
-          "text-salmon-600 dark:text-salmon-600-dark":
-            direction === MovementDirection.DOWN,
-          "text-olive-700 dark:text-olive-700-dark":
-            direction == MovementDirection.UP,
+          "text-salmon-600 dark:text-salmon-600-dark": highIsGood
+            ? direction == MovementDirection.DOWN
+            : direction === MovementDirection.UP,
+          "text-olive-700 dark:text-olive-700-dark": highIsGood
+            ? direction === MovementDirection.UP
+            : direction == MovementDirection.DOWN,
           "text-gray-500 dark:text-gray-500-dark": ![
             MovementDirection.UP,
             MovementDirection.DOWN,
@@ -69,7 +81,11 @@ const PeriodMovement: FC<Props> = ({
         })}
       >
         {!noChange && (
-          <MovementIcon iconClassName={iconClassName} direction={direction} />
+          <MovementIcon
+            highIsGood={highIsGood}
+            iconClassName={iconClassName}
+            direction={direction}
+          />
         )}
         {message}
       </span>
