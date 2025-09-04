@@ -89,6 +89,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "actual_close_time",
             "scheduled_close_time",
             "scheduled_resolve_time",
+            "actual_resolve_time",
             "open_time",
             "nr_forecasters",
             "html_metadata_json",
