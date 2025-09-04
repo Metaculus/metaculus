@@ -134,7 +134,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
       );
       return {
         xDomain: [0, 1],
-        yDomain: [0.001, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
+        yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
     const xDomain: Tuple<number> = [
@@ -264,6 +264,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                   <VictoryArea
                     key={`area-${index}`}
                     data={chart.graphLine}
+                    y0={yDomain[0]}
                     style={{
                       data: {
                         fill: (() => {
@@ -295,6 +296,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                 <VictoryBar
                   key={`bar-${index}`}
                   data={chart.graphLine}
+                  y0={yDomain[0]}
                   style={{
                     data: {
                       fill: (() => {

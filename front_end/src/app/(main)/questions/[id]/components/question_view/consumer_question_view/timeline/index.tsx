@@ -1,7 +1,11 @@
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import { PostWithForecasts, QuestionStatus } from "@/types/post";
+import {
+  GroupOfQuestionsGraphType,
+  PostWithForecasts,
+  QuestionStatus,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
@@ -21,7 +25,14 @@ const QuestionTimeline: React.FC<Props> = ({
   className,
   hideTitle,
 }) => {
-  const wrapperClass = cn("mt-8 hidden sm:block", className);
+  const isFanGraph =
+    postData.group_of_questions?.graph_type ===
+    GroupOfQuestionsGraphType.FanGraph;
+  const wrapperClass = cn(
+    " hidden sm:block",
+    isFanGraph ? "mb-8" : "mt-8",
+    className
+  );
 
   if (isQuestionPost(postData)) {
     if (postData.question.status !== QuestionStatus.UPCOMING) {

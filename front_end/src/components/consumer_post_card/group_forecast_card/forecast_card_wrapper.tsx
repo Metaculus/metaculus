@@ -48,7 +48,14 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
               "group-hover:text-gray-800 dark:group-hover:text-gray-800-dark"
             )}
             style={{
-              width: `calc(${otherItemsCount}% + 2px)`,
+              width: (() => {
+                const hasPct =
+                  typeof othersTotal === "number" && !Number.isNaN(othersTotal);
+                const pct = hasPct
+                  ? Math.min(100, Math.max(0, othersTotal))
+                  : Math.min(100, Math.max(0, otherItemsCount));
+                return `calc(${pct}% + 2px)`;
+              })(),
             }}
           >
             {t("otherWithCount", { count: otherItemsCount })}

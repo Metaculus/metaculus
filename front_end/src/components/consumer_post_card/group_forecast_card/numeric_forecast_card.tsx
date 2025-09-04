@@ -9,7 +9,10 @@ import { QuestionType, Scaling } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { scaleInternalLocation } from "@/utils/math";
 import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  checkGroupOfQuestionsPostType,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
@@ -28,6 +31,8 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   if (!isGroupOfQuestionsPost(post)) {
     return null;
   }
+
+  const isDateGroup = checkGroupOfQuestionsPostType(post, QuestionType.Date);
 
   const choices = generateChoiceItemsFromGroupQuestions(
     post.group_of_questions,
@@ -102,7 +107,9 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
           const formattedChoiceValue = getPredictionDisplayValue(
             rawChoiceValue,
             {
-              questionType: QuestionType.Numeric,
+              questionType: isDateGroup
+                ? QuestionType.Date
+                : QuestionType.Numeric,
               scaling: normalizedScaling,
               actual_resolve_time: actual_resolve_time ?? null,
               emptyLabel: t("Upcoming"),
