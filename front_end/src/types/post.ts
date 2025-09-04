@@ -138,6 +138,7 @@ type BasePost = {
   actual_close_time: string;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
+  actual_resolve_time: string | null;
   open_time: string;
   vote: PostVote;
   nr_forecasters: number;

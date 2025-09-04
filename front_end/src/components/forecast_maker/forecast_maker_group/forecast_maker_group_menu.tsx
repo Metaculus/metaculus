@@ -212,12 +212,18 @@ const GroupQuestionInfo = ({ question }: { question: Question }) => {
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
           <span className="w-min text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
             {question.status === QuestionStatus.RESOLVED
-              ? t("resolves")
+              ? t("resolved")
               : t("scheduledResolution")}
             :
           </span>
           <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-            <LocalDaytime date={question.scheduled_resolve_time} />
+            <LocalDaytime
+              date={
+                (question.status === QuestionStatus.RESOLVED &&
+                  question.actual_resolve_time) ||
+                question.scheduled_resolve_time
+              }
+            />
           </span>
         </div>
 
