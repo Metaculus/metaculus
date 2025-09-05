@@ -39,15 +39,17 @@ type Props = {
 };
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
-  const tournament = await ServerProjectsApi.getTournament(params.slug);
+  const { slug } = await props.params;
+  const tournament = await ServerProjectsApi.getTournament(slug);
+  if (!tournament) return {};
 
-  if (!tournament) {
-    return {};
-  }
-  const parsedDescription = tournament.description
-    .replace(/<[^>]*>/g, "")
-    .split("\n")[0];
+  const raw = tournament.subtitle || tournament.description || "";
+  const parsedDescription =
+    raw.replace(/<[^>]*>/g, "").split("\n")[0] || defaultDescription;
+
+  const { PUBLIC_APP_URL } = getPublicSettings();
+
+  const img = `${PUBLIC_APP_URL}/og/tournament/${encodeURIComponent(slug)}/route?theme=light`;
 
   return {
     title:
@@ -56,14 +58,26 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       getValidString(tournament.html_metadata_json?.description) ??
       getValidString(parsedDescription) ??
       defaultDescription,
-    // Hide unlisted pages from search engines
+    openGraph: {
+      title: tournament.name,
+      description: parsedDescription,
+      images: [
+        {
+          url: img,
+          width: 1200,
+          height: 630,
+          alt: tournament.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: tournament.name,
+      description: parsedDescription,
+      images: [img],
+    },
     ...(tournament.visibility === ProjectVisibility.Unlisted
-      ? {
-          robots: {
-            index: false,
-            follow: false,
-          },
-        }
+      ? { robots: { index: false, follow: false } }
       : {}),
   };
 }
