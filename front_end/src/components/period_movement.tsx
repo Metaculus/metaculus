@@ -61,13 +61,13 @@ const PeriodMovement: FC<Props> = ({
   message,
   className,
   iconClassName,
-  highIsGood,
+  highIsGood = true,
 }) => {
   const noChange = !direction || direction == MovementDirection.UNCHANGED;
   return (
-    <div className={cn("flex gap-1", className)}>
+    <div className={cn("flex min-w-0 items-center gap-1", className)}>
       <span
-        className={cn("text-nowrap font-medium leading-4", {
+        className={cn("truncate font-medium leading-4", {
           "text-salmon-600 dark:text-salmon-600-dark": highIsGood
             ? direction == MovementDirection.DOWN
             : direction === MovementDirection.UP,
@@ -81,11 +81,13 @@ const PeriodMovement: FC<Props> = ({
         })}
       >
         {!noChange && (
-          <MovementIcon
-            highIsGood={highIsGood}
-            iconClassName={iconClassName}
-            direction={direction}
-          />
+          <span className="shrink-0">
+            <MovementIcon
+              highIsGood={highIsGood}
+              iconClassName={iconClassName}
+              direction={direction}
+            />
+          </span>
         )}
         {message}
       </span>

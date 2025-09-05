@@ -126,7 +126,7 @@ const PredictionChip: FC<Props> = ({
         {showWeeklyMovement && (
           <QuestionCPMovement
             question={question}
-            className="my-1 max-w-[110px]"
+            className="my-1 max-w-[140px] sm:max-w-[110px] md:max-w-[200px]"
           />
         )}
       </>
