@@ -147,8 +147,12 @@ def export_data_for_questions(
         questions_with_revealed_cp = questions.filter(
             Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
         )
-    if not aggregation_methods or (
-        aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
+    if not user_ids and (
+        not aggregation_methods
+        or (
+            aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
+            and minimize is True
+        )
     ):
         aggregate_forecasts: list[AggregateForecast] = list(
             AggregateForecast.objects.filter(
