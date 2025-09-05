@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useState } from "react";
 
 import ClientAggregationExplorerApi from "@/services/api/aggregation_explorer/aggregation_explorer.client";
 import { PostWithForecasts } from "@/types/post";
