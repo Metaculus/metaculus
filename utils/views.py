@@ -1,12 +1,11 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError, NotFound
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.request import Request
-
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from misc.models import WhitelistUser
 from posts.models import Post
@@ -18,9 +17,9 @@ from questions.models import Question
 from questions.serializers.common import serialize_question
 from users.models import User
 from utils.csv_utils import export_data_for_questions
-from utils.the_math.aggregations import get_aggregation_history
 from utils.serializers import DataGetRequestSerializer, DataPostRequestSerializer
 from utils.tasks import email_data_task
+from utils.the_math.aggregations import get_aggregation_history
 
 
 @api_view(["GET"])
@@ -101,7 +100,11 @@ def aggregation_explorer_api_view(request):
     )
 
     # Add forecasters count
-    data["forecasters_count"] = question.get_forecasters().count()
+    forecasters_qs = question.get_forecasters()
+    if user_ids:
+        forecasters_qs = forecasters_qs.filter(id__in=user_ids)
+
+    data["forecasters_count"] = forecasters_qs.count()
 
     return Response(data)
 

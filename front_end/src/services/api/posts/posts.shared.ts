@@ -195,7 +195,8 @@ class PostsApi extends ApiService {
     postId: number,
     subQuestionId?: number,
     aggregationMethods?: string,
-    includeBots?: boolean
+    includeBots?: boolean,
+    userIds?: number[]
   ): Promise<Blob> {
     const queryParams = encodeQueryParams({
       ...(subQuestionId ? { sub_question: subQuestionId } : {}),
@@ -203,6 +204,7 @@ class PostsApi extends ApiService {
         ? { aggregation_methods: aggregationMethods }
         : { aggregation_methods: "all" }),
       ...(includeBots !== undefined ? { include_bots: includeBots } : {}),
+      ...(userIds !== undefined ? { user_ids: userIds } : {}),
     });
 
     return await this.get<Blob>(
