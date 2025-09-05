@@ -20,7 +20,7 @@ info:
     
     <b>How to Authenticate</b>
     
-    You can see your current API token (or generate one) at your <a href="https://www.metaculus.com/accounts/settings/">settings</a> page, under the header "API Access".
+    You can see your current API token (or generate one) at your <a href="https://www.metaculus.com/accounts/settings/account/#api-access">settings</a> page, under the header "API Access".
     
     You can then add the token to your requests using the <i>Authorization</i> HTTP header. The token should be prefixed by the string literal "Token", with whitespace separating the two strings.
     

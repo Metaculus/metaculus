@@ -13,7 +13,7 @@ type Props = {
 };
 
 const ChoiceIcon: FC<Props> = ({
-  color = METAC_COLORS["mc-option"]["1"],
+  color = METAC_COLORS["gray"]["400"],
   className,
 }) => {
   const { getThemeColor } = useAppTheme();

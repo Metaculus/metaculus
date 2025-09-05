@@ -3,17 +3,18 @@ import { FC } from "react";
 
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
+import { AppTheme } from "@/types/theme";
 import cn from "@/utils/core/cn";
 
 const ThemeToggle: FC = () => {
   const mounted = useMounted();
 
-  const { theme, setTheme } = useAppTheme();
+  const { theme, isSyncing, setTheme } = useAppTheme();
   const switchTheme = () => {
     if (theme === "dark") {
-      setTheme("light");
+      setTheme(AppTheme.Light);
     } else {
-      setTheme("dark");
+      setTheme(AppTheme.Dark);
     }
   };
 
@@ -27,6 +28,9 @@ const ThemeToggle: FC = () => {
     <button
       className="group/theme relative inline-block h-[15px] w-[35px] min-w-[2rem] rounded-full border border-white focus:outline-none"
       onClick={switchTheme}
+      // Optimistic update
+      // But don't allow to click until values is synced with backend
+      disabled={isSyncing}
     >
       <span
         className={cn(

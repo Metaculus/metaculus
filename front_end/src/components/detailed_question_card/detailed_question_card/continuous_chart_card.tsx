@@ -3,11 +3,16 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
+import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
-import CPRevealTime from "@/components/cp_reveal_time";
+import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ForecastAvailability, Question, QuestionType } from "@/types/question";
+import {
+  ForecastAvailability,
+  QuestionType,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -16,15 +21,18 @@ import {
   getPredictionDisplayValue,
   getUserPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
-import { getPostDrivenTime } from "@/utils/questions/helpers";
-
-import CursorDetailItem from "./numeric_cursor_item";
+import {
+  getPostDrivenTime,
+  isContinuousQuestion,
+} from "@/utils/questions/helpers";
 
 type Props = {
-  question: Question;
+  question: QuestionWithNumericForecasts;
   hideCP?: boolean;
   nrForecasters?: number;
   forecastAvailability?: ForecastAvailability;
+  hideTitle?: boolean;
+  isConsumerView?: boolean;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -32,10 +40,12 @@ const DetailedContinuousChartCard: FC<Props> = ({
   hideCP,
   nrForecasters,
   forecastAvailability,
+  hideTitle,
+  isConsumerView: isConsumerViewProp,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-
+  const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
 
   const aggregation =
@@ -91,10 +101,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cpCursorElement = useMemo(() => {
-    if (forecastAvailability?.cpRevealsOn) {
-      return <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />;
-    }
-
     if (forecastAvailability?.isEmpty) {
       return t("noForecastsYet");
     }
@@ -106,14 +112,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
     const displayValue = getPredictionDisplayValue(cursorData?.center, {
       questionType: question.type,
       scaling: question.scaling,
-      range:
-        !isNil(cursorData?.interval_lower_bound) &&
-        !isNil(cursorData?.interval_upper_bound)
-          ? [
-              cursorData?.interval_lower_bound as number,
-              cursorData?.interval_upper_bound as number,
-            ]
-          : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
@@ -140,7 +138,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       timestamp: cursorData.timestamp,
       questionType: question.type,
       scaling: question.scaling,
-      showRange: true,
+      showRange: false,
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
@@ -164,6 +162,24 @@ const DetailedContinuousChartCard: FC<Props> = ({
     setIsChartReady(true);
   }, []);
 
+  const cursorTooltip = useMemo(() => {
+    return (
+      <QuestionPredictionTooltip
+        communityPrediction={cpCursorElement}
+        userPrediction={userCursorElement}
+        totalForecasters={cursorData.forecasterCount}
+        isConsumerView={isConsumerView}
+        questionStatus={question.status}
+      />
+    );
+  }, [
+    cpCursorElement,
+    userCursorElement,
+    cursorData.forecasterCount,
+    isConsumerView,
+    question.status,
+  ]);
+
   return (
     <div
       className={cn(
@@ -171,64 +187,145 @@ const DetailedContinuousChartCard: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <div className="relative">
-        <NumericTimeline
-          aggregation={
-            question.aggregations[question.default_aggregation_method]
-          }
-          myForecasts={question.my_forecasts}
-          resolution={question.resolution}
-          resolveTime={question.actual_resolve_time}
-          cursorTimestamp={cursorTimestamp}
-          onCursorChange={handleCursorChange}
-          onChartReady={handleChartReady}
-          questionType={question.type}
-          actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-          scaling={question.scaling}
-          defaultZoom={
-            user
-              ? TimelineChartZoomOption.All
-              : TimelineChartZoomOption.TwoMonths
-          }
-          withZoomPicker
-          hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
-          isEmptyDomain={
-            !!forecastAvailability?.isEmpty ||
-            !!forecastAvailability?.cpRevealsOn
-          }
-          openTime={getPostDrivenTime(question.open_time)}
-          unit={question.unit}
-          inboundOutcomeCount={question.inbound_outcome_count}
-          simplifiedCursor={question.type !== QuestionType.Binary}
-        />
-      </div>
-      <div
-        className={cn(
-          "my-3 flex flex-col items-center justify-center gap-x-4 gap-y-2 xs:flex-row xs:flex-wrap xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
-          { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
-        )}
-      >
-        <CursorDetailItem
-          title={
-            cursorTimestamp && !isCpHidden
-              ? t("activeForecastersLabel")
-              : t("totalForecastersLabel")
-          }
-          content={cursorData.forecasterCount.toString()}
-        />
-        <CursorDetailItem
-          title={t("communityPredictionLabel")}
-          content={cpCursorElement}
-          variant="prediction"
-        />
-        {!!question.my_forecasts?.history.length && (
-          <CursorDetailItem
-            title={t("myPrediction")}
-            content={userCursorElement}
-            variant="my-prediction"
+      {!isConsumerView ? (
+        <>
+          {/* Large screens: side-by-side layout */}
+          <div className="hidden items-stretch gap-4 md:flex">
+            {isContinuousQuestion(question) && (
+              <QuestionHeaderCPStatus
+                question={question}
+                size="lg"
+                hideLabel={true}
+              />
+            )}
+            <div className="relative flex-1">
+              <NumericTimeline
+                aggregation={
+                  question.aggregations[question.default_aggregation_method]
+                }
+                myForecasts={question.my_forecasts}
+                resolution={question.resolution}
+                resolveTime={question.actual_resolve_time}
+                cursorTimestamp={cursorTimestamp}
+                onCursorChange={handleCursorChange}
+                onChartReady={handleChartReady}
+                questionType={question.type}
+                questionStatus={question.status}
+                actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+                scaling={question.scaling}
+                defaultZoom={
+                  user
+                    ? TimelineChartZoomOption.All
+                    : TimelineChartZoomOption.TwoMonths
+                }
+                withZoomPicker
+                hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+                isEmptyDomain={
+                  !!forecastAvailability?.isEmpty ||
+                  !!forecastAvailability?.cpRevealsOn
+                }
+                openTime={getPostDrivenTime(question.open_time)}
+                unit={question.unit}
+                inboundOutcomeCount={question.inbound_outcome_count}
+                simplifiedCursor={
+                  question.type !== QuestionType.Binary || !user
+                }
+                title={hideTitle ? undefined : t("forecastTimelineHeading")}
+                forecastAvailability={forecastAvailability}
+                cursorTooltip={
+                  question.type === QuestionType.Binary && !user
+                    ? undefined
+                    : cursorTooltip
+                }
+                isConsumerView={isConsumerView}
+              />
+            </div>
+          </div>
+
+          {/* Small screens: timeline only (CP status shown in header) */}
+          <div className="relative md:hidden">
+            <NumericTimeline
+              aggregation={
+                question.aggregations[question.default_aggregation_method]
+              }
+              myForecasts={question.my_forecasts}
+              resolution={question.resolution}
+              resolveTime={question.actual_resolve_time}
+              cursorTimestamp={cursorTimestamp}
+              onCursorChange={handleCursorChange}
+              onChartReady={handleChartReady}
+              questionType={question.type}
+              questionStatus={question.status}
+              actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+              scaling={question.scaling}
+              defaultZoom={
+                user
+                  ? TimelineChartZoomOption.All
+                  : TimelineChartZoomOption.TwoMonths
+              }
+              withZoomPicker
+              hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+              isEmptyDomain={
+                !!forecastAvailability?.isEmpty ||
+                !!forecastAvailability?.cpRevealsOn
+              }
+              openTime={getPostDrivenTime(question.open_time)}
+              unit={question.unit}
+              inboundOutcomeCount={question.inbound_outcome_count}
+              simplifiedCursor={question.type !== QuestionType.Binary || !user}
+              title={hideTitle ? undefined : t("forecastTimelineHeading")}
+              forecastAvailability={forecastAvailability}
+              cursorTooltip={
+                question.type === QuestionType.Binary && !user
+                  ? undefined
+                  : cursorTooltip
+              }
+              isConsumerView={isConsumerView}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="relative">
+          <NumericTimeline
+            aggregation={
+              question.aggregations[question.default_aggregation_method]
+            }
+            myForecasts={question.my_forecasts}
+            resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
+            cursorTimestamp={cursorTimestamp}
+            onCursorChange={handleCursorChange}
+            onChartReady={handleChartReady}
+            questionType={question.type}
+            questionStatus={question.status}
+            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+            scaling={question.scaling}
+            defaultZoom={
+              user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
+            }
+            withZoomPicker
+            hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+            isEmptyDomain={
+              !!forecastAvailability?.isEmpty ||
+              !!forecastAvailability?.cpRevealsOn
+            }
+            openTime={getPostDrivenTime(question.open_time)}
+            unit={question.unit}
+            inboundOutcomeCount={question.inbound_outcome_count}
+            simplifiedCursor={question.type !== QuestionType.Binary || !user}
+            title={hideTitle ? undefined : t("forecastTimelineHeading")}
+            forecastAvailability={forecastAvailability}
+            cursorTooltip={
+              question.type === QuestionType.Binary && !user
+                ? undefined
+                : cursorTooltip
+            }
+            isConsumerView={isConsumerView}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

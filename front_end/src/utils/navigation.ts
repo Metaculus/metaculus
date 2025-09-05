@@ -7,6 +7,11 @@ import {
 } from "@/types/projects";
 import { Question } from "@/types/question";
 import { Optional } from "@/types/utils";
+import {
+  isConditionalPost,
+  isGroupOfQuestionsPost,
+  isNotebookPost,
+} from "@/utils/questions/helpers";
 
 type EncodableValue = string | number | boolean;
 
@@ -160,4 +165,18 @@ export const getWithDefaultHeader = (pathname: string): boolean =>
  */
 export const isPathEqual = (pathname: string, href: string) => {
   return pathname.replace(/\/+$/, "") === href.replace(/\/+$/, "");
+};
+
+export const getPostEditLink = (post: Post) => {
+  let edit_type = "question";
+
+  if (isGroupOfQuestionsPost(post)) {
+    edit_type = "group";
+  } else if (isConditionalPost(post)) {
+    edit_type = "conditional";
+  } else if (isNotebookPost(post)) {
+    edit_type = "notebook";
+  }
+
+  return `/questions/create/${edit_type}?post_id=${post.id}`;
 };

@@ -5,12 +5,14 @@ import cn from "@/utils/core/cn";
 type Props = {
   className?: string;
   textClassName?: string;
+  style?: React.CSSProperties;
 };
 
 const ChartOverflowContainer: FC<PropsWithChildren<Props>> = ({
   className,
   textClassName,
   children,
+  style,
 }) => {
   return (
     <div
@@ -18,6 +20,7 @@ const ChartOverflowContainer: FC<PropsWithChildren<Props>> = ({
         "absolute inset-0 flex items-center justify-center text-center",
         className
       )}
+      style={style}
     >
       <p
         className={cn(

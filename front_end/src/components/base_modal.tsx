@@ -12,6 +12,7 @@ type Props = {
   label?: string;
   onClose?: (isOpen: boolean) => void;
   className?: string;
+  dialogClassName?: string;
   closeButtonClassName?: string;
   isImmersive?: boolean;
   modalContentRef?: React.RefObject<HTMLDivElement | null>;
@@ -23,6 +24,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
   onClose = () => {},
   children,
   className,
+  dialogClassName,
   closeButtonClassName,
   isImmersive = false,
   modalContentRef,
@@ -43,7 +45,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-[201]"
+        className={cn("relative z-[201]", dialogClassName)}
         onClose={onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
       >

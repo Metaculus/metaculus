@@ -1,28 +1,38 @@
+"use client";
+
 import { isNil } from "lodash";
-import { useLocale } from "next-intl";
-import { FC } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { FC, useState } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { scaleInternalLocation } from "@/utils/math";
 import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  checkGroupOfQuestionsPostType,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import ForecastCardWrapper from "./forecast_card_wrapper";
 import ForecastChoiceBar from "./forecast_choice_bar";
 
 type Props = {
   post: PostWithForecasts;
+  forceColorful?: boolean;
 };
 
-const NumericForecastCard: FC<Props> = ({ post }) => {
+const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
+  const t = useTranslations();
+  const [expanded, setExpanded] = useState(false);
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
   }
+
+  const isDateGroup = checkGroupOfQuestionsPostType(post, QuestionType.Date);
 
   const choices = generateChoiceItemsFromGroupQuestions(
     post.group_of_questions,
@@ -32,6 +42,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
       shortBounds: true,
     }
   );
+
   // Move resolved/annulled choices to the start
   const sortedChoices = [...choices].sort((a, b) => {
     const aResolved = !isNil(a.resolution);
@@ -43,8 +54,11 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   });
 
   const isPostClosed = post.status === PostStatus.CLOSED;
-  const visibleChoices = sortedChoices.slice(0, visibleChoicesCount);
-  const otherItemsCount = sortedChoices.length - visibleChoices.length;
+
+  const visibleChoices = expanded
+    ? sortedChoices
+    : sortedChoices.slice(0, visibleChoicesCount);
+
   const scaledValues = [...sortedChoices]
     .filter((choice) => isNil(choice.resolution))
     .map(({ aggregationValues, scaling }) =>
@@ -61,7 +75,14 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
   const minScaledValue = Math.min(...scaledValues);
 
   return (
-    <ForecastCardWrapper otherItemsCount={otherItemsCount}>
+    <ForecastCardWrapper
+      otherItemsCount={
+        expanded ? 0 : Math.max(0, sortedChoices.length - visibleChoicesCount)
+      }
+      expanded={expanded}
+      onExpand={() => setExpanded(true)}
+      hideOthersValue
+    >
       {visibleChoices.map(
         ({
           closeTime,
@@ -86,16 +107,19 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
           const formattedChoiceValue = getPredictionDisplayValue(
             rawChoiceValue,
             {
-              questionType: QuestionType.Numeric,
+              questionType: isDateGroup
+                ? QuestionType.Date
+                : QuestionType.Numeric,
               scaling: normalizedScaling,
               actual_resolve_time: actual_resolve_time ?? null,
-              emptyLabel: "?",
+              emptyLabel: t("Upcoming"),
             }
           );
-          const scaledChoiceValue = scaleInternalLocation(
-            rawChoiceValue ?? 0,
-            normalizedScaling
-          );
+
+          const scaledChoiceValue = !isNil(rawChoiceValue)
+            ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
+            : NaN;
+
           const relativeWidth = !isNil(resolution)
             ? 100
             : calculateRelativeWidth({
@@ -115,6 +139,7 @@ const NumericForecastCard: FC<Props> = ({ post }) => {
               progress={relativeWidth}
               color={color}
               unit={unit}
+              forceColorful={forceColorful}
             />
           );
         }
@@ -132,6 +157,8 @@ function calculateRelativeWidth({
   maxScaledValue: number;
   minScaledValue: number;
 }) {
+  if (isNaN(scaledChoiceValue)) return scaledChoiceValue;
+
   if (maxScaledValue === 0 && minScaledValue < 0) {
     if (scaledChoiceValue === 0) {
       return 100;

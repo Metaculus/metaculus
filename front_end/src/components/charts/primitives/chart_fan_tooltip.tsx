@@ -3,7 +3,9 @@ import { useLocale, useTranslations } from "next-intl";
 import {
   ComponentProps,
   FC,
+  PropsWithChildren,
   ReactNode,
+  RefObject,
   useEffect,
   useMemo,
   useRef,
@@ -14,6 +16,7 @@ import { VictoryLabel } from "victory";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { GroupFanDatum } from "@/types/charts";
 import { ChoiceTooltipItem } from "@/types/choices";
+import { QuestionStatus } from "@/types/post";
 import {
   Bounds,
   ForecastAvailability,
@@ -24,6 +27,8 @@ import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { unscaleNominalLocation } from "@/utils/math";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import GroupPredictionsTooltip from "./group_predictions_tooltip";
 
@@ -77,6 +82,7 @@ const ChartFanTooltip: FC<Props> = ({
     question,
     resolved,
   } = activeItem;
+
   if (!question) {
     return null;
   }
@@ -99,12 +105,63 @@ const ChartFanTooltip: FC<Props> = ({
     question,
   });
 
+  const questionForecastAvailability =
+    getQuestionForecastAvailability(question);
+
+  if (question.status === QuestionStatus.UPCOMING) {
+    return (
+      <MinifiedTooltip ref={ref} width={width} height={height} x={x} y={y}>
+        <span>{t("Upcoming")}</span>
+      </MinifiedTooltip>
+    );
+  } else if (questionForecastAvailability.cpRevealsOn) {
+    return (
+      <MinifiedTooltip ref={ref} width={width} height={height} x={x} y={y}>
+        <CPRevealTime
+          hiddenUntilView
+          cpRevealTime={questionForecastAvailability.cpRevealsOn}
+        />
+      </MinifiedTooltip>
+    );
+  } else if (questionForecastAvailability.isEmpty) {
+    return (
+      <MinifiedTooltip ref={ref} width={width} height={height} x={x} y={y}>
+        <span>{t("noForecastsYet")}</span>
+      </MinifiedTooltip>
+    );
+  }
+
+  const unsuccessfullyResolved = isUnsuccessfullyResolved(question.resolution);
+  if (unsuccessfullyResolved) {
+    return (
+      <MinifiedTooltip
+        ref={ref}
+        width={width}
+        height={height}
+        x={x}
+        y={y}
+        className="border-purple-600 p-2 dark:border-purple-600-dark"
+      >
+        <div>
+          {formatResolution({
+            resolution: question.resolution,
+            questionType: question.type,
+            locale,
+            scaling: question.scaling,
+            unit: question.unit,
+            actual_resolve_time: question.actual_resolve_time ?? null,
+          })}
+        </div>
+      </MinifiedTooltip>
+    );
+  }
+
   return (
     <FloatingPortal id="fan-graph-container">
       <div
         ref={ref}
         className={cn(
-          "pointer-events-none absolute z-100 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark",
+          "pointer-events-none absolute z-100 rounded bg-gray-0 text-xs leading-4 shadow-lg dark:bg-gray-0-dark",
           { "opacity-0": !width && !height }
         )}
         style={{
@@ -120,30 +177,78 @@ const ChartFanTooltip: FC<Props> = ({
           communityPredictions={communityPredictions}
           userPredictions={userPredictions}
           FooterRow={
-            resolved ? (
-              <tr>
-                <th className="px-1.5 py-1 text-left text-sm font-bold capitalize text-purple-800 dark:text-purple-800-dark">
-                  {t("resolution")}
+            <>
+              {/* Total Forecasters Row */}
+              <tr className="border-t border-gray-300 dark:border-gray-300-dark">
+                <th className="px-3 pb-1.5 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
+                  {t("totalForecastersLabel")}
                 </th>
                 <td
-                  className="px-1.5 py-1 text-center text-sm text-purple-800 dark:text-purple-800-dark"
+                  className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
                   colSpan={3}
                 >
-                  <div>
-                    {formatResolution({
-                      resolution: question.resolution,
-                      questionType: question.type,
-                      locale,
-                      scaling: question.scaling,
-                      unit: question.unit,
-                      actual_resolve_time: question.actual_resolve_time ?? null,
-                    })}
-                  </div>
+                  {activeItem.question.aggregations[
+                    activeItem.question.default_aggregation_method
+                  ].latest?.forecaster_count ?? 0}
                 </td>
               </tr>
-            ) : null
+              {/* Resolution Row - only if resolved */}
+              {resolved && (
+                <tr className="border-t border-gray-300 dark:border-gray-300-dark">
+                  <th className="px-3 pb-1 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
+                    {t("resolution")}
+                  </th>
+                  <td
+                    className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-purple-800 dark:text-purple-800-dark"
+                    colSpan={3}
+                  >
+                    <div>
+                      {formatResolution({
+                        resolution: question.resolution,
+                        questionType: question.type,
+                        locale,
+                        scaling: question.scaling,
+                        unit: question.unit,
+                        actual_resolve_time:
+                          question.actual_resolve_time ?? null,
+                      })}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </>
           }
         />
+      </div>
+    </FloatingPortal>
+  );
+};
+
+const MinifiedTooltip: FC<
+  PropsWithChildren<{
+    ref: RefObject<HTMLDivElement | null>;
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    className?: string;
+  }>
+> = ({ children, ref, width, height, x, y, className }) => {
+  return (
+    <FloatingPortal id="fan-graph-container">
+      <div
+        ref={ref}
+        className={cn(
+          "pointer-events-none absolute z-100 max-w-[200px] rounded border border-gray-300 bg-gray-0 p-2.5 text-center text-sm shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark",
+          { "opacity-0": !width && !height },
+          className
+        )}
+        style={{
+          left: x - width / 2,
+          top: y - height / 2,
+        }}
+      >
+        {children}
       </div>
     </FloatingPortal>
   );

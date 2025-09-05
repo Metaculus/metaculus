@@ -3,24 +3,20 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import RelativeTime from "@/components/ui/relative_time";
+import cn from "@/utils/core/cn";
 
 type Props = {
   cpRevealsOn: string;
+  className?: string;
 };
 
-const UpcomingCP: FC<Props> = ({ cpRevealsOn }) => {
+const UpcomingCP: FC<Props> = ({ cpRevealsOn, className }) => {
   const t = useTranslations();
   const locale = useLocale();
   return (
-    <div className="flex min-w-[200px] max-w-[200px] flex-col items-center gap-0">
-      <span className="text-xs font-normal leading-4 text-purple-700 dark:text-purple-700-dark">
-        {t("forecastRevealed")}{" "}
-      </span>
-      <RelativeTime
-        datetime={cpRevealsOn}
-        lang={locale}
-        className="text-base font-medium leading-6 text-purple-800 dark:text-purple-800-dark"
-      >
+    <div className={cn("w-full text-center", className)}>
+      <span>{t("cpRevealed")} </span>
+      <RelativeTime datetime={cpRevealsOn} lang={locale} className="leading-6">
         {intlFormatDistance(cpRevealsOn, new Date(), {
           locale,
         })}

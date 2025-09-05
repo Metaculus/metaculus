@@ -5,6 +5,7 @@ import {
   BaseChartData,
   Line,
   Scale,
+  ScaleDirection,
   TimelineChartZoomOption,
 } from "@/types/charts";
 import {
@@ -227,7 +228,7 @@ export function buildNumericChartData({
   const yScale: Scale = generateScale({
     displayType: questionType,
     axisLength: height,
-    direction: "vertical",
+    direction: ScaleDirection.Vertical,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
     scaling,

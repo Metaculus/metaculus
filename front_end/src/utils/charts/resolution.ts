@@ -2,7 +2,12 @@ import { isNil } from "lodash";
 
 import { LinePoint } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { Question, QuestionType, Scaling } from "@/types/question";
+import {
+  AggregateForecast,
+  Question,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
 import { unscaleNominalLocation } from "@/utils/math";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
@@ -12,12 +17,16 @@ export function getResolutionPoint({
   resolveTime,
   scaling,
   inboundOutcomeCount,
+  lastAggregation,
+  size,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
   resolveTime: number;
   scaling: Scaling;
   inboundOutcomeCount?: number | null;
+  lastAggregation?: AggregateForecast;
+  size?: number;
 }): LinePoint | null {
   if (isUnsuccessfullyResolved(resolution)) {
     return null;
@@ -26,11 +35,14 @@ export function getResolutionPoint({
     case QuestionType.Binary: {
       // format data for binary question
       return {
-        y:
-          resolution === "no" ? scaling.range_min ?? 0 : scaling.range_max ?? 1,
+        y: lastAggregation
+          ? (lastAggregation.centers?.[0] as number)
+          : resolution === "no"
+            ? scaling.range_min ?? 0
+            : scaling.range_max ?? 1,
         x: resolveTime,
         symbol: "diamond",
-        size: 4,
+        size: size ?? 4,
       };
     }
     case QuestionType.Date: {
@@ -42,7 +54,7 @@ export function getResolutionPoint({
         y: unscaledResolution,
         x: resolveTime,
         symbol: "diamond",
-        size: 4,
+        size: size ?? 4,
       };
     }
     case QuestionType.Numeric: {
@@ -55,7 +67,7 @@ export function getResolutionPoint({
         y: unscaledResolution,
         x: resolveTime,
         symbol: "diamond",
-        size: 4,
+        size: size ?? 4,
       };
     }
     case QuestionType.Discrete: {
@@ -79,7 +91,7 @@ export function getResolutionPoint({
         y: unscaledResolution,
         x: resolveTime,
         symbol: "diamond",
-        size: 4,
+        size: size ?? 4,
       };
     }
     default:
