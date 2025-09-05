@@ -146,7 +146,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post_id, question_id, option]);
+  }, [searchParams]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
