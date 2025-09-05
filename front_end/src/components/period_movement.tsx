@@ -83,7 +83,7 @@ const PeriodMovement: FC<Props> = ({
   message,
   className,
   iconClassName,
-  highIsGood,
+  highIsGood = true,
   size = "sm",
   chip,
 }) => {
