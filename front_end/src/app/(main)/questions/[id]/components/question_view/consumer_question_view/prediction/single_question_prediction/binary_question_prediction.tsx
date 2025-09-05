@@ -10,7 +10,7 @@ import { QuestionResolutionChipFacade } from "@/components/consumer_post_card/qu
 import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
 import RichText from "@/components/rich_text";
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -50,14 +50,13 @@ const BinaryQuestionPrediction: React.FC<Props> = ({
   return (
     <div className="mx-auto mb-7 space-y-7 pt-5 lg:px-10">
       <PredictionBinaryInfo
-        showMyPrediction={true}
+        showMyPrediction
         question={question}
         canPredict={canPredict}
         size="lg"
         cpMovementVariant="chip"
         renderResolutionStatus={renderResolutionStatus}
       />
-
       <QuestionInfo question={question} />
     </div>
   );
@@ -68,6 +67,15 @@ const QuestionInfo: React.FC<{
 }> = ({ question }) => {
   const t = useTranslations();
 
+  const getYesProbability = (
+    q: QuestionWithNumericForecasts
+  ): number | undefined => {
+    if (q.type !== QuestionType.Binary) return undefined;
+    const values =
+      q.aggregations?.[q.default_aggregation_method]?.latest?.forecast_values;
+    return values && values.length >= 2 ? values[1] : undefined;
+  };
+
   const renderMessage = () => {
     switch (question.status) {
       case QuestionStatus.UPCOMING:
@@ -76,17 +84,17 @@ const QuestionInfo: React.FC<{
         return t("questionOpenMessage");
       case QuestionStatus.CLOSED:
         return t("questionClosedMessage");
-      case QuestionStatus.RESOLVED:
-        const probability =
-          question.aggregations[question.default_aggregation_method]?.latest
-            ?.forecast_values?.[0] ?? "?";
+      case QuestionStatus.RESOLVED: {
+        const pYes = getYesProbability(question);
+        const probabilityDisplay = pYes == null ? "0" : (pYes * 100).toFixed(0);
         const resolution =
-          capitalize(question.resolution?.toString()) ?? t("unknown");
+          capitalize(question.resolution?.toString() ?? "") || t("unknown");
+
         return (
           <RichText>
             {(tags) =>
               t.rich("questionResolvedMessage", {
-                probability,
+                probability: probabilityDisplay,
                 resolution,
                 b: tags.strong,
                 br: tags.br,
@@ -94,6 +102,7 @@ const QuestionInfo: React.FC<{
             }
           </RichText>
         );
+      }
       default:
         return null;
     }
