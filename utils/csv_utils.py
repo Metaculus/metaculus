@@ -1,10 +1,10 @@
 import csv
+import datetime
+import hashlib
 import io
 import zipfile
-import hashlib
-import datetime
-import numpy as np
 
+import numpy as np
 from django.db.models import QuerySet, Q
 from django.utils import timezone
 
@@ -18,13 +18,13 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
+from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
-from utils.the_math.measures import percent_point_function
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
     string_location_to_bucket_index,
 )
-from users.models import User
+from utils.the_math.measures import percent_point_function
 
 
 def export_all_data_for_questions(
@@ -147,8 +147,12 @@ def export_data_for_questions(
         questions_with_revealed_cp = questions.filter(
             Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
         )
-    if not aggregation_methods or (
-        aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
+    if not user_ids and (
+        not aggregation_methods
+        or (
+            aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
+            and minimize is True
+        )
     ):
         aggregate_forecasts: list[AggregateForecast] = list(
             AggregateForecast.objects.filter(
