@@ -213,7 +213,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             onTabChange={setActiveTab}
             data={data}
             selectedSubQuestionOption={selectedSubQuestionOption}
-            additionalParams={{ userIdsText }}
+            additionalParams={{ userIds: sanitizeUserIds(userIdsText) }}
           />
         </>
       );

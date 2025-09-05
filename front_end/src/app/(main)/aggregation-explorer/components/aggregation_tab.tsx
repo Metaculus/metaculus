@@ -27,6 +27,7 @@ type Props = {
   selectedSubQuestionOption: number | string | null;
   postId: number;
   questionTitle: string;
+  userIds?: number[];
 };
 
 const AggregationsTab: FC<Props> = ({
@@ -35,6 +36,7 @@ const AggregationsTab: FC<Props> = ({
   selectedSubQuestionOption,
   postId,
   questionTitle,
+  userIds,
 }) => {
   const t = useTranslations();
 
@@ -176,7 +178,8 @@ const AggregationsTab: FC<Props> = ({
           ? selectedSubQuestionOption
           : undefined,
         aggregationMethod,
-        tabData.includeBots
+        tabData.includeBots,
+        userIds
       );
       const filename = `${questionTitle.replaceAll(" ", "_")}-${aggregationMethod}${tabData.includeBots ? "-bots" : ""}.zip`;
       saveAs(blob, filename);

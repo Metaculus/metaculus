@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 
 import ClientAggregationExplorerApi from "@/services/api/aggregation_explorer/aggregation_explorer.client";
 import { PostWithForecasts } from "@/types/post";
@@ -19,7 +19,7 @@ type Props = {
   data: QuestionWithForecasts | PostWithForecasts;
   selectedSubQuestionOption: number | string | null;
   additionalParams?: {
-    userIdsText?: string; // Array of user IDs as a comma-separated string
+    userIds?: number[]; // Array of user IDs as a comma-separated string
   };
 };
 
@@ -106,7 +106,12 @@ export const AggregationWrapper: FC<Props> = ({
         logError(err);
       }
     },
-    [postId, selectedSubQuestionOption, selectedAggregationMethods]
+    [
+      selectedAggregationMethods,
+      selectedSubQuestionOption,
+      postId,
+      additionalParams,
+    ]
   );
 
   return activeTab ? (
@@ -116,6 +121,7 @@ export const AggregationWrapper: FC<Props> = ({
       selectedSubQuestionOption={selectedSubQuestionOption}
       postId={postId}
       questionTitle={data.title}
+      userIds={additionalParams.userIds}
     />
   ) : (
     <AggregationsDrawer
