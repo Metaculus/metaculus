@@ -985,7 +985,7 @@ def get_contributions(
         return get_contribution_question_writing(user, leaderboard)
 
     # Scoring Leaderboards
-    questions = list(
+    questions = (
         leaderboard.get_questions()
         .prefetch_related("related_posts__post")
         .filter(Q(related_posts__post__published_at__lt=timezone.now()))
