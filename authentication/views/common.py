@@ -82,6 +82,8 @@ def signup_api_view(request):
     campaign_key = serializer.validated_data.get("campaign_key", None)
     campaign_data = serializer.validated_data.get("campaign_data", None)
     redirect_url = serializer.validated_data.get("redirect_url", None)
+    language = serializer.validated_data.get("language", None)
+    app_theme = serializer.validated_data.get("app_theme", None)
     newsletter_optin = serializer.validated_data.get("newsletter_optin", None)
 
     is_active = not settings.AUTH_SIGNUP_VERIFY_EMAIL
@@ -105,6 +107,8 @@ def signup_api_view(request):
             password=password,
             is_active=is_active,
             is_bot=is_bot,
+            language=language,
+            app_theme=app_theme,
             newsletter_optin=newsletter_optin,
         )
 

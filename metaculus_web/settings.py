@@ -311,6 +311,7 @@ DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
     "url": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
 }
 
+
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
 if IS_TEST_ENV:

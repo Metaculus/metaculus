@@ -9,12 +9,14 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   className?: string;
   textClassName?: string;
+  style?: React.CSSProperties;
 };
 
 const ForecastAvailabilityChartOverflow: FC<Props> = ({
   forecastAvailability,
   className,
   textClassName,
+  style,
 }) => {
   const t = useTranslations();
 
@@ -27,6 +29,7 @@ const ForecastAvailabilityChartOverflow: FC<Props> = ({
       <ChartOverflowContainer
         className={className}
         textClassName={textClassName}
+        style={style}
       >
         <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />
       </ChartOverflowContainer>
@@ -38,6 +41,7 @@ const ForecastAvailabilityChartOverflow: FC<Props> = ({
       <ChartOverflowContainer
         className={className}
         textClassName={textClassName}
+        style={style}
       >
         <span>{t("noForecastsYet")}</span>
       </ChartOverflowContainer>

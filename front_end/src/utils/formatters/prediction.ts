@@ -42,7 +42,9 @@ export function getForecastPctDisplayValue(
     return "?";
   }
 
-  return `${Math.round(Number(value) * 1000) / 10}%`;
+  const percent = Number((Number(value) * 100).toFixed(1));
+
+  return `${percent}%`;
 }
 
 export function getForecastNumericDisplayValue(
@@ -75,8 +77,17 @@ export function getForecastDateDisplayValue(
   const { scaling, actual_resolve_time, dateFormatString, adjustLabels } =
     params ?? {};
 
+  if (!value || isNaN(value)) {
+    return "...";
+  }
+
+  const date = fromUnixTime(value);
+  if (isNaN(date.getTime())) {
+    return "...";
+  }
+
   if (dateFormatString) {
-    return format(fromUnixTime(value), dateFormatString);
+    return format(date, dateFormatString);
   }
 
   const dateFormat = scaling
@@ -88,7 +99,7 @@ export function getForecastDateDisplayValue(
       })
     : "d MMM yyyy";
 
-  return format(fromUnixTime(value), dateFormat);
+  return format(date, dateFormat);
 }
 
 function formatPredictionDisplayValue(
@@ -220,7 +231,8 @@ function displayValue(
  */
 export function getPredictionDisplayValue(
   value: number | null | undefined,
-  params: PredictionDisplayValueParams
+  params: PredictionDisplayValueParams,
+  displayRangeUnits: boolean = true
 ): string {
   const { range, ...displayValueParams } = params;
   const { emptyLabel = "..." } = displayValueParams;
@@ -238,8 +250,18 @@ export function getPredictionDisplayValue(
       return emptyLabel;
     }
 
-    const lowerDisplay = displayValue(lowerX, displayValueParams);
-    const upperDisplay = displayValue(upperX, displayValueParams);
+    const lowerDisplay = displayValue(
+      lowerX,
+      displayRangeUnits
+        ? displayValueParams
+        : { ...displayValueParams, unit: undefined }
+    );
+    const upperDisplay = displayValue(
+      upperX,
+      displayRangeUnits
+        ? displayValueParams
+        : { ...displayValueParams, unit: undefined }
+    );
 
     return `${centerDisplay} \n(${lowerDisplay} - ${upperDisplay})`;
   }

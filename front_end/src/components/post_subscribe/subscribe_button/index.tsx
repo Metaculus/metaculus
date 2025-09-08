@@ -3,72 +3,28 @@
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState } from "react";
+import { FC } from "react";
 
-import { changePostSubscriptions } from "@/app/(main)/questions/actions";
-import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
-import { Post, PostSubscription } from "@/types/post";
-import { sendAnalyticsEvent } from "@/utils/analytics";
-
-import PostSubscribeSuccessModal from "./post_subscribe_success_modal";
-import {
-  getInitialNotebookSubscriptions,
-  getInitialQuestionSubscriptions,
-} from "./utils";
+import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
 
 type Props = {
-  post: Post;
   mini?: boolean;
 };
 
-type FollowModalType = "success" | "customisation";
-
-const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
+const PostSubscribeButton: FC<Props> = ({ mini = false }) => {
   const t = useTranslations();
-  const { user } = useAuth();
-  const { setCurrentModal } = useModal();
-  const [activeModal, setActiveModal] = useState<FollowModalType | undefined>();
-  const [postSubscriptions, setPostSubscriptions] = useState<
-    PostSubscription[]
-  >(post.subscriptions || []);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleFollow = useCallback(async () => {
-    if (!user) {
-      setCurrentModal({ type: "signup" });
-      return;
-    } else {
-      // Subscribe to default notifications set
-      setIsLoading(true);
-      try {
-        const newSubscriptions = await changePostSubscriptions(
-          post.id,
-          post.notebook
-            ? getInitialNotebookSubscriptions()
-            : getInitialQuestionSubscriptions()
-        );
-        sendAnalyticsEvent("questionFollowed");
-        // Click on this button automatically subscribes user to the default notifications
-        setPostSubscriptions(newSubscriptions);
-        // Open success modal
-        setActiveModal("success");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [post.id, post.notebook, setCurrentModal, user]);
+  const { isSubscribed, isLoading, handleSubscribe, handleCustomize } =
+    usePostSubscriptionContext();
 
   return (
     <>
-      {user && postSubscriptions.length ? (
+      {isSubscribed ? (
         <Button
           variant="primary"
           presentationType={mini ? "icon" : "default"}
           disabled={isLoading}
-          onClick={() => setActiveModal("customisation")}
+          onClick={handleCustomize}
         >
           <FontAwesomeIcon
             icon={faBell}
@@ -80,7 +36,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         <Button
           variant="secondary"
           presentationType={mini ? "icon" : "default"}
-          onClick={handleFollow}
+          onClick={handleSubscribe}
           disabled={isLoading}
           className={mini ? "border-0" : ""}
         >
@@ -91,25 +47,6 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
           {!mini && t("followButton")}
         </Button>
       )}
-      <PostSubscribeSuccessModal
-        isOpen={activeModal === "success"}
-        onClose={() => {
-          setActiveModal(undefined);
-        }}
-        post={post}
-        onCustomiseClick={() => setActiveModal("customisation")}
-        onPostSubscriptionChange={setPostSubscriptions}
-      />
-
-      <PostSubscribeCustomizeModal
-        isOpen={activeModal === "customisation"}
-        onClose={() => {
-          setActiveModal(undefined);
-        }}
-        post={post}
-        subscriptions={postSubscriptions}
-        onPostSubscriptionChange={setPostSubscriptions}
-      />
     </>
   );
 };

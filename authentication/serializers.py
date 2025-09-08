@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -15,6 +16,9 @@ class SignupSerializer(serializers.ModelSerializer):
         required=False, allow_null=True, allow_blank=True
     )
     newsletter_optin = serializers.BooleanField(required=False, allow_null=True)
+    language = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=32
+    )
 
     class Meta:
         model = User
@@ -29,8 +33,22 @@ class SignupSerializer(serializers.ModelSerializer):
             "redirect_url",
             "invite_token",
             "newsletter_optin",
+            "language",
+            "app_theme",
         )
         extra_kwargs = {"email": {"required": True}}
+
+    def validate_language(self, value: str):
+        try:
+            value = serializers.ChoiceField(
+                choices=settings.LANGUAGES,
+                required=False,
+                allow_null=True,
+            ).run_validation(value)
+        except serializers.ValidationError:
+            return
+
+        return value
 
     def validate_add_to_project(self, value):
         try:

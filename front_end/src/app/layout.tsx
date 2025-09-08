@@ -23,6 +23,7 @@ import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { LanguageService } from "@/services/language_service";
 import { CurrentUser } from "@/types/users";
 import { logError } from "@/utils/core/errors";
 import { getFontsString } from "@/utils/fonts";
@@ -74,6 +75,8 @@ export default async function RootLayout({
     logError(err);
   }
 
+  // Cross-session language synchronization
+  await LanguageService.syncUserLanguagePreference(user, locale);
   const publicSettings = getPublicSettings();
 
   return (
@@ -103,9 +106,9 @@ export default async function RootLayout({
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <PolyfillProvider>
           <CSPostHogProvider locale={locale}>
-            <AppThemeProvider>
-              <NextIntlClientProvider messages={messages}>
-                <AuthProvider user={user} locale={locale}>
+            <AuthProvider user={user} locale={locale}>
+              <AppThemeProvider>
+                <NextIntlClientProvider messages={messages}>
                   <PublicSettingsProvider settings={publicSettings}>
                     <ModalProvider>
                       <NavigationProvider>
@@ -124,9 +127,9 @@ export default async function RootLayout({
                       </NavigationProvider>
                     </ModalProvider>
                   </PublicSettingsProvider>
-                </AuthProvider>
-              </NextIntlClientProvider>
-            </AppThemeProvider>
+                </NextIntlClientProvider>
+              </AppThemeProvider>
+            </AuthProvider>
           </CSPostHogProvider>
         </PolyfillProvider>
       </body>
