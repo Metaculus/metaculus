@@ -87,6 +87,7 @@ def aggregation_explorer_api_view(request):
             else question.include_bots_in_aggregates
         ),
         histogram=True,
+        include_future=False,
     )
     aggregate_forecasts = []
     for aggregation in aggregations.values():
