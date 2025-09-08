@@ -127,10 +127,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           </div>
           <QuestionCPMovement
             question={question}
-            className={cn("mx-auto min-w-[100px]", {
-              "-mt-2 text-center": size === "md" && hideLabel, // Center + negative margin for mobile continuous
-              "text-center": size === "md" && !hideLabel, // Just center for mobile binary
-            })}
+            className={cn(
+              "mx-auto min-w-[100px] max-w-full text-center md:[&>span]:whitespace-normal",
+              {
+                "-mt-2 text-center": size === "md" && hideLabel, // Center + negative margin for mobile continuous
+                "text-center": size === "md" && !hideLabel, // Just center for mobile binary
+              }
+            )}
             size={"sm"}
             // Hide unit on small sizes
             unit={size === "md" ? "" : undefined}
