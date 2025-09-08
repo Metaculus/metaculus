@@ -23,7 +23,6 @@ from django.db.models import (
     Case,
     Count,
     Func,
-    Prefetch,
 )
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
@@ -986,20 +985,15 @@ def get_contributions(
         return get_contribution_question_writing(user, leaderboard)
 
     # Scoring Leaderboards
-    questions = (
+    questions = list(
         leaderboard.get_questions()
-        .prefetch_related(
-            "related_posts__post",
-            Prefetch(
-                "user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user.id),
-                to_attr="filtered_user_forecasts",
-            ),
-        )
-        .exclude(
-            Q(related_posts__post__published_at__isnull=True)
-            | Q(related_posts__post__published_at__gt=timezone.now())
-        )
+        .prefetch_related("related_posts__post")
+        .filter(Q(related_posts__post__published_at__lt=timezone.now()))
+    )
+
+    user_question_forecasts_map = generate_map_from_list(
+        Forecast.objects.filter(question__in=questions, author_id=user.id),
+        key=lambda f: f.question_id,
     )
 
     score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
@@ -1075,7 +1069,7 @@ def get_contributions(
                     forecast_horizon_end = question.scheduled_close_time.timestamp()
                     now = timezone.now().timestamp()
                     covered = 0
-                    user_forecasts = getattr(question, "filtered_user_forecasts", [])
+                    user_forecasts = user_question_forecasts_map.get(question.id, [])
                     for forecast in user_forecasts:
                         forecast_start = max(
                             forecast.start_time.timestamp(), forecast_horizon_start
