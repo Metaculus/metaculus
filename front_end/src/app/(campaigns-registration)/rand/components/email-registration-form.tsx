@@ -101,7 +101,7 @@ export const EmailRegistrationForm: FC = () => {
         >
           <Input
             type="email"
-            placeholder="Enter your university .edu email address"
+            placeholder="Enter your email address (.edu, .int or .mil)"
             className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
             disabled={submissionState.status === "loading"}
             {...register("email")}
@@ -155,8 +155,8 @@ export const EmailRegistrationForm: FC = () => {
             )}
           </p>
           <p className="text-xs">
-            Sign up with your .edu email to participate. You can still use this
-            account for the tournament.
+            Sign up with your .edu, .int, or .mil email to participate. You can
+            still use this account for the tournament.
           </p>
         </div>
       )}
