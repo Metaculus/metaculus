@@ -536,3 +536,7 @@ CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
 CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS = (
     os.environ.get("CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS", "false").lower() == "true"
 )
+
+WEEKLY_TOP_COMMENTS_SEND_EMAILS = (
+    os.environ.get("WEEKLY_TOP_COMMENTS_SEND_EMAILS", "false").lower() == "true"
+)
