@@ -16,18 +16,7 @@ import { submitToZapierWebhook } from "../actions";
 import { SuccessMessage } from "./success-message";
 
 const emailRegistrationSchema = z.object({
-  email: z
-    .string()
-    .email("Please enter a valid email address")
-    .refine((email) => {
-      const lowerEmail = email.toLowerCase();
-      return (
-        lowerEmail.endsWith(".edu") ||
-        lowerEmail.endsWith(".int") ||
-        lowerEmail.endsWith(".mil") ||
-        lowerEmail.endsWith("@metaculus.com")
-      );
-    }, "Please use an eligible email address (.edu, .int, or .mil)"),
+  email: z.string().email("Please enter a valid email address"),
 });
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
@@ -87,13 +76,6 @@ export const EmailRegistrationForm: FC = () => {
 
   return (
     <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-700 p-6 dark:bg-blue-950 md:p-8">
-      <div className="text-center">
-        <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
-          Reserve your spot now to get forecasting resources and a heads-up when
-          the tournament launches.
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <InputContainer
           labelText="Email Address"
@@ -101,7 +83,7 @@ export const EmailRegistrationForm: FC = () => {
         >
           <Input
             type="email"
-            placeholder="Enter your email address (.edu, .int or .mil)"
+            placeholder="Enter your email address"
             className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
             disabled={submissionState.status === "loading"}
             {...register("email")}
@@ -155,8 +137,8 @@ export const EmailRegistrationForm: FC = () => {
             )}
           </p>
           <p className="text-xs">
-            Sign up with your .edu, .int, or .mil email to participate. You can
-            still use this account for the tournament.
+            Sign up with your email to participate. You can still use this
+            account for the tournament.
           </p>
         </div>
       )}
