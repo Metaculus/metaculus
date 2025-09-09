@@ -204,13 +204,14 @@ class Command(BaseCommand):
         #
         # Comment Jobs
         #
-        scheduler.add_job(
-            close_old_connections(update_current_top_comments_of_week.send),
-            trigger=CronTrigger.from_crontab("0 * * * *"),  # Every hour
-            id="update_current_top_comments_of_week",
-            max_instances=1,
-            replace_existing=True,
-        )
+        if settings.WEEKLY_TOP_COMMENTS_SEND_EMAILS:
+            scheduler.add_job(
+                close_old_connections(update_current_top_comments_of_week.send),
+                trigger=CronTrigger.from_crontab("0 * * * *"),  # Every hour
+                id="update_current_top_comments_of_week",
+                max_instances=1,
+                replace_existing=True,
+            )
 
         try:
             logger.info("Starting scheduler...")
