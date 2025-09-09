@@ -19,7 +19,6 @@ import { CommentType } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseComment } from "@/utils/comments";
-import { deleteCommentDraft } from "@/utils/drafts/comments";
 
 import { validateComment } from "./validate_comment";
 
@@ -79,6 +78,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
     draftReady,
     initialMarkdown,
     setInitialMarkdown,
+    stopAndDiscardDraft,
     markdownRef,
     hasIncludedForecast,
     setHasIncludedForecast,
@@ -155,10 +155,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         return;
       }
 
-      // Delete the draft after successful submission
-      if (postId && user) {
-        deleteCommentDraft({ userId: user.id, postId, parentId });
-      }
+      stopAndDiscardDraft();
 
       setHasIncludedForecast(false);
       markdownRef.current = "";

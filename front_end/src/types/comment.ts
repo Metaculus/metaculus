@@ -103,11 +103,26 @@ export type KeyFactor = {
   votes_count: number;
 };
 
-export type CommentDraft = {
+export type DraftKind = "create" | "edit";
+
+type DraftBase = {
   markdown: string;
-  includeForecast: boolean;
   lastModified: number;
-  postId: number;
   userId: number;
-  parentId?: number;
 };
+
+export type CreateDraft = DraftBase & {
+  kind: "create";
+  postId: number;
+  parentId?: number;
+  includeForecast: boolean;
+};
+
+export type EditDraft = DraftBase & {
+  kind: "edit";
+  commentId: number;
+  onPostId?: number;
+  isPrivate?: boolean;
+};
+
+export type Draft = CreateDraft | EditDraft;

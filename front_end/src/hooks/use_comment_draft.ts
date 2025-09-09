@@ -8,6 +8,11 @@ import {
   cleanupCommentDrafts,
   getCommentDraft,
   saveCommentDraft,
+  deleteCommentDraft,
+  cleanupCommentEditDrafts,
+  getCommentEditDraft,
+  saveCommentEditDraft,
+  deleteCommentEditDraft,
 } from "@/utils/drafts/comments";
 
 type Args = {
@@ -15,6 +20,9 @@ type Args = {
   postId?: number;
   parentId?: number;
   userId?: number;
+  commentId?: number;
+  onPostId?: number;
+  isPrivate?: boolean;
 };
 
 type Return = {
@@ -27,18 +35,27 @@ type Return = {
   hasContent: boolean;
   setHasContent: (v: boolean) => void;
   saveDraftDebounced: (value: string) => void;
+  deleteDraft: () => void;
+  stopAndDiscardDraft: () => void;
+  kind: "create" | "edit";
 };
 
 export function useCommentDraft({
   text,
+  userId,
   postId,
   parentId,
-  userId,
+  commentId,
+  onPostId,
+  isPrivate,
 }: Args): Return {
+  const isEdit = !!commentId;
+  const kind: "create" | "edit" = isEdit ? "edit" : "create";
   const [draftReady, setDraftReady] = useState(false);
   const [initialMarkdown, setInitialMarkdown] = useState<string>(text ?? "");
   const markdownRef = useRef<string>(text ?? "");
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
+  const savingEnabledRef = useRef(true);
   const [hasContent, setHasContent] = useState(
     () => (text ?? "").trim().length > 0
   );
@@ -48,23 +65,50 @@ export function useCommentDraft({
     let cancelled = false;
 
     const loadDraft = () => {
-      if (postId && userId) {
-        cleanupCommentDrafts();
-        const draft = getCommentDraft(userId, postId, parentId);
-        const md = draft?.markdown ?? text ?? "";
-        if (!cancelled) {
-          markdownRef.current = md;
-          setInitialMarkdown(md);
-          setHasIncludedForecast(draft?.includeForecast ?? false);
-          setHasContent(md.trim().length > 0);
-          setDraftReady(true);
-        }
-      } else {
+      if (!userId) {
         const md = text ?? "";
         markdownRef.current = md;
         setInitialMarkdown(md);
         setHasContent(md.trim().length > 0);
         setDraftReady(true);
+        return;
+      }
+
+      if (isEdit) {
+        if (!commentId) return;
+        cleanupCommentEditDrafts();
+
+        const d = getCommentEditDraft(userId, commentId);
+        const md = d?.markdown ?? text ?? "";
+
+        if (!cancelled) {
+          markdownRef.current = md;
+          setInitialMarkdown(md);
+          setHasContent(md.trim().length > 0);
+          setDraftReady(true);
+        }
+      } else {
+        if (!postId) {
+          const md = text ?? "";
+          markdownRef.current = md;
+          setInitialMarkdown(md);
+          setHasContent(md.trim().length > 0);
+          setDraftReady(true);
+          return;
+        }
+
+        cleanupCommentDrafts();
+
+        const d = getCommentDraft(userId, postId, parentId);
+        const md = d?.markdown ?? text ?? "";
+
+        if (!cancelled) {
+          markdownRef.current = md;
+          setInitialMarkdown(md);
+          setHasIncludedForecast(d?.includeForecast ?? false);
+          setHasContent(md.trim().length > 0);
+          setDraftReady(true);
+        }
       }
     };
 
@@ -73,11 +117,24 @@ export function useCommentDraft({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postId, parentId, userId, text]);
+  }, [userId, postId, parentId, commentId, text, isEdit]);
 
   const saveDraftDebounced = useDebouncedCallback((value: string) => {
-    if (!draftReady) return;
-    if (!isNil(postId) && userId) {
+    if (!draftReady || !userId || !savingEnabledRef.current) return;
+
+    if (isEdit) {
+      if (!commentId) return;
+      saveCommentEditDraft({
+        markdown: value,
+        lastModified: Date.now(),
+        userId,
+        commentId,
+        onPostId: onPostId ?? postId,
+        isPrivate,
+        kind: "edit",
+      });
+    } else {
+      if (isNil(postId)) return;
       saveCommentDraft({
         markdown: value,
         includeForecast: hasIncludedForecast,
@@ -85,12 +142,21 @@ export function useCommentDraft({
         userId,
         postId,
         parentId,
+        kind: "create",
       });
     }
   }, 1000);
 
+  const stopAndDiscardDraft = () => {
+    savingEnabledRef.current = false;
+    deleteDraft();
+    markdownRef.current = "";
+    setInitialMarkdown("");
+    setHasContent(false);
+  };
+
   useEffect(() => {
-    if (!draftReady) return;
+    if (!draftReady || isEdit) return;
     if (!isNil(postId) && userId) {
       saveCommentDraft({
         markdown: markdownRef.current ?? "",
@@ -99,10 +165,20 @@ export function useCommentDraft({
         userId,
         postId,
         parentId,
+        kind: "create",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasIncludedForecast, draftReady]);
+  }, [hasIncludedForecast, draftReady, isEdit, postId, parentId, userId]);
+
+  const deleteDraft = () => {
+    if (!userId) return;
+    if (isEdit && commentId) {
+      deleteCommentEditDraft({ userId, commentId });
+    } else if (!isNil(postId)) {
+      deleteCommentDraft({ userId, postId, parentId });
+    }
+  };
 
   return {
     draftReady,
@@ -114,5 +190,8 @@ export function useCommentDraft({
     hasContent,
     setHasContent,
     saveDraftDebounced,
+    deleteDraft,
+    kind,
+    stopAndDiscardDraft,
   };
 }

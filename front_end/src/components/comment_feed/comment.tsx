@@ -36,6 +36,7 @@ import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType, KeyFactor } from "@/types/comment";
@@ -227,6 +228,8 @@ const Comment: FC<CommentProps> = ({
   const commentRef = useRef<HTMLDivElement>(null);
   const keyFactorFormRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editorKey, setEditorKey] = useState<number>(0);
+  const originalTextRef = useRef<string>(comment.text);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
@@ -250,6 +253,25 @@ const Comment: FC<CommentProps> = ({
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes
   const isMobileScreen = window.innerWidth < 640;
+
+  const {
+    draftReady: editDraftReady,
+    initialMarkdown: editInitialMarkdown,
+    saveDraftDebounced: saveEditDraftDebounced,
+    deleteDraft: deleteEditDraft,
+  } = useCommentDraft({
+    text: comment.text,
+    userId: user?.id,
+    commentId: comment.id,
+    onPostId: comment.on_post,
+    isPrivate: comment.is_private,
+  });
+
+  useEffect(() => {
+    if (isEditing && editDraftReady) {
+      setCommentMarkdown(editInitialMarkdown);
+    }
+  }, [isEditing, editDraftReady, editInitialMarkdown]);
 
   const cmmContext = useCmmContext(
     comment.changed_my_mind.count,
@@ -336,6 +358,15 @@ const Comment: FC<CommentProps> = ({
       setIsKeyfactorsFormOpen(true);
     }
   };
+
+  const openEdit = useCallback(() => {
+    setTempCommentMarkdown(originalTextRef.current);
+    setIsEditing(true);
+    setEditorKey((k) => k + 1);
+    setCommentMarkdown(
+      editDraftReady ? editInitialMarkdown : originalTextRef.current
+    );
+  }, [editDraftReady, editInitialMarkdown]);
 
   const handleSubmit = async () => {
     const result = await submit(keyFactors, suggestedKeyFactors);
@@ -431,6 +462,7 @@ const Comment: FC<CommentProps> = ({
       } else {
         setCommentMarkdown(parsedMarkdown);
         setIsEditing(false);
+        deleteEditDraft();
       }
     } finally {
       setIsLoading(false);
@@ -444,6 +476,7 @@ const Comment: FC<CommentProps> = ({
     t,
     setCommentMarkdown,
     setIsEditing,
+    deleteEditDraft,
   ]);
   // scroll to comment from URL hash
   useEffect(() => {
@@ -488,10 +521,7 @@ const Comment: FC<CommentProps> = ({
       hidden: !(user?.id === comment.author.id),
       id: "edit",
       name: t("edit"),
-      onClick: () => {
-        setTempCommentMarkdown(commentMarkdown);
-        setIsEditing(true);
-      },
+      onClick: openEdit,
     },
     {
       id: "copyLink",
@@ -756,9 +786,13 @@ const Comment: FC<CommentProps> = ({
             <div className="break-anywhere">
               {isEditing && (
                 <MarkdownEditor
+                  key={`edit-${comment.id}-${editorKey}`}
                   markdown={commentMarkdown}
-                  mode={"write"}
-                  onChange={setCommentMarkdown}
+                  mode="write"
+                  onChange={(val) => {
+                    setCommentMarkdown(val);
+                    saveEditDraftDebounced(val);
+                  }}
                   withUgcLinks
                 />
               )}{" "}
