@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                      JOIN questions_conditional c ON p.conditional_id = c.id;
             """,
             """
-            CREATE VIEW questions_question_post AS
+            CREATE OR REPLACE VIEW questions_question_post AS
             SELECT q.id,
                    q.id                                                        AS question_id,
                    COALESCE(post_q.id, post_g.id, post_c_yes.id, post_c_no.id) AS post_id
