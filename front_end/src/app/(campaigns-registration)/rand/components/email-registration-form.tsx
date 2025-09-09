@@ -22,9 +22,12 @@ const emailRegistrationSchema = z.object({
     .refine((email) => {
       const lowerEmail = email.toLowerCase();
       return (
-        lowerEmail.endsWith(".edu") || lowerEmail.endsWith("@metaculus.com")
+        lowerEmail.endsWith(".edu") ||
+        lowerEmail.endsWith(".int") ||
+        lowerEmail.endsWith(".mil") ||
+        lowerEmail.endsWith("@metaculus.com")
       );
-    }, "Please use a university email address ending in .edu"),
+    }, "Please use an eligible email address (.edu, .int, or .mil)"),
 });
 
 type EmailRegistrationSchema = z.infer<typeof emailRegistrationSchema>;
