@@ -307,10 +307,7 @@ def get_multi_year_index_data(index: ProjectIndex) -> dict:
 
     for post, weight in post_weights.items():
         for question in post.get_questions():
-            # We want to take only questions with year labels
-            # So ignoring other type of labels
-            if question.label.isdigit():
-                index_segments[question.label][question] = weight
+            index_segments[question.label][question] = weight
 
     agg_map = _generate_questions_agg_map(flatten(index_segments.values()))
 
