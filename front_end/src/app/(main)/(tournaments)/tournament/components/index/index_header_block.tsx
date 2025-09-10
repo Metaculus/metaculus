@@ -35,9 +35,7 @@ export default function IndexHeaderBlock({ tournament }: Props) {
   const years = useMemo(
     () =>
       isMultiYearIndexData(idx)
-        ? Object.keys(idx.series_by_year)
-            .map(Number)
-            .sort((a, b) => a - b)
+        ? Object.keys(idx.series_by_year).map(String).sort()
         : [],
     [idx]
   );
@@ -101,7 +99,7 @@ export default function IndexHeaderBlock({ tournament }: Props) {
           <p className="m-0 text-[16px] font-normal text-blue-900 dark:text-blue-900-dark">
             {t("currentValue")}
           </p>
-          <IndexGauge tournament={tournament} year={Number(tab)} />
+          <IndexGauge tournament={tournament} year={tab} />
         </div>
       )}
 
@@ -156,6 +154,7 @@ export function buildOverviewFanOptions(
   };
 
   const entries = Object.entries(data.series_by_year)
+    .sort()
     .map(([year, s]) => {
       const last = s.line.length ? s.line[s.line.length - 1] : null;
 
