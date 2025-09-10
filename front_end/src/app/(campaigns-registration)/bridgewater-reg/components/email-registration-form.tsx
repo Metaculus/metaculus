@@ -136,10 +136,6 @@ export const EmailRegistrationForm: FC = () => {
               </>
             )}
           </p>
-          <p className="text-xs">
-            Sign up with your email to participate. You can still use this
-            account for the tournament.
-          </p>
         </div>
       )}
     </div>
