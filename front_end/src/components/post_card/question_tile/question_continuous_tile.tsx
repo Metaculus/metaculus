@@ -130,6 +130,7 @@ const QuestionContinuousTile: FC<Props> = ({
             question={question}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             canPredict={canPredict}
+            cpMovementClassName="max-w-[110px]"
             showMyPrediction={true}
             renderResolutionStatus={(q) => (
               <QuestionResolutionChipFacade question={q} size="sm" />

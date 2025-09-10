@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { PostGroupOfQuestions } from "@/types/post";
+import { PostGroupOfQuestions, QuestionStatus } from "@/types/post";
 import { Question, QuestionWithNumericForecasts } from "@/types/question";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import { getLineGraphTypeFromQuestion } from "@/utils/charts/helpers";
@@ -51,6 +51,7 @@ type Props = QuestionsDataProps & {
   embedMode?: boolean;
   withLegend?: boolean;
   className?: string;
+  prioritizeOpen?: boolean;
 };
 
 /**
@@ -76,11 +77,26 @@ const GroupTimeline: FC<Props> = ({
   embedMode,
   withLegend,
   className,
+  prioritizeOpen = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
-  const optionQuestions = group ? group.questions : questions;
+  const baseOptionQuestions = useMemo(
+    () => (group ? group.questions : questions) ?? [],
+    [group, questions]
+  );
+
+  const optionQuestions = useMemo(() => {
+    if (!prioritizeOpen) return baseOptionQuestions;
+    const open = baseOptionQuestions.filter(
+      (q) => q.status === QuestionStatus.OPEN
+    );
+    const other = baseOptionQuestions.filter(
+      (q) => q.status !== QuestionStatus.OPEN
+    );
+    return [...open, ...other];
+  }, [baseOptionQuestions, prioritizeOpen]);
 
   const forecastAvailability = getGroupForecastAvailability(optionQuestions);
   const timestamps = useMemo(
@@ -107,23 +123,28 @@ const GroupTimeline: FC<Props> = ({
       group?: PostGroupOfQuestions<QuestionWithNumericForecasts>,
       preselectedQuestionId?: number
     ): ChoiceItem[] => {
-      if (group) {
-        return generateChoiceItemsFromGroupQuestions(group, {
+      if (prioritizeOpen) {
+        return generateChoiceItemsFromGroupQuestions(optionQuestions ?? [], {
           activeCount: maxVisibleCheckboxes,
           preselectedQuestionId,
         });
+      } else {
+        if (group) {
+          return generateChoiceItemsFromGroupQuestions(group, {
+            activeCount: maxVisibleCheckboxes,
+            preselectedQuestionId,
+          });
+        }
+        if (questions) {
+          return generateChoiceItemsFromGroupQuestions(questions, {
+            activeCount: maxVisibleCheckboxes,
+            preselectedQuestionId,
+          });
+        }
+        return [];
       }
-
-      if (questions) {
-        return generateChoiceItemsFromGroupQuestions(questions, {
-          activeCount: maxVisibleCheckboxes,
-          preselectedQuestionId,
-        });
-      }
-
-      return [];
     },
-    [maxVisibleCheckboxes]
+    [maxVisibleCheckboxes, prioritizeOpen, optionQuestions]
   );
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, group, preselectedQuestionId)
@@ -240,7 +261,12 @@ const GroupTimeline: FC<Props> = ({
       ({ highlighted }) => highlighted
     );
     if (highlightedChoice) {
-      return highlightedChoice.aggregationForecasterCounts?.at(-1) ?? null;
+      const ts = highlightedChoice.aggregationTimestamps ?? timestamps;
+      const target = findPreviousTimestamp(ts, cursorTimestamp);
+      const idx = ts.findIndex((t) => t === target);
+      return idx >= 0
+        ? highlightedChoice.aggregationForecasterCounts?.[idx] ?? null
+        : null;
     }
 
     // fallback: when multiple choices are active, show cursor-based forecasters from first active choice

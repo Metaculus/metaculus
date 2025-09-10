@@ -88,7 +88,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           className={cn(
             "flex min-w-[110px] flex-col rounded-md border border-olive-800/20 p-2 dark:border-olive-800 md:px-3 md:py-2.5",
             {
-              "h-full w-[200px]": size === "lg" && hideLabel,
+              "min-h-full w-[200px]": size === "lg" && hideLabel,
               "w-max max-w-[200px]": size === "lg" && !hideLabel,
               "max-w-[130px]": size === "md",
               "gap-1": !hideLabel && size === "lg",
@@ -105,11 +105,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
                   : t("communityPredictionLabel")}
               </div>
             )}
-            <ContinuousCPBar
-              question={question as QuestionWithNumericForecasts}
-              size={size}
-              variant="question"
-            />
+            {!hideCP && (
+              <ContinuousCPBar
+                question={question as QuestionWithNumericForecasts}
+                size={size}
+                variant="question"
+              />
+            )}
           </div>
           <div
             className={cn({
@@ -123,22 +125,24 @@ const QuestionHeaderCPStatus: FC<Props> = ({
               height={hideLabel && size === "lg" ? 120 : 50}
               forceTickCount={2}
               hideLabels={hideLabel}
+              hideCP={hideCP}
             />
           </div>
-          <QuestionCPMovement
-            question={question}
-            className={cn(
-              "mx-auto min-w-[100px] max-w-full text-center md:[&>span]:whitespace-normal",
-              {
-                "-mt-2 text-center": size === "md" && hideLabel, // Center + negative margin for mobile continuous
-                "text-center": size === "md" && !hideLabel, // Just center for mobile binary
-              }
-            )}
-            size={"sm"}
-            // Hide unit on small sizes
-            unit={size === "md" ? "" : undefined}
-            boldValueUnit={true}
-          />
+          {!hideCP && (
+            <QuestionCPMovement
+              question={question}
+              className={cn(
+                "mx-auto min-w-[100px] max-w-full text-center md:[&>span]:whitespace-normal",
+                {
+                  "-mt-2 text-center": size === "md" && hideLabel,
+                  "text-center": size === "md" && !hideLabel,
+                }
+              )}
+              size={"sm"}
+              unit={size === "md" ? "" : undefined}
+              boldValueUnit={true}
+            />
+          )}
         </div>
       )
     );
@@ -150,7 +154,9 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           "gap-1.5": size === "md", // Mobile: 6px gap
         })}
       >
-        <BinaryCPBar question={question} size={size === "lg" ? "lg" : "sm"} />
+        {!hideCP && (
+          <BinaryCPBar question={question} size={size === "lg" ? "lg" : "sm"} />
+        )}
         {!hideCP && (
           <QuestionCPMovement
             question={question}

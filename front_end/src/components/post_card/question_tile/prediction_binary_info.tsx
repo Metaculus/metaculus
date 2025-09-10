@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionCPMovement from "@/components/cp_movement";
 import MyPredictionChip from "@/components/my_prediction_chip";
@@ -19,6 +20,7 @@ type Props = {
   showMyPrediction?: boolean;
   size?: "sm" | "lg";
   cpMovementVariant?: "chip" | "message";
+  cpMovementClassName?: string;
 };
 
 const PredictionBinaryInfo: FC<Props> = ({
@@ -29,6 +31,7 @@ const PredictionBinaryInfo: FC<Props> = ({
   showMyPrediction,
   cpMovementVariant = "message",
   size = "sm",
+  cpMovementClassName,
 }) => {
   const { hideCP } = useHideCP();
 
@@ -44,17 +47,30 @@ const PredictionBinaryInfo: FC<Props> = ({
           "gap-4": size === "lg", // Add gap for large size to accommodate scale
         })}
       >
-        <BinaryCPBar question={question} size={size} />
+        {!hideCP && <BinaryCPBar question={question} size={size} />}
         {!hideCP && (
           <QuestionCPMovement
             question={question}
-            className={cn("mx-auto max-w-[110px] justify-center text-center")}
+            className={cn(
+              "mx-auto justify-center text-center",
+              cpMovementClassName
+            )}
             size={size === "sm" ? "xs" : "sm"}
             boldValueUnit
             variant={cpMovementVariant}
           />
         )}
       </div>
+
+      {hideCP && (
+        <ForecastersCounter
+          forecasters={
+            question.aggregations[question.default_aggregation_method]?.latest
+              ?.forecaster_count ?? undefined
+          }
+          className="mt-1"
+        />
+      )}
 
       {showMyPrediction &&
         question.my_forecasts?.latest &&
