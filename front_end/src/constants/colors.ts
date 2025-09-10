@@ -183,6 +183,9 @@ export const METAC_COLORS = {
     17: { DEFAULT: "#C4E5C9", dark: "#C4E5C9" },
     18: { DEFAULT: "#F59D9D", dark: "#F59D9D" },
   },
+  "mc-option-text": {
+    1: { DEFAULT: "#1f44ff", dark: "#9FAFFF" },
+  },
 
   bell: { DEFAULT: "#b79d00", dark: "#dac024" },
   twitter: { DEFAULT: "#1da1f2" },

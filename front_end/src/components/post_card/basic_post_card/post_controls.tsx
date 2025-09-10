@@ -74,7 +74,7 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({ post }) => {
           className="hidden md:flex"
         />
       </div>
-      <div className="hidden lg:inline-flex">
+      <div className="hidden overflow-hidden lg:inline-flex">
         <PostDefaultProject defaultProject={defaultProject} />
       </div>
     </div>

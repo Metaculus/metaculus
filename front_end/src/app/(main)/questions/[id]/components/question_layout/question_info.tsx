@@ -40,6 +40,7 @@ const QuestionInfo: React.FC<Props> = ({
             groupPresentationOverride={
               GroupOfQuestionsGraphType.MultipleChoiceGraph
             }
+            prioritizeOpenSubquestions
             className="mt-2"
           />
         )}

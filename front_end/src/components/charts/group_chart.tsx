@@ -40,20 +40,20 @@ import { ThemeColor } from "@/types/theme";
 import {
   generateNumericXDomain,
   generateScale,
-  generateTimestampXScale,
   generateTimeSeriesYDomain,
+  generateTimestampXScale,
   getAxisLeftPadding,
-  getTickLabelFontSize,
   getAxisRightPadding,
+  getTickLabelFontSize,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
+import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
-import XTickLabel from "./primitives/x_tick_label";
-import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import GroupResolutionPoint from "./primitives/group_resolution_point";
+import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
   timestamps: number[];
@@ -66,6 +66,7 @@ type Props = {
   hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
+  attachRef?: (node: HTMLElement | null) => void;
   extraTheme?: VictoryThemeDefinition;
   questionType?: QuestionType;
   scaling?: Scaling;
@@ -85,6 +86,8 @@ const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
 const TICK_FONT_SIZE = 10;
 const POINT_SIZE = 9;
+const USER_POINT_SIZE = 6;
+const USER_POINT_STROKE = 1.5;
 
 const GroupChart: FC<Props> = ({
   timestamps,
@@ -97,6 +100,7 @@ const GroupChart: FC<Props> = ({
   hideCP,
   onCursorChange,
   onChartReady,
+  attachRef,
   extraTheme,
   questionType = QuestionType.Binary,
   scaling,
@@ -226,6 +230,7 @@ const GroupChart: FC<Props> = ({
 
   const CursorContainer = (
     <VictoryCursorContainer
+      containerRef={attachRef}
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
@@ -274,6 +279,7 @@ const GroupChart: FC<Props> = ({
       }}
     />
   );
+
   return (
     <div>
       <ChartContainer
@@ -289,8 +295,8 @@ const GroupChart: FC<Props> = ({
             theme={actualTheme}
             padding={{
               left: isEmbedded ? maxLeftPadding : 0,
-              top: 10,
               right: isEmbedded ? 10 : maxRightPadding,
+              top: 10,
               bottom: BOTTOM_PADDING,
             }}
             events={[
@@ -299,12 +305,10 @@ const GroupChart: FC<Props> = ({
                 eventHandlers: {
                   onMouseOverCapture: () => {
                     if (!onCursorChange) return;
-
                     setIsCursorActive(true);
                   },
                   onMouseOutCapture: () => {
                     if (!onCursorChange) return;
-
                     setIsCursorActive(false);
                   },
                 },
@@ -315,6 +319,7 @@ const GroupChart: FC<Props> = ({
                 CursorContainer
               ) : (
                 <VictoryContainer
+                  containerRef={attachRef}
                   style={{
                     pointerEvents: "auto",
                     userSelect: "auto",
@@ -503,6 +508,11 @@ const GroupChart: FC<Props> = ({
             {graphs.map(({ color, active, resolutionPoint }, index) => {
               if (!resolutionPoint || !active) return null;
 
+              const textThemeColor =
+                color === METAC_COLORS["mc-option"][1]
+                  ? METAC_COLORS["mc-option-text"][1]
+                  : color;
+
               return (
                 <VictoryScatter
                   key={`group-resolution-${index}`}
@@ -527,6 +537,7 @@ const GroupChart: FC<Props> = ({
                   dataComponent={
                     <GroupResolutionPoint
                       pointColor={getThemeColor(color)}
+                      pointTextColor={getThemeColor(textThemeColor)}
                       pointSize={POINT_SIZE}
                       chartWidth={chartWidth}
                       chartRightPadding={maxRightPadding}
@@ -542,12 +553,17 @@ const GroupChart: FC<Props> = ({
                 <VictoryScatter
                   key={`group-scatter-${index}`}
                   data={scatter}
-                  dataComponent={<PredictionSymbol size={POINT_SIZE} />}
+                  dataComponent={
+                    <PredictionSymbol
+                      size={USER_POINT_SIZE}
+                      strokeWidth={USER_POINT_STROKE}
+                    />
+                  }
                   style={{
                     data: {
                       stroke: getThemeColor(color),
                       fill: getThemeColor(METAC_COLORS.gray["200"]),
-                      strokeWidth: 2,
+                      strokeWidth: USER_POINT_STROKE,
                     },
                   }}
                 />
@@ -888,9 +904,10 @@ function buildChartData({
 }
 
 // Define a custom "X" symbol function
-const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
+type SymbolProps = PointProps & { size?: number; strokeWidth?: number };
+const PredictionSymbol: React.FC<SymbolProps> = (props) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, size, style } = props;
+  const { x, y, datum, size = 6, style, strokeWidth = 1.5 } = props;
   if (
     typeof x !== "number" ||
     typeof y !== "number" ||
@@ -910,7 +927,7 @@ const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
           x2={x + size}
           y2={y + size}
           stroke={stroke}
-          strokeWidth={2}
+          strokeWidth={strokeWidth}
         />
         <line
           x1={x - size}
@@ -918,7 +935,7 @@ const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
           x2={x + size}
           y2={y - size}
           stroke={stroke}
-          strokeWidth={2}
+          strokeWidth={strokeWidth}
         />
       </g>
     );
@@ -931,7 +948,7 @@ const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
       r={size / 2 + 1}
       stroke={stroke}
       fill={getThemeColor(METAC_COLORS.gray["200"])}
-      strokeWidth={2}
+      strokeWidth={strokeWidth}
     />
   );
 };
