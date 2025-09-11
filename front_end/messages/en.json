@@ -1288,7 +1288,6 @@
   "youSubmittedPredictionsFor": "You’ve submitted predictions for {count} of {total} questions.",
   "reviewSkippedQuestions": "Review skipped questions",
   "questionsTotal": "{count} questions total",
-  "noParticipationTournament": "You have not participated in this tournament yet.",
   "reviewAll": "Review all",
   "questionsNotPredicted": "{count, plural, =1 {# question} other {# questions}} not predicted",
   "significantMovementForecasts": "{count, plural, =1 {# forecast} other {# forecasts}} with significant movement",
@@ -1511,5 +1510,6 @@
   "timeline": "Timeline",
   "inNews": "In the News",
   "info": "Question Info",
+  "noParticipationProject": "You have not participated in this {projectType} yet.",
   "hiddenUntil": "Hidden until"
 }
