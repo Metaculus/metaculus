@@ -333,7 +333,6 @@ def test_calculate_questions_index_bounds():
     # Active forecasts
     #
 
-    # This will result as (0.5, 0.95)
     add_agg(
         question_binary,
         start=datetime_aware(2025, 1, 4),
@@ -341,7 +340,6 @@ def test_calculate_questions_index_bounds():
         interval_lower_bounds=[0.15, 0.5],
         interval_upper_bounds=[0.30, 0.95],
     )
-    # This will result as (0.1, 0.45)
     add_agg(
         question_numeric,
         start=datetime_aware(2025, 1, 4),
