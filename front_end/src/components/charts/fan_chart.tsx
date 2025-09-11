@@ -76,6 +76,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { FanChartVariant, fanVariants } from "./fan_chart_variants";
+import IndexValueTooltip from "./primitives/index_value_tooltip";
 
 type Props = {
   group?: PostGroupOfQuestions<QuestionWithNumericForecasts>;
@@ -251,6 +252,72 @@ const FanChart: FC<Props> = ({
     [normOptions]
   );
 
+  const formatValue = (v: number) => yScale.tickFormat(v);
+  const getIndexValueForX = useMemo(() => {
+    const map: Record<string, number | null> = {};
+    for (const o of normOptions) {
+      const val =
+        o.resolved && typeof o.resolvedValue === "number"
+          ? o.resolvedValue
+          : o.communityQuartiles?.median ?? null;
+      map[o.name] = Number.isFinite(val as number) ? (val as number) : null;
+    }
+    return (xName: string) => map[xName] ?? null;
+  }, [normOptions]);
+
+  const tooltipConfig = useMemo(() => {
+    if (effectiveVariant === "index") {
+      return {
+        labels: () => " ",
+        voronoiDimension: "x" as const,
+        labelComponent: (
+          <IndexValueTooltip
+            chartHeight={height}
+            formatValue={formatValue}
+            getValueForX={getIndexValueForX}
+          />
+        ),
+      } as const;
+    }
+    return {
+      labels: ({ datum }: { datum: { x: string } }) => datum.x,
+      voronoiDimension: undefined,
+      labelComponent: (
+        <ChartFanTooltip
+          chartHeight={height}
+          options={tooltipOptions}
+          hideCp={hideCP}
+          forecastAvailability={forecastAvailability}
+        />
+      ),
+    } as const;
+  }, [
+    effectiveVariant,
+    height,
+    formatValue,
+    getIndexValueForX,
+    tooltipOptions,
+    hideCP,
+    forecastAvailability,
+  ]);
+
+  const containerWithTooltip = (
+    <VictoryVoronoiContainer
+      voronoiBlacklist={[
+        "communityFanArea",
+        "userFanArea",
+        "communityFanLine",
+        "userFanLine",
+      ]}
+      style={{ touchAction: "pan-y" }}
+      {...tooltipConfig}
+      onActivated={(points: { x: string }[]) => {
+        const x = points[0]?.x;
+        if (!isNil(x)) setActivePoint(x);
+      }}
+    />
+  );
+
   return (
     <div
       id="fan-graph-container"
@@ -268,28 +335,7 @@ const FanChart: FC<Props> = ({
           padding={v.padding(variantArgs)}
           containerComponent={
             withTooltip ? (
-              <VictoryVoronoiContainer
-                voronoiBlacklist={[
-                  "communityFanArea",
-                  "userFanArea",
-                  "communityFanLine",
-                  "userFanLine",
-                ]}
-                style={{ touchAction: "pan-y" }}
-                labels={({ datum }: { datum: { x: string } }) => datum.x}
-                labelComponent={
-                  <ChartFanTooltip
-                    chartHeight={height}
-                    options={tooltipOptions}
-                    hideCp={hideCP}
-                    forecastAvailability={forecastAvailability}
-                  />
-                }
-                onActivated={(points: { x: string }[]) => {
-                  const x = points[0]?.x;
-                  if (!isNil(x)) setActivePoint(x);
-                }}
-              />
+              containerWithTooltip
             ) : (
               <VictoryContainer
                 style={{

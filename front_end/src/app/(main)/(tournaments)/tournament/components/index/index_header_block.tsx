@@ -115,7 +115,7 @@ export default function IndexHeaderBlock({ tournament }: Props) {
             <FanChart
               options={overviewOptions}
               height={220}
-              withTooltip={false}
+              withTooltip
               variant="index"
               fixedYDomain={[MIN, MAX]}
             />
