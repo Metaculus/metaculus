@@ -64,7 +64,7 @@ def _value_from_forecast(question: Question, forecast: AggregateForecast) -> flo
     Mapping rules:
       - Binary: use probability of "yes" (centers[1]) mapped to [0, 1]
       - Numeric/Date/Discrete: use mean survival mass = average(1 - CDF)
-    If necessary data is missing, returns 0.
+    If necessary data is missing, returns 0.5
     """
 
     if question.type == Question.QuestionType.BINARY:
@@ -112,9 +112,9 @@ def _value_from_resolved_question(question: Question) -> float | None:
 def calculate_questions_index_timeline(
     question_indexes_map: dict[Question, float],
     forecasts_by_question: QuestionsAggMap,
+    index_min: float,
+    index_max: float,
     max_points: int = 400,
-    index_min: float = -100,
-    index_max: float = 100,
 ) -> list[IndexPoint]:
     """
     Build a minimized timeline of the project's index.
@@ -225,8 +225,8 @@ def calculate_questions_index_bounds(
 def _get_index_data(
     question_indexes_map: dict[Question, float],
     forecasts_by_question: QuestionsAggMap,
-    index_min: float = -100,
-    index_max: float = 100,
+    index_min: float,
+    index_max: float,
 ):
     resolved_questions = [
         q for q in question_indexes_map.keys() if q.status == QuestionStatus.RESOLVED
