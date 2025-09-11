@@ -343,7 +343,7 @@ def get_multi_year_index_data(index: ProjectIndex) -> dict:
 
     # Generating individual indexes for each segment
     series_by_year = {
-        segment: _get_index_data(q_map, agg_map)
+        segment: _get_index_data(q_map, agg_map, index.min, index.max)
         for segment, q_map in index_segments.items()
     }
 
