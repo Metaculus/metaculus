@@ -175,11 +175,9 @@ def calculate_questions_index_timeline(
 
             if value is not None:
                 weight_sum += abs(weight)
-                score_sum += weight * (
-                    2 * value - 1
-                )  # scale to [-1, 1] for aggregation
+                score_sum += weight * (2 * value - 1)  # scale to [-1, 1] for aggregate
 
-        # Normalize and scale to index range [min, max]
+        # Normalize back to [0, 1] and scale to index range [min, max]
         y = (score_sum / weight_sum + 1) / 2 if weight_sum != 0 else 0.5
         line.append(
             {"x": int(dt.timestamp()), "y": index_min + y * (index_max - index_min)}
