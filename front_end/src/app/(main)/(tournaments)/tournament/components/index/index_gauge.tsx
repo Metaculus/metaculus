@@ -17,7 +17,7 @@ import { getIndexBounds } from "../../helpers/index_legend";
 type Props = {
   tournament: Tournament;
   barHeight?: number;
-  year?: number;
+  year?: string;
 };
 
 const CAP_W = 3;
@@ -140,7 +140,7 @@ function getYears(multi?: MultiYearIndexData | null): number[] {
 
 function pickSeries(
   multi?: MultiYearIndexData | null,
-  year?: number
+  year?: string
 ): IndexSeries | null {
   if (!multi?.series_by_year) return null;
   const years = getYears(multi);
