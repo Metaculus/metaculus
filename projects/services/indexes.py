@@ -160,15 +160,14 @@ def calculate_questions_index_timeline(
         for question, weight in question_indexes_map.items():
             history = forecasts_by_question.get(question.id)
 
-            if not history:
-                continue
-
             value = None
 
             # Handle resolved questions index
             if question.actual_resolve_time and dt >= question.actual_resolve_time:
                 value = _value_from_resolved_question(question)
             else:
+                if not history:
+                    continue
                 # TODO: this one is not very optimized, so need to propose different solution for loop!
                 if agg := get_last_forecast_in_the_past(history, at_time=dt):
                     value = _value_from_forecast(question, agg)
