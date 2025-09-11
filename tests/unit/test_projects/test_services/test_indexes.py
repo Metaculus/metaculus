@@ -107,6 +107,8 @@ def test_calculate_questions_index_timeline():
     data = calculate_questions_index_timeline(
         {question: 1, question_annulled_overlap: 1},
         _generate_questions_agg_map([question, question_annulled_overlap]),
+        index_min=-100,
+        index_max=100,
     )
 
     # Aggregations from question #1 only!
@@ -171,6 +173,8 @@ def test_calculate_questions_index_timeline__negative_values():
             question_2: 0.5,
         },
         _generate_questions_agg_map([question_1, question_2]),
+        index_min=-100,
+        index_max=100,
     )
 
     # Aggregations from question #1 only!
@@ -208,7 +212,10 @@ def test_calculate_questions_index_timeline__unsuccessfully_resolved():
     )
 
     data = calculate_questions_index_timeline(
-        {question: 1}, _generate_questions_agg_map([question])
+        {question: 1},
+        _generate_questions_agg_map([question]),
+        index_min=-100,
+        index_max=100,
     )
 
     assert find_point(data, datetime_aware(2025, 1, 4)) == pytest.approx(50)
@@ -237,7 +244,10 @@ def test_calculate_questions_index_timeline__ongoing():
     )
 
     data = calculate_questions_index_timeline(
-        {question: 1}, _generate_questions_agg_map([question])
+        {question: 1},
+        _generate_questions_agg_map([question]),
+        index_min=-100,
+        index_max=100,
     )
 
     assert find_point(data, datetime_aware(2025, 1, 4)) == pytest.approx(50)
@@ -246,7 +256,7 @@ def test_calculate_questions_index_timeline__ongoing():
 
 
 @pytest.mark.parametrize(
-    "resolution,index", [["yes", 1], ["no", -1], [None, None], ["ambiguous", None]]
+    "resolution,index", [["yes", 1], ["no", 0], [None, None], ["ambiguous", None]]
 )
 def test_value_from_resolved_question__binary(resolution, index):
     question = create_question(
@@ -260,12 +270,12 @@ def test_value_from_resolved_question__binary(resolution, index):
     "resolution,index",
     [
         # Below lower bound
-        ["3000", -1],
+        ["3000", 0],
         # Above upper bound
         ["150000", 1],
         # Within range
-        ["15250", 0.5],
-        ["8375", -0.75],
+        ["15250", 0.75],
+        ["8375", 0.125],
     ],
 )
 def test_value_from_resolved_question__numeric(resolution, index):
@@ -323,7 +333,7 @@ def test_calculate_questions_index_bounds():
     # Active forecasts
     #
 
-    # This will result as (0, 0.9)
+    # This will result as (0.5, 0.95)
     add_agg(
         question_binary,
         start=datetime_aware(2025, 1, 4),
@@ -331,7 +341,7 @@ def test_calculate_questions_index_bounds():
         interval_lower_bounds=[0.15, 0.5],
         interval_upper_bounds=[0.30, 0.95],
     )
-    # This will result as (-0.8, -0.1)
+    # This will result as (0.1, 0.45)
     add_agg(
         question_numeric,
         start=datetime_aware(2025, 1, 4),
@@ -350,8 +360,10 @@ def test_calculate_questions_index_bounds():
             question_annulled: 10.0,
         },
         _generate_questions_agg_map(
-            [question_binary, question_numeric, question_resolved, question_annulled]
+            [question_binary, question_numeric, question_resolved, question_annulled],
         ),
+        index_min=-100,
+        index_max=100,
     )
 
     assert lower_bound == pytest.approx(56.153, rel=0.1)
