@@ -475,12 +475,12 @@ def assign_prize_percentages(
 ) -> list[LeaderboardEntry]:
     # Distribute prize % according to take
     # anyone who takes less than the minimum gets redistributed up iteratively
-    scoring_take = sum((e.take or 0) * int(e.excluded) for e in entries)
+    scoring_take = sum((e.take or 0) * int(not e.excluded) for e in entries)
     for entry in entries[::-1]:  # start in reverse
         entry.percent_prize = 0
         if entry.excluded or not entry.take:
             continue
-        percent_prize = entry.take / scoring_take
+        percent_prize = entry.take / (scoring_take or 1)
         if percent_prize < minimum_prize_percent:
             # remove take from pool since they don't get prize
             scoring_take -= entry.take
