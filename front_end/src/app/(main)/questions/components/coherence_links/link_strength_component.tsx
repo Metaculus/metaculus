@@ -7,7 +7,9 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   strength: Strengths;
-  disabled: boolean;
+  disabled?: boolean;
+  selected?: boolean;
+  onClick?: () => Promise<void>;
 };
 
 const colorAccent = {
@@ -16,7 +18,12 @@ const colorAccent = {
   [Strengths.High]: "orange-400",
 } as const;
 
-const LinkStrengthComponent: FC<Props> = ({ strength, disabled }) => {
+const LinkStrengthComponent: FC<Props> = ({
+  strength,
+  disabled,
+  onClick,
+  selected,
+}) => {
   const t = useTranslations();
   const label = t(strength);
   const color = colorAccent[strength];
@@ -27,9 +34,11 @@ const LinkStrengthComponent: FC<Props> = ({ strength, disabled }) => {
     <Button
       className={cn(
         "text-bold mt-3 gap-1.5 rounded border px-2 py-1.5 disabled:opacity-100",
-        additionalStyling
+        additionalStyling,
+        selected ? "shadow-md" : ""
       )}
       disabled={disabled}
+      onClick={onClick}
     >
       {label}
     </Button>

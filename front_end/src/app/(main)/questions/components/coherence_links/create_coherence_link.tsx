@@ -13,6 +13,7 @@ import {
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
+import LinkStrengthSelectorComponent from "@/app/(main)/questions/components/coherence_links/link_strength_selector_component";
 import QuestionPicker, {
   SearchedQuestionType,
 } from "@/app/(main)/questions/components/question_picker";
@@ -36,7 +37,6 @@ export type CreateCoherenceLinkRefType = {
 };
 
 const directionOptions = [Directions.Positive, Directions.Negative];
-const strengthOptions = [Strengths.Low, Strengths.Medium, Strengths.High];
 
 // Reusable styled select component
 const StyledSelect: FC<{
@@ -193,12 +193,6 @@ const CreateCoherenceLink = (
             impact: () => (
               <>
                 <StyledSelect
-                  value={strength}
-                  onChange={(value) => setStrength(value as Strengths)}
-                  options={strengthOptions}
-                  t={t}
-                />{" "}
-                <StyledSelect
                   value={direction}
                   onChange={(value) => setDirection(value as Directions)}
                   options={directionOptions}
@@ -254,6 +248,11 @@ const CreateCoherenceLink = (
             ),
           }
         )}
+      </div>
+      <div>
+        <LinkStrengthSelectorComponent
+          onSelect={(value) => setStrength(value)}
+        />{" "}
       </div>
 
       {/* Controlled QuestionPicker modal */}
