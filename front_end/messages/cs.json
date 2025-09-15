@@ -1407,9 +1407,6 @@
   "updateLinksRequest": "Nezapomeňte aktualizovat následující propojené otázky:",
   "unlink": "zrušit propojení",
   "linkQuestion": "Přidat odkaz na otázku",
-  "low": "malý",
-  "medium": "střední",
-  "high": "velký",
   "questionLinksPrivate": "Odkazy na otázky (Soukromé)",
   "mostForecasters": "Většina předpovědníků",
   "unfinalizedPrizeTooltip": "Tento turnaj stále probíhá. Skóre a ceny se mohou změnit, jakmile se vyřeší více otázek.",
@@ -1517,5 +1514,8 @@
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> nepřečtených)</purple> <strong>{total_count_formatted}</strong> celkem",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {komentářů} =1 {komentář} other {komentáře}}",
+  "low": "Nízká síla",
+  "medium": "Střední síla",
+  "high": "Vysoká síla",
   "othersCount": "Ostatní ({count})"
 }

@@ -1475,9 +1475,6 @@
   "noQuestionsLinkedP3": "Your links are private, but will contribute to a community aggregate.",
   "questionLinksPrivate": "Question Links (Private)",
   "linkQuestion": "Add Question Link",
-  "low": "small",
-  "medium": "medium",
-  "high": "large",
   "questionPairExists": "You've already made a link between these questions. You must delete the current link if you want to change the strength.",
   "questionMustDiffer": "You can't link a question to itself.",
   "expandAll": "Expand All",
@@ -1511,5 +1508,8 @@
   "timeline": "Timeline",
   "inNews": "In the News",
   "info": "Question Info",
-  "hiddenUntil": "Hidden until"
+  "hiddenUntil": "Hidden until",
+  "low": "Low strength",
+  "medium": "Medium strength",
+  "high": "High strength"
 }

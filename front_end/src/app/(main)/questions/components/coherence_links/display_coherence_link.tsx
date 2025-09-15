@@ -6,9 +6,10 @@ import { FC, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { deleteCoherenceLink } from "@/app/(main)/questions/actions";
+import LinkStrengthComponent from "@/app/(main)/questions/components/coherence_links/link_strength_component";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { CoherenceLink, Directions, Strengths } from "@/types/coherence";
+import { CoherenceLink, Directions } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
@@ -34,18 +35,6 @@ const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
           {t("negative")}
         </span>
       );
-  }
-};
-
-const StrengthComponent: FC<{ strength: Strengths }> = ({ strength }) => {
-  const t = useTranslations();
-  switch (strength) {
-    case Strengths.High:
-      return <span className={"font-bold"}>{t("high")}</span>;
-    case Strengths.Medium:
-      return <span className={"font-bold"}>{t("medium")}</span>;
-    case Strengths.Low:
-      return <span className={"font-bold"}>{t("low")}</span>;
   }
 };
 
@@ -102,7 +91,6 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
           {
             impact: () => (
               <>
-                <StrengthComponent strength={link.strength} />{" "}
                 <DirectionComponent direction={link.direction} />{" "}
                 <span>{t("causal")}</span>
               </>
@@ -118,6 +106,9 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
             ),
           }
         )}
+      </div>
+      <div>
+        <LinkStrengthComponent strength={link.strength} disabled={true} />
       </div>
       <Button
         onClick={deleteLink}
