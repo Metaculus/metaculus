@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FC, useState } from "react";
 
 import LinkStrengthComponent from "@/app/(main)/questions/components/coherence_links/link_strength_component";
 import { Strengths } from "@/types/coherence";
@@ -16,7 +16,7 @@ const LinkStrengthSelectorComponent: FC<Props> = ({ onSelect }) => {
     setCurrentStrength(value);
   };
   return (
-    <div className="flex flex-col items-center justify-center gap-1">
+    <div className="flex items-center justify-center gap-2">
       {Object.values(Strengths).map((it, key) => (
         <LinkStrengthComponent
           strength={it}

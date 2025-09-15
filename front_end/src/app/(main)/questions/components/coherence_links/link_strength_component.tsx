@@ -9,13 +9,20 @@ type Props = {
   strength: Strengths;
   disabled?: boolean;
   selected?: boolean;
-  onClick?: () => Promise<void>;
+  onClick?: () => void;
 };
 
+// Note: cannot be generated dynamically because Tailwind doesn't generate the classes
 const colorAccent = {
-  [Strengths.Low]: "orange-200",
-  [Strengths.Medium]: "orange-300",
-  [Strengths.High]: "orange-400",
+  [Strengths.Low]: `bg-orange-200 disabled:bg-orange-200 hover:bg-orange-200 active:bg-orange-200 
+  dark:bg-orange-200-dark disabled:dark:bg-orange-200-dark dark:hover:bg-orange-200-dark dark:active:bg-orange-200-dark
+  border-orange-200 dark:border-orange-200-dark`,
+  [Strengths.Medium]: `bg-orange-300 disabled:bg-orange-300 hover:bg-orange-300 active:bg-orange-300 
+  dark:bg-orange-300-dark disabled:dark:bg-orange-300-dark dark:hover:bg-orange-300-dark dark:active:bg-orange-300-dark
+  border-orange-300 dark:border-orange-300-dark`,
+  [Strengths.High]: `bg-orange-400 disabled:bg-orange-400 hover:bg-orange-400 active:bg-orange-400 
+  dark:bg-orange-400-dark disabled:dark:bg-orange-400-dark dark:hover:bg-orange-400-dark dark:active:bg-orange-40-dark 
+  border-orange-400 dark:border-orange-400-dark`,
 } as const;
 
 const LinkStrengthComponent: FC<Props> = ({
@@ -26,16 +33,15 @@ const LinkStrengthComponent: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const label = t(strength);
-  const color = colorAccent[strength];
-  const additionalStyling = `bg-${color} disabled:bg-${color} hover:bg-${color} active:bg-${color} 
-  dark:bg-${color}-dark disabled:dark:bg-${color}-dark dark:hover:bg-${color} dark:active:bg-${color} 
-  border-${color} dark:border-${color}-dark`;
+  const additionalStyling = colorAccent[strength];
   return (
     <Button
       className={cn(
-        "text-bold mt-3 gap-1.5 rounded border px-2 py-1.5 disabled:opacity-100",
+        "text-bold mt-3 gap-1.5 rounded border-2 px-2 py-1.5 disabled:opacity-100",
         additionalStyling,
-        selected ? "shadow-md" : ""
+        selected
+          ? "ring-2 ring-gray-100 ring-offset-2 ring-offset-gray-700 dark:ring-gray-100-dark dark:ring-offset-gray-700-dark"
+          : ""
       )}
       disabled={disabled}
       onClick={onClick}
