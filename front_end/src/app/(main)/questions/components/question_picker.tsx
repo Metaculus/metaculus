@@ -12,6 +12,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
+import { ALLOWED_COHERENCE_LINK_QUESTION_TYPES } from "@/types/coherence";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
@@ -61,7 +62,7 @@ const QuestionPicker: FC<Props> = ({
       forecast_type:
         searchedQuestionType === SearchedQuestionType.Parent ||
         searchedQuestionType === SearchedQuestionType.Coherence
-          ? [QuestionType.Binary]
+          ? ALLOWED_COHERENCE_LINK_QUESTION_TYPES
           : [
               QuestionType.Binary,
               QuestionType.Numeric,
