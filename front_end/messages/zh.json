@@ -1519,5 +1519,8 @@
   "high": "高强度",
   "thisQuestionCausesOtherQuestion": "此问题对<otherQuestion></otherQuestion> 有<direction></direction> <type></type> 影响",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> 对此问题有<direction></direction> <type></type> 影响",
+  "thisQuestionCausesOtherQuestionAdverbial": "这个问题 <type></type> <direction></direction> <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> 这个问题",
+  "causally": "因果地",
   "othersCount": "其他（{count}）"
 }

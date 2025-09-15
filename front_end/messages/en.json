@@ -1511,5 +1511,8 @@
   "medium": "Medium strength",
   "high": "High strength",
   "thisQuestionCausesOtherQuestion": "This question has a <direction></direction> <type></type> impact on <otherQuestion></otherQuestion>",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> has a <direction></direction> <type></type> impact on this question"
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> has a <direction></direction> <type></type> impact on this question",
+  "thisQuestionCausesOtherQuestionAdverbial": "This question <type></type> <direction></direction> <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> this question",
+  "causally" : "causally"
 }

@@ -1517,5 +1517,8 @@
   "high": "Alta resistencia",
   "thisQuestionCausesOtherQuestion": "Esta pregunta tiene un impacto <direction></direction> <type></type> en <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tiene un impacto <direction></direction> <type></type> en esta pregunta",
+  "thisQuestionCausesOtherQuestionAdverbial": "Esta pregunta <type></type> <direction></direction> <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> esta pregunta",
+  "causally": "causalmente",
   "othersCount": "Otros ({count})"
 }

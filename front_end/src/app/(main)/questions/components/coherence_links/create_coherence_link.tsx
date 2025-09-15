@@ -21,7 +21,7 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionType } from "@/types/question";
 
 type Props = {
   post: Post;
@@ -180,6 +180,10 @@ const CreateCoherenceLink = (
     setIsPickerOpen(true);
   }
 
+  const isAdverbialPhrasing =
+    (isFirstQuestion ? otherQuestion?.type : post.question?.type) !==
+    QuestionType.Binary;
+
   if (cancelled) return null;
 
   return (
@@ -187,8 +191,12 @@ const CreateCoherenceLink = (
       <div>
         {t.rich(
           isFirstQuestion
-            ? "thisQuestionCausesOtherQuestion"
-            : "otherQuestionCausesThisQuestion",
+            ? isAdverbialPhrasing
+              ? "thisQuestionCausesOtherQuestionAdverbial"
+              : "thisQuestionCausesOtherQuestion"
+            : isAdverbialPhrasing
+              ? "otherQuestionCausesThisQuestionAdverbial"
+              : "otherQuestionCausesThisQuestion",
           {
             direction: () => (
               <StyledSelect
@@ -198,7 +206,9 @@ const CreateCoherenceLink = (
                 t={t}
               />
             ),
-            type: () => <span>{t("causal")}</span>,
+            type: () => (
+              <span>{t(isAdverbialPhrasing ? "causally" : "causal")}</span>
+            ),
             otherQuestion: () => (
               <span>
                 {!otherQuestion ? (

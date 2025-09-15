@@ -1515,5 +1515,8 @@
   "high": "Força alta",
   "thisQuestionCausesOtherQuestion": "Esta pergunta tem um impacto <direction></direction> <type></type> sobre <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tem um impacto <direction></direction> <type></type> nesta pergunta",
+  "thisQuestionCausesOtherQuestionAdverbial": "Esta pergunta <type></type> <direction></direction> <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> esta pergunta",
+  "causally": "causalmente",
   "othersCount": "Outros ({count})"
 }

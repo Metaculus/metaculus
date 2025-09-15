@@ -1514,5 +1514,8 @@
   "high": "高強度",
   "thisQuestionCausesOtherQuestion": "這個問題對<otherQuestion></otherQuestion> 產生<direction></direction> <type></type> 影響",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> 對這個問題產生<direction></direction> <type></type> 影響",
+  "thisQuestionCausesOtherQuestionAdverbial": "這個問題<type></type> <direction></direction> <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> 這個問題",
+  "causally": "原因地",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

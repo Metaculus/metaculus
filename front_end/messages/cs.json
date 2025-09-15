@@ -1517,5 +1517,8 @@
   "high": "Vysoká síla",
   "thisQuestionCausesOtherQuestion": "Tato otázka má <direction></direction> <type></type> dopad na <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <direction></direction> <type></type> dopad na tuto otázku",
+  "thisQuestionCausesOtherQuestionAdverbial": "Tato otázka <type></type> <direction></direction> <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> tato otázka",
+  "causally": "kauzálně",
   "othersCount": "Ostatní ({count})"
 }

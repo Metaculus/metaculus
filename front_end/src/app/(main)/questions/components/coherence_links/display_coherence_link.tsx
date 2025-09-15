@@ -11,7 +11,7 @@ import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CoherenceLink, Directions } from "@/types/coherence";
 import { Post } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionType } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
 
 type Props = {
@@ -81,16 +81,26 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
       </div>
     );
 
+  const isAdverbialPhrasing =
+    (isFirstQuestion ? otherQuestion?.type : post.question?.type) !==
+    QuestionType.Binary;
+
   return (
     <div className={"rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"}>
       <div>
         {t.rich(
           isFirstQuestion
-            ? "thisQuestionCausesOtherQuestion"
-            : "otherQuestionCausesThisQuestion",
+            ? isAdverbialPhrasing
+              ? "thisQuestionCausesOtherQuestionAdverbial"
+              : "thisQuestionCausesOtherQuestion"
+            : isAdverbialPhrasing
+              ? "otherQuestionCausesThisQuestionAdverbial"
+              : "otherQuestionCausesThisQuestion",
           {
             direction: () => <DirectionComponent direction={link.direction} />,
-            type: () => <span>{t("causal")}</span>,
+            type: () => (
+              <span>{t(isAdverbialPhrasing ? "causally" : "causal")}</span>
+            ),
             otherQuestion: () => (
               <Link
                 href={getPostLink({ id: otherQuestion.post_id })}
