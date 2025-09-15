@@ -1520,5 +1520,7 @@
   "thisQuestionCausesOtherQuestionAdverbial": "Tato otázka <type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> tato otázka",
   "causally": "kauzálně",
+  "hastens": "urychluje",
+  "delays": "zpožďuje",
   "othersCount": "Ostatní ({count})"
 }

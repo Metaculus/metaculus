@@ -22,6 +22,7 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import { Directions, LinkTypes, Strengths } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionType } from "@/types/question";
+import { getTermByDirectionAndQuestionType } from "@/utils/coherence";
 
 type Props = {
   post: Post;
@@ -36,31 +37,32 @@ export type CreateCoherenceLinkRefType = {
   save: () => Promise<boolean>;
 };
 
-const directionOptions = [Directions.Positive, Directions.Negative];
-
-// Reusable styled select component
-const StyledSelect: FC<{
-  value: Strengths | Directions;
+const DirectionSelect: FC<{
+  value: Directions;
   onChange: (value: string) => void;
-  options: (Strengths | Directions)[];
+  typeOfSecondQuestion: QuestionType | null;
   t: ReturnType<typeof useTranslations>;
-}> = ({ value, onChange, options, t }) => (
-  <Select
-    value={value}
-    onChange={(event) => onChange(event.target.value)}
-    className="rounded-md border border-gray-300 bg-gray-50 py-1.5 pl-2.5 pr-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400"
-  >
-    {options.map((option) => (
-      <option
-        key={option}
-        value={option}
-        className="bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
-      >
-        {t(option)}
-      </option>
-    ))}
-  </Select>
-);
+}> = ({ value, onChange, typeOfSecondQuestion, t }) => {
+  const options = [Directions.Positive, Directions.Negative];
+  if (!typeOfSecondQuestion) return null;
+  return (
+    <Select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="rounded-md border border-gray-300 bg-gray-50 py-1.5 pl-2.5 pr-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+    >
+      {options.map((option) => (
+        <option
+          key={option}
+          value={option}
+          className="bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
+        >
+          {t(getTermByDirectionAndQuestionType(option, typeOfSecondQuestion))}
+        </option>
+      ))}
+    </Select>
+  );
+};
 
 enum LinkCreationErrors {
   questionPairExists = "questionPairExists",
@@ -180,9 +182,9 @@ const CreateCoherenceLink = (
     setIsPickerOpen(true);
   }
 
-  const isAdverbialPhrasing =
-    (isFirstQuestion ? otherQuestion?.type : post.question?.type) !==
-    QuestionType.Binary;
+  const typeOfSecondQuestion =
+    (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
+  const isAdverbialPhrasing = typeOfSecondQuestion !== QuestionType.Binary;
 
   if (cancelled) return null;
 
@@ -199,10 +201,10 @@ const CreateCoherenceLink = (
               : "otherQuestionCausesThisQuestion",
           {
             direction: () => (
-              <StyledSelect
+              <DirectionSelect
                 value={direction}
                 onChange={(value) => setDirection(value as Directions)}
-                options={directionOptions}
+                typeOfSecondQuestion={typeOfSecondQuestion}
                 t={t}
               />
             ),

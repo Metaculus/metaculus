@@ -1517,5 +1517,7 @@
   "thisQuestionCausesOtherQuestionAdverbial": "這個問題<type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> 這個問題",
   "causally": "原因地",
+  "hastens": "加速",
+  "delays": "延遲",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

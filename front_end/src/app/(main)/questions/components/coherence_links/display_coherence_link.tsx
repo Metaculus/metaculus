@@ -9,9 +9,13 @@ import { deleteCoherenceLink } from "@/app/(main)/questions/actions";
 import LinkStrengthComponent from "@/app/(main)/questions/components/coherence_links/link_strength_component";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { CoherenceLink, Directions } from "@/types/coherence";
+import {
+  CoherenceLink,
+  Directions,
+} from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionType } from "@/types/question";
+import { getTermByDirectionAndQuestionType } from "@/utils/coherence";
 import { getPostLink } from "@/utils/navigation";
 
 type Props = {
@@ -20,19 +24,33 @@ type Props = {
   compact: boolean;
 };
 
-const DirectionComponent: FC<{ direction: Directions }> = ({ direction }) => {
+const DirectionComponent: FC<{
+  direction: Directions;
+  typeOfSecondQuestion: QuestionType | null;
+}> = ({ direction, typeOfSecondQuestion }) => {
   const t = useTranslations();
+  if (!typeOfSecondQuestion) return null;
   switch (direction) {
     case Directions.Positive:
       return (
         <span className={"font-bold text-olive-700 dark:text-olive-700-dark"}>
-          {t("positive")}
+          {t(
+            getTermByDirectionAndQuestionType(
+              Directions.Positive,
+              typeOfSecondQuestion
+            )
+          )}
         </span>
       );
     case Directions.Negative:
       return (
         <span className={"font-bold text-salmon-600 dark:text-salmon-600-dark"}>
-          {t("negative")}
+          {t(
+            getTermByDirectionAndQuestionType(
+              Directions.Negative,
+              typeOfSecondQuestion
+            )
+          )}
         </span>
       );
   }
@@ -81,9 +99,9 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
       </div>
     );
 
-  const isAdverbialPhrasing =
-    (isFirstQuestion ? otherQuestion?.type : post.question?.type) !==
-    QuestionType.Binary;
+  const typeOfSecondQuestion =
+    (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
+  const isAdverbialPhrasing = typeOfSecondQuestion !== QuestionType.Binary;
 
   return (
     <div className={"rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"}>
@@ -97,7 +115,12 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
               ? "otherQuestionCausesThisQuestionAdverbial"
               : "otherQuestionCausesThisQuestion",
           {
-            direction: () => <DirectionComponent direction={link.direction} />,
+            direction: () => (
+              <DirectionComponent
+                direction={link.direction}
+                typeOfSecondQuestion={typeOfSecondQuestion}
+              />
+            ),
             type: () => (
               <span>{t(isAdverbialPhrasing ? "causally" : "causal")}</span>
             ),

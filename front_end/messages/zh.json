@@ -1522,5 +1522,7 @@
   "thisQuestionCausesOtherQuestionAdverbial": "这个问题 <type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> 这个问题",
   "causally": "因果地",
+  "hastens": "加速",
+  "delays": "延迟",
   "othersCount": "其他（{count}）"
 }

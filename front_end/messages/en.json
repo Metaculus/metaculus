@@ -1514,5 +1514,7 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> has a <direction></direction> <type></type> impact on this question",
   "thisQuestionCausesOtherQuestionAdverbial": "This question <type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> this question",
-  "causally" : "causally"
+  "causally" : "causally",
+  "hastens" : "hastens",
+  "delays" : "delays"
 }

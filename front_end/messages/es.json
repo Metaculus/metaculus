@@ -1520,5 +1520,7 @@
   "thisQuestionCausesOtherQuestionAdverbial": "Esta pregunta <type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> esta pregunta",
   "causally": "causalmente",
+  "hastens": "acelera",
+  "delays": "retrasa",
   "othersCount": "Otros ({count})"
 }
