@@ -1438,8 +1438,6 @@
   "collapseAll": "Recolher Tudo",
   "questionPairExists": "Você já fez uma ligação entre essas perguntas. Você deve excluir o link atual se quiser alterar a força.",
   "questionMustDiffer": "Você não pode vincular uma pergunta a ela mesma.",
-  "thisQuestionCausesOtherQuestion": "Esta pergunta tem um impacto <impact></impact> em <otherQuestion></otherQuestion>",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tem um impacto <impact></impact> nesta pergunta",
   "recency_weighted": "Ponderação por Recência",
   "single_aggregation": "Agregação Única",
   "metaculus_prediction": "Previsão do Metaculus",
@@ -1515,5 +1513,7 @@
   "low": "Força baixa",
   "medium": "Força média",
   "high": "Força alta",
+  "thisQuestionCausesOtherQuestion": "Esta pergunta tem um impacto <direction></direction> <type></type> sobre <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> tem um impacto <direction></direction> <type></type> nesta pergunta",
   "othersCount": "Outros ({count})"
 }

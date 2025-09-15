@@ -1474,8 +1474,6 @@
   "collapseAll": "全部摺疊",
   "questionPairExists": "您已經在這些問題之間建立了連結。如果要更改強度，必須刪除當前連結。",
   "questionMustDiffer": "您不能將問題連結到自身。",
-  "thisQuestionCausesOtherQuestion": "此問題對<otherQuestion></otherQuestion>有<impact></impact>影響",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>對此問題有<impact></impact>影響",
   "recency_weighted": "近期加權",
   "single_aggregation": "單一聚合",
   "metaculus_prediction": "Metaculus 預測",
@@ -1514,5 +1512,7 @@
   "low": "低強度",
   "medium": "中強度",
   "high": "高強度",
+  "thisQuestionCausesOtherQuestion": "這個問題對<otherQuestion></otherQuestion> 產生<direction></direction> <type></type> 影響",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> 對這個問題產生<direction></direction> <type></type> 影響",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

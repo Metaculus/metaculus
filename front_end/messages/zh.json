@@ -1440,8 +1440,6 @@
   "entryExcluded": "此报名不符合获得排名或奖品的条件。如果符合条件，他们就是这个名次。",
   "questionPairExists": "您已经在这些问题之间建立了链接。如果您想更改强度，必须删除当前链接。",
   "questionMustDiffer": "您不能将一个问题链接到它自己。",
-  "thisQuestionCausesOtherQuestion": "此问题对<otherQuestion></otherQuestion>有<impact></impact>的影响",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion>对该问题有<impact></impact>的影响",
   "expandAll": "全部展开",
   "collapseAll": "全部折叠",
   "recency_weighted": "加权最近性",
@@ -1519,5 +1517,7 @@
   "low": "低强度",
   "medium": "中等强度",
   "high": "高强度",
+  "thisQuestionCausesOtherQuestion": "此问题对<otherQuestion></otherQuestion> 有<direction></direction> <type></type> 影响",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> 对此问题有<direction></direction> <type></type> 影响",
   "othersCount": "其他（{count}）"
 }

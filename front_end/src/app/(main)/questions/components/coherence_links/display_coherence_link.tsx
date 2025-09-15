@@ -89,12 +89,8 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
             ? "thisQuestionCausesOtherQuestion"
             : "otherQuestionCausesThisQuestion",
           {
-            impact: () => (
-              <>
-                <DirectionComponent direction={link.direction} />{" "}
-                <span>{t("causal")}</span>
-              </>
-            ),
+            direction: () => <DirectionComponent direction={link.direction} />,
+            type: () => <span>{t("causal")}</span>,
             otherQuestion: () => (
               <Link
                 href={getPostLink({ id: otherQuestion.post_id })}

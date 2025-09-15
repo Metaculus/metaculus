@@ -1437,8 +1437,6 @@
   "lastQuestionResolves": "Poslední otázka se řeší",
   "questionPairExists": "Mezi těmito otázkami jste již vytvořili odkaz. Pokud chcete změnit sílu odkazu, musíte nejdříve odstranit současný odkaz.",
   "questionMustDiffer": "Nemůžete propojit otázku samou se sebou.",
-  "thisQuestionCausesOtherQuestion": "Tato otázka má <impact></impact> dopad na <otherQuestion></otherQuestion>",
-  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <impact></impact> dopad na tuto otázku",
   "expandAll": "Rozbalit vše",
   "collapseAll": "Sbalit vše",
   "recency_weighted": "Vážené podle aktuálnosti",
@@ -1517,5 +1515,7 @@
   "low": "Nízká síla",
   "medium": "Střední síla",
   "high": "Vysoká síla",
+  "thisQuestionCausesOtherQuestion": "Tato otázka má <direction></direction> <type></type> dopad na <otherQuestion></otherQuestion>",
+  "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> má <direction></direction> <type></type> dopad na tuto otázku",
   "othersCount": "Ostatní ({count})"
 }

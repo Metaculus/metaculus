@@ -190,17 +190,15 @@ const CreateCoherenceLink = (
             ? "thisQuestionCausesOtherQuestion"
             : "otherQuestionCausesThisQuestion",
           {
-            impact: () => (
-              <>
-                <StyledSelect
-                  value={direction}
-                  onChange={(value) => setDirection(value as Directions)}
-                  options={directionOptions}
-                  t={t}
-                />{" "}
-                <span>{t("causal")}</span>
-              </>
+            direction: () => (
+              <StyledSelect
+                value={direction}
+                onChange={(value) => setDirection(value as Directions)}
+                options={directionOptions}
+                t={t}
+              />
             ),
+            type: () => <span>{t("causal")}</span>,
             otherQuestion: () => (
               <span>
                 {!otherQuestion ? (
