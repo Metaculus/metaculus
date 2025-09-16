@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import type { Feature, FeatureCollection, Geometry } from "geojson";
 import {
   forwardRef,
   SVGProps,
@@ -7,7 +8,9 @@ import {
   useRef,
 } from "react";
 
-import stateData from "./data/us_states.json";
+import rawStateData from "./data/us_states.json";
+
+const stateData = rawStateData as FeatureCollection<Geometry, { NAME: string }>;
 
 const CustomRawUsMap = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
   (props, ref) => {
@@ -36,11 +39,11 @@ const CustomRawUsMap = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
         .append("g")
         .attr("id", "Areas")
         .selectAll("path")
-        .data(stateData.features)
+        .data(stateData.features as Feature<Geometry, { NAME: string }>[])
         .enter()
         .append("path")
         .attr("id", (feature) => feature.properties.NAME)
-        .attr("d", (feature) => pathGenerator(feature as any))
+        .attr("d", (feature) => pathGenerator(feature) ?? "")
         .attr("fill", "#D3D3D3");
     }, []);
 

@@ -152,6 +152,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
     t,
     user,
     isWeeklyTopCommentsFeatureEnabled,
+    getFeedUrl,
   ]);
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);

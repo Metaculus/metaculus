@@ -24,15 +24,29 @@ const ProForecastersInfo: ReactNode = (
   </div>
 );
 
-export const RANKING_CATEGORIES: Record<
-  CategoryKey,
-  {
-    id: string;
-    translationKey: any; // TODO: provide a proper type
-    shortTranslationKey: any; // TODO: provide a proper type
-    explanation: ReactNode;
-  }
-> = {
+type TranslationKey =
+  | "all"
+  | "baselineAccuracy"
+  | "peerAccuracy"
+  | "comments"
+  | "questionWriting"
+  | "tournaments";
+
+type ShortTranslationKey =
+  | "all"
+  | "baselineAccuracyShort"
+  | "peerAccuracyShort"
+  | "questionWritingShort"
+  | "comments";
+
+type RankingCategory = {
+  id: string;
+  translationKey: TranslationKey;
+  shortTranslationKey: ShortTranslationKey;
+  explanation: ReactNode;
+};
+
+export const RANKING_CATEGORIES: Record<CategoryKey, RankingCategory> = {
   all: {
     id: "all",
     translationKey: "all",

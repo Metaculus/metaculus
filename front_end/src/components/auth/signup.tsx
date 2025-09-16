@@ -11,6 +11,7 @@ import React, { FC, useRef, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
+import { firstErrorFor } from "@/app/(main)/accounts/helpers";
 import {
   SignUpSchema,
   generateSignUpSchema,
@@ -88,7 +89,7 @@ export const SignupForm: FC<{
       for (error in response.errors)
         setError(error as keyof SignUpSchema, {
           type: "custom",
-          message: response.errors[error][0],
+          message: firstErrorFor(response.errors, error),
         });
     }
 

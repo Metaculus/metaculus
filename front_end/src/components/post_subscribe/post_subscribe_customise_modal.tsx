@@ -85,7 +85,12 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   );
 
   const handleSubscriptionChange = useCallback(
-    (type: PostSubscriptionType, name: string, value: any, index?: number) => {
+    (
+      type: PostSubscriptionType,
+      name: string,
+      value: unknown,
+      index?: number
+    ) => {
       setModalSubscriptions(
         modalSubscriptions.map((sub) => {
           if (sub.type !== type) {

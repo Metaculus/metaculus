@@ -183,6 +183,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             : option.forecastExpiration,
       }))
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalSavedState.forecastExpiration]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);

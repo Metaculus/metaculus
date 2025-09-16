@@ -22,4 +22,4 @@ const NewsMatch: FC<Props> = async ({ questionId, withoutToggle }) => {
   }
 };
 
-export default WithServerComponentErrorBoundary(NewsMatch);
+export default WithServerComponentErrorBoundary<Props>(NewsMatch);

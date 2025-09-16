@@ -158,14 +158,16 @@ const CmmMakeForecast: FC<{
   );
 };
 
+type GetProps = <T extends object>(userProps?: T) => T;
+
 interface CmmContext {
-  getFloatingProps: () => React.HTMLAttributes<HTMLElement>;
+  getFloatingProps: GetProps;
   cmmEnabled: boolean;
   onCMMToggled: (a: boolean) => void;
   count: number;
   setFloatingRef: (e: HTMLElement | null) => void;
   setAnchorRef: (e: HTMLElement | null) => void;
-  getReferenceProps: any;
+  getReferenceProps: GetProps;
   rootContext: FloatingRootContext;
   isOverlayOpen: boolean;
   setIsOverlayOpen: (o: boolean) => void;
@@ -221,13 +223,13 @@ export const useCmmContext = (
   };
 
   return {
-    getFloatingProps,
+    getFloatingProps: getFloatingProps as GetProps,
     cmmEnabled: cmmState.isCmmEnabled,
     onCMMToggled,
     count: cmmState.count,
     setFloatingRef,
     setAnchorRef,
-    getReferenceProps,
+    getReferenceProps: getReferenceProps as GetProps,
     rootContext,
     isOverlayOpen: cmmState.isModalOpen,
     setIsOverlayOpen,
