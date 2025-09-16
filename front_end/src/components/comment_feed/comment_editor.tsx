@@ -113,6 +113,12 @@ const CommentEditor: FC<CommentEditorProps> = ({
     setHasIncludedForecast,
   ]);
 
+  useEffect(() => {
+    if (draftReady && (initialMarkdown?.trim().length ?? 0) > 0) {
+      setHasInteracted(true);
+    }
+  }, [draftReady, initialMarkdown]);
+
   const handleSubmit = async () => {
     setClientError(null);
     setServerError(undefined);
