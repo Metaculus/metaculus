@@ -1,4 +1,4 @@
-import { Question } from "@/types/question";
+import { Question, QuestionType } from "@/types/question";
 
 export enum Directions {
   Positive = "positive",
@@ -29,3 +29,9 @@ export type FetchedCoherenceLinks = {
     question2: Question;
   })[];
 };
+
+export const ALLOWED_COHERENCE_LINK_QUESTION_TYPES = [
+  QuestionType.Binary,
+  QuestionType.Numeric,
+  QuestionType.Date,
+];

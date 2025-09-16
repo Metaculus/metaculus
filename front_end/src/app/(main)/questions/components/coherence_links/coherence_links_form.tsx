@@ -9,9 +9,10 @@ import CreateCoherenceLink, {
   CreateCoherenceLinkRefType,
 } from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
 import ClientPostsApi from "@/services/api/posts/posts.client";
+import { ALLOWED_COHERENCE_LINK_QUESTION_TYPES } from "@/types/coherence";
 import { CommentType } from "@/types/comment";
 import { Post } from "@/types/post";
-import { Question, QuestionType } from "@/types/question";
+import { Question } from "@/types/question";
 import { ApiError } from "@/utils/core/errors";
 
 type Props = {
@@ -55,7 +56,10 @@ export const CoherenceLinksForm: FC<Props> = ({ post, comment }) => {
       if (value.status === "fulfilled") {
         const newPost = value.value;
         const newQuestion = newPost.question;
-        if (newQuestion?.type === QuestionType.Binary)
+        if (
+          newQuestion &&
+          ALLOWED_COHERENCE_LINK_QUESTION_TYPES.includes(newQuestion.type)
+        )
           newQuestions.push(newQuestion);
       } else {
         const e = value.reason;

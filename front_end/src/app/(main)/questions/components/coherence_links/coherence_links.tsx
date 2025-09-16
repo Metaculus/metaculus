@@ -13,8 +13,8 @@ import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
+import { ALLOWED_COHERENCE_LINK_QUESTION_TYPES } from "@/types/coherence";
 import { Post } from "@/types/post";
-import { QuestionType } from "@/types/question";
 
 type Props = {
   post: Post;
@@ -49,7 +49,14 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!isLoggedIn || post.question?.type !== QuestionType.Binary) return null;
+  const questionType = post.question?.type;
+
+  if (
+    !isLoggedIn ||
+    !questionType ||
+    !ALLOWED_COHERENCE_LINK_QUESTION_TYPES.includes(questionType)
+  )
+    return null;
 
   return (
     <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
