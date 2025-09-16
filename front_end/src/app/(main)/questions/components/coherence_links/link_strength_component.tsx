@@ -37,7 +37,7 @@ const LinkStrengthComponent: FC<Props> = ({
   return (
     <Button
       className={cn(
-        "text-bold mt-3 gap-1.5 rounded border-2 px-2 py-1.5 disabled:opacity-100",
+        "text-bold w-32 gap-1.5 rounded border-2 p-1 pb-1.5 pt-1.5 disabled:opacity-100",
         additionalStyling,
         selected
           ? "ring-2 ring-gray-100 ring-offset-2 ring-offset-gray-700 dark:ring-gray-100-dark dark:ring-offset-gray-700-dark"

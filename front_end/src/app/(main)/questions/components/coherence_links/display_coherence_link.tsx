@@ -101,49 +101,56 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   const isAdverbialPhrasing = typeOfSecondQuestion !== QuestionType.Binary;
 
   return (
-    <div className={"rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"}>
-      <div>
-        {t.rich(
-          isFirstQuestion
-            ? isAdverbialPhrasing
-              ? "thisQuestionCausesOtherQuestionAdverbial"
-              : "thisQuestionCausesOtherQuestion"
-            : isAdverbialPhrasing
-              ? "otherQuestionCausesThisQuestionAdverbial"
-              : "otherQuestionCausesThisQuestion",
-          {
-            direction: () => (
-              <DirectionComponent
-                direction={link.direction}
-                typeOfSecondQuestion={typeOfSecondQuestion}
-              />
-            ),
-            type: () => (
-              <span>{t(isAdverbialPhrasing ? "causally" : "causal")}</span>
-            ),
-            otherQuestion: () => (
-              <Link
-                href={getPostLink({ id: otherQuestion.post_id })}
-                target="_blank"
-                className="font-normal text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
-              >
-                {otherQuestion.title}
-              </Link>
-            ),
-          }
-        )}
+    <div
+      className={
+        "flex flex-row rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"
+      }
+    >
+      <div className={"flex-grow "}>
+        <div>
+          {t.rich(
+            isFirstQuestion
+              ? isAdverbialPhrasing
+                ? "thisQuestionCausesOtherQuestionAdverbial"
+                : "thisQuestionCausesOtherQuestion"
+              : isAdverbialPhrasing
+                ? "otherQuestionCausesThisQuestionAdverbial"
+                : "otherQuestionCausesThisQuestion",
+            {
+              direction: () => (
+                <DirectionComponent
+                  direction={link.direction}
+                  typeOfSecondQuestion={typeOfSecondQuestion}
+                />
+              ),
+              type: () => (
+                <span>{t(isAdverbialPhrasing ? "causally" : "causal")}</span>
+              ),
+              otherQuestion: () => (
+                <Link
+                  href={getPostLink({ id: otherQuestion.post_id })}
+                  target="_blank"
+                  className="font-normal text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
+                >
+                  {otherQuestion.title}
+                </Link>
+              ),
+            }
+          )}
+        </div>
       </div>
-      <div>
+      <div className={"flex flex-col items-end gap-1"}>
         <LinkStrengthComponent strength={link.strength} disabled={true} />
+
+        <Button
+          onClick={deleteLink}
+          className="mt-3 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
+          variant="tertiary"
+        >
+          <FontAwesomeIcon icon={faTrash} />
+          Delete
+        </Button>
       </div>
-      <Button
-        onClick={deleteLink}
-        className="mt-3 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
-        variant="tertiary"
-      >
-        <FontAwesomeIcon icon={faTrash} />
-        Delete
-      </Button>
     </div>
   );
 };

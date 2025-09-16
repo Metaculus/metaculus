@@ -184,7 +184,8 @@ const CreateCoherenceLink = (
   }
 
   const typeOfSecondQuestion =
-    (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
+    (isFirstQuestion ? otherQuestion?.type : post.question?.type) ??
+    QuestionType.Binary;
   const isAdverbialPhrasing = typeOfSecondQuestion !== QuestionType.Binary;
 
   if (cancelled) return null;

@@ -16,7 +16,7 @@ const LinkStrengthSelectorComponent: FC<Props> = ({ onSelect }) => {
     setCurrentStrength(value);
   };
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-start gap-2 pb-2 pt-2">
       {Object.values(Strengths).map((it, key) => (
         <LinkStrengthComponent
           strength={it}
