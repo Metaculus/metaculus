@@ -1,5 +1,6 @@
 "use client";
 import { isNil } from "lodash";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
@@ -15,6 +16,7 @@ import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
+import { getPostLink } from "@/utils/navigation";
 
 import PredictionFlowCommentsSection from "./prediction_flow_comments";
 import { usePredictionFlow } from "./prediction_flow_provider";
@@ -119,8 +121,14 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
             )}
           >
             <div className="flex flex-col gap-4">
-              <h2 className="m-0 text-2xl font-bold leading-8 text-blue-800 dark:text-blue-800-dark">
-                {detailedPost?.title}
+              <h2 className="m-0 text-2xl font-bold leading-8">
+                <Link
+                  href={getPostLink(detailedPost, detailedPost.question?.id)}
+                  className="text-blue-800 no-underline outline-none hover:underline focus-visible:underline dark:text-blue-800-dark"
+                  prefetch={false}
+                >
+                  {detailedPost.title}
+                </Link>
               </h2>
 
               <PredictionFlowQuestionCard post={detailedPost} />
