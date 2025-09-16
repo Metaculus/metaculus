@@ -19,6 +19,7 @@ function PostHogPageView({ locale }: { locale: string }) {
         $locale: locale,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams, posthog]);
 
   return null;

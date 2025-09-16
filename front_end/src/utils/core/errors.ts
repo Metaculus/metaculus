@@ -55,7 +55,7 @@ export class ApiError extends Error {
 }
 
 export function extractError(
-  field_error: any,
+  field_error: unknown,
   config?: { parentKey?: string; detached?: boolean }
 ): string | undefined {
   const { detached, parentKey } = config ?? {};
@@ -68,22 +68,24 @@ export function extractError(
     return field_error;
   }
 
-  let detachedResult: string = "";
+  let detachedResult = "";
   if (typeof field_error === "object" && field_error !== null) {
-    for (const key in field_error) {
-      if (field_error.hasOwnProperty(key)) {
-        const value = field_error[key];
-        const result = extractError(field_error[key], {
-          parentKey: Array.isArray(value) ? key : parentKey,
-          detached,
-        });
-        if (result !== undefined) {
-          if (!detached) {
-            return result;
-          }
+    const obj = field_error as Record<string, unknown>;
 
-          detachedResult += detachedResult ? `\n${result}` : result;
+    for (const key in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+
+      const value = obj[key];
+      const result = extractError(value, {
+        parentKey: Array.isArray(value) ? key : parentKey,
+        detached,
+      });
+      if (result !== undefined) {
+        if (!detached) {
+          return result;
         }
+
+        detachedResult += detachedResult ? `\n${result}` : result;
       }
     }
 

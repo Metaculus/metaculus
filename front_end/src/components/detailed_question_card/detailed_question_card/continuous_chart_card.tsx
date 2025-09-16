@@ -91,11 +91,11 @@ const DetailedContinuousChartCard: FC<Props> = ({
       interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
     };
   }, [
+    isCpHidden,
     cursorTimestamp,
     aggregation,
     question.my_forecasts,
     nrForecasters,
-    forecastAvailability,
   ]);
 
   const discreteValueOptions = getDiscreteValueOptions(question);

@@ -42,30 +42,6 @@ const CommentsOfWeekContent: FC<Props> = ({
   const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
 
-  const fetchCommentsForWeek = useCallback(
-    async (newWeekStart: Date) => {
-      setParam("weekly_top_comments", "true", false);
-      setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
-      shallowNavigateToSearchParams();
-      fetchComments(newWeekStart);
-    },
-    [setParam, shallowNavigateToSearchParams]
-  );
-
-  // Debounced version of fetchCommentsForWeek to prevent rapid API calls
-  const debouncedFetchComments = useDebouncedCallback(
-    fetchCommentsForWeek,
-    500
-  );
-
-  const onWeekChange = useCallback(
-    (newWeekStart: Date) => {
-      setWeekStart(newWeekStart);
-      debouncedFetchComments(newWeekStart);
-    },
-    [debouncedFetchComments]
-  );
-
   const fetchComments = useCallback(async (weekStart: Date) => {
     setIsLoading(true);
     setError(null);
@@ -82,6 +58,30 @@ const CommentsOfWeekContent: FC<Props> = ({
     }
   }, []);
 
+  const fetchCommentsForWeek = useCallback(
+    async (newWeekStart: Date) => {
+      setParam("weekly_top_comments", "true", false);
+      setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
+      shallowNavigateToSearchParams();
+      fetchComments(newWeekStart);
+    },
+    [fetchComments, setParam, shallowNavigateToSearchParams]
+  );
+
+  // Debounced version of fetchCommentsForWeek to prevent rapid API calls
+  const debouncedFetchComments = useDebouncedCallback(
+    fetchCommentsForWeek,
+    500
+  );
+
+  const onWeekChange = useCallback(
+    (newWeekStart: Date) => {
+      setWeekStart(newWeekStart);
+      debouncedFetchComments(newWeekStart);
+    },
+    [debouncedFetchComments]
+  );
+
   useEffect(() => {
     if (!startDateParam) {
       return;
@@ -95,6 +95,7 @@ const CommentsOfWeekContent: FC<Props> = ({
     }
     // Listen only for changes in startDateParam - we want to fetch comments only when the user
     // navigates with the browser back/forward in history, and not via the week selector button
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDateParam, fetchComments]);
 
   const onExcludeToggleFinished = (commentId: number, excluded: boolean) => {

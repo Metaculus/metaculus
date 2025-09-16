@@ -46,6 +46,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
 
   useEffect(() => {
     void updateCoherenceLinks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const questionType = post.question?.type;

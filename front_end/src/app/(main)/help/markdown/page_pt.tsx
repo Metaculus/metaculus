@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -733,9 +735,12 @@ export default function MedalsFAQ() {
           alt?&quot;markdown logo&quot;
         </pre>
         <p>vai render como:</p>
-        <img
+        <Image
           src="https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg"
           alt="markdown logo"
+          width={208}
+          height={208}
+          unoptimized
         />
 
         <h2 className="scroll-mt-nav" id="limitations">

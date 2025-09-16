@@ -29,7 +29,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     if (postData.is_current_content_translated) {
       setBannerIsVisible(true);
     }
-  }, [postData, locale]);
+  }, [postData, locale, setBannerIsVisible]);
 
   // Handle hash anchor scrolling after content is rendered
   useEffect(() => {

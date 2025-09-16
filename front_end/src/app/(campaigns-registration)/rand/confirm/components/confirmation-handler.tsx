@@ -2,6 +2,7 @@
 
 import { faCheck, faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -84,15 +85,25 @@ export function ConfirmationHandler() {
             height: "clamp(48px, 12vw, 72px)",
           }}
         >
-          <img
+          <Image
             src="/partners/rfi-logo-light.svg"
             alt="RAND Forecasting Initiative Logo"
+            width={352}
+            height={164}
             className="h-full w-auto dark:hidden"
+            sizes="100vw"
+            priority
+            unoptimized
           />
-          <img
+          <Image
             src="/partners/rfi-logo-dark.svg"
             alt="RAND Forecasting Initiative Logo"
+            width={352}
+            height={164}
             className="hidden h-full w-auto dark:block"
+            sizes="100vw"
+            priority
+            unoptimized
           />
         </div>
       </div>

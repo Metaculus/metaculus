@@ -126,11 +126,16 @@ const Histogram: React.FC<HistogramProps> = ({
             }}
             barRatio={0.85}
             alignment="start"
-            getPath={(props: any) => {
-              const { x0, x1, y1, datum } = props;
-              if (datum.y === 0) {
-                return "";
-              }
+            getPath={(props: unknown) => {
+              const { x0, x1, y1, datum } = props as {
+                x0: number;
+                x1: number;
+                y1: number;
+                datum: { y: number };
+              };
+
+              if (!datum || datum.y === 0) return "";
+
               return `M ${x0}, ${y1}
                 L ${x1}, ${y1}
                 L ${x1}, ${y1 + 1}

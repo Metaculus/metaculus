@@ -10,7 +10,7 @@ import { logError } from "@/utils/core/errors";
 interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   defaultValue?: string;
   onChange?: (value: string | undefined) => void;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
   withFormValidation?: boolean;
   className?: string;
   withTimezoneMessage?: boolean;

@@ -154,7 +154,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                     onClick: () => [
                       {
                         target: "data",
-                        mutation: (props: any) => {
+                        mutation: (props) => {
                           setClickIndex((prev) =>
                             prev === props.index ? null : props.index
                           );

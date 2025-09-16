@@ -4,35 +4,35 @@ import { logError } from "@/utils/core/errors";
 
 import RefreshButton from "./refresh_button";
 
-const WithServerComponentErrorBoundary = <P extends Record<string, any>>(
+export default function WithServerComponentErrorBoundary<P extends object>(
   Component: FC<P>
-): FC<P> => {
-  const WrappedComponent = async (props: P) => {
+): FC<P> {
+  const WrappedComponent = (async (props: P) => {
     try {
       return await Component(props);
-    } catch (error: any) {
-      // Okay to ignore the error here
-      // By default this error tells next.js to switch from Static Rendering to Dynamic Rendering
-      // Therefore, we can throw the same error in our custom error boundary
-      if (error.digest === "DYNAMIC_SERVER_USAGE") {
-        throw error;
-      }
+    } catch (error: unknown) {
+      const digest =
+        typeof error === "object" &&
+        error !== null &&
+        "digest" in error &&
+        typeof (error as { digest?: unknown }).digest === "string"
+          ? (error as { digest?: string }).digest
+          : undefined;
 
+      if (digest === "DYNAMIC_SERVER_USAGE") throw error;
       if (
-        error.digest === "NEXT_NOT_FOUND" ||
-        error.digest === "NEXT_HTTP_ERROR_FALLBACK;404" ||
-        error.digest === "NEXT_REDIRECT"
+        digest === "NEXT_NOT_FOUND" ||
+        digest === "NEXT_HTTP_ERROR_FALLBACK;404" ||
+        digest === "NEXT_REDIRECT"
       ) {
         return null;
       }
 
       logError(error);
       if (error instanceof Error) {
-        const { message, digest } = error as Error & { digest?: string };
-
         return (
           <div className="flex h-[50vh] w-full flex-col items-center justify-center">
-            <h2>{message ?? digest ?? "Unknown error"}</h2>
+            <h2>{error.message ?? digest ?? "Unknown error"}</h2>
             <RefreshButton />
           </div>
         );
@@ -45,8 +45,7 @@ const WithServerComponentErrorBoundary = <P extends Record<string, any>>(
         </div>
       );
     }
-  };
-  return WrappedComponent as FC<P>;
-};
+  }) as unknown as FC<P>;
 
-export default WithServerComponentErrorBoundary;
+  return WrappedComponent;
+}

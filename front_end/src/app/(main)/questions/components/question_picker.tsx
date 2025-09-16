@@ -108,7 +108,7 @@ const QuestionPicker: FC<Props> = ({
 
   useEffect(() => {
     handleSearch(filters);
-  }, [filters]);
+  }, [filters, handleSearch]);
 
   // Update search when initialSearch changes
   useEffect(() => {

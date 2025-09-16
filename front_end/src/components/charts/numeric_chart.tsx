@@ -283,6 +283,7 @@ const NumericChart: FC<Props> = ({
     defaultCursor,
     xScale,
     height,
+    hasExternalTheme,
     getThemeColor,
     handleCursorChange,
     nonInteractive,

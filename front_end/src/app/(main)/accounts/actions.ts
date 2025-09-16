@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import { z } from "zod";
 
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
@@ -15,13 +16,24 @@ import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+type FieldErrorsFrom<TSchema extends z.ZodTypeAny> =
+  z.inferFlattenedErrors<TSchema>["fieldErrors"];
+
+export type ApiErrorPayload = {
+  message?: string;
+  detail?: string;
+  non_field_errors?: string[];
+  fieldErrors?: Record<string, string[]>;
+  [key: string]: unknown;
+};
+
 export type PostLoginAction = {
   type: "redirect";
   payload: string;
 };
 
 export type LoginActionState = {
-  errors?: any;
+  errors?: FieldErrorsFrom<typeof signInSchema> | ApiErrorPayload;
   user?: CurrentUser;
   postLoginAction?: PostLoginAction;
 } | null;
@@ -47,9 +59,11 @@ export default async function loginAction(
       validatedFields.data.login,
       validatedFields.data.password
     );
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 
@@ -72,9 +86,10 @@ export default async function loginAction(
 }
 
 export type SignUpActionState =
-  | ({
-      errors?: any;
-    } & Partial<SignUpResponse> & { postLoginAction?: PostLoginAction })
+  | (Partial<SignUpResponse> & {
+      errors?: ApiErrorPayload;
+      postLoginAction?: PostLoginAction;
+    })
   | null;
 
 export async function signUpAction(
@@ -139,9 +154,11 @@ export async function signUpAction(
     }
 
     return signUpActionState;
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
@@ -153,15 +170,17 @@ export async function LogOut() {
 
 export async function registerUserCampaignAction(
   key: string,
-  details: object,
+  details: Record<string, unknown>,
   addToProject?: number
-): Promise<{ errors?: any }> {
+): Promise<{ errors?: ApiErrorPayload | null }> {
   try {
     await ServerProfileApi.registerUserCampaign(key, details, addToProject);
     return { errors: null };
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
@@ -169,13 +188,15 @@ export async function registerUserCampaignAction(
 export async function resendActivationEmailAction(
   login: string,
   redirectUrl: string
-): Promise<{ errors?: any }> {
+): Promise<{ errors?: ApiErrorPayload | null }> {
   try {
     await ServerAuthApi.resendActivationEmail(login, redirectUrl);
     return { errors: null };
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
@@ -195,9 +216,11 @@ export async function simplifiedSignUpAction(
       await setServerSession(response.token);
     }
     return response;
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
