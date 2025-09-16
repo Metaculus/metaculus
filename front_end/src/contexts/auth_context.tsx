@@ -43,6 +43,7 @@ const AuthProvider: FC<
     }
 
     setUser(initialUser);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUser, posthog]);
 
   return (

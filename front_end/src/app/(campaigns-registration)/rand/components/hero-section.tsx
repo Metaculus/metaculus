@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FC } from "react";
 
 import { EmailRegistrationForm } from "./email-registration-form";
@@ -46,15 +47,25 @@ export const Hero: FC = () => {
                 height: "clamp(48px, 15vw, 96px)",
               }}
             >
-              <img
+              <Image
                 src="/partners/rfi-logo-light.svg"
                 alt="RAND Forecasting Initiative Logo"
+                width={352}
+                height={164}
                 className="h-full w-auto dark:hidden"
+                sizes="100vw"
+                priority
+                unoptimized
               />
-              <img
+              <Image
                 src="/partners/rfi-logo-dark.svg"
                 alt="RAND Forecasting Initiative Logo"
+                width={352}
+                height={164}
                 className="hidden h-full w-auto dark:block"
+                sizes="100vw"
+                priority
+                unoptimized
               />
             </div>
           </div>

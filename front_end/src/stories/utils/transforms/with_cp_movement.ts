@@ -1,5 +1,5 @@
 import { PostWithForecasts } from "@/types/post";
-import { MovementDirection } from "@/types/question";
+import { Aggregations, MovementDirection } from "@/types/question";
 
 export type CpMovementState = "up" | "down" | "none";
 
@@ -18,12 +18,14 @@ export const withCpMovement = (
           period: "604800.0",
         };
 
-  const applyToQuestion = (q: any) => ({
+  const applyToQuestion = <Q extends { aggregations: Aggregations }>(
+    q: Q
+  ): Q => ({
     ...q,
     aggregations: {
       ...q.aggregations,
       recency_weighted: {
-        ...q.aggregations?.recency_weighted,
+        ...q.aggregations.recency_weighted,
         movement: movementValue,
       },
     },

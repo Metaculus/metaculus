@@ -498,6 +498,7 @@ const Comment: FC<CommentProps> = ({
         clearTimeout(timeoutId);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment.id]);
 
   const menuItems: MenuItemProps[] = [

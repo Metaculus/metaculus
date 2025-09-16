@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
 
@@ -110,7 +111,15 @@ export default async function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img className="mb-2 h-12 p-2" src={logoUrl} alt={outlet} />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src={logoUrl}
+                    alt={outlet}
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   {title}
                 </h3>

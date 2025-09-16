@@ -56,11 +56,13 @@ const SignInModal: FC<SignInModalType> = ({
       handlePostLoginAction(state.postLoginAction);
     }
 
-    if (
-      state.errors &&
-      state.errors.user_state &&
-      state.errors.user_state == "inactive"
-    ) {
+    const isInactive =
+      !!state?.errors &&
+      typeof state.errors === "object" &&
+      "user_state" in state.errors &&
+      (state.errors as { user_state?: string }).user_state === "inactive";
+
+    if (state.errors && isInactive) {
       setCurrentModal(null);
       setCurrentModal({
         type: "accountInactive",

@@ -180,7 +180,7 @@ const CommentFeed: FC<Props> = ({
         [key]: value,
       });
     },
-    [feedFilters]
+    [feedFilters, setComments, setOffset]
   );
 
   const hash = useHash();
@@ -223,6 +223,7 @@ const CommentFeed: FC<Props> = ({
       offset,
     };
     void fetchComments(true, finalFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedFilters]);
 
   useEffect(() => {
@@ -329,6 +330,7 @@ const CommentFeed: FC<Props> = ({
         toast(t("commentUnpinned"));
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t]
   );
 

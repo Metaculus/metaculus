@@ -1,28 +1,59 @@
 "use client";
-import {
-  DetailedHTMLProps,
-  FC,
-  ImgHTMLAttributes,
-  PropsWithChildren,
-  useState,
-} from "react";
+import Image, { ImageProps } from "next/image";
+import { FC, PropsWithChildren, useMemo, useState } from "react";
 
-type Props = DetailedHTMLProps<
-  ImgHTMLAttributes<HTMLImageElement>,
-  HTMLImageElement
->;
+import cn from "@/utils/core/cn";
+
+type Props = Omit<ImageProps, "fill" | "alt"> & { alt?: string };
 
 const ImageWithFallback: FC<PropsWithChildren<Props>> = ({
   children,
-  ...props
+  className,
+  alt,
+  style,
+  ...imgProps
 }) => {
   const [isFailed, setIsFailed] = useState(false);
+  const safeAlt = useMemo(() => alt ?? "", [alt]);
 
-  if (isFailed) {
-    return children;
+  const shouldBypassOptimizer =
+    imgProps.unoptimized ??
+    (typeof imgProps.src === "string" && imgProps.src.startsWith("/"));
+
+  if (isFailed) return children;
+
+  const hasExplicitSize =
+    typeof imgProps.width === "number" && typeof imgProps.height === "number";
+
+  if (hasExplicitSize) {
+    return (
+      <Image
+        {...imgProps}
+        alt={safeAlt}
+        className={className}
+        style={style}
+        unoptimized={shouldBypassOptimizer}
+        onError={() => setIsFailed(true)}
+      />
+    );
   }
 
-  return <img {...props} onError={() => setIsFailed(true)} />;
+  return (
+    <span
+      className={cn("relative inline-block overflow-hidden", className)}
+      style={style}
+    >
+      <Image
+        {...imgProps}
+        alt={safeAlt}
+        fill
+        sizes={imgProps.sizes ?? "2rem"}
+        className="object-cover"
+        unoptimized={shouldBypassOptimizer}
+        onError={() => setIsFailed(true)}
+      />
+    </span>
+  );
 };
 
 export default ImageWithFallback;

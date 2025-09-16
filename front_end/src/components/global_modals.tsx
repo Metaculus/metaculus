@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import React, { FC } from "react";
 
 import { useModal } from "@/contexts/modal_context";
+import type { CurrentModal, ModalType } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 
 const SignInModal = dynamic(() => import("@/components/auth/signin"), {
@@ -63,6 +64,13 @@ const ConfirmModal = dynamic(() => import("@/components/confirm_modal"), {
   ssr: false,
 });
 
+function isModal<T extends ModalType>(
+  m: CurrentModal | null,
+  type: T
+): m is CurrentModal<T> {
+  return !!m && m.type === type;
+}
+
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
@@ -71,62 +79,44 @@ const GlobalModals: FC = () => {
 
   return (
     <>
-      {currentModal?.type === "signin" && (
-        <SignInModal
-          isOpen={currentModal?.type === "signin"}
-          onClose={onClose}
-        />
+      {isModal(currentModal, "signin") && (
+        <SignInModal isOpen onClose={onClose} />
       )}
-      {currentModal?.type === "signup" && (
-        <SignUpModal
-          isOpen={currentModal?.type === "signup"}
-          onClose={onClose}
-        />
+      {isModal(currentModal, "signup") && (
+        <SignUpModal isOpen onClose={onClose} />
       )}
-      {currentModal?.type === "signupSuccess" && (
+      {isModal(currentModal, "signupSuccess") && (
         <SignUpModalSuccess
-          isOpen={currentModal?.type === "signupSuccess"}
+          isOpen
           onClose={onClose}
-          username={currentModal?.data?.username}
-          email={currentModal?.data?.email}
+          username={currentModal.data?.username ?? ""}
+          email={currentModal.data?.email ?? ""}
         />
       )}
-      {currentModal?.type === "accountInactive" && (
+      {isModal(currentModal, "accountInactive") && (
         <AccountInactive
-          isOpen={currentModal?.type === "accountInactive"}
+          isOpen
           onClose={onClose}
-          login={currentModal?.data?.login}
+          login={currentModal.data?.login ?? ""}
         />
       )}
-      {currentModal?.type === "resetPassword" && (
-        <ResetPasswordModal
-          isOpen={currentModal?.type === "resetPassword"}
-          onClose={onClose}
-        />
+      {isModal(currentModal, "resetPassword") && (
+        <ResetPasswordModal isOpen onClose={onClose} />
       )}
-      {currentModal?.type === "resetPasswordConfirm" && (
-        <ResetPasswordConfirmModal
-          isOpen={currentModal?.type === "resetPasswordConfirm"}
-          onClose={onClose}
-        />
+      {isModal(currentModal, "resetPasswordConfirm") && (
+        <ResetPasswordConfirmModal isOpen onClose={onClose} />
       )}
-      {currentModal?.type === "contactUs" && (
-        <ContactUsModal
-          isOpen={currentModal?.type === "contactUs"}
-          onClose={onClose}
-        />
+      {isModal(currentModal, "contactUs") && (
+        <ContactUsModal isOpen onClose={onClose} />
       )}
-      {PUBLIC_ALLOW_TUTORIAL && currentModal?.type === "onboarding" && (
-        <OnboardingModal
-          isOpen={currentModal?.type === "onboarding"}
-          onClose={() => setCurrentModal(null)}
-        />
+      {PUBLIC_ALLOW_TUTORIAL && isModal(currentModal, "onboarding") && (
+        <OnboardingModal isOpen onClose={onClose} />
       )}
-      {currentModal?.type === "confirm" && (
+      {isModal(currentModal, "confirm") && (
         <ConfirmModal
-          isOpen={currentModal?.type === "confirm"}
+          isOpen
           onClose={onClose}
-          onConfirm={currentModal?.data?.onConfirm}
+          onConfirm={currentModal.data?.onConfirm ?? (() => {})}
         />
       )}
     </>

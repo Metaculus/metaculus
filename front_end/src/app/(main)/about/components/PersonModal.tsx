@@ -1,6 +1,7 @@
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DialogTitle } from "@headlessui/react";
+import Image from "next/image";
 import React, { FC } from "react";
 
 import { sanitizeHtmlContent } from "@/utils/markdown";
@@ -56,12 +57,19 @@ const PersonModal: FC<Props> = ({
       className="max-h-full w-full max-w-lg md:max-w-2xl"
     >
       <div className="flex min-h-[506px] flex-col gap-x-6 md:min-h-[320px] md:flex-row">
-        <div className="mx-auto w-40">
-          <img
-            alt={name}
-            className="row-span-2 mx-auto mb-4 w-full max-w-[160px]"
-            src={imgSrc}
-          />
+        <div className="relative mx-auto w-40">
+          {imgSrc && (
+            <Image
+              src={imgSrc}
+              alt={name}
+              width={0}
+              height={0}
+              sizes="160px"
+              className="row-span-2 mx-auto mb-4 h-auto w-full max-w-[160px] object-contain"
+              priority
+              unoptimized
+            />
+          )}
           {(userId || socials) && (
             <div className="my-2 flex items-center justify-center gap-2 text-gray-400 dark:text-gray-400-dark">
               {!!userId && (

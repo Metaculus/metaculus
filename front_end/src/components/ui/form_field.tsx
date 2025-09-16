@@ -46,7 +46,7 @@ export const FormError: FC<ErrorProps> = ({
   /**
    * If null => display only if no other things
    * */
-  const [errorText, setErrorText] = React.useState<any>();
+  const [errorText, setErrorText] = React.useState<unknown>();
   useEffect(() => {
     if (errors) {
       if (errors.message) {
@@ -68,7 +68,7 @@ export const FormError: FC<ErrorProps> = ({
     } else {
       setErrorText(undefined);
     }
-  }, [errors, name]);
+  }, [errors, name, detached]);
   return (
     <FormErrorMessage
       errors={errorText}
@@ -79,7 +79,7 @@ export const FormError: FC<ErrorProps> = ({
 };
 
 export const FormErrorMessage: FC<{
-  errors: any;
+  errors: unknown;
   containerClassName?: string;
   className?: string;
   detached?: boolean;

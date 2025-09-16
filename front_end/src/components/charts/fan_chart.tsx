@@ -1,7 +1,7 @@
 "use client";
 
 import { isNil, merge } from "lodash";
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -252,7 +252,10 @@ const FanChart: FC<Props> = ({
     [normOptions]
   );
 
-  const formatValue = (v: number) => yScale.tickFormat(v);
+  const formatValue = useCallback(
+    (v: number) => yScale.tickFormat(v),
+    [yScale]
+  );
   const getIndexValueForX = useMemo(() => {
     const map: Record<string, number | null> = {};
     for (const o of normOptions) {
@@ -393,7 +396,7 @@ const FanChart: FC<Props> = ({
                   data: {
                     opacity: 0.3,
                     fill: ({ datum }) =>
-                      (datum as any)?.resolved
+                      datum?.resolved
                         ? getThemeColor(METAC_COLORS.purple["500"])
                         : palette.communityArea,
                   },
@@ -409,7 +412,7 @@ const FanChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke: ({ datum }) =>
-                      (datum as any)?.resolved
+                      datum?.resolved
                         ? getThemeColor(METAC_COLORS.purple["700"])
                         : palette.communityLine,
                   },
@@ -435,7 +438,7 @@ const FanChart: FC<Props> = ({
                   stroke: () => palette.communityPoint,
                   strokeWidth: 6,
                   strokeOpacity: ({ datum }) =>
-                    activePoint === (datum as any).x ? 0.3 : 0,
+                    activePoint === datum.x ? 0.3 : 0,
                 },
               }}
               dataComponent={

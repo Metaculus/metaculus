@@ -9,7 +9,7 @@ import {
 
 export function sendAnalyticsEvent(
   event: string,
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
 ) {
   posthog.capture(event, properties);
   sendGAEvent("event", event, { ...properties });

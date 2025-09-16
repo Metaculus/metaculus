@@ -142,6 +142,7 @@ const InitializedMarkdownEditor: FC<
     if (mode == "read") {
       editorRef.current?.setMarkdown(formattedMarkdown);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formattedMarkdown]);
 
   const jsxDescriptors: JsxComponentDescriptor[] = useMemo(

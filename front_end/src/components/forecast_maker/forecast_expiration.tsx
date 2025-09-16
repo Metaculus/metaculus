@@ -273,6 +273,7 @@ export const useExpirationModalState = (
         userDefaultExpirationDurationSec
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastForecast]);
 
   let expirationShortChip: React.ReactNode = (
@@ -418,18 +419,17 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
       })
     : null;
 
+  const datePickerDate = currentState.datePickerDate;
   useEffect(() => {
-    if (currentState.datePickerDate) {
-      setCurrentState({
-        ...currentState,
-        forecastExpiration: {
-          kind: "date",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          value: currentState.datePickerDate!,
-        },
-      });
-    }
-  }, [currentState.datePickerDate]);
+    if (!datePickerDate) return;
+    setCurrentState((prev) => ({
+      ...prev,
+      forecastExpiration: {
+        kind: "date",
+        value: datePickerDate,
+      },
+    }));
+  }, [datePickerDate]);
 
   const onCustomOptionSelected = (preset: Preset) => {
     setCurrentState({
