@@ -103,7 +103,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   return (
     <div
       className={
-        "flex flex-row rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"
+        "flex flex-row gap-3 rounded-md bg-gray-100 p-4 dark:bg-gray-100-dark"
       }
     >
       <div className={"flex-grow "}>
@@ -144,7 +144,7 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
 
         <Button
           onClick={deleteLink}
-          className="mt-3 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
+          className="mt-1.5 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
           variant="tertiary"
         >
           <FontAwesomeIcon icon={faTrash} />
