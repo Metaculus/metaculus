@@ -37,13 +37,14 @@ export type CreateCoherenceLinkRefType = {
   save: () => Promise<boolean>;
 };
 
+const directionOptions = [Directions.Positive, Directions.Negative];
+
 const DirectionSelect: FC<{
   value: Directions;
   onChange: (value: string) => void;
   typeOfSecondQuestion: QuestionType | null;
   t: ReturnType<typeof useTranslations>;
 }> = ({ value, onChange, typeOfSecondQuestion, t }) => {
-  const options = [Directions.Positive, Directions.Negative];
   if (!typeOfSecondQuestion) return null;
   return (
     <Select
@@ -51,7 +52,7 @@ const DirectionSelect: FC<{
       onChange={(event) => onChange(event.target.value)}
       className="rounded-md border border-gray-300 bg-gray-50 py-1.5 pl-2.5 pr-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400"
     >
-      {options.map((option) => (
+      {directionOptions.map((option) => (
         <option
           key={option}
           value={option}

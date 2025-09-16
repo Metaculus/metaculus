@@ -9,10 +9,7 @@ import { deleteCoherenceLink } from "@/app/(main)/questions/actions";
 import LinkStrengthComponent from "@/app/(main)/questions/components/coherence_links/link_strength_component";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import {
-  CoherenceLink,
-  Directions,
-} from "@/types/coherence";
+import { CoherenceLink, Directions } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionType } from "@/types/question";
 import { getTermByDirectionAndQuestionType } from "@/utils/coherence";
