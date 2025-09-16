@@ -677,8 +677,6 @@
   "backgroundInformation": "Základní informace",
   "backgroundInfoExplanation": "Poskytněte základní informace k vaší otázce ve věcném a nestranném tónu. Odkazy by měly být přidány na relevantní a užitečné zdroje pomocí <link>markdown syntaxi</link>: <markdown>[Název odkazu](https://link-url.com)</markdown>.",
   "resolutionCriteriaExplanation": "Dobrá otázka se téměř vždy vyřeší jednoznačně. Pokud máte zdroj dat, podle kterého se otázka vyřeší, přidejte jej sem. Pokud bude třeba provést jednoduchou matematiku k vyřešení této otázky, definujte rovnici v markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
-  "closingDate": "uzavírací datum",
-  "resolvingDate": "datum vyřešení",
   "choicesSeparatedBy": "Možnosti (oddělené čárkou)",
   "projects": "projekty",
   "FABPrizePool": "CENOVÝ FOND",
@@ -1522,5 +1520,7 @@
   "causally": "kauzálně",
   "hastens": "urychluje",
   "delays": "zpožďuje",
+  "closeTime": "čas uzavření",
+  "resolveTime": "doba řešení",
   "othersCount": "Ostatní ({count})"
 }
