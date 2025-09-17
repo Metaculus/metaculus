@@ -114,6 +114,7 @@ const ExpandableCommentContent = ({
           mode="read"
           withUgcLinks
           withTwitterPreview
+          withCodeBlocks
         />
 
         {comment.key_factors && comment.key_factors.length > 0 && (

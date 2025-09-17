@@ -239,6 +239,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
             withUgcLinks
             withUserMentions
             initialMention={!initialMarkdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
+            withCodeBlocks
           />
         )}
       </div>
