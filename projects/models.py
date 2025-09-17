@@ -280,6 +280,14 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     sign_up_fields = models.JSONField(
         default=list, blank=True, help_text="Used during tournament onboarding."
     )
+    allow_forecast_resubmission = models.BooleanField(
+        default=True,
+        help_text=(
+            "Turning this off prevents users from submitting multiple forecasts on any "
+            "question where this is it's default_project. Forecasts submitted on those "
+            "questions will always have infinite duration, ignoring auto-withdrawal."
+        ),
+    )
 
     # SEO
     html_metadata_json = models.JSONField(
