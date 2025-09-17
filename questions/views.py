@@ -116,10 +116,21 @@ def bulk_create_forecasts_api_view(request):
         forecast["question"] = question  # used in create_foreacst_bulk
 
         # Check permissions
-        permission = get_post_permission_for_user(
-            question.get_post(), user=request.user
-        )
+        post = question.get_post()
+        permission = get_post_permission_for_user(post, user=request.user)
         ObjectPermission.can_forecast(permission, raise_exception=True)
+
+        if not post.default_project.allow_forecast_resubmission:
+            if question.user_forecasts.filter(author=request.user).exists():
+                return Response(
+                    {
+                        "error": f"Question {question.id}'s Project does not allow "
+                        "resubmission of forecasts !"
+                    },
+                    status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                )
+            # If resubmission is not allowed, forecast duration is set to infinite
+            forecast["end_time"] = None
 
         if not question.open_time or question.open_time > now:
             return Response(
@@ -162,6 +173,16 @@ def bulk_withdraw_forecasts_api_view(request):
     # Replacing prefetched optimized questions
     for withdrawal in validated_data:
         question = questions_map.get(withdrawal["question"])
+
+        if not question.get_post().default_project.allow_forecast_resubmission:
+            raise Response(
+                {
+                    "error": f"Question {question.id}'s Project does not allow "
+                    "withdrawal of forecasts !"
+                },
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
+
         withdrawal["question"] = question  # used in withdraw_foreacst_bulk
         withdraw_at = withdrawal.get("withdraw_at", now)
         withdrawal["withdraw_at"] = withdraw_at  # used in withdraw_foreacst_bulk
