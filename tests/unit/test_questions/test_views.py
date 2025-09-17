@@ -261,6 +261,76 @@ class TestQuestionForecast:
         )
         assert response.status_code == status_code
 
+    @pytest.mark.parametrize(
+        "allow_foreacst_resubmission, status_code",
+        [
+            (True, 201),
+            (False, 405),
+        ],
+    )
+    def test_allow_forecast_resubmission(
+        self,
+        post_binary_public: Post,
+        user1,
+        user1_client,
+        allow_foreacst_resubmission,
+        status_code,
+    ):
+        # explicitly set field
+        project = post_binary_public.default_project
+        project.allow_forecast_resubmission = allow_foreacst_resubmission
+        project.save()
+
+        # predict once
+        response = user1_client.post(
+            self.url,
+            data=json.dumps(
+                [{"question": post_binary_public.question.id, "probability_yes": 0.5}]
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 201
+        # predict again
+        response = user1_client.post(
+            self.url,
+            data=json.dumps(
+                [{"question": post_binary_public.question.id, "probability_yes": 0.5}]
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == status_code
+
+    def test_allow_forecast_resubmission_enforces_infinite_forecast(
+        self,
+        post_binary_public: Post,
+        user1,
+        user1_client,
+    ):
+        # explicitly set field
+        project = post_binary_public.default_project
+        project.allow_forecast_resubmission = False
+        project.save()
+
+        question = post_binary_public.question
+        response = user1_client.post(
+            self.url,
+            data=json.dumps(
+                [
+                    {
+                        "question": question.id,
+                        "probability_yes": 0.5,
+                        "end_time": question.scheduled_close_time.strftime(
+                            "%Y-%m-%dT%H:%M:%S"
+                        ),
+                    }
+                ]
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 201
+        user_forecast = Forecast.objects.filter(question=question, author=user1).first()
+        assert user_forecast.end_time is None
+
 
 class TestQuestionWithdraw:
     url = reverse("create-withdraw")
@@ -284,6 +354,35 @@ class TestQuestionWithdraw:
             content_type="application/json",
         )
         assert response.status_code == 400
+
+    @pytest.mark.parametrize(
+        "allow_foreacst_resubmission, status_code",
+        [
+            (True, 201),
+            (False, 405),
+        ],
+    )
+    def test_allow_forecast_resubmission(
+        self,
+        question_binary_with_forecast_user_1: Question,
+        user1,
+        user1_client,
+        allow_foreacst_resubmission,
+        status_code,
+    ):
+        # explicitly set field
+        post = question_binary_with_forecast_user_1.get_post()
+        project = post.default_project
+        project.allow_forecast_resubmission = allow_foreacst_resubmission
+        project.save()
+
+        # withdraw
+        response = user1_client.post(
+            self.url,
+            data=json.dumps([{"question": question_binary_with_forecast_user_1.id}]),
+            content_type="application/json",
+        )
+        assert response.status_code == status_code
 
 
 class TestQuestionResolve:

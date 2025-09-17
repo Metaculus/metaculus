@@ -113,7 +113,7 @@ def bulk_create_forecasts_api_view(request):
         if not question:
             raise ValidationError(f"Wrong question id {forecast["question"]}")
 
-        forecast["question"] = question  # used in create_foreacst_bulk
+        forecast["question"] = question  # used in create_forecast_bulk
 
         # Check permissions
         post = question.get_post()
@@ -175,7 +175,7 @@ def bulk_withdraw_forecasts_api_view(request):
         question = questions_map.get(withdrawal["question"])
 
         if not question.get_post().default_project.allow_forecast_resubmission:
-            raise Response(
+            return Response(
                 {
                     "error": f"Question {question.id}'s Project does not allow "
                     "withdrawal of forecasts !"
