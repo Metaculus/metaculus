@@ -111,6 +111,12 @@ class PostAdmin(CustomTranslationAdmin):
             del actions["delete_selected"]
         return actions
 
+    def has_delete_permission(self, request, obj=None):
+        # Hide the delete button on the object edit page
+        if obj is not None:
+            return False
+        return super().has_delete_permission(request, obj)
+
     def export_selected_posts_data(self, request, queryset: QuerySet[Post], **kwargs):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
