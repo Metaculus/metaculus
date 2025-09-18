@@ -18,4 +18,9 @@ class Migration(migrations.Migration):
             old_name="KeyFactorVote",
             new_name="DriverVote",
         ),
+        migrations.RenameIndex(
+            model_name="drivervote",
+            new_name="comments_dr_key_fac_8375c5_idx",
+            old_name="comments_ke_key_fac_5e8be8_idx",
+        ),
     ]
