@@ -99,8 +99,8 @@ class UserPrivateSerializer(UserPublicSerializer):
         return (
                 Driver.objects.filter(comment__author=user).exists()
                 or LeaderboardEntry.objects.filter(
-                user=user, medal=LeaderboardEntry.Medals.GOLD
-            ).exists()
+                    user=user, medal=LeaderboardEntry.Medals.GOLD
+                ).exists()
         )
 
 

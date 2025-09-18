@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comments', '0017_commentsoftheweekentry_votes_score'),
+        ("comments", "0017_commentsoftheweekentry_votes_score"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='KeyFactor',
-            new_name='Driver',
+            old_name="KeyFactor",
+            new_name="Driver",
         ),
         migrations.RenameModel(
-            old_name='KeyFactorVote',
-            new_name='DriverVote',
+            old_name="KeyFactorVote",
+            new_name="DriverVote",
         ),
     ]
