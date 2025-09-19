@@ -98,6 +98,7 @@ export type Tournament = TournamentPreview & {
   timeline: TournamentTimeline;
   forecasts_flow_enabled: boolean;
   index_data?: IndexData | null;
+  allow_forecast_resubmission: boolean;
 };
 
 export type ProjectIndexWeights = {
