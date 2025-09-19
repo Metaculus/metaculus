@@ -47,11 +47,11 @@ const GroupFormBulkModal: FC<{
       },
       {
         field: "scheduled_close_time",
-        label: t("closingDate"),
+        label: t("closeTime"),
       },
       {
         field: "scheduled_resolve_time",
-        label: t("resolvingDate"),
+        label: t("resolveTime"),
       },
     ],
     [t]

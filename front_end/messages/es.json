@@ -679,8 +679,6 @@
   "backgroundInformation": "Información de Fondo",
   "backgroundInfoExplanation": "Proporciona información de fondo para tu pregunta en un tono objetivo y sin sesgos. Los enlaces deben agregarse a recursos relevantes y útiles utilizando la <link>sintaxis markdown</link>: <markdown>[Título del Enlace](https://link-url.com)</markdown>.",
   "resolutionCriteriaExplanation": "Una buena pregunta casi siempre se resolverá de manera inequívoca. Si tienes una fuente de datos con la que se resolverá la pregunta, enlázala aquí. Si es necesario realizar algunos cálculos simples para resolver esta pregunta, define la ecuación en markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
-  "closingDate": "fecha de cierre",
-  "resolvingDate": "fecha de resolución",
   "choicesSeparatedBy": "Opciones (separadas por ,)",
   "projects": "proyectos",
   "FABPrizePool": "FONDO DE PREMIOS",
@@ -1522,5 +1520,7 @@
   "causally": "causalmente",
   "hastens": "acelera",
   "delays": "retrasa",
+  "closeTime": "hora de cierre",
+  "resolveTime": "tiempo de resolución",
   "othersCount": "Otros ({count})"
 }

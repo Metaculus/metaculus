@@ -668,8 +668,6 @@
   "backgroundInformation": "背景資訊",
   "backgroundInfoExplanation": "以客觀和中立的語氣提供問題的背景資訊。應使用<link>markdown語法</link>添加相關和有用資源的連結：<markdown>[連結標題](https://link-url.com)</markdown>。",
   "resolutionCriteriaExplanation": "一個好的問題幾乎總是能夠明確解決。如果你有用於解決問題的數據源，請在此處連結。如果需要進行一些簡單的數學計算來解決這個問題，請用markdown定義方程式：<markdown>\\[ y = ax^2+b \\]</markdown>。",
-  "closingDate": "結束日期",
-  "resolvingDate": "解決日期",
   "choicesSeparatedBy": "選項（以逗號分隔）",
   "projects": "專案",
   "FABPrizePool": "獎金池",
@@ -1524,5 +1522,7 @@
   "causally": "因果地",
   "hastens": "加速",
   "delays": "延迟",
+  "closeTime": "关闭时间",
+  "resolveTime": "解决时间",
   "othersCount": "其他（{count}）"
 }

@@ -14,6 +14,7 @@ import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import useEmbedModalContext from "@/contexts/embed_modal_context";
 import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { useShareMenuItems } from "@/hooks/use_share_menu_items";
@@ -35,6 +36,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const router = useRouter();
+  const { updateIsOpen: openEmbedModal } = useEmbedModalContext();
 
   const isUpcoming = post.question?.status === QuestionStatus.UPCOMING;
   const isAdmin = [ProjectPermissions.ADMIN].includes(post.user_permission);
@@ -45,7 +47,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
       post.user_permission
     ) &&
       post.curation_status !== PostStatus.APPROVED);
-  const isLargeScreen = useBreakpoint("md");
+  const isLargeScreen = useBreakpoint("lg");
 
   const shareMenuItems = useShareMenuItems({
     questionTitle: post.title,
@@ -121,6 +123,12 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
             id: "subscription",
             name: isSubscribed ? t("followingButton") : t("followButton"),
             onClick: toggleSubscription,
+          },
+          {
+            id: "embed",
+            name: t("embed"),
+            className: "capitalize",
+            onClick: () => openEmbedModal(true),
           },
         ]
       : []),
