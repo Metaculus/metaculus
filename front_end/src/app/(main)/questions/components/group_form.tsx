@@ -811,7 +811,7 @@ const GroupForm: React.FC<Props> = ({
                     )}
                     <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
-                        labelText={t("closingDate")}
+                        labelText={t("closeTime")}
                         className="w-full"
                       >
                         <DatetimeUtc
@@ -850,7 +850,7 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                       <InputContainer
-                        labelText={t("resolvingDate")}
+                        labelText={t("resolveTime")}
                         className="w-full"
                       >
                         <DatetimeUtc

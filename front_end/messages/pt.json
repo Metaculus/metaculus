@@ -756,8 +756,6 @@
   "backgroundInformation": "Informações de Fundo",
   "backgroundInfoExplanation": "Forneça informações de fundo para sua pergunta em um tom factual e imparcial. Links devem ser adicionados a recursos relevantes e úteis usando <link>markdown syntax</link>: <markdown>[Título do Link](https://link-url.com)</markdown>.",
   "resolutionCriteriaExplanation": "Uma boa pergunta quase sempre se resolve de forma inequívoca. Se você tem uma fonte de dados pela qual a pergunta será resolvida, link para ela aqui. Se houver alguma matemática simples que precisará ser feita para resolver esta pergunta, defina a equação em markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
-  "closingDate": "data de encerramento",
-  "resolvingDate": "data de resolução",
   "choices": "Escolhas",
   "choicesSeparatedBy": "Escolhas (separadas por ,)",
   "projects": "projetos",
@@ -1520,5 +1518,7 @@
   "causally": "causalmente",
   "hastens": "acelera",
   "delays": "atrasos",
+  "closeTime": "hora de fechamento",
+  "resolveTime": "tempo de resolução",
   "othersCount": "Outros ({count})"
 }

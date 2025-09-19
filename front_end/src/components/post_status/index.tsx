@@ -96,8 +96,9 @@ const PostStatus: FC<Props> = ({
     >
       <PostStatusIcon
         status={status}
-        published_at={post.published_at}
         scheduled_close_time={scheduled_close_time}
+        open_time={open_time}
+        published_at={post.published_at}
         resolution={resolution}
       />
       {/* Show text only in non-compact mode */}
