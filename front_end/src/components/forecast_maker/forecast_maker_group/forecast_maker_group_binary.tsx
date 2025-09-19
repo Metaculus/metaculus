@@ -76,6 +76,7 @@ type QuestionOption = {
   forecastExpiration?: ForecastExpirationValue;
   defaultSliderValue: number;
   wasWithdrawn: boolean;
+  withdrawnEndTimeSec?: number | null;
 };
 
 type Props = {
@@ -379,6 +380,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               onChange={handleForecastChange}
               isDirty={questionOption.isDirty}
               withdrawn={questionOption.wasWithdrawn}
+              withdrawnEndTimeSec={questionOption.withdrawnEndTimeSec}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
@@ -529,6 +531,7 @@ function generateChoiceOptions({
       isDirty: false,
       defaultSliderValue: prev ?? 50,
       wasWithdrawn,
+      withdrawnEndTimeSec: last?.end_time ?? null,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       status: question.status,
       forecastExpiration,
