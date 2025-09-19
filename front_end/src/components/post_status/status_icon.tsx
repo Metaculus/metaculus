@@ -14,6 +14,7 @@ const CLOCK_RADIUS = 10;
 type Props = {
   status: PostStatus;
   published_at: string;
+  open_time?: string | null;
   scheduled_close_time: string;
   resolution: Resolution | null;
 };
@@ -21,6 +22,7 @@ type Props = {
 const PostStatusIcon: FC<Props> = ({
   status,
   scheduled_close_time,
+  open_time,
   published_at,
   resolution,
 }) => {
@@ -34,19 +36,17 @@ const PostStatusIcon: FC<Props> = ({
   useEffect(() => {
     if (!svgRef.current || !showClock) return;
 
-    const timeSincePublish = differenceInMilliseconds(
-      new Date(),
-      new Date(published_at)
-    );
-    const totalTime = differenceInMilliseconds(
-      new Date(scheduled_close_time),
-      new Date(published_at)
-    );
-    // Make the math simpler by not handling the case where all the time
-    // is elapsed (or more). The whole clock should show gray in this case.
-    let timeElapsed = Math.min(1.0, timeSincePublish / totalTime);
-    // Similarly, for Upcoming questions, don't allow negative times.
-    timeElapsed = Math.max(0, timeElapsed);
+    const startTimeStr = open_time ?? published_at;
+
+    const start = new Date(startTimeStr);
+    const close = new Date(scheduled_close_time);
+    const now = new Date();
+
+    const totalRaw = differenceInMilliseconds(close, start);
+    const totalTime = Math.max(1, totalRaw);
+    const sinceStart = Math.max(0, differenceInMilliseconds(now, start));
+
+    const timeElapsed = Math.min(1, sinceStart / totalTime);
 
     const { x, y } = calculateCoordinates(timeElapsed);
     const pathD = buildClockPath(x, y, timeElapsed);
@@ -62,7 +62,7 @@ const PostStatusIcon: FC<Props> = ({
     const radius = nodes[2];
     radius?.setAttribute("x2", x.toString());
     radius?.setAttribute("y2", y.toString());
-  }, [scheduled_close_time, published_at, showClock]);
+  }, [scheduled_close_time, open_time, published_at, showClock]);
 
   const renderIcon = () => {
     // TODO: BE need to support this status

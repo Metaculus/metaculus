@@ -2,6 +2,7 @@ import { FloatingPortal } from "@floating-ui/react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   ComponentProps,
+  DependencyList,
   FC,
   PropsWithChildren,
   ReactNode,
@@ -65,6 +66,9 @@ const ChartFanTooltip: FC<Props> = ({
   const activeItem = optionsMap[option];
 
   const { ref, width, height } = useTooltipSize(!!activeItem);
+
+  const baseLeft = (x ?? 0) - width / 2;
+  const clampedLeft = useClampedViewportX(ref, baseLeft, [width]);
 
   if (typeof option !== "string" || !x || !y) {
     return null;
@@ -165,11 +169,11 @@ const ChartFanTooltip: FC<Props> = ({
           { "opacity-0": !width && !height }
         )}
         style={{
-          left: x - width / 2,
+          left: clampedLeft,
           top:
             position === "bottom"
-              ? y + TOOLTIP_PADDING
-              : y - height - TOOLTIP_PADDING,
+              ? (y ?? 0) + TOOLTIP_PADDING
+              : (y ?? 0) - height - TOOLTIP_PADDING,
         }}
       >
         <GroupPredictionsTooltip
@@ -234,6 +238,8 @@ const MinifiedTooltip: FC<
     className?: string;
   }>
 > = ({ children, ref, width, height, x, y, className }) => {
+  const baseLeft = (x ?? 0) - width / 2;
+  const clampedLeft = useClampedViewportX(ref, baseLeft, [width]);
   return (
     <FloatingPortal id="fan-graph-container">
       <div
@@ -244,8 +250,8 @@ const MinifiedTooltip: FC<
           className
         )}
         style={{
-          left: x - width / 2,
-          top: y - height / 2,
+          left: clampedLeft,
+          top: (y ?? 0) - height / 2,
         }}
       >
         {children}
@@ -278,6 +284,37 @@ const useTooltipSize = (open: boolean) => {
   }, [open]);
 
   return { ref, ...size };
+};
+
+const useClampedViewportX = (
+  ref: React.RefObject<HTMLDivElement | null>,
+  desiredLeft: number,
+  deps: DependencyList = []
+) => {
+  const [left, setLeft] = useState(desiredLeft);
+
+  useEffect(() => {
+    setLeft(desiredLeft);
+    requestAnimationFrame(() => {
+      const el = ref.current;
+      if (!el || typeof window === "undefined") return;
+
+      const rect = el.getBoundingClientRect();
+      const minLeft = TOOLTIP_PADDING;
+      const maxRight = window.innerWidth - TOOLTIP_PADDING;
+
+      let delta = 0;
+      const overLeft = minLeft - rect.left;
+      const overRight = rect.right - maxRight;
+      if (overLeft > 0) delta += overLeft;
+      if (overRight > 0) delta -= overRight;
+
+      if (delta !== 0) setLeft(desiredLeft + delta);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desiredLeft, ...deps]);
+
+  return left;
 };
 
 const getPredictionLabel = ({
