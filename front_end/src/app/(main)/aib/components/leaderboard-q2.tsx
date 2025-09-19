@@ -131,7 +131,7 @@ function BotLeaderboard() {
       userId: "twsummerbot",
       totalSpotScore: 2821.39,
       take: 7960263.38,
-      prize: 1730.60,
+      prize: 1730.6,
     },
     {
       rank: 10,
