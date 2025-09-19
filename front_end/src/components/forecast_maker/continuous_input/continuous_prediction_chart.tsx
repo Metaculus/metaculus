@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import ContinuousAreaChart, {
@@ -38,6 +38,24 @@ type Props = {
   width?: number;
   showCP?: boolean;
   chartTheme?: VictoryThemeDefinition;
+  outlineUser?: boolean;
+};
+
+const arraysAlmostEqual = (
+  a: ReadonlyArray<number> | null | undefined,
+  b: ReadonlyArray<number> | null | undefined,
+  eps = 1e-9
+): boolean => {
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    const ai = a[i];
+    const bi = b[i];
+    if (ai === undefined || bi === undefined) return false;
+    if (Math.abs(ai - bi) > eps) return false;
+  }
+  return true;
 };
 
 const ContinuousPredictionChart: FC<Props> = ({
@@ -50,13 +68,14 @@ const ContinuousPredictionChart: FC<Props> = ({
   width = undefined,
   showCP = true,
   chartTheme,
+  outlineUser = false,
 }) => {
   const t = useTranslations();
 
   const [hoverState, setHoverState] = useState<ContinuousAreaHoverState | null>(
     null
   );
-
+  const overlayLockedRef = useRef<boolean>(outlineUser);
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cursorDisplayData = useMemo(() => {
@@ -126,7 +145,17 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
-    if (overlayPreviousForecast && myLatest) {
+    const sameAsPrev =
+      myLatest && arraysAlmostEqual(dataset.cdf, myLatest.forecast_values);
+
+    const shouldShowPrev =
+      !!overlayPreviousForecast &&
+      !!myLatest &&
+      !overlayLockedRef.current &&
+      !outlineUser &&
+      !sameAsPrev;
+
+    if (shouldShowPrev) {
       charts.push({
         pmf: cdfToPmf(myLatest.forecast_values),
         cdf: myLatest.forecast_values,
@@ -152,6 +181,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     myLatest,
     readOnly,
     dataset,
+    outlineUser,
   ]);
 
   const xLabel = cursorDisplayData?.xLabel ?? "";
@@ -184,6 +214,7 @@ const ContinuousPredictionChart: FC<Props> = ({
         onCursorChange={handleCursorChange}
         extraTheme={chartTheme}
         alignChartTabs={true}
+        outlineUser={outlineUser}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
