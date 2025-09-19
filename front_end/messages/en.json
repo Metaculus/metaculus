@@ -893,8 +893,6 @@
   "backgroundInformation": "Background Information",
   "backgroundInfoExplanation": "Provide background information for your question in a factual and unbiased tone. Links should be added to relevant and helpful resources using <link>markdown syntax</link>: <markdown>[Link title](https://link-url.com)</markdown>.",
   "resolutionCriteriaExplanation": "A good question will almost always resolve unambiguously. If you have a data source by which the question will resolve, link to it here. If there is some simple math that will need to be done to resolve this question, define the equation in markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
-  "closingDate": "closing date",
-  "resolvingDate": "resolving date",
   "choices": "Choices",
   "choicesSeparatedBy": "Choices (separated by ,)",
   "projects": "projects",
@@ -1506,7 +1504,6 @@
   "inNews": "In the News",
   "info": "Question Info",
   "noParticipationProject": "You have not participated in this {projectType} yet.",
-  "hiddenUntil": "Hidden until",
   "low": "Low strength",
   "medium": "Medium strength",
   "high": "High strength",
@@ -1516,5 +1513,8 @@
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> this question",
   "causally" : "causally",
   "hastens" : "hastens",
-  "delays" : "delays"
+  "delays" : "delays",
+  "closeTime": "close time",
+  "resolveTime": "resolving time",
+  "hiddenUntil": "Hidden until"
 }
