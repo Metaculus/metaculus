@@ -103,12 +103,26 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   const t = useTranslations();
   const locale = useLocale();
 
+  const userCdf: number[] | undefined = getSliderNumericForecastDataset(
+    getNormalizedContinuousForecast(option.userSliderForecast),
+    option.question
+  ).cdf;
   const previousForecast = option.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !!previousForecast?.forecast_values &&
-        !previousForecast.distribution_input
-    );
+    useState<boolean>(() => {
+      // ensure we even have previous values to show
+      const hasValues = !!previousForecast?.forecast_values;
+
+      // determine if the previous forecast should be considered “legacy”
+      // (no distribution_input) or “expired” (end_time in the past)
+      const isLegacy = !previousForecast?.distribution_input;
+      const isExpired =
+        !!previousForecast?.end_time &&
+        previousForecast.end_time * 1000 < Date.now();
+
+      // we overlay if there are values AND (legacy OR expired)
+      return hasValues && (isLegacy || isExpired);
+    });
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const { forecastInputMode, isDirty, userQuantileForecast } = option;
@@ -139,6 +153,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   const dataset = useMemo(() => {
     setSubmitError(undefined);
+
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return getSliderNumericForecastDataset(
         forecast as DistributionSliderComponent[],
@@ -175,6 +190,13 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     [option]
   );
 
+  const showWithdrawnRow = option.wasWithdrawn && !option.isDirty;
+
+  const userPreviousCdf: number[] | undefined =
+    showWithdrawnRow && previousForecast
+      ? previousForecast.forecast_values
+      : undefined;
+
   const onSubmit = useCallback(
     async (forecastExpiration: ForecastExpirationValue) => {
       setSubmitError(undefined);
@@ -210,14 +232,6 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   const withdraw = () => onWithdraw();
 
-  const userCdf: number[] | undefined = getSliderNumericForecastDataset(
-    getNormalizedContinuousForecast(option.userSliderForecast),
-    option.question
-  ).cdf;
-  const userPreviousCdf: number[] | undefined =
-    overlayPreviousForecast && previousForecast
-      ? previousForecast.forecast_values
-      : undefined;
   const communityCdf: number[] | undefined =
     option.question.aggregations[option.question.default_aggregation_method]
       .latest?.forecast_values;
@@ -403,6 +417,10 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           }
           menu={option.menu}
           copyMenu={copyMenu}
+          userPreviousLabel={showWithdrawnRow ? "(Withdrawn)" : undefined}
+          userPreviousRowClassName={showWithdrawnRow ? "text-xs" : undefined}
+          hideCurrentUserRow={showWithdrawnRow}
+          outlineUser={showWithdrawnRow}
         />
       </div>
 

@@ -54,6 +54,10 @@ type Props = {
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
+  userPreviousLabel?: string;
+  userPreviousRowClassName?: string;
+  hideCurrentUserRow?: boolean;
+  outlineUser?: boolean;
 };
 
 const ContinuousInput: FC<Props> = ({
@@ -78,6 +82,10 @@ const ContinuousInput: FC<Props> = ({
   predictionMessage,
   menu,
   copyMenu,
+  userPreviousLabel,
+  userPreviousRowClassName,
+  hideCurrentUserRow,
+  outlineUser = false,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -120,6 +128,10 @@ const ContinuousInput: FC<Props> = ({
 
   const discrete = question.type === QuestionType.Discrete;
 
+  const derivedHideCurrentUserRow =
+    hideCurrentUserRow ??
+    (!isDirty && (!hasUserForecast || !userCdf || userCdf.length === 0));
+
   return (
     <ContinuousInputContainer
       forecastInputMode={forecastInputMode}
@@ -145,6 +157,7 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             readOnly={disabled}
             showCP={!user || !hideCP || !!question.resolution}
+            outlineUser={outlineUser}
           />
 
           {forecastInputMode === ContinuousForecastInputType.Slider && (
@@ -187,6 +200,9 @@ const ContinuousInput: FC<Props> = ({
             disableQuantileInput={disabled}
             hasUserForecast={hasUserForecast}
             forecastInputMode={forecastInputMode}
+            userPreviousLabel={userPreviousLabel}
+            userPreviousRowClassName={userPreviousRowClassName}
+            hideCurrentUserRow={derivedHideCurrentUserRow}
           />
 
           {forecastInputMode === ContinuousForecastInputType.Quantile && (
