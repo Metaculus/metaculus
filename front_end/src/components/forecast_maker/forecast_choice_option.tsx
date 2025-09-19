@@ -46,6 +46,7 @@ type Props<T> = {
   optionResolution?: OptionResolution;
   highlightedOptionId?: T;
   onOptionClick?: (id: T) => void;
+  withdrawn?: boolean;
 };
 
 const ForecastChoiceOption = <T = string,>({
@@ -65,6 +66,7 @@ const ForecastChoiceOption = <T = string,>({
   disabled = false,
   optionResolution,
   onOptionClick,
+  withdrawn = false,
 }: Props<T>) => {
   const t = useTranslations();
 
@@ -193,17 +195,23 @@ const ForecastChoiceOption = <T = string,>({
           {forecastColumnValue}
         </td>
         <td className="border-t border-gray-300 px-3 text-center dark:border-gray-300-dark sm:px-2 sm:py-2">
-          <ForecastTextInput
-            onChange={handleInputChange}
-            onForecastChange={handleInputForecastChange}
-            isDirty={isDirty}
-            minValue={inputMin}
-            maxValue={inputMax}
-            value={inputValue}
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-            disabled={disabled}
-          />
+          {withdrawn && !isDirty ? (
+            <div className="w-12 font-bold text-orange-800 dark:text-orange-800-dark">
+              ×
+            </div>
+          ) : (
+            <ForecastTextInput
+              onChange={handleInputChange}
+              onForecastChange={handleInputForecastChange}
+              isDirty={isDirty}
+              minValue={inputMin}
+              maxValue={inputMax}
+              value={inputValue}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+              disabled={disabled}
+            />
+          )}
         </td>
         <td className="hidden w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
           <div className="flex">
