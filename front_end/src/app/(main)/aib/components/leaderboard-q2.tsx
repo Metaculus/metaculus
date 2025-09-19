@@ -817,6 +817,7 @@ function BotLeaderboard() {
       totalSpotScore: -3489.5,
       take: 0.0,
       prize: null,
+      isMetacBot: true,
     },
     {
       rank: 91,
