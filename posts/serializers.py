@@ -124,6 +124,9 @@ class PostWriteSerializer(serializers.ModelSerializer):
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
     published_at = serializers.DateTimeField(required=False, allow_null=True)
+    is_automatically_translated = serializers.BooleanField(
+        required=False, allow_null=True
+    )
 
     class Meta:
         model = Post
@@ -137,6 +140,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "notebook",
             "categories",
             "published_at",
+            "is_automatically_translated",
         )
 
     def get_user(self):
