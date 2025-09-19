@@ -3,7 +3,7 @@ from typing import Iterable
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactor, KeyFactorVote, Comment
+from comments.models import Driver, DriverVote, Comment
 from posts.models import Post
 from users.models import User
 from utils.dtypes import generate_map_from_list
@@ -12,10 +12,10 @@ from utils.openai import generate_keyfactors
 
 @transaction.atomic
 def key_factor_vote(
-    key_factor: KeyFactor,
+    key_factor: Driver,
     user: User,
     vote: int = None,
-    vote_type: KeyFactorVote.VoteType = None,
+    vote_type: DriverVote.VoteType = None,
 ) -> dict[int, int]:
     # Deleting existing vote for this vote type
     key_factor.votes.filter(user=user, vote_type=vote_type).delete()
@@ -28,13 +28,13 @@ def key_factor_vote(
 
 
 def get_user_votes_for_key_factors(
-    key_factors: Iterable[KeyFactor], user: User
-) -> dict[int, list[KeyFactor]]:
+    key_factors: Iterable[Driver], user: User
+) -> dict[int, list[Driver]]:
     """
     Generates map of user votes for a set of KeyFactors
     """
 
-    votes = KeyFactorVote.objects.filter(key_factor__in=key_factors, user=user)
+    votes = DriverVote.objects.filter(key_factor__in=key_factors, user=user)
 
     return generate_map_from_list(list(votes), key=lambda vote: vote.key_factor_id)
 
@@ -49,7 +49,7 @@ def create_key_factors(comment: Comment, key_factors: list[str]):
 
     # Limit total key-factors amount for one user per post
     if (
-        KeyFactor.objects.for_posts(posts=[comment.on_post])
+        Driver.objects.for_posts(posts=[comment.on_post])
         .filter_active()
         .filter(comment__author=comment.author)
         .count()
@@ -61,7 +61,7 @@ def create_key_factors(comment: Comment, key_factors: list[str]):
         )
 
     for key_factor in key_factors:
-        KeyFactor.objects.create(comment=comment, text=key_factor)
+        Driver.objects.create(comment=comment, text=key_factor)
 
 
 def generate_keyfactors_for_comment(
