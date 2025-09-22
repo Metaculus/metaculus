@@ -6,11 +6,11 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from coherence.models import CoherenceLink
+from coherence.models import CoherenceLink, AggregateCoherenceLink
 from coherence.serializers import (
     CoherenceLinkSerializer,
     serialize_coherence_link,
-    serialize_coherence_link_many,
+    serialize_coherence_link_many, serialize_aggregate_coherence_link_many,
 )
 from coherence.services import create_coherence_link
 from posts.services.common import get_post_permission_for_user
@@ -60,6 +60,19 @@ def get_links_for_question_api_view(request, pk):
     )
 
     links_to_data = serialize_coherence_link_many(links)
+
+    return Response({"data": links_to_data})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_aggregate_links_for_question_api_view(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    links = AggregateCoherenceLink.objects.filter(
+        Q(question1=question) | Q(question2=question)
+    )
+
+    links_to_data = serialize_aggregate_coherence_link_many(links)
 
     return Response({"data": links_to_data})
 
