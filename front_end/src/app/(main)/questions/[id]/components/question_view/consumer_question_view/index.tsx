@@ -95,7 +95,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           ].includes(postData.question.type) && (
             <div className="sm:hidden">
               <KeyFactorsSection
-                postId={postData.id}
+                postId={postData}
                 postStatus={postData.status}
                 variant="compact"
               />

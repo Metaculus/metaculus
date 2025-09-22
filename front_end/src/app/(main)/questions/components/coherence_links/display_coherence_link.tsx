@@ -9,7 +9,11 @@ import { deleteCoherenceLink } from "@/app/(main)/questions/actions";
 import LinkStrengthComponent from "@/app/(main)/questions/components/coherence_links/link_strength_component";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { CoherenceLink, Directions } from "@/types/coherence";
+import {
+  CoherenceLink,
+  Directions,
+  FetchedAggregateCoherenceLink,
+} from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionType } from "@/types/question";
 import { getTermByDirectionAndQuestionType } from "@/utils/coherence";
@@ -53,12 +57,13 @@ const DirectionComponent: FC<{
   }
 };
 
-export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
+const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   const isFirstQuestion = link.question1_id === post.question?.id;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [canceled, setCanceled] = useState<boolean>(false);
   const { updateCoherenceLinks } = useCoherenceLinksContext();
   const t = useTranslations();
+  const isAggregate = "rsem" in link;
 
   useEffect(() => {
     if (isFirstQuestion && link.question2) setOtherQuestion(link.question2);
@@ -74,12 +79,26 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   }, [isFirstQuestion, link]);
 
   async function deleteLink() {
+    if (isAggregate) return;
     setCanceled(true);
     await deleteCoherenceLink(link);
     await updateCoherenceLinks();
   }
 
   if (!otherQuestion || canceled) return null;
+
+  function getCertainty(
+    value: number | null
+  ): "strong" | "medium" | "weak" | "none" {
+    if (value === null) return "none";
+    const absValue = Math.abs(value);
+    if (absValue < 0.1) {
+      return "strong";
+    } else if (absValue < 0.2) {
+      return "medium";
+    }
+    return "weak";
+  }
 
   if (compact)
     return (
@@ -141,16 +160,24 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
       </div>
       <div className={"flex flex-col items-end gap-1"}>
         <LinkStrengthComponent strength={link.strength} disabled={true} />
-
-        <Button
-          onClick={deleteLink}
-          className="mt-1.5 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
-          variant="tertiary"
-        >
-          <FontAwesomeIcon icon={faTrash} />
-          Delete
-        </Button>
+        {!isAggregate && (
+          <Button
+            onClick={deleteLink}
+            className="mt-1.5 border border-salmon-500 text-salmon-600 hover:border-salmon-600 dark:border-salmon-500-dark dark:text-salmon-600-dark dark:hover:border-salmon-600-dark"
+            variant="tertiary"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            Delete
+          </Button>
+        )}
+        {isAggregate && (
+          <div className={"mt-1"}>
+            Certainty:{" "}
+            <b>{getCertainty((link as FetchedAggregateCoherenceLink).rsem)}</b>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+export default DisplayCoherenceLink;

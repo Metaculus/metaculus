@@ -3,16 +3,19 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
-import { PostStatus } from "@/types/post";
+import { FetchedAggregateCoherenceLink } from "@/types/coherence";
+import { Post, PostStatus } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
@@ -20,7 +23,7 @@ import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
-  postId: number;
+  post: Post;
   postStatus: PostStatus;
   variant?: "default" | "compact";
 };
@@ -48,10 +51,11 @@ const AddKeyFactorsButton: FC<{
 };
 
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
-  postId,
+  post,
   postStatus,
   variant = "default",
 }) => {
+  const postId = post.id;
   const t = useTranslations();
   const hash = useHash();
   const { user } = useAuth();
@@ -59,6 +63,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
   const [displayLimit, setDisplayLimit] = useState(4);
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
+  const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
   const { combinedKeyFactors } = useCommentsFeed();
 
@@ -159,6 +164,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
       </div>
     );
 
+  const displayedAggregateLinks = aggregateCoherenceLinks?.data.filter(
+    (it) => it.links_nr > 1 && it.strength !== null && it.direction !== null
+  );
+
   return (
     <>
       {user && (
@@ -186,6 +195,26 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
           wrapperClassName="scroll-mt-header"
         >
           {KeyFactors}
+          {displayedAggregateLinks?.length > 0 && (
+            <>
+              <div className="mb-2 mt-2 text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
+                Aggregate Question Links
+              </div>
+              {Array.from(
+                displayedAggregateLinks,
+                (link: FetchedAggregateCoherenceLink) => (
+                  <div key={link.id}>
+                    <DisplayCoherenceLink
+                      link={link}
+                      post={post}
+                      compact={false}
+                    ></DisplayCoherenceLink>
+                    <br></br>
+                  </div>
+                )
+              )}
+            </>
+          )}
         </SectionToggle>
       )}
     </>

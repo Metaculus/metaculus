@@ -1,5 +1,8 @@
 import { ApiService } from "@/services/api/api_service";
-import { FetchedCoherenceLinks } from "@/types/coherence";
+import {
+  FetchedAggregateCoherenceLinks,
+  FetchedCoherenceLinks,
+} from "@/types/coherence";
 import { Post } from "@/types/post";
 
 class CoherenceLinksApi extends ApiService {
@@ -14,6 +17,14 @@ class CoherenceLinksApi extends ApiService {
       throw new Error("Post doesn't have only one associated question");
     const question = post.question;
     return await this.get(`/coherence/links/${question.id}/`);
+  }
+  async getAggregateCoherenceLinksForPost(
+    post: Post
+  ): Promise<FetchedAggregateCoherenceLinks> {
+    if (!post.question)
+      throw new Error("Post doesn't have only one associated question");
+    const question = post.question;
+    return await this.get(`/coherence/aggregate-links/${question.id}/`);
   }
 }
 
