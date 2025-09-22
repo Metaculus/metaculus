@@ -30,6 +30,17 @@ export type FetchedCoherenceLinks = {
   })[];
 };
 
+export type FetchedAggregateCoherenceLink = CoherenceLink & {
+  rsem: number;
+  links_nr: number;
+  direction: Directions | "none";
+  strength: Strengths | "none";
+};
+
+export type FetchedAggregateCoherenceLinks = {
+  data: FetchedAggregateCoherenceLink[];
+};
+
 export const ALLOWED_COHERENCE_LINK_QUESTION_TYPES = [
   QuestionType.Binary,
   QuestionType.Numeric,

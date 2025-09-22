@@ -27,7 +27,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
   const [newLinks, setNewLinks] = useState<number[]>([]);
-  const { coherenceLinks, updateCoherenceLinks } = useCoherenceLinksContext();
+  const { coherenceLinks, aggregateCoherenceLinks, updateCoherenceLinks } =
+    useCoherenceLinksContext();
   const toggleOpenRef = useCallback((element: HTMLElement | null) => {
     if (element) {
       setNewLinks([]);

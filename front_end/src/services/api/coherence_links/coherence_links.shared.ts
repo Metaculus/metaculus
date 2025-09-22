@@ -15,6 +15,14 @@ class CoherenceLinksApi extends ApiService {
     const question = post.question;
     return await this.get(`/coherence/links/${question.id}/`);
   }
+  async getAggregateCoherenceLinksForPost(
+    post: Post
+  ): Promise<FetchedCoherenceLinks> {
+    if (!post.question)
+      throw new Error("Post doesn't have only one associated question");
+    const question = post.question;
+    return await this.get(`/coherence/aggregate-links/${question.id}/`);
+  }
 }
 
 export default CoherenceLinksApi;

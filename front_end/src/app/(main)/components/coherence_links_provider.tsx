@@ -11,7 +11,10 @@ import {
 
 import { useAuth } from "@/contexts/auth_context";
 import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
-import { FetchedCoherenceLinks } from "@/types/coherence";
+import {
+  FetchedAggregateCoherenceLinks,
+  FetchedCoherenceLinks,
+} from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
 
@@ -23,6 +26,7 @@ export type LinkIdToQuestionMap = Map<number, Question>;
 
 export type CoherenceLinksContextType = {
   coherenceLinks: FetchedCoherenceLinks;
+  aggregateCoherenceLinks: FetchedAggregateCoherenceLinks;
   updateCoherenceLinks: () => Promise<void>;
   getOtherQuestions: () => LinkIdToQuestionMap;
 };
@@ -36,6 +40,10 @@ export const CoherenceLinksProvider: FC<
   const [coherenceLinks, setCoherenceLinks] = useState<FetchedCoherenceLinks>({
     data: [],
   });
+  const [aggregateCoherenceLinks, setAggregateCoherenceLinks] =
+    useState<FetchedAggregateCoherenceLinks>({
+      data: [],
+    });
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
@@ -46,6 +54,14 @@ export const CoherenceLinksProvider: FC<
         .catch((error) => console.log(error));
     } else {
       setCoherenceLinks({ data: [] });
+    }
+
+    if (isLoggedIn) {
+      ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(post)
+        .then((links) => setAggregateCoherenceLinks(links))
+        .catch((error) => console.log(error));
+    } else {
+      setAggregateCoherenceLinks({ data: [] });
     }
   };
 
@@ -63,7 +79,12 @@ export const CoherenceLinksProvider: FC<
 
   return (
     <CoherenceLinksContext.Provider
-      value={{ coherenceLinks, updateCoherenceLinks, getOtherQuestions }}
+      value={{
+        coherenceLinks,
+        aggregateCoherenceLinks,
+        updateCoherenceLinks,
+        getOtherQuestions,
+      }}
     >
       {children}
     </CoherenceLinksContext.Provider>
