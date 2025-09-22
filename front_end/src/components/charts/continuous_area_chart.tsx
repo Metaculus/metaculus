@@ -53,6 +53,7 @@ import { isValidScaling } from "@/utils/questions/helpers";
 
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
+import ResolutionDiamond from "./primitives/resolution_diamond";
 
 type ContinuousAreaColor = "orange" | "green" | "gray";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
@@ -253,6 +254,19 @@ const ContinuousAreaChart: FC<Props> = ({
           inboundOutcomeCount: question.inbound_outcome_count,
         })
       : null;
+
+  const resPlacement = useMemo<"in" | "left" | "right" | null>(() => {
+    if (!resolutionPoint || !Number.isFinite(resolutionPoint.y as number))
+      return null;
+    const x = resolutionPoint.y as number;
+    const [rawMin, rawMax] = xDomain;
+    const xMin = Math.min(rawMin, rawMax);
+    const xMax = Math.max(rawMin, rawMax);
+    if (x < xMin) return "left";
+    if (x > xMax) return "right";
+    return "in";
+  }, [resolutionPoint, xDomain]);
+
   const formattedResolution = formatResolution({
     resolution: question.resolution,
     questionType: question.type,
@@ -747,7 +761,7 @@ const ContinuousAreaChart: FC<Props> = ({
             ))
           )}
           {/* Resolution point */}
-          {resolutionPoint && (
+          {resolutionPoint && resPlacement === "in" && (
             <VictoryScatter
               data={[
                 {
@@ -768,6 +782,7 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           {/* Resolution chip */}
           {resolutionPoint &&
+            resPlacement === "in" &&
             withResolutionChip &&
             (question.type === QuestionType.Discrete ||
               question.type === QuestionType.Numeric) && (
@@ -786,7 +801,7 @@ const ContinuousAreaChart: FC<Props> = ({
                       rightPadding={0}
                       chartWidth={chartWidth}
                       isCursorActive={false}
-                      isDistributionChip={true}
+                      isDistributionChip
                       colorOverride={METAC_COLORS.purple["800"]}
                       resolution={formattedResolution}
                     />
@@ -795,6 +810,32 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             )}
 
+          {resolutionPoint && resPlacement && resPlacement !== "in" && (
+            <VictoryPortal>
+              <VictoryScatter
+                data={[
+                  {
+                    x:
+                      resPlacement === "left"
+                        ? Math.min(...xDomain)
+                        : Math.max(...xDomain),
+                    y: yDomain[1] - (yDomain[1] - yDomain[0]) * 0.04,
+                    placement: resPlacement === "left" ? "above" : "below",
+                    primary: METAC_COLORS.purple["800"],
+                    secondary: METAC_COLORS.purple["500"],
+                  },
+                ]}
+                dataComponent={
+                  <ResolutionDiamond
+                    hoverable={false}
+                    axisPadPx={3}
+                    rotateDeg={resPlacement === "left" ? -90 : 90}
+                    refProps={{}}
+                  />
+                }
+              />
+            </VictoryPortal>
+          )}
           {/* Today's date dot for date questions */}
           {question.type === QuestionType.Date && withTodayLine && (
             <VictoryScatter
