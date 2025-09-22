@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import ContinuousAreaChart, {
@@ -27,6 +27,7 @@ import { formatValueUnit } from "@/utils/questions/units";
 type Props = {
   question: QuestionWithNumericForecasts;
   overlayPreviousForecast?: boolean;
+  previousCdf?: number[];
   dataset: {
     cdf: number[];
     pmf: number[];
@@ -61,6 +62,7 @@ const arraysAlmostEqual = (
 const ContinuousPredictionChart: FC<Props> = ({
   question,
   overlayPreviousForecast,
+  previousCdf,
   dataset,
   graphType,
   readOnly = false,
@@ -75,7 +77,6 @@ const ContinuousPredictionChart: FC<Props> = ({
   const [hoverState, setHoverState] = useState<ContinuousAreaHoverState | null>(
     null
   );
-  const overlayLockedRef = useRef<boolean>(outlineUser);
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cursorDisplayData = useMemo(() => {
@@ -126,11 +127,6 @@ const ContinuousPredictionChart: FC<Props> = ({
     [question.aggregations, defaultAggMethod]
   );
 
-  const myLatest = useMemo(
-    () => question.my_forecasts?.latest ?? null,
-    [question.my_forecasts]
-  );
-
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
 
@@ -145,25 +141,20 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
-    const sameAsPrev =
-      myLatest && arraysAlmostEqual(dataset.cdf, myLatest.forecast_values);
-
+    const sameAsPrev = previousCdf
+      ? arraysAlmostEqual(dataset.cdf, previousCdf)
+      : false;
     const shouldShowPrev =
-      !!overlayPreviousForecast &&
-      !!myLatest &&
-      !overlayLockedRef.current &&
-      !outlineUser &&
-      !sameAsPrev;
-
-    if (shouldShowPrev) {
+      !!overlayPreviousForecast && !!previousCdf?.length && !sameAsPrev;
+    if (shouldShowPrev && previousCdf) {
       charts.push({
-        pmf: cdfToPmf(myLatest.forecast_values),
-        cdf: myLatest.forecast_values,
+        pmf: cdfToPmf(previousCdf),
+        cdf: previousCdf,
         type: "user_previous",
       });
     }
 
-    if (!readOnly || !!myLatest) {
+    if (!readOnly || !!previousCdf) {
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
@@ -178,10 +169,9 @@ const ContinuousPredictionChart: FC<Props> = ({
     latestAggLatest,
     question.status,
     overlayPreviousForecast,
-    myLatest,
+    previousCdf,
     readOnly,
     dataset,
-    outlineUser,
   ]);
 
   const xLabel = cursorDisplayData?.xLabel ?? "";
