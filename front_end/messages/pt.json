@@ -1520,5 +1520,7 @@
   "delays": "atrasos",
   "closeTime": "hora de fechamento",
   "resolveTime": "tempo de resolução",
+  "belowLowerBound": "Abaixo do limite inferior",
+  "aboveUpperBound": "Acima do limite superior",
   "othersCount": "Outros ({count})"
 }

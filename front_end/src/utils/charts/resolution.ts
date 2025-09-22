@@ -11,6 +11,13 @@ import {
 import { unscaleNominalLocation } from "@/utils/math";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
+function numericOobOffset(s: Scaling): number {
+  const min = s.range_min ?? 0;
+  const max = s.range_max ?? 1;
+  const span = Math.abs(max - min) || 1;
+  return span * 0.02;
+}
+
 export function getResolutionPoint({
   questionType,
   resolution,
@@ -46,29 +53,61 @@ export function getResolutionPoint({
       };
     }
     case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
+      let rawSec: number | undefined;
 
-      return {
-        y: unscaledResolution,
-        x: resolveTime,
-        symbol: "diamond",
-        size: size ?? 4,
-      };
+      if (typeof resolution === "string") {
+        if (resolution === "below_lower_bound") {
+          rawSec = (scaling.range_min ?? 0) - numericOobOffset(scaling);
+        } else if (resolution === "above_upper_bound") {
+          rawSec = (scaling.range_max ?? 1) + numericOobOffset(scaling);
+        } else {
+          const n = Number(resolution);
+          if (Number.isFinite(n)) {
+            rawSec = n > 1e12 ? n / 1000 : n;
+          } else {
+            const d = new Date(resolution);
+            const ms = d.getTime();
+            if (Number.isFinite(ms)) rawSec = ms / 1000;
+          }
+        }
+      } else if (
+        typeof resolution === "number" &&
+        Number.isFinite(resolution)
+      ) {
+        rawSec = resolution;
+      }
+
+      if (!Number.isFinite(rawSec as number)) return null;
+      const y = unscaleNominalLocation(rawSec as number, scaling);
+      if (!Number.isFinite(y)) return null;
+      return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
     }
     case QuestionType.Numeric: {
-      // format data for numerical question
-      const unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-      return {
-        y: unscaledResolution,
-        x: resolveTime,
-        symbol: "diamond",
-        size: size ?? 4,
-      };
+      let raw: number | undefined;
+
+      if (typeof resolution === "number" && Number.isFinite(resolution)) {
+        raw = resolution;
+      } else if (typeof resolution === "string") {
+        if (resolution === "below_lower_bound") {
+          raw = (scaling.range_min ?? 0) - numericOobOffset(scaling);
+        } else if (resolution === "above_upper_bound") {
+          raw = (scaling.range_max ?? 1) + numericOobOffset(scaling);
+        } else {
+          const n = Number(resolution);
+          if (Number.isFinite(n)) raw = n;
+        }
+      }
+
+      if (!Number.isFinite(raw as number)) {
+        const c = lastAggregation?.centers?.[0] as number | undefined;
+        if (Number.isFinite(c)) raw = c as number;
+        else return null;
+      }
+
+      const y = unscaleNominalLocation(raw as number, scaling);
+      if (!Number.isFinite(y)) return null;
+
+      return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
     }
     case QuestionType.Discrete: {
       // format data for discrete question
@@ -130,4 +169,15 @@ export function getResolutionPosition({
       ? unscaleNominalLocation(Number(resolution), scaling)
       : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }
+}
+
+export function getPlacementForY(
+  y: number | null | undefined,
+  yDomain: [number, number]
+): "in" | "below" | "above" {
+  if (y == null) return "in";
+  const [yMin, yMax] = yDomain;
+  if (y < yMin) return "below";
+  if (y > yMax) return "above";
+  return "in";
 }

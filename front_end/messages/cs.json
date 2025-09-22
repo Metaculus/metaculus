@@ -1522,5 +1522,7 @@
   "delays": "zpožďuje",
   "closeTime": "čas uzavření",
   "resolveTime": "doba řešení",
+  "belowLowerBound": "Pod dolní hranicí",
+  "aboveUpperBound": "Nad horní hranicí",
   "othersCount": "Ostatní ({count})"
 }

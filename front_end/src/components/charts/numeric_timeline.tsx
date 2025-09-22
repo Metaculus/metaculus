@@ -1,13 +1,12 @@
 "use client";
 
-import { getUnixTime } from "date-fns";
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo } from "react";
+import { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { TimelineChartZoomOption } from "@/types/charts";
-import { Resolution, QuestionStatus } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 import {
   AggregateForecastHistory,
   ForecastAvailability,
@@ -94,11 +93,24 @@ const NumericTimeline: FC<Props> = ({
       return null;
     }
     const lastAggregation = aggregation.latest;
+
+    const resolveSec = (() => {
+      const n = Number(resolveTime);
+      if (Number.isFinite(n) && String(resolveTime).trim() !== "") {
+        return Math.floor(n > 1e12 ? n / 1000 : n);
+      }
+      const d = new Date(String(resolveTime));
+      const ms = d.getTime();
+      return Number.isFinite(ms) ? Math.floor(ms / 1000) : null;
+    })();
+
+    if (resolveSec == null) return null;
+
     return getResolutionPoint({
       lastAggregation,
       questionType,
       resolution,
-      resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime / 1000),
+      resolveTime: Math.min(resolveSec, Math.floor(actualCloseTime / 1000)),
       scaling,
       size: 5,
     });

@@ -1511,10 +1511,12 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> has a <direction></direction> <type></type> impact on this question",
   "thisQuestionCausesOtherQuestionAdverbial": "This question <type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> this question",
-  "causally" : "causally",
-  "hastens" : "hastens",
-  "delays" : "delays",
+  "causally": "causally",
+  "hastens": "hastens",
+  "delays": "delays",
   "closeTime": "close time",
   "resolveTime": "resolving time",
+  "belowLowerBound": "Below lower bound",
+  "aboveUpperBound": "Above upper bound",
   "hiddenUntil": "Hidden until"
 }
