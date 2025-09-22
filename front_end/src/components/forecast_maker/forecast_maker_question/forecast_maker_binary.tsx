@@ -139,7 +139,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
-    if (!prevForecastValue) return;
+    if (!activeUserForecast) return;
 
     const response = await withdrawForecasts(post.id, [
       {
@@ -191,7 +191,7 @@ const ForecastMakerBinary: FC<Props> = ({
           <div className="flex gap-3">
             {canPredict && (
               <>
-                {!!prevForecastValue && (
+                {!!activeUserForecast && (
                   <WithdrawButton
                     isPromptOpen={isWithdrawModalOpen}
                     isPending={withdrawalIsPending}
