@@ -37,6 +37,7 @@ type Props = {
   };
   userCdf: number[] | undefined;
   userPreviousCdf: number[] | undefined;
+  overlayPreviousCdf?: number[] | undefined;
   communityCdf: number[] | undefined;
   sliderComponents: DistributionSliderComponent[];
   onSliderChange: (components: DistributionSliderComponent[]) => void;
@@ -85,6 +86,7 @@ const ContinuousInput: FC<Props> = ({
   userPreviousLabel,
   userPreviousRowClassName,
   hideCurrentUserRow,
+  overlayPreviousCdf,
   outlineUser = false,
 }) => {
   const { user } = useAuth();
@@ -154,6 +156,7 @@ const ContinuousInput: FC<Props> = ({
                 : tableGraphType
             }
             overlayPreviousForecast={overlayPreviousForecast}
+            previousCdf={overlayPreviousCdf}
             question={question}
             readOnly={disabled}
             showCP={!user || !hideCP || !!question.resolution}

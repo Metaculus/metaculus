@@ -130,10 +130,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
           })
       : undefined;
 
-<<<<<<< HEAD
     // Build a cross-question shared domain in internal coordinates and flags for borders
     const domainOverride = generateXDomainOverride(globalScaling, question);
-=======
     if (wasWithdrawn && !isDirty && withdrawnMedian != null) {
       userMedian = getPredictionDisplayValue(withdrawnMedian, {
         questionType: option.question.type,
@@ -142,7 +140,6 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
         actual_resolve_time: option.question.actual_resolve_time ?? null,
       });
     }
->>>>>>> 4b58e0e06 (feat: update withdrawal flow for continuous forecasts)
 
     const handleClick = () => {
       setIsModalOpen((prev) => !prev);
@@ -216,11 +213,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         question={question}
                         withResolutionChip={false}
                         withTodayLine={false}
-<<<<<<< HEAD
                         domainOverride={domainOverride}
-=======
                         outlineUser={wasWithdrawn && !isDirty}
->>>>>>> 4b58e0e06 (feat: update withdrawal flow for continuous forecasts)
                       />
                     </div>
                   </div>

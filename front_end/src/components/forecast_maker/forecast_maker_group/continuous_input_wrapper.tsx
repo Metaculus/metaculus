@@ -110,8 +110,12 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   const previousForecast = option.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
     useState<boolean>(() => {
+      // Withdrawn case:
+      // If the user's last prediction was explicitly withdrawn, the overlay toggle
+      // should start OFF. The "(Withdrawn)" table row is shown independently of this
+      if (option.wasWithdrawn) return false;
       // ensure we even have previous values to show
-      const hasValues = !!previousForecast?.forecast_values;
+      const hasValues = !!previousForecast?.forecast_values?.length;
 
       // determine if the previous forecast should be considered “legacy”
       // (no distribution_input) or “expired” (end_time in the past)
@@ -190,12 +194,14 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     [option]
   );
 
+  const rawPreviousCdf = previousForecast?.forecast_values;
   const showWithdrawnRow = option.wasWithdrawn && !option.isDirty;
-
-  const userPreviousCdf: number[] | undefined =
-    showWithdrawnRow && previousForecast
-      ? previousForecast.forecast_values
-      : undefined;
+  const showPreviousRowByCheckbox =
+    !showWithdrawnRow && overlayPreviousForecast;
+  const userPreviousCdf =
+    showWithdrawnRow || showPreviousRowByCheckbox ? rawPreviousCdf : undefined;
+  const overlayPreviousCdf =
+    overlayPreviousForecast && rawPreviousCdf ? rawPreviousCdf : undefined;
 
   const onSubmit = useCallback(
     async (forecastExpiration: ForecastExpirationValue) => {
@@ -387,6 +393,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           dataset={dataset}
           userCdf={userCdf}
           userPreviousCdf={userPreviousCdf}
+          overlayPreviousCdf={overlayPreviousCdf}
           communityCdf={communityCdf}
           sliderComponents={option.userSliderForecast}
           onSliderChange={(components) =>
