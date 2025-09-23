@@ -190,31 +190,42 @@ const ContinuousAreaChart: FC<Props> = ({
         yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
-    const xDomain: Tuple<number> = [
-      Math.min(
-        ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
-        0
-      ),
-      Math.max(
-        ...charts.map(
-          (chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)
-        ),
-        1
-      ),
-    ];
-    if (graphType === "cdf") {
-      return {
-        xDomain: xDomain,
-        yDomain: [0, 1],
-      };
+    let xMin = Math.min(
+      ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
+      0
+    );
+    let xMax = Math.max(
+      ...charts.map((chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)),
+      1
+    );
+
+    const N =
+      question.inbound_outcome_count ??
+      Math.max(1, (data.at(0)?.cdf?.length ?? 1) - 1);
+    if (Number.isFinite(N) && N > 0) {
+      const halfBin = 0.5 / N;
+      if (question.resolution === "below_lower_bound")
+        xMin = Math.min(xMin, -halfBin);
+      if (question.resolution === "above_upper_bound")
+        xMax = Math.max(xMax, 1 + halfBin);
     }
+    const xDomain: Tuple<number> = [xMin, xMax];
+    if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
     const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
-      xDomain: xDomain,
+      xDomain,
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType, question.type, charts, domainOverride.xDomain]);
+  }, [
+    data,
+    charts,
+    graphType,
+    question.type,
+    question.resolution,
+    domainOverride?.xDomain,
+    question.inbound_outcome_count,
+  ]);
 
   const xScale = useMemo(
     () =>
@@ -255,17 +266,46 @@ const ContinuousAreaChart: FC<Props> = ({
         })
       : null;
 
-  const resPlacement = useMemo<"in" | "left" | "right" | null>(() => {
-    if (!resolutionPoint || !Number.isFinite(resolutionPoint.y as number))
+  const toDiscreteBarCenter = useCallback(
+    (norm: number): number => {
+      const N =
+        question.inbound_outcome_count ??
+        Math.max(1, (data.at(0)?.cdf?.length ?? 1) - 1);
+      if (!Number.isFinite(norm) || N <= 0) return norm;
+      if (norm <= 0 || norm >= 1) return norm;
+      const idx = Math.round(norm * (N - 1));
+      return (idx + 0.5) / N;
+    },
+    [question.inbound_outcome_count, data]
+  );
+
+  const resX = useMemo(() => {
+    if (!resolutionPoint || !Number.isFinite(resolutionPoint.y as number)) {
       return null;
-    const x = resolutionPoint.y as number;
-    const [rawMin, rawMax] = xDomain;
-    const xMin = Math.min(rawMin, rawMax);
-    const xMax = Math.max(rawMin, rawMax);
-    if (x < xMin) return "left";
-    if (x > xMax) return "right";
+    }
+    return question.type === QuestionType.Discrete
+      ? toDiscreteBarCenter(resolutionPoint.y as number)
+      : (resolutionPoint.y as number);
+  }, [resolutionPoint, question.type, toDiscreteBarCenter]);
+
+  const forcedOobSide: "left" | "right" | null = useMemo(() => {
+    if (question.resolution === "below_lower_bound") return "left";
+    if (question.resolution === "above_upper_bound") return "right";
+    return null;
+  }, [question.resolution]);
+
+  const resPlacement = useMemo<"in" | "left" | "right" | null>(() => {
+    if (resX == null || !Number.isFinite(resX)) return null;
+    if (forcedOobSide) return forcedOobSide;
+
+    const baseMin = 0;
+    const baseMax = 1;
+    const EPS = 1e-9;
+
+    if (resX < baseMin - EPS) return "left";
+    if (resX > baseMax + EPS) return "right";
     return "in";
-  }, [resolutionPoint, xDomain]);
+  }, [resX, forcedOobSide]);
 
   const formattedResolution = formatResolution({
     resolution: question.resolution,
@@ -761,11 +801,11 @@ const ContinuousAreaChart: FC<Props> = ({
             ))
           )}
           {/* Resolution point */}
-          {resolutionPoint && resPlacement === "in" && (
+          {resX != null && resPlacement === "in" && (
             <VictoryScatter
               data={[
                 {
-                  x: resolutionPoint.y,
+                  x: resX,
                   y: 0,
                   symbol: "diamond",
                   size: 4,
@@ -781,7 +821,7 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           )}
           {/* Resolution chip */}
-          {resolutionPoint &&
+          {resX != null &&
             resPlacement === "in" &&
             withResolutionChip &&
             (question.type === QuestionType.Discrete ||
@@ -789,7 +829,7 @@ const ContinuousAreaChart: FC<Props> = ({
               <VictoryScatter
                 data={[
                   {
-                    x: resolutionPoint.y,
+                    x: resX,
                     y: 0,
                     symbol: "diamond",
                     size: 4,
@@ -810,7 +850,7 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             )}
 
-          {resolutionPoint && resPlacement && resPlacement !== "in" && (
+          {resX != null && resPlacement && resPlacement !== "in" && (
             <VictoryPortal>
               <VictoryScatter
                 data={[

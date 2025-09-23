@@ -110,28 +110,36 @@ export function getResolutionPoint({
       return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
     }
     case QuestionType.Discrete: {
-      // format data for discrete question
-      let unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-      if (resolution === "below_lower_bound" || unscaledResolution <= 0) {
-        unscaledResolution = inboundOutcomeCount
-          ? -0.5 / inboundOutcomeCount
+      const step =
+        inboundOutcomeCount && inboundOutcomeCount > 0
+          ? 1 / inboundOutcomeCount
           : 0;
+
+      if (resolution === "below_lower_bound") {
+        return {
+          y: step ? -0.5 * step : 0,
+          x: resolveTime,
+          symbol: "diamond",
+          size: size ?? 4,
+        };
       }
-      if (resolution === "above_upper_bound" || unscaledResolution >= 1) {
-        unscaledResolution = inboundOutcomeCount
-          ? 1 + 0.5 / inboundOutcomeCount
-          : 1;
+      if (resolution === "above_upper_bound") {
+        return {
+          y: step ? 1 + 0.5 * step : 1,
+          x: resolveTime,
+          symbol: "diamond",
+          size: size ?? 4,
+        };
       }
 
-      return {
-        y: unscaledResolution,
-        x: resolveTime,
-        symbol: "diamond",
-        size: size ?? 4,
-      };
+      const n = Number(resolution);
+      if (!Number.isFinite(n)) return null;
+      let y = unscaleNominalLocation(n, scaling);
+
+      if (y <= 0) y = step ? -0.5 * step : 0;
+      else if (y >= 1) y = step ? 1 + 0.5 * step : 1;
+
+      return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
     }
     default:
       return null;
