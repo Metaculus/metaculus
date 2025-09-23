@@ -112,9 +112,11 @@ const NumericTimeline: FC<Props> = ({
       resolution,
       resolveTime: Math.min(resolveSec, Math.floor(actualCloseTime / 1000)),
       scaling,
+      inboundOutcomeCount,
       size: 5,
     });
   }, [
+    inboundOutcomeCount,
     actualCloseTime,
     questionType,
     resolution,
