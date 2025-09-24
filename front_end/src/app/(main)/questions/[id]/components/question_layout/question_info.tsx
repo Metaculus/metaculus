@@ -1,8 +1,11 @@
+import { useTranslations } from "next-intl";
+
 import { CoherenceLinks } from "@/app/(main)/questions/components/coherence_links/coherence_links";
 import ConditionalTimeline from "@/components/conditional_timeline";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
+import SectionToggle from "@/components/ui/section_toggle";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import {
   isConditionalPost,
@@ -11,6 +14,8 @@ import {
 
 import HistogramDrawer from "../histogram_drawer";
 import KeyFactorsSection from "../key_factors/key_factors_section";
+import { QuestionVariantComposer } from "../question_variant_composer";
+import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
 type Props = {
   postData: PostWithForecasts;
@@ -21,6 +26,7 @@ const QuestionInfo: React.FC<Props> = ({
   postData,
   preselectedGroupQuestionId,
 }) => {
+  const t = useTranslations();
   return (
     <div className="flex flex-col gap-2.5">
       <ResolutionCriteria post={postData} />
@@ -31,19 +37,49 @@ const QuestionInfo: React.FC<Props> = ({
       <CoherenceLinks post={postData}></CoherenceLinks>
 
       <BackgroundInfo post={postData} />
-      {isGroupOfQuestionsPost(postData) &&
-        postData.group_of_questions.graph_type ===
-          GroupOfQuestionsGraphType.FanGraph && (
-          <DetailedGroupCard
-            post={postData}
-            preselectedQuestionId={preselectedGroupQuestionId}
-            groupPresentationOverride={
-              GroupOfQuestionsGraphType.MultipleChoiceGraph
-            }
-            prioritizeOpenSubquestions
-            className="mt-2"
-          />
-        )}
+
+      <QuestionVariantComposer
+        postData={postData}
+        consumer={
+          isGroupOfQuestionsPost(postData) &&
+          postData.group_of_questions.graph_type ===
+            GroupOfQuestionsGraphType.FanGraph ? (
+            <SectionToggle
+              defaultOpen
+              id="timeline"
+              wrapperClassName="hidden sm:block scroll-mt-header"
+              contentWrapperClassName="space-y-4"
+              title={t("timeline")}
+            >
+              <DetailedGroupCard
+                post={postData}
+                preselectedQuestionId={preselectedGroupQuestionId}
+                groupPresentationOverride={
+                  GroupOfQuestionsGraphType.MultipleChoiceGraph
+                }
+                prioritizeOpenSubquestions
+                className="dark:bg-dark-gray-0 mt-2 overflow-hidden bg-gray-0 p-2"
+              />
+              <QuestionTimeline className="bg-gray-0" postData={postData} />
+            </SectionToggle>
+          ) : null
+        }
+        forecaster={
+          isGroupOfQuestionsPost(postData) &&
+          postData.group_of_questions.graph_type ===
+            GroupOfQuestionsGraphType.FanGraph && (
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+              groupPresentationOverride={
+                GroupOfQuestionsGraphType.MultipleChoiceGraph
+              }
+              prioritizeOpenSubquestions
+              className="mt-2"
+            />
+          )
+        }
+      />
       <HistogramDrawer post={postData} />
     </div>
   );
