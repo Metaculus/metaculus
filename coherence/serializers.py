@@ -8,7 +8,7 @@ from rest_framework import serializers
 from questions.models import Question
 from questions.serializers.common import serialize_question
 from .models import CoherenceLink, AggregateCoherenceLink
-from .utils import get_aggregation_results
+from .utils import get_aggregation_results, link_to_question_id_pair
 
 
 class CoherenceLinkSerializer(serializers.ModelSerializer):
@@ -97,6 +97,7 @@ def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLi
         for link in objects
     }
 
+    # Prefetching can't work because AggregateCoherenceLink share no relation with CoherenceLink
     all_matching_links = CoherenceLink.objects.filter(
         Q(*[Q(question1_id=q1_id, question2_id=q2_id) for q1_id, q2_id in question_pairs],
           _connector=OR))
@@ -104,14 +105,14 @@ def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLi
     matching_links_by_pair = MultiDict()
 
     for link in all_matching_links:
-        key = f"{link.question1_id}, {link.question2_id}"
+        key = link_to_question_id_pair(link)
         matching_links_by_pair.add(key, link)
 
     return [
         serialize_aggregate_coherence_link(link,
                                            question1=link.question1,
                                            question2=link.question2,
-                                           matching_links=matching_links_by_pair.getall(f"{link.question1_id}, {link.question2_id}")
+                                           matching_links=matching_links_by_pair.getall(link_to_question_id_pair(link))
                                            )
         for link in objects
     ]
