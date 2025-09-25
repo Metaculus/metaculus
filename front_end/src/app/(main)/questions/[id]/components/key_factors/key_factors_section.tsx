@@ -8,7 +8,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
-import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
+import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
@@ -165,7 +165,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
     );
 
   const displayedAggregateLinks = aggregateCoherenceLinks?.data.filter(
-    (it) => it.links_nr > 1 && it.strength !== "none" && it.direction !== "none"
+    (it) => it.links_nr > 1 && it.strength !== null && it.direction !== null
   );
 
   return (
@@ -208,7 +208,6 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
                       link={link}
                       post={post}
                       compact={false}
-                      isAggregate={true}
                     ></DisplayCoherenceLink>
                     <br></br>
                   </div>

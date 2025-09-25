@@ -31,10 +31,10 @@ export type FetchedCoherenceLinks = {
 };
 
 export type FetchedAggregateCoherenceLink = CoherenceLink & {
-  rsem: number;
+  rsem: number | null;
   links_nr: number;
-  direction: Directions | "none";
-  strength: Strengths | "none";
+  direction: Directions | null;
+  strength: Strengths | null;
 };
 
 export type FetchedAggregateCoherenceLinks = {

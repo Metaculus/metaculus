@@ -57,7 +57,7 @@ const DirectionComponent: FC<{
   }
 };
 
-export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
+const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   const isFirstQuestion = link.question1_id === post.question?.id;
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [canceled, setCanceled] = useState<boolean>(false);
@@ -87,7 +87,10 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
 
   if (!otherQuestion || canceled) return null;
 
-  function getCertainty(value: number): "strong" | "medium" | "weak" {
+  function getCertainty(
+    value: number | null
+  ): "strong" | "medium" | "weak" | "none" {
+    if (value === null) return "none";
     const absValue = Math.abs(value);
     if (absValue < 0.1) {
       return "strong";
@@ -177,3 +180,4 @@ export const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
     </div>
   );
 };
+export default DisplayCoherenceLink;
