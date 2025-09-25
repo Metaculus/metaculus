@@ -1519,5 +1519,7 @@
   "delays": "延遲",
   "closeTime": "結束時間",
   "resolveTime": "解決時間",
+  "belowLowerBound": "低於下限",
+  "aboveUpperBound": "高於上限",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

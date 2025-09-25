@@ -1524,5 +1524,7 @@
   "delays": "延迟",
   "closeTime": "关闭时间",
   "resolveTime": "解决时间",
+  "belowLowerBound": "低于下限",
+  "aboveUpperBound": "高于上限",
   "othersCount": "其他（{count}）"
 }

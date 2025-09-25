@@ -1522,5 +1522,7 @@
   "delays": "retrasa",
   "closeTime": "hora de cierre",
   "resolveTime": "tiempo de resolución",
+  "belowLowerBound": "Por debajo del límite inferior",
+  "aboveUpperBound": "Por encima del límite superior",
   "othersCount": "Otros ({count})"
 }
