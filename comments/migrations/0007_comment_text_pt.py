@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="comment",
             name="text_pt",
-            field=models.TextField(null=True),
+            field=models.TextField(null=True, max_length=150000),
         ),
     ]

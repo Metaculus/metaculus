@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="comment",
             name="text_zh_TW",
-            field=models.TextField(null=True),
+            field=models.TextField(null=True, max_length=150000),
         ),
         migrations.AddField(
             model_name="keyfactor",

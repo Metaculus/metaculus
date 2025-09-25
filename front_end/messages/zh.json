@@ -1524,5 +1524,6 @@
   "delays": "延迟",
   "closeTime": "关闭时间",
   "resolveTime": "解决时间",
+  "topCommentsDescription": "热门评论由评论投票、关键因素投票和改变观点决定。多类别中得分高的评论将获得额外积分。只有在评论发布后一周内的投票会被计入，排名在七天后定稿。",
   "othersCount": "其他（{count}）"
 }

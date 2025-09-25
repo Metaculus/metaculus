@@ -59,8 +59,8 @@ def export_all_data_for_questions(
         user_forecasts = user_forecasts.filter(user_id__in=user_ids)
 
     if not aggregation_methods:
-        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions)
+        aggregate_forecasts = AggregateForecast.objects.filter(
+            start_time__lte=timezone.now(), question__in=questions
         ).order_by("question_id", "start_time")
     else:
         aggregate_forecasts = []
@@ -77,6 +77,7 @@ def export_all_data_for_questions(
                     else question.include_bots_in_aggregates
                 ),
                 histogram=True,
+                include_future=False,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)
@@ -551,6 +552,7 @@ def generate_data(
             row.extend([None, aggregate_forecast.method])
         row.extend(
             [
+                None,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
                 aggregate_forecast.forecaster_count,

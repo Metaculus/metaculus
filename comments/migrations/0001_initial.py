@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("is_soft_deleted", models.BooleanField(null=True)),
-                ("text", models.TextField()),
+                ("text", models.TextField(max_length=150000)),
                 ("is_private", models.BooleanField(default=False)),
                 ("edit_history", models.JSONField(blank=True, default=list)),
             ],

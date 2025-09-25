@@ -1516,5 +1516,6 @@
   "delays" : "delays",
   "closeTime": "close time",
   "resolveTime": "resolving time",
+  "topCommentsDescription": "Top comments are determined by comment votes, key factor votes, and minds changed. Bonus points are awarded for strong scores across multiple categories. Only votes cast within a week of a comment count, with rankings finalized after that seven-day period.",
   "hiddenUntil": "Hidden until"
 }

@@ -29,7 +29,10 @@ const Bulletins: FC = () => {
   const pathname = usePathname();
 
   const shouldHide = useMemo(() => {
-    return HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
+    return (
+      HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p)) ||
+      pathname === "/"
+    );
   }, [pathname]);
 
   const fetchBulletins = useCallback(async () => {

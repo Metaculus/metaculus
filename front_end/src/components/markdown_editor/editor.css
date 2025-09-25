@@ -125,3 +125,7 @@
 .mdxeditor-popup-container [role="dialog"] form > *:has(#link-title) {
   display: none;
 }
+
+div:has(.prism-code) + p:has(> br:only-child) {
+  display: none;
+}
