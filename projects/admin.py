@@ -459,7 +459,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         if kwargs.get("anonymized", False):
             filename += "_anonymized"
         response = HttpResponse(data, content_type="application/zip")
-        response["Content-Disposition"] = f"attachment; filename={filename}"
+        response["Content-Disposition"] = f"attachment; filename={filename}.zip"
 
         return response
 

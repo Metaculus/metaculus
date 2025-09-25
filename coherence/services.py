@@ -10,9 +10,9 @@ def create_coherence_link(
     user: User = None,
     question1: Question = None,
     question2: Question = None,
-        direction: Direction = None,
-        strength: Strength = None,
-        link_type: LinkType = None,
+    direction: Direction = None,
+    strength: Strength = None,
+    link_type: LinkType = None,
 ):
 
     with transaction.atomic():
@@ -34,10 +34,10 @@ def create_coherence_link(
 
 
 def create_aggregate_coherence_link(
-        *,
-        question1: Question = None,
-        question2: Question = None,
-        link_type: LinkType = None,
+    *,
+    question1: Question = None,
+    question2: Question = None,
+    link_type: LinkType = None,
 ):
     with transaction.atomic():
         obj, created = AggregateCoherenceLink.objects.get_or_create(

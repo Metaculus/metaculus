@@ -8,10 +8,10 @@ from django.db.migrations.state import StateApps
 
 
 def create_new_aggregate_links(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
-    coherence_link = apps.get_model("coherence", "CoherenceLink")
+    CoherenceLink = apps.get_model("coherence", "CoherenceLink")
     aggregate_coherence_link = apps.get_model("coherence", "AggregateCoherenceLink")
 
-    coherence_links = coherence_link.objects.all()
+    coherence_links = CoherenceLink.objects.select_related('question1', 'question2').all()
     links_map = {}
     for link in coherence_links:
         key = f"{link.question1.id},{link.question2.id},{link.type}"

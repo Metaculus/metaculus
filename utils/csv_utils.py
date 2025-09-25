@@ -269,6 +269,7 @@ def generate_data(
     #     score_data - Only if scores given
     #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
+    is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
     )
@@ -433,6 +434,7 @@ def generate_data(
                 + "**`Forecaster Username`** - the username of the forecaster or the aggregation method.\n"
             )
         )
+        + "**`Is Bot`** - if user is bot.\n"
         + "**`Start Time`** - the time when the forecast was made.\n"
         + "**`End Time`** - the time when the forecast ends. If not populated, the forecast is still active. Note that this can be set in the future indicating an expiring forecast.\n"
         + "**`Forecaster Count`** - if this is an aggregate forecast, how many forecasts contribute to it.\n"
@@ -458,6 +460,7 @@ def generate_data(
         headers.extend(["Forecaster ID", "Forecaster Username"])
     headers.extend(
         [
+            "Is Bot",
             "Start Time",
             "End Time",
             "Forecaster Count",
@@ -484,6 +487,7 @@ def generate_data(
             row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
+                is_bot_dict.get(forecast.author_id),
                 forecast.start_time,
                 forecast.end_time,
                 None,
