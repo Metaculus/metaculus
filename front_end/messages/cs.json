@@ -1522,5 +1522,6 @@
   "delays": "zpožďuje",
   "closeTime": "čas uzavření",
   "resolveTime": "doba řešení",
+  "topCommentsDescription": "Nejlepší komentáře jsou určovány podle hlasování u komentářů, klíčových faktorových hlasů a změněných názorů. Bonusové body se udělují za silné skóre napříč více kategoriemi. Počítají se pouze hlasy odevzdané do týdne od vytvoření komentáře, přičemž pořadí se konečně určuje po uplynutí tohoto sedmidenního období.",
   "othersCount": "Ostatní ({count})"
 }
