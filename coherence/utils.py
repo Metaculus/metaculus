@@ -50,5 +50,6 @@ def get_aggregation_results(links: list[CoherenceLink]) -> tuple[Direction | Non
         ) if mean != 0 else None
         return mean_direction, mean_strength, relative_standard_error_mean
 
+
 def link_to_question_id_pair(link : AggregateCoherenceLink) -> str:
     return f"{link.question1_id}, {link.question2_id}"
