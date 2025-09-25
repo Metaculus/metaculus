@@ -63,6 +63,9 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+      - name: Check Black formatting
+        if: ${{ !cancelled() }}
+        run: poetry run black --check .
       - name: Run Flake8 Linter
         if: ${{ !cancelled() }}
         run: poetry run flake8 . --exclude=front_end,.venv
