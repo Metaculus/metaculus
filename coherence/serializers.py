@@ -1,5 +1,8 @@
 from typing import Iterable
 
+from django.db.models import Q
+from django.db.models.sql import OR
+from multidict import MultiDict
 from rest_framework import serializers
 
 from questions.models import Question
@@ -48,9 +51,9 @@ def serialize_coherence_link(
     return serialized_data
 
 
-def serialize_link_many(links, model_class, serialize_func):
+def serialize_coherence_link_many(links: Iterable[CoherenceLink]):
     ids = [link.pk for link in links]
-    qs = model_class.objects.filter(pk__in=[c.pk for c in links]).select_related(
+    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
         "question1", "question2"
     )
 
@@ -58,17 +61,13 @@ def serialize_link_many(links, model_class, serialize_func):
     objects.sort(key=lambda obj: ids.index(obj.id))
 
     return [
-        serialize_func(link, question1=link.question1, question2=link.question2)
+        serialize_coherence_link(link, question1=link.question1, question2=link.question2)
         for link in objects
     ]
 
 
-def serialize_coherence_link_many(links: Iterable[CoherenceLink]):
-    return serialize_link_many(links, CoherenceLink, serialize_coherence_link)
-
-
 def serialize_aggregate_coherence_link(
-        link: AggregateCoherenceLink, question1: Question, question2: Question
+        link: AggregateCoherenceLink, question1: Question, question2: Question, matching_links : list[CoherenceLink]
 ):
     serialized_data = AggregateCoherenceLinkSerializer(link).data
     serialized_data["id"] = link.id
@@ -76,9 +75,6 @@ def serialize_aggregate_coherence_link(
         serialized_data["question1"] = serialize_question(question1)
     if question2:
         serialized_data["question2"] = serialize_question(question2)
-    matching_links = CoherenceLink.objects.filter(
-        question1=question1, question2=question2
-    )
     serialized_data["links_nr"] = len(matching_links)
     direction, strength, rsem = get_aggregation_results(list(matching_links))
     serialized_data["direction"] = direction.title() if direction else None
@@ -87,4 +83,34 @@ def serialize_aggregate_coherence_link(
 
 
 def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLink]):
-    return serialize_link_many(links, AggregateCoherenceLink, serialize_aggregate_coherence_link)
+    ids = [link.pk for link in links]
+    qs = AggregateCoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
+        "question1", "question2"
+    )
+
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    question_pairs = {
+        (link.question1_id, link.question2_id)
+        for link in objects
+    }
+
+    all_matching_links = CoherenceLink.objects.filter(
+        Q(*[Q(question1_id=q1_id, question2_id=q2_id) for q1_id, q2_id in question_pairs],
+          _connector=OR))
+
+    matching_links_by_pair = MultiDict()
+
+    for link in all_matching_links:
+        key = f"{link.question1_id}, {link.question2_id}"
+        matching_links_by_pair.add(key, link)
+
+    return [
+        serialize_aggregate_coherence_link(link,
+                                           question1=link.question1,
+                                           question2=link.question2,
+                                           matching_links=matching_links_by_pair.getall(f"{link.question1_id}, {link.question2_id}")
+                                           )
+        for link in objects
+    ]
