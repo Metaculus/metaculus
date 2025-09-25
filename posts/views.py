@@ -228,7 +228,7 @@ def post_detail(request: Request, pk):
         with_key_factors=True,
         include_descriptions=True,
         include_cp_history=True,
-        include_movements=True
+        include_movements=True,
     )
 
     if not posts:
