@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   backend-unit-tests:
+    name: "Backend"
     runs-on: ubuntu-latest
     environment: testing_env
     env:
@@ -77,6 +78,7 @@ jobs:
         run: poetry run pytest ./tests/unit
 
   frontend-unit-tests:
+    name: "Frontend"
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
