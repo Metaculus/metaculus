@@ -50,7 +50,6 @@ class CoherenceLink(TimeStampedModel):
 
 
 class AggregateCoherenceLink(TimeStampedModel):
-    id = models.AutoField(primary_key=True)
     question1 = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_coherence_links_as_q1"
     )

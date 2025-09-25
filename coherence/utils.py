@@ -1,19 +1,17 @@
-import math
 import statistics
-from typing import List
 
 from scipy.stats import sem
 
-from coherence.models import CoherenceLink
+from coherence.models import CoherenceLink, Direction, Strength
 
 
-def convert_to_vector(direction: str, strength: str) -> int:
+def convert_to_vector(direction: Direction, strength: Strength) -> int:
     direction_map = {
-        "positive": 1,
-        "negative": -1,
+        Direction.POSITIVE: 1,
+        Direction.NEGATIVE: -1,
     }
 
-    strength_map = {"low": 1, "medium": 2, "high": 3}
+    strength_map = {Strength.LOW: 1, Strength.MEDIUM: 2, Strength.HIGH: 3}
     return direction_map[direction] * strength_map[strength]
 
 
@@ -27,29 +25,27 @@ def custom_round(x: float) -> int:
 
 def convert_to_direction_strength(
         vector_value: float,
-):
-    strength_map = {1: "low", 2: "medium", 3: "high"}
+) -> tuple[Direction | None, Strength | None]:
+    strength_map = {1: Strength.LOW, 2: Strength.MEDIUM, 3: Strength.HIGH}
     vector_value = custom_round(vector_value)
     if vector_value == 0:
-        return "none", "none"
-    direction = "positive" if vector_value > 0 else "negative"
+        return None, None
+    direction = Direction.POSITIVE if vector_value > 0 else Direction.NEGATIVE
     strength = strength_map[abs(vector_value)]
     return direction, strength
 
 
-def get_aggregation_results(links: List[CoherenceLink]):
+def get_aggregation_results(links: list[CoherenceLink]) -> tuple[Direction | None, Strength | None, float | None]:
     if len(links) == 0:
-        return "none", "none", "inf"
+        return None, None, None
     elif len(links) == 1:
         link = links[0]
-        return link.direction, link.strength, "inf"
+        return Direction(link.direction), Strength(link.strength), None
     else:
-        vectors = [convert_to_vector(link.direction, link.strength) for link in links]
+        vectors = [convert_to_vector(Direction(link.direction), Strength(link.strength)) for link in links]
         mean = statistics.mean(vectors)
         mean_direction, mean_strength = convert_to_direction_strength(mean)
         relative_standard_error_mean = abs(
-            float(sem(vectors) / mean if mean != 0 else "inf")
-        )
-        if math.isinf(relative_standard_error_mean):
-            relative_standard_error_mean = "inf"
+            float(sem(vectors) / mean)
+        ) if mean != 0 else None
         return mean_direction, mean_strength, relative_standard_error_mean
