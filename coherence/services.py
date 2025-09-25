@@ -1,6 +1,12 @@
 from django.db import transaction
 
-from coherence.models import CoherenceLink, AggregateCoherenceLink, Direction, Strength, LinkType
+from coherence.models import (
+    CoherenceLink,
+    AggregateCoherenceLink,
+    Direction,
+    Strength,
+    LinkType,
+)
 from questions.models import Question
 from users.models import User
 
@@ -28,7 +34,9 @@ def create_coherence_link(
         # Save project and validate
         obj.full_clean()
         obj.save()
-        create_aggregate_coherence_link(question1=question1, question2=question2, link_type=link_type)
+        create_aggregate_coherence_link(
+            question1=question1, question2=question2, link_type=link_type
+        )
 
     return obj
 

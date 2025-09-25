@@ -7,11 +7,15 @@ from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from django.db.migrations.state import StateApps
 
 
-def create_new_aggregate_links(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+def create_new_aggregate_links(
+    apps: StateApps, schema_editor: BaseDatabaseSchemaEditor
+) -> None:
     CoherenceLink = apps.get_model("coherence", "CoherenceLink")
     aggregate_coherence_link = apps.get_model("coherence", "AggregateCoherenceLink")
 
-    coherence_links = CoherenceLink.objects.select_related("question1", "question2").all()
+    coherence_links = CoherenceLink.objects.select_related(
+        "question1", "question2"
+    ).all()
     links_map = {}
     for link in coherence_links:
         key = f"{link.question1.id},{link.question2.id},{link.type}"
@@ -30,7 +34,9 @@ def create_new_aggregate_links(apps: StateApps, schema_editor: BaseDatabaseSchem
     aggregate_coherence_link.objects.bulk_create(aggregate_links_to_create)
 
 
-def undo_create_new_aggregate_links(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+def undo_create_new_aggregate_links(
+    apps: StateApps, schema_editor: BaseDatabaseSchemaEditor
+) -> None:
     aggregate_coherence_link = apps.get_model("coherence", "AggregateCoherenceLink")
     aggregate_coherence_link.objects.all().delete()
 
@@ -52,9 +58,15 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("edited_at", models.DateTimeField(editable=False, null=True)),
-                ("id", models.BigAutoField(
-                    auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                )),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "type",
                     models.CharField(choices=[("causal", "Causal")], max_length=16),

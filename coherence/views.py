@@ -10,7 +10,8 @@ from coherence.models import CoherenceLink, AggregateCoherenceLink
 from coherence.serializers import (
     CoherenceLinkSerializer,
     serialize_coherence_link,
-    serialize_coherence_link_many, serialize_aggregate_coherence_link_many,
+    serialize_coherence_link_many,
+    serialize_aggregate_coherence_link_many,
 )
 from coherence.services import create_coherence_link
 from posts.services.common import get_post_permission_for_user

@@ -24,7 +24,7 @@ def custom_round(x: float) -> int:
 
 
 def convert_to_direction_strength(
-        vector_value: float,
+    vector_value: float,
 ) -> tuple[Direction | None, Strength | None]:
     strength_map = {1: Strength.LOW, 2: Strength.MEDIUM, 3: Strength.HIGH}
     vector_value = custom_round(vector_value)
@@ -35,21 +35,26 @@ def convert_to_direction_strength(
     return direction, strength
 
 
-def get_aggregation_results(links: list[CoherenceLink]) -> tuple[Direction | None, Strength | None, float | None]:
+def get_aggregation_results(
+    links: list[CoherenceLink],
+) -> tuple[Direction | None, Strength | None, float | None]:
     if len(links) == 0:
         return None, None, None
     elif len(links) == 1:
         link = links[0]
         return Direction(link.direction), Strength(link.strength), None
     else:
-        vectors = [convert_to_vector(Direction(link.direction), Strength(link.strength)) for link in links]
+        vectors = [
+            convert_to_vector(Direction(link.direction), Strength(link.strength))
+            for link in links
+        ]
         mean = statistics.mean(vectors)
         mean_direction, mean_strength = convert_to_direction_strength(mean)
-        relative_standard_error_mean = abs(
-            float(sem(vectors) / mean)
-        ) if mean != 0 else None
+        relative_standard_error_mean = (
+            abs(float(sem(vectors) / mean)) if mean != 0 else None
+        )
         return mean_direction, mean_strength, relative_standard_error_mean
 
 
-def link_to_question_id_pair(link : AggregateCoherenceLink) -> str:
+def link_to_question_id_pair(link: AggregateCoherenceLink) -> str:
     return f"{link.question1_id}, {link.question2_id}"
