@@ -154,10 +154,7 @@ const CommentsOfWeekContent: FC<Props> = ({
 
       <div className="relative mb-8">
         <p className="mb-5 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
-          Top comments are determined by comment votes, key factor votes, and
-          minds changed. Bonus points are awarded for strong scores across
-          multiple categories. Only votes cast within a week of a comment count,
-          with rankings finalized after that seven-day period.
+          {t("topCommentsDescription")}
         </p>
 
         <Button

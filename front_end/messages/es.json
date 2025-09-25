@@ -1522,5 +1522,6 @@
   "delays": "retrasa",
   "closeTime": "hora de cierre",
   "resolveTime": "tiempo de resolución",
+  "topCommentsDescription": "Los comentarios destacados se determinan por los votos de comentarios, los votos de factores clave y las mentes cambiadas. Se otorgan puntos adicionales por puntajes sólidos en múltiples categorías. Solo se tienen en cuenta los votos emitidos dentro de una semana de un conteo de comentarios, con clasificaciones finalizadas después de ese período de siete días.",
   "othersCount": "Otros ({count})"
 }
