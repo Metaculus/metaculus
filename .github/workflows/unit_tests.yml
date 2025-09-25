@@ -93,6 +93,18 @@ jobs:
         run: npm ci
         working-directory: front_end
 
+      - name: prettier version
+        run: npx prettier -v
+        working-directory: front_end
+
+      - name: check formatting
+        run: npm run format:check
+        working-directory: front_end
+
+      - name: check linters
+        run: npm run lint
+        working-directory: front_end
+
       - name: Run unit tests
         run: npm test
         working-directory: front_end
