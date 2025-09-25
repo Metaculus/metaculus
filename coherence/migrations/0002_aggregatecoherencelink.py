@@ -11,7 +11,7 @@ def create_new_aggregate_links(apps: StateApps, schema_editor: BaseDatabaseSchem
     CoherenceLink = apps.get_model("coherence", "CoherenceLink")
     aggregate_coherence_link = apps.get_model("coherence", "AggregateCoherenceLink")
 
-    coherence_links = CoherenceLink.objects.select_related('question1', 'question2').all()
+    coherence_links = CoherenceLink.objects.select_related("question1", "question2").all()
     links_map = {}
     for link in coherence_links:
         key = f"{link.question1.id},{link.question2.id},{link.type}"
@@ -52,7 +52,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("edited_at", models.DateTimeField(editable=False, null=True)),
-                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("id", models.BigAutoField(
+                    auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                )),
                 (
                     "type",
                     models.CharField(choices=[("causal", "Causal")], max_length=16),
