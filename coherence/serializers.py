@@ -77,9 +77,10 @@ def serialize_aggregate_coherence_link(
         serialized_data["question2"] = serialize_question(question2)
     serialized_data["links_nr"] = len(matching_links)
     direction, strength, rsem = get_aggregation_results(list(matching_links))
-    serialized_data["direction"] = direction.title() if direction else None
-    serialized_data["strength"] = strength.title() if strength else None
+    serialized_data["direction"] = direction.title().lower() if direction else None
+    serialized_data["strength"] = strength.title().lower() if strength else None
     serialized_data["rsem"] = rsem if rsem else None
+    return serialized_data
 
 
 def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLink]):
