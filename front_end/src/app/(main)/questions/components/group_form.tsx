@@ -391,6 +391,10 @@ const GroupForm: React.FC<Props> = ({
         scaling: x.scaling,
         open_lower_bound: x.open_lower_bound,
         open_upper_bound: x.open_upper_bound,
+        inbound_outcome_count:
+          x.type === "discrete"
+            ? x.inbound_outcome_count ?? DefaultInboundOutcomeCount
+            : undefined,
         has_forecasts:
           (x.aggregations[x.default_aggregation_method].latest
             ?.forecaster_count || 0) > 0,
@@ -942,7 +946,8 @@ const GroupForm: React.FC<Props> = ({
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
                         defaultInboundOutcomeCount={
-                          subQuestion.inbound_outcome_count
+                          subQuestion.inbound_outcome_count ??
+                          DefaultInboundOutcomeCount
                         }
                         defaultZeroPoint={subQuestion.scaling?.zero_point}
                         hasForecasts={
@@ -1089,16 +1094,55 @@ const GroupForm: React.FC<Props> = ({
             <Button
               onClick={() => {
                 if (subQuestions.length > 0) {
-                  // Clone subquestion attributes from the previous one
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      ...subQuestions[subQuestions.length - 1],
-                      has_forecasts: false,
-                      id: undefined,
-                      label: "",
-                    },
-                  ]);
+                  const last = subQuestions[subQuestions.length - 1];
+                  const clone: SubQuestionDraft = {
+                    ...last,
+                    has_forecasts: false,
+                    id: undefined,
+                    label: "",
+                    inbound_outcome_count:
+                      last?.inbound_outcome_count ?? DefaultInboundOutcomeCount,
+                  };
+
+                  if (
+                    subtype === QuestionType.Discrete &&
+                    clone.scaling &&
+                    clone.inbound_outcome_count &&
+                    typeof clone.scaling.range_min === "number" &&
+                    typeof clone.scaling.range_max === "number" &&
+                    clone.inbound_outcome_count > 2
+                  ) {
+                    const n = clone.inbound_outcome_count;
+                    const cmin = clone.scaling.range_min;
+                    const cmax = clone.scaling.range_max;
+
+                    const stepC = (cmax - cmin) / (n - 1);
+                    const emin2 = cmin - 0.5 * stepC;
+                    const emax2 = cmax + 0.5 * stepC;
+
+                    const stepE = (emax2 - emin2) / n;
+                    const cmin2 = emin2 + 0.5 * stepE;
+                    const cmax2 = emax2 - 0.5 * stepE;
+
+                    const looksLikeCenters =
+                      Math.abs(cmin2 - cmin) <= 1e-9 &&
+                      Math.abs(cmax2 - cmax) <= 1e-9;
+
+                    if (looksLikeCenters) {
+                      const draft = getQuestionDraft(draftKey);
+                      if (draft) {
+                        const round10 = (x: number) =>
+                          Math.round(1e10 * x) / 1e10;
+                        clone.scaling = {
+                          ...clone.scaling,
+                          range_min: round10(emin2),
+                          range_max: round10(emax2),
+                        };
+                      }
+                    }
+                  }
+
+                  setSubQuestions([...subQuestions, clone]);
                 } else {
                   if (subtype === QuestionType.Numeric) {
                     setSubQuestions([
