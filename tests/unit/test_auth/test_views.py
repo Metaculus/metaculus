@@ -110,7 +110,9 @@ class TestVerifyEmail:
             [{"language": "en"}, "en"],
         ],
     )
-    def test_signup__language_variations(self, anon_client, mocker, params, expected_langauge):
+    def test_signup__language_variations(
+        self, anon_client, mocker, params, expected_langauge
+    ):
         mocker.patch("authentication.views.common.send_activation_email")
 
         response = anon_client.post(
