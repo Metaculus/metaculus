@@ -89,9 +89,11 @@ export const TabsTab = ({
 export function TabsSection({
   value,
   children,
+  className,
 }: {
   value: string;
   children: ReactNode;
+  className?: string;
 }) {
   const ctx = useContext(TabsContext);
   if (!ctx) throw new Error("Tabs.Section must be inside <Tabs>");
@@ -102,7 +104,7 @@ export function TabsSection({
   }
 
   return (
-    <div ref={ref} className="mt-4">
+    <div ref={ref} className={cn("mt-4", className)}>
       {children}
     </div>
   );

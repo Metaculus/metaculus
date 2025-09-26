@@ -84,8 +84,6 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             </p>
           )}
 
-          {isFanGraph && <QuestionTimeline postData={postData} />}
-
           <QuestionActionButton postData={postData} />
         </div>
 

@@ -141,7 +141,7 @@ const IndividualNotebookPage: FC<{
         <hr className="my-4 border-gray-400 dark:border-gray-400-dark" />
 
         <div className="block md:flex md:gap-8">
-          <div className="inline w-full md:mt-3 md:min-w-56 md:max-w-56">
+          <div className="mb-2 w-full md:mb-0 md:mt-3 md:min-w-56 md:max-w-56">
             <NotebookContentSections
               commentsCount={postData.comment_count ?? 0}
               unreadComments={postData.unread_comment_count}
