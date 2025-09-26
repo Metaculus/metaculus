@@ -40,7 +40,7 @@ export default function StatusView({ verificationSession }: StatusViewProps) {
             Follow the instructions on the verification page.
           </p>
           <Button
-            variant="link"
+            variant="primary"
             className="mt-2"
             onClick={() => window.open(verificationSession.url, "_blank")}
           >
