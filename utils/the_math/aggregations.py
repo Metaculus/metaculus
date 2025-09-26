@@ -411,8 +411,8 @@ class Aggregation(Unweighted, MedianValues):
         ).tolist()
 
         aggregation.start_time = forecast_set.timestep
+        aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
-            aggregation.forecaster_count = len(forecast_set.forecasts_values)
             lowers, centers, uppers = self.get_range_values(
                 forecast_set, aggregation.forecast_values, weights
             )
