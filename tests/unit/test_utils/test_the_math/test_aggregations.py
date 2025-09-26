@@ -220,10 +220,9 @@ class TestAggregations:
         ) or np.allclose(
             new_aggregation.interval_upper_bounds, expected.interval_upper_bounds
         )
-        # TODO: add means support
-        # assert (new_aggregation.means == expected.means) or np.allclose(
-        #     new_aggregation.means, expected.means
-        # )
+        assert (new_aggregation.means == expected.means) or np.allclose(
+            new_aggregation.means, expected.means
+        )
         assert (new_aggregation.histogram == expected.histogram) or np.allclose(
             new_aggregation.histogram, expected.histogram
         )
@@ -447,10 +446,9 @@ class TestAggregations:
         ) or np.allclose(
             new_aggregation.interval_upper_bounds, expected.interval_upper_bounds
         )
-        # TODO: add means support
-        # assert (new_aggregation.means == expected.means) or np.allclose(
-        #     new_aggregation.means, expected.means
-        # )
+        assert (new_aggregation.means == expected.means) or np.allclose(
+            new_aggregation.means, expected.means
+        )
         assert (new_aggregation.histogram == expected.histogram) or np.allclose(
             new_aggregation.histogram, expected.histogram
         )

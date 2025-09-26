@@ -419,6 +419,13 @@ class Aggregation(Unweighted, MedianValues):
             aggregation.interval_lower_bounds = lowers
             aggregation.centers = centers
             aggregation.interval_upper_bounds = uppers
+            if self.question_type in [
+                Question.QuestionType.BINARY,
+                Question.QuestionType.MULTIPLE_CHOICE,
+            ]:
+                aggregation.means = np.average(
+                    forecast_set.forecasts_values, weights=weights, axis=0
+                ).tolist()
 
         if histogram and self.question_type in [
             Question.QuestionType.BINARY,
