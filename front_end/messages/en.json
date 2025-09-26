@@ -1511,11 +1511,13 @@
   "otherQuestionCausesThisQuestion": "<otherQuestion></otherQuestion> has a <direction></direction> <type></type> impact on this question",
   "thisQuestionCausesOtherQuestionAdverbial": "This question <type></type> <direction></direction> <otherQuestion></otherQuestion>",
   "otherQuestionCausesThisQuestionAdverbial": "<otherQuestion></otherQuestion> <type></type> <direction></direction> this question",
-  "causally" : "causally",
-  "hastens" : "hastens",
-  "delays" : "delays",
+  "causally": "causally",
+  "hastens": "hastens",
+  "delays": "delays",
   "closeTime": "close time",
   "resolveTime": "resolving time",
   "topCommentsDescription": "Top comments are determined by comment votes, key factor votes, and minds changed. Bonus points are awarded for strong scores across multiple categories. Only votes cast within a week of a comment count, with rankings finalized after that seven-day period.",
+  "medalRank": "Your rank is based on all the medals you've earned up to that point. Higher-tier and more recent medals count more.",
+  "learnMoreFAQ": "Learn more in our FAQ",
   "hiddenUntil": "Hidden until"
 }
