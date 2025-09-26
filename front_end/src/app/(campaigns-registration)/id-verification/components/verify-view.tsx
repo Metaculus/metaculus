@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import Button from "@/components/ui/button";
 import { CurrentUser } from "@/types/users";
+import cn from "@/utils/core/cn";
 
 import { initiateStripeVerification, VerificationSession } from "../actions";
 
@@ -37,11 +38,12 @@ const VerifyView = ({
     <div className="flex flex-col gap-2">
       {registrationStatus === "initial" && (
         <Button
-          variant="primary"
+          variant="link"
           onClick={() => handleVerification(currentUser)}
           disabled={isLoading}
+          className={cn(verificationSession?.status === "verified" && "hidden")}
         >
-          {["processing", "requires_input", "verified"].includes(
+          {["processing", "requires_input"].includes(
             verificationSession?.status || ""
           )
             ? "Start new verification"

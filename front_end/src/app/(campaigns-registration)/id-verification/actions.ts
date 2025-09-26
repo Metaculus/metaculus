@@ -24,35 +24,31 @@ export type VerificationSession = {
 export async function getVerificationSession(
   user: CurrentUser | null
 ): Promise<VerificationSession | undefined> {
-  try {
-    if (!user) {
-      return undefined;
-    }
-
-    const verificationSessionId = await getLastVerificationSession(user);
-
-    if (!verificationSessionId) {
-      return undefined;
-    }
-
-    const stripeClient = stripe(process.env.STRIPE_SECRET_KEY);
-
-    const stripeSession =
-      await stripeClient.identity.verificationSessions.retrieve(
-        verificationSessionId
-      );
-
-    const verificationSession = {
-      id: stripeSession.id,
-      status: stripeSession.status,
-      metadata: stripeSession.metadata,
-      url: stripeSession.url,
-    };
-
-    return verificationSession;
-  } catch {
+  if (!user) {
     return undefined;
   }
+
+  const verificationSessionId = await getLastVerificationSession(user);
+
+  if (!verificationSessionId) {
+    return undefined;
+  }
+
+  const stripeClient = stripe(process.env.STRIPE_SECRET_KEY);
+
+  const stripeSession =
+    await stripeClient.identity.verificationSessions.retrieve(
+      verificationSessionId
+    );
+
+  const verificationSession = {
+    id: stripeSession.id,
+    status: stripeSession.status,
+    metadata: stripeSession.metadata,
+    url: stripeSession.url,
+  };
+
+  return verificationSession;
 }
 
 export async function initiateStripeVerification(
@@ -92,6 +88,7 @@ export async function initiateStripeVerification(
 
     return { url: verificationSession.url };
   } catch (err) {
+    console.error("Stripe create verification error", err);
     if (err instanceof Error) {
       return {
         error: err.message,
