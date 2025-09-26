@@ -27,12 +27,18 @@ def factory_comment(
 
 
 def factory_key_factor(
-    *, comment: Comment = None, votes: dict[User, int] = None, vote_type: DriverVote.VoteType = None, **kwargs
+    *,
+    comment: Comment = None,
+    votes: dict[User, int] = None,
+    vote_type: DriverVote.VoteType = None,
+    **kwargs
 ) -> Driver:
     votes = votes or {}
     cf = G(Driver, **setdefaults_not_null(kwargs, comment=comment))
 
     for user, score in votes.items():
-        DriverVote.objects.create(key_factor=cf, score=score, user=user, vote_type=vote_type)
+        DriverVote.objects.create(
+            key_factor=cf, score=score, user=user, vote_type=vote_type
+        )
 
     return cf

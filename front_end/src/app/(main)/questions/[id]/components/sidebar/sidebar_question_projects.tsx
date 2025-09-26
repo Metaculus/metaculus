@@ -37,6 +37,9 @@ const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
     ...leaderboard_tag,
   ];
 
+  const getChipText = (name: string, type?: string) =>
+    type === "leaderboard_tag" ? `🏆 ${name}` : name;
+
   if (allProjects.length > 0) {
     return (
       <SidebarContainer>
@@ -59,7 +62,7 @@ const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
                   })
                 }
               >
-                {element.name}
+                {getChipText(element.name, element.type)}
               </Chip>
             ))}
           </div>
