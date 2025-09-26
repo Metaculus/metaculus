@@ -152,6 +152,35 @@ class TestAggregations:
                     histogram=None,
                 ),
             ),
+            (
+                {"question_type": Question.QuestionType.BINARY},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.1, 0.9],
+                        [0.3, 0.7],
+                        [0.4, 0.6],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    timesteps=[
+                        datetime(2021, 1, 1, tzinfo=dt_timezome.utc),
+                        datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    method=AggregationMethod.UNWEIGHTED,
+                    forecast_values=[0.3, 0.7],
+                    forecaster_count=3,
+                    interval_lower_bounds=[0.1, 0.6],
+                    centers=[0.3, 0.7],
+                    interval_upper_bounds=[0.4, 0.9],
+                    means=[0.8 / 3, 2.2 / 3],
+                    histogram=None,
+                ),
+            ),
         ],
     )
     def test_UnweightedAggregation(
@@ -326,6 +355,41 @@ class TestAggregations:
                     forecasts_values=[
                         [0.2, 0.8],
                         [0.3, 0.7],
+                        [0.4, 0.6],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    timesteps=[
+                        datetime(2021, 1, 1, tzinfo=dt_timezome.utc),
+                        datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
+                    ],
+                ),
+                True,
+                True,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    method=AggregationMethod.RECENCY_WEIGHTED,
+                    forecast_values=[0.3, 0.7],
+                    forecaster_count=3,
+                    interval_lower_bounds=[0.3, 0.6],
+                    centers=[0.3, 0.7],
+                    interval_upper_bounds=[0.4, 0.7],
+                    means=[0.32350213768407476, 0.6764978623159252],
+                    histogram=[0] * 60
+                    + [1]
+                    + [0] * 9
+                    + [0.7277212189012763]
+                    + [0] * 9
+                    + [0.48092170020263214]
+                    + [0] * 19,
+                ),
+            ),
+            (
+                {"question_type": Question.QuestionType.BINARY},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.2, 0.8],
+                        [0.3, 0.7],
                         [0.5, 0.5],
                         [0.4, 0.6],
                     ],
@@ -398,6 +462,7 @@ class TestAggregations:
         assert (new_aggregation.means == expected.means) or np.allclose(
             new_aggregation.means, expected.means
         )
+        print(new_aggregation.histogram)
         assert (new_aggregation.histogram == expected.histogram) or np.allclose(
             new_aggregation.histogram, expected.histogram
         )
