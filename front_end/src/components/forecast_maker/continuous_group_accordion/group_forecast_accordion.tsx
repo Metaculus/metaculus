@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
@@ -15,6 +16,7 @@ import {
   DistributionSliderComponent,
   Quartiles,
   QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
 import { isUnitCompact } from "@/utils/questions/units";
 
@@ -129,6 +131,24 @@ const GroupForecastAccordion: FC<Props> = ({
   const [expandAll, setExpandAll] = useState(false);
   const toggleExpandAll = () => setExpandAll((prev) => !prev);
 
+  // Compute global nominal bounds across all questions in the group
+  const globalScaling = useMemo<Scaling>(
+    () => ({
+      range_min: Math.min(
+        ...options
+          .map((obj) => obj.question.scaling.range_min)
+          .filter((obj) => !isNil(obj))
+      ),
+      range_max: Math.max(
+        ...options
+          .map((obj) => obj.question.scaling.range_max)
+          .filter((obj) => !isNil(obj))
+      ),
+      zero_point: null,
+    }),
+    [options]
+  );
+
   const homogeneousUnit = useMemo(() => {
     const units = Array.from(new Set(options.map((obj) => obj.question.unit)));
 
@@ -178,6 +198,7 @@ const GroupForecastAccordion: FC<Props> = ({
             forcedExpandAll={expandAll}
             subQuestionId={subQuestionId}
             type={QuestionStatus.OPEN}
+            globalScaling={globalScaling}
             unit={
               option.question.unit && isUnitCompact(option.question.unit)
                 ? option.question.unit
@@ -227,6 +248,7 @@ const GroupForecastAccordion: FC<Props> = ({
             forcedExpandAll={expandAll}
             type={QuestionStatus.CLOSED}
             key={`${option.id}-expand-${expandAll}`}
+            globalScaling={globalScaling}
           >
             <ContinuousInputWrapper
               option={option}
@@ -270,6 +292,7 @@ const GroupForecastAccordion: FC<Props> = ({
             forcedExpandAll={expandAll}
             type={QuestionStatus.RESOLVED}
             key={`${option.id}-expand-${expandAll}`}
+            globalScaling={globalScaling}
           >
             <ContinuousInputWrapper
               option={option}

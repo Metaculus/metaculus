@@ -6,13 +6,14 @@ import { useLocale } from "next-intl";
 import { FC, memo, PropsWithChildren, useEffect, useState } from "react";
 
 import ContinuousAreaChart, {
+  generateXDomainOverride,
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile } from "@/types/question";
+import { Quantile, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
@@ -34,6 +35,7 @@ type AccordionItemProps = {
   unit?: string;
   forcedOpenId?: number;
   forcedExpandAll?: boolean;
+  globalScaling?: Scaling;
 };
 
 const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
@@ -46,6 +48,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
     unit,
     forcedOpenId,
     forcedExpandAll,
+    globalScaling,
   }) => {
     const locale = useLocale();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,6 +116,9 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
           })
       : undefined;
 
+    // Build a cross-question shared domain in internal coordinates and flags for borders
+    const domainOverride = generateXDomainOverride(globalScaling, question);
+
     const handleClick = () => {
       setIsModalOpen((prev) => !prev);
     };
@@ -172,7 +178,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                       }
                       type={type}
                     />
-                    <div className="hidden h-full shrink-0 grow-0 items-center justify-center sm:block sm:w-[325px]">
+                    <div className="hidden h-full shrink-0 grow-0 items-center sm:block sm:w-[325px]">
                       <ContinuousAreaChart
                         data={continuousAreaChartData}
                         graphType="pmf"
@@ -182,6 +188,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         question={question}
                         withResolutionChip={false}
                         withTodayLine={false}
+                        domainOverride={domainOverride}
                       />
                     </div>
                   </div>
