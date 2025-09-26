@@ -11,8 +11,6 @@ from utils.the_math.aggregations import (
 from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast
 
-from tests.unit.test_users.factories import factory_user
-
 
 @pytest.mark.parametrize(
     "array, max_size, expceted_array",
