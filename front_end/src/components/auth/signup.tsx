@@ -81,7 +81,7 @@ export const SignupForm: FC<{
       ...data,
       redirectUrl: currentLocation,
       newsletterOptin: watch("newsletterOptin"),
-      appTheme: themeChoice,
+      appTheme: themeChoice === "auto" ? "system" : themeChoice,
     });
 
     if (response && response.errors) {
