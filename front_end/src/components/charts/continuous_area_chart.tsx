@@ -668,19 +668,30 @@ const ContinuousAreaChart: FC<Props> = ({
               },
             }}
           />
-          {/* Baseline only within question bounds (0..1 in internal scale) */}
-          <VictoryLine
-            data={[
-              { x: 0, y: 0 },
-              { x: 1, y: 0 },
-            ]}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.gray["500"]),
-                strokeWidth: 1,
-              },
-            }}
-          />
+          {/* Horizontal line */}
+          {charts.map((chart, index) => (
+            <VictoryLine
+              key={`line-${index}`}
+              data={[
+                { x: 0, y: 0 },
+                { x: 1, y: 0 },
+              ]}
+              style={{
+                data: {
+                  stroke: (() => {
+                    switch (chart.color) {
+                      case "orange":
+                        return getThemeColor(METAC_COLORS.orange["800"]);
+                      case "gray":
+                        return getThemeColor(METAC_COLORS.gray["500"]);
+                      default:
+                        return undefined;
+                    }
+                  })(),
+                },
+              }}
+            />
+          ))}
           {/* Left/Right borders at bounds if requested */}
           {!domainOverride.isGlobalMin && (
             <VictoryLine
