@@ -5,13 +5,11 @@ from datetime import datetime, timezone as dt_timezome
 from utils.the_math.aggregations import (
     summarize_array,
     ForecastSet,
-    calculate_aggregation_entry,
-    generate_recency_weights,
+    UnweightedAggregation,
+    RecencyWeightedAggregation,
 )
 from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast
-
-from tests.unit.test_users.factories import factory_user
 
 
 @pytest.mark.parametrize(
@@ -42,6 +40,7 @@ class TestAggregations:
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
+                    user_ids=[1],
                     timesteps=[datetime(2023, 1, 1, tzinfo=dt_timezome.utc)],
                 ),
                 False,
@@ -58,6 +57,7 @@ class TestAggregations:
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
+                    user_ids=[1],
                     timesteps=[datetime(2023, 1, 1, tzinfo=dt_timezome.utc)],
                 ),
                 True,
@@ -82,6 +82,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    user_ids=[1, 2],
                     timesteps=[
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -104,6 +105,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    user_ids=[1, 2],
                     timesteps=[
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -132,6 +134,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    user_ids=[1, 2, 3],
                     timesteps=[
                         datetime(2021, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
@@ -161,6 +164,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
+                    user_ids=[1, 2, 3],
                     timesteps=[
                         datetime(2021, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
@@ -191,19 +195,9 @@ class TestAggregations:
         histogram: bool,
         expected: AggregateForecast,
     ):
-        users = []
-        for _ in forecast_set.forecasts_values:
-            users.append(factory_user())
-        forecast_set.users = users
-        new_aggregation = calculate_aggregation_entry(
-            forecast_set=forecast_set,
-            question_type=init_params.get(
-                "question_type", Question.QuestionType.BINARY
-            ),
-            weights=None,
-            method=AggregationMethod.UNWEIGHTED,
-            include_stats=include_stats,
-            histogram=histogram,
+        aggregation = UnweightedAggregation(**init_params)
+        new_aggregation = aggregation.calculate_aggregation_entry(
+            forecast_set, include_stats, histogram
         )
 
         assert new_aggregation.start_time == expected.start_time
@@ -427,20 +421,9 @@ class TestAggregations:
         histogram: bool,
         expected: AggregateForecast,
     ):
-        users = []
-        for _ in forecast_set.forecasts_values:
-            users.append(factory_user())
-        forecast_set.users = users
-        weights = generate_recency_weights(len(forecast_set.forecasts_values))
-        new_aggregation = calculate_aggregation_entry(
-            forecast_set=forecast_set,
-            question_type=init_params.get(
-                "question_type", Question.QuestionType.BINARY
-            ),
-            weights=weights,
-            method=AggregationMethod.RECENCY_WEIGHTED,
-            include_stats=include_stats,
-            histogram=histogram,
+        aggregation = RecencyWeightedAggregation(**init_params)
+        new_aggregation = aggregation.calculate_aggregation_entry(
+            forecast_set, include_stats, histogram
         )
 
         assert new_aggregation.start_time == expected.start_time

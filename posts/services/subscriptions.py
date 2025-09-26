@@ -191,7 +191,7 @@ def notify_post_cp_change(post: Post):
             difference = prediction_difference_for_sorting(
                 old_forecast_values,
                 current_forecast_values,
-                question=question,
+                question_type=question.type,
             )
             if max_sorting_diff is None or difference > max_sorting_diff:
                 max_sorting_diff = difference
