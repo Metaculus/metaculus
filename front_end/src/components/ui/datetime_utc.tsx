@@ -9,8 +9,8 @@ import { logError } from "@/utils/core/errors";
 
 interface DatetimeUtcProps extends Omit<InputProps, "onChange"> {
   defaultValue?: string;
-  onChange?: (value: string) => void;
-  onError?: (error: any) => void;
+  onChange?: (value: string | undefined) => void;
+  onError?: (error: unknown) => void;
   withFormValidation?: boolean;
   className?: string;
   withTimezoneMessage?: boolean;
@@ -57,7 +57,7 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
         // Convert local time to UTC for storage
         if (onChange) {
           if (!localDateString.trim()) {
-            onChange("");
+            onChange(undefined);
             return;
           }
 
@@ -70,7 +70,7 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
         }
       } catch (e) {
         if (withFormValidation) {
-          onChange?.("");
+          onChange?.(undefined);
           return;
         }
 

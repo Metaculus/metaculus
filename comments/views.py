@@ -13,8 +13,9 @@ from comments.models import (
     ChangedMyMindEntry,
     Comment,
     CommentVote,
-    KeyFactor,
-    KeyFactorVote,
+    CommentsOfTheWeekEntry,
+    Driver,
+    DriverVote,
 )
 from comments.serializers import (
     CommentWriteSerializer,
@@ -22,8 +23,10 @@ from comments.serializers import (
     serialize_comment,
     serialize_comment_many,
     CommentFilterSerializer,
+    serialize_comments_of_the_week_many,
 )
 from comments.services.common import (
+    set_comment_excluded_from_week_top,
     create_comment,
     pin_comment,
     unpin_comment,
@@ -298,14 +301,14 @@ def comment_create_oldapi_view(request: Request):
 
 @api_view(["POST"])
 def key_factor_vote_view(request: Request, pk: int):
-    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    key_factor = get_object_or_404(Driver, pk=pk)
     vote = serializers.ChoiceField(
-        required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
+        required=False, allow_null=True, choices=DriverVote.VoteScore.choices
     ).run_validation(request.data.get("vote"))
     # vote_type is always required, and when vote is None, the type is being used to
     # decide which vote to delete based on the type
     vote_type = serializers.ChoiceField(
-        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
+        required=True, allow_null=False, choices=DriverVote.VoteType.choices
     ).run_validation(request.data.get("vote_type"))
 
     score = key_factor_vote(
@@ -344,7 +347,7 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
 
     existing_keyfactors = [
         keyfactor.text
-        for keyfactor in KeyFactor.objects.for_posts([comment.on_post]).filter_active()
+        for keyfactor in Driver.objects.for_posts([comment.on_post]).filter_active()
     ]
 
     suggested_key_factors = generate_keyfactors_for_comment(
@@ -376,3 +379,38 @@ def comment_toggle_pin_view(request: Request, pk: int):
         unpin_comment(comment)
 
     return Response(serialize_comment(comment))
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def comments_of_week_view(request: Request):
+    user = request.user
+    # Parse and validate the start_date query parameter
+    week_start_date = serializers.DateField(input_formats=["%Y-%m-%d"]).run_validation(
+        request.query_params.get("start_date")
+    )
+
+    # Admins can see all top (max 18) candidates for the weekly top comments
+    top_comments_of_week_entries = CommentsOfTheWeekEntry.objects.filter(
+        week_start_date=week_start_date
+    ).order_by("-score", "comment__created_at")
+
+    # Users only see the top 6 comments which are not excluded
+    if not (user.is_staff or user.is_superuser):
+        top_comments_of_week_entries = top_comments_of_week_entries.filter(
+            excluded=False
+        )[:6]
+
+    return Response(serialize_comments_of_the_week_many(top_comments_of_week_entries))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def comment_set_excluded_from_week_top_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+    excluded = serializers.BooleanField(allow_null=False).run_validation(
+        request.data.get("excluded")
+    )
+
+    set_comment_excluded_from_week_top(comment, excluded=excluded)
+    return Response(status=status.HTTP_200_OK)

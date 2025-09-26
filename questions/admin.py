@@ -6,7 +6,8 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
-from questions.types import AggregationMethod
+from posts.models import Post
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -15,9 +16,9 @@ from questions.models import (
     Forecast,
 )
 from questions.services import build_question_forecasts
+from questions.types import AggregationMethod
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
-from questions.constants import ResolutionType
 
 
 @admin.register(Question)
@@ -45,6 +46,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "rebuild_aggregation_history",
         "trigger_scoring",
         "trigger_scoring_with_all_aggregations",
+        "mark_post_as_deleted",
     ]
     list_filter = [
         "type",
@@ -82,10 +84,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         return format_html('<a href="{}">View Forecasts</a>', url)
 
     def should_update_translations(self, obj):
-        is_private = (
-            obj.related_posts.first().post.default_project.default_permission is None
-        )
-        return not is_private
+        post = obj.get_post()
+        is_private = post.default_project.default_permission is None
+        is_approved = post.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -137,8 +140,8 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         for question in queryset:
             if not question.resolution or question.resolution in (
-                ResolutionType.AMBIGUOUS,
-                ResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
             ):
                 continue
             score_question(
@@ -155,8 +158,8 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         for question in queryset:
             if not question.resolution or question.resolution in (
-                ResolutionType.AMBIGUOUS,
-                ResolutionType.ANNULLED,
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
             ):
                 continue
             score_question(
@@ -168,6 +171,18 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     trigger_scoring_with_all_aggregations.short_description = (
         "Trigger Scoring (Includes ALL Aggregations) (does nothing if not resolved)"
     )
+
+    def mark_post_as_deleted(self, request, queryset: QuerySet[Question]):
+        updated = 0
+        for obj in queryset:
+            post = obj.get_post()
+            if post is not None:
+                post.curation_status = Post.CurationStatus.DELETED
+                post.save()
+                updated += 1
+        self.message_user(request, f"Marked {updated} post(s) as DELETED.")
+
+    mark_post_as_deleted.short_description = "Mark post as DELETED"
 
 
 @admin.register(Conditional)
@@ -189,8 +204,11 @@ class ConditionalAdmin(admin.ModelAdmin):
         return actions
 
     def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
-        return not is_private
+        post = obj.post
+        is_private = post.default_project.default_permission is None
+        is_approved = post.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
@@ -222,8 +240,11 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
         return actions
 
     def should_update_translations(self, obj):
-        is_private = obj.post.default_project.default_permission is None
-        return not is_private
+        post = obj.post
+        is_private = post.default_project.default_permission is None
+        is_approved = post.curation_status == Post.CurationStatus.APPROVED
+
+        return not is_private and is_approved
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)

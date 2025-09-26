@@ -2,7 +2,8 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useState } from "react";
+import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
+import { v4 } from "uuid";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -15,8 +16,9 @@ import {
   VictoryCursorContainer,
   VictoryLabel,
   VictoryLabelProps,
-  VictoryLine,
+  VictoryPortal,
   VictoryScatter,
+  VictoryStack,
   VictoryThemeDefinition,
 } from "victory";
 
@@ -26,14 +28,14 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
 import {
-  Area,
   BaseChartData,
   Line,
+  ScaleDirection,
   TickFormat,
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
-import { QuestionType, Scaling } from "@/types/question";
+import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
   generateNumericXDomain,
@@ -42,6 +44,7 @@ import {
   generateTimeSeriesYDomain,
   getAxisLeftPadding,
   getTickLabelFontSize,
+  getAxisRightPadding,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
@@ -49,6 +52,18 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
+import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
+import SvgWrapper from "./primitives/svg_wrapper";
+
+type ColoredLinePoint = {
+  x: number;
+  y: number | null;
+  y1?: number;
+  y2?: number;
+  color: ThemeColor;
+};
+
+type ColoredLine = ColoredLinePoint[];
 
 type Props = {
   timestamps: number[];
@@ -61,15 +76,22 @@ type Props = {
   hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
+  attachRef?: (node: HTMLElement | null) => void;
   extraTheme?: VictoryThemeDefinition;
-  questionType?: QuestionType;
   scaling?: Scaling;
   isClosed?: boolean;
   aggregation?: boolean;
-  isEmptyDomain?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
+  isEmbedded?: boolean;
+  forecastAvailability?: ForecastAvailability;
+  forFeedPage?: boolean;
+  chartTitle?: string;
 };
+
+const LABEL_FONT_FAMILY = "Inter";
+const BOTTOM_PADDING = 20;
+const TICK_FONT_SIZE = 10;
 
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
@@ -82,24 +104,30 @@ const MultipleChoiceChart: FC<Props> = ({
   hideCP,
   onCursorChange,
   onChartReady,
+  attachRef,
   extraTheme,
-  questionType = QuestionType.Binary,
   scaling,
   isClosed,
   aggregation,
-  isEmptyDomain,
   openTime,
   forceAutoZoom,
+  isEmbedded,
+  forecastAvailability,
+  forFeedPage,
+  chartTitle,
 }) => {
+  const questionKey = useMemo(() => v4(), []);
   const t = useTranslations();
   const {
     ref: chartContainerRef,
     width: chartWidth,
     height: chartHeight,
   } = useContainerSize<HTMLDivElement>();
-
+  const isEmptyDomain =
+    !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn;
   const { theme, getThemeColor } = useAppTheme();
-  const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const isDarkTheme = theme === "dark";
+  const chartTheme = isDarkTheme ? darkTheme : lightTheme;
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
@@ -117,7 +145,7 @@ const MultipleChoiceChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
-  const { xScale, yScale, graphs, xDomain, yDomain } = useMemo(
+  const { xScale, yScale, graphs, xDomain, yDomain, userScatters } = useMemo(
     () =>
       buildChartData({
         timestamps,
@@ -125,7 +153,6 @@ const MultipleChoiceChart: FC<Props> = ({
         width: chartWidth,
         height: chartHeight,
         zoom,
-        questionType,
         scaling,
         actualCloseTime,
         aggregation,
@@ -134,6 +161,7 @@ const MultipleChoiceChart: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         forceAutoZoom,
+        forFeedPage,
       }),
     [
       timestamps,
@@ -141,7 +169,6 @@ const MultipleChoiceChart: FC<Props> = ({
       chartWidth,
       chartHeight,
       zoom,
-      questionType,
       scaling,
       actualCloseTime,
       aggregation,
@@ -150,16 +177,24 @@ const MultipleChoiceChart: FC<Props> = ({
       isEmptyDomain,
       openTime,
       forceAutoZoom,
+      forFeedPage,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
     return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
+  const maxLeftPadding = useMemo(() => {
+    return Math.max(leftPadding, MIN_LEFT_PADDING);
+  }, [leftPadding, MIN_LEFT_PADDING]);
 
-  const isHighlightActive = useMemo(
-    () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
-    [choiceItems]
-  );
+  const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
+    return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
+  const maxRightPadding = useMemo(() => {
+    return Math.max(rightPadding, MIN_RIGHT_PADDING);
+  }, [rightPadding, MIN_RIGHT_PADDING]);
+
+  const shouldDisplayChart = !!chartWidth;
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -170,6 +205,7 @@ const MultipleChoiceChart: FC<Props> = ({
 
   const CursorContainer = (
     <VictoryCursorContainer
+      containerRef={attachRef}
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
@@ -190,13 +226,21 @@ const MultipleChoiceChart: FC<Props> = ({
       }}
       cursorComponent={
         <LineSegment
-          style={{
-            stroke: getThemeColor(METAC_COLORS.gray["600"]),
-            strokeDasharray: "2,1",
-          }}
+          style={
+            isCursorActive
+              ? {
+                  stroke: getThemeColor(METAC_COLORS.gray["600"]),
+                  strokeDasharray: "2,1",
+                }
+              : {
+                  stroke: "transparent",
+                }
+          }
         />
       }
-      cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
+      cursorLabelComponent={
+        <ChartCursorLabel positionY={height - 10} isActive={isCursorActive} />
+      }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
           const lastTimestamp = timestamps[timestamps.length - 1];
@@ -214,179 +258,260 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 
   return (
-    <ChartContainer
-      ref={chartContainerRef}
-      height={height}
-      zoom={withZoomPicker ? zoom : undefined}
-      onZoomChange={setZoom}
-    >
-      {!!chartWidth && (
-        <VictoryChart
-          width={chartWidth}
-          height={height}
-          theme={actualTheme}
-          padding={(() => {
-            if (questionType === QuestionType.Date) {
-              return {
-                left: Math.max(leftPadding, MIN_LEFT_PADDING),
-                top: 10,
-                right: 10,
-                bottom: 20,
-              };
-            }
-            return undefined;
-          })()}
-          events={[
-            {
-              target: "parent",
-              eventHandlers: {
-                onMouseOverCapture: () => {
-                  if (!onCursorChange) return;
-
-                  setIsCursorActive(true);
-                },
-                onMouseOutCapture: () => {
-                  if (!onCursorChange) return;
-
-                  setIsCursorActive(false);
+    <div className="relative" ref={chartContainerRef}>
+      <ChartContainer
+        height={height}
+        zoom={withZoomPicker ? zoom : undefined}
+        onZoomChange={setZoom}
+        chartTitle={chartTitle}
+      >
+        {shouldDisplayChart && (
+          <VictoryChart
+            width={chartWidth}
+            height={height}
+            theme={actualTheme}
+            padding={{
+              left: isEmbedded ? maxLeftPadding : 0,
+              top: height < 150 ? 5 : 10,
+              right: isEmbedded ? 10 : maxRightPadding,
+              bottom: BOTTOM_PADDING,
+            }}
+            events={[
+              {
+                target: "parent",
+                eventHandlers: {
+                  onMouseOverCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(true);
+                  },
+                  onMouseOutCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                  },
                 },
               },
-            },
-          ]}
-          containerComponent={
-            onCursorChange ? (
-              CursorContainer
-            ) : (
-              <VictoryContainer
-                style={{
-                  pointerEvents: "auto",
-                  userSelect: "auto",
-                  touchAction: "auto",
-                }}
-              />
-            )
-          }
-          domain={{
-            x: xDomain,
-            y: yDomain,
-          }}
-        >
-          {graphs.map(({ line, color, active, highlighted }, index) =>
-            active ? (
-              <VictoryLine
-                key={`multiple-choice-line-${index}`}
-                data={line}
-                style={{
-                  data: {
-                    stroke: getThemeColor(color),
-                    strokeOpacity: !isHighlightActive
-                      ? 1
-                      : highlighted
-                        ? 1
-                        : 0.2,
-                  },
-                }}
-                interpolation="stepAfter"
-              />
-            ) : null
-          )}
-          {graphs.map(({ area, color, highlighted, active }, index) =>
-            active ? (
-              <VictoryArea
-                key={`multiple-choice-area-${index}`}
-                data={area}
-                style={{
-                  data: {
-                    fill: getThemeColor(color),
-                    opacity: highlighted ? 0.3 : 0,
-                  },
-                }}
-                interpolation="stepAfter"
-              />
-            ) : null
-          )}
-          {graphs.map(({ color, active, resolutionPoint }, index) => {
-            if (!resolutionPoint || !active) return null;
+            ]}
+            containerComponent={
+              onCursorChange ? (
+                CursorContainer
+              ) : (
+                <VictoryContainer
+                  containerRef={attachRef}
+                  style={{
+                    pointerEvents: "auto",
+                    userSelect: "auto",
+                    touchAction: "auto",
+                  }}
+                />
+              )
+            }
+            domain={{
+              x: xDomain,
+              y: yDomain,
+            }}
+          >
+            {/* Add linear gradient for resolved area */}
+            {graphs.map(({ choice, color, active, resolutionPoint }, index) =>
+              active && !isNil(resolutionPoint) ? (
+                <SvgWrapper key={`gradient-${index}-${choice}`}>
+                  <linearGradient
+                    id={`gradient-${index}-${questionKey}`}
+                    gradientUnits="userSpaceOnUse"
+                    x1="0"
+                    y1="0"
+                    x2={chartWidth}
+                    y2="0"
+                  >
+                    <stop
+                      offset="0.3"
+                      stopColor={getThemeColor(color)}
+                      stopOpacity={isDarkTheme ? 0.4 : 0.5}
+                    />
+                    <stop
+                      offset="1"
+                      stopColor={getThemeColor(color)}
+                      stopOpacity={1}
+                    />
+                  </linearGradient>
+                </SvgWrapper>
+              ) : null
+            )}
 
-            return (
-              <VictoryScatter
-                key={`multiple-choice-resolution-${index}`}
-                data={[
-                  {
-                    x: resolutionPoint?.x,
-                    y: resolutionPoint?.y,
-                    symbol: "diamond",
-                    size: 4,
-                  },
-                ]}
+            {/* Y axis */}
+            <VictoryAxis
+              dependentAxis
+              tickValues={yScale.ticks}
+              tickFormat={yScale.tickFormat}
+              style={{
+                ticks: {
+                  stroke: "transparent",
+                },
+                axisLabel: {
+                  fontFamily: LABEL_FONT_FAMILY,
+                  fontSize: tickLabelFontSize,
+                  fill: getThemeColor(METAC_COLORS.gray["500"]),
+                },
+                tickLabels: {
+                  fontFamily: LABEL_FONT_FAMILY,
+                  padding: 5,
+                  fontSize: tickLabelFontSize,
+                  fill: getThemeColor(METAC_COLORS.gray["700"]),
+                },
+                axis: {
+                  stroke: "transparent",
+                },
+                grid: isEmptyDomain
+                  ? {
+                      stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                      strokeWidth: 1,
+                      strokeDasharray: "2, 5",
+                    }
+                  : {
+                      stroke: "transparent",
+                    },
+              }}
+              label={yLabel}
+              offsetX={
+                isEmbedded
+                  ? maxLeftPadding
+                  : isNil(yLabel)
+                    ? chartWidth + 5
+                    : chartWidth - TICK_FONT_SIZE + 5
+              }
+              orientation={"left"}
+              axisLabelComponent={<VictoryLabel x={chartWidth} />}
+            />
+            <VictoryAxis
+              tickValues={xScale.ticks}
+              tickFormat={
+                hideCP ||
+                isCursorActive ||
+                !!forecastAvailability?.isEmpty ||
+                !!forecastAvailability?.cpRevealsOn
+                  ? () => ""
+                  : xScale.tickFormat
+              }
+              tickLabelComponent={
+                <VictoryPortal>
+                  <XTickLabel
+                    chartWidth={chartWidth}
+                    withCursor={!!onCursorChange}
+                    fontSize={tickLabelFontSize as number}
+                  />
+                </VictoryPortal>
+              }
+              style={{
+                ticks: {
+                  stroke: "transparent",
+                },
+                axis: {
+                  stroke: "transparent",
+                },
+                tickLabels: {
+                  fill: getThemeColor(METAC_COLORS.gray["700"]),
+                },
+              }}
+            />
+
+            {!hideCP && !isEmptyDomain && (
+              <VictoryStack
+                colorScale="qualitative"
                 style={{
                   data: {
-                    stroke: getThemeColor(color),
                     fill: "none",
-                    strokeWidth: 2.5,
+                    backgroundColor: getThemeColor(METAC_COLORS.gray["200"]),
                   },
                 }}
-              />
-            );
-          })}
-
-          {graphs.map(({ active, scatter, color, highlighted }, index) =>
-            active && (!isHighlightActive || highlighted) ? (
+              >
+                {graphs.map(
+                  ({ line, choice, color, active, resolutionPoint }, index) => {
+                    return active ? (
+                      <VictoryArea
+                        key={`multiple-choice-line-${index}-${choice}`}
+                        data={line}
+                        style={{
+                          data: {
+                            strokeWidth: 2,
+                            stroke: getThemeColor(METAC_COLORS.gray["0"]),
+                            fill: isNil(resolutionPoint)
+                              ? getThemeColor(color)
+                              : `url(#gradient-${index}-${questionKey})`,
+                            fillOpacity: isNil(resolutionPoint)
+                              ? isDarkTheme
+                                ? 0.4
+                                : 0.5
+                              : 1,
+                            strokeOpacity: 1,
+                          },
+                        }}
+                        interpolation="stepAfter"
+                      />
+                    ) : null;
+                  }
+                )}
+              </VictoryStack>
+            )}
+            {/* User predictions */}
+            {userScatters.map((scatter, index) => (
               <VictoryScatter
                 key={`multiple-choice-scatter-${index}`}
-                data={scatter}
-                dataComponent={<PredictionSymbol />}
-                style={{
-                  data: {
-                    stroke: getThemeColor(color),
-                    fill: "none",
-                    strokeWidth: 2,
-                  },
-                }}
+                data={[scatter]}
+                dataComponent={<PredictionRectangle />}
+                size={4}
               />
-            ) : null
-          )}
+            ))}
+            {/* Resolution chip */}
+            {!isCursorActive &&
+              graphs.map(
+                ({ color, active, resolutionPoint, choice }, index) => {
+                  if (!resolutionPoint || !active) return null;
 
-          <VictoryAxis
-            dependentAxis
-            tickValues={yScale.ticks}
-            tickFormat={yScale.tickFormat}
-            style={{
-              tickLabels: { padding: 2 },
-            }}
-            label={yLabel}
-            offsetX={Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)}
-            axisLabelComponent={
-              <VictoryLabel
-                dy={-Math.max(leftPadding - 40, MIN_LEFT_PADDING - 40)}
-                style={{ fill: getThemeColor(METAC_COLORS.gray["1000"]) }}
-              />
-            }
-          />
-          <VictoryAxis
-            tickValues={xScale.ticks}
-            tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
-            tickLabelComponent={
-              <XTickLabel
-                chartWidth={chartWidth}
-                withCursor={!!onCursorChange}
-                fontSize={tickLabelFontSize as number}
-              />
-            }
-          />
-        </VictoryChart>
-      )}
-    </ChartContainer>
+                  return (
+                    <VictoryScatter
+                      key={`multiple-choice-resolution-${index}-${choice}`}
+                      data={[
+                        {
+                          x: resolutionPoint?.x,
+                          y: resolutionPoint?.y,
+                          symbol: "diamond",
+                          size: 4,
+                        },
+                      ]}
+                      dataComponent={
+                        <VictoryPortal>
+                          <ResolutionChip
+                            x={resolutionPoint?.x}
+                            y={resolutionPoint?.y}
+                            color={getThemeColor(color)}
+                            chartHeight={height - BOTTOM_PADDING}
+                            text={choice}
+                            compact={isEmbedded || forFeedPage}
+                          />
+                        </VictoryPortal>
+                      }
+                    />
+                  );
+                }
+              )}
+          </VictoryChart>
+        )}
+      </ChartContainer>
+      <ForecastAvailabilityChartOverflow
+        forecastAvailability={forecastAvailability}
+        className="pl-0 text-xs lg:text-sm"
+        textClassName="!max-w-[300px] pl-0 text-gray-700 dark:text-gray-700-dark"
+      />
+    </div>
   );
 };
 
 export type ChoiceGraph = {
   line: Line;
-  area?: Area;
   scatter?: Line;
   resolutionPoint?: {
     x?: number;
     y: number;
+    color?: ThemeColor;
   };
   choice: string;
   color: ThemeColor;
@@ -395,8 +520,13 @@ export type ChoiceGraph = {
 };
 type ChartData = BaseChartData & {
   graphs: ChoiceGraph[];
+  userScatters: ColoredLine;
   xDomain: DomainTuple;
   yDomain: DomainTuple;
+};
+
+const roundToDecimals = (value: number, decimals = 3): number => {
+  return Number(Math.round(Number(value + "e" + decimals)) + "e-" + decimals);
 };
 
 function buildChartData({
@@ -406,14 +536,13 @@ function buildChartData({
   timestamps,
   actualCloseTime,
   zoom,
-  questionType,
   scaling,
   aggregation,
   extraTheme,
   hideCP,
   isAggregationsEmpty,
   openTime,
-  forceAutoZoom,
+  forFeedPage,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -421,7 +550,6 @@ function buildChartData({
   width: number;
   height: number;
   zoom: TimelineChartZoomOption;
-  questionType: QuestionType;
   scaling?: Scaling;
   aggregation?: boolean;
   extraTheme?: VictoryThemeDefinition;
@@ -429,6 +557,7 @@ function buildChartData({
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
+  forFeedPage?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -442,192 +571,229 @@ function buildChartData({
         )
       : Date.now() / 1000;
 
-  const graphs: ChoiceGraph[] = choiceItems.map(
-    ({
-      choice,
-      aggregationTimestamps,
-      aggregationValues,
-      aggregationMinValues,
-      aggregationMaxValues,
-      userTimestamps,
-      userValues,
-      userMaxValues,
-      userMinValues,
-      color,
-      active,
-      highlighted,
-      closeTime,
-      resolution,
-      scaling: choiceScaling,
-    }) => {
-      const rescale = (val: number) => {
-        if (scaling && choiceScaling) {
-          return unscaleNominalLocation(
-            scaleInternalLocation(val, choiceScaling),
-            scaling
-          );
-        }
-        return val;
-      };
+  const activeItems = choiceItems.filter((c) => c.active);
+  const shouldNormalize = activeItems.length > 1;
 
-      const scatter: Line = [];
-      const line: Line = [];
-      const area: Area = [];
+  // for MC questions userTimestamps will be the same array for every choice item
+  const userTimestamps = choiceItems[0]?.userTimestamps ?? [];
+  const userScatters: ColoredLine = [];
+  userTimestamps.forEach((timestamp, timestampIndex) => {
+    const denom = shouldNormalize
+      ? activeItems.reduce((sum, it) => {
+          const v = it.userValues[timestampIndex];
+          return v != null ? sum + v : sum;
+        }, 0)
+      : 1;
 
-      userTimestamps.forEach((timestamp, timestampIndex) => {
-        const userValue = userValues[timestampIndex];
-        const userMaxValue = userMaxValues
-          ? userMaxValues[timestampIndex]
-          : null;
-        const userMinValue = userMinValues
-          ? userMinValues[timestampIndex]
-          : null;
-        // build user scatter points
-        if (
-          !scatter.length ||
-          userValue ||
-          isNil(scatter[scatter.length - 1]?.y)
-        ) {
-          // we are either starting or have a real value or previous value is null
-          scatter.push({
-            x: timestamp,
-            y: userValue ? rescale(userValue) : null,
-            y1: userMinValue ? rescale(userMinValue) : null,
-            y2: userMaxValue ? rescale(userMaxValue) : null,
-            symbol: "circle",
-          });
-        } else {
-          // we have a null value while previous was real
-          const lastScatterItem = scatter.at(-1);
-          if (!isNil(lastScatterItem)) {
-            scatter.push({
-              x: timestamp,
-              y: lastScatterItem.y,
-              y1: lastScatterItem.y1,
-              y2: lastScatterItem.y2,
-              symbol: "x",
-            });
-          }
+    if (shouldNormalize && denom === 0) return;
 
-          scatter.push({
-            x: timestamp,
-            y: null,
-            y1: null,
-            y2: null,
-            symbol: "circle",
-          });
-        }
+    let cum = 0;
+    activeItems.forEach((it) => {
+      const raw = it.userValues[timestampIndex];
+      if (raw == null) return;
+      const v = shouldNormalize ? raw / (denom || 1) : raw;
+      const y1 = cum;
+      const y2 = roundToDecimals(cum + v);
+      cum = y2;
+
+      userScatters.push({
+        x: timestamp,
+        y: v,
+        y1,
+        y2,
+        color: it.color,
       });
-      if (!hideCP) {
-        aggregationTimestamps.forEach((timestamp, timestampIndex) => {
-          const aggregationValue = aggregationValues[timestampIndex];
-          const aggregationMinValue = aggregationMinValues[timestampIndex];
-          const aggregationMaxValue = aggregationMaxValues[timestampIndex];
-          // build line and area (CP data)
-          if (
-            !line.length ||
-            aggregationValue ||
-            isNil(line[line.length - 1]?.y)
-          ) {
-            // we are either starting or have a real value or previous value is null
-            line.push({
-              x: timestamp,
-              y: aggregationValue ? rescale(aggregationValue) : null,
-            });
-            area.push({
-              x: timestamp,
-              y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
-              y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
-            });
-          } else {
-            // we have a null vlalue while previous was real
-            const lastLineItem = line.at(-1);
-            if (!isNil(lastLineItem)) {
-              line.push({
-                x: timestamp,
-                y: lastLineItem.y,
-              });
-            }
-            const lastAreaItem = area.at(-1);
-            if (!isNil(lastAreaItem)) {
-              area.push({
-                x: timestamp,
-                y: lastAreaItem.y,
-                y0: lastAreaItem.y0,
-              });
-            }
+    });
+  });
 
-            line.push({
-              x: timestamp,
-              y: null,
-            });
-            area.push({
-              x: timestamp,
-              y: null,
-              y0: null,
+  const graphs: ChoiceGraph[] = isAggregationsEmpty
+    ? []
+    : choiceItems.map(
+        ({
+          choice,
+          aggregationTimestamps,
+          aggregationValues,
+          userTimestamps,
+          userValues,
+          color,
+          active,
+          highlighted,
+          closeTime,
+          resolution,
+          scaling: choiceScaling,
+        }) => {
+          const rescale = (val: number) => {
+            if (scaling && choiceScaling) {
+              return unscaleNominalLocation(
+                scaleInternalLocation(val, choiceScaling),
+                scaling
+              );
+            }
+            return val;
+          };
+
+          const scatter: Line = [];
+          const line: Line = [];
+          userTimestamps.forEach((timestamp, timestampIndex) => {
+            const userValue = userValues[timestampIndex];
+
+            // build user scatter points
+            if (
+              !scatter.length ||
+              userValue ||
+              isNil(scatter[scatter.length - 1]?.y)
+            ) {
+              // we are either starting or have a real value or previous value is null
+              scatter.push({
+                x: timestamp,
+                y: userValue ? rescale(userValue) : null,
+                symbol: "circle",
+              });
+            } else {
+              // we have a null value while previous was real
+              const lastScatterItem = scatter.at(-1);
+              if (!isNil(lastScatterItem)) {
+                scatter.push({
+                  x: timestamp,
+                  y: lastScatterItem.y,
+                  symbol: "x",
+                });
+              }
+
+              scatter.push({
+                x: timestamp,
+                y: null,
+                symbol: "circle",
+              });
+            }
+          });
+          if (!hideCP) {
+            aggregationTimestamps.forEach((timestamp, timestampIndex) => {
+              const aggregationValue = aggregationValues[timestampIndex];
+              // build line (CP data)
+              const val =
+                aggregationValue != null ? rescale(aggregationValue) : null;
+
+              const denom = shouldNormalize
+                ? activeItems.reduce((sum, it) => {
+                    const av = it.aggregationValues[timestampIndex];
+                    if (av == null) return sum;
+                    const rv =
+                      scaling && it.scaling
+                        ? unscaleNominalLocation(
+                            scaleInternalLocation(av, it.scaling),
+                            scaling
+                          )
+                        : av;
+                    return sum + rv;
+                  }, 0)
+                : 1;
+
+              const y =
+                val != null
+                  ? shouldNormalize
+                    ? val / (denom || 1)
+                    : val
+                  : null;
+
+              if (!line.length || y || isNil(line[line.length - 1]?.y)) {
+                // we are either starting or have a real value or previous value is null
+                line.push({
+                  x: timestamp,
+                  y,
+                });
+              } else {
+                // we have a null vlalue while previous was real
+                const lastLineItem = line.at(-1);
+                if (!isNil(lastLineItem)) {
+                  line.push({
+                    x: timestamp,
+                    y: lastLineItem.y,
+                  });
+                }
+
+                line.push({
+                  x: timestamp,
+                  y: null,
+                });
+              }
             });
           }
-        });
-      }
 
-      const item: ChoiceGraph = {
-        choice,
-        color,
-        line: line,
-        area: area,
-        scatter: scatter,
-        active,
-        highlighted,
-      };
-      if (item.line.length > 0) {
-        item.line.push({
-          x: closeTime ? closeTime / 1000 : latestTimestamp,
-          y: item.line.at(-1)?.y ?? null,
-        });
-        item.area?.push({
-          x: closeTime ? closeTime / 1000 : latestTimestamp,
-          y: item?.area?.at(-1)?.y ?? null,
-          y0: item?.area?.at(-1)?.y0 ?? null,
-        });
-      }
-
-      if (!isNil(resolution)) {
-        const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
-        if (resolution === choice) {
-          // multiple choice case
-          item.resolutionPoint = {
-            x: resolveTime,
-            y: 1,
+          const item: ChoiceGraph = {
+            choice,
+            color,
+            line,
+            scatter,
+            active,
+            highlighted,
           };
-        }
+          const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
+          if (item.line.length > 0) {
+            item.line.push({
+              x: resolveTime,
+              y: item.line.at(-1)?.y ?? null,
+            });
+          }
 
-        if (
-          ["yes", "no", "below_lower_bound", "above_upper_bound"].includes(
-            resolution as string
-          )
-        ) {
-          // binary group and out of borders cases
-          item.resolutionPoint = {
-            x: resolveTime,
-            y:
-              resolution === "no" || resolution === "below_lower_bound" ? 0 : 1,
-          };
-        }
+          // Resolved item will be alwasys the first on the chart so we are good
+          // to simply set y as last value of it without any additional calculations
+          if (!isNil(resolution)) {
+            const lastIdx = Math.max(
+              0,
+              (choiceItems[0]?.aggregationValues.length ?? 1) - 1
+            );
 
-        if (isFinite(Number(resolution))) {
-          // continuous group case
-          item.resolutionPoint = {
-            x: resolveTime,
-            y: scaling
-              ? unscaleNominalLocation(Number(resolution), scaling)
-              : Number(resolution) ?? 0,
-          };
-        }
-      }
+            const denom = shouldNormalize
+              ? activeItems.reduce((sum, it) => {
+                  const av = it.aggregationValues[lastIdx];
+                  if (av == null) return sum;
+                  const rv =
+                    scaling && it.scaling
+                      ? unscaleNominalLocation(
+                          scaleInternalLocation(av, it.scaling),
+                          scaling
+                        )
+                      : av;
+                  return sum + rv;
+                }, 0)
+              : 1;
 
-      return item;
-    }
-  );
+            let y = 0;
+            for (const choiceItem of choiceItems) {
+              if (shouldNormalize && !choiceItem.active) continue;
+
+              const lastValue = choiceItem.aggregationValues.at(-1);
+              if (isNil(lastValue)) continue;
+
+              const rv =
+                scaling && choiceItem.scaling
+                  ? unscaleNominalLocation(
+                      scaleInternalLocation(lastValue, choiceItem.scaling),
+                      scaling
+                    )
+                  : lastValue;
+
+              const contrib = shouldNormalize ? (denom ? rv / denom : 0) : rv;
+
+              if (choiceItem.choice === choice) {
+                y = y + contrib / 2;
+                break;
+              }
+              y = y + contrib;
+            }
+
+            if (resolution === choice) {
+              item.resolutionPoint = {
+                x: resolveTime,
+                y,
+              };
+            }
+          }
+
+          return item;
+        }
+      );
 
   const domainTimestamps =
     isAggregationsEmpty && !!openTime
@@ -640,76 +806,145 @@ function buildChartData({
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
-  // @ts-expect-error we manually check, that areas are not nullable, this should be fixed on later ts versions
-  const areas: Area = graphs
-    .filter((g) => !isNil(g.area) && g.active)
-    .flatMap((g) => g.area);
-  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
+  const lines: Line = graphs
+    .filter((g) => !isNil(g.line) && g.active)
+    .flatMap((g) => g.line);
+  const { originalYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
-    minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
-    maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
-    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-    forceAutoZoom,
-  });
-  const yScale = generateScale({
-    displayType: questionType,
-    axisLength: height,
-    direction: "vertical",
-    scaling: scaling,
-    domain: originalYDomain,
-    zoomedDomain: zoomedYDomain,
+    minValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
+    maxValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
   });
 
-  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
+  const yScale = generateScale({
+    displayType: QuestionType.MultipleChoice,
+    axisLength: height,
+    direction: ScaleDirection.Vertical,
+    scaling,
+    domain: originalYDomain,
+    forceTickCount: forFeedPage ? 3 : 5,
+    alwaysShowTicks: true,
+  });
+
+  return {
+    xScale,
+    yScale: { ...yScale },
+    graphs,
+    userScatters,
+    xDomain,
+    yDomain: [0, 1.02],
+  };
 }
 
-// Define a custom "X" symbol function
-const PredictionSymbol: React.FC<PointProps> = (props: PointProps) => {
-  const { x, y, datum, size, style } = props;
+const ResolutionChip: FC<{
+  x?: number | null;
+  y?: number | null;
+  datum?: { y?: number | null };
+  chartHeight: number;
+  compact?: boolean;
+  text: string;
+  color: string;
+  scale?: {
+    x: (x: number) => number;
+    y: (y: number) => number;
+  };
+}> = (props) => {
+  const TEXT_PADDING = 4;
+  const RESOLUTION_TEXT_LIMIT = 12;
+  const CHIP_HEIGHT = 16;
+  const CHIP_FONT_SIZE = 12;
+  const CHIP_LINE_WIDTH = 8;
+
+  const { getThemeColor } = useAppTheme();
+  const { x, y, compact, datum, chartHeight, text, color, scale } = props;
+  const adjustedText =
+    compact && text.length > RESOLUTION_TEXT_LIMIT ? "Yes" : text;
+  const [textWidth, setTextWidth] = useState(0);
+  const textRef = useRef<SVGTextElement>(null);
+
+  useEffect(() => {
+    if (textRef.current) {
+      setTextWidth(textRef.current.getBBox().width + TEXT_PADDING);
+    }
+  }, [datum?.y]);
+
+  if (isNil(x) || isNil(y) || isNil(scale)) {
+    return null;
+  }
+  const desiredX =
+    CHIP_LINE_WIDTH * 3 > textWidth
+      ? scale.x(x) - textWidth / 2
+      : scale.x(x) - textWidth + CHIP_LINE_WIDTH;
+
+  const adjustedY = Math.min(
+    chartHeight - CHIP_HEIGHT,
+    scale.y(y) - CHIP_HEIGHT / 2
+  );
+  const isBottom = adjustedY === chartHeight - CHIP_HEIGHT;
+  const adjustedTextY = isBottom ? adjustedY + CHIP_HEIGHT / 2 : scale.y(y);
+  return (
+    <g>
+      <rect
+        x={desiredX}
+        y={adjustedY}
+        width={textWidth}
+        height={CHIP_HEIGHT}
+        fill={color}
+        stroke={getThemeColor(METAC_COLORS.gray["0"])}
+        strokeWidth={1}
+        rx={2}
+        ry={2}
+      />
+      <text
+        ref={textRef}
+        x={desiredX + textWidth / 2}
+        y={adjustedTextY}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill={getThemeColor(METAC_COLORS.gray["0"])}
+        fontWeight="medium"
+        fontSize={CHIP_FONT_SIZE}
+      >
+        {adjustedText}
+      </text>
+    </g>
+  );
+};
+
+type PredictionRectangleProps = PointProps;
+const PredictionRectangle: React.FC<PredictionRectangleProps> = (props) => {
+  const { x, y, datum, size, scale } = props;
+  const { y1, y2, color } = datum;
+  const { getThemeColor } = useAppTheme();
+
   if (
     typeof x !== "number" ||
     typeof y !== "number" ||
-    typeof size !== "number"
+    typeof size !== "number" ||
+    !scale
   ) {
     return null;
   }
-  const symbol = datum.symbol;
-  const stroke = style.stroke;
 
-  if (symbol === "x") {
-    return (
-      <g>
-        <line
-          x1={x - size}
-          y1={y - size}
-          x2={x + size}
-          y2={y + size}
-          stroke={stroke}
-          strokeWidth={2}
-        />
-        <line
-          x1={x - size}
-          y1={y + size}
-          x2={x + size}
-          y2={y - size}
-          stroke={stroke}
-          strokeWidth={2}
-        />
-      </g>
-    );
-  }
+  const y1Scaled = scale.y(y1);
+  const y2Scaled = scale.y(y2);
+
+  const height = Math.abs(y2Scaled - y1Scaled);
 
   return (
-    <circle
-      cx={x}
-      cy={y}
-      r={size}
-      stroke={stroke}
-      fill={"none"}
-      strokeWidth={2}
-    />
+    <g>
+      <rect
+        x={x - size / 2}
+        y={Math.min(y1Scaled, y2Scaled)}
+        width={size}
+        height={height}
+        fill={getThemeColor(color)}
+        strokeWidth={1}
+        stroke={getThemeColor(METAC_COLORS.gray["200"])}
+        fillOpacity={1}
+      />
+    </g>
   );
 };
 

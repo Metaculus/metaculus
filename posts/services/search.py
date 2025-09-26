@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 
 import numpy as np
 from asgiref.sync import async_to_sync
@@ -137,6 +138,13 @@ def posts_full_text_search(qs: QuerySet[Post], query: str):
     Note: This method is not highly optimized since search vectors are not stored in the database.
     Use with caution, especially when querying a large number of database rows!
     """
+
+    def escape_tsquery(term: str) -> str:
+        # Remove or escape characters that break raw tsquery
+        # Postgres special characters:  ! ' & | ( ) : *
+        return re.sub(r"[!\'&|():*]", " ", term)
+
+    query = escape_tsquery(query)
 
     # Constructs a fuzzy search query by splitting the input query into individual words.
     # Each word is matched using a prefix search operator (":*"), enabling partial word matches.

@@ -21,9 +21,7 @@ def test_communities_list(
     assert community["default_permission"] == "forecaster"
 
 
-def test_communities_list__filter_ids(
-    user1_client, community_unlisted
-):
+def test_communities_list__filter_ids(user1_client, community_unlisted):
     url = reverse("communities-list")
 
     response = user1_client.get(f"{url}?ids={community_unlisted.id}")

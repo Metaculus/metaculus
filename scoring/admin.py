@@ -3,7 +3,6 @@ from django.contrib import admin, messages
 
 from projects.models import Project
 from scoring.models import (
-    UserWeight,
     Leaderboard,
     LeaderboardEntry,
     Score,
@@ -12,11 +11,6 @@ from scoring.models import (
     LeaderboardsRanksEntry,
 )
 from scoring.utils import update_project_leaderboard
-
-
-@admin.register(UserWeight)
-class UserWeightAdmin(admin.ModelAdmin):
-    search_fields = ["user"]
 
 
 @admin.register(Score)
@@ -156,7 +150,7 @@ class LeaderboardEntryAdmin(admin.ModelAdmin):
         "leaderboard__project__slug",
         "leaderboard__project__name_original",
     ]
-    list_display = ["__str__", "leaderboard", "user", "rank", "take", "excluded"]
+    list_display = ["__str__", "user", "rank", "take", "excluded"]
     autocomplete_fields = ["leaderboard", "user"]
     list_filter = [
         AutocompleteFilterFactory("Leaderboard", "leaderboard"),

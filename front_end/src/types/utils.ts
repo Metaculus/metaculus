@@ -16,3 +16,7 @@ export type DataParams = {
   include_user_data?: boolean;
   anonymized?: boolean;
 };
+export type WhitelistStatus = {
+  is_whitelisted: boolean;
+  view_deanonymized_data: boolean;
+};

@@ -1,11 +1,11 @@
 "use client";
 
 import { saveAs } from "file-saver";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 import toast from "react-hot-toast";
 
-import NumericChart from "@/components/charts/numeric_chart";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import DetailsQuestionCardErrorBoundary from "@/components/detailed_question_card/detailed_question_card/error_boundary";
 import CursorDetailItem from "@/components/detailed_question_card/detailed_question_card/numeric_cursor_item";
@@ -27,6 +27,7 @@ type Props = {
   selectedSubQuestionOption: number | string | null;
   postId: number;
   questionTitle: string;
+  userIds?: number[];
 };
 
 const AggregationsTab: FC<Props> = ({
@@ -35,6 +36,7 @@ const AggregationsTab: FC<Props> = ({
   selectedSubQuestionOption,
   postId,
   questionTitle,
+  userIds,
 }) => {
   const t = useTranslations();
 
@@ -44,6 +46,7 @@ const AggregationsTab: FC<Props> = ({
     actual_close_time,
     resolution,
     unit,
+    forecasters_count = 0,
   } = aggregationData ?? {};
 
   const tabData =
@@ -75,45 +78,47 @@ const AggregationsTab: FC<Props> = ({
     () => getPostDrivenTime(actual_close_time),
     [actual_close_time]
   );
-  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
-    activeAggregation?.history?.at(-1)?.start_time ?? null
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const aggregationTimestamp = useDebouncedValue(
+    cursorTimestamp ?? activeAggregation?.history?.at(-1)?.start_time ?? null,
+    500
   );
-  const aggregationTimestamp = useDebouncedValue(cursorTimestamp, 500);
 
   const cursorData = useMemo(() => {
     if (!activeAggregation) {
       return null;
     }
 
-    const index = activeAggregation.history.findIndex(
-      (f) => f.start_time === cursorTimestamp
-    );
+    const index = isNil(cursorTimestamp)
+      ? -1
+      : activeAggregation.history.findLastIndex(
+          (f) => f.start_time <= cursorTimestamp
+        );
 
     const forecast =
       index === -1
         ? activeAggregation.history.at(-1)
         : activeAggregation.history[index];
+
     if (!forecast) {
       return null;
     }
 
     return {
       timestamp: forecast.start_time ?? cursorTimestamp,
-      forecasterCount: forecast.forecaster_count,
+      forecasterCount:
+        cursorTimestamp === null
+          ? forecasters_count
+          : forecast.forecaster_count,
       interval_lower_bound: forecast.interval_lower_bounds?.[0] ?? 0,
       center: forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0,
       interval_upper_bound: forecast.interval_upper_bounds?.[0] ?? 0,
     };
-  }, [activeAggregation, cursorTimestamp]);
+  }, [activeAggregation, cursorTimestamp, forecasters_count]);
 
-  const handleCursorChange = useCallback(
-    (value: number | null) => {
-      const fallback = activeAggregation?.history?.at(-1)?.start_time ?? null;
-
-      setCursorTimestamp(value ?? fallback);
-    },
-    [activeAggregation]
-  );
+  const handleCursorChange = useCallback((value: number | null) => {
+    setCursorTimestamp(value);
+  }, []);
 
   if (!activeAggregation) {
     return null;
@@ -173,7 +178,8 @@ const AggregationsTab: FC<Props> = ({
           ? selectedSubQuestionOption
           : undefined,
         aggregationMethod,
-        tabData.includeBots
+        tabData.includeBots,
+        userIds
       );
       const filename = `${questionTitle.replaceAll(" ", "_")}-${aggregationMethod}${tabData.includeBots ? "-bots" : ""}.zip`;
       saveAs(blob, filename);
@@ -203,33 +209,29 @@ const AggregationsTab: FC<Props> = ({
         </div>
       )}
       <DetailsQuestionCardErrorBoundary>
-        {aggregationData.type === QuestionType.Binary ? (
-          <NumericTimeline
-            aggregation={activeAggregation}
-            aggregationIndex={aggregationIndex}
-            questionType={aggregationData.type}
-            actualCloseTime={actualCloseTime}
-            scaling={aggregationData.scaling}
-            resolution={resolution}
-            onCursorChange={handleCursorChange}
-            unit={unit}
-          />
-        ) : (
-          <NumericChart
-            aggregation={activeAggregation}
-            aggregationIndex={aggregationIndex}
-            questionType={aggregationData.type}
-            actualCloseTime={actualCloseTime}
-            scaling={aggregationData.scaling}
-            resolution={resolution}
-            onCursorChange={handleCursorChange}
-            unit={unit}
-          />
-        )}
+        <NumericTimeline
+          aggregation={activeAggregation}
+          aggregationIndex={aggregationIndex}
+          questionType={aggregationData.type}
+          actualCloseTime={actualCloseTime}
+          scaling={aggregationData.scaling}
+          resolution={resolution}
+          resolveTime={aggregationData.actual_resolve_time}
+          cursorTimestamp={cursorTimestamp}
+          onCursorChange={handleCursorChange}
+          unit={unit}
+          simplifiedCursor={aggregationData.type !== QuestionType.Binary}
+          questionStatus={aggregationData.status}
+        />
+
         {!!cursorData && (
           <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
             <CursorDetailItem
-              title={t("totalForecastersLabel")}
+              title={
+                cursorTimestamp
+                  ? t("activeForecastersLabel")
+                  : t("totalForecastersLabel")
+              }
               content={cursorData.forecasterCount?.toString()}
             />
             <CursorDetailItem

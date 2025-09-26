@@ -15,6 +15,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   getDiscreteValueOptions,
   getForecastPctDisplayValue,
@@ -99,13 +100,25 @@ const ContinuousPredictionChart: FC<Props> = ({
     []
   );
 
+  const defaultAggMethod = question.default_aggregation_method;
+
+  const latestAggLatest = useMemo(
+    () => question.aggregations[defaultAggMethod]?.latest ?? null,
+    [question.aggregations, defaultAggMethod]
+  );
+
+  const myLatest = useMemo(
+    () => question.my_forecasts?.latest ?? null,
+    [question.my_forecasts]
+  );
+
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
-    const latest = question.aggregations.recency_weighted.latest;
-    if (showCP && latest && !latest.end_time) {
+
+    if (showCP && latestAggLatest && isForecastActive(latestAggLatest)) {
       charts.push({
-        pmf: cdfToPmf(latest.forecast_values),
-        cdf: latest.forecast_values,
+        pmf: cdfToPmf(latestAggLatest.forecast_values),
+        cdf: latestAggLatest.forecast_values,
         type:
           question.status === QuestionStatus.CLOSED
             ? "community_closed"
@@ -113,15 +126,15 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
-    if (overlayPreviousForecast && question.my_forecasts?.latest) {
+    if (overlayPreviousForecast && myLatest) {
       charts.push({
-        pmf: cdfToPmf(question.my_forecasts.latest.forecast_values),
-        cdf: question.my_forecasts.latest.forecast_values,
+        pmf: cdfToPmf(myLatest.forecast_values),
+        cdf: myLatest.forecast_values,
         type: "user_previous",
       });
     }
 
-    if (!readOnly || !!question.my_forecasts?.latest) {
+    if (!readOnly || !!myLatest) {
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
@@ -132,13 +145,13 @@ const ContinuousPredictionChart: FC<Props> = ({
 
     return charts;
   }, [
-    question.aggregations.recency_weighted.latest,
-    question.status,
-    dataset,
-    readOnly,
     showCP,
-    question.my_forecasts?.latest,
+    latestAggLatest,
+    question.status,
     overlayPreviousForecast,
+    myLatest,
+    readOnly,
+    dataset,
   ]);
 
   const xLabel = cursorDisplayData?.xLabel ?? "";
@@ -169,8 +182,8 @@ const ContinuousPredictionChart: FC<Props> = ({
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        readOnly={readOnly}
         extraTheme={chartTheme}
+        alignChartTabs={true}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (

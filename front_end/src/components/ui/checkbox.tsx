@@ -1,4 +1,8 @@
 import { faSquare, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
+import {
+  faSquare as faSquareSolid,
+  faCheck as faCheckSolid,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
 import { FC, MouseEventHandler, ReactNode, TouchEventHandler } from "react";
@@ -25,6 +29,45 @@ type Props = {
   onClick?: MouseEventHandler<HTMLSpanElement>;
   readOnly?: boolean;
   errors?: ErrorResponse;
+  isSolidIcon?: boolean;
+};
+
+const SolidBox: FC<{
+  checked: boolean;
+  disabled?: boolean;
+  color?: string;
+  inputClassName?: string;
+}> = ({ checked, disabled, color, inputClassName }) => {
+  const style = checked
+    ? { backgroundColor: color, borderColor: "transparent" }
+    : { backgroundColor: "transparent", borderColor: color };
+
+  return (
+    <span
+      className={cn(
+        "mr-[4px] inline-flex h-[17.75px] w-[22.5px] items-center justify-center"
+      )}
+      aria-hidden
+    >
+      <span
+        className={cn(
+          "inline-flex h-[15.75px] w-[15.75px] items-center justify-center rounded-[2.25px] border-[1px]",
+          inputClassName,
+          { "opacity-20": disabled }
+        )}
+        style={style}
+      >
+        {checked && (
+          <FontAwesomeIcon
+            icon={faCheckSolid}
+            size="sm"
+            color="#fff"
+            fixedWidth
+          />
+        )}
+      </span>
+    </span>
+  );
 };
 
 const Checkbox: FC<Props> = ({
@@ -44,10 +87,11 @@ const Checkbox: FC<Props> = ({
   onClick,
   readOnly,
   errors,
+  isSolidIcon = false,
 }) => {
   return (
     <Field
-      className={cn("hover:cursor-pointer", className)}
+      className={cn("flex items-center hover:cursor-pointer", className)}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onTouchStart={onTouchStart}
@@ -70,28 +114,44 @@ const Checkbox: FC<Props> = ({
       >
         {({ checked }) =>
           checked ? (
-            <FontAwesomeIcon
-              icon={faSquareCheck}
-              size="xl"
-              className={cn("mr-1", inputClassName, {
-                "opacity-20": disabled,
-              })}
+            isSolidIcon ? (
+              <SolidBox
+                checked
+                disabled={disabled}
+                color={color}
+                inputClassName={inputClassName}
+              />
+            ) : (
+              <FontAwesomeIcon
+                icon={faSquareCheck}
+                size="xl"
+                fixedWidth
+                className={cn("mr-1", inputClassName, {
+                  "opacity-20": disabled,
+                })}
+                color={color}
+              />
+            )
+          ) : isSolidIcon ? (
+            <SolidBox
+              checked={false}
+              disabled={disabled}
               color={color}
+              inputClassName={inputClassName}
             />
           ) : (
             <FontAwesomeIcon
-              icon={faSquare}
+              icon={isSolidIcon ? faSquareSolid : faSquare}
               size="xl"
-              className={cn("mr-1", inputClassName, {
-                "opacity-20": disabled,
-              })}
+              fixedWidth
+              className={cn("mr-1", inputClassName, { "opacity-20": disabled })}
               color={color}
             />
           )
         }
       </HeadlessCheckbox>
       {errors && <FormError errors={errors} name={label} />}
-      <Label className="CheckboxLabel ml-1 hover:cursor-pointer">
+      <Label className="CheckboxLabel -ml-[2px] hover:cursor-pointer">
         {children ? children : label}
       </Label>
     </Field>

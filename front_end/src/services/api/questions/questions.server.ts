@@ -11,6 +11,7 @@ export type ForecastPayload = {
   questionId: number;
   forecastData: ForecastData;
   distributionInput?: DistributionSlider | DistributionQuantile | null;
+  forecastEndTime?: Date;
 };
 export type WithdrawalPayload = {
   question: number;
@@ -21,14 +22,17 @@ class ServerQuestionsApiClass extends ApiService {
   async createForecasts(forecasts: ForecastPayload[]): Promise<Response> {
     return await this.post(
       `/questions/forecast/`,
-      forecasts.map(({ questionId, forecastData, distributionInput }) => ({
-        question: questionId,
-        continuous_cdf: forecastData.continuousCdf,
-        probability_yes: forecastData.probabilityYes,
-        probability_yes_per_category: forecastData.probabilityYesPerCategory,
-        distribution_input: distributionInput,
-        source: "ui",
-      }))
+      forecasts.map(
+        ({ questionId, forecastData, distributionInput, forecastEndTime }) => ({
+          question: questionId,
+          continuous_cdf: forecastData.continuousCdf,
+          probability_yes: forecastData.probabilityYes,
+          probability_yes_per_category: forecastData.probabilityYesPerCategory,
+          distribution_input: distributionInput,
+          source: "ui",
+          end_time: forecastEndTime,
+        })
+      )
     );
   }
 

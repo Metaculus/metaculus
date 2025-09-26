@@ -14,17 +14,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useCallback } from "react";
 
 import { FlowType } from "@/app/(prediction-flow)/components/prediction_flow_provider";
 import {
-  isPostWithSignificantMovement,
   isPostStale,
+  isPostWithSignificantMovement,
 } from "@/app/(prediction-flow)/helpers";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { PredictionFlowPost } from "@/types/post";
-import { Tournament } from "@/types/projects";
+import { Tournament, TournamentType } from "@/types/projects";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
 import { getProjectSlug } from "@/utils/navigation";
 
@@ -37,6 +37,18 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   const { user } = useAuth();
   const t = useTranslations();
   const tournamentSlug = getProjectSlug(tournament);
+
+  const getProjectTypeNoun = useCallback(() => {
+    switch (tournament.type) {
+      case TournamentType.QuestionSeries:
+        return t("QuestionSeries").toLowerCase();
+      case TournamentType.Index:
+        return t("Index").toLowerCase();
+      default:
+        return t("Tournament").toLowerCase();
+    }
+  }, [tournament.type, t]);
+
   if (
     isNil(user) ||
     !tournament.forecasts_flow_enabled ||
@@ -77,7 +89,9 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
       </p>
       {!isParticipated && (
         <p className="m-0 mt-1 text-sm text-gray-700 dark:text-gray-700-dark sm:mt-2 sm:text-base">
-          {t("noParticipationTournament")}
+          {t.rich("noParticipationProject", {
+            projectType: getProjectTypeNoun(),
+          })}
         </p>
       )}
       {/* Require attention block */}

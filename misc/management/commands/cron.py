@@ -8,19 +8,27 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
+from comments.tasks import (
+    update_current_top_comments_of_week,
+    job_finalize_and_send_weekly_top_comments,
+)
 from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
     job_compute_movement,
     job_subscription_notify_date,
     job_subscription_notify_milestone,
+    job_check_post_open_event,
 )
 from posts.services.hotness import compute_feed_hotness
-from questions.jobs import job_check_question_open_event, job_close_question
+from questions.jobs import job_close_question
+from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from scoring.jobs import (
     finalize_leaderboards,
     update_global_comment_and_question_leaderboards,
 )
+from scoring.utils import update_medal_points_and_ranks
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -105,17 +113,17 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        scheduler.add_job(
+            close_old_connections(job_check_post_open_event.send),
+            trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
+            id="posts_job_check_post_open_event",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # Question jobs
         #
-        scheduler.add_job(
-            close_old_connections(job_check_question_open_event.send),
-            trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
-            id="questions_job_check_question_open_event",
-            max_instances=1,
-            replace_existing=True,
-        )
         scheduler.add_job(
             close_old_connections(job_close_question.send),
             trigger=CronTrigger.from_crontab("* * * * *"),  # Every Minute
@@ -147,6 +155,28 @@ class Command(BaseCommand):
         )
 
         #
+        # Forecast Auto Withdrawal Job
+        #
+        scheduler.add_job(
+            close_old_connections(
+                check_and_schedule_forecast_widrawal_due_notifications.send
+            ),
+            trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
+            id="forecast_auto_withdrawal",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        # Weekly Top Comments every Sunday at 12:00 UTC
+        scheduler.add_job(
+            close_old_connections(job_finalize_and_send_weekly_top_comments.send),
+            trigger=CronTrigger.from_crontab("0 12 * * 0"),
+            id="weekly_top_comments_finalize_and_send",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
         # Scoring Jobs
         #
         scheduler.add_job(
@@ -163,6 +193,25 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        scheduler.add_job(
+            close_old_connections(update_medal_points_and_ranks),
+            trigger=CronTrigger.from_crontab("0 4 * * *"),  # Every day at 04:00 UTC
+            id="update_medal_points_and_ranks",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
+        # Comment Jobs
+        #
+        if settings.WEEKLY_TOP_COMMENTS_SEND_EMAILS:
+            scheduler.add_job(
+                close_old_connections(update_current_top_comments_of_week.send),
+                trigger=CronTrigger.from_crontab("0 * * * *"),  # Every hour
+                id="update_current_top_comments_of_week",
+                max_instances=1,
+                replace_existing=True,
+            )
 
         try:
             logger.info("Starting scheduler...")

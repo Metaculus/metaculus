@@ -42,28 +42,28 @@ export default async function Home() {
       title: t("biosecurity"),
       Icon: FocusAreaBiosecurityIcon,
       text: t("biosecurityDescription"),
-      href: "/questions/?topic=biosecurity",
+      href: "/questions/?categories=health-pandemics&for_main_feed=false",
     },
     {
       id: "ai",
       title: t("aiProgress"),
       Icon: FocusAreaAiIcon,
       text: t("aiProgressDescription"),
-      href: "/questions/?topic=ai",
+      href: "/questions/?categories=artificial-intelligence&for_main_feed=false",
     },
     {
       id: "nuclear",
       title: t("nuclearSecurity"),
       Icon: FocusAreaNuclearIcon,
       text: t("nuclearSecurityDescription"),
-      href: "/questions/?topic=nuclear",
+      href: "/questions/?categories=nuclear&for_main_feed=false",
     },
     {
       id: "climate",
       title: t("climateChange"),
       Icon: FocusAreaClimateIcon,
       text: t("climateChangeDescription"),
-      href: "/questions/?topic=climate",
+      href: "/questions/?categories=environment-climate&for_main_feed=false",
     },
   ];
 

@@ -8,7 +8,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
-import { Control, FieldValues, useForm } from "react-hook-form";
+import {
+  Control,
+  FieldErrors,
+  FieldValues,
+  useForm,
+  UseFormReturn,
+} from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
@@ -27,11 +33,12 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
-import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
+import { Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   ContinuousQuestionType,
@@ -70,9 +77,9 @@ type PostCreationData = {
   title: string;
   short_title: string;
   categories: number[];
-  question: any;
+  question: unknown;
   default_project: number;
-  published_at: string;
+  published_at: string | null;
 };
 
 const createQuestionSchemas = (
@@ -285,6 +292,7 @@ type Props = {
   mode: "create" | "edit";
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const QuestionForm: FC<Props> = ({
@@ -296,6 +304,7 @@ const QuestionForm: FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -350,23 +359,37 @@ const QuestionForm: FC<Props> = ({
       description: "",
     };
 
-  const submitQuestion = async (data: FieldValues) => {
+  const submitQuestion = async (data: FormSchemaType) => {
     setIsLoading(true);
     setError(undefined);
 
-    data["type"] = questionType;
-    data["options"] =
+    const questionPayload: unknown =
       questionType === QuestionType.MultipleChoice
-        ? optionsList.map((option) => option.trim())
-        : [];
+        ? ({
+            ...(data as MultipleChoiceQuestionType),
+            type: QuestionType.MultipleChoice,
+            options: optionsList.map((o) => o.trim()),
+          } as MultipleChoiceQuestionType)
+        : ({
+            ...data,
+            type: questionType,
+          } as Exclude<FormSchemaType, MultipleChoiceQuestionType>);
+
+    const base = data;
+    const defaultProjectId =
+      typeof base.default_project === "number"
+        ? base.default_project
+        : typeof base.default_project === "string"
+          ? Number(base.default_project)
+          : community_id ?? defaultProject.id;
 
     const post_data: PostCreationData = {
-      title: data["title"],
-      short_title: data["short_title"],
-      default_project: data["default_project"],
+      title: base.title,
+      short_title: base.short_title,
+      default_project: defaultProjectId,
       categories: categoriesList.map((x) => x.id),
-      published_at: data["published_at"],
-      question: data,
+      published_at: base.published_at ?? null,
+      question: questionPayload,
     };
 
     let resp: { post: Post };
@@ -376,7 +399,9 @@ const QuestionForm: FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(questionType);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(questionType);
+        }
       }
       router.push(getPostLink(resp.post));
     } catch (e) {
@@ -405,13 +430,9 @@ const QuestionForm: FC<Props> = ({
     typeof schemas.multipleChoiceQuestionSchema
   >;
 
-  // Extended type for form errors
-  type ExtendedFieldErrors = {
-    unit?: any;
-    group_variable?: any;
-    options?: any;
-  };
-
+  type UnitFieldErrors = FieldErrors<{ unit?: unknown }>;
+  type GroupVarFieldErrors = FieldErrors<{ group_variable?: unknown }>;
+  type OptionsFieldErrors = FieldErrors<{ options?: unknown[] }>;
   const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
@@ -457,7 +478,7 @@ const QuestionForm: FC<Props> = ({
   }
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       // Explicitly convert to the ExtendedQuestionDraft type
       saveQuestionDraft(questionType, {
@@ -467,7 +488,7 @@ const QuestionForm: FC<Props> = ({
         type: formData.type as unknown as QuestionType,
       } as Partial<ExtendedQuestionDraft>);
     }
-  }, [form, mode, questionType, optionsList, categoriesList]);
+  }, [form, shouldUseDraftValue, questionType, optionsList, categoriesList]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -562,7 +583,7 @@ const QuestionForm: FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create" && !isDraftMounted.current) {
+    if (shouldUseDraftValue && !isDraftMounted.current) {
       const draft = getQuestionDraft(questionType);
       if (draft) {
         setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
@@ -589,12 +610,12 @@ const QuestionForm: FC<Props> = ({
   // update draft when form values change
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -662,9 +683,7 @@ const QuestionForm: FC<Props> = ({
           >
             <Input
               {...form.register("unit")}
-              errors={
-                (form.formState.errors as unknown as ExtendedFieldErrors).unit
-              }
+              errors={(form.formState.errors as UnitFieldErrors).unit}
               defaultValue={post?.question?.unit}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -714,7 +733,7 @@ const QuestionForm: FC<Props> = ({
 
         {ContinuousQuestionTypes.some((type) => type === questionType) && (
           <NumericQuestionInput
-            draftKey={mode === "edit" ? undefined : questionType}
+            draftKey={shouldUseDraftValue ? questionType : undefined}
             questionType={questionType as ContinuousQuestionType}
             defaultMin={post?.question?.scaling.range_min ?? undefined}
             defaultMax={post?.question?.scaling.range_max ?? undefined}
@@ -724,7 +743,7 @@ const QuestionForm: FC<Props> = ({
             defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
             hasForecasts={hasForecasts && mode !== "create"}
             unit={post?.question?.unit}
-            control={form as any}
+            control={form as unknown as UseFormReturn<FieldValues>}
             onChange={({
               range_min,
               range_max,
@@ -754,8 +773,7 @@ const QuestionForm: FC<Props> = ({
               <Input
                 {...form.register("group_variable")}
                 errors={
-                  (form.formState.errors as unknown as ExtendedFieldErrors)
-                    .group_variable
+                  (form.formState.errors as GroupVarFieldErrors).group_variable
                 }
                 defaultValue={post?.question?.group_variable}
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
@@ -785,12 +803,8 @@ const QuestionForm: FC<Props> = ({
                             );
                           }}
                           errors={
-                            (
-                              (
-                                form.formState
-                                  .errors as unknown as ExtendedFieldErrors
-                              ).options as ErrorResponse[] | undefined
-                            )?.[opt_index]
+                            (form.formState.errors as OptionsFieldErrors)
+                              .options?.[opt_index] as ErrorResponse | undefined
                           }
                         />
                       </div>

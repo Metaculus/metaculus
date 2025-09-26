@@ -14,6 +14,7 @@ import {
   registerUserCampaignAction,
   signUpAction,
 } from "@/app/(main)/accounts/actions";
+import { firstErrorFor } from "@/app/(main)/accounts/helpers";
 import {
   generateSignUpSchema,
   SignUpSchema,
@@ -24,6 +25,7 @@ import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import RadioButton from "@/components/ui/radio_button";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -220,6 +222,7 @@ export const RegistrationAndSignupForm: FC<
   } & CampaignRegistrationProps
 > = ({ onSuccess, campaignKey, addToProject }) => {
   const t = useTranslations();
+  const { themeChoice } = useAppTheme();
   const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
   const turnstileRef = useRef<TurnstileInstance>(undefined);
   const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
@@ -259,6 +262,7 @@ export const RegistrationAndSignupForm: FC<
         accepted_terms: watch("accepted_terms"),
       },
       redirectUrl: currentLocation,
+      appTheme: themeChoice,
     });
 
     if (response && response.errors) {
@@ -271,7 +275,7 @@ export const RegistrationAndSignupForm: FC<
         } else {
           setError(error as keyof TournamentRegistrationSchema, {
             type: "custom",
-            message: response.errors[error][0],
+            message: firstErrorFor(response.errors, error),
           });
         }
       }
@@ -449,7 +453,7 @@ export const RegistrationForm: FC<
         } else {
           setError(error as keyof TournamentRegistrationSchema, {
             type: "custom",
-            message: response.errors[error][0],
+            message: firstErrorFor(response.errors, error),
           });
         }
       }

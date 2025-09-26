@@ -7,12 +7,14 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import {
+  AggregateForecast,
   DistributionQuantile,
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
   Quantile,
   Question,
+  UserForecast,
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
 import { computeQuartilesFromCDF } from "@/utils/math";
@@ -126,6 +128,10 @@ export const isPostOpenQuestionPredicted = (
   return false;
 };
 
+export function isForecastActive(forecast: UserForecast | AggregateForecast) {
+  return isNil(forecast.end_time) || forecast.end_time * 1000 > Date.now();
+}
+
 export function isOpenQuestionPredicted(
   question: Question,
   config?: { treatClosedAsPredicted?: boolean }
@@ -135,9 +141,11 @@ export function isOpenQuestionPredicted(
     (treatClosedAsPredicted
       ? question.status !== QuestionStatus.OPEN
       : false) ||
-    (!isNil(question.my_forecasts?.latest) &&
-      !question.my_forecasts?.latest.end_time) ||
-    (!isNil(question.my_forecast?.latest) &&
-      !question.my_forecast?.latest.end_time)
+    (question.status === QuestionStatus.OPEN &&
+      !isNil(question.my_forecasts?.latest) &&
+      isForecastActive(question.my_forecasts.latest)) ||
+    (question.status === QuestionStatus.OPEN &&
+      !isNil(question.my_forecast?.latest) &&
+      isForecastActive(question.my_forecast.latest))
   );
 }

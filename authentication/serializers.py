@@ -1,9 +1,10 @@
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from projects.models import Project
 from users.models import User
 from users.serializers import validate_username
-from projects.models import Project
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -11,7 +12,16 @@ class SignupSerializer(serializers.ModelSerializer):
     campaign_key = serializers.CharField(required=False)
     campaign_data = serializers.JSONField(required=False)
     redirect_url = serializers.CharField(required=False)
-    invite_token = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    invite_token = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    newsletter_optin = serializers.BooleanField(required=False, allow_null=True)
+    app_theme = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=32
+    )
+    language = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=32
+    )
 
     class Meta:
         model = User
@@ -24,9 +34,28 @@ class SignupSerializer(serializers.ModelSerializer):
             "campaign_key",
             "campaign_data",
             "redirect_url",
-            "invite_token"
+            "invite_token",
+            "newsletter_optin",
+            "language",
+            "app_theme",
         )
         extra_kwargs = {"email": {"required": True}}
+
+    def validate_language(self, value: str):
+        try:
+            return serializers.ChoiceField(
+                choices=settings.LANGUAGES, required=False, allow_null=True
+            ).run_validation(value)
+        except serializers.ValidationError:
+            return
+
+    def validate_app_theme(self, value: str):
+        try:
+            return serializers.ChoiceField(
+                choices=User.AppTheme.choices, required=False, allow_null=True
+            ).run_validation(value)
+        except serializers.ValidationError:
+            return
 
     def validate_add_to_project(self, value):
         try:

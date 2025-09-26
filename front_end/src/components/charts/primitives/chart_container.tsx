@@ -12,10 +12,12 @@ type Props = {
   zoom?: TimelineChartZoomOption;
   onZoomChange?: (zoom: TimelineChartZoomOption) => void;
   chartTitle?: string;
+
+  leftLegend?: React.ReactNode;
 };
 
 const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
-  ({ height, zoom, onZoomChange, children, chartTitle }, ref) => {
+  ({ height, zoom, onZoomChange, children, chartTitle, leftLegend }, ref) => {
     const tabOptions = getChartZoomOptions();
     const [selectedIndex, setSelectedIndex] = useState(
       tabOptions.findIndex((option) => option.value === zoom)
@@ -32,9 +34,9 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
     return (
       <div className="relative flex w-full flex-col">
         {(!!chartTitle || !!zoom) && (
-          <div className="flex w-full">
+          <div className="mb-2.5 flex w-full md:mb-5">
             {!!chartTitle && (
-              <div className="text-base font-normal text-blue-900 dark:text-gray-900-dark">
+              <div className="text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
                 {chartTitle}
               </div>
             )}
@@ -51,9 +53,9 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                       {({ selected, hover }) => (
                         <button
                           className={cn(
-                            "ChartZoomButton rounded px-1.5 py-1 text-sm font-medium leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark",
+                            "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
                             {
-                              "text-gray-800 dark:text-gray-800-dark": selected,
+                              "text-gray-900 dark:text-gray-900-dark": selected,
                             },
                             {
                               "bg-gray-300 dark:bg-gray-300-dark":
@@ -71,13 +73,28 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
             )}
           </div>
         )}
-        <div ref={ref} style={{ height }} className="w-full">
-          {children}
-        </div>
+
+        {leftLegend ? (
+          <div
+            className="mt-3 grid w-full grid-cols-[auto_1fr] gap-4 sm:gap-6"
+            style={{ height }}
+          >
+            <div className="h-full self-start">
+              <div className="flex h-full items-center">{leftLegend}</div>
+            </div>
+
+            <div ref={ref} style={{ height }} className="w-full">
+              {children}
+            </div>
+          </div>
+        ) : (
+          <div ref={ref} style={{ height }} className="w-full">
+            {children}
+          </div>
+        )}
       </div>
     );
   }
 );
 ChartContainer.displayName = "ChartContainer";
-
 export default ChartContainer;

@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 
 from posts.models import Post
 from posts.services.common import create_post, approve_post
-from questions.constants import QuestionStatus, ResolutionType
+from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.jobs import job_close_question
 from questions.models import Question
 from questions.services import resolve_question, unresolve_question
@@ -525,7 +525,7 @@ class TestResolveConditionalQuestion:
         # conditional branch questions status
         assert question_yes.status == QuestionStatus.CLOSED
         assert question_no.status == QuestionStatus.RESOLVED
-        assert question_no.resolution == ResolutionType.ANNULLED
+        assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
 
     def test_case_12_parent_resolved_child_closed(
         self,
@@ -563,7 +563,7 @@ class TestResolveConditionalQuestion:
         # conditional branch questions status
         assert question_yes.status == QuestionStatus.CLOSED
         assert question_no.status == QuestionStatus.RESOLVED
-        assert question_no.resolution == ResolutionType.ANNULLED
+        assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
 
     def test_case_13_parent_resolved_child_resolved(
         self,
@@ -607,7 +607,7 @@ class TestResolveConditionalQuestion:
         assert question_yes.status == QuestionStatus.RESOLVED
         assert question_yes.resolution == "no"
         assert question_no.status == QuestionStatus.RESOLVED
-        assert question_no.resolution == ResolutionType.ANNULLED
+        assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
 
     def test_case_14_parent_resolved_child_unresolved_to_open(
         self,
@@ -653,7 +653,7 @@ class TestResolveConditionalQuestion:
         # conditional branch questions status
         assert question_yes.status == QuestionStatus.CLOSED
         assert question_no.status == QuestionStatus.RESOLVED
-        assert question_no.resolution == ResolutionType.ANNULLED
+        assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
 
     def test_case_15_parent_resolved_child_unresolved_to_closed(
         self,
@@ -699,7 +699,7 @@ class TestResolveConditionalQuestion:
         # conditional branch questions status
         assert question_yes.status == QuestionStatus.CLOSED
         assert question_no.status == QuestionStatus.RESOLVED
-        assert question_no.resolution == ResolutionType.ANNULLED
+        assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
 
     def test_case_16_parent_unresolved_to_open_child_open(
         self,

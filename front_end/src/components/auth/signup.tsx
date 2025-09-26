@@ -11,6 +11,7 @@ import React, { FC, useRef, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 
 import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
+import { firstErrorFor } from "@/app/(main)/accounts/helpers";
 import {
   SignUpSchema,
   generateSignUpSchema,
@@ -22,7 +23,9 @@ import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
+import { AppTheme } from "@/types/theme";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
@@ -38,8 +41,16 @@ export const SignupForm: FC<{
   addToProject?: number;
   email?: string;
   inviteToken?: string;
-}> = ({ forceIsBot, addToProject, email, inviteToken }) => {
+  withNewsletterOptin?: boolean;
+}> = ({
+  forceIsBot,
+  addToProject,
+  email,
+  inviteToken,
+  withNewsletterOptin,
+}) => {
   const t = useTranslations();
+  const { themeChoice } = useAppTheme();
   const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const [isTurnstileValidated, setIsTurnstileValidate] =
     // Treat as validated if project is not configured with Turnstile key
@@ -54,6 +65,8 @@ export const SignupForm: FC<{
       isBot: forceIsBot ?? false,
       addToProject,
       inviteToken,
+      // We use undefined when the form doesn't have the newsletter optin checkbox - means the user is not making a choice here.
+      newsletterOptin: withNewsletterOptin ? false : undefined,
     },
   });
 
@@ -68,6 +81,12 @@ export const SignupForm: FC<{
     const response = await signUpAction({
       ...data,
       redirectUrl: currentLocation,
+      newsletterOptin: watch("newsletterOptin"),
+      appTheme: (Object.values(AppTheme) as string[]).includes(
+        themeChoice ?? ""
+      )
+        ? (themeChoice as AppTheme)
+        : AppTheme.System,
     });
 
     if (response && response.errors) {
@@ -75,7 +94,7 @@ export const SignupForm: FC<{
       for (error in response.errors)
         setError(error as keyof SignUpSchema, {
           type: "custom",
-          message: response.errors[error][0],
+          message: firstErrorFor(response.errors, error),
         });
     }
 
@@ -115,6 +134,7 @@ export const SignupForm: FC<{
           errors={errors}
           forceIsBot={forceIsBot}
           disableEmail={!!email}
+          withNewsletterOptin={withNewsletterOptin}
         />
         <div>
           <Button
@@ -233,7 +253,7 @@ export const SignUpModal: FC<SignInModalType> = ({
       </div>
       <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
         <div className="border-gray-300 dark:border-gray-300-dark sm:w-80 sm:border-r sm:pr-4">
-          <SignupForm />
+          <SignupForm withNewsletterOptin={true} />
         </div>
         <div className="flex flex-col gap-2 sm:w-80 sm:pl-4">
           <ul className="hidden leading-tight sm:block">
@@ -272,6 +292,13 @@ export const SignUpModal: FC<SignInModalType> = ({
               />
               <span className="ml-4">{t("registrationInfoAbility5")}</span>
             </li>
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility6")}</span>
+            </li>
           </ul>
           <hr className="my-6 border-gray-300 dark:border-gray-300-dark sm:hidden" />
           <SocialButtons type="signup" />
@@ -299,7 +326,13 @@ const SignUpFormFragment: FC<{
   forceIsBot?: boolean;
   errors: NonNullable<SignUpActionState>["errors"];
   disableEmail?: boolean;
-}> = ({ forceIsBot = undefined, errors, disableEmail = false }) => {
+  withNewsletterOptin?: boolean;
+}> = ({
+  forceIsBot = undefined,
+  errors,
+  disableEmail = false,
+  withNewsletterOptin = false,
+}) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
   return (
@@ -349,6 +382,16 @@ const SignUpFormFragment: FC<{
       )}
       <FormError errors={errors} name="isBot" />
       <input type="hidden" {...register("isBot")} />
+      {withNewsletterOptin && (
+        <Checkbox
+          checked={watch("newsletterOptin")}
+          onChange={(newsletterOptin) => {
+            setValue("newsletterOptin", newsletterOptin);
+          }}
+          label={t("signUpNewsletterOptin")}
+          className="p-1.5"
+        />
+      )}
     </>
   );
 };

@@ -5,6 +5,7 @@ import {
   BaseChartData,
   Line,
   Scale,
+  ScaleDirection,
   TimelineChartZoomOption,
 } from "@/types/charts";
 import {
@@ -45,6 +46,7 @@ export function buildNumericChartData({
   unit,
   forceYTickCount,
   inboundOutcomeCount,
+  alwaysShowYTicks,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -61,6 +63,7 @@ export function buildNumericChartData({
   unit?: string;
   forceYTickCount?: number;
   inboundOutcomeCount?: number | null;
+  alwaysShowYTicks?: boolean;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -225,13 +228,14 @@ export function buildNumericChartData({
   const yScale: Scale = generateScale({
     displayType: questionType,
     axisLength: height,
-    direction: "vertical",
+    direction: ScaleDirection.Vertical,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
     scaling,
     unit,
     forceTickCount: forceYTickCount,
     inboundOutcomeCount,
+    alwaysShowTicks: alwaysShowYTicks,
   });
 
   return {

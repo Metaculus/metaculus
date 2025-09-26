@@ -13,6 +13,7 @@ import {
   QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
@@ -27,7 +28,7 @@ type Props = {
   authorUsername: string;
   curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
-  forecasters?: number;
+  showChart?: boolean;
   canPredict?: boolean;
 };
 
@@ -36,8 +37,8 @@ const QuestionTile: FC<Props> = ({
   curationStatus,
   authorUsername,
   hideCP,
-  forecasters,
   canPredict,
+  showChart,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -57,7 +58,7 @@ const QuestionTile: FC<Props> = ({
 
   // hide the card if the question is not opened yet
   // otherwise, we should the chart with "No forecasts yet" message on the chart itself
-  if (forecastAvailability.isEmpty && curationStatus !== PostStatus.OPEN) {
+  if (forecastAvailability.isEmpty && question.status !== QuestionStatus.OPEN) {
     return null;
   }
 
@@ -73,27 +74,24 @@ const QuestionTile: FC<Props> = ({
       return (
         <QuestionContinuousTile
           question={question}
-          curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
           forecastAvailability={forecastAvailability}
-          forecasters={forecasters}
           canPredict={canPredict}
+          showChart={showChart}
         />
       );
     case QuestionType.MultipleChoice: {
       const visibleChoicesCount = 3;
 
-      const choices = generateChoiceItemsFromMultipleChoiceForecast(question, {
-        activeCount: visibleChoicesCount,
-      });
+      const choices = generateChoiceItemsFromMultipleChoiceForecast(question);
       const userForecasts = generateUserForecastsForMultipleQuestion(question);
       const actualCloseTime = getPostDrivenTime(question.actual_close_time);
       const openTime = getPostDrivenTime(question.open_time);
 
       const timestamps: number[] = !forecastAvailability.cpRevealsOn
-        ? question.aggregations.recency_weighted.history.map(
-            (forecast) => forecast.start_time
-          )
+        ? question.aggregations[
+            question.default_aggregation_method
+          ].history.map((forecast) => forecast.start_time)
         : userForecasts?.flatMap((option) => option.timestamps ?? []) ?? [];
 
       return (
@@ -108,6 +106,7 @@ const QuestionTile: FC<Props> = ({
           openTime={openTime}
           forecastAvailability={forecastAvailability}
           canPredict={canPredict}
+          showChart={showChart}
         />
       );
     }
@@ -119,7 +118,8 @@ const QuestionTile: FC<Props> = ({
 const generateUserForecastsForMultipleQuestion = (
   question: QuestionWithMultipleChoiceForecasts
 ): UserChoiceItem[] | undefined => {
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const options = question.options;
 
   const choiceOrdering: number[] = options?.map((_, i) => i) ?? [];
@@ -146,7 +146,7 @@ const generateUserForecastsForMultipleQuestion = (
         timestamps.push(forecast.start_time);
       }
 
-      if (forecast.end_time) {
+      if (forecast.end_time && !isForecastActive(forecast)) {
         // this forecast ends, add it to timestamps and a null value
         timestamps.push(forecast.end_time);
         values.push(null);

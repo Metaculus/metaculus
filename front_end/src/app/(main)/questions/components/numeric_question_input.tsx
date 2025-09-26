@@ -11,6 +11,7 @@ import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import {
+  AggregationMethod,
   DefaultInboundOutcomeCount,
   QuestionDraft,
   QuestionWithNumericForecasts,
@@ -116,12 +117,13 @@ const NumericQuestionInput: React.FC<{
     resolution_criteria: "",
     label: "",
     unit: unit || "",
-    nr_forecasters: 0,
     author_username: "",
     post_id: 0,
     resolution: "",
     include_bots_in_aggregates: false,
     question_weight: 1.0,
+    default_score_type: "peer",
+    default_aggregation_method: AggregationMethod.recency_weighted,
     forecasts: {
       timestamps: [],
       nr_forecasters: [],
@@ -153,6 +155,9 @@ const NumericQuestionInput: React.FC<{
       : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
+      unweighted: { history: [], latest: undefined },
+      single_aggregation: { history: [], latest: undefined },
+      metaculus_prediction: { history: [], latest: undefined },
     },
   });
 
@@ -422,13 +427,17 @@ const NumericQuestionInput: React.FC<{
                   }
                   onChange={(dateString) => {
                     control?.clearErrors(`min-value-${index}`);
-                    setMin(new Date(dateString).getTime() / 1000);
+                    setMin(
+                      isNil(dateString)
+                        ? undefined
+                        : new Date(dateString).getTime() / 1000
+                    );
                   }}
-                  onError={(error: { message: string }) => {
+                  onError={(error) => {
                     control &&
                       control.setError(`min-value-${index}`, {
                         type: "manual",
-                        message: error.message,
+                        message: (error as { message: string }).message,
                       });
                   }}
                 />
@@ -450,12 +459,16 @@ const NumericQuestionInput: React.FC<{
                   }
                   onChange={(dateString) => {
                     control?.clearErrors(`max-value-${index}`);
-                    setMax(new Date(dateString).getTime() / 1000);
+                    setMax(
+                      isNil(dateString)
+                        ? undefined
+                        : new Date(dateString).getTime() / 1000
+                    );
                   }}
-                  onError={(error: { message: string }) => {
+                  onError={(error) => {
                     control?.setError(`max-value-${index}`, {
                       type: "manual",
-                      message: error.message,
+                      message: (error as { message: string }).message,
                     });
                   }}
                 />
@@ -544,7 +557,11 @@ const NumericQuestionInput: React.FC<{
                       !Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0
                     ).toISOString()}
                     onChange={(dateString) => {
-                      setZeroPoint(new Date(dateString).getTime() / 1000);
+                      setZeroPoint(
+                        isNil(dateString)
+                          ? null
+                          : new Date(dateString).getTime() / 1000
+                      );
                     }}
                   />
                 </div>
@@ -553,10 +570,11 @@ const NumericQuestionInput: React.FC<{
         )}
 
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
-          <>
+          <div style={{ width: 700 }}>
+            {/* width set to match default contianer width on question page */}
             Example input chart:
             <ExampleContinuousInput question={question} />
-          </>
+          </div>
         )}
       </div>
     </div>

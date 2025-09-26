@@ -158,6 +158,8 @@ def generate_related_posts_for_article(article: ITNArticle):
         .filter_published()
         .annotate(distance=CosineDistance("embedding_vector", article.embedding_vector))
         .filter(distance__lte=MAX_RELEVANT_DISTANCE)
+        # Skip generation for notebooks
+        .filter_questions()
     )
 
     PostArticle.objects.bulk_create(
@@ -175,6 +177,10 @@ def generate_related_articles_for_post(post: Post):
     Generates related ITN Articles for the given Post and saves them in the PostArticle cache table.
     Takes only 20 relevant objects
     """
+
+    # Skip generation for notebooks
+    if post.notebook_id:
+        return
 
     relevant_articles = (
         ITNArticle.objects.annotate(

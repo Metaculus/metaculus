@@ -1,8 +1,10 @@
 "use client";
 import { isNil } from "lodash";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
+import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
@@ -14,6 +16,7 @@ import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { isPostOpenQuestionPredicted } from "@/utils/forecasts/helpers";
+import { getPostLink } from "@/utils/navigation";
 
 import PredictionFlowCommentsSection from "./prediction_flow_comments";
 import { usePredictionFlow } from "./prediction_flow_provider";
@@ -100,53 +103,63 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
 
   return (
     <HideCPProvider post={detailedPost} forceHideCP={forceHideCP}>
-      <div
-        className={cn("mx-4 mt-6 flex flex-col sm:mx-0", {
-          hidden: isMenuOpen,
-        })}
-      >
-        {shouldShowBanner && (
-          <RequireAttentionBanner detailedPost={currentFlowPost} />
-        )}
+      <CoherenceLinksProvider post={detailedPost}>
         <div
-          className={cn(
-            "flex w-full flex-col rounded bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]",
-            {
-              "rounded-t-none": shouldShowBanner,
-            }
-          )}
+          className={cn("mx-4 mt-6 flex flex-col sm:mx-0", {
+            hidden: isMenuOpen,
+          })}
         >
-          <div className="flex flex-col gap-4">
-            <h2 className="m-0 text-2xl font-bold leading-8 text-blue-800 dark:text-blue-800-dark">
-              {detailedPost?.title}
-            </h2>
+          {shouldShowBanner && (
+            <RequireAttentionBanner detailedPost={currentFlowPost} />
+          )}
+          <div
+            className={cn(
+              "flex w-full flex-col rounded bg-gray-0 p-4 py-3 dark:bg-gray-0-dark sm:p-8 sm:py-[26px]",
+              {
+                "rounded-t-none": shouldShowBanner,
+              }
+            )}
+          >
+            <div className="flex flex-col gap-4">
+              <h2 className="m-0 text-2xl font-bold leading-8">
+                <Link
+                  href={getPostLink(detailedPost, detailedPost.question?.id)}
+                  className="text-blue-800 no-underline outline-none hover:underline focus-visible:underline dark:text-blue-800-dark"
+                  prefetch={false}
+                >
+                  {detailedPost.title}
+                </Link>
+              </h2>
 
-            <PredictionFlowQuestionCard post={detailedPost} />
+              <PredictionFlowQuestionCard post={detailedPost} />
 
-            <ForecastMaker
-              post={detailedPost}
-              onPredictionSubmit={onPredictionSubmit}
-              disableResolveButtons={true}
-            />
+              <div className="my-4">
+                <ForecastMaker
+                  post={detailedPost}
+                  onPredictionSubmit={onPredictionSubmit}
+                  disableResolveButtons={true}
+                />
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <ResolutionCriteria
-                post={detailedPost}
-                defaultOpen={false}
-                className="my-0 gap-2"
-              />
-              <BackgroundInfo post={detailedPost} defaultOpen={false} />
+              <div className="flex flex-col gap-2">
+                <ResolutionCriteria
+                  post={detailedPost}
+                  defaultOpen={false}
+                  className="my-0 gap-2"
+                />
+                <BackgroundInfo post={detailedPost} defaultOpen={false} />
 
-              <CommentsFeedProvider
-                postData={detailedPost}
-                rootCommentStructure={true}
-              >
-                <PredictionFlowCommentsSection postData={detailedPost} />
-              </CommentsFeedProvider>
+                <CommentsFeedProvider
+                  postData={detailedPost}
+                  rootCommentStructure={true}
+                >
+                  <PredictionFlowCommentsSection postData={detailedPost} />
+                </CommentsFeedProvider>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </CoherenceLinksProvider>
     </HideCPProvider>
   );
 };

@@ -2,13 +2,14 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet
+from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -69,6 +70,29 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     resolution = models.TextField(null=True, blank=True)
     include_bots_in_aggregates = models.BooleanField(default=False)
     question_weight = models.FloatField(default=1.0)
+    default_score_type = models.CharField(
+        max_length=20,
+        choices=ScoreTypes.choices,
+        default=ScoreTypes.PEER,
+        db_index=True,
+        help_text="""Default score type for this question.
+        Generally, this should be either "peer" or "spot_peer".
+        Determines which score will be most prominently displayed in the UI.
+        Also, for Leaderboards that have a "score type" of "default", this question's
+        default score type will be the one that contributes to the leaderboard.
+        """,
+    )
+    default_aggregation_method: AggregationMethod = models.CharField(
+        max_length=20,
+        choices=AggregationMethod.choices,
+        default=AggregationMethod.RECENCY_WEIGHTED,
+        help_text="""Default aggregation method for this question.
+        Determines which aggregation is calculated and presented for this question.
+        <br>This should generally be "Recency Weighted", but for very short-term
+        questions, or ones where forecasting is done live, "Unweighted" is likely
+        a better choice.
+        """,
+    )
 
     # description fields
     title = models.CharField(max_length=2000)
@@ -315,6 +339,30 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             else DEFAULT_INBOUND_OUTCOME_COUNT
         )
 
+    def get_spot_scoring_time(self) -> datetime | None:
+        if self.spot_scoring_time:
+            return self.spot_scoring_time
+        elif (
+            self.cp_reveal_time
+            and self.open_time
+            and self.cp_reveal_time > self.open_time
+        ):
+            return self.cp_reveal_time
+        elif self.actual_close_time:
+            return self.actual_close_time
+        elif self.scheduled_close_time:
+            return self.scheduled_close_time
+        return None
+
+    def get_forecasters(self) -> QuerySet["User"]:
+        return User.objects.filter(
+            Exists(
+                Forecast.objects.filter(
+                    question=self, author=OuterRef("id")
+                ).filter_within_question_period()
+            )
+        )
+
 
 QUESTION_CONTINUOUS_TYPES = [
     Question.QuestionType.NUMERIC,
@@ -368,15 +416,70 @@ class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
     subquestions_order = models.CharField(
         max_length=12,
         choices=GroupOfQuestionsSubquestionsOrder.choices,
-        null=True,
-        default=None,
+        default=GroupOfQuestionsSubquestionsOrder.CP_DESC,
     )
 
     def __str__(self):
         return f"Group of Questions {self.post}"
 
 
-class ForecastNoSpamManager(models.Manager):
+class ForecastQuerySet(QuerySet):
+    def filter_within_question_period(self):
+        """
+        Filters forecast which were made within the period when question was active
+        """
+
+        return self.filter(
+            (
+                # Has no end time or an end time after question open time
+                Q(end_time__isnull=True)
+                | Q(end_time__gt=F("question__open_time"))
+            )
+            & (
+                # Has a start time earlier than the questions actual close time (if it is set)
+                (
+                    Q(question__actual_close_time__isnull=False)
+                    & Q(start_time__lt=F("question__actual_close_time"))
+                )
+                # or scheduled close time (if actual isn't set)
+                | (
+                    Q(question__actual_close_time__isnull=True)
+                    & Q(start_time__lt=F("question__scheduled_close_time"))
+                )
+            ),
+        )
+
+    def active(self):
+        """
+        Returns active forecasts.
+
+        An active forecast is one that:
+        - start_time is in the past
+        - end_time is either None, or in the future
+        - their question is still open (question.actual_close_time is None and
+          question.scheduled_close_time is in the future and question.open_time is in the past)
+        """
+        now = timezone.now()
+
+        # Forecast timing conditions
+        forecast_started = Q(start_time__lte=now)
+        forecast_not_ended = Q(end_time__isnull=True) | Q(end_time__gt=now)
+
+        # Question status conditions
+        question_not_closed = Q(question__actual_close_time__isnull=True)
+        question_still_accepting_forecasts = Q(question__scheduled_close_time__gt=now)
+        question_opened = Q(question__open_time__lte=now)
+
+        return self.filter(
+            forecast_started
+            & forecast_not_ended
+            & question_not_closed
+            & question_still_accepting_forecasts
+            & question_opened
+        )
+
+
+class ForecastNoSpamManager(models.Manager.from_queryset(ForecastQuerySet)):
     def get_queryset(self):
         return super().get_queryset().filter(author__is_spam=False)
 
@@ -458,6 +561,13 @@ class Forecast(models.Model):
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
         ]
+        constraints = [
+            # end_time > start_time
+            models.CheckConstraint(
+                check=Q(end_time__isnull=True) | Q(end_time__gt=F("start_time")),
+                name="end_time_after_start_time",
+            ),
+        ]
 
     def __str__(self):
         from utils.the_math.measures import percent_point_function
@@ -499,6 +609,11 @@ class Forecast(models.Model):
         return super().save(**kwargs)
 
 
+class AggregateForecastQuerySet(QuerySet):
+    def filter_default_aggregation(self):
+        return self.filter(method=F("question__default_aggregation_method"))
+
+
 class AggregateForecast(models.Model):
     id: int
     question_id: int
@@ -522,13 +637,15 @@ class AggregateForecast(models.Model):
     means = ArrayField(models.FloatField(), null=True)
     histogram = ArrayField(models.FloatField(), null=True, size=100)
 
+    objects = AggregateForecastQuerySet.as_manager()
+
     class Meta:
         indexes = [
             models.Index(fields=["question", "start_time"]),
             models.Index(fields=["method", "question", "-start_time"]),
         ]
 
-    def __repr__(self):
+    def __str__(self):
         from utils.the_math.measures import percent_point_function
 
         pv = self.get_prediction_values()
@@ -579,3 +696,31 @@ class QuestionPost(models.Model):
     class Meta:
         managed = False
         db_table = "questions_question_post"
+
+
+class UserForecastNotification(models.Model):
+    id: int
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    question = models.ForeignKey(
+        Question,
+        models.CASCADE,
+        related_name="forecast_withdrawal_notifications",
+        null=False,
+    )
+    trigger_time = models.DateTimeField(null=False, db_index=True)
+    email_sent = models.BooleanField(default=False, db_index=True)
+    forecast = models.ForeignKey(
+        Forecast,
+        models.CASCADE,
+        related_name="notifications",
+        null=False,
+    )
+
+    class Meta:
+        unique_together = ("user", "question")

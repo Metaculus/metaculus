@@ -1,39 +1,63 @@
 from datetime import datetime
 
 import pytest  # noqa
-from freezegun import freeze_time
 from django.utils import timezone
 from django.utils.timezone import make_aware
-
+from freezegun import freeze_time
 
 from posts.models import Post
-from questions.models import Question
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
+from questions.models import Question
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import factory_forecast, create_conditional, create_question
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_questions.factories import (
+    factory_forecast,
+    create_conditional,
+    create_question,
+)
 from tests.unit.test_users.factories import factory_user
+from tests.unit.utils import datetime_aware
 
 
 class TestPostQuerySetAnnotatePredictionsCount:
     def test_question(self, question_binary, user1):
         post = factory_post(author=user1, question=question_binary)
 
-        factory_forecast(question=question_binary, author=user1)
-        factory_forecast(question=question_binary, author=user1)
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 2),
+        )
 
         assert Post.objects.filter(pk=post.id).first().forecasts_count == 2
 
     def test_conditional_questions(self, conditional_1, user1):
         post = factory_post(author=user1, conditional=conditional_1)
 
-        factory_forecast(question=conditional_1.question_yes, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(
+            question=conditional_1.question_yes,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 2),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 3),
+        )
 
         assert Post.objects.filter(pk=post.id).first().forecasts_count == 3
 
@@ -46,12 +70,32 @@ class TestPostQuerySetAnnotatePredictionsCount:
         post1 = factory_post(author=user1, conditional=conditional_1)
         post2 = factory_post(author=user1, question=question_binary)
 
-        factory_forecast(question=conditional_1.question_yes, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
-        factory_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(
+            question=conditional_1.question_yes,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
 
-        factory_forecast(question=question_binary, author=user1)
-        factory_forecast(question=question_binary, author=user1)
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
+        factory_forecast(
+            question=question_binary,
+            author=user1,
+            start_time=datetime_aware(2025, 1, 1),
+        )
 
         qs = Post.objects.all()
 
@@ -308,7 +352,7 @@ class TestPostPermissions:
                 },
             ),
             curation_status=Post.CurationStatus.APPROVED,
-            published_at=make_aware(datetime(2024, 8, 1))
+            published_at=make_aware(datetime(2024, 8, 1)),
         )
 
         qs = Post.objects.filter(pk=p1.pk)
@@ -469,3 +513,25 @@ def test_set_scheduled_close_time__conditional(
     )
     post.set_scheduled_close_time()
     assert post.scheduled_close_time == expected_sct
+
+
+@pytest.mark.parametrize(
+    "forecast_kwargs,has_active_forecast",
+    [
+        [{"start_time": datetime(2025, 1, 1)}, True],
+        [{"start_time": datetime(2025, 1, 1), "end_time": datetime(2025, 7, 1)}, True],
+        [{"start_time": datetime(2025, 1, 1), "end_time": datetime(2025, 5, 1)}, False],
+    ],
+)
+@freeze_time("2025-06-01")
+def test_annotate_has_active_forecast(
+    user1, post_binary_public, forecast_kwargs, has_active_forecast
+):
+    factory_forecast(
+        question=post_binary_public.question, author=user1, **forecast_kwargs
+    )
+    post = Post.objects.annotate_has_active_forecast(user1.id).get(
+        pk=post_binary_public.id
+    )
+
+    assert post.has_active_forecast == has_active_forecast

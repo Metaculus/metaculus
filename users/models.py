@@ -1,12 +1,14 @@
-from typing import TYPE_CHECKING
 from datetime import timedelta, datetime
+from typing import TYPE_CHECKING
 
 import dateutil.parser
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
+
 from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
@@ -15,6 +17,15 @@ if TYPE_CHECKING:
 
 
 class User(TimeStampedModel, AbstractUser):
+    class AppTheme(models.TextChoices):
+        SYSTEM = "system"
+        LIGHT = "light"
+        DARK = "dark"
+
+    class InterfaceType(models.TextChoices):
+        CONSUMER_VIEW = "consumer_view"
+        FORECASTER_VIEW = "forecaster_view"
+
     # typing
     id: int
     comment_set: QuerySet["Comment"]
@@ -24,6 +35,7 @@ class User(TimeStampedModel, AbstractUser):
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False, db_index=True)
     is_spam = models.BooleanField(default=False, db_index=True)
+    check_for_spam = models.BooleanField(default=True)
 
     old_usernames = models.JSONField(default=list, null=False, editable=False)
 
@@ -51,13 +63,41 @@ class User(TimeStampedModel, AbstractUser):
     profile_picture = models.ImageField(null=True, blank=True, default=None)
 
     # Subscription settings
+    # We use None to indicate that the user has not yet made a choice
+    newsletter_optin = models.BooleanField(default=None, null=True)
     unsubscribed_mailing_tags = ArrayField(
         models.CharField(max_length=200), blank=True, default=list
     )
     hide_community_prediction = models.BooleanField(default=False)
+    prediction_expiration_percent = models.IntegerField(
+        default=10, null=True, blank=True
+    )
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)
+
+    # App theme preference.
+    # This field is nullable to support a smooth transition and preserve user preferences
+    # set before this feature was introduced. If `app_theme` is not null, the frontend will
+    # ignore any theme stored in LocalStorage and use this value instead.
+    # By default, all users (existing and new) will have this field set to null.
+    # This ensures that if a user had previously selected a theme (stored in LocalStorage),
+    # their choice will be respected. The database value remains null until the user explicitly
+    # updates their theme preference via the UI, at which point the value is saved.
+    app_theme = models.CharField(
+        max_length=32, null=True, blank=True, choices=AppTheme.choices
+    )
+    interface_type = models.CharField(
+        max_length=32,
+        default=InterfaceType.FORECASTER_VIEW,
+        choices=InterfaceType.choices,
+    )
+    language = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        choices=settings.LANGUAGES,
+    )
 
     objects: models.Manager["User"] = UserManager()
 

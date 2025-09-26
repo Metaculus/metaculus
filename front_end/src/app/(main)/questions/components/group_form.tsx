@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import GroupFormBulkModal, {
@@ -36,22 +36,24 @@ import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
-  Category,
+  GroupOfQuestionsGraphType,
   Post,
   PostGroupOfQuestionsSubquestionsOrder,
-  PostStatus,
   PostWithForecasts,
 } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
   TournamentType,
+  Category,
 } from "@/types/projects";
 import {
   DefaultInboundOutcomeCount,
   SimpleQuestionType,
   QuestionType,
   QuestionWithNumericForecasts,
+  Scaling,
+  QuestionWithForecasts,
 } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
@@ -68,12 +70,75 @@ import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
+type SubQuestionDraftBase = {
+  id?: number;
+  label: string;
+  scheduled_close_time?: string | undefined;
+  scheduled_resolve_time?: string | undefined;
+  open_time?: string | undefined;
+  cp_reveal_time?: string | undefined;
+  group_rank?: number | undefined;
+  has_forecasts?: boolean | undefined;
+  type?: QuestionType;
+};
+
+type SubQuestionDraft = SubQuestionDraftBase &
+  Partial<{
+    unit: string;
+    scaling: Scaling | null;
+    open_lower_bound: boolean | null;
+    open_upper_bound: boolean | null;
+    inbound_outcome_count: number | null;
+  }>;
+
+type CreateSubQuestionPayload = {
+  id?: number;
+  type: SimpleQuestionType;
+  title: string;
+  label: string;
+  scheduled_close_time: string | undefined;
+  scheduled_resolve_time?: string | undefined;
+  open_time: string | undefined;
+  cp_reveal_time: string | undefined;
+  group_rank: number | undefined;
+  unit?: string;
+  scaling?: Scaling;
+  open_lower_bound?: boolean | null;
+  open_upper_bound?: boolean | null;
+  inbound_outcome_count?: number | null;
+};
+
+type GroupFormDynamicKeys = {
+  [K in `subQuestion-${number}-scheduled_close_time`]?: string;
+} & {
+  [K in `subQuestion-${number}-scheduled_resolve_time`]?: string;
+};
+
+type ExtraTopLevelTimes = {
+  scheduled_close_time?: string;
+  scheduled_resolve_time?: string;
+};
+
+type GroupFormValues = z.infer<ReturnType<typeof createGroupQuestionSchema>> &
+  ExtraTopLevelTimes &
+  GroupFormDynamicKeys;
+
 type PostCreationData = {
-  group_of_questions: any;
   title: string;
   short_title: string;
   categories: number[];
-  default_project: number;
+  default_project: string | number | null;
+  group_of_questions: {
+    delete: number[];
+    title: string;
+    fine_print?: string;
+    resolution_criteria: string;
+    description: string;
+    group_variable: string;
+    questions: CreateSubQuestionPayload[];
+    subquestions_order?: PostGroupOfQuestionsSubquestionsOrder;
+    graph_type?: GroupOfQuestionsGraphType;
+  };
 };
 
 const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
@@ -110,6 +175,12 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
         z.literal(PostGroupOfQuestionsSubquestionsOrder.CP_DESC),
       ])
       .optional(),
+    graph_type: z
+      .union([
+        z.literal(GroupOfQuestionsGraphType.FanGraph),
+        z.literal(GroupOfQuestionsGraphType.MultipleChoiceGraph),
+      ])
+      .optional(),
   });
 };
 
@@ -122,6 +193,7 @@ type Props = {
   allCategories: Category[];
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 };
 
 const GroupForm: React.FC<Props> = ({
@@ -133,6 +205,7 @@ const GroupForm: React.FC<Props> = ({
   tournament_id = null,
   community_id = null,
   post = null,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -154,7 +227,7 @@ const GroupForm: React.FC<Props> = ({
   const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: GroupFormValues) => {
     setIsLoading(true);
     setError(undefined);
 
@@ -175,76 +248,78 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions.map((x) => {
-      const subquestionData = {
-        id: x.id,
-        type: subtype,
-        title: `${data["title"]} (${x.label})`,
-        label: x.label,
-        scheduled_close_time: x.scheduled_close_time,
-        scheduled_resolve_time: x.scheduled_resolve_time,
-        open_time: x.open_time,
-        cp_reveal_time: x.cp_reveal_time,
-        group_rank: x.group_rank,
-      };
+    const groupData = subQuestions
+      .map((x, idx) => {
+        const subquestionData = {
+          id: x.id,
+          type: subtype,
+          title: `${data["title"]} (${x.label})`,
+          label: x.label,
+          scheduled_close_time: x.scheduled_close_time,
+          scheduled_resolve_time: x.scheduled_resolve_time,
+          open_time: x.open_time,
+          cp_reveal_time: x.cp_reveal_time,
+          group_rank: idx,
+        };
 
-      if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
-        setError("Please enter a closing and resolving date");
-        break_out = true;
-        return;
-      }
-      if (subtype === QuestionType.Binary) {
-        return subquestionData;
-      } else if (subtype === QuestionType.Numeric) {
-        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
-          setError(
-            "Please enter a range_max and range_min value for numeric questions"
-          );
+        if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
+          setError("Please enter a closing and resolving date");
           break_out = true;
           return;
         }
-        return {
-          ...subquestionData,
-          unit: x.unit,
-          scaling: x.scaling,
-          open_lower_bound: x.open_lower_bound,
-          open_upper_bound: x.open_upper_bound,
-        };
-      } else if (subtype === QuestionType.Discrete) {
-        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
-          setError(
-            "Please enter a range_max and range_min value for discrete questions"
-          );
-          break_out = true;
+        if (subtype === QuestionType.Binary) {
+          return subquestionData;
+        } else if (subtype === QuestionType.Numeric) {
+          if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+            setError(
+              "Please enter a range_max and range_min value for numeric questions"
+            );
+            break_out = true;
+            return;
+          }
+          return {
+            ...subquestionData,
+            unit: x.unit,
+            scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
+          };
+        } else if (subtype === QuestionType.Discrete) {
+          if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+            setError(
+              "Please enter a range_max and range_min value for discrete questions"
+            );
+            break_out = true;
+            return;
+          }
+          return {
+            ...subquestionData,
+            unit: x.unit,
+            scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
+            inbound_outcome_count: x.inbound_outcome_count,
+          };
+        } else if (subtype === QuestionType.Date) {
+          if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+            setError(
+              "Please enter a range_max and range_min value for date questions"
+            );
+            break_out = true;
+            return;
+          }
+          return {
+            ...subquestionData,
+            scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
+          };
+        } else {
+          setError("Invalid sub-question type");
           return;
         }
-        return {
-          ...subquestionData,
-          unit: x.unit,
-          scaling: x.scaling,
-          open_lower_bound: x.open_lower_bound,
-          open_upper_bound: x.open_upper_bound,
-          inbound_outcome_count: x.inbound_outcome_count,
-        };
-      } else if (subtype === QuestionType.Date) {
-        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
-          setError(
-            "Please enter a range_max and range_min value for date questions"
-          );
-          break_out = true;
-          return;
-        }
-        return {
-          ...subquestionData,
-          scaling: x.scaling,
-          open_lower_bound: x.open_lower_bound,
-          open_upper_bound: x.open_upper_bound,
-        };
-      } else {
-        setError("Invalid sub-question type");
-        return;
-      }
-    });
+      })
+      .filter((x) => x !== undefined);
 
     if (break_out) {
       setIsLoading(false);
@@ -272,6 +347,7 @@ const GroupForm: React.FC<Props> = ({
         group_variable: data["group_variable"],
         questions: groupData,
         subquestions_order: data["subquestions_order"],
+        graph_type: data["graph_type"],
       },
     };
     let resp: { post: Post };
@@ -280,7 +356,9 @@ const GroupForm: React.FC<Props> = ({
         resp = await updatePost(post.id, post_data);
       } else {
         resp = await createQuestionPost(post_data);
-        deleteQuestionDraft(draftKey);
+        if (shouldUseDraftValue) {
+          deleteQuestionDraft(draftKey);
+        }
       }
 
       router.push(getPostLink(resp.post));
@@ -293,7 +371,7 @@ const GroupForm: React.FC<Props> = ({
     }
   };
 
-  const [subQuestions, setSubQuestions] = useState<any[]>(() => {
+  const [subQuestions, setSubQuestions] = useState<SubQuestionDraft[]>(() => {
     const initialSubQuestions = post?.group_of_questions?.questions
       ? sortGroupPredictionOptions(
           post?.group_of_questions?.questions as QuestionWithNumericForecasts[],
@@ -313,7 +391,9 @@ const GroupForm: React.FC<Props> = ({
         scaling: x.scaling,
         open_lower_bound: x.open_lower_bound,
         open_upper_bound: x.open_upper_bound,
-        has_forecasts: (x.nr_forecasters || 0) > 0,
+        has_forecasts:
+          (x.aggregations[x.default_aggregation_method].latest
+            ?.forecaster_count || 0) > 0,
         group_rank: x.group_rank ?? idx,
       };
     });
@@ -325,14 +405,25 @@ const GroupForm: React.FC<Props> = ({
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<boolean[]>(
     subQuestions.map(() => true)
   );
+  const allExpanded = collapsedSubQuestions.every(Boolean);
+
+  const toggleAllSubQuestions = useCallback(() => {
+    setCollapsedSubQuestions(() =>
+      Array(subQuestions.length).fill(!allExpanded)
+    );
+  }, [subQuestions.length, allExpanded]);
+
   const groupQuestionSchema = createGroupQuestionSchema(t);
-  const form = useForm<any>({
+  const form = useForm<GroupFormValues>({
     mode: "all",
     resolver: zodResolver(groupQuestionSchema),
     defaultValues: {
       subquestions_order:
         post?.group_of_questions?.subquestions_order ??
         PostGroupOfQuestionsSubquestionsOrder.MANUAL,
+      graph_type:
+        post?.group_of_questions?.graph_type ??
+        GroupOfQuestionsGraphType.MultipleChoiceGraph,
     },
   });
 
@@ -370,9 +461,6 @@ const GroupForm: React.FC<Props> = ({
     );
   };
 
-  const isEditingActivePost =
-    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
-
   /**
    * Shifts an element in an array by a specified number of positions
    */
@@ -404,7 +492,7 @@ const GroupForm: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         setCategoriesList(draft.categories ?? []);
@@ -421,7 +509,11 @@ const GroupForm: React.FC<Props> = ({
         setCollapsedSubQuestions(
           [...(draft.subQuestions ?? [])].map(() => true)
         );
-        form.reset(draft);
+        form.reset({
+          ...draft,
+          resolution_criteria: draft.resolution_criteria ?? "",
+          fine_print: draft.fine_print ?? "",
+        });
       }
       const timeout = setTimeout(() => {
         isDraftMounted.current = true;
@@ -432,15 +524,18 @@ const GroupForm: React.FC<Props> = ({
   }, []);
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = form.getValues();
       saveQuestionDraft(draftKey, {
         ...formData,
+        default_project: (formData.default_project ?? undefined) as
+          | number
+          | undefined,
         categories: categoriesList,
-        subQuestions: subQuestions,
+        subQuestions: subQuestions as unknown as QuestionWithForecasts[],
       });
     }
-  }, [form, mode, categoriesList, subQuestions, draftKey]);
+  }, [form, shouldUseDraftValue, categoriesList, subQuestions, draftKey]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -450,19 +545,23 @@ const GroupForm: React.FC<Props> = ({
   // update draft when form values changes
   useEffect(() => {
     const subscription = form.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, mode, debouncedHandleFormChange]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
 
   // update draft when subquestions state changes
   useEffect(() => {
-    if (mode === "create" && isDraftMounted.current) {
+    if (shouldUseDraftValue && isDraftMounted.current) {
       debouncedHandleFormChange();
     }
-  }, [form, mode, debouncedHandleFormChange, subQuestions]);
+  }, [form, shouldUseDraftValue, debouncedHandleFormChange, subQuestions]);
+
+  const isManual =
+    form.watch("subquestions_order") ===
+    PostGroupOfQuestionsSubquestionsOrder.MANUAL;
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -593,7 +692,17 @@ const GroupForm: React.FC<Props> = ({
           />
         </InputContainer>
         <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">
-          <h4 className="m-0 capitalize">{t("subquestions")}</h4>
+          <div className="-m-4 mb-0 flex items-center justify-between bg-gray-200/80 p-4 pb-0 backdrop-blur supports-[backdrop-filter]:bg-gray-200/60 dark:bg-gray-200-dark/80">
+            <h4 className="m-0 capitalize">{t("subquestions")}</h4>
+            <Button
+              onClick={toggleAllSubQuestions}
+              size="xs"
+              variant="tertiary"
+              className="ml-2"
+            >
+              {allExpanded ? t("collapseAll") : t("expandAll")}
+            </Button>
+          </div>
           <InputContainer
             labelText={t("groupSorting")}
             explanation={t("groupSortingDescription")}
@@ -619,6 +728,29 @@ const GroupForm: React.FC<Props> = ({
                 post?.group_of_questions?.subquestions_order ??
                 PostGroupOfQuestionsSubquestionsOrder.MANUAL
               }
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={t("mainGraphType")}
+            explanation={t("mainGraphTypeDescription")}
+          >
+            <Select
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              options={[
+                {
+                  value: GroupOfQuestionsGraphType.FanGraph,
+                  label: t("fanGraph"),
+                },
+                {
+                  value: GroupOfQuestionsGraphType.MultipleChoiceGraph,
+                  label: t("toggledTimelines"),
+                },
+              ]}
+              defaultValue={
+                post?.group_of_questions?.graph_type ??
+                GroupOfQuestionsGraphType.MultipleChoiceGraph
+              }
+              {...form.register("graph_type")}
             />
           </InputContainer>
           {subQuestions.map((subQuestion, index) => {
@@ -679,7 +811,7 @@ const GroupForm: React.FC<Props> = ({
                     )}
                     <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
-                        labelText={t("closingDate")}
+                        labelText={t("closeTime")}
                         className="w-full"
                       >
                         <DatetimeUtc
@@ -698,12 +830,12 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
-                          onError={(error: { message: string }) => {
+                          onError={(error) => {
                             form.setError(
                               `subQuestion-${index}-scheduled_close_time`,
                               {
                                 type: "manual",
-                                message: error.message,
+                                message: (error as { message: string }).message,
                               }
                             );
                           }}
@@ -718,7 +850,7 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                       <InputContainer
-                        labelText={t("resolvingDate")}
+                        labelText={t("resolveTime")}
                         className="w-full"
                       >
                         <DatetimeUtc
@@ -737,12 +869,12 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
-                          onError={(error: { message: string }) => {
+                          onError={(error) => {
                             form.setError(
                               `subQuestion-${index}-scheduled_resolve_time`,
                               {
                                 type: "manual",
-                                message: error.message,
+                                message: (error as { message: string }).message,
                               }
                             );
                           }}
@@ -757,58 +889,56 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                     </div>
-                    {isEditingActivePost && (
-                      <div className="flex flex-row gap-4">
-                        <InputContainer
-                          labelText={t("openTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.open_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.open_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                        <InputContainer
-                          labelText={t("cpRevealTime")}
-                          className="w-full"
-                        >
-                          <DatetimeUtc
-                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                            defaultValue={subQuestion.cp_reveal_time}
-                            onChange={(value) => {
-                              setSubQuestions(
-                                subQuestions.map((subQuestion, iter_index) => {
-                                  if (index === iter_index) {
-                                    subQuestion.cp_reveal_time = value;
-                                  }
-                                  return subQuestion;
-                                })
-                              );
-                            }}
-                          />
-                        </InputContainer>
-                      </div>
-                    )}
+                    <div className="flex flex-row gap-4">
+                      <InputContainer
+                        labelText={t("openTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.open_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.open_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                      <InputContainer
+                        labelText={t("cpRevealTime")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.cp_reveal_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.cp_reveal_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                    </div>
                     {ContinuousQuestionTypes.some(
                       (type) => type === subtype
                     ) && (
                       <NumericQuestionInput
-                        draftKey={mode === "edit" ? undefined : draftKey}
+                        draftKey={shouldUseDraftValue ? draftKey : undefined}
                         questionType={
                           subtype as (typeof ContinuousQuestionTypes)[number]
                         }
-                        defaultMin={subQuestion.scaling?.range_min}
-                        defaultMax={subQuestion.scaling?.range_max}
+                        defaultMin={subQuestion.scaling?.range_min ?? undefined}
+                        defaultMax={subQuestion.scaling?.range_max ?? undefined}
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
                         defaultInboundOutcomeCount={
@@ -816,7 +946,7 @@ const GroupForm: React.FC<Props> = ({
                         }
                         defaultZeroPoint={subQuestion.scaling?.zero_point}
                         hasForecasts={
-                          subQuestion.has_forecasts && mode !== "create"
+                          !!(subQuestion.has_forecasts && mode !== "create")
                         }
                         onChange={({
                           range_min,
@@ -844,7 +974,7 @@ const GroupForm: React.FC<Props> = ({
                             )
                           );
                         }}
-                        control={form}
+                        control={form as unknown as UseFormReturn}
                         index={index}
                       />
                     )}
@@ -872,40 +1002,63 @@ const GroupForm: React.FC<Props> = ({
                         : t("collapse")}
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === 0}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, -1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, -1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronUp} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      disabled={index === subQuestions.length - 1}
-                      onClick={() => {
-                        setSubQuestions(
-                          shiftArrayElement(subQuestions, index, 1).map(
-                            (q, idx) => ({ ...q, group_rank: idx })
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          shiftArrayElement(collapsedSubQuestions, index, 1)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faChevronDown} />
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        disabled={!isManual || index === 0}
+                        title={
+                          isManual
+                            ? undefined
+                            : "Switch Group Sorting to Manual to reorder"
+                        }
+                        onClick={() => {
+                          if (!isManual) return;
+                          setSubQuestions(
+                            shiftArrayElement(subQuestions, index, -1).map(
+                              (q, idx) => ({
+                                ...q,
+                                group_rank: idx,
+                              })
+                            )
+                          );
+                          setCollapsedSubQuestions(
+                            shiftArrayElement(collapsedSubQuestions, index, -1)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faChevronUp} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        disabled={
+                          !isManual || index === subQuestions.length - 1
+                        }
+                        title={
+                          isManual
+                            ? undefined
+                            : "Switch Group Sorting to Manual to reorder"
+                        }
+                        onClick={() => {
+                          if (!isManual) return;
+                          setSubQuestions(
+                            shiftArrayElement(subQuestions, index, 1).map(
+                              (q, idx) => ({
+                                ...q,
+                                group_rank: idx,
+                              })
+                            )
+                          );
+                          setCollapsedSubQuestions(
+                            shiftArrayElement(collapsedSubQuestions, index, 1)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faChevronDown} />
+                      </Button>
+                    </>
                   </div>
 
                   <Button
@@ -1009,7 +1162,7 @@ const GroupForm: React.FC<Props> = ({
                     setSubQuestions([
                       ...subQuestions,
                       {
-                        type: "binary",
+                        type: QuestionType.Binary,
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1060,9 +1213,8 @@ const GroupForm: React.FC<Props> = ({
           fields={[
             "scheduled_close_time",
             "scheduled_resolve_time",
-            ...(isEditingActivePost
-              ? (["open_time", "cp_reveal_time"] as const)
-              : []),
+            "open_time",
+            "cp_reveal_time",
           ]}
         />
       </form>

@@ -25,6 +25,11 @@ import {
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { sendPredictEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
+import {
+  isForecastActive,
+  isOpenQuestionPredicted,
+} from "@/utils/forecasts/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -32,9 +37,17 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
+import {
+  buildDefaultForecastExpiration,
+  ForecastExpirationModal,
+  forecastExpirationToDate,
+  ForecastExpirationValue,
+  useExpirationModalState,
+} from "../forecast_expiration";
 import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
+import WithdrawButton from "../withdraw/withdraw_button";
 
 type ChoiceOption = {
   name: string;
@@ -67,18 +80,64 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const { hideCP } = useHideCP();
 
   const activeUserForecast =
-    (question.my_forecasts?.latest?.end_time ||
-      new Date().getTime() / 1000 + 1000) <=
-    new Date().getTime() / 1000
-      ? undefined
-      : question.my_forecasts?.latest;
+    question.my_forecasts?.latest &&
+    isForecastActive(question.my_forecasts.latest)
+      ? question.my_forecasts.latest
+      : undefined;
+
+  const userLastForecast = question.my_forecasts?.latest;
+
+  // Calculate question duration for expiration modal
+  const questionDuration = useMemo(() => {
+    return (
+      new Date(question.scheduled_close_time).getTime() -
+      new Date(question.open_time ?? question.created_at).getTime()
+    );
+  }, [question]);
+
+  const expirationState = useExpirationModalState(
+    questionDuration,
+    question.my_forecasts?.latest
+  );
+
+  const {
+    modalSavedState,
+    setModalSavedState,
+    expirationShortChip,
+    isForecastExpirationModalOpen,
+    setIsForecastExpirationModalOpen,
+    previousForecastExpiration,
+  } = expirationState;
+
+  // Initialize default forecast expiration based on user preferences
+  const defaultForecastExpiration = useMemo(() => {
+    return buildDefaultForecastExpiration(
+      question,
+      user?.prediction_expiration_percent ?? undefined
+    );
+  }, [question, user?.prediction_expiration_percent]);
+
+  // Set default expiration if not already set
+  React.useEffect(() => {
+    if (!modalSavedState.forecastExpiration) {
+      setModalSavedState((prev) => ({
+        ...prev,
+        forecastExpiration: defaultForecastExpiration,
+      }));
+    }
+  }, [
+    defaultForecastExpiration,
+    modalSavedState.forecastExpiration,
+    setModalSavedState,
+  ]);
 
   const [isDirty, setIsDirty] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
-      question.aggregations.recency_weighted,
-      activeUserForecast
+      question.aggregations[question.default_aggregation_method],
+      userLastForecast
     )
   );
 
@@ -188,38 +247,52 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     );
   };
 
-  const handlePredictSubmit = async () => {
-    setSubmitError(undefined);
+  const handlePredictSubmit = useCallback(
+    async (forecastExpiration?: ForecastExpirationValue) => {
+      setSubmitError(undefined);
 
-    if (!isForecastValid) return;
+      if (!isForecastValid) return;
 
-    const forecastValue: Record<string, number> = {};
-    choicesForecasts.forEach((el) => {
-      const forecast = el.forecast;
-      if (!isNil(forecast)) {
-        forecastValue[el.name] = round(
-          forecast / 100,
-          BINARY_FORECAST_PRECISION
-        );
-      }
-    });
-    sendPredictEvent(post, question, hideCP);
-    const response = await createForecasts(post.id, [
-      {
-        questionId: question.id,
-        forecastData: {
-          continuousCdf: null,
-          probabilityYes: null,
-          probabilityYesPerCategory: forecastValue,
+      const forecastValue: Record<string, number> = {};
+      choicesForecasts.forEach((el) => {
+        const forecast = el.forecast;
+        if (!isNil(forecast)) {
+          forecastValue[el.name] = round(
+            forecast / 100,
+            BINARY_FORECAST_PRECISION
+          );
+        }
+      });
+      sendPredictEvent(post, question, hideCP);
+      const response = await createForecasts(post.id, [
+        {
+          questionId: question.id,
+          forecastEndTime: forecastExpirationToDate(
+            forecastExpiration ?? modalSavedState.forecastExpiration
+          ),
+          forecastData: {
+            continuousCdf: null,
+            probabilityYes: null,
+            probabilityYesPerCategory: forecastValue,
+          },
         },
-      },
-    ]);
-    setIsDirty(false);
-    if (response && "errors" in response && !!response.errors) {
-      setSubmitError(response.errors);
-    }
-    onPredictionSubmit?.();
-  };
+      ]);
+      setIsDirty(false);
+      if (response && "errors" in response && !!response.errors) {
+        setSubmitError(response.errors);
+      }
+      onPredictionSubmit?.();
+    },
+    [
+      isForecastValid,
+      choicesForecasts,
+      post,
+      question,
+      hideCP,
+      modalSavedState.forecastExpiration,
+      onPredictionSubmit,
+    ]
+  );
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
   const handlePredictWithdraw = async () => {
@@ -238,6 +311,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       setSubmitError(response.errors);
     } else {
       resetForecasts();
+      setIsWithdrawModalOpen(false);
       onPredictionSubmit?.();
     }
   };
@@ -247,10 +321,20 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   return (
     <>
+      <ForecastExpirationModal
+        savedState={modalSavedState}
+        setSavedState={setModalSavedState}
+        isOpen={isForecastExpirationModalOpen}
+        onClose={() => {
+          setIsForecastExpirationModalOpen(false);
+        }}
+        questionDuration={questionDuration}
+        onReaffirm={isDirty ? undefined : submit}
+      />
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
-            <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
+            <th className="rounded-tl bg-blue-100 px-3 py-2 text-left text-xs font-normal dark:bg-blue-100-dark">
               {question.group_variable}
             </th>
             <th className="bg-blue-100 p-2 pr-4 text-right text-xs dark:bg-blue-100-dark">
@@ -261,12 +345,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               />
             </th>
             <th
-              className="hidden bg-blue-100 p-2 text-left text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:table-cell"
+              className="hidden rounded-tr bg-blue-100 p-2 text-left text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:table-cell"
               colSpan={2}
             >
               My Prediction
             </th>
-            <th className="bg-blue-100 p-2 text-center text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:hidden">
+            <th className="rounded-tr bg-blue-100 p-2 text-center text-xs font-bold text-orange-800 dark:bg-blue-100-dark dark:text-orange-800-dark sm:hidden">
               Me
             </th>
           </tr>
@@ -297,69 +381,103 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         </tbody>
       </table>
       {predictionMessage && (
-        <div className="my-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+        <div className="mt-2 text-center text-sm text-gray-700 dark:text-gray-700-dark">
           {predictionMessage}
         </div>
       )}
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
-        <div className="mx-auto text-center sm:ml-0 sm:text-left">
-          <div>
-            <span className="text-2xl font-bold">
-              Total: {getForecastPctString(forecastsSum)}
-            </span>
-          </div>
-          <span className="mt-1 text-sm">
-            ({getForecastPctString(remainingSum)} remaining)
-          </span>
-        </div>
-        {canPredict && (
-          <div className="flex flex-wrap justify-center gap-2">
-            <div className="w-full text-center sm:w-auto">
-              <Button
-                className="h-8"
-                variant="link"
-                type="button"
-                onClick={rescaleForecasts}
-                disabled={!forecastHasValues || isForecastValid}
-              >
-                {t("rescalePrediction")}
-              </Button>
+
+      {canPredict && (
+        <div className="flex flex-col pb-5">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-4 ">
+            <div className="mx-auto text-center sm:ml-0 sm:text-left">
+              <div>
+                <span className="text-2xl font-bold">
+                  Total: {getForecastPctString(forecastsSum)}
+                </span>
+              </div>
+              <span className="mt-1 text-sm">
+                ({getForecastPctString(remainingSum)} remaining)
+              </span>
             </div>
-            {isDirty ? (
-              <Button variant="secondary" type="reset" onClick={resetForecasts}>
-                {t("discardChangesButton")}
-              </Button>
-            ) : (
-              !!activeUserForecast && (
+            <div className="flex flex-wrap justify-center gap-2">
+              <div className="w-full text-center sm:w-auto">
+                <Button
+                  className="h-8"
+                  variant="link"
+                  type="button"
+                  onClick={rescaleForecasts}
+                  disabled={!forecastHasValues || isForecastValid}
+                >
+                  {t("rescalePrediction")}
+                </Button>
+              </div>
+              {isDirty ? (
                 <Button
                   variant="secondary"
-                  type="submit"
-                  disabled={withdrawalIsPending}
-                  onClick={withdraw}
+                  type="reset"
+                  onClick={resetForecasts}
                 >
-                  {t("withdraw")}
+                  {t("discardChangesButton")}
                 </Button>
-              )
-            )}
-            <PredictButton
-              onSubmit={submit}
-              isDirty={isDirty}
-              hasUserForecast={forecastHasValues}
-              isPending={isPending}
-              isDisabled={!isForecastValid}
-            />
+              ) : (
+                !!activeUserForecast && (
+                  <WithdrawButton
+                    type="button"
+                    isPromptOpen={isWithdrawModalOpen}
+                    isPending={withdrawalIsPending}
+                    onSubmit={withdraw}
+                    onPromptVisibilityChange={setIsWithdrawModalOpen}
+                  >
+                    {t("withdraw")}
+                  </WithdrawButton>
+                )
+              )}
+              <PredictButton
+                onSubmit={submit}
+                isDirty={isDirty}
+                hasUserForecast={forecastHasValues}
+                isUserForecastActive={isOpenQuestionPredicted(question)}
+                isPending={isPending}
+                isDisabled={!isForecastValid}
+                predictionExpirationChip={expirationShortChip}
+                onPredictionExpirationClick={() =>
+                  setIsForecastExpirationModalOpen(true)
+                }
+              />
+            </div>
           </div>
-        )}
-      </div>
+
+          {previousForecastExpiration && (
+            <div
+              className={cn(
+                "border-b-lue mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark md:ml-auto",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionWithdrawnText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillBeWithdrawInText", {
+                    time: previousForecastExpiration.string,
+                  })}
+            </div>
+          )}
+        </div>
+      )}
+
       <FormError
         errors={submitError}
         className="ml-auto mt-2 flex w-full justify-center"
         detached
       />
-      <div className="h-[32px] w-full">
-        {(isPending || withdrawalIsPending) && <LoadingIndicator />}
-      </div>
-      <div className="flex flex-col items-center justify-center">
+      {(isPending || withdrawalIsPending) && (
+        <div className="h-[32px] w-full">
+          <LoadingIndicator />
+        </div>
+      )}
+      <div className="mt-2 flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
 
         {canResolve && (
@@ -376,19 +494,19 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: QuestionWithMultipleChoiceForecasts,
   aggregate: AggregateForecastHistory,
-  activeUserForecast: UserForecast | undefined
+  userLastForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
 
   const choiceItems = question.options.map((option, index) => {
     const communityForecastValue = latest?.forecast_values[index];
-    const userForecastValue = activeUserForecast?.forecast_values[index];
+    const userForecastValue = userLastForecast?.forecast_values[index];
 
     return {
       name: option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast:
-        latest && !latest.end_time && !isNil(communityForecastValue)
+        latest && !isNil(communityForecastValue)
           ? Math.round(communityForecastValue * 1000) / 1000
           : null,
       forecast: !isNil(userForecastValue)

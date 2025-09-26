@@ -18,6 +18,7 @@ from typing import Sequence
 import numpy as np
 from django.utils import timezone
 from django.db.models import Q, QuerySet
+from django.utils import timezone as django_timezone
 
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
@@ -670,11 +671,13 @@ def minimize_history(
         day_size = even_spread
     # start with smallest interval, populating it with timestamps up to it's size. If
     # interval isn't saturated, distribute the remaining allotment to smaller intervals.
+
+    now_or_last = min(h[-1], django_timezone.now().timestamp())
     # Day interval
     day_history = []
     day_interval = []
     if day_size > 0:
-        first_index = bisect_left(h, h[-1] - day)
+        first_index = bisect_left(h, now_or_last - day)
         day_interval = h[first_index:]
         day_history = summarize_array(day_interval, day_size)
         remainder = day_size - len(day_history)
@@ -686,8 +689,8 @@ def minimize_history(
     week_history = []
     week_interval = []
     if week_size > 0:
-        first_index = bisect_left(h, h[-1] - day * 7)
-        last_index = bisect_right(h, h[-1] - day)
+        first_index = bisect_left(h, now_or_last - day * 7)
+        last_index = bisect_right(h, now_or_last - day)
         week_interval = h[first_index:last_index]
         week_history = summarize_array(week_interval, week_size)
         remainder = week_size - len(week_history)
@@ -698,8 +701,8 @@ def minimize_history(
     month_history = []
     month_interval = []
     if month_size > 0:
-        first_index = bisect_left(h, h[-1] - day * 60)
-        last_index = bisect_right(h, h[-1] - day * 7)
+        first_index = bisect_left(h, now_or_last - day * 60)
+        last_index = bisect_right(h, now_or_last - day * 7)
         month_interval = h[first_index:last_index]
         month_history = summarize_array(month_interval, month_size)
         remainder = month_size - len(month_history)
@@ -709,7 +712,7 @@ def minimize_history(
     all_history = []
     all_interval = []
     if all_size > 0:
-        last_index = bisect_right(h, h[-1] - day * 60)
+        last_index = bisect_right(h, now_or_last - day * 60)
         all_interval = h[:last_index]
         all_history = summarize_array(all_interval, all_size)
         remainder = all_size - len(all_history)
@@ -722,6 +725,7 @@ def get_user_forecast_history(
     forecasts: list[Forecast],
     minimize: bool = False,
     cutoff: datetime | None = None,
+    include_future: bool = True,
 ) -> list[ForecastSet]:
     timestep_set: set[datetime] = set()
     for forecast in forecasts:
@@ -768,6 +772,7 @@ def get_aggregation_history(
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,
+    include_future: bool = True,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
@@ -786,8 +791,16 @@ def get_aggregation_history(
         if not include_bots:
             forecasts = forecasts.exclude(author__is_bot=True)
 
+    if include_future:
+        cutoff = question.actual_close_time
+    else:
+        cutoff = min(
+            django_timezone.now(), question.actual_close_time or django_timezone.now()
+        )
     forecast_history = get_user_forecast_history(
-        forecasts, minimize, cutoff=question.actual_close_time
+        forecasts,
+        minimize,
+        cutoff=cutoff,
     )
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
@@ -808,6 +821,13 @@ def get_aggregation_history(
             question_type=question.type,
         )
 
+        last_historical_entry_index = -1
+        now = django_timezone.now()
+        for entry in forecast_history:
+            if entry.timestep < now:
+                last_historical_entry_index += 1
+
+            break
         for i, forecast_set in enumerate(forecast_history):
             if histogram is not None:
                 include_histogram = histogram and (

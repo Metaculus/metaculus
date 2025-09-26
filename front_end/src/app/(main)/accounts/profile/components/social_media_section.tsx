@@ -19,15 +19,15 @@ export const getSocialMediaArray = (
   user: UserProfile
 ): [IconDefinition, string | undefined, string][] => [
   [faEarth, user.website, "website"],
-  [faTwitter, user.twitter, "twitter"],
-  [faLinkedin, user.linkedin, "linkedin"],
-  [faFacebook, user.facebook, "facebook"],
-  [faGithub, user.github, "github"],
-  [faChartLine, user.good_judgement_open, "good_judgement_open"],
-  [faChartLine, user.kalshi, "kalshi"],
-  [faChartLine, user.manifold, "manifold"],
-  [faChartLine, user.infer, "infer"],
-  [faChartLine, user.hypermind, "hypermind"],
+  [faTwitter, user.twitter, "Twitter/X"],
+  [faLinkedin, user.linkedin, "LinkedIn"],
+  [faFacebook, user.facebook, "Facebook"],
+  [faGithub, user.github, "GitHub"],
+  [faChartLine, user.good_judgement_open, "Good Judgment Open"],
+  [faChartLine, user.kalshi, "Kalshi"],
+  [faChartLine, user.manifold, "Manifold"],
+  [faChartLine, user.infer, "RFI"],
+  [faChartLine, user.hypermind, "Hypermind"],
 ];
 
 export const hasUserSocialMediaLink = (user: UserProfile) => {

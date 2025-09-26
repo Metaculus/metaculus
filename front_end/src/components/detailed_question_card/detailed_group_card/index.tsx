@@ -1,9 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
-import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
+import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
 import { useHideCP } from "@/contexts/cp_context";
@@ -26,6 +25,7 @@ type Props = {
    */
   groupPresentationOverride?: GroupOfQuestionsGraphType;
   className?: string;
+  prioritizeOpenSubquestions?: boolean;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -33,9 +33,8 @@ const DetailedGroupCard: FC<Props> = ({
   preselectedQuestionId,
   groupPresentationOverride,
   className,
+  prioritizeOpenSubquestions = false,
 }) => {
-  const t = useTranslations();
-
   const {
     open_time,
     actual_close_time,
@@ -79,7 +78,7 @@ const DetailedGroupCard: FC<Props> = ({
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
       return (
         <>
-          <MultipleChoiceGroupChart
+          <GroupTimeline
             group={post.group_of_questions}
             actualCloseTime={getPostDrivenTime(refCloseTime)}
             openTime={getPostDrivenTime(open_time)}
@@ -87,6 +86,7 @@ const DetailedGroupCard: FC<Props> = ({
             preselectedQuestionId={preselectedQuestionId}
             hideCP={hideCP}
             className={className}
+            prioritizeOpen={prioritizeOpenSubquestions}
           />
           {hideCP && <RevealCPButton />}
         </>
@@ -97,7 +97,6 @@ const DetailedGroupCard: FC<Props> = ({
         <>
           <FanChart
             group={post.group_of_questions}
-            yLabel={t("communityPredictionLabel")}
             hideCP={hideCP}
             withTooltip
           />

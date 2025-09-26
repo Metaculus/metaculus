@@ -24,12 +24,12 @@ const PostDefaultProject: FC<Props> = ({ defaultProject }) => {
 
   return (
     <Link
-      className="inline-flex items-center justify-center gap-1 rounded-l rounded-r border-inherit bg-orange-100 text-sm font-medium leading-4 text-orange-900 no-underline hover:bg-orange-200 dark:bg-orange-100-dark dark:text-orange-900-dark hover:dark:bg-orange-200-dark"
+      className="inline-flex items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-l rounded-r border-inherit bg-orange-200 text-xs font-medium leading-4 text-orange-900 no-underline hover:bg-orange-300 dark:bg-orange-200-dark dark:text-orange-900-dark hover:dark:bg-orange-300-dark [&>div]:max-w-full"
       href={getProjectLink(defaultProject)}
     >
       <TruncatedTextTooltip
         text={defaultProject.name}
-        className="block max-w-64 truncate p-1.5"
+        className="block max-w-full truncate p-1 leading-none"
       />
     </Link>
   );

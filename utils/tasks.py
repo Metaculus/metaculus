@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 
 from questions.types import AggregationMethod
-from utils.dramatiq import concurrency_retries, task_concurrent_limit
+from utils.dramatiq import task_concurrent_limit
 from utils.translation import (
     update_translations_for_model,
     detect_and_update_content_language,
@@ -12,7 +12,7 @@ from utils.translation import (
 )
 
 
-@dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
+@dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
     lambda app_label, model_name, pk: f"update-translations-{app_label}.{model_name}/{pk}",
     limit=1,
@@ -94,6 +94,7 @@ def email_data_task(
     user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
+    include_future: bool,
 ):
     try:
         from utils.csv_utils import export_data_for_questions
@@ -111,6 +112,7 @@ def email_data_task(
             user_ids,
             include_bots,
             anonymized,
+            include_future,
         )
 
         assert data is not None, "No data generated"

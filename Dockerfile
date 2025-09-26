@@ -93,6 +93,8 @@ RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
 ENV PORT=8080
 ENV GUNICORN_WORKERS=4
+ENV NODE_INSTANCES=1
+ENV NODE_HEAP_SIZE=1024
 EXPOSE 8080
 
 FROM final_env AS release

@@ -1,8 +1,8 @@
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useRef } from "react";
 
 import ContinuousTable from "@/components/forecast_maker/continuous_table";
+import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -13,7 +13,10 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
+import {
+  isAllQuantileComponentsDirty,
+  isForecastActive,
+} from "@/utils/forecasts/helpers";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -94,7 +97,7 @@ const ContinuousInput: FC<Props> = ({
       (isDirty ||
         (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
-          isNil(previousForecast.end_time)))
+          isForecastActive(previousForecast)))
     ) {
       onQuantileChange(
         getQuantilesDistributionFromSlider(sliderComponents, question, true)
@@ -155,11 +158,7 @@ const ContinuousInput: FC<Props> = ({
             </>
           )}
 
-          {predictionMessage && (
-            <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-              {predictionMessage}
-            </div>
-          )}
+          <ForecastPredictionMessage predictionMessage={predictionMessage} />
 
           <ContinuousTable
             question={question}

@@ -66,6 +66,7 @@ const ExpandableLongText: FC<ReadMoreProps> = ({ text }) => {
 
   useEffect(() => {
     measureHeightFn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [textHeight]);
 
   return (
@@ -136,7 +137,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
 
   let stats: {
     heading: string;
-    val: string | number | undefined | React.ReactElement<any>;
+    val: React.ReactNode;
   }[] = [
     { heading: t("predictions"), val: profile.forecasts_count },
     { heading: t("comments"), val: profile.comments_count },
@@ -266,7 +267,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
                 name="bio"
                 defaultValue={profile.bio}
                 errors={state?.errors}
-                className="w-full"
+                className="w-full xl:w-[470px]"
               />
             </div>
           </div>

@@ -1,5 +1,9 @@
 import { ApiService } from "@/services/api/api_service";
-import { CommentType, KeyFactorVoteType } from "@/types/comment";
+import {
+  CommentType,
+  KeyFactorVoteType,
+  CommentOfWeekEntry,
+} from "@/types/comment";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {
@@ -71,6 +75,12 @@ class CommentsApi extends ApiService {
       return comment;
     });
     return response;
+  }
+
+  async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekEntry[]> {
+    return await this.get<CommentOfWeekEntry[]>(
+      `/comments/comments-of-week/?start_date=${start_date}`
+    );
   }
 
   async getSuggestedKeyFactors(commentId: number): Promise<string[]> {

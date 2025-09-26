@@ -12,7 +12,18 @@ import {
 } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 
-import { Category } from "@/types/post";
+import { Category } from "@/types/projects";
+
+const CategoryLabel: React.FC<{
+  category: Category;
+}> = ({ category: { emoji, name } }) => {
+  return (
+    <div className="flex gap-1.5">
+      <span>{emoji}</span>
+      <span>{name}</span>
+    </div>
+  );
+};
 
 const CategoryPicker: React.FC<{
   allCategories: Category[];
@@ -90,7 +101,7 @@ const CategoryPicker: React.FC<{
                             selected ? "font-bold" : "font-normal"
                           }`}
                         >
-                          {category.name}
+                          <CategoryLabel category={category} />
                         </span>
                         {selected && (
                           <span className="flex items-center">
@@ -126,7 +137,9 @@ const CategoryPicker: React.FC<{
                 className="mr-2 cursor-pointer text-gray-400 group-hover:text-gray-500 dark:text-blue-500 dark:group-hover:text-gray-200"
                 icon={faX}
               ></FontAwesomeIcon>
-              <span>{category.name}</span>
+              <span>
+                <CategoryLabel category={category} />
+              </span>
             </div>
           );
         })}

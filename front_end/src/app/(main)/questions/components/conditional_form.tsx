@@ -39,7 +39,7 @@ import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import BacktoCreate from "./back_to_create";
-import ConditionalQuestionPicker from "./conditional_question_picker";
+import QuestionPicker, { SearchedQuestionType } from "./question_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -69,6 +69,7 @@ const ConditionalForm: React.FC<{
   community_id?: number;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
+  shouldUseDraftValue: boolean;
 }> = ({
   post = null,
   mode = "create",
@@ -78,6 +79,7 @@ const ConditionalForm: React.FC<{
   community_id = null,
   tournaments,
   siteMain,
+  shouldUseDraftValue,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -91,6 +93,7 @@ const ConditionalForm: React.FC<{
   if (isDone) {
     throw new Error(t("isDoneError"));
   }
+
   const isDraftMounted = useRef(false);
   const defaultProject = post
     ? post.projects.default_project
@@ -139,7 +142,9 @@ const ConditionalForm: React.FC<{
           resp = await updatePost(post?.id as number, post_data);
         } else {
           resp = await createQuestionPost(post_data);
-          deleteQuestionDraft(draftKey);
+          if (shouldUseDraftValue) {
+            deleteQuestionDraft(draftKey);
+          }
         }
         router.push(getPostLink(resp.post));
       }
@@ -153,7 +158,7 @@ const ConditionalForm: React.FC<{
   };
 
   useEffect(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const draft = getQuestionDraft(draftKey);
       if (draft) {
         setCurrentProject(
@@ -177,7 +182,7 @@ const ConditionalForm: React.FC<{
   }, []);
 
   const handleFormChange = useCallback(() => {
-    if (mode === "create") {
+    if (shouldUseDraftValue) {
       const formData = control.getValues();
       saveQuestionDraft(draftKey, {
         default_project: formData.default_project as number,
@@ -187,7 +192,7 @@ const ConditionalForm: React.FC<{
         condition_child_id: conditionChild?.id.toString(),
       });
     }
-  }, [control, mode, draftKey, conditionParent, conditionChild]);
+  }, [control, shouldUseDraftValue, draftKey, conditionParent, conditionChild]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -196,12 +201,12 @@ const ConditionalForm: React.FC<{
   // update draft when form values changes
   useEffect(() => {
     const subscription = control.watch(() => {
-      if (mode === "create" && isDraftMounted.current) {
+      if (shouldUseDraftValue && isDraftMounted.current) {
         debouncedHandleFormChange();
       }
     });
     return () => subscription.unsubscribe();
-  }, [control, mode, debouncedHandleFormChange]);
+  }, [control, shouldUseDraftValue, debouncedHandleFormChange]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -244,7 +249,7 @@ const ConditionalForm: React.FC<{
           />
         )}
         <InputContainer labelText={t("parentQuestion")}>
-          <ConditionalQuestionPicker
+          <QuestionPicker
             onQuestionChange={(question: QuestionWithForecasts) => {
               setConditionQuestion({
                 question,
@@ -255,7 +260,7 @@ const ConditionalForm: React.FC<{
               });
             }}
             title={t("selectParentQuestion")}
-            isParentQuestion={true}
+            searchedQuestionType={SearchedQuestionType.Parent}
             disabled={isLive && mode !== "create"}
           />
           <FormErrorMessage
@@ -275,7 +280,7 @@ const ConditionalForm: React.FC<{
           )}
         </InputContainer>
         <InputContainer labelText={t("childQuestion")}>
-          <ConditionalQuestionPicker
+          <QuestionPicker
             onQuestionChange={(question: QuestionWithForecasts) => {
               setConditionQuestion({
                 question,
@@ -286,7 +291,7 @@ const ConditionalForm: React.FC<{
               });
             }}
             title={t("selectChildQuestion")}
-            isParentQuestion={false}
+            searchedQuestionType={SearchedQuestionType.Child}
             disabled={isLive && mode !== "create"}
           />
           <FormErrorMessage

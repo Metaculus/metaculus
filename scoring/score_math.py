@@ -10,6 +10,7 @@ from questions.models import (
     Question,
 )
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from scoring.models import Score
 from utils.the_math.aggregations import get_aggregation_history
 
@@ -310,14 +311,14 @@ def evaluate_forecasts_legacy_relative(
 def evaluate_question(
     question: Question,
     resolution_bucket: int | None,
-    score_types: list[Score.ScoreTypes],
+    score_types: list[ScoreTypes],
     spot_forecast_timestamp: float | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
     score_users: bool | list[int] = True,
 ) -> list[Score]:
     aggregation_methods = aggregation_methods or []
     aggregations_to_calculate = aggregation_methods.copy()
-    if Score.ScoreTypes.RELATIVE_LEGACY in score_types and (
+    if ScoreTypes.RELATIVE_LEGACY in score_types and (
         AggregationMethod.RECENCY_WEIGHTED not in aggregations_to_calculate
     ):
         aggregations_to_calculate.append(AggregationMethod.RECENCY_WEIGHTED)
@@ -326,6 +327,8 @@ def evaluate_question(
     forecast_horizon_start = question.open_time.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
+    if spot_forecast_timestamp:
+        spot_forecast_timestamp = min(spot_forecast_timestamp, actual_close_time)
 
     # We need all user forecasts to calculated GeoMean even
     # if we're only scoring some or none of the users
@@ -348,7 +351,7 @@ def evaluate_question(
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
     geometric_means: list[AggregationEntry] = []
 
-    if Score.ScoreTypes.PEER in score_types:
+    if ScoreTypes.PEER in score_types:
         geometric_means = get_geometric_means(user_forecasts)
 
     scores: list[Score] = []
@@ -356,7 +359,7 @@ def evaluate_question(
         aggregation_scores: dict[AggregationMethod, list[Score | ForecastScore]] = (
             dict()
         )
-        if score_type == Score.ScoreTypes.BASELINE:
+        if score_type == ScoreTypes.BASELINE:
             open_bounds_count = bool(question.open_upper_bound) + bool(
                 question.open_lower_bound
             )
@@ -380,7 +383,7 @@ def evaluate_question(
                     question.type,
                     open_bounds_count,
                 )
-        elif score_type == Score.ScoreTypes.SPOT_BASELINE:
+        elif score_type == ScoreTypes.SPOT_BASELINE:
             open_bounds_count = bool(question.open_upper_bound) + bool(
                 question.open_lower_bound
             )
@@ -400,7 +403,7 @@ def evaluate_question(
                     question.type,
                     open_bounds_count,
                 )
-        elif score_type == Score.ScoreTypes.PEER:
+        elif score_type == ScoreTypes.PEER:
             user_scores = evaluate_forecasts_peer_accuracy(
                 scoring_user_forecasts,
                 user_forecasts,
@@ -423,7 +426,7 @@ def evaluate_question(
                     question.type,
                     geometric_means=geometric_means,
                 )
-        elif score_type == Score.ScoreTypes.SPOT_PEER:
+        elif score_type == ScoreTypes.SPOT_PEER:
             user_scores = evaluate_forecasts_peer_spot_forecast(
                 scoring_user_forecasts,
                 user_forecasts,
@@ -442,7 +445,7 @@ def evaluate_question(
                     question.type,
                     geometric_means=geometric_means,
                 )
-        elif score_type == Score.ScoreTypes.RELATIVE_LEGACY:
+        elif score_type == ScoreTypes.RELATIVE_LEGACY:
             user_scores = evaluate_forecasts_legacy_relative(
                 scoring_user_forecasts,
                 recency_weighted_aggregation,

@@ -49,6 +49,7 @@ export type LeaderboardEntry = {
   score: number;
   rank: number | null;
   excluded: boolean;
+  show_when_excluded: boolean;
   medal: MedalType | null;
   prize: number | null;
   coverage: number;
@@ -99,7 +100,9 @@ type BaseLeaderboardDetails = {
   start_time: string;
   end_time: string | null;
   finalize_time: string;
+  finalized: boolean;
   prize_pool: number | null;
+  max_coverage?: number;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {

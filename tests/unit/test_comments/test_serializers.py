@@ -1,6 +1,6 @@
 import pytest  # noqa
 
-from comments.models import KeyFactorVote
+from comments.models import DriverVote
 from comments.serializers import serialize_key_factors_many
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
@@ -17,15 +17,15 @@ def test_serialize_key_factors_many(user1, user2):
         text_en="Key Factor Text",
         votes={user1: 1, user2: -1, user3: -1},
         votes_score=-1,
-        vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE,
+        vote_type=DriverVote.VoteType.A_UPVOTE_DOWNVOTE,
     )
 
     # Test votes of the new types
-    KeyFactorVote.objects.create(
+    DriverVote.objects.create(
         key_factor=kf,
-        score=KeyFactorVote.VoteScore.INCREASE_HIGH,
+        score=DriverVote.VoteScore.INCREASE_HIGH,
         user=user1,
-        vote_type=KeyFactorVote.VoteType.C_LIKERT_SCALE,
+        vote_type=DriverVote.VoteType.C_LIKERT_SCALE,
     )
 
     data = serialize_key_factors_many([kf], current_user=user1)

@@ -1,27 +1,34 @@
 import { FC } from "react";
 
-import {
-  GroupOfQuestionsGraphType,
-  PostGroupOfQuestions,
-  PostWithForecasts,
-} from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
+import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
-  isGroupOfQuestionsPost,
+  checkGroupOfQuestionsPostType,
   isMultipleChoicePost,
 } from "@/utils/questions/helpers";
 
+import TimeSeriesChart from "../time_series_chart";
 import DateForecastCard from "./date_forecast_card";
 import NumericForecastCard from "./numeric_forecast_card";
 import PercentageForecastCard from "./percentage_forecast_card";
-import TimeSeriesChart from "../time_series_chart";
 
 type Props = {
   post: PostWithForecasts;
 };
 
 const GroupForecastCard: FC<Props> = ({ post }) => {
+  // Check forecast availability for group posts
+  const forecastAvailability = post.group_of_questions
+    ? getGroupForecastAvailability(post.group_of_questions.questions)
+    : null;
+
+  // Hide chart if no forecasts or CP not yet revealed
+  const shouldHideChart =
+    forecastAvailability &&
+    (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn);
+
   if (
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
   ) {
@@ -30,7 +37,10 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
       post.group_of_questions
     );
 
-    return <TimeSeriesChart questions={sortedQuestions} />;
+    // Don't render TimeSeriesChart if should hide chart
+    return shouldHideChart ? null : (
+      <TimeSeriesChart questions={sortedQuestions} />
+    );
   }
   if (
     isMultipleChoicePost(post) ||
@@ -48,22 +58,12 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
     post.group_of_questions &&
     checkGroupOfQuestionsPostType(post, QuestionType.Date)
   ) {
-    return <DateForecastCard questionsGroup={post.group_of_questions} />;
+    return (
+      <DateForecastCard post={post} questionsGroup={post.group_of_questions} />
+    );
   }
 
   return null;
 };
-
-function checkGroupOfQuestionsPostType<T extends QuestionType>(
-  post: PostWithForecasts,
-  type: T
-): post is PostWithForecasts & {
-  group_of_questions: PostGroupOfQuestions<QuestionWithForecasts & { type: T }>;
-} {
-  return (
-    isGroupOfQuestionsPost(post) &&
-    post.group_of_questions.questions[0]?.type === type
-  );
-}
 
 export default GroupForecastCard;

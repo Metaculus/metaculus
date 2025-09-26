@@ -2,7 +2,7 @@
     <mj-column>
         <mj-text>
             {% blocktrans %}
-            <h4>Here are some other questions you may be interested in:</h4>
+            <h4>👀 Here are some other questions you may be interested in:</h4>
             {% endblocktrans %}
         </mj-text>
     </mj-column>

@@ -14,6 +14,7 @@ from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import factory_forecast
 from tests.unit.test_users.factories import factory_user
+from users.models import User
 
 
 @pytest.mark.parametrize(
@@ -52,27 +53,70 @@ def test_get_mention_label_for_user(user1, mentions, expected):
 
 
 @pytest.mark.parametrize(
-    "text,expected_usernames,expected_mentions",
+    "text,comment_author_username,expected_usernames,expected_mentions",
     [
-        ["No mention", set(), set()],
-        ["Wanna mention @mentioned_user", {"mentioned_user"}, {"mentioned_user"}],
-        ["Wanna mention @predictors", {"forecaster"}, {"predictors"}],
+        ["No mention", "admin", set(), set()],
+        [
+            "Wanna mention @mentioned_user",
+            "admin",
+            {"mentioned_user"},
+            {"mentioned_user"},
+        ],
+        ["Wanna mention @predictors", "admin", {"forecaster"}, {"predictors"}],
         [
             "Wanna mention @mentioned_user and @predictors",
+            "admin",
             {"mentioned_user", "forecaster"},
             {"mentioned_user", "predictors"},
         ],
-        ["Wanna mention @curators", {"curator", "admin", "superuser"}, {"curators"}],
-        ["Wanna mention @admins", {"admin", "superuser"}, {"admins"}],
+        [
+            "Wanna mention @curators",
+            "admin",
+            {"curator", "admin", "superuser"},
+            {"curators"},
+        ],
+        ["Wanna mention @admins", "admin", {"admin", "superuser"}, {"admins"}],
         [
             "Wanna mention @admins @curators",
+            "admin",
+            {"curator", "admin", "superuser"},
+            {"curators", "admins"},
+        ],
+        ["No mention", "forecaster", set(), set()],
+        [
+            "Wanna mention @mentioned_user",
+            "forecaster",
+            {"mentioned_user"},
+            {"mentioned_user"},
+        ],
+        ["Wanna mention @predictors", "forecaster", set(), {"predictors"}],
+        [
+            "Wanna mention @mentioned_user and @predictors",
+            "forecaster",
+            {"mentioned_user"},
+            {"mentioned_user", "predictors"},
+        ],
+        [
+            "Wanna mention @curators",
+            "forecaster",
+            {"curator", "admin", "superuser"},
+            {"curators"},
+        ],
+        ["Wanna mention @admins", "forecaster", {"admin", "superuser"}, {"admins"}],
+        [
+            "Wanna mention @admins @curators",
+            "forecaster",
             {"curator", "admin", "superuser"},
             {"curators", "admins"},
         ],
     ],
 )
 def test_comment_extract_user_mentions(
-    question_binary, text, expected_usernames, expected_mentions
+    question_binary,
+    text,
+    comment_author_username,
+    expected_usernames,
+    expected_mentions,
 ):
     # Random user
     factory_user(username="mentioned_user")
@@ -96,9 +140,12 @@ def test_comment_extract_user_mentions(
     )
     factory_forecast(question=question_binary, author=forecaster)
 
-    # Case 1: no mentions
     qs, mentions = comment_extract_user_mentions(
-        factory_comment(on_post=post, text_original=text)
+        factory_comment(
+            author=User.objects.get(username=comment_author_username),
+            on_post=post,
+            text_original=text,
+        )
     )
 
     assert {x.username for x in qs} == expected_usernames

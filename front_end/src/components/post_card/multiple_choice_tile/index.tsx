@@ -5,11 +5,16 @@ import React, { FC, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import FanChart from "@/components/charts/fan_chart";
+import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import {
+  buildDefaultForecastExpiration,
+  forecastExpirationToDate,
+} from "@/components/forecast_maker/forecast_expiration";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
 import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -22,6 +27,9 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
+import { CurrentUser } from "@/types/users";
+import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -31,6 +39,8 @@ type BaseProps = {
   hideCP?: boolean;
   chartHeight?: number;
   canPredict?: boolean;
+  showChart?: boolean;
+  optionsLimit?: number;
 };
 
 type QuestionProps = {
@@ -79,7 +89,9 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   hideCP,
   forecastAvailability,
   canPredict,
+  showChart = true,
 }) => {
+  const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
   // when resolution chip is shown we want to hide the chart and display the chip
@@ -96,8 +108,9 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
         question,
         groupQuestions: group?.questions,
         groupType,
+        user,
       }),
-    [group?.questions, groupType, question]
+    [group?.questions, groupType, question, user]
   );
 
   const handleReaffirmClick = useCallback(() => {
@@ -107,8 +120,15 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
-      <div className="resize-container">
+    <div
+      className={cn(
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-5 md:gap-8",
+        {
+          "md:grid md:grid-cols-5": showChart,
+        }
+      )}
+    >
+      <div className="resize-container w-full md:col-span-2">
         {isResolvedView ? (
           <PredictionChip question={question} status={PostStatus.RESOLVED} />
         ) : (
@@ -123,40 +143,50 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
           />
         )}
       </div>
-      {!isResolvedView && (
-        <div className="relative w-full">
-          <MultipleChoiceChart
-            timestamps={timestamps}
-            actualCloseTime={actualCloseTime}
-            choiceItems={choices}
-            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-            extraTheme={chartTheme}
-            defaultZoom={defaultChartZoom}
-            withZoomPicker={withZoomPicker}
-            questionType={groupType}
-            scaling={scaling}
-            isEmptyDomain={
-              !!forecastAvailability?.isEmpty ||
-              !!forecastAvailability?.cpRevealsOn
-            }
-            openTime={openTime}
-            hideCP={hideCP}
-          />
-          <ForecastAvailabilityChartOverflow
-            forecastAvailability={forecastAvailability}
-            className="text-xs lg:text-sm"
-          />
+      {showChart && !isResolvedView && (
+        <div className="relative w-full md:col-span-3">
+          {isNil(group) ? (
+            <MultipleChoiceChart
+              timestamps={timestamps}
+              actualCloseTime={actualCloseTime}
+              choiceItems={choices}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
+              scaling={scaling}
+              forecastAvailability={forecastAvailability}
+              openTime={openTime}
+              hideCP={hideCP}
+              forFeedPage
+            />
+          ) : (
+            <GroupChart
+              questionType={groupType}
+              timestamps={timestamps}
+              actualCloseTime={actualCloseTime}
+              choiceItems={choices}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
+              scaling={scaling}
+              forecastAvailability={forecastAvailability}
+              forceShowLinePoints={true}
+              openTime={openTime}
+              hideCP={hideCP}
+              forFeedPage
+            />
+          )}
         </div>
       )}
     </div>
   );
 };
 
-type FanGraphMultipleChoiceTileProps = BaseProps & GroupProps;
+type FanGraphTileProps = BaseProps & GroupProps;
 
-export const FanGraphMultipleChoiceTile: FC<
-  FanGraphMultipleChoiceTileProps
-> = ({
+export const FanGraphTile: FC<FanGraphTileProps> = ({
   group,
   choices,
   visibleChoicesCount,
@@ -164,13 +194,20 @@ export const FanGraphMultipleChoiceTile: FC<
   chartHeight,
   groupType,
   canPredict,
+  showChart = true,
+  optionsLimit,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
-
+  const { user } = useAuth();
   const { canReaffirm, forecast } = useMemo(
-    () => generateReaffirmData({ groupQuestions: group.questions, groupType }),
-    [group.questions, groupType]
+    () =>
+      generateReaffirmData({
+        groupQuestions: group.questions,
+        groupType,
+        user,
+      }),
+    [group.questions, groupType, user]
   );
 
   const handleReaffirmClick = useCallback(() => {
@@ -180,29 +217,39 @@ export const FanGraphMultipleChoiceTile: FC<
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
-      <div className="resize-container">
+    <div
+      className={cn(
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
+        {
+          "md:grid md:grid-cols-5": showChart,
+        }
+      )}
+    >
+      <div className="resize-container w-full md:col-span-2">
         <MultipleChoiceTileLegend
           ref={ref}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           hideCP={hideCP}
           questionType={groupType}
-          hideChoiceIcon
-          optionLabelClassName="text-olive-800 dark:text-olive-800-dark"
           canPredict={canPredict && canReaffirm}
           onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+          withChoiceIcon={false}
         />
       </div>
-      <div className="w-full">
-        <FanChart
-          group={group}
-          height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-          pointSize={8}
-          hideCP={hideCP}
-          withTooltip={false}
-        />
-      </div>
+      {showChart && (
+        <div className="w-full md:col-span-3">
+          <FanChart
+            group={group}
+            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+            pointSize={9}
+            hideCP={hideCP}
+            withTooltip={false}
+            optionsLimit={optionsLimit}
+            forFeedPage
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -212,10 +259,12 @@ function generateReaffirmData({
   question,
   groupQuestions,
   groupType,
+  user,
 }: {
   question?: QuestionWithMultipleChoiceForecasts;
   groupQuestions?: QuestionWithNumericForecasts[];
   groupType?: QuestionType;
+  user: CurrentUser | null;
 }): {
   canReaffirm: boolean;
   forecast: ForecastPayload[];
@@ -225,7 +274,8 @@ function generateReaffirmData({
   // multiple choice question
   if (question) {
     const latest = question.my_forecasts?.latest;
-    if (!latest || latest.end_time) {
+    const hasActivePrediction = latest && isForecastActive(latest);
+    if (!hasActivePrediction) {
       return fallback;
     }
 
@@ -240,12 +290,19 @@ function generateReaffirmData({
       {}
     );
 
+    const forecastExpiration = buildDefaultForecastExpiration(
+      question,
+      user?.prediction_expiration_percent ?? undefined
+    );
+
+    const forecastEndTime = forecastExpirationToDate(forecastExpiration);
     return {
       canReaffirm:
         !!latest.forecast_values.length && !!Object.keys(forecastValue).length,
       forecast: [
         {
           questionId: question.id,
+          forecastEndTime,
           forecastData: {
             continuousCdf: null,
             probabilityYes: null,
@@ -262,32 +319,39 @@ function generateReaffirmData({
     if (groupType === QuestionType.Binary) {
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
+        const hasActivePrediction = latest && isForecastActive(latest);
         let forecast: number | null = null;
-        if (latest && !latest.end_time) {
-          forecast = latest.forecast_values[1] ?? null;
+        if (hasActivePrediction) {
+          forecast = latest?.forecast_values[1] ?? null;
         }
 
         return {
-          id: q.id,
+          question: q,
           forecast,
-          status: q.status,
         };
       });
 
       const reaffirmForecasts = groupForecasts.filter(
-        (q) => q.forecast !== null && q.status === QuestionStatus.OPEN
+        (q) => q.forecast !== null && q.question.status === QuestionStatus.OPEN
       );
 
       return {
         canReaffirm: !!reaffirmForecasts.length,
-        forecast: reaffirmForecasts.map((q) => ({
-          questionId: q.id,
-          forecastData: {
-            probabilityYes: q.forecast,
-            probabilityYesPerCategory: null,
-            continuousCdf: null,
-          },
-        })),
+        forecast: reaffirmForecasts.map((q) => {
+          const forecastExpiration = buildDefaultForecastExpiration(
+            q.question,
+            user?.prediction_expiration_percent ?? undefined
+          );
+          return {
+            questionId: q.question.id,
+            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastData: {
+              probabilityYes: q.forecast,
+              probabilityYesPerCategory: null,
+              continuousCdf: null,
+            },
+          };
+        }),
       };
     }
 
@@ -296,15 +360,16 @@ function generateReaffirmData({
       const groupForecasts = groupQuestions.map((q) => {
         const latest = q.my_forecasts?.latest;
         let forecastValues: number[] | undefined = undefined;
-        if (latest && !latest.end_time) {
+        const hasActivePrediction = latest && isForecastActive(latest);
+
+        if (hasActivePrediction) {
           forecastValues = latest.forecast_values;
         }
 
         return {
-          id: q.id,
+          question: q,
           forecastValues,
           distributionInput: latest?.distribution_input,
-          status: q.status,
         };
       });
 
@@ -312,14 +377,19 @@ function generateReaffirmData({
         (q) =>
           !isNil(q.forecastValues) &&
           !isNil(q.distributionInput) &&
-          q.status === QuestionStatus.OPEN
+          q.question.status === QuestionStatus.OPEN
       );
 
       return {
         canReaffirm: !!reaffirmForecasts.length,
         forecast: reaffirmForecasts.map((q) => {
+          const forecastExpiration = buildDefaultForecastExpiration(
+            q.question,
+            user?.prediction_expiration_percent ?? undefined
+          );
           return {
-            questionId: q.id,
+            questionId: q.question.id,
+            forecastEndTime: forecastExpirationToDate(forecastExpiration),
             forecastData: {
               // okay to ignore, we check for null when calculating reaffirmForecasts
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
