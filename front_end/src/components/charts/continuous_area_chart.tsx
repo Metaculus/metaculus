@@ -89,6 +89,7 @@ type Props = {
   forceTickCount?: number; // is used on feed page
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
+  outlineUser?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -106,6 +107,7 @@ const ContinuousAreaChart: FC<Props> = ({
   forceTickCount,
   withResolutionChip = true,
   withTodayLine = true,
+  outlineUser = false,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -529,7 +531,12 @@ const ContinuousAreaChart: FC<Props> = ({
                               return undefined;
                           }
                         })(),
-                        opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                        opacity:
+                          outlineUser && chart.type === "user"
+                            ? 0
+                            : chart.type === "user_previous"
+                              ? 0.1
+                              : 0.3,
                       },
                     }}
                   />

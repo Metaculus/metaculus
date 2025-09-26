@@ -74,6 +74,9 @@ type QuestionOption = {
   menu: ReactNode;
   status?: QuestionStatus;
   forecastExpiration?: ForecastExpirationValue;
+  defaultSliderValue: number;
+  wasWithdrawn: boolean;
+  withdrawnEndTimeSec?: number | null;
 };
 
 type Props = {
@@ -216,26 +219,33 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const questionsToSubmit = useMemo(
-    () =>
-      questionOptions.filter(
-        (option) =>
-          option.forecast !== null && option.status === QuestionStatus.OPEN
-      ),
-    [questionOptions]
-  );
 
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
   );
 
+  const questionsToSubmit = useMemo(() => {
+    const byId = new Map(questions.map((q) => [q.id, q]));
+    return questionOptions.filter((option) => {
+      if (option.status !== QuestionStatus.OPEN) return false;
+      if (option.isDirty) return true;
+      if (!isPickerDirty && hasSomeActiveUserForecasts) {
+        const q = byId.get(option.id);
+        return q ? isOpenQuestionPredicted(q) : false;
+      }
+      return false;
+    });
+  }, [questionOptions, questions, isPickerDirty, hasSomeActiveUserForecasts]);
+
   const resetForecasts = useCallback(() => {
     setQuestionOptions((prev) =>
       prev.map((prevQuestion) => ({
         ...prevQuestion,
         isDirty: false,
-        forecast: prevForecastValuesMap[prevQuestion.id] ?? null,
+        forecast: prevQuestion.wasWithdrawn
+          ? null
+          : prevForecastValuesMap[prevQuestion.id] ?? null,
       }))
     );
   }, [prevForecastValuesMap]);
@@ -359,7 +369,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               highlightedOptionId={highlightedQuestionId}
               onOptionClick={setHighlightedQuestionId}
               forecastValue={questionOption.forecast}
-              defaultSliderValue={50}
+              defaultSliderValue={questionOption.defaultSliderValue}
               choiceName={questionOption.name}
               choiceColor={questionOption.color}
               communityForecast={
@@ -369,6 +379,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
               isDirty={questionOption.isDirty}
+              withdrawn={questionOption.wasWithdrawn}
+              withdrawnEndTimeSec={questionOption.withdrawnEndTimeSec}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
@@ -505,14 +517,21 @@ function generateChoiceOptions({
   return questions.map((question, index) => {
     const latest =
       question.aggregations[question.default_aggregation_method].latest;
+
+    const last = question.my_forecasts?.latest;
+    const wasWithdrawn = !!last?.end_time && last.end_time * 1000 < Date.now();
+    const prev = prevForecastValuesMap[question.id];
     return {
       id: question.id,
       name: question.label,
       communityForecast:
         latest && isForecastActive(latest) ? latest.centers?.[0] ?? null : null,
-      forecast: prevForecastValuesMap[question.id] ?? null,
+      forecast: wasWithdrawn ? null : prev ?? null,
       resolution: question.resolution,
       isDirty: false,
+      defaultSliderValue: prev ?? 50,
+      wasWithdrawn,
+      withdrawnEndTimeSec: last?.end_time ?? null,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       status: question.status,
       forecastExpiration,
