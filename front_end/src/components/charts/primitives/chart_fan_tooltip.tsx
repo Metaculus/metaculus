@@ -144,7 +144,13 @@ const ChartFanTooltip: FC<Props> = ({
         height={height}
         x={x}
         y={y}
-        className="border-purple-600 p-2 dark:border-purple-600-dark"
+        className={[
+          "border-purple-600 dark:border-purple-600-dark",
+          "p-2",
+          "text-[10px] leading-[14px]",
+          "text-gray-900 dark:text-gray-900-dark",
+          "bg-gray-0 dark:bg-gray-0-dark",
+        ].join(" ")}
       >
         <div>
           {formatResolution({

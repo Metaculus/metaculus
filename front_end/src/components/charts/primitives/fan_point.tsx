@@ -48,6 +48,42 @@ const FanPoint: FC<Props> = ({
   if (isNil(x) || isNil(y)) {
     return null;
   }
+  const datumUnsuccess = datum?.unsuccessfullyResolved;
+  const isAnnulled =
+    typeof unsuccessfullyResolved === "boolean"
+      ? unsuccessfullyResolved
+      : !!datumUnsuccess;
+
+  if (isAnnulled) {
+    const circleSize = 8;
+    const xSize = 3;
+
+    return (
+      <g>
+        <line
+          x1={x}
+          y1={"5%"}
+          x2={x}
+          y2={`calc(100% - ${bottomPadding}px)`}
+          stroke={getThemeColor(METAC_COLORS.purple[active ? "600" : "300"])}
+          strokeWidth={1}
+        />
+        <circle
+          cx={x}
+          cy={y}
+          r={circleSize}
+          fill={bgColor ?? getThemeColor(METAC_COLORS.gray["200"])}
+          stroke={getThemeColor(METAC_COLORS.purple["700"])}
+          strokeWidth={active ? 2 : 1}
+        />
+        <g stroke={getThemeColor(METAC_COLORS.purple["700"])} strokeWidth={1.5}>
+          <line x1={x - xSize} y1={y - xSize} x2={x + xSize} y2={y + xSize} />
+          <line x1={x + xSize} y1={y - xSize} x2={x - xSize} y2={y + xSize} />
+        </g>
+      </g>
+    );
+  }
+
   if (isClosed) {
     return (
       <g>
@@ -72,35 +108,6 @@ const FanPoint: FC<Props> = ({
             <stop offset="1" stopColor="white" stopOpacity="0" />
           </linearGradient>
         </defs>
-      </g>
-    );
-  }
-  if (unsuccessfullyResolved) {
-    const circleSize = 8;
-    const xSize = 3;
-
-    return (
-      <g>
-        <line
-          x1={x}
-          y1={"5%"}
-          x2={x}
-          y2={`calc(100% - ${bottomPadding}px)`}
-          stroke={getThemeColor(METAC_COLORS.purple["300"])}
-          strokeWidth={1}
-        />
-        <circle
-          cx={x}
-          cy={y}
-          r={circleSize}
-          fill={bgColor ?? getThemeColor(METAC_COLORS.gray["200"])}
-          stroke={getThemeColor(METAC_COLORS.purple["700"])}
-          strokeWidth={active ? 2 : 1}
-        />
-        <g stroke={getThemeColor(METAC_COLORS.purple["700"])} strokeWidth={1.5}>
-          <line x1={x - xSize} y1={y - xSize} x2={x + xSize} y2={y + xSize} />
-          <line x1={x + xSize} y1={y - xSize} x2={x - xSize} y2={y + xSize} />
-        </g>
       </g>
     );
   }
