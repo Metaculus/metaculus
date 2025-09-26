@@ -375,13 +375,15 @@ class TestAggregations:
                     centers=[0.3, 0.7],
                     interval_upper_bounds=[0.4, 0.7],
                     means=[0.32350213768407476, 0.6764978623159252],
-                    histogram=[0] * 60
-                    + [1]
-                    + [0] * 9
-                    + [0.7277212189012763]
-                    + [0] * 9
-                    + [0.48092170020263214]
-                    + [0] * 19,
+                    histogram=(
+                        [0] * 60
+                        + [1]
+                        + [0] * 9
+                        + [0.7277212189012763]
+                        + [0] * 9
+                        + [0.48092170020263214]
+                        + [0] * 19
+                    ),
                 ),
             ),
             (
@@ -462,7 +464,6 @@ class TestAggregations:
         assert (new_aggregation.means == expected.means) or np.allclose(
             new_aggregation.means, expected.means
         )
-        print(new_aggregation.histogram)
         assert (new_aggregation.histogram == expected.histogram) or np.allclose(
             new_aggregation.histogram, expected.histogram
         )
