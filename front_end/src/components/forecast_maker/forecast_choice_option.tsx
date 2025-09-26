@@ -170,9 +170,8 @@ const ForecastChoiceOption = <T = string,>({
       <tr
         className={cn({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
-          "bg-blue-200 bg-fixed dark:bg-blue-200-dark":
-            highlightedOptionId === id,
-          "bg-gradient-to-r from-purple-200 to-gray-0 bg-fixed dark:from-purple-200-dark dark:to-gray-0-dark":
+          "bg-blue-200  dark:bg-blue-200-dark": highlightedOptionId === id,
+          "bg-gradient-to-r from-purple-200 to-gray-0 dark:from-purple-200-dark dark:to-gray-0-dark":
             isQuestionResolved || isGroupResolutionHighlighted,
         })}
         onClick={() => onOptionClick?.(id)}
