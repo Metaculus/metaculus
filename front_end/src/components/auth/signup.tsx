@@ -25,6 +25,7 @@ import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
+import { AppTheme } from "@/types/theme";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
@@ -81,7 +82,11 @@ export const SignupForm: FC<{
       ...data,
       redirectUrl: currentLocation,
       newsletterOptin: watch("newsletterOptin"),
-      appTheme: themeChoice === "auto" ? "system" : themeChoice,
+      appTheme: (Object.values(AppTheme) as string[]).includes(
+        themeChoice ?? ""
+      )
+        ? (themeChoice as AppTheme)
+        : AppTheme.System,
     });
 
     if (response && response.errors) {
