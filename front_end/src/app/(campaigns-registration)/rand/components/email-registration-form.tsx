@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FC, useState } from "react";
+import { FC } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -160,11 +160,16 @@ type SubmissionState =
   | { status: "success"; email: string }
   | { status: "error"; message: string };
 
-export const EmailRegistrationForm: FC = () => {
+interface EmailRegistrationFormProps {
+  submissionState: SubmissionState;
+  setSubmissionState: React.Dispatch<React.SetStateAction<SubmissionState>>;
+}
+
+export const EmailRegistrationForm: FC<EmailRegistrationFormProps> = ({
+  submissionState,
+  setSubmissionState,
+}) => {
   const { user } = useAuth();
-  const [submissionState, setSubmissionState] = useState<SubmissionState>({
-    status: "idle",
-  });
 
   const {
     register,
@@ -230,7 +235,10 @@ export const EmailRegistrationForm: FC = () => {
     <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-800 p-6 dark:bg-blue-950 md:p-8">
       <div className="text-center">
         <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
-          Complete the form below to be eligible for prizes.
+          Complete the form below to be eligible for prizes.{" "}
+          <strong>Undergraduate students only</strong> are eligible for prizes.
+          Please register with your school email address (.edu, .ac.uk, .ac.kr,
+          .int, or .mil).
         </p>
       </div>
 
@@ -426,7 +434,7 @@ export const EmailRegistrationForm: FC = () => {
                 htmlFor="consentAgreed"
                 className="cursor-pointer text-sm text-white/90 dark:text-gray-200"
               >
-                I consent to participate in this research and agree to the{" "}
+                I have read and agree to the{" "}
                 <a
                   href="/rand/consent-form"
                   target="_blank"
@@ -434,9 +442,11 @@ export const EmailRegistrationForm: FC = () => {
                   className="text-white underline hover:text-white/80"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  consent form
+                  Consent Form
                 </a>
-                .
+                , agree to share my information with RAND Forecasting
+                Initiative, and I agree to be contacted by RAND Forecasting
+                Initiative.
               </label>
             </div>
             <FormError
