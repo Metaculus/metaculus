@@ -16,28 +16,96 @@ import { logError } from "@/utils/core/errors";
 import { submitToZapierWebhook } from "../actions";
 import { SuccessMessage } from "./success-message";
 
-// Field of Study options
+// Field of Study options (alphabetical order)
 const FIELD_OF_STUDY_OPTIONS = [
-  { value: "mathematics", label: "Mathematics" },
-  { value: "statistics", label: "Statistics" },
-  { value: "economics", label: "Economics" },
-  { value: "political_science", label: "Political Science" },
-  { value: "international_relations", label: "International Relations" },
-  { value: "public_policy", label: "Public Policy" },
+  {
+    value: "aerospace_space_engineering",
+    label: "Aerospace / Space Engineering",
+  },
+  { value: "anthropology", label: "Anthropology" },
+  {
+    value: "area_studies_languages",
+    label: "Area Studies & Languages (specify region/language)",
+  },
+  { value: "biology_microbiology", label: "Biology / Microbiology" },
+  {
+    value: "bioengineering_biotechnology_biodefense",
+    label: "Bioengineering / Biotechnology / Biodefense",
+  },
+  { value: "business_finance", label: "Business / Finance" },
+  {
+    value: "communication_media_studies",
+    label: "Communication / Media Studies (incl. mis/disinformation)",
+  },
   { value: "computer_science", label: "Computer Science" },
-  { value: "data_science", label: "Data Science" },
-  { value: "psychology", label: "Psychology" },
-  { value: "sociology", label: "Sociology" },
-  { value: "philosophy", label: "Philosophy" },
-  { value: "business", label: "Business" },
-  { value: "finance", label: "Finance" },
-  { value: "engineering", label: "Engineering" },
-  { value: "physics", label: "Physics" },
+  {
+    value: "criminology_criminal_justice",
+    label: "Criminology / Criminal Justice",
+  },
+  {
+    value: "cybersecurity_information_security",
+    label: "Cybersecurity / Information Security",
+  },
+  { value: "data_science_ai", label: "Data Science / AI" },
+  {
+    value: "earth_environmental_sciences",
+    label: "Earth & Environmental Sciences",
+  },
+  { value: "economics", label: "Economics" },
+  {
+    value: "electrical_computer_engineering",
+    label: "Electrical & Computer Engineering",
+  },
+  { value: "energy_systems", label: "Energy Systems" },
+  { value: "engineering_general", label: "Engineering (General)" },
+  { value: "english_literature", label: "English / Literature" },
+  {
+    value: "geography_gis_geospatial",
+    label: "Geography / GIS / Geospatial Intelligence",
+  },
   { value: "history", label: "History" },
-  { value: "english", label: "English" },
+  { value: "information_science", label: "Information Science" },
+  { value: "interdisciplinary_studies", label: "Interdisciplinary Studies" },
+  { value: "international_relations", label: "International Relations" },
   { value: "journalism", label: "Journalism" },
   { value: "law", label: "Law" },
+  { value: "linguistics", label: "Linguistics" },
+  { value: "materials_science", label: "Materials Science" },
+  { value: "mathematics", label: "Mathematics" },
+  { value: "nuclear_engineering", label: "Nuclear Engineering" },
   { value: "other", label: "Other" },
+  { value: "philosophy", label: "Philosophy" },
+  { value: "physics", label: "Physics" },
+  { value: "political_science", label: "Political Science" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
+  {
+    value: "psychology_cognitive_behavioral",
+    label: "Psychology / Cognitive & Behavioral Science",
+  },
+  {
+    value: "public_administration_urban_planning",
+    label: "Public Administration / Urban Planning",
+  },
+  {
+    value: "public_health_epidemiology",
+    label: "Public Health & Epidemiology",
+  },
+  { value: "public_policy", label: "Public Policy" },
+  {
+    value: "robotics_autonomous_systems",
+    label: "Robotics & Autonomous Systems",
+  },
+  {
+    value: "security_strategic_studies",
+    label:
+      "Security & Strategic Studies (incl. Intelligence / Homeland Security)",
+  },
+  { value: "sociology", label: "Sociology" },
+  { value: "statistics", label: "Statistics" },
+  {
+    value: "systems_operations_research",
+    label: "Systems & Operations Research",
+  },
 ];
 
 // Program Type options
