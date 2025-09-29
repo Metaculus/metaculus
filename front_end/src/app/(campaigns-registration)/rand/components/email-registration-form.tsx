@@ -67,12 +67,16 @@ const emailRegistrationSchema = z.object({
   university: z.string().min(1, "University is required"),
   fieldOfStudy: z.string().min(1, "Field of study is required"),
   programType: z.string().min(1, "Program type is required"),
-  hasForecastingTraining: z.enum(["yes", "no"], {
-    required_error: "Please select an option",
-  }),
-  hasForecastingExperience: z.enum(["yes", "no"], {
-    required_error: "Please select an option",
-  }),
+  hasForecastingTraining: z
+    .any()
+    .refine((val) => val === "yes" || val === "no", {
+      message: "Please select yes or no",
+    }),
+  hasForecastingExperience: z
+    .any()
+    .refine((val) => val === "yes" || val === "no", {
+      message: "Please select yes or no",
+    }),
   motivation: z
     .string()
     .min(
@@ -159,233 +163,248 @@ export const EmailRegistrationForm: FC = () => {
   }
 
   return (
-    <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-700 p-6 dark:bg-blue-950 md:p-8">
+    <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-800 p-6 dark:bg-blue-950 md:p-8">
       <div className="text-center">
         <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
-          Register now for the RAND x Metaculus National Forecasting Tournament.
           Complete the form below to secure your spot and receive tournament
           updates.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <InputContainer
-          labelText="Email Address"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <Input
-            type="email"
-            placeholder="Enter your email address (.edu, .ac.uk, .int or .mil)"
-            className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
-            disabled={submissionState.status === "loading"}
-            {...register("email")}
-          />
-          <FormError
-            errors={errors}
-            name="email"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <InputContainer
-          labelText="University"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <Input
-            type="text"
-            placeholder="Enter your university name"
-            className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
-            disabled={submissionState.status === "loading"}
-            {...register("university")}
-          />
-          <FormError
-            errors={errors}
-            name="university"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <InputContainer
-          labelText="Field of Study"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <Select
-            options={[
-              {
-                value: "",
-                label: "Select your field of study",
-                disabled: true,
-              },
-              ...FIELD_OF_STUDY_OPTIONS,
-            ]}
-            className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:bg-gray-600"
-            disabled={submissionState.status === "loading"}
-            {...register("fieldOfStudy")}
-          />
-          <FormError
-            errors={errors}
-            name="fieldOfStudy"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <InputContainer
-          labelText="Program Type"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <Select
-            options={[
-              { value: "", label: "Select your program type", disabled: true },
-              ...PROGRAM_TYPE_OPTIONS,
-            ]}
-            className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:bg-gray-600"
-            disabled={submissionState.status === "loading"}
-            {...register("programType")}
-          />
-          <FormError
-            errors={errors}
-            name="programType"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <InputContainer
-          labelText="Have you ever taken a forecasting training course?"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <div className="flex gap-6">
-            <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
-              <input
-                type="radio"
-                value="yes"
-                className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
-                disabled={submissionState.status === "loading"}
-                {...register("hasForecastingTraining")}
-              />
-              Yes
-            </label>
-            <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
-              <input
-                type="radio"
-                value="no"
-                className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
-                disabled={submissionState.status === "loading"}
-                {...register("hasForecastingTraining")}
-              />
-              No
-            </label>
-          </div>
-          <FormError
-            errors={errors}
-            name="hasForecastingTraining"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <InputContainer
-          labelText="Have you ever forecast on any platform before?"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <div className="flex gap-6">
-            <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
-              <input
-                type="radio"
-                value="yes"
-                className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
-                disabled={submissionState.status === "loading"}
-                {...register("hasForecastingExperience")}
-              />
-              Yes
-            </label>
-            <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
-              <input
-                type="radio"
-                value="no"
-                className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
-                disabled={submissionState.status === "loading"}
-                {...register("hasForecastingExperience")}
-              />
-              No
-            </label>
-          </div>
-          <FormError
-            errors={errors}
-            name="hasForecastingExperience"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <InputContainer
-          labelText="Motivation for participating in competition"
-          className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
-        >
-          <Textarea
-            placeholder="Please describe your motivation for participating in this forecasting competition..."
-            className="block min-h-[100px] w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
-            disabled={submissionState.status === "loading"}
-            {...register("motivation")}
-          />
-          <FormError
-            errors={errors}
-            name="motivation"
-            className="!text-red-300 dark:!text-red-400"
-          />
-        </InputContainer>
-
-        <div className="pt-2">
-          <div className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              id="consentAgreed"
-              className="mt-1 h-4 w-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
-              disabled={submissionState.status === "loading"}
-              {...register("consentAgreed")}
-            />
-            <label
-              htmlFor="consentAgreed"
-              className="cursor-pointer text-sm text-white/90 dark:text-gray-200"
+        {/* Desktop: 2-column layout, Mobile: single column */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-8">
+          {/* Column 1 - Basic Info */}
+          <div className="space-y-5">
+            <InputContainer
+              labelText="Email Address"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
             >
-              I consent to participate in this research and agree to the{" "}
-              <a
-                href="/rand/consent-form"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white underline hover:text-white/80"
-                onClick={(e) => e.stopPropagation()}
-              >
-                consent form
-              </a>
-              .
-            </label>
+              <Input
+                type="email"
+                placeholder="Enter your email address (.edu, .ac.uk, .int or .mil)"
+                className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
+                disabled={submissionState.status === "loading"}
+                {...register("email")}
+              />
+              <FormError
+                errors={errors}
+                name="email"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
+
+            <InputContainer
+              labelText="University"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
+            >
+              <Input
+                type="text"
+                placeholder="Enter your university name"
+                className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
+                disabled={submissionState.status === "loading"}
+                {...register("university")}
+              />
+              <FormError
+                errors={errors}
+                name="university"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
+
+            <InputContainer
+              labelText="Field of Study"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
+            >
+              <Select
+                options={[
+                  {
+                    value: "",
+                    label: "Select your field of study",
+                    disabled: true,
+                  },
+                  ...FIELD_OF_STUDY_OPTIONS,
+                ]}
+                className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:bg-gray-600"
+                disabled={submissionState.status === "loading"}
+                {...register("fieldOfStudy")}
+              />
+              <FormError
+                errors={errors}
+                name="fieldOfStudy"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
+
+            <InputContainer
+              labelText="Program Type"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
+            >
+              <Select
+                options={[
+                  {
+                    value: "",
+                    label: "Select your program type",
+                    disabled: true,
+                  },
+                  ...PROGRAM_TYPE_OPTIONS,
+                ]}
+                className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:bg-gray-600"
+                disabled={submissionState.status === "loading"}
+                {...register("programType")}
+              />
+              <FormError
+                errors={errors}
+                name="programType"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
           </div>
-          <FormError
-            errors={errors}
-            name="consentAgreed"
-            className="!text-red-300 dark:!text-red-400"
-          />
+
+          {/* Column 2 - Experience & Motivation */}
+          <div className="space-y-5">
+            <InputContainer
+              labelText="Have you ever taken a forecasting training course?"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
+            >
+              <div className="flex gap-6">
+                <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
+                  <input
+                    type="radio"
+                    value="yes"
+                    className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
+                    disabled={submissionState.status === "loading"}
+                    {...register("hasForecastingTraining")}
+                  />
+                  Yes
+                </label>
+                <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
+                  <input
+                    type="radio"
+                    value="no"
+                    className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
+                    disabled={submissionState.status === "loading"}
+                    {...register("hasForecastingTraining")}
+                  />
+                  No
+                </label>
+              </div>
+              <FormError
+                errors={errors}
+                name="hasForecastingTraining"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
+
+            <InputContainer
+              labelText="Have you ever forecast on any platform before?"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
+            >
+              <div className="flex gap-6">
+                <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
+                  <input
+                    type="radio"
+                    value="yes"
+                    className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
+                    disabled={submissionState.status === "loading"}
+                    {...register("hasForecastingExperience")}
+                  />
+                  Yes
+                </label>
+                <label className="flex cursor-pointer items-center text-white/90 dark:text-gray-200">
+                  <input
+                    type="radio"
+                    value="no"
+                    className="mr-2 h-4 w-4 border-white/20 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
+                    disabled={submissionState.status === "loading"}
+                    {...register("hasForecastingExperience")}
+                  />
+                  No
+                </label>
+              </div>
+              <FormError
+                errors={errors}
+                name="hasForecastingExperience"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
+
+            <InputContainer
+              labelText="Motivation for participating in competition"
+              className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
+            >
+              <Textarea
+                placeholder="Please describe your motivation for participating in this forecasting competition..."
+                className="block min-h-[100px] w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
+                disabled={submissionState.status === "loading"}
+                {...register("motivation")}
+              />
+              <FormError
+                errors={errors}
+                name="motivation"
+                className="!text-red-300 dark:!text-red-400"
+              />
+            </InputContainer>
+          </div>
         </div>
 
-        {submissionState.status === "error" && (
-          <div className="text-sm font-normal !text-red-300 dark:!text-red-400">
-            {submissionState.message}
-          </div>
-        )}
-
-        <Button
-          type="submit"
-          disabled={submissionState.status === "loading"}
-          className="w-full"
-          variant="primary"
-        >
-          {submissionState.status === "loading" ? (
-            <div className="flex items-center justify-center">
-              <LoadingSpinner className="mr-2 h-4 w-4" />
-              Submitting...
+        {/* Full-width sections - Consent and Submit */}
+        <div className="mx-auto max-w-xl space-y-5 pt-2">
+          <div>
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="consentAgreed"
+                className="mt-1 h-4 w-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
+                disabled={submissionState.status === "loading"}
+                {...register("consentAgreed")}
+              />
+              <label
+                htmlFor="consentAgreed"
+                className="cursor-pointer text-sm text-white/90 dark:text-gray-200"
+              >
+                I consent to participate in this research and agree to the{" "}
+                <a
+                  href="/rand/consent-form"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white underline hover:text-white/80"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  consent form
+                </a>
+                .
+              </label>
             </div>
-          ) : (
-            "Register for Tournament"
+            <FormError
+              errors={errors}
+              name="consentAgreed"
+              className="!text-red-300 dark:!text-red-400"
+            />
+          </div>
+
+          {submissionState.status === "error" && (
+            <div className="text-sm font-normal !text-red-300 dark:!text-red-400">
+              {submissionState.message}
+            </div>
           )}
-        </Button>
+
+          <Button
+            type="submit"
+            disabled={submissionState.status === "loading"}
+            className="w-full bg-blue-950 hover:bg-blue-900"
+            variant="primary"
+          >
+            {submissionState.status === "loading" ? (
+              <div className="flex items-center justify-center">
+                <LoadingSpinner className="mr-2 h-4 w-4" />
+                Submitting...
+              </div>
+            ) : (
+              "Register for Tournament"
+            )}
+          </Button>
+        </div>
       </form>
 
       {user && (
