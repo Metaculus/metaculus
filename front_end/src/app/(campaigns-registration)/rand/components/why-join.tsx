@@ -6,7 +6,7 @@ export const WhyJoin: FC = () => {
   return (
     <div className="w-full rounded-lg bg-blue-300 px-8 py-4 pb-8 dark:bg-blue-300-dark">
       <h2 className="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200 sm:text-xl">
-        WHY SHOULD I JOIN THE COMPETITION?
+        Why should I join the competition?
       </h2>
 
       <p className="mb-4 text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">

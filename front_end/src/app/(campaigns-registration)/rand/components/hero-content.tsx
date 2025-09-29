@@ -1,7 +1,11 @@
 "use client";
 
+import { faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { FC } from "react";
+
+import Button from "@/components/ui/button";
 
 export const HeroContent: FC = () => {
   return (
@@ -65,25 +69,31 @@ export const HeroContent: FC = () => {
       </div>
 
       {/* Main Headline */}
-      <h1 className="mb-1 text-lg font-bold text-blue-800 dark:text-blue-200 sm:mb-4 sm:text-2xl md:text-3xl lg:text-left lg:text-4xl lg:leading-tight">
+      <h1 className="mb-1 text-lg font-bold text-blue-800 dark:text-blue-200 sm:mb-4 sm:text-xl md:text-2xl lg:text-left lg:text-3xl lg:leading-tight">
         Predict the Future. Inform public policy. $10,000 in prizes.
       </h1>
 
       {/* Main Description */}
-      <p className="mb-1 text-sm font-normal leading-relaxed text-gray-700 dark:text-gray-700-dark sm:mb-4 sm:text-lg md:text-xl">
+      <p className="mb-1 text-sm font-normal leading-relaxed text-gray-700 dark:text-gray-700-dark sm:mb-4 sm:text-base">
         Metaculus and the RAND Corporation are launching a{" "}
         <strong>national forecasting tournament</strong> for university
         students.
       </p>
 
-      <p className="mb-1 text-sm font-normal leading-relaxed text-gray-700 dark:text-gray-700-dark sm:mb-4 sm:text-lg">
+      <p className="mb-1 text-sm font-normal leading-relaxed text-gray-700 dark:text-gray-700-dark sm:mb-4 sm:text-base">
         Make forecasts on key policy questions, and help decision-makers see
         what&apos;s coming next.
       </p>
 
-      <p className="mb-1 text-base font-semibold text-blue-800 dark:text-blue-200 sm:mb-4 sm:text-xl">
+      <p className="mb-1 text-base font-semibold text-blue-800 dark:text-blue-200 sm:mb-4 sm:text-lg">
         Tournament begins October 1, 2025.
       </p>
+
+      {/* Tournament Button */}
+      <Button variant="tertiary" size="md" href="/tournament/rand/">
+        <FontAwesomeIcon icon={faTrophy} />
+        Visit Tournament Page
+      </Button>
     </div>
   );
 };

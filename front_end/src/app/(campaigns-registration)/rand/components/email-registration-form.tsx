@@ -166,8 +166,7 @@ export const EmailRegistrationForm: FC = () => {
     <div className="flex w-full flex-col gap-6 rounded-lg bg-blue-800 p-6 dark:bg-blue-950 md:p-8">
       <div className="text-center">
         <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
-          Complete the form below to secure your spot and receive tournament
-          updates.
+          Complete the form below to be eligible for prizes.
         </p>
       </div>
 
