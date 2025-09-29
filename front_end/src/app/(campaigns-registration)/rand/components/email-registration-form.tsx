@@ -77,12 +77,7 @@ const emailRegistrationSchema = z.object({
     .refine((val) => val === "yes" || val === "no", {
       message: "Please select yes or no",
     }),
-  motivation: z
-    .string()
-    .min(
-      10,
-      "Please provide at least 10 characters explaining your motivation"
-    ),
+  motivation: z.string().optional(),
   consentAgreed: z.boolean().refine((val) => val === true, {
     message: "You must agree to the consent form to participate",
   }),
@@ -116,7 +111,7 @@ export const EmailRegistrationForm: FC = () => {
       programType: "",
       hasForecastingTraining: undefined,
       hasForecastingExperience: undefined,
-      motivation: "",
+      motivation: undefined,
       consentAgreed: false,
     },
   });
@@ -329,7 +324,7 @@ export const EmailRegistrationForm: FC = () => {
             </InputContainer>
 
             <InputContainer
-              labelText="Motivation for participating in competition"
+              labelText="Motivation for participating in competition (optional)"
               className="[&>label]:!text-white/90 dark:[&>label]:!text-gray-200"
             >
               <Textarea

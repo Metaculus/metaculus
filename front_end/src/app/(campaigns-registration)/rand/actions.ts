@@ -16,7 +16,7 @@ export interface AdditionalFormData {
   programType: string;
   hasForecastingTraining: boolean;
   hasForecastingExperience: boolean;
-  motivation: string;
+  motivation?: string;
   consentAgreed: boolean;
 }
 
