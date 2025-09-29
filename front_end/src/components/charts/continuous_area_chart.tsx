@@ -649,7 +649,6 @@ const ContinuousAreaChart: FC<Props> = ({
                 stroke: "transparent",
               },
               axis: {
-                stroke: "transparent",
                 strokeWidth: 0,
               },
               tickLabels: {
@@ -697,7 +696,7 @@ const ContinuousAreaChart: FC<Props> = ({
             <VictoryLine
               data={[
                 { x: 0, y: yDomain[0] },
-                { x: 0, y: yDomain[1] },
+                { x: 0, y: yDomain[1] * 0.9 },
               ]}
               style={{
                 data: {
@@ -711,7 +710,7 @@ const ContinuousAreaChart: FC<Props> = ({
             <VictoryLine
               data={[
                 { x: 1, y: yDomain[0] },
-                { x: 1, y: yDomain[1] },
+                { x: 1, y: yDomain[1] * 0.9 },
               ]}
               style={{
                 data: {
