@@ -190,3 +190,15 @@ export function isContinuousQuestion(question: QuestionWithForecasts): boolean {
     QuestionType.Date,
   ].includes(question.type);
 }
+
+export function isValidScaling(
+  scaling: Scaling | null | undefined
+): scaling is {
+  range_min: number;
+  range_max: number;
+  zero_point: number | null;
+} {
+  return (
+    !isNil(scaling) && !isNil(scaling.range_min) && !isNil(scaling.range_max)
+  );
+}
