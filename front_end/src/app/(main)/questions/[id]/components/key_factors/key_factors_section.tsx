@@ -3,6 +3,7 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
@@ -195,26 +196,27 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
           wrapperClassName="scroll-mt-header"
         >
           {KeyFactors}
-          {displayedAggregateLinks?.length > 0 && (
-            <>
-              <div className="mb-2 mt-2 text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
-                Aggregate Question Links
-              </div>
-              {Array.from(
-                displayedAggregateLinks,
-                (link: FetchedAggregateCoherenceLink) => (
-                  <div key={link.id}>
-                    <DisplayCoherenceLink
-                      link={link}
-                      post={post}
-                      compact={false}
-                    ></DisplayCoherenceLink>
-                    <br></br>
-                  </div>
-                )
-              )}
-            </>
-          )}
+          {posthog.getFeatureFlag("aggregate_question_links") &&
+            displayedAggregateLinks?.length > 0 && (
+              <>
+                <div className="mb-2 mt-2 text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
+                  Aggregate Question Links
+                </div>
+                {Array.from(
+                  displayedAggregateLinks,
+                  (link: FetchedAggregateCoherenceLink) => (
+                    <div key={link.id}>
+                      <DisplayCoherenceLink
+                        link={link}
+                        post={post}
+                        compact={false}
+                      ></DisplayCoherenceLink>
+                      <br></br>
+                    </div>
+                  )
+                )}
+              </>
+            )}
         </SectionToggle>
       )}
     </>
