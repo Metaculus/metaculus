@@ -10,11 +10,11 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLine,
   VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
-  VictoryLabel,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -33,11 +33,12 @@ import {
   Question,
   QuestionType,
   QuestionWithForecasts,
+  Scaling,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import {
-  getClosestYValue,
   getClosestXValue,
+  getClosestYValue,
   interpolateYValue,
 } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
@@ -48,6 +49,7 @@ import {
   computeQuartilesFromCDF,
   unscaleNominalLocation,
 } from "@/utils/math";
+import { isValidScaling } from "@/utils/questions/helpers";
 
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -59,6 +61,12 @@ const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   user: "orange",
   user_previous: "orange",
   user_components: "orange",
+};
+
+export type DomainOverride = {
+  xDomain: [number, number];
+  isGlobalMin: boolean;
+  isGlobalMax: boolean;
 };
 
 export type ContinuousAreaGraphInput = Array<{
@@ -89,6 +97,7 @@ type Props = {
   forceTickCount?: number; // is used on feed page
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
+  domainOverride?: DomainOverride;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -106,6 +115,11 @@ const ContinuousAreaChart: FC<Props> = ({
   forceTickCount,
   withResolutionChip = true,
   withTodayLine = true,
+  domainOverride = {
+    xDomain: [0, 1],
+    isGlobalMin: true,
+    isGlobalMax: true,
+  },
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -162,7 +176,7 @@ const ContinuousAreaChart: FC<Props> = ({
     if (question.type !== QuestionType.Discrete) {
       if (graphType === "cdf") {
         return {
-          xDomain: [0, 1],
+          xDomain: domainOverride?.xDomain ?? [0, 1],
           yDomain: [0, 1],
         };
       }
@@ -171,7 +185,7 @@ const ContinuousAreaChart: FC<Props> = ({
         ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
       );
       return {
-        xDomain: [0, 1],
+        xDomain: domainOverride?.xDomain ?? [0, 1],
         yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
@@ -199,7 +213,7 @@ const ContinuousAreaChart: FC<Props> = ({
       xDomain: xDomain,
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType, question.type, charts]);
+  }, [data, graphType, question.type, charts, domainOverride.xDomain]);
 
   const xScale = useMemo(
     () =>
@@ -635,8 +649,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 stroke: "transparent",
               },
               axis: {
-                stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                strokeWidth: 1,
+                strokeWidth: 0,
               },
               tickLabels: {
                 fontSize: 10,
@@ -678,6 +691,35 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
+          {/* Left/Right borders at bounds if requested */}
+          {!domainOverride.isGlobalMin && (
+            <VictoryLine
+              data={[
+                { x: 0, y: yDomain[0] },
+                { x: 0, y: yDomain[1] * 0.9 },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                  strokeWidth: 0.5,
+                },
+              }}
+            />
+          )}
+          {!domainOverride.isGlobalMax && (
+            <VictoryLine
+              data={[
+                { x: 1, y: yDomain[0] },
+                { x: 1, y: yDomain[1] * 0.9 },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                  strokeWidth: 0.5,
+                },
+              }}
+            />
+          )}
           {charts.map((chart, k) =>
             chart.verticalLines.map((line, index) => (
               <VictoryLine
@@ -999,6 +1041,28 @@ export function getContinuousAreaChartData({
   }
 
   return chartData;
+}
+
+export function generateXDomainOverride(
+  globalScaling: Scaling | undefined | null,
+  question: Question
+): DomainOverride {
+  if (!isValidScaling(question.scaling) || !isValidScaling(globalScaling)) {
+    return {
+      xDomain: [0, 1],
+      isGlobalMin: true,
+      isGlobalMax: true,
+    };
+  }
+
+  return {
+    xDomain: [
+      unscaleNominalLocation(globalScaling.range_min, question.scaling),
+      unscaleNominalLocation(globalScaling.range_max, question.scaling),
+    ],
+    isGlobalMin: question.scaling.range_min <= globalScaling.range_min,
+    isGlobalMax: question.scaling.range_max >= globalScaling.range_max,
+  };
 }
 
 export default React.memo(ContinuousAreaChart);
