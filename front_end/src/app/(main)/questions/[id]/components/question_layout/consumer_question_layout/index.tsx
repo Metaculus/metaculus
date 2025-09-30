@@ -2,13 +2,19 @@ import { useTranslations } from "next-intl";
 import { PropsWithChildren, Suspense } from "react";
 
 import CommentFeed from "@/components/comment_feed";
+import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import {
   Tabs,
   TabsList,
   TabsSection,
   TabsTab,
 } from "@/components/ui/tabs/index";
-import { PostWithForecasts } from "@/types/post";
+import {
+  GroupOfQuestionsGraphType,
+  GroupOfQuestionsPost,
+  PostWithForecasts,
+} from "@/types/post";
+import { QuestionWithNumericForecasts } from "@/types/question";
 
 import QuestionTimeline, {
   hasTimeline as hasTimelineFn,
@@ -51,7 +57,18 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <CommentFeed compactVersion postData={postData} />
             </TabsSection>
             {hasTimeline && (
-              <TabsSection value="timeline">
+              <TabsSection className="space-y-4" value="timeline">
+                <DetailedGroupCard
+                  post={
+                    postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                  }
+                  preselectedQuestionId={preselectedGroupQuestionId}
+                  groupPresentationOverride={
+                    GroupOfQuestionsGraphType.MultipleChoiceGraph
+                  }
+                  prioritizeOpenSubquestions
+                  className="mt-2"
+                />
                 <QuestionTimeline
                   className="block"
                   postData={postData}
