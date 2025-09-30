@@ -211,7 +211,6 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         required=False, choices=Post.CurationStatus.choices
     )
     news_type = serializers.ListField(child=serializers.CharField(), required=False)
-    public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     withdrawn = serializers.BooleanField(required=False, allow_null=True)
@@ -241,12 +240,6 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
             return Project.objects.get(pk=value)
         except Project.DoesNotExist:
             raise ValidationError("Project does not exist")
-
-    def validate_public_figure(self, value: int):
-        try:
-            return Project.objects.filter(pk=value)
-        except Project.DoesNotExist:
-            raise ValidationError("Slug does not exist")
 
     def validate_news_type(self, values: list[str]):
         news_types = Project.objects.filter_news_category().filter(slug__in=values)
