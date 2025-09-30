@@ -1519,5 +1519,8 @@
   "delays": "延遲",
   "closeTime": "結束時間",
   "resolveTime": "解決時間",
+  "topCommentsDescription": "熱門留言是根據留言投票、關鍵因素投票和改變想法來確定的。在多個類別中獲得高分會獲得額外加分。只有在留言計數的一週內所投的票會算入排名，排名在該七天期限後最終確定。",
+  "medalRank": "您的排名取決於您到目前為止獲得的所有獎牌。更高級別和更新的獎牌權重更大。",
+  "learnMoreFAQ": "在我們的常見問題中了解更多",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

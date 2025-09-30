@@ -573,7 +573,12 @@ function buildChartData({
       ? getQuestionForecastAvailability(option.question)
       : { isEmpty: false, cpRevealsOn: null as number | null };
 
-    const isResolved = option.resolved && !unsuccessfullyResolved;
+    const isResolved = !!option.resolved && !unsuccessfullyResolved;
+
+    if (unsuccessfullyResolved) {
+      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved: true });
+      continue;
+    }
 
     if (
       questionForecastAvailability.isEmpty ||

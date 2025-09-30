@@ -8,6 +8,7 @@ import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server"
 import { MedalCategory, MedalProjectType, MedalType } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 
+import MedalRankInfoTooltip from "./medal_rank_info_tooltip";
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
 import { getMedalCategories } from "../helpers/medal_categories";
@@ -233,9 +234,12 @@ export const MedalsWidget: FC<Props> = async ({ profileId }) => {
     <section className="flex flex-col gap-4 rounded md:gap-6 lg:flex-row">
       {/* Forecasting Performance */}
       <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[2]">
-        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-          {t("forecastingPerformance")}
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+            {t("forecastingPerformance")}
+          </h3>
+          <MedalRankInfoTooltip />
+        </div>
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Tournaments */}
           <div className="flex-1">

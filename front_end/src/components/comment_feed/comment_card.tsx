@@ -27,6 +27,7 @@ type Props = {
   changedMyMindCount: number;
   keyFactorVotesScore: number;
   className?: string;
+  expandOverride?: "auto" | "expanded" | "collapsed";
 };
 
 const BottomStatContainer: FC<PropsWithChildren<{ className?: string }>> = ({
@@ -114,6 +115,7 @@ const ExpandableCommentContent = ({
           mode="read"
           withUgcLinks
           withTwitterPreview
+          withCodeBlocks
         />
 
         {comment.key_factors && comment.key_factors.length > 0 && (
@@ -135,14 +137,29 @@ const CommentCard: FC<Props> = ({
   votesScore,
   changedMyMindCount,
   keyFactorVotesScore,
+  expandOverride = "auto",
 }) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsExpand, setNeedsExpand] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [localExpanded, setLocalExpanded] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setLocalExpanded(null);
+  }, [expandOverride]);
+
+  const controlledExpanded =
+    expandOverride === "expanded"
+      ? true
+      : expandOverride === "collapsed"
+        ? false
+        : undefined;
+
+  const effectiveExpanded = localExpanded ?? controlledExpanded ?? isExpanded;
 
   // Fixed height threshold - adjust this value as needed
-  const HEIGHT_THRESHOLD = 200; // pixels
+  const HEIGHT_THRESHOLD = 10; // pixels
 
   useEffect(() => {
     const measureHeight = () => {
@@ -158,8 +175,9 @@ const CommentCard: FC<Props> = ({
         const shouldExpand = fullHeight > HEIGHT_THRESHOLD;
 
         setNeedsExpand(shouldExpand);
-        setIsExpanded(!shouldExpand);
-
+        if (controlledExpanded === undefined) {
+          setIsExpanded(!shouldExpand);
+        }
         // Restore original styles
         contentRef.current.style.height = originalHeight;
         contentRef.current.style.overflow = originalOverflow;
@@ -170,7 +188,7 @@ const CommentCard: FC<Props> = ({
     const timeoutId = setTimeout(measureHeight, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [comment.text, comment.key_factors, HEIGHT_THRESHOLD, comment.id]);
+  }, [comment.text, comment.key_factors, comment.id, controlledExpanded]);
 
   const handleGoToComment = () => {
     if (comment.on_post_data) {
@@ -207,7 +225,7 @@ const CommentCard: FC<Props> = ({
       {/* Expandable comment content */}
       <ExpandableCommentContent
         comment={comment}
-        isExpanded={isExpanded}
+        isExpanded={effectiveExpanded}
         needsExpand={needsExpand}
         contentRef={contentRef}
       />
@@ -247,7 +265,46 @@ const CommentCard: FC<Props> = ({
           )}
         </div>
 
-        {isExpanded || !needsExpand ? (
+        {needsExpand ? (
+          <div className="flex items-center gap-2">
+            <BottomStatContainer
+              className={
+                effectiveExpanded
+                  ? "p-1 md:px-2.5 md:py-1"
+                  : "border-blue-500 dark:border-blue-500-dark"
+              }
+            >
+              <Button
+                variant="text"
+                size="sm"
+                onClick={() =>
+                  setLocalExpanded(effectiveExpanded ? false : true)
+                }
+                className="p-0"
+              >
+                <FontAwesomeIcon
+                  icon={effectiveExpanded ? faChevronUp : faChevronDown}
+                  className="text-blue-600 dark:text-blue-600-dark"
+                />
+                {effectiveExpanded ? "Collapse" : "Expand"}
+              </Button>
+            </BottomStatContainer>
+
+            {effectiveExpanded && (
+              <BottomStatContainer className="p-1 md:px-2.5 md:py-1">
+                <Button
+                  size="sm"
+                  variant="text"
+                  onClick={handleGoToComment}
+                  className="p-0"
+                >
+                  <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
+                  <span className="hidden md:block">View comment</span>
+                </Button>
+              </BottomStatContainer>
+            )}
+          </div>
+        ) : (
           <BottomStatContainer className="p-1 md:px-2.5 md:py-1">
             <Button
               size="sm"
@@ -257,21 +314,6 @@ const CommentCard: FC<Props> = ({
             >
               <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
               <span className="hidden md:block">View comment</span>
-            </Button>
-          </BottomStatContainer>
-        ) : (
-          <BottomStatContainer className="border-blue-500  dark:border-blue-500-dark ">
-            <Button
-              variant="text"
-              size="sm"
-              onClick={() => setIsExpanded(true)}
-              className="p-0"
-            >
-              <FontAwesomeIcon
-                icon={faChevronDown}
-                className="text-blue-600 dark:text-blue-600-dark"
-              />
-              Expand
             </Button>
           </BottomStatContainer>
         )}

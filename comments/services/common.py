@@ -305,9 +305,11 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                                 created_at__gte=F("key_factor__comment__created_at"),
                                 created_at__lt=F("key_factor__comment__created_at")
                                 + datetime.timedelta(days=7),
-                            ).exclude(user_id=OuterRef("comment__author_id"))
+                            )
+                            .exclude(user_id=OuterRef("comment__author_id"))
                             .values("key_factor")
-                            .annotate(avg=Avg(Abs("score"))).values("avg")[:1],
+                            .annotate(avg=Avg(Abs("score")))
+                            .values("avg")[:1],
                             output_field=FloatField(),
                         ),
                         0.0,

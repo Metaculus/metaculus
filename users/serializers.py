@@ -97,10 +97,10 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_should_suggest_keyfactors(self, user: User):
         return (
-                Driver.objects.filter(comment__author=user).exists()
-                or LeaderboardEntry.objects.filter(
-                    user=user, medal=LeaderboardEntry.Medals.GOLD
-                ).exists()
+            Driver.objects.filter(comment__author=user).exists()
+            or LeaderboardEntry.objects.filter(
+                user=user, medal=LeaderboardEntry.Medals.GOLD
+            ).exists()
         )
 
 

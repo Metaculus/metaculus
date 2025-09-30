@@ -4,6 +4,7 @@ import "./editor.css";
 import {
   CodeBlockEditorDescriptor,
   codeBlockPlugin,
+  codeMirrorPlugin,
   diffSourcePlugin,
   headingsPlugin,
   imagePlugin,
@@ -21,6 +22,7 @@ import {
 } from "@mdxeditor/editor";
 import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
 import { useTranslations } from "next-intl";
+import { Highlight, themes as prismThemes } from "prism-react-renderer";
 import {
   FC,
   ForwardedRef,
@@ -44,6 +46,12 @@ import EditorToolbar from "./editor_toolbar";
 import { embeddedQuestionDescriptor } from "./embedded_question";
 import { tweetDescriptor } from "./embedded_twitter";
 import { processMarkdown } from "./helpers";
+import { codeFenceShortcutPlugin } from "./plugins/code/code_fence_shortcut";
+import {
+  CANONICAL_TO_LABEL,
+  CANONICAL_TO_PRISM,
+  normalizeLang,
+} from "./plugins/code/languages";
 import { equationPlugin } from "./plugins/equation";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
@@ -56,18 +64,48 @@ const beautifulMentionsTheme: BeautifulMentionsTheme = {
   "@Focused": "ring-2 ring-offset-1 ring-blue-500 dark:ring-blue-500-dark",
 };
 
-const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
+const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
+  code,
+  language,
+}) => {
+  const { theme } = useAppTheme();
+  const prismTheme =
+    theme === "dark" ? prismThemes.dracula : prismThemes.github;
+
+  const raw = (language as string | undefined) ?? "ts";
+  const prismLang = CANONICAL_TO_PRISM[normalizeLang(raw)] ?? "tsx";
+  const codeTrimmed = (code ?? "").replace(/^\n+|\n+$/g, "");
+
+  return (
+    <div className="my-4">
+      <Highlight
+        key={theme}
+        theme={prismTheme}
+        code={codeTrimmed}
+        language={prismLang}
+      >
+        {({ className, tokens, getLineProps, getTokenProps }) => (
+          <pre
+            className={`${className} overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark`}
+          >
+            {tokens.map((line, i) => (
+              <div key={i} {...getLineProps({ line })}>
+                {line.map((token, key) => (
+                  <span key={key} {...getTokenProps({ token })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        )}
+      </Highlight>
+    </div>
+  );
+};
+
+const PrismCodeBlockDescriptor: CodeBlockEditorDescriptor = {
   match: () => true,
   priority: 0,
-  Editor: (props) => {
-    return (
-      <div>
-        <pre className="m-4 mx-5 overflow-x-auto whitespace-pre-wrap break-normal rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark">
-          {props.code}
-        </pre>
-      </div>
-    );
-  },
+  Editor: PrismCodeBlock,
 };
 
 export type MarkdownEditorProps = {
@@ -82,6 +120,7 @@ export type MarkdownEditorProps = {
   className?: string;
   initialMention?: string;
   withTwitterPreview?: boolean;
+  withCodeBlocks?: boolean;
 };
 
 /**
@@ -103,6 +142,7 @@ const InitializedMarkdownEditor: FC<
   withUgcLinks,
   initialMention,
   withTwitterPreview = false,
+  withCodeBlocks = false,
 }) => {
   const { user } = useAuth();
   const { theme } = useAppTheme();
@@ -178,7 +218,7 @@ const InitializedMarkdownEditor: FC<
   );
 
   const baseFormattingPlugins = useMemo(() => {
-    return [
+    const common = [
       headingsPlugin(),
       listsPlugin(),
       linkPlugin({ withUgcLinks }),
@@ -192,9 +232,6 @@ const InitializedMarkdownEditor: FC<
         : []),
       quotePlugin(),
       markdownShortcutPlugin(),
-      codeBlockPlugin({
-        codeBlockEditorDescriptors: [PlainTextCodeEditorDescriptor],
-      }),
       thematicBreakPlugin(),
       linkDialogPlugin(),
       tablePlugin(),
@@ -204,6 +241,27 @@ const InitializedMarkdownEditor: FC<
       }),
       equationPlugin(),
     ];
+
+    if (!withCodeBlocks) {
+      return common;
+    }
+
+    if (mode === "read") {
+      return [
+        ...common,
+        codeBlockPlugin({
+          codeBlockEditorDescriptors: [PrismCodeBlockDescriptor],
+        }),
+      ];
+    }
+    return [
+      ...common,
+      codeBlockPlugin({ defaultCodeBlockLanguage: "ts" }),
+      codeMirrorPlugin({
+        codeBlockLanguages: CANONICAL_TO_LABEL,
+      }),
+      codeFenceShortcutPlugin(),
+    ];
   }, [
     withUgcLinks,
     withUserMentions,
@@ -211,15 +269,17 @@ const InitializedMarkdownEditor: FC<
     user?.is_staff,
     user?.is_superuser,
     imageUploadHandler,
+    mode,
+    withCodeBlocks,
   ]);
 
   const editorToolbarPlugin = useMemo(() => {
     if (mode === "read") return null;
 
     return toolbarPlugin({
-      toolbarContents: () => <EditorToolbar />,
+      toolbarContents: () => <EditorToolbar withCodeBlocks={withCodeBlocks} />,
     });
-  }, [mode]);
+  }, [mode, withCodeBlocks]);
 
   const editorDiffSourcePlugin = useMemo(() => {
     if (mode === "read") return null;

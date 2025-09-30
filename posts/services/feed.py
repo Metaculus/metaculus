@@ -246,7 +246,7 @@ def get_posts_feed(
             # Full-text search is currently not fully optimized.
             # To avoid overloading the database, it is applied only to filtered and narrowed queries.
             if tournaments:
-                q = q | Q(pk__in=posts_full_text_search(qs, search))
+                q = Q(rank__gte=0.4) | Q(pk__in=posts_full_text_search(qs, search))
 
             qs = qs.filter(q)
 

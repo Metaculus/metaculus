@@ -599,12 +599,6 @@ class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
             "created_at",
         )
 
-    def validate_next_trigger_datetime(self, value):
-        if value <= timezone.now():
-            raise ValidationError("Can not be in the past")
-
-        return value
-
     def validate_recurrence_interval(self, value):
         if not value:
             return
