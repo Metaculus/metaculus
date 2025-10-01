@@ -215,7 +215,7 @@ def serialize_key_factor(
 
     return {
         "id": key_factor.id,
-        "text": key_factor.text,
+        "driver": {"text": key_factor.driver.text} if key_factor.driver else None,
         "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
         "post_id": key_factor.comment.on_post_id,
@@ -236,7 +236,7 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
-        .select_related("comment__author")
+        .select_related("comment__author", "driver")
         .annotate(votes_count=Count("votes"))
     )
 

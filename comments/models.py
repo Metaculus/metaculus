@@ -189,11 +189,19 @@ class KeyFactorQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class KeyFactor(TimeStampedModel, TranslatedModel):
-    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
+# TODO: should it have KeyFactor prefix?
+class Driver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
+
+
+class KeyFactor(TimeStampedModel):
+    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
+
+    driver = models.OneToOneField(
+        Driver, models.PROTECT, related_name="key_factor", null=True
+    )
 
     def get_votes_score(self) -> int:
         """
@@ -227,7 +235,7 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
     vote_type: str = None
 
     def __str__(self):
-        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}"
 
     class Meta:
         # Used to get rid of the type error which complains

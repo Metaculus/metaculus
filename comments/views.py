@@ -31,8 +31,8 @@ from comments.services.common import (
     pin_comment,
     unpin_comment,
     soft_delete_comment,
+    update_comment,
 )
-from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import (
     create_key_factors,
@@ -346,8 +346,11 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
     existing_keyfactors = [
-        keyfactor.text
-        for keyfactor in KeyFactor.objects.for_posts([comment.on_post]).filter_active()
+        keyfactor.driver.text
+        for keyfactor in KeyFactor.objects.for_posts([comment.on_post])
+        .filter_active()
+        .filter(driver__isnull=False)
+        .select_related("driver")
     ]
 
     suggested_key_factors = generate_keyfactors_for_comment(
