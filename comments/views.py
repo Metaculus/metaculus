@@ -14,8 +14,8 @@ from comments.models import (
     Comment,
     CommentVote,
     CommentsOfTheWeekEntry,
-    Driver,
-    DriverVote,
+    KeyFactor,
+    KeyFactorVote,
 )
 from comments.serializers import (
     CommentWriteSerializer,
@@ -301,14 +301,14 @@ def comment_create_oldapi_view(request: Request):
 
 @api_view(["POST"])
 def key_factor_vote_view(request: Request, pk: int):
-    key_factor = get_object_or_404(Driver, pk=pk)
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
     vote = serializers.ChoiceField(
-        required=False, allow_null=True, choices=DriverVote.VoteScore.choices
+        required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
     ).run_validation(request.data.get("vote"))
     # vote_type is always required, and when vote is None, the type is being used to
     # decide which vote to delete based on the type
     vote_type = serializers.ChoiceField(
-        required=True, allow_null=False, choices=DriverVote.VoteType.choices
+        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
     ).run_validation(request.data.get("vote_type"))
 
     score = key_factor_vote(
@@ -347,7 +347,7 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
 
     existing_keyfactors = [
         keyfactor.text
-        for keyfactor in Driver.objects.for_posts([comment.on_post]).filter_active()
+        for keyfactor in KeyFactor.objects.for_posts([comment.on_post]).filter_active()
     ]
 
     suggested_key_factors = generate_keyfactors_for_comment(

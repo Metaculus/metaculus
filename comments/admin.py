@@ -2,11 +2,11 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
 from utils.models import CustomTranslationAdmin
-from .models import Comment, Driver
+from .models import Comment, KeyFactor
 
 
 class DriverInline(admin.TabularInline):
-    model = Driver
+    model = KeyFactor
     extra = 0
     fields = ["text", "votes_score", "is_active"]
     readonly_fields = ["votes_score"]
@@ -47,7 +47,7 @@ class CommentAdmin(CustomTranslationAdmin):
         return not obj.on_post.is_private()
 
 
-@admin.register(Driver)
+@admin.register(KeyFactor)
 class DriverAdmin(CustomTranslationAdmin):
     list_filter = [
         AutocompleteFilterFactory("Comment", "comment"),

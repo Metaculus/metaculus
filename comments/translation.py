@@ -1,6 +1,6 @@
 from modeltranslation.translator import TranslationOptions, translator
 
-from .models import Comment, Driver
+from .models import Comment, KeyFactor
 
 
 class CommentTranslationOptions(TranslationOptions):
@@ -12,4 +12,4 @@ class KeyFactorTranslationOptions(TranslationOptions):
 
 
 translator.register(Comment, CommentTranslationOptions)
-translator.register(Driver, KeyFactorTranslationOptions)
+translator.register(KeyFactor, KeyFactorTranslationOptions)

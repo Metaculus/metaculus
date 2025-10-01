@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment, Driver, DriverVote, CommentsOfTheWeekEntry
+from comments.models import Comment, KeyFactor, KeyFactorVote, CommentsOfTheWeekEntry
 from comments.services.key_factors import get_user_votes_for_key_factors
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
@@ -129,7 +129,7 @@ def serialize_comment(
     current_user: User | None = None,
     mentions: list[User] | None = None,
     author_staff_permission: ObjectPermission = None,
-    key_factors: list[Driver] = None,
+    key_factors: list[KeyFactor] = None,
 ) -> dict:
     mentions = mentions or []
     serialized_data = CommentSerializer(
@@ -209,7 +209,7 @@ def serialize_comment_many(
 
 
 def serialize_key_factor(
-    key_factor: Driver, user_votes: list[DriverVote] = None
+    key_factor: KeyFactor, user_votes: list[KeyFactorVote] = None
 ) -> dict:
     user_votes = user_votes or []
 
@@ -229,12 +229,12 @@ def serialize_key_factor(
 
 
 def serialize_key_factors_many(
-    key_factors: Iterable[Driver], current_user: User = None
+    key_factors: Iterable[KeyFactor], current_user: User = None
 ):
     # Get original ordering of the comments
     ids = [p.pk for p in key_factors]
     qs = (
-        Driver.objects.filter(pk__in=ids)
+        KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
         .select_related("comment__author")
         .annotate(votes_count=Count("votes"))

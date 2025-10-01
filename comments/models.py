@@ -81,7 +81,7 @@ class CommentQuerySet(models.QuerySet):
 
 class Comment(TimeStampedModel, TranslatedModel):
     comment_votes: QuerySet["CommentVote"]
-    key_factors: QuerySet["Driver"]
+    key_factors: QuerySet["KeyFactor"]
 
     author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     parent = models.ForeignKey(
@@ -189,7 +189,7 @@ class KeyFactorQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class Driver(TimeStampedModel, TranslatedModel):
+class KeyFactor(TimeStampedModel, TranslatedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     text = models.TextField(blank=True)
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
@@ -203,7 +203,7 @@ class Driver(TimeStampedModel, TranslatedModel):
         """
 
         return (
-            self.votes.filter(vote_type=DriverVote.VoteType.A_UPVOTE_DOWNVOTE)
+            self.votes.filter(vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
             .aggregate(Sum("score"))
             .get("score__sum")
             or 0
@@ -227,7 +227,7 @@ class Driver(TimeStampedModel, TranslatedModel):
     vote_type: str = None
 
     def __str__(self):
-        return f"Driver {getattr(self.comment.on_post, 'title', None)}: {self.text}"
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
 
     class Meta:
         # Used to get rid of the type error which complains
@@ -235,7 +235,7 @@ class Driver(TimeStampedModel, TranslatedModel):
         pass
 
 
-class DriverVote(TimeStampedModel):
+class KeyFactorVote(TimeStampedModel):
     class VoteType(models.TextChoices):
         A_UPVOTE_DOWNVOTE = "a_updown"
         B_TWO_STEP_SURVEY = "b_2step"
@@ -258,7 +258,7 @@ class DriverVote(TimeStampedModel):
         INCREASE_HIGH = 5
 
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
-    key_factor = models.ForeignKey(Driver, models.CASCADE, related_name="votes")
+    key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
     score = models.SmallIntegerField(choices=VoteScore.choices, db_index=True)
     # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
