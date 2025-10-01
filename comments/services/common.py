@@ -23,8 +23,8 @@ from comments.models import (
     CommentDiff,
     CommentsOfTheWeekEntry,
     CommentVote,
-    Driver,
-    DriverVote,
+    KeyFactor,
+    KeyFactorVote,
 )
 from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
@@ -296,11 +296,11 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         ),
         key_factor_votes_score=Coalesce(
             Subquery(
-                Driver.objects.filter(comment=OuterRef("pk"))
+                KeyFactor.objects.filter(comment=OuterRef("pk"))
                 .annotate(
                     avg_score=Coalesce(
                         Subquery(
-                            DriverVote.objects.filter(
+                            KeyFactorVote.objects.filter(
                                 key_factor=OuterRef("pk"),
                                 created_at__gte=F("key_factor__comment__created_at"),
                                 created_at__lt=F("key_factor__comment__created_at")
