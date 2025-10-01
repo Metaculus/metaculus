@@ -38,6 +38,8 @@ export type ContinuousGroupOption = {
   resolution: Resolution | null;
   menu?: ReactNode;
   forecastExpiration?: ForecastExpirationValue;
+  wasWithdrawn?: boolean;
+  withdrawnEndTimeSec?: number | null;
 };
 
 type Props = {

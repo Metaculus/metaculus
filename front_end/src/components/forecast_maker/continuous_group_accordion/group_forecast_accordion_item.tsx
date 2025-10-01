@@ -19,8 +19,10 @@ import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
+import { formatRelativeDate } from "@/utils/formatters/date";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
+import { computeQuartilesFromCDF } from "@/utils/math";
 
 import { AccordionOpenButton } from "./accordion_open_button";
 import { AccordionResolutionCell } from "./accordion_resolution_cell";
@@ -97,7 +99,19 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
         actual_resolve_time: option.question.actual_resolve_time ?? null,
       }
     );
-    const userMedian = showUserPrediction
+    const endSec = option.withdrawnEndTimeSec;
+    const wasWithdrawn = endSec != null && endSec * 1000 < Date.now();
+    const withdrawnMedian =
+      wasWithdrawn && question.my_forecasts?.latest?.forecast_values
+        ? computeQuartilesFromCDF(question.my_forecasts.latest.forecast_values)
+            .median
+        : undefined;
+
+    const withdrawnLabel = wasWithdrawn
+      ? `Withdrawn ${formatRelativeDate(locale, new Date(endSec * 1000), { short: true })}`
+      : undefined;
+
+    let userMedian = showUserPrediction
       ? forecastInputMode === ContinuousForecastInputType.Quantile
         ? getPredictionDisplayValue(
             option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
@@ -118,6 +132,14 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
 
     // Build a cross-question shared domain in internal coordinates and flags for borders
     const domainOverride = generateXDomainOverride(globalScaling, question);
+    if (wasWithdrawn && !isDirty && withdrawnMedian != null) {
+      userMedian = getPredictionDisplayValue(withdrawnMedian, {
+        questionType: option.question.type,
+        scaling: option.question.scaling,
+        unit,
+        actual_resolve_time: option.question.actual_resolve_time ?? null,
+      });
+    }
 
     const handleClick = () => {
       setIsModalOpen((prev) => !prev);
@@ -177,6 +199,9 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                           : undefined
                       }
                       type={type}
+                      withdrawnLabel={
+                        wasWithdrawn && !isDirty ? withdrawnLabel : undefined
+                      }
                     />
                     <div className="hidden h-full shrink-0 grow-0 items-center sm:block sm:w-[325px]">
                       <ContinuousAreaChart
@@ -189,6 +214,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         withResolutionChip={false}
                         withTodayLine={false}
                         domainOverride={domainOverride}
+                        outlineUser={wasWithdrawn && !isDirty}
                       />
                     </div>
                   </div>

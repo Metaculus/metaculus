@@ -99,6 +99,7 @@ type Props = {
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
   domainOverride?: DomainOverride;
+  outlineUser?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -121,6 +122,7 @@ const ContinuousAreaChart: FC<Props> = ({
     isGlobalMin: true,
     isGlobalMax: true,
   },
+  outlineUser = false,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -597,7 +599,12 @@ const ContinuousAreaChart: FC<Props> = ({
                               return undefined;
                           }
                         })(),
-                        opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                        opacity:
+                          outlineUser && chart.type === "user"
+                            ? 0
+                            : chart.type === "user_previous"
+                              ? 0.1
+                              : 0.3,
                       },
                     }}
                   />
