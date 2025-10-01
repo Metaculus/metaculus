@@ -1525,5 +1525,7 @@
   "topCommentsDescription": "Nejlepší komentáře jsou určovány podle hlasování u komentářů, klíčových faktorových hlasů a změněných názorů. Bonusové body se udělují za silné skóre napříč více kategoriemi. Počítají se pouze hlasy odevzdané do týdne od vytvoření komentáře, přičemž pořadí se konečně určuje po uplynutí tohoto sedmidenního období.",
   "medalRank": "Vaše hodnocení je založeno na všech medailích, které jste do té doby získali. Medaile vyšší úrovně a novější medaile mají větší váhu.",
   "learnMoreFAQ": "Více se dozvíte v naší FAQ",
+  "belowLowerBound": "Pod dolní hranicí",
+  "aboveUpperBound": "Nad horní hranicí",
   "othersCount": "Ostatní ({count})"
 }
