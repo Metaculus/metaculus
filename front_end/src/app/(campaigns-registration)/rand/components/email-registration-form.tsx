@@ -436,13 +436,13 @@ export const EmailRegistrationForm: FC<EmailRegistrationFormProps> = ({
               >
                 I have read and agree to the{" "}
                 <a
-                  href="/rand/consent-form"
+                  href="/rand/contest-rules"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white underline hover:text-white/80"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Consent Form
+                  Contest Rules
                 </a>
                 , agree to share my information with RAND Forecasting
                 Initiative, and I agree to be contacted by RAND Forecasting
