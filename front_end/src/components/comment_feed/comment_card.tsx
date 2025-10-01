@@ -159,7 +159,7 @@ const CommentCard: FC<Props> = ({
   const effectiveExpanded = localExpanded ?? controlledExpanded ?? isExpanded;
 
   // Fixed height threshold - adjust this value as needed
-  const HEIGHT_THRESHOLD = 200; // pixels
+  const HEIGHT_THRESHOLD = 10; // pixels
 
   useEffect(() => {
     const measureHeight = () => {

@@ -27,7 +27,11 @@ const WithdrawConfirmation: FC<Props> = ({
           <Button variant="secondary" onClick={() => onClose()}>
             {t("cancel")}
           </Button>
-          <Button variant="primary" onClick={onSubmit} disabled={isPending}>
+          <Button
+            variant="primary"
+            onClick={() => onSubmit()}
+            disabled={isPending}
+          >
             {t("withdraw")}
           </Button>
         </div>

@@ -39,7 +39,6 @@ export type PostsParams = PaginationParams & {
   for_main_feed?: string;
   ids?: number[];
   news_type?: string | string[];
-  public_figure?: number;
   curation_status?: string;
   similar_to_post_id?: number;
   default_project_id?: string;
