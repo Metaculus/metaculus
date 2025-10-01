@@ -264,7 +264,9 @@ const GroupChart: FC<Props> = ({
         />
       }
       cursorLabelComponent={
-        <ChartCursorLabel positionY={height - 10} isActive={isCursorActive} />
+        <VictoryPortal>
+          <ChartCursorLabel positionY={height - 10} isActive={isCursorActive} />
+        </VictoryPortal>
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
