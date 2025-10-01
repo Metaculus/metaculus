@@ -95,7 +95,7 @@ const TimeSeriesLabel: FC<Props & any> = ({
           datum.isEmpty
             ? allQuestionsEmpty
               ? 0
-              : 60
+              : -5
             : ["no", "yes"].includes(datum.resolution as string)
               ? -8
               : -5
