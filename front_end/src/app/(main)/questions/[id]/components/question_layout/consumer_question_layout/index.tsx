@@ -9,12 +9,8 @@ import {
   TabsSection,
   TabsTab,
 } from "@/components/ui/tabs/index";
-import {
-  GroupOfQuestionsGraphType,
-  GroupOfQuestionsPost,
-  PostWithForecasts,
-} from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import QuestionTimeline, {
   hasTimeline as hasTimelineFn,
@@ -58,17 +54,17 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
             </TabsSection>
             {hasTimeline && (
               <TabsSection className="space-y-4" value="timeline">
-                <DetailedGroupCard
-                  post={
-                    postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
-                  }
-                  preselectedQuestionId={preselectedGroupQuestionId}
-                  groupPresentationOverride={
-                    GroupOfQuestionsGraphType.MultipleChoiceGraph
-                  }
-                  prioritizeOpenSubquestions
-                  className="mt-2"
-                />
+                {isGroupOfQuestionsPost(postData) && (
+                  <DetailedGroupCard
+                    post={postData}
+                    preselectedQuestionId={preselectedGroupQuestionId}
+                    groupPresentationOverride={
+                      GroupOfQuestionsGraphType.MultipleChoiceGraph
+                    }
+                    prioritizeOpenSubquestions
+                    className="mt-2"
+                  />
+                )}
                 <QuestionTimeline
                   className="block"
                   postData={postData}

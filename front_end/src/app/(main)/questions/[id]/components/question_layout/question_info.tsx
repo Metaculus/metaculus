@@ -58,9 +58,12 @@ const QuestionInfo: React.FC<Props> = ({
                   GroupOfQuestionsGraphType.MultipleChoiceGraph
                 }
                 prioritizeOpenSubquestions
-                className="dark:bg-dark-gray-0 mt-2 overflow-hidden bg-gray-0 p-2"
+                className="mt-2 overflow-hidden bg-gray-0 p-2 dark:bg-gray-0-dark"
               />
-              <QuestionTimeline className="bg-gray-0" postData={postData} />
+              <QuestionTimeline
+                className="bg-gray-0 dark:bg-gray-0-dark"
+                postData={postData}
+              />
             </SectionToggle>
           ) : null
         }

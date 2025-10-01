@@ -53,6 +53,7 @@ import { isValidScaling } from "@/utils/questions/helpers";
 
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
+import ResolutionDiamond from "./primitives/resolution_diamond";
 
 type ContinuousAreaColor = "orange" | "green" | "gray";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
@@ -98,6 +99,7 @@ type Props = {
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
   domainOverride?: DomainOverride;
+  outlineUser?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -120,6 +122,7 @@ const ContinuousAreaChart: FC<Props> = ({
     isGlobalMin: true,
     isGlobalMax: true,
   },
+  outlineUser = false,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -189,31 +192,42 @@ const ContinuousAreaChart: FC<Props> = ({
         yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
-    const xDomain: Tuple<number> = [
-      Math.min(
-        ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
-        0
-      ),
-      Math.max(
-        ...charts.map(
-          (chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)
-        ),
-        1
-      ),
-    ];
-    if (graphType === "cdf") {
-      return {
-        xDomain: xDomain,
-        yDomain: [0, 1],
-      };
+    let xMin = Math.min(
+      ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
+      0
+    );
+    let xMax = Math.max(
+      ...charts.map((chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)),
+      1
+    );
+
+    const N =
+      question.inbound_outcome_count ??
+      Math.max(1, (data.at(0)?.cdf?.length ?? 1) - 1);
+    if (Number.isFinite(N) && N > 0) {
+      const halfBin = 0.5 / N;
+      if (question.resolution === "below_lower_bound")
+        xMin = Math.min(xMin, -halfBin);
+      if (question.resolution === "above_upper_bound")
+        xMax = Math.max(xMax, 1 + halfBin);
     }
+    const xDomain: Tuple<number> = [xMin, xMax];
+    if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
     const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
-      xDomain: xDomain,
+      xDomain,
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType, question.type, charts, domainOverride.xDomain]);
+  }, [
+    data,
+    charts,
+    graphType,
+    question.type,
+    question.resolution,
+    domainOverride?.xDomain,
+    question.inbound_outcome_count,
+  ]);
 
   const xScale = useMemo(
     () =>
@@ -253,6 +267,48 @@ const ContinuousAreaChart: FC<Props> = ({
           inboundOutcomeCount: question.inbound_outcome_count,
         })
       : null;
+
+  const toDiscreteBarCenter = useCallback(
+    (norm: number): number => {
+      const N =
+        question.inbound_outcome_count ??
+        Math.max(1, (data.at(0)?.cdf?.length ?? 1) - 1);
+      if (!Number.isFinite(norm) || N <= 0) return norm;
+      if (norm <= 0 || norm >= 1) return norm;
+      const idx = Math.round(norm * (N - 1));
+      return (idx + 0.5) / N;
+    },
+    [question.inbound_outcome_count, data]
+  );
+
+  const resX = useMemo(() => {
+    if (!resolutionPoint || !Number.isFinite(resolutionPoint.y as number)) {
+      return null;
+    }
+    return question.type === QuestionType.Discrete
+      ? toDiscreteBarCenter(resolutionPoint.y as number)
+      : (resolutionPoint.y as number);
+  }, [resolutionPoint, question.type, toDiscreteBarCenter]);
+
+  const forcedOobSide: "left" | "right" | null = useMemo(() => {
+    if (question.resolution === "below_lower_bound") return "left";
+    if (question.resolution === "above_upper_bound") return "right";
+    return null;
+  }, [question.resolution]);
+
+  const resPlacement = useMemo<"in" | "left" | "right" | null>(() => {
+    if (resX == null || !Number.isFinite(resX)) return null;
+    if (forcedOobSide) return forcedOobSide;
+
+    const baseMin = 0;
+    const baseMax = 1;
+    const EPS = 1e-9;
+
+    if (resX < baseMin - EPS) return "left";
+    if (resX > baseMax + EPS) return "right";
+    return "in";
+  }, [resX, forcedOobSide]);
+
   const formattedResolution = formatResolution({
     resolution: question.resolution,
     questionType: question.type,
@@ -543,7 +599,12 @@ const ContinuousAreaChart: FC<Props> = ({
                               return undefined;
                           }
                         })(),
-                        opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                        opacity:
+                          outlineUser && chart.type === "user"
+                            ? 0
+                            : chart.type === "user_previous"
+                              ? 0.1
+                              : 0.3,
                       },
                     }}
                   />
@@ -747,11 +808,11 @@ const ContinuousAreaChart: FC<Props> = ({
             ))
           )}
           {/* Resolution point */}
-          {resolutionPoint && (
+          {resX != null && resPlacement === "in" && (
             <VictoryScatter
               data={[
                 {
-                  x: resolutionPoint.y,
+                  x: resX,
                   y: 0,
                   symbol: "diamond",
                   size: 4,
@@ -767,14 +828,15 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           )}
           {/* Resolution chip */}
-          {resolutionPoint &&
+          {resX != null &&
+            resPlacement === "in" &&
             withResolutionChip &&
             (question.type === QuestionType.Discrete ||
               question.type === QuestionType.Numeric) && (
               <VictoryScatter
                 data={[
                   {
-                    x: resolutionPoint.y,
+                    x: resX,
                     y: 0,
                     symbol: "diamond",
                     size: 4,
@@ -786,7 +848,7 @@ const ContinuousAreaChart: FC<Props> = ({
                       rightPadding={0}
                       chartWidth={chartWidth}
                       isCursorActive={false}
-                      isDistributionChip={true}
+                      isDistributionChip
                       colorOverride={METAC_COLORS.purple["800"]}
                       resolution={formattedResolution}
                     />
@@ -795,6 +857,32 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             )}
 
+          {resX != null && resPlacement && resPlacement !== "in" && (
+            <VictoryPortal>
+              <VictoryScatter
+                data={[
+                  {
+                    x:
+                      resPlacement === "left"
+                        ? Math.min(...xDomain)
+                        : Math.max(...xDomain),
+                    y: yDomain[1] - (yDomain[1] - yDomain[0]) * 0.04,
+                    placement: resPlacement === "left" ? "above" : "below",
+                    primary: METAC_COLORS.purple["800"],
+                    secondary: METAC_COLORS.purple["500"],
+                  },
+                ]}
+                dataComponent={
+                  <ResolutionDiamond
+                    hoverable={false}
+                    axisPadPx={3}
+                    rotateDeg={resPlacement === "left" ? -90 : 90}
+                    refProps={{}}
+                  />
+                }
+              />
+            </VictoryPortal>
+          )}
           {/* Today's date dot for date questions */}
           {question.type === QuestionType.Date && withTodayLine && (
             <VictoryScatter
