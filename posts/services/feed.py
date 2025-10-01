@@ -35,7 +35,6 @@ def get_posts_feed(
     order_by: str = None,
     access: PostFilterSerializer.Access = None,
     ids: list[int] = None,
-    public_figure: Project = None,
     news_type: list[Project] = None,
     curation_status: Post.CurationStatus = None,
     usernames: list[str] = None,
@@ -95,9 +94,6 @@ def get_posts_feed(
 
     if news_type:
         qs = qs.filter_projects(news_type)
-
-    if public_figure:
-        qs = qs.filter_projects(public_figure)
 
     if tournaments:
         qs = qs.filter_projects(tournaments)
