@@ -1,14 +1,33 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useRef, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import cn from "@/utils/core/cn";
 
+type TabsVariant = "separated" | "group";
 type TabsContextValue = {
+  variant: TabsVariant;
   active: string;
   setActive: (v: string) => void;
 };
 const TabsContext = createContext<TabsContextValue | null>(null);
+TabsContext.displayName = "TabsContext";
+
+export function useTabsContext(): TabsContextValue {
+  const ctx = useContext(TabsContext);
+  if (!ctx) {
+    throw new Error("useTabsContext must be used within <Tabs>");
+  }
+  return ctx;
+}
 
 export const Tabs = ({
   defaultValue,
@@ -16,27 +35,36 @@ export const Tabs = ({
   onChange,
   children,
   className,
+  variant = "separated",
 }: {
   defaultValue: string;
   value?: string;
   onChange?: (value: string) => void;
   children: ReactNode;
   className?: string;
+  variant?: TabsVariant;
 }) => {
   const [internalActive, setInternalActive] = useState(defaultValue);
 
   // Support both controlled and uncontrolled modes
   const active = controlledValue ?? internalActive;
-  const setActive = (v: string) => {
-    if (onChange) {
-      onChange(v);
-    } else {
-      setInternalActive(v);
-    }
-  };
+  const setActive = useCallback(
+    (v: string) => {
+      if (onChange) {
+        onChange(v);
+      } else {
+        setInternalActive(v);
+      }
+    },
+    [onChange]
+  );
+  const value = useMemo(
+    () => ({ active, setActive, variant }),
+    [active, variant, setActive]
+  );
 
   return (
-    <TabsContext.Provider value={{ active, setActive }}>
+    <TabsContext.Provider value={value}>
       <div className={cn("bg-gray-0 dark:bg-gray-0-dark", className)}>
         {children}
       </div>
@@ -44,9 +72,22 @@ export const Tabs = ({
   );
 };
 
-export const TabsList = ({ children }: { children: ReactNode }) => {
+export const TabsList = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  const ctx = useTabsContext();
   return (
-    <div className="scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
+    <div
+      className={cn(
+        "scrollbar-none sticky top-12 z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
+        ctx.variant === "separated" && "gap-2",
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -55,14 +96,15 @@ export const TabsList = ({ children }: { children: ReactNode }) => {
 export const TabsTab = ({
   value,
   children,
+  icon,
+  className,
 }: {
   value: string;
   children: ReactNode;
+  icon: ReactNode;
+  className?: string;
 }) => {
-  const ctx = useContext(TabsContext);
-
-  if (!ctx) throw new Error("Tabs.Tab must be inside <Tabs>");
-
+  const ctx = useTabsContext();
   const isActive = ctx.active === value;
 
   const HEADER_OFFSET = 60;
@@ -79,10 +121,26 @@ export const TabsTab = ({
   return (
     <button
       className={cn(
-        "whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors",
+        "whitespace-nowrap transition-colors",
         isActive
           ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark"
+          : "bg-gray-0  dark:bg-gray-0-dark ",
+        ctx.variant === "separated" && [
+          "rounded-full px-3 py-1 text-sm",
+          !isActive && "text-gray-800 dark:text-gray-800-dark",
+        ],
+        ctx.variant === "group" && [
+          "first:rounded-l-full",
+          "last:rounded-r-full",
+          "[&:not(:first-child)]:-ml-px",
+          "border text-lg leading-[26px]",
+          "px-5 py-2 font-[500]",
+          !isActive && "text-blue-700 dark:text-blue-700-dark",
+          isActive
+            ? "border-transparent"
+            : "border-blue-400 dark:border-blue-400",
+        ],
+        className
       )}
       onClick={(e) => {
         ctx.setActive(value);
@@ -96,7 +154,14 @@ export const TabsTab = ({
         }
       }}
     >
-      {children}
+      {icon ? (
+        <span className="mt-[1px] inline-flex items-center gap-3">
+          {icon}
+          <span>{children}</span>
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 };
@@ -110,8 +175,7 @@ export function TabsSection({
   children: ReactNode;
   className?: string;
 }) {
-  const ctx = useContext(TabsContext);
-  if (!ctx) throw new Error("Tabs.Section must be inside <Tabs>");
+  const ctx = useTabsContext();
   const ref = useRef<HTMLDivElement>(null);
 
   if (ctx.active !== value) {
