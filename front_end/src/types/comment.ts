@@ -92,8 +92,14 @@ export type KeyFactorVote = {
   second_step_completed?: boolean; // used only for two step survey
 };
 
+export enum ImpactDirection {
+  Increase = "increase",
+  Decrease = "decrease",
+}
+
 export type Driver = {
   text: string;
+  impact_direction: ImpactDirection;
 };
 
 export type KeyFactor = {
