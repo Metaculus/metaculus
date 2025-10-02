@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
-import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
+import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import { CoherenceLink } from "@/types/coherence";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 

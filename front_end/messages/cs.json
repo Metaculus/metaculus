@@ -1527,5 +1527,9 @@
   "learnMoreFAQ": "Více se dozvíte v naší FAQ",
   "belowLowerBound": "Pod dolní hranicí",
   "aboveUpperBound": "Nad horní hranicí",
+  "certainty": "Jistota:",
+  "strong": "silná",
+  "weak": "slabá",
+  "none": "žádná",
   "othersCount": "Ostatní ({count})"
 }
