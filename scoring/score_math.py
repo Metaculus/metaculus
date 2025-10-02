@@ -315,6 +315,7 @@ def evaluate_question(
     spot_forecast_timestamp: float | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
     score_users: bool | list[int] = True,
+    user_ids_to_aggregate: list[int] | None = None,
 ) -> list[Score]:
     aggregation_methods = aggregation_methods or []
     aggregations_to_calculate = aggregation_methods.copy()
@@ -347,6 +348,7 @@ def evaluate_question(
         aggregation_methods=aggregations_to_calculate,
         include_bots=question.include_bots_in_aggregates,
         include_stats=False,
+        user_ids=user_ids_to_aggregate,
     )
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
     geometric_means: list[AggregationEntry] = []
