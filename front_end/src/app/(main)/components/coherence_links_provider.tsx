@@ -17,6 +17,7 @@ import {
 } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
+import { logError } from "@/utils/core/errors";
 
 type BaseProviderProps = {
   post: Post;
@@ -48,19 +49,15 @@ export const CoherenceLinksProvider: FC<
   const isLoggedIn = !isNil(user);
 
   const updateCoherenceLinks = async () => {
-    if (isLoggedIn) {
-      ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
+    if (isLoggedIn && post.question) {
+      ClientCoherenceLinksApi.getCoherenceLinksForPost(post.question)
         .then((links) => setCoherenceLinks(links))
-        .catch((error) => console.log(error));
+        .catch(logError);
+      ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(post.question)
+        .then((links) => setAggregateCoherenceLinks(links))
+        .catch(logError);
     } else {
       setCoherenceLinks({ data: [] });
-    }
-
-    if (isLoggedIn) {
-      ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(post)
-        .then((links) => setAggregateCoherenceLinks(links))
-        .catch((error) => console.log(error));
-    } else {
       setAggregateCoherenceLinks({ data: [] });
     }
   };

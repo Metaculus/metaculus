@@ -25,7 +25,6 @@ import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
   post: Post;
-  postStatus: PostStatus;
   variant?: "default" | "compact";
 };
 
@@ -53,10 +52,10 @@ const AddKeyFactorsButton: FC<{
 
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
   post,
-  postStatus,
   variant = "default",
 }) => {
   const postId = post.id;
+  const postStatus = post.status;
   const t = useTranslations();
   const hash = useHash();
   const { user } = useAuth();

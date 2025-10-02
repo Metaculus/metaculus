@@ -12,6 +12,7 @@ import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   CoherenceLink,
   Directions,
+  Certainty,
   FetchedAggregateCoherenceLink,
 } from "@/types/coherence";
 import { Post } from "@/types/post";
@@ -87,17 +88,15 @@ const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
 
   if (!otherQuestion || canceled) return null;
 
-  function getCertainty(
-    value: number | null
-  ): "strong" | "medium" | "weak" | "none" {
-    if (value === null) return "none";
+  function getCertainty(value: number | null): Certainty {
+    if (value === null) return Certainty.None;
     const absValue = Math.abs(value);
     if (absValue < 0.1) {
-      return "strong";
+      return Certainty.Strong;
     } else if (absValue < 0.2) {
-      return "medium";
+      return Certainty.Medium;
     }
-    return "weak";
+    return Certainty.Weak;
   }
 
   if (compact)
@@ -172,8 +171,10 @@ const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
         )}
         {isAggregate && (
           <div className={"mt-1"}>
-            Certainty:{" "}
-            <b>{getCertainty((link as FetchedAggregateCoherenceLink).rsem)}</b>
+            {t("certainty") + " "}
+            <b>
+              {t(getCertainty((link as FetchedAggregateCoherenceLink).rsem))}
+            </b>
           </div>
         )}
       </div>

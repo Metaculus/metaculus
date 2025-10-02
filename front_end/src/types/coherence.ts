@@ -12,6 +12,14 @@ export enum Strengths {
 export enum LinkTypes {
   Causal = "causal",
 }
+
+export enum Certainty {
+  Strong = "strong",
+  Medium = "medium",
+  Weak = "weak",
+  None = "none",
+}
+
 export type CoherenceLink = {
   question1_id: number;
   question1?: Question;
