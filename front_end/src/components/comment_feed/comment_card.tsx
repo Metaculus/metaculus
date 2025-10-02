@@ -60,7 +60,7 @@ const KeyFactors = ({ keyFactors }: { keyFactors: KeyFactor[] }) => {
           className="rounded border border-white bg-blue-200 px-3 py-2 dark:border-gray-0-dark dark:bg-blue-200-dark"
         >
           <div className="text-sm font-medium leading-5 text-gray-700 dark:text-gray-700-dark">
-            {factor.text}
+            {factor.driver.text}
           </div>
         </div>
       ))}
