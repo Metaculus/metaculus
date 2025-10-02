@@ -876,7 +876,7 @@ const ContinuousAreaChart: FC<Props> = ({
                   <ResolutionDiamond
                     hoverable={false}
                     axisPadPx={3}
-                    rotateDeg={resPlacement === "left" ? -90 : 90}
+                    rotateDeg={resPlacement === "left" ? 90 : -90}
                     refProps={{}}
                   />
                 }
