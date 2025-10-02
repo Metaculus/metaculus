@@ -14,13 +14,13 @@ def driver_migration(apps, schema_editor):
     """
 
     KeyFactor = apps.get_model("comments", "KeyFactor")
-    Driver = apps.get_model("comments", "Driver")
+    KeyFactorDriver = apps.get_model("comments", "KeyFactorDriver")
     key_factors = KeyFactor.objects.all()
 
     drivers = []
 
     for key_factor in key_factors:
-        driver = Driver(
+        driver = KeyFactorDriver(
             content_original_lang=key_factor.content_original_lang,
             is_automatically_translated=key_factor.is_automatically_translated,
             content_last_md5=key_factor.content_last_md5,
@@ -37,7 +37,7 @@ def driver_migration(apps, schema_editor):
         key_factor.driver = driver
         drivers.append(driver)
 
-    Driver.objects.bulk_create(drivers)
+    KeyFactorDriver.objects.bulk_create(drivers)
     KeyFactor.objects.bulk_update(key_factors, fields=["driver"])
     logger.info(f"Migrated {len(drivers)} drivers")
 
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
             old_name="comments_dr_key_fac_8375c5_idx",
         ),
         migrations.CreateModel(
-            name="Driver",
+            name="KeyFactorDriver",
             fields=[
                 (
                     "id",
@@ -117,7 +117,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.PROTECT,
                 related_name="key_factor",
-                to="comments.driver",
+                to="comments.keyfactordriver",
             ),
         ),
         migrations.AddField(

@@ -195,7 +195,7 @@ class ImpactDirection(models.TextChoices):
 
 
 # TODO: should it have KeyFactor prefix?
-class Driver(TimeStampedModel, TranslatedModel):
+class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
     impact_direction = models.CharField(
         choices=ImpactDirection.choices, null=True, blank=True
@@ -221,7 +221,7 @@ class KeyFactor(TimeStampedModel):
     )
 
     driver = models.OneToOneField(
-        Driver, models.PROTECT, related_name="key_factor", null=True
+        KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
     )
 
     def get_votes_score(self) -> int:

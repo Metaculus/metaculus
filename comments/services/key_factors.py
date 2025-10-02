@@ -1,9 +1,10 @@
 from typing import Iterable
 
-from comments.models import KeyFactor, KeyFactorVote, Comment, Driver
 from django.db import transaction
-from posts.models import Post
 from rest_framework.exceptions import ValidationError
+
+from comments.models import KeyFactor, KeyFactorVote, Comment, KeyFactorDriver
+from posts.models import Post
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.openai import generate_keyfactors
@@ -60,7 +61,7 @@ def create_key_factors(comment: Comment, key_factors: list[str]):
         )
 
     for key_factor in key_factors:
-        driver = Driver.objects.create(text=key_factor)
+        driver = KeyFactorDriver.objects.create(text=key_factor)
         KeyFactor.objects.create(comment=comment, driver=driver)
 
 

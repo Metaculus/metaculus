@@ -1,7 +1,7 @@
 import pytest  # noqa
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactorVote, Driver
+from comments.models import KeyFactorVote, KeyFactorDriver
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors import key_factor_vote, create_key_factors
 from comments.services.notifications import notify_mentioned_users
@@ -112,7 +112,7 @@ def test_key_factor_vote(user1, user2):
     comment = factory_comment(author=user1, on_post=factory_post(author=user1))
     kf = factory_key_factor(
         comment=comment,
-        driver=Driver.objects.create(text="Key Factor Text"),
+        driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
         votes={user2: -1},
         vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE,
     )
