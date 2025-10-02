@@ -9,10 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def driver_migration(apps, schema_editor):
-    """
-    Fix the speling of 'undegrad' to 'undergrad' in the UserCampaignRegistration details JSON field
-    """
-
     KeyFactor = apps.get_model("comments", "KeyFactor")
     KeyFactorDriver = apps.get_model("comments", "KeyFactorDriver")
     key_factors = KeyFactor.objects.all()
