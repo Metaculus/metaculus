@@ -201,6 +201,9 @@ class KeyFactorDriver(TimeStampedModel, TranslatedModel):
         choices=ImpactDirection.choices, null=True, blank=True
     )
 
+    def __str__(self):
+        return f"Driver {self.text}"
+
 
 class KeyFactor(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")

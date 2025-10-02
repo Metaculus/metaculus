@@ -2,7 +2,7 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
 from utils.models import CustomTranslationAdmin
-from .models import Comment, KeyFactor
+from .models import Comment, KeyFactor, KeyFactorDriver
 
 
 class KeyFactorInline(admin.TabularInline):
@@ -47,16 +47,19 @@ class CommentAdmin(CustomTranslationAdmin):
         return not obj.on_post.is_private()
 
 
-@admin.register(KeyFactor)
+@admin.register(KeyFactorDriver)
 class KeyFactorAdmin(CustomTranslationAdmin):
+    search_fields = ["id"]
+
+
+@admin.register(KeyFactor)
+class KeyFactorAdmin(admin.ModelAdmin):
     list_filter = [
         AutocompleteFilterFactory("Comment", "comment"),
         AutocompleteFilterFactory("Post", "comment__on_post"),
     ]
 
-    autocomplete_fields = [
-        "comment",
-    ]
+    autocomplete_fields = ["comment", "question", "driver"]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("comment__on_post")
