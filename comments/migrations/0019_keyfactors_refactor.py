@@ -89,6 +89,14 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("edited_at", models.DateTimeField(editable=False, null=True)),
+                (
+                    "impact_direction",
+                    models.CharField(
+                        blank=True,
+                        choices=[("increase", "Increase"), ("decrease", "Decrease")],
+                        null=True,
+                    ),
+                ),
                 ("text", models.TextField(blank=True)),
                 ("text_original", models.TextField(blank=True, null=True)),
                 ("text_en", models.TextField(blank=True, null=True)),
@@ -111,6 +119,22 @@ class Migration(migrations.Migration):
                 related_name="key_factor",
                 to="comments.driver",
             ),
+        ),
+        migrations.AddField(
+            model_name="keyfactor",
+            name="question",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="key_factors",
+                to="questions.question",
+            ),
+        ),
+        migrations.AddField(
+            model_name="keyfactor",
+            name="question_option",
+            field=models.CharField(blank=True, default="", max_length=32),
         ),
         # Populate Driver Model
         migrations.RunPython(driver_migration, migrations.RunPython.noop),

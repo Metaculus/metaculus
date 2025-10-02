@@ -189,15 +189,36 @@ class KeyFactorQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
+class ImpactDirection(models.TextChoices):
+    INCREASE = "increase"
+    DECREASE = "decrease"
+
+
 # TODO: should it have KeyFactor prefix?
 class Driver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
+    impact_direction = models.CharField(
+        choices=ImpactDirection.choices, null=True, blank=True
+    )
 
 
 class KeyFactor(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
+
+    # If KeyFactor is specifically linked to the subquestion
+    question = models.ForeignKey(
+        "questions.Question",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="key_factors",
+    )
+    # If KeyFactor is linked to the MultipleChoice option
+    question_option = models.CharField(
+        null=False, blank=True, max_length=32, default=""
+    )
 
     driver = models.OneToOneField(
         Driver, models.PROTECT, related_name="key_factor", null=True
