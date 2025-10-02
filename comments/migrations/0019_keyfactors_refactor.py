@@ -38,6 +38,33 @@ def driver_migration(apps, schema_editor):
     logger.info(f"Migrated {len(drivers)} drivers")
 
 
+def driver_migration_reverse(apps, schema_editor):
+    KeyFactor = apps.get_model("comments", "KeyFactor")
+    KeyFactorDriver = apps.get_model("comments", "KeyFactorDriver")
+
+    key_factors = []
+    fields = [
+        "content_original_lang",
+        "is_automatically_translated",
+        "content_last_md5",
+        "text",
+        "text_original",
+        "text_en",
+        "text_es",
+        "text_zh",
+        "text_zh_TW",
+        "text_pt",
+    ]
+
+    for driver in KeyFactorDriver.objects.filter(key_factor__isnull=False):
+        for field in fields:
+            setattr(driver.key_factor, field, getattr(driver, field))
+
+        key_factors.append(driver.key_factor)
+
+    KeyFactor.objects.bulk_update(key_factors, fields=fields)
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("comments", "0018_rename_key_factors"),
@@ -133,7 +160,7 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, default="", max_length=32),
         ),
         # Populate Driver Model
-        migrations.RunPython(driver_migration, migrations.RunPython.noop),
+        migrations.RunPython(driver_migration, driver_migration_reverse),
         # Drop old KeyFactor fields
         migrations.RemoveField(
             model_name="keyfactor",
