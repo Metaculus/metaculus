@@ -194,7 +194,6 @@ class ImpactDirection(models.TextChoices):
     DECREASE = "decrease"
 
 
-# TODO: should it have KeyFactor prefix?
 class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
     impact_direction = models.CharField(

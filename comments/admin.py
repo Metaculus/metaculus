@@ -48,7 +48,7 @@ class CommentAdmin(CustomTranslationAdmin):
 
 
 @admin.register(KeyFactorDriver)
-class KeyFactorAdmin(CustomTranslationAdmin):
+class KeyFactorDriverAdmin(CustomTranslationAdmin):
     search_fields = ["id"]
 
 
