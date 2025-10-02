@@ -24,6 +24,10 @@ def key_factor_vote(
         key_factor.votes.create(user=user, score=vote, vote_type=vote_type)
 
     # Update counters
+    # For now, we generate `strength` for all key factor types.
+    # This is mainly for simplicity — only Drivers and News actually use `strength`,
+    # while BaseRate doesn't require vote score calculations.
+    # So it’s easier and more consistent to apply the same logic across all key factors, even if some don’t use it.
     key_factor.votes_score = calculate_votes_strength(
         list(key_factor.votes.values_list("score", flat=True))
     )
