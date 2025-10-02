@@ -8,7 +8,7 @@ import { FC, useCallback, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import CreateCoherenceLink from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
-import { DisplayCoherenceLink } from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
+import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";

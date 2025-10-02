@@ -1525,5 +1525,9 @@
   "learnMoreFAQ": "Saiba mais em nosso FAQ",
   "belowLowerBound": "Abaixo do limite inferior",
   "aboveUpperBound": "Acima do limite superior",
+  "certainty": "Certeza:",
+  "strong": "forte",
+  "weak": "fraco",
+  "none": "nenhum",
   "othersCount": "Outros ({count})"
 }
