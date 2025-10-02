@@ -92,9 +92,13 @@ export type KeyFactorVote = {
   second_step_completed?: boolean; // used only for two step survey
 };
 
+export type Driver = {
+  text: string;
+};
+
 export type KeyFactor = {
   id: number;
-  text: string;
+  driver: Driver;
   author: AuthorType; // used to set limit per question
   comment_id: number;
   user_votes: KeyFactorVote[]; // empty array if the user has not voted
