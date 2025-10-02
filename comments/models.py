@@ -233,12 +233,7 @@ class KeyFactor(TimeStampedModel):
         TODO: This may need to be revisited in the future for broader vote type support.
         """
 
-        return (
-            self.votes.filter(vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
-            .aggregate(Sum("score"))
-            .get("score__sum")
-            or 0
-        )
+        return self.votes.aggregate(Sum("score")).get("score__sum") or 0
 
     def get_votes_count(self) -> int:
         """
@@ -247,6 +242,7 @@ class KeyFactor(TimeStampedModel):
         return self.votes.aggregate(Count("id")).get("id__count") or 0
 
     def update_vote_score(self):
+        # TODO: different algorithm for strength and up/down
         self.votes_score = self.get_votes_score()
         self.save(update_fields=["votes_score"])
 
@@ -268,32 +264,25 @@ class KeyFactor(TimeStampedModel):
 
 class KeyFactorVote(TimeStampedModel):
     class VoteType(models.TextChoices):
-        A_UPVOTE_DOWNVOTE = "a_updown"
-        B_TWO_STEP_SURVEY = "b_2step"
-        C_LIKERT_SCALE = "c_likert"
+        STRENGTH = "strength"
+        UP_DOWN = "up_down"
 
-    class VoteScore(models.IntegerChoices):
+    class VoteScoreUpDown(models.IntegerChoices):
         UP = 1
         DOWN = -1
-        # Using a simple integer value to encode scores for both B and C options
-        # B and C are conceptually on different scales than A, because they should
-        # capture the change in probability caused by the key factor, and not whether
-        # the key factor is relevant or not (as the UP/DOWN vote type does)
-        # But we do use the same field to store these given this is temporary and simpler.
-        DECREASE_HIGH = -5
-        DECREASE_MEDIUM = -3
-        DECREASE_LOW = -2
+
+    class VoteStrength(models.IntegerChoices):
         NO_IMPACT = 0
-        INCREASE_LOW = 2
-        INCREASE_MEDIUM = 3
-        INCREASE_HIGH = 5
+        LOW_STRENGTH = 1
+        MEDIUM_STRENGTH = 2
+        HIGH_STRENGTH = 5
 
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
     key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
-    score = models.SmallIntegerField(choices=VoteScore.choices, db_index=True)
+    score = models.SmallIntegerField(db_index=True)
     # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
-        choices=VoteType.choices, max_length=20, default=VoteType.A_UPVOTE_DOWNVOTE
+        choices=VoteType.choices, max_length=20, default=VoteType.UP_DOWN
     )
 
     class Meta:

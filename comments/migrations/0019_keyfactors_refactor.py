@@ -206,4 +206,19 @@ class Migration(migrations.Migration):
             model_name="keyfactor",
             name="text_zh_TW",
         ),
+        # No real db effect
+        migrations.AlterField(
+            model_name="keyfactorvote",
+            name="score",
+            field=models.SmallIntegerField(db_index=True),
+        ),
+        migrations.AlterField(
+            model_name="keyfactorvote",
+            name="vote_type",
+            field=models.CharField(
+                choices=[("strength", "Strength"), ("up_down", "Up Down")],
+                default="up_down",
+                max_length=20,
+            ),
+        ),
     ]

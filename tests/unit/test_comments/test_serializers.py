@@ -17,15 +17,15 @@ def test_serialize_key_factors_many(user1, user2):
         driver=KeyFactorDriver.objects.create(text_en="Key Factor Text"),
         votes={user1: 1, user2: -1, user3: -1},
         votes_score=-1,
-        vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE,
+        vote_type=KeyFactorVote.VoteType.UP_DOWN,
     )
 
     # Test votes of the new types
     KeyFactorVote.objects.create(
         key_factor=kf,
-        score=KeyFactorVote.VoteScore.INCREASE_HIGH,
+        score=KeyFactorVote.VoteStrength.HIGH_STRENGTH,
         user=user1,
-        vote_type=KeyFactorVote.VoteType.C_LIKERT_SCALE,
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
     )
 
     data = serialize_key_factors_many([kf], current_user=user1)

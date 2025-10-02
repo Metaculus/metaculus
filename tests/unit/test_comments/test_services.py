@@ -114,22 +114,22 @@ def test_key_factor_vote(user1, user2):
         comment=comment,
         driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
         votes={user2: -1},
-        vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE,
+        vote_type=KeyFactorVote.VoteType.UP_DOWN,
     )
 
     assert (
         key_factor_vote(
-            kf, user1, vote=-1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE
+            kf, user1, vote=-1, vote_type=KeyFactorVote.VoteType.UP_DOWN
         )
         == -2
     )
     assert (
-        key_factor_vote(kf, user1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
+        key_factor_vote(kf, user1, vote_type=KeyFactorVote.VoteType.UP_DOWN)
         == -1
     )
     assert (
         key_factor_vote(
-            kf, user1, vote=1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE
+            kf, user1, vote=1, vote_type=KeyFactorVote.VoteType.UP_DOWN
         )
         == 0
     )
