@@ -59,7 +59,8 @@ def get_question_scores(
     spot_scoring_time: datetime | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    user_ids: list[int] | None = None,
+    score_users: bool | list[int] = True,
+    user_ids_to_aggregate: list[int] | None = None,
 ) -> list[Score]:
     if aggregation_methods is None:
         aggregation_methods = [
@@ -74,11 +75,12 @@ def get_question_scores(
 
     new_scores = evaluate_question(
         question=question,
-        resolution=resolution,
+        resolution_bucket=resolution_bucket,
         score_types=score_types,
-        spot_forecast_time=spot_scoring_time,
+        spot_forecast_timestamp=spot_scoring_time,
         aggregation_methods=aggregation_methods,
-        user_ids=user_ids,
+        score_users=score_users,
+        user_ids_to_aggregate=user_ids_to_aggregate,
     )
     return new_scores
 
@@ -86,11 +88,11 @@ def get_question_scores(
 def score_question(
     question: Question,
     resolution: str,
-    spot_scoring_time: datetime | None = None,
+    spot_scoring_time: float | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    user_ids: list[int] | None = None,
     protect_uncalculated_scores: bool = False,
+    score_users: bool | list[int] = True,
 ):
     new_scores = get_question_scores(
         question,
@@ -98,7 +100,7 @@ def score_question(
         spot_scoring_time,
         score_types,
         aggregation_methods,
-        user_ids,
+        score_users,
     )
     previous_scores = Score.objects.filter(
         question=question, score_type__in=score_types
