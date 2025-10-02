@@ -46,6 +46,10 @@ def votes_migration(apps, schema_editor):
     for kf in key_factors:
         votes = kf.votes.all()
 
+        if not votes:
+            logger.info(f"KeyFactor {kf.id} has no votes")
+            continue
+
         direction = sum([v.score for v in votes])
 
         if direction == 0:
