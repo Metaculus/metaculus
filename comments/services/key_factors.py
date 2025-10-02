@@ -16,7 +16,7 @@ def key_factor_vote(
     user: User,
     vote: int = None,
     vote_type: KeyFactorVote.VoteType = None,
-) -> dict[int, int]:
+) -> float:
     # Deleting existing vote for this vote type
     key_factor.votes.filter(user=user, vote_type=vote_type).delete()
 
@@ -24,7 +24,12 @@ def key_factor_vote(
         key_factor.votes.create(user=user, score=vote, vote_type=vote_type)
 
     # Update counters
-    return key_factor.update_vote_score()
+    key_factor.votes_score = calculate_votes_strength(
+        list(key_factor.votes.values_list("score", flat=True))
+    )
+    key_factor.save(update_fields=["votes_score"])
+
+    return key_factor.votes_score
 
 
 def get_user_votes_for_key_factors(
@@ -87,3 +92,11 @@ def generate_keyfactors_for_comment(
         comment_text,
         existing_keyfactors,
     )
+
+
+def calculate_votes_strength(scores: list[int]):
+    """
+    Calculates overall strengths of the KeyFactor
+    """
+
+    return (sum(scores) + max(0, 3 - len(scores))) / max(3, len(scores))

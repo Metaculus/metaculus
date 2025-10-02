@@ -226,27 +226,11 @@ class KeyFactor(TimeStampedModel):
         KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
     )
 
-    def get_votes_score(self) -> int:
-        """
-        Aggregate function applies only to A-type Votes.
-        B and C types can't be aggregated this way, so we exclude them for now.
-        TODO: This may need to be revisited in the future for broader vote type support.
-        """
-
-        return self.votes.aggregate(Sum("score")).get("score__sum") or 0
-
     def get_votes_count(self) -> int:
         """
         Counts the number of votes for the key factor
         """
         return self.votes.aggregate(Count("id")).get("id__count") or 0
-
-    def update_vote_score(self):
-        # TODO: different algorithm for strength and up/down
-        self.votes_score = self.get_votes_score()
-        self.save(update_fields=["votes_score"])
-
-        return self.votes_score
 
     objects = models.Manager.from_queryset(KeyFactorQuerySet)()
 

@@ -6,6 +6,14 @@ from django.db import migrations
 logger = logging.getLogger(__name__)
 
 
+def calculate_votes_strength(scores: list[int]):
+    """
+    Calculates overall strengths of the KeyFactor
+    """
+
+    return (sum(scores) + max(0, 3 - len(scores))) / max(3, len(scores))
+
+
 def migrate_strength_vote_score(score: int):
     # Converting (-5, -3, -2, 0, 2, 3, 5) scale to (0, 1, 2, 5)
     score = abs(score)
@@ -31,7 +39,7 @@ def votes_migration(apps, schema_editor):
     KeyFactorVote.objects.filter(type="a_updown").delete()
 
     # Migrate other votes
-    key_factors = KeyFactor.objects.prefetch_related("votes").all()
+    key_factors = list(KeyFactor.objects.prefetch_related("votes").all())
     update_votes = []
     update_drivers = []
 
@@ -68,12 +76,16 @@ def votes_migration(apps, schema_editor):
 
             update_votes.append(update_votes)
 
+        # Calculate strength
+        kf.votes_score = calculate_votes_strength([v.score for v in votes])
+
     logger.info(f"Updating {len(update_votes)} votes")
     KeyFactorVote.objects.bulk_update(update_votes, ["score"])
     logger.info(f"Updating {len(update_drivers)} drivers")
     KeyFactorDriver.objects.bulk_update(
         update_drivers, ["impact_direction", "vote_type"]
     )
+    KeyFactor.objects.bulk_update(key_factors, ["votes_score"])
 
 
 class Migration(migrations.Migration):
