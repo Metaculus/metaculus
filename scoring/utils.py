@@ -54,15 +54,15 @@ from utils.the_math.measures import decimal_h_index
 logger = logging.getLogger(__name__)
 
 
-def score_question(
+def get_question_scores(
     question: Question,
     resolution: str,
     spot_scoring_time: float | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    protect_uncalculated_scores: bool = False,
     score_users: bool | list[int] = True,
-):
+    user_ids_to_aggregate: list[int] | None = None,
+) -> list[Score]:
     if aggregation_methods is None:
         aggregation_methods = [
             AggregationMethod.RECENCY_WEIGHTED,
@@ -76,13 +76,6 @@ def score_question(
         c[0] for c in ScoreTypes.choices if c[0] != ScoreTypes.MANUAL
     ]
 
-    previous_scores = Score.objects.filter(
-        question=question, score_type__in=score_types
-    )
-    previous_scores_map = {
-        (score.user_id, score.aggregation_method, score.score_type): score.id
-        for score in previous_scores
-    }
     new_scores = evaluate_question(
         question=question,
         resolution_bucket=resolution_bucket,
@@ -90,8 +83,35 @@ def score_question(
         spot_forecast_timestamp=spot_scoring_time,
         aggregation_methods=aggregation_methods,
         score_users=score_users,
+        user_ids_to_aggregate=user_ids_to_aggregate,
     )
+    return new_scores
 
+
+def score_question(
+    question: Question,
+    resolution: str,
+    spot_scoring_time: float | None = None,
+    score_types: list[str] | None = None,
+    aggregation_methods: list[AggregationMethod] | None = None,
+    protect_uncalculated_scores: bool = False,
+    score_users: bool | list[int] = True,
+):
+    new_scores = get_question_scores(
+        question,
+        resolution,
+        spot_scoring_time,
+        score_types,
+        aggregation_methods,
+        score_users,
+    )
+    previous_scores = Score.objects.filter(
+        question=question, score_type__in=score_types
+    )
+    previous_scores_map = {
+        (score.user_id, score.aggregation_method, score.score_type): score.id
+        for score in previous_scores
+    }
     seen = set()
     for new_score in new_scores:
         previous_score_id = previous_scores_map.get(
