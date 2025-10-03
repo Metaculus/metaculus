@@ -21,7 +21,6 @@ class KeyFactorInline(admin.TabularInline):
     get_content.short_description = "Content"
 
 
-
 @admin.register(Comment)
 class CommentAdmin(CustomTranslationAdmin):
     list_display = [
