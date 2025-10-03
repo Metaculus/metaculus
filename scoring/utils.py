@@ -72,9 +72,9 @@ def get_question_scores(
 
     new_scores = evaluate_question(
         question=question,
-        resolution_bucket=resolution_bucket,
+        resolution=resolution,
         score_types=score_types,
-        spot_forecast_timestamp=spot_scoring_time,
+        spot_forecast_time=spot_scoring_time,
         aggregation_methods=aggregation_methods,
         only_include_user_ids=only_include_user_ids,
     )
@@ -84,12 +84,11 @@ def get_question_scores(
 def score_question(
     question: Question,
     resolution: str,
-    spot_scoring_time: float | None = None,
+    spot_scoring_time: datetime | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
     only_include_user_ids: list[int] | None = None,
     protect_uncalculated_scores: bool = False,
-    score_users: bool | list[int] = True,
 ):
     score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
     new_scores = get_question_scores(
