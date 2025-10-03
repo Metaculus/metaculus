@@ -1,6 +1,6 @@
 "use client";
 import { ComponentProps, FC } from "react";
-import { VictoryLabel } from "victory";
+import { VictoryLabel, VictoryLabelProps } from "victory";
 
 import useAppTheme from "@/hooks/use_app_theme";
 
@@ -16,6 +16,7 @@ const ChartCursorLabel: FC<Props> = ({
   positionY,
   fill,
   isActive,
+  style,
   ...props
 }) => {
   const { theme } = useAppTheme();
@@ -25,17 +26,17 @@ const ChartCursorLabel: FC<Props> = ({
   if (!isActive) {
     return null;
   }
+
+  const baseStyleObj = (Array.isArray(style) ? style[0] : style) ?? {};
+
+  const mergedStyle: VictoryLabelProps["style"] = {
+    ...baseStyleObj,
+    fontSize: FONT_SIZE,
+    fill: fill ?? (theme === "dark" ? "white" : "black"),
+  };
+
   return (
-    <VictoryLabel
-      {...props}
-      style={{
-        ...((props.style as any) ?? {}),
-        fontSize: FONT_SIZE,
-        fill: fill ?? (theme === "dark" ? "white" : "black"),
-      }}
-      y={positionY}
-      x={centeredX}
-    />
+    <VictoryLabel {...props} style={mergedStyle} y={positionY} x={centeredX} />
   );
 };
 

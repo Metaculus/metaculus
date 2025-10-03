@@ -2,11 +2,12 @@ declare module "*.webp";
 declare module "*.png";
 declare module "*.jpeg";
 declare module "*.svg" {
-  import { FC, SVGProps } from "react";
-  const content: FC<SVGProps<SVGElement>>;
+  import type { FC, SVGProps } from "react";
+  const content: FC<SVGProps<SVGSVGElement>>;
   export default content;
 }
+
 declare module "*.svg?url" {
-  const content: any;
+  const content: string;
   export default content;
 }

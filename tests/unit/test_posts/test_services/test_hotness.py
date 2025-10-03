@@ -193,7 +193,7 @@ def test_compute_post_hotness(user1):
                     open_time=make_aware(datetime.datetime(2025, 4, 4)),
                     scheduled_close_time=make_aware(datetime.datetime(2025, 4, 10)),
                     resolution_set_time=make_aware(datetime.datetime(2025, 4, 11)),
-                    resolution="yes"
+                    resolution="yes",
                 ),
                 # Will be scored as 18
                 create_question(

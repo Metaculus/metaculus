@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import GroupFormBulkModal, {
@@ -52,6 +52,8 @@ import {
   SimpleQuestionType,
   QuestionType,
   QuestionWithNumericForecasts,
+  Scaling,
+  QuestionWithForecasts,
 } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import {
@@ -68,12 +70,75 @@ import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
+type SubQuestionDraftBase = {
+  id?: number;
+  label: string;
+  scheduled_close_time?: string | undefined;
+  scheduled_resolve_time?: string | undefined;
+  open_time?: string | undefined;
+  cp_reveal_time?: string | undefined;
+  group_rank?: number | undefined;
+  has_forecasts?: boolean | undefined;
+  type?: QuestionType;
+};
+
+type SubQuestionDraft = SubQuestionDraftBase &
+  Partial<{
+    unit: string;
+    scaling: Scaling | null;
+    open_lower_bound: boolean | null;
+    open_upper_bound: boolean | null;
+    inbound_outcome_count: number | null;
+  }>;
+
+type CreateSubQuestionPayload = {
+  id?: number;
+  type: SimpleQuestionType;
+  title: string;
+  label: string;
+  scheduled_close_time: string | undefined;
+  scheduled_resolve_time?: string | undefined;
+  open_time: string | undefined;
+  cp_reveal_time: string | undefined;
+  group_rank: number | undefined;
+  unit?: string;
+  scaling?: Scaling;
+  open_lower_bound?: boolean | null;
+  open_upper_bound?: boolean | null;
+  inbound_outcome_count?: number | null;
+};
+
+type GroupFormDynamicKeys = {
+  [K in `subQuestion-${number}-scheduled_close_time`]?: string;
+} & {
+  [K in `subQuestion-${number}-scheduled_resolve_time`]?: string;
+};
+
+type ExtraTopLevelTimes = {
+  scheduled_close_time?: string;
+  scheduled_resolve_time?: string;
+};
+
+type GroupFormValues = z.infer<ReturnType<typeof createGroupQuestionSchema>> &
+  ExtraTopLevelTimes &
+  GroupFormDynamicKeys;
+
 type PostCreationData = {
-  group_of_questions: any;
   title: string;
   short_title: string;
   categories: number[];
-  default_project: number;
+  default_project: string | number | null;
+  group_of_questions: {
+    delete: number[];
+    title: string;
+    fine_print?: string;
+    resolution_criteria: string;
+    description: string;
+    group_variable: string;
+    questions: CreateSubQuestionPayload[];
+    subquestions_order?: PostGroupOfQuestionsSubquestionsOrder;
+    graph_type?: GroupOfQuestionsGraphType;
+  };
 };
 
 const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
@@ -162,7 +227,7 @@ const GroupForm: React.FC<Props> = ({
   const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
 
-  const submitQuestion = async (data: any) => {
+  const submitQuestion = async (data: GroupFormValues) => {
     setIsLoading(true);
     setError(undefined);
 
@@ -183,76 +248,78 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions.map((x, idx) => {
-      const subquestionData = {
-        id: x.id,
-        type: subtype,
-        title: `${data["title"]} (${x.label})`,
-        label: x.label,
-        scheduled_close_time: x.scheduled_close_time,
-        scheduled_resolve_time: x.scheduled_resolve_time,
-        open_time: x.open_time,
-        cp_reveal_time: x.cp_reveal_time,
-        group_rank: idx,
-      };
+    const groupData = subQuestions
+      .map((x, idx) => {
+        const subquestionData = {
+          id: x.id,
+          type: subtype,
+          title: `${data["title"]} (${x.label})`,
+          label: x.label,
+          scheduled_close_time: x.scheduled_close_time,
+          scheduled_resolve_time: x.scheduled_resolve_time,
+          open_time: x.open_time,
+          cp_reveal_time: x.cp_reveal_time,
+          group_rank: idx,
+        };
 
-      if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
-        setError("Please enter a closing and resolving date");
-        break_out = true;
-        return;
-      }
-      if (subtype === QuestionType.Binary) {
-        return subquestionData;
-      } else if (subtype === QuestionType.Numeric) {
-        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
-          setError(
-            "Please enter a range_max and range_min value for numeric questions"
-          );
+        if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
+          setError("Please enter a closing and resolving date");
           break_out = true;
           return;
         }
-        return {
-          ...subquestionData,
-          unit: x.unit,
-          scaling: x.scaling,
-          open_lower_bound: x.open_lower_bound,
-          open_upper_bound: x.open_upper_bound,
-        };
-      } else if (subtype === QuestionType.Discrete) {
-        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
-          setError(
-            "Please enter a range_max and range_min value for discrete questions"
-          );
-          break_out = true;
+        if (subtype === QuestionType.Binary) {
+          return subquestionData;
+        } else if (subtype === QuestionType.Numeric) {
+          if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+            setError(
+              "Please enter a range_max and range_min value for numeric questions"
+            );
+            break_out = true;
+            return;
+          }
+          return {
+            ...subquestionData,
+            unit: x.unit,
+            scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
+          };
+        } else if (subtype === QuestionType.Discrete) {
+          if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+            setError(
+              "Please enter a range_max and range_min value for discrete questions"
+            );
+            break_out = true;
+            return;
+          }
+          return {
+            ...subquestionData,
+            unit: x.unit,
+            scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
+            inbound_outcome_count: x.inbound_outcome_count,
+          };
+        } else if (subtype === QuestionType.Date) {
+          if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
+            setError(
+              "Please enter a range_max and range_min value for date questions"
+            );
+            break_out = true;
+            return;
+          }
+          return {
+            ...subquestionData,
+            scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
+          };
+        } else {
+          setError("Invalid sub-question type");
           return;
         }
-        return {
-          ...subquestionData,
-          unit: x.unit,
-          scaling: x.scaling,
-          open_lower_bound: x.open_lower_bound,
-          open_upper_bound: x.open_upper_bound,
-          inbound_outcome_count: x.inbound_outcome_count,
-        };
-      } else if (subtype === QuestionType.Date) {
-        if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
-          setError(
-            "Please enter a range_max and range_min value for date questions"
-          );
-          break_out = true;
-          return;
-        }
-        return {
-          ...subquestionData,
-          scaling: x.scaling,
-          open_lower_bound: x.open_lower_bound,
-          open_upper_bound: x.open_upper_bound,
-        };
-      } else {
-        setError("Invalid sub-question type");
-        return;
-      }
-    });
+      })
+      .filter((x) => x !== undefined);
 
     if (break_out) {
       setIsLoading(false);
@@ -304,7 +371,7 @@ const GroupForm: React.FC<Props> = ({
     }
   };
 
-  const [subQuestions, setSubQuestions] = useState<any[]>(() => {
+  const [subQuestions, setSubQuestions] = useState<SubQuestionDraft[]>(() => {
     const initialSubQuestions = post?.group_of_questions?.questions
       ? sortGroupPredictionOptions(
           post?.group_of_questions?.questions as QuestionWithNumericForecasts[],
@@ -347,7 +414,7 @@ const GroupForm: React.FC<Props> = ({
   }, [subQuestions.length, allExpanded]);
 
   const groupQuestionSchema = createGroupQuestionSchema(t);
-  const form = useForm<any>({
+  const form = useForm<GroupFormValues>({
     mode: "all",
     resolver: zodResolver(groupQuestionSchema),
     defaultValues: {
@@ -442,7 +509,11 @@ const GroupForm: React.FC<Props> = ({
         setCollapsedSubQuestions(
           [...(draft.subQuestions ?? [])].map(() => true)
         );
-        form.reset(draft);
+        form.reset({
+          ...draft,
+          resolution_criteria: draft.resolution_criteria ?? "",
+          fine_print: draft.fine_print ?? "",
+        });
       }
       const timeout = setTimeout(() => {
         isDraftMounted.current = true;
@@ -457,8 +528,11 @@ const GroupForm: React.FC<Props> = ({
       const formData = form.getValues();
       saveQuestionDraft(draftKey, {
         ...formData,
+        default_project: (formData.default_project ?? undefined) as
+          | number
+          | undefined,
         categories: categoriesList,
-        subQuestions: subQuestions,
+        subQuestions: subQuestions as unknown as QuestionWithForecasts[],
       });
     }
   }, [form, shouldUseDraftValue, categoriesList, subQuestions, draftKey]);
@@ -737,7 +811,7 @@ const GroupForm: React.FC<Props> = ({
                     )}
                     <div className="flex flex-col gap-4 md:flex-row">
                       <InputContainer
-                        labelText={t("closingDate")}
+                        labelText={t("closeTime")}
                         className="w-full"
                       >
                         <DatetimeUtc
@@ -756,12 +830,12 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
-                          onError={(error: { message: string }) => {
+                          onError={(error) => {
                             form.setError(
                               `subQuestion-${index}-scheduled_close_time`,
                               {
                                 type: "manual",
-                                message: error.message,
+                                message: (error as { message: string }).message,
                               }
                             );
                           }}
@@ -776,7 +850,7 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                       <InputContainer
-                        labelText={t("resolvingDate")}
+                        labelText={t("resolveTime")}
                         className="w-full"
                       >
                         <DatetimeUtc
@@ -795,12 +869,12 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
-                          onError={(error: { message: string }) => {
+                          onError={(error) => {
                             form.setError(
                               `subQuestion-${index}-scheduled_resolve_time`,
                               {
                                 type: "manual",
-                                message: error.message,
+                                message: (error as { message: string }).message,
                               }
                             );
                           }}
@@ -863,8 +937,8 @@ const GroupForm: React.FC<Props> = ({
                         questionType={
                           subtype as (typeof ContinuousQuestionTypes)[number]
                         }
-                        defaultMin={subQuestion.scaling?.range_min}
-                        defaultMax={subQuestion.scaling?.range_max}
+                        defaultMin={subQuestion.scaling?.range_min ?? undefined}
+                        defaultMax={subQuestion.scaling?.range_max ?? undefined}
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
                         defaultInboundOutcomeCount={
@@ -872,7 +946,7 @@ const GroupForm: React.FC<Props> = ({
                         }
                         defaultZeroPoint={subQuestion.scaling?.zero_point}
                         hasForecasts={
-                          subQuestion.has_forecasts && mode !== "create"
+                          !!(subQuestion.has_forecasts && mode !== "create")
                         }
                         onChange={({
                           range_min,
@@ -900,7 +974,7 @@ const GroupForm: React.FC<Props> = ({
                             )
                           );
                         }}
-                        control={form}
+                        control={form as unknown as UseFormReturn}
                         index={index}
                       />
                     )}
@@ -1088,7 +1162,7 @@ const GroupForm: React.FC<Props> = ({
                     setSubQuestions([
                       ...subQuestions,
                       {
-                        type: "binary",
+                        type: QuestionType.Binary,
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,

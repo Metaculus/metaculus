@@ -19,9 +19,21 @@ export type ModalType =
   | "confirm"
   | "accountInactive";
 
-export type CurrentModal = {
-  type: ModalType;
-  data?: Record<string, any>;
+type ModalDataByType = {
+  signin: Record<string, never>;
+  signup: Record<string, never>;
+  signupSuccess: { username: string; email: string };
+  resetPassword: Record<string, never>;
+  resetPasswordConfirm: Record<string, never>;
+  contactUs: Record<string, never>;
+  onboarding: Record<string, never>;
+  confirm: { onConfirm: () => void };
+  accountInactive: { login: string };
+};
+
+export type CurrentModal<T extends ModalType = ModalType> = {
+  type: T;
+  data?: ModalDataByType[T];
 };
 
 export type CurrentModalContextType = {

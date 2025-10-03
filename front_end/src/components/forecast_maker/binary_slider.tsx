@@ -7,6 +7,7 @@ import React, {
   FC,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -20,6 +21,7 @@ export const BINARY_FORECAST_PRECISION = 3;
 export const BINARY_MIN_VALUE = 10 ** -BINARY_FORECAST_PRECISION * 100;
 export const BINARY_MAX_VALUE = 100 - BINARY_MIN_VALUE;
 const COLLISION_BUFFER = 10; // pixels
+const EDGE_PADDING = 14;
 
 type Props = {
   forecast: number | null;
@@ -48,6 +50,7 @@ const BinarySlider: FC<Props> = ({
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
   const [, setInputValue] = useState(inputDisplayValue);
   const [isInputFocused] = useState(false);
+  const [markShiftX, setMarkShiftX] = useState(0);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
   );
@@ -62,6 +65,55 @@ const BinarySlider: FC<Props> = ({
     }
   }, [inputDisplayValue, isInputFocused]);
 
+  useLayoutEffect(() => {
+    if (
+      !communityForecast ||
+      !sliderContainerRef.current ||
+      !communityBubbleRef.current
+    ) {
+      setMarkShiftX(0);
+      return;
+    }
+    const sliderEl = sliderContainerRef.current;
+    const bubbleEl = communityBubbleRef.current;
+
+    const measureAndClamp = () => {
+      const sliderRect = sliderEl.getBoundingClientRect();
+      const bubbleWidth = bubbleEl.offsetWidth;
+      const markValue = communityForecast * 100;
+      const ratio =
+        (markValue - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE);
+
+      const idealCenterX = sliderRect.left + sliderRect.width * ratio;
+      const idealLeft = idealCenterX - bubbleWidth / 2;
+      const idealRight = idealCenterX + bubbleWidth / 2;
+
+      const clampLeft = sliderRect.left - EDGE_PADDING;
+      const clampRight = sliderRect.right + EDGE_PADDING;
+
+      let shift = 0;
+      if (idealLeft < clampLeft) {
+        shift = clampLeft - idealLeft;
+      } else if (idealRight > clampRight) {
+        shift = clampRight - idealRight;
+      }
+
+      setMarkShiftX(shift);
+    };
+
+    measureAndClamp();
+    const ro = new ResizeObserver(measureAndClamp);
+    ro.observe(sliderEl);
+    window.addEventListener("resize", measureAndClamp);
+    window.addEventListener("scroll", measureAndClamp, true);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measureAndClamp);
+      window.removeEventListener("scroll", measureAndClamp, true);
+    };
+  }, [communityForecast]);
+
   // Calculate physical collision between slider handle and community bubble
   useEffect(() => {
     if (
@@ -74,23 +126,31 @@ const BinarySlider: FC<Props> = ({
     }
 
     const sliderRect = sliderContainerRef.current.getBoundingClientRect();
-    const markRect = communityBubbleRef.current.getBoundingClientRect();
+    const bubbleWidth = communityBubbleRef.current.offsetWidth;
+
+    const markValue = communityForecast * 100;
+    const ratio =
+      (markValue - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE);
+
+    const idealCenterX = sliderRect.left + sliderRect.width * ratio;
+    const bubbleCenterX = idealCenterX + markShiftX;
 
     // Calculate slider handle position (approximate based on slider value)
     const sliderProgress =
       (sliderValue - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE);
     const handleX = sliderRect.left + sliderRect.width * sliderProgress;
 
-    // Calculate community bubble center position
-    const bubbleX = markRect.left + markRect.width / 2;
-
     // Check if they're too close (considering handle width and bubble width)
     const handleWidth = 20;
-    const distance = Math.abs(handleX - bubbleX);
-    const minDistance = handleWidth / 2 + markRect.width / 2 + COLLISION_BUFFER;
+    const distance = Math.abs(handleX - bubbleCenterX);
+    const minDistance = handleWidth / 2 + bubbleWidth / 2 + COLLISION_BUFFER;
 
-    setIsNearCommunityForecast(distance < minDistance);
-  }, [sliderValue, communityForecast]);
+    setIsNearCommunityForecast((prev) => {
+      if (!prev && distance < minDistance) return true;
+      if (prev && distance > minDistance) return false;
+      return prev;
+    });
+  }, [sliderValue, communityForecast, markShiftX]);
 
   const handleSliderForecastChange = useCallback(
     (value: number) => {
@@ -126,6 +186,7 @@ const BinarySlider: FC<Props> = ({
                       isNear={isNearCommunityForecast}
                       disabled={disabled}
                       ref={communityBubbleRef}
+                      shiftX={markShiftX}
                     />
                   ),
                 }
@@ -158,16 +219,17 @@ const BinarySlider: FC<Props> = ({
 
 const MarkArrow = React.forwardRef<
   HTMLDivElement,
-  { value: number; isNear: boolean; disabled: boolean }
->(({ value, isNear, disabled }, ref) => {
+  { value: number; isNear: boolean; disabled: boolean; shiftX?: number }
+>(({ value, isNear, disabled, shiftX = 0 }, ref) => {
   const t = useTranslations();
   return (
     <div
       ref={ref}
-      className={cn("absolute -translate-x-1/2", {
-        "translate-y-[-36px]": isNear,
-        "translate-y-[-20px]": !isNear,
-      })}
+      className="pointer-events-none absolute"
+      style={{
+        transform: `translate(calc(-50% + ${shiftX}px), ${isNear ? "-36px" : "-20px"})`,
+        willChange: "transform",
+      }}
     >
       <div
         className={cn(
@@ -180,14 +242,16 @@ const MarkArrow = React.forwardRef<
         {t("community")}:{" "}
         <span className="font-bold">{`${Math.round(1000 * value) / 10}%`}</span>
       </div>
-      <Rectangle
-        className={cn(
-          "mx-auto -mt-[1px] fill-olive-800 dark:fill-olive-800-dark",
-          {
-            "fill-gray-700 dark:fill-gray-700-dark": disabled,
-          }
-        )}
-      />
+      <div style={{ transform: `translateX(${-shiftX}px)` }}>
+        <Rectangle
+          className={cn(
+            "mx-auto -mt-[1px] fill-olive-800 dark:fill-olive-800-dark",
+            {
+              "fill-gray-700 dark:fill-gray-700-dark": disabled,
+            }
+          )}
+        />
+      </div>
     </div>
   );
 });

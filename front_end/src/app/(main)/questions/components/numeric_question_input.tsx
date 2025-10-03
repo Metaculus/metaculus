@@ -433,11 +433,11 @@ const NumericQuestionInput: React.FC<{
                         : new Date(dateString).getTime() / 1000
                     );
                   }}
-                  onError={(error: { message: string }) => {
+                  onError={(error) => {
                     control &&
                       control.setError(`min-value-${index}`, {
                         type: "manual",
-                        message: error.message,
+                        message: (error as { message: string }).message,
                       });
                   }}
                 />
@@ -465,10 +465,10 @@ const NumericQuestionInput: React.FC<{
                         : new Date(dateString).getTime() / 1000
                     );
                   }}
-                  onError={(error: { message: string }) => {
+                  onError={(error) => {
                     control?.setError(`max-value-${index}`, {
                       type: "manual",
-                      message: error.message,
+                      message: (error as { message: string }).message,
                     });
                   }}
                 />

@@ -9,8 +9,10 @@ import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";
 import { ApiError } from "@/utils/core/errors";
 
+import { ApiErrorPayload } from "../actions";
+
 export type PasswordResetRequestActionState = {
-  errors?: any;
+  errors?: ApiErrorPayload | Record<string, string[]>;
 } | null;
 
 export async function passwordResetRequestAction(
@@ -39,7 +41,7 @@ export async function passwordResetRequestAction(
 }
 
 export type PasswordResetConfirmActionState = {
-  errors?: any;
+  errors?: ApiErrorPayload | Record<string, string[]>;
   data?: AuthResponse;
 } | null;
 

@@ -96,7 +96,7 @@ const RepostForm: FC<Props> = ({ community }) => {
         setIsLoading(false);
       }
     }
-  }, [community.id, community.slug, post, router]);
+  }, [community.id, post, router]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">

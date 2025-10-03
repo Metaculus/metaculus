@@ -26,7 +26,7 @@ const useChartTooltip = ({
     middleware: [
       offset(tooltipOffset),
       flip(),
-      shift({ mainAxis: false, crossAxis: true }),
+      shift({ crossAxis: true, padding: 16 }),
     ],
     open: isActive,
     onOpenChange: setIsActive,

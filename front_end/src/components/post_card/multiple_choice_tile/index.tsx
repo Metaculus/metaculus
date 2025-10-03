@@ -110,7 +110,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
         groupType,
         user,
       }),
-    [group?.questions, groupType, question]
+    [group?.questions, groupType, question, user]
   );
 
   const handleReaffirmClick = useCallback(() => {
@@ -207,7 +207,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
         groupType,
         user,
       }),
-    [group.questions, groupType]
+    [group.questions, groupType, user]
   );
 
   const handleReaffirmClick = useCallback(() => {

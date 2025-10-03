@@ -118,6 +118,7 @@ def create_post(
     author: User = None,
     short_title: str = None,
     published_at: datetime = None,
+    **kwargs,
 ) -> Post:
     # We always want to create post & questions content in the original mode
     activate(settings.ORIGINAL_LANGUAGE_CODE)
@@ -133,6 +134,7 @@ def create_post(
             author=author,
             curation_status=Post.CurationStatus.DRAFT,
             published_at=published_at,
+            **kwargs,
         )
 
         # Adding questions

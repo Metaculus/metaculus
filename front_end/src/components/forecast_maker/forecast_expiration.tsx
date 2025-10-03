@@ -24,6 +24,7 @@ import {
 
 import BaseModal from "../base_modal";
 import Button from "../ui/button";
+import { ContinuousGroupOption } from "./continuous_group_accordion/group_forecast_accordion";
 
 interface ForecastExpirationModalProps {
   isOpen: boolean;
@@ -80,8 +81,10 @@ const modalPresets: Preset[] = [
   { id: "neverWithdraw" },
 ] as const;
 
+type ForecastLike = Pick<UserForecast, "end_time">;
+
 export const getTimeToExpireDays = (
-  lastForecast: UserForecast | undefined
+  lastForecast: ForecastLike | undefined
 ): number | undefined => {
   if (lastForecast?.end_time) {
     const lastForecastExpiryDate = new Date(lastForecast.end_time * 1000);
@@ -100,6 +103,19 @@ export const getTimeToExpireDays = (
     );
   }
 };
+
+export function getEffectiveLatest(opt: ContinuousGroupOption) {
+  if (opt.wasWithdrawn) {
+    return {
+      end_time: opt.withdrawnEndTimeSec ?? Math.floor(Date.now() / 1000),
+    };
+  }
+  if (opt.forecastExpiration) {
+    const d = forecastExpirationToDate(opt.forecastExpiration);
+    if (d) return { end_time: Math.floor(d.getTime() / 1000) };
+  }
+  return opt.question.my_forecasts?.latest;
+}
 
 export const buildDefaultForecastExpiration = (
   question: QuestionWithForecasts,
@@ -273,6 +289,7 @@ export const useExpirationModalState = (
         userDefaultExpirationDurationSec
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastForecast]);
 
   let expirationShortChip: React.ReactNode = (
@@ -418,18 +435,17 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
       })
     : null;
 
+  const datePickerDate = currentState.datePickerDate;
   useEffect(() => {
-    if (currentState.datePickerDate) {
-      setCurrentState({
-        ...currentState,
-        forecastExpiration: {
-          kind: "date",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          value: currentState.datePickerDate!,
-        },
-      });
-    }
-  }, [currentState.datePickerDate]);
+    if (!datePickerDate) return;
+    setCurrentState((prev) => ({
+      ...prev,
+      forecastExpiration: {
+        kind: "date",
+        value: datePickerDate,
+      },
+    }));
+  }, [datePickerDate]);
 
   const onCustomOptionSelected = (preset: Preset) => {
     setCurrentState({

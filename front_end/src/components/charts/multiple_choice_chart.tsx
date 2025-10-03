@@ -840,7 +840,7 @@ function buildChartData({
 const ResolutionChip: FC<{
   x?: number | null;
   y?: number | null;
-  datum?: any;
+  datum?: { y?: number | null };
   chartHeight: number;
   compact?: boolean;
   text: string;

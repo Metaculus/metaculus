@@ -40,7 +40,7 @@ const QuestionPredictionTooltip: FC<Props> = ({
   }
 
   return (
-    <div className="relative w-max min-w-[200px] rounded border border-gray-300 px-3 py-2.5 dark:border-gray-300-dark">
+    <div className="relative w-[max(200px,max-content)] min-w-[200px] rounded border border-gray-300 px-3 py-2.5 dark:border-gray-300-dark">
       <div className="space-y-2">
         <div className="flex w-full items-center justify-between">
           <span className="text-sm font-medium capitalize text-olive-700 dark:text-olive-700-dark">

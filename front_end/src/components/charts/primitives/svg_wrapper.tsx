@@ -1,16 +1,37 @@
 import { PropsWithChildren } from "react";
 
 type SVGDefsProps = React.SVGProps<SVGDefsElement>;
+
+type DomainTupleNum = [number, number];
+type DomainTupleDate = [Date, Date];
+type DomainTuple = DomainTupleNum | DomainTupleDate;
+type DomainLike = DomainTuple | { x?: DomainTuple; y?: DomainTuple };
+
+type PrimitiveScale =
+  | "linear"
+  | "time"
+  | "log"
+  | "sqrt"
+  | "pow"
+  | "band"
+  | "point"
+  | "ordinal";
+type ScaleFn = (value: unknown) => number;
+type ScaleLike =
+  | PrimitiveScale
+  | ScaleFn
+  | { x?: PrimitiveScale | ScaleFn; y?: PrimitiveScale | ScaleFn };
+
 type ExcludedProps = {
   standalone?: boolean;
-  domain?: any;
-  scale?: any;
+  domain?: DomainLike;
+  scale?: ScaleLike;
   horizontal?: boolean;
   polar?: boolean;
   renderInPortal?: boolean;
   width?: number;
   height?: number;
-  stringMap?: Record<string, any>;
+  stringMap?: Record<string, number>;
   padding?:
     | number
     | { top?: number; bottom?: number; left?: number; right?: number };

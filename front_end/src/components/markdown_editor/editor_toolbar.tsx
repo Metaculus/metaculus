@@ -5,6 +5,7 @@ import {
   BoldItalicUnderlineToggles,
   CreateLink,
   DiffSourceToggleWrapper,
+  InsertCodeBlock,
   InsertImage,
   InsertTable,
   InsertThematicBreak,
@@ -20,7 +21,9 @@ import AddEquationAction from "./plugins/equation/components/add_equation_action
 import { SourceModeTitle } from "./source_mode_title";
 import Button from "../ui/button";
 
-const EditorToolbar = () => {
+const EditorToolbar: React.FC<{ withCodeBlocks?: boolean }> = ({
+  withCodeBlocks,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -38,6 +41,7 @@ const EditorToolbar = () => {
           <InsertImage />
           <InsertThematicBreak />
           <InsertTable />
+          {withCodeBlocks && <InsertCodeBlock />}
         </div>
         <Button
           variant="tertiary"
@@ -69,6 +73,7 @@ const EditorToolbar = () => {
               <InsertImage />
               <InsertThematicBreak />
               <InsertTable />
+              {withCodeBlocks && <InsertCodeBlock />}
             </div>
             <AddEquationAction />
             <Separator />

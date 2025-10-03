@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { FC, useEffect, useRef, useState } from "react";
 
 interface CupVideoProps {
@@ -33,10 +34,14 @@ export const CupVideo: FC<CupVideoProps> = ({ className = "" }) => {
       }}
     >
       {!isVideoLoaded && (
-        <img
+        <Image
           src="https://metaculus-media.s3.us-west-2.amazonaws.com/first-frame.jpg"
           alt="Metaculus Cup Preview"
-          className="w-full"
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+          unoptimized
         />
       )}
       <video

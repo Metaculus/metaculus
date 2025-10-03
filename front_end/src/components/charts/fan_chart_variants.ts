@@ -1,3 +1,6 @@
+import { ComponentProps } from "react";
+import { VictoryAxis } from "victory";
+
 import { METAC_COLORS } from "@/constants/colors";
 import { ThemeColor } from "@/types/theme";
 
@@ -19,14 +22,16 @@ type ResolutionPointStyle = {
   fill: (args: Pick<VariantArgs, "getThemeColor">) => string;
 };
 
+type AxisStyle = NonNullable<ComponentProps<typeof VictoryAxis>["style"]>;
+
 export type VariantConfig = {
   id: FanChartVariant;
   yAxisStyle: (
     args: Omit<VariantArgs, "chartWidth" | "yLabel">
-  ) => any | undefined;
+  ) => AxisStyle | undefined;
   xAxisStyle: (
     args: Omit<VariantArgs, "chartWidth" | "yLabel">
-  ) => any | undefined;
+  ) => AxisStyle | undefined;
   domainPadding: (args: VariantArgs) => {
     x: [number, number];
     y?: [number, number];

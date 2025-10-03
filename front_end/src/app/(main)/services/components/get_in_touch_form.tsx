@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState } from "react";
-import { useForm, Controller, UseFormRegister } from "react-hook-form";
+import { useForm, Controller, UseFormRegister, Path } from "react-hook-form";
 import { z } from "zod";
 
 import BaseModal from "@/components/base_modal";
@@ -256,8 +256,8 @@ const GetInTouchForm: FC<Props> = ({
 type FormInputProps = {
   label: string;
   errors?: ErrorResponse;
-  register: UseFormRegister<any>;
-  name: string;
+  register: UseFormRegister<GetInTouchFormSchema>;
+  name: Path<GetInTouchFormSchema>;
   type?: "text" | "email";
   isTextarea?: boolean;
   className?: string;

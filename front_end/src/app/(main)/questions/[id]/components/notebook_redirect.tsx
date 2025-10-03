@@ -20,7 +20,7 @@ const NotebookRedirect: FC<Props> = ({ id, slug }) => {
     router.replace(
       `/notebooks/${id}${slug ? `/${slug}` : ""}${hash ? `${hash}` : ""}`
     );
-  }, []);
+  }, [id, router, slug]);
 
   return <LoadingIndicator />;
 };

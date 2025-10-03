@@ -10,10 +10,21 @@ export type ConfirmationResult = {
   error?: string;
 };
 
+export interface AdditionalFormData {
+  university: string;
+  fieldOfStudy: string;
+  programType: string;
+  hasForecastingTraining: boolean;
+  hasForecastingExperience: boolean;
+  motivation?: string;
+  consentAgreed: boolean;
+}
+
 export async function submitToZapierWebhook(
   email: string,
   username?: string,
-  userEmail?: string
+  userEmail?: string,
+  additionalData?: AdditionalFormData
 ): Promise<ZapierSubmissionResult> {
   try {
     const webhookUrl = process.env.RAND_ZAPIER_WEBHOOK_URL;
@@ -37,6 +48,15 @@ export async function submitToZapierWebhook(
         userEmail: userEmail || null,
         timestamp: new Date().toISOString(),
         source: "rand_landing_page",
+        // Additional form data
+        university: additionalData?.university || null,
+        fieldOfStudy: additionalData?.fieldOfStudy || null,
+        programType: additionalData?.programType || null,
+        hasForecastingTraining: additionalData?.hasForecastingTraining || null,
+        hasForecastingExperience:
+          additionalData?.hasForecastingExperience || null,
+        motivation: additionalData?.motivation || null,
+        consentAgreed: additionalData?.consentAgreed || null,
       }),
     });
 

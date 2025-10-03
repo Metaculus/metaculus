@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import PageWrapper from "../components/pagewrapper";
@@ -440,10 +441,13 @@ export default function PressPage() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <img
-                        className="w-full"
+                      <Image
+                        className="h-auto w-full max-w-full"
                         src="https://metaculus-media.s3.us-west-2.amazonaws.com/TheEconomistMetaculusAI.webp"
                         alt="The Economist graph based on data by Metaculus on the question of when will the first general-AI system be devised, tested and announced"
+                        width={640}
+                        height={708}
+                        unoptimized
                       />
                     </a>
                   </div>
@@ -648,11 +652,14 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Economist_Logo.svg"
-                  alt="The Economist"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Economist_Logo.svg"
+                    alt="The Economist"
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   O que os humanos fariam em um mundo de super-IA?
                 </h3>
@@ -663,11 +670,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Forbes_logo.svg"
-                  alt="Forbes"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Forbes_logo.svg"
+                    alt="Forbes"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   GPT: Proibir ou não proibir? Essa é a pergunta
                 </h3>
@@ -678,11 +689,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Atlantic_magazine_logo.svg"
-                  alt="The Atlantic"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Atlantic_magazine_logo.svg"
+                    alt="The Atlantic"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   Como as gerações futuras vão nos lembrar
                 </h3>
@@ -693,11 +708,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/POLITICOLOGO.svg"
-                  alt="Politico"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/POLITICOLOGO.svg"
+                    alt="Politico"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   Precisamos de um Projeto Manhattan para a Segurança da IA
                 </h3>
@@ -708,11 +727,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Logo_of_The_Washington_Post_Newspaper.svg"
-                  alt="The Washington Post"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Logo_of_The_Washington_Post_Newspaper.svg"
+                    alt="The Washington Post"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   Quer que a política seja melhor? Foco nas futuras gerações
                 </h3>
@@ -723,11 +746,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Vox_logo.svg"
-                  alt="Vox"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Vox_logo.svg"
+                    alt="Vox"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   As previsões são difíceis, especialmente sobre o coronavírus
                 </h3>
@@ -738,11 +765,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Seeking_Alpha_Logo.svg"
-                  alt="Seeking Alpha"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Seeking_Alpha_Logo.svg"
+                    alt="Seeking Alpha"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   Nvidia pode precisar de mais fluxo de caixa para se juntar ao
                   Clube Trilhão-Dólar
@@ -754,11 +785,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Conversation_website_text_logo.svg"
-                  alt="The Conversation"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Conversation_website_text_logo.svg"
+                    alt="The Conversation"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   A IA chegará a inteligência de nível humano? Nós perguntamos a
                   cinco especialistas
@@ -770,11 +805,15 @@ export default function PressPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
-                  className="mb-2 h-12 p-2"
-                  src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/BBC_Logo_2021.svg"
-                  alt="BBC.com"
-                />
+                <div className="relative mx-2 mb-4 mt-2 h-8 p-2">
+                  <Image
+                    fill
+                    className="object-contain object-left"
+                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/BBC_Logo_2021.svg"
+                    alt="BBC.com"
+                    unoptimized
+                  />
+                </div>
                 <h3 className="mx-2 my-0 text-base text-blue-800 dark:text-blue-800">
                   O que é o longtermismo?
                 </h3>

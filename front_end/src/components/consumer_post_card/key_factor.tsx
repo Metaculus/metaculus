@@ -27,7 +27,7 @@ const ConsumerKeyFactor: FC<Props> = ({ keyFactor, className }) => {
         {t("keyFactor")}
       </h4>
       <p className="m-0 text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
-        {keyFactoreData.text}
+        {keyFactoreData.driver.text}
       </p>
     </div>
   );
