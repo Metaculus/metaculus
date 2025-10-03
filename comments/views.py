@@ -303,7 +303,7 @@ def comment_create_oldapi_view(request: Request):
 def key_factor_vote_view(request: Request, pk: int):
     key_factor = get_object_or_404(KeyFactor, pk=pk)
     vote = serializers.ChoiceField(
-        required=False, allow_null=True, choices=KeyFactorVote.VoteScore.choices
+        required=False, allow_null=True, choices=KeyFactorVote.VoteStrength.choices
     ).run_validation(request.data.get("vote"))
     # vote_type is always required, and when vote is None, the type is being used to
     # decide which vote to delete based on the type
