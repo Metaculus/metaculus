@@ -1376,7 +1376,6 @@
   "predictionWillBeWithdrawInText": "Tu predicción se retirará en {time}",
   "predictionWithdrawnText": "Tu predicción fue retirada hace {time}",
   "predictionDuration": "Duración de la predicción",
-  "predictionAutoWithdrawalTitle": "Retiro automático",
   "neverWithdraw": "Nunca retirar",
   "useCustomDuration": "Usar duración personalizada para esta pregunta",
   "useAccountSettingDescription": "Esto se basa en la configuración {userForecastExpirationPercent}% de la duración total de la pregunta, mínimo 1 mes.",

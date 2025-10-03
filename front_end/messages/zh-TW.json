@@ -1373,7 +1373,6 @@
   "predictionWillBeWithdrawInText": "您的預測將於 {time} 內撤回",
   "predictionWithdrawnText": "您的預測在 {time} 前已撤回",
   "predictionDuration": "預測持續時間",
-  "predictionAutoWithdrawalTitle": "自動撤回",
   "neverWithdraw": "永不撤回",
   "useCustomDuration": "對此問題使用自定義持續時間",
   "useAccountSettingDescription": "這是根據設置 {userForecastExpirationPercent}% 的問題總時長，最少1個月。",

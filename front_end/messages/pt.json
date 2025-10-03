@@ -1373,7 +1373,6 @@
   "predictionWillBeWithdrawInText": "Sua previsão será retirada em {time}",
   "predictionWithdrawnText": "Sua previsão foi retirada há {time}",
   "predictionDuration": "Duração da previsão",
-  "predictionAutoWithdrawalTitle": "Retirada automática",
   "neverWithdraw": "Nunca retirar",
   "useAccountSetting": "Usar configuração de nível de conta",
   "useCustomDuration": "Usar duração personalizada para esta pergunta",

@@ -1378,7 +1378,6 @@
   "predictionWillBeWithdrawInText": "您的预测将在 {time} 后撤回",
   "predictionWithdrawnText": "您的预测已于 {time} 前撤回",
   "predictionDuration": "预测时长",
-  "predictionAutoWithdrawalTitle": "自动撤回",
   "neverWithdraw": "从不撤回",
   "useAccountSetting": "使用账户级设置",
   "useCustomDuration": "对该问题使用自定义时长",

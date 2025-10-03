@@ -1376,7 +1376,6 @@
   "predictionWillBeWithdrawInText": "Vaše předpověď bude stažena za {time}",
   "predictionWithdrawnText": "Vaše předpověď byla stažena před {time}",
   "predictionDuration": "Doba trvání předpovědi",
-  "predictionAutoWithdrawalTitle": "Automatické stažení",
   "neverWithdraw": "Nikdy nestahovat",
   "useCustomDuration": "Použít vlastní dobu trvání pro tuto otázku",
   "useAccountSettingDescription": "Toto je založeno na nastavení {userForecastExpirationPercent}% z celkové doby trvání otázky, minimálně 1 měsíc.",
