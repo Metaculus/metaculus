@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Driver
+from comments.models import KeyFactor
 from comments.serializers import serialize_key_factors_many
 from misc.models import ITNArticle
 from projects.models import Project
@@ -491,7 +491,7 @@ def serialize_post_many(
     if with_key_factors:
         comment_key_factors_map = generate_map_from_list(
             serialize_key_factors_many(
-                Driver.objects.for_posts(posts)
+                KeyFactor.objects.for_posts(posts)
                 .filter_active()
                 .order_by("-votes_score"),
                 current_user=current_user,

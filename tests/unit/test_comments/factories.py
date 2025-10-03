@@ -1,6 +1,6 @@
 from django_dynamic_fixture import G
 
-from comments.models import Comment, Driver, DriverVote
+from comments.models import Comment, KeyFactor, KeyFactorVote
 from posts.models import Post
 from users.models import User
 from utils.dtypes import setdefaults_not_null
@@ -30,14 +30,14 @@ def factory_key_factor(
     *,
     comment: Comment = None,
     votes: dict[User, int] = None,
-    vote_type: DriverVote.VoteType = None,
+    vote_type: KeyFactorVote.VoteType = None,
     **kwargs
-) -> Driver:
+) -> KeyFactor:
     votes = votes or {}
-    cf = G(Driver, **setdefaults_not_null(kwargs, comment=comment))
+    cf = G(KeyFactor, **setdefaults_not_null(kwargs, comment=comment))
 
     for user, score in votes.items():
-        DriverVote.objects.create(
+        KeyFactorVote.objects.create(
             key_factor=cf, score=score, user=user, vote_type=vote_type
         )
 

@@ -1524,5 +1524,9 @@
   "learnMoreFAQ": "在我們的常見問題中了解更多",
   "belowLowerBound": "低於下限",
   "aboveUpperBound": "高於上限",
+  "certainty": "確定性：",
+  "strong": "強",
+  "weak": "弱",
+  "none": "無",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

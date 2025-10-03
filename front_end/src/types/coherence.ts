@@ -12,6 +12,14 @@ export enum Strengths {
 export enum LinkTypes {
   Causal = "causal",
 }
+
+export enum Certainty {
+  Strong = "strong",
+  Medium = "medium",
+  Weak = "weak",
+  None = "none",
+}
+
 export type CoherenceLink = {
   question1_id: number;
   question1?: Question;
@@ -28,6 +36,17 @@ export type FetchedCoherenceLinks = {
     question1: Question;
     question2: Question;
   })[];
+};
+
+export type FetchedAggregateCoherenceLink = CoherenceLink & {
+  rsem: number | null;
+  links_nr: number;
+  direction: Directions | null;
+  strength: Strengths | null;
+};
+
+export type FetchedAggregateCoherenceLinks = {
+  data: FetchedAggregateCoherenceLink[];
 };
 
 export const ALLOWED_COHERENCE_LINK_QUESTION_TYPES = [

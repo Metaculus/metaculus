@@ -2,15 +2,23 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
 from utils.models import CustomTranslationAdmin
-from .models import Comment, Driver
+from .models import Comment, KeyFactor, KeyFactorDriver
 
 
-class DriverInline(admin.TabularInline):
-    model = Driver
+class KeyFactorInline(admin.TabularInline):
+    model = KeyFactor
     extra = 0
-    fields = ["text", "votes_score", "is_active"]
-    readonly_fields = ["votes_score"]
+    fields = ["get_content", "votes_score", "is_active"]
+    readonly_fields = ["get_content", "votes_score"]
     can_delete = True
+
+    def get_content(self, obj: KeyFactor):
+        if obj.driver_id:
+            return obj.driver.text
+
+        return "-"
+
+    get_content.short_description = "Content"
 
 
 @admin.register(Comment)
@@ -41,22 +49,25 @@ class CommentAdmin(CustomTranslationAdmin):
         "is_private",
     ]
     search_fields = ["id", "text"]
-    inlines = [DriverInline]
+    inlines = [KeyFactorInline]
 
     def should_update_translations(self, obj):
         return not obj.on_post.is_private()
 
 
-@admin.register(Driver)
-class DriverAdmin(CustomTranslationAdmin):
+@admin.register(KeyFactorDriver)
+class KeyFactorDriverAdmin(CustomTranslationAdmin):
+    search_fields = ["id"]
+
+
+@admin.register(KeyFactor)
+class KeyFactorAdmin(admin.ModelAdmin):
     list_filter = [
         AutocompleteFilterFactory("Comment", "comment"),
         AutocompleteFilterFactory("Post", "comment__on_post"),
     ]
 
-    autocomplete_fields = [
-        "comment",
-    ]
+    autocomplete_fields = ["comment", "question", "driver"]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("comment__on_post")
