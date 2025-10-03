@@ -36,7 +36,6 @@ interface ForecastExpirationModalProps {
   savedState: ModalState;
   setSavedState: (state: ModalState) => void;
   onReaffirm?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
-  questionDuration: number;
 }
 
 type Preset = { id: string; duration?: Duration };
@@ -130,14 +129,11 @@ export const buildDefaultForecastExpiration = (
   question: QuestionWithForecasts,
   userPredictionExpirationPercent: number | undefined
 ): ForecastExpirationValue => {
-  // TODO: tweak it!
   const lastForecast = question.my_forecasts?.latest;
 
   const questionDuration =
     new Date(question.scheduled_close_time).getTime() -
     new Date(question.open_time ?? question.created_at).getTime();
-
-  console.log("questionDuration", questionDuration);
 
   const userDefaultExpirationDurationSec = userPredictionExpirationPercent
     ? ((userPredictionExpirationPercent / 100) * questionDuration) / 1000
@@ -258,8 +254,6 @@ export const useExpirationModalState = (
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
 
-  console.log("questionDuration", questionDuration);
-
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
@@ -372,7 +366,6 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   savedState,
   setSavedState,
   onReaffirm,
-  questionDuration,
 }) => {
   const t = useTranslations();
 
@@ -449,8 +442,6 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     onReaffirm?.(currentState.forecastExpiration);
     handleSave();
   };
-
-  console.log("SelectedPreset", currentState);
 
   return (
     <BaseModal

@@ -332,7 +332,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        questionDuration={averageQuestionDuration}
         onReaffirm={
           !isPickerDirty && hasSomeActiveUserForecasts ? submit : undefined
         }

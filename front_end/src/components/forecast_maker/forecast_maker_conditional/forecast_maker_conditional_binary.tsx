@@ -126,11 +126,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     question_no.my_forecasts?.latest
   );
 
-  const questionDuration =
-    activeTableOption === questionYesId
-      ? questionYesDuration
-      : questionNoDuration;
-
   const {
     modalSavedState,
     setModalSavedState,
@@ -392,7 +387,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             ? handlePredictSubmit
             : undefined
         }
-        questionDuration={questionDuration}
       />
 
       <ConditionalForecastTable
