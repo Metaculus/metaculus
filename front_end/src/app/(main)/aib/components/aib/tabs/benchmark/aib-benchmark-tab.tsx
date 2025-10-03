@@ -1,11 +1,22 @@
-import AIBBenchmarkModels from "./aib-benchmark-models";
-import AIBBenchmarkTabHero from "./aib-benchmark-tab-hero";
+import {
+  AIBBenchmarkBotsVsHumansSubsectionHeader,
+  AIBBenchmarkModelsSubsectionHeader,
+} from "./aib-benchmark-subsection-header";
+import AIBBenchmarkHumansBotComparison from "./humans-bot-comparison/aib-benchmark-humans-bot-comparison";
+import AIBBenchmarkModels from "./models/aib-benchmark-models";
 
 const AIBBenchmarkTab: React.FC = () => {
   return (
     <>
-      <AIBBenchmarkTabHero />
-      <AIBBenchmarkModels />
+      <div>
+        <AIBBenchmarkModelsSubsectionHeader />
+        <AIBBenchmarkModels />
+      </div>
+
+      <div>
+        <AIBBenchmarkBotsVsHumansSubsectionHeader />
+        <AIBBenchmarkHumansBotComparison />
+      </div>
     </>
   );
 };

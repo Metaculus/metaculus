@@ -103,9 +103,10 @@ const AIBBenchmarkModels: React.FC<Props> = ({ models = DEFAULT_MODELS }) => {
 
   return (
     <>
-      <div className="space-y-2">
-        <p className="m-0 mt-[43px] font-normal text-gray-700 dark:text-gray-700-dark">
-          Model Name
+      <div className="mt-[43px] space-y-2">
+        <p className="m-0 flex justify-between font-normal text-gray-700 dark:text-gray-700-dark">
+          <span>Model Name</span>
+          <span>Score</span>
         </p>
         {finalModels.map((m) => {
           const widthPct = stats.scale(m.score);
@@ -139,7 +140,7 @@ const AIBBenchmarkModels: React.FC<Props> = ({ models = DEFAULT_MODELS }) => {
         {!isAllShown && (
           <button
             onClick={() => setIsAllShown((prev) => !prev)}
-            className="w-full rounded-[4px] bg-blue-700 bg-opacity-10 p-[10px] text-left text-[16px] font-[500] text-blue-700 dark:bg-blue-700-dark dark:text-blue-700-dark"
+            className="w-full rounded-[4px] bg-blue-700 bg-opacity-10 p-[10px] text-left text-[16px] font-[500] text-blue-700 dark:bg-blue-700-dark dark:bg-opacity-10 dark:text-blue-700-dark"
           >
             Show all ({count})
           </button>

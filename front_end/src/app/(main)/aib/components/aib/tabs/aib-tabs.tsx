@@ -22,7 +22,11 @@ const AIBTabs: React.FC = () => {
         ))}
       </TabsList>
       {AIB_TABS.map((tab) => (
-        <TabsSection className="mt-[120px]" key={tab.value} value={tab.value}>
+        <TabsSection
+          className="mt-[120px] space-y-[120px]"
+          key={tab.value}
+          value={tab.value}
+        >
           {tab.content}
         </TabsSection>
       ))}
