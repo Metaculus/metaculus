@@ -1373,11 +1373,9 @@
   "predictionWillBeWithdrawInText": "Sua previsão será retirada em {time}",
   "predictionWithdrawnText": "Sua previsão foi retirada há {time}",
   "predictionDuration": "Duração da previsão",
-  "predictionAutoWithdrawalTitle": "Retirada automática",
   "neverWithdraw": "Nunca retirar",
   "useAccountSetting": "Usar configuração de nível de conta",
   "useCustomDuration": "Usar duração personalizada para esta pergunta",
-  "useAccountSettingDescription": "Isso é baseado na configuração de {userForecastExpirationPercent}% da duração total da pergunta, com um mínimo de 1 mês.",
   "predictionWithdrawalReminderHelpText": "Você receberá um e-mail de notificação lembrando de atualizar quando aproximadamente 5% da duração restar.",
   "defaultWithdrawalSettingText": "Por padrão, minhas previsões são retiradas após uma % do tempo de vida da pergunta",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# previsão} other {# previsões}} serão retiradas em breve",
@@ -1529,5 +1527,9 @@
   "strong": "forte",
   "weak": "fraco",
   "none": "nenhum",
+  "predictionAutoWithdrawalTitle": "Retirar automaticamente minha previsão após",
+  "3years": "3 anos",
+  "resetToDefault": "Redefinir para o padrão",
+  "useAccountSettingDescription": "com base no padrão da sua conta de { userForecastExpirationPercent }% da duração total da pergunta (com um mínimo de 1 mês). Você pode alterar isso em suas <settingsLink>configurações</settingsLink>",
   "othersCount": "Outros ({count})"
 }
