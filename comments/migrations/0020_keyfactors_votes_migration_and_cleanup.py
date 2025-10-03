@@ -36,7 +36,7 @@ def votes_migration(apps, schema_editor):
     KeyFactorDriver = apps.get_model("comments", "KeyFactorDriver")
 
     # Drop unused a_updown votes
-    KeyFactorVote.objects.filter(type="a_updown").delete()
+    KeyFactorVote.objects.filter(vote_type="a_updown").delete()
 
     # Migrate other votes
     key_factors = list(KeyFactor.objects.prefetch_related("votes").all())
@@ -57,7 +57,7 @@ def votes_migration(apps, schema_editor):
         else:
             # Update driver direction
             kf.driver.impact_direction = "increase" if direction > 0 else "decrease"
-            update_drivers.append(kf)
+            update_drivers.append(kf.driver)
 
         logger.info(f"KeyFactor {kf.id} has direction = {direction}")
 
@@ -84,11 +84,9 @@ def votes_migration(apps, schema_editor):
         kf.votes_score = calculate_votes_strength([v.score for v in votes])
 
     logger.info(f"Updating {len(update_votes)} votes")
-    KeyFactorVote.objects.bulk_update(update_votes, ["score"])
+    KeyFactorVote.objects.bulk_update(update_votes, ["score", "vote_type"])
     logger.info(f"Updating {len(update_drivers)} drivers")
-    KeyFactorDriver.objects.bulk_update(
-        update_drivers, ["impact_direction", "vote_type"]
-    )
+    KeyFactorDriver.objects.bulk_update(update_drivers, ["impact_direction"])
     KeyFactor.objects.bulk_update(key_factors, ["votes_score"])
 
 
