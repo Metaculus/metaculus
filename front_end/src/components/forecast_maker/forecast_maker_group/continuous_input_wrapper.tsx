@@ -384,6 +384,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           setSavedState={setModalSavedState}
           isOpen={isForecastExpirationModalOpen}
           onClose={() => setIsForecastExpirationModalOpen(false)}
+          questionDuration={questionDuration}
           onReaffirm={hasActiveUserForecast && !isDirty ? onSubmit : undefined}
         />
 

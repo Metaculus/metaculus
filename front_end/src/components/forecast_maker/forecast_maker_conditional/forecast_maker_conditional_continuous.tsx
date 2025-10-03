@@ -178,6 +178,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     [activeTableOption, questionOptions]
   );
 
+  const questionDuration =
+    activeTableOption === questionYesId
+      ? questionYesDuration
+      : questionNoDuration;
+
   const {
     modalSavedState,
     setModalSavedState,
@@ -851,6 +856,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ? handlePredictSubmit
             : undefined
         }
+        questionDuration={questionDuration}
       />
 
       <ConditionalForecastTable

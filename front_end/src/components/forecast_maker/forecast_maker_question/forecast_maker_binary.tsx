@@ -170,6 +170,7 @@ const ForecastMakerBinary: FC<Props> = ({
         onReaffirm={
           !!activeUserForecast && !isForecastDirty ? submit : undefined
         }
+        questionDuration={questionDuration}
       />
 
       <BinarySlider

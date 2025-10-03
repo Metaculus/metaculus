@@ -1378,7 +1378,6 @@
   "predictionDuration": "Duración de la predicción",
   "neverWithdraw": "Nunca retirar",
   "useCustomDuration": "Usar duración personalizada para esta pregunta",
-  "useAccountSettingDescription": "Esto se basa en la configuración {userForecastExpirationPercent}% de la duración total de la pregunta, mínimo 1 mes.",
   "predictionWithdrawalReminderHelpText": "Recibirás un correo electrónico de notificación recordándote actualizar cuando quede aproximadamente el 5% de la duración.",
   "defaultWithdrawalSettingText": "Por defecto, mis predicciones se retiran después de un % del tiempo de vida de la pregunta",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# predicción} other {# predicciones}} se retirarán pronto",
@@ -1530,5 +1529,9 @@
   "strong": "fuerte",
   "weak": "débil",
   "none": "ninguna",
+  "predictionAutoWithdrawalTitle": "Retirar automáticamente mi predicción después de",
+  "3years": "3 años",
+  "resetToDefault": "Restablecer a valores predeterminados",
+  "useAccountSettingDescription": "basado en el valor predeterminado de tu cuenta del { userForecastExpirationPercent }% de la duración total de la pregunta (con un mínimo de 1 mes). Puedes cambiar esto en tus <settingsLink>configuración</settingsLink>",
   "othersCount": "Otros ({count})"
 }

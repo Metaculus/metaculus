@@ -1375,7 +1375,6 @@
   "predictionDuration": "預測持續時間",
   "neverWithdraw": "永不撤回",
   "useCustomDuration": "對此問題使用自定義持續時間",
-  "useAccountSettingDescription": "這是根據設置 {userForecastExpirationPercent}% 的問題總時長，最少1個月。",
   "predictionWithdrawalReminderHelpText": "當大約剩餘 5% 的持續時間時，您將收到提醒您更新的通知電子郵件。",
   "defaultWithdrawalSettingText": "默認情況下，我的預測在問題生命周期的百分比後被撤回",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# 個預測} other {# 個預測}} 將很快被撤回",
@@ -1527,5 +1526,9 @@
   "strong": "強",
   "weak": "弱",
   "none": "無",
+  "predictionAutoWithdrawalTitle": "在以下時間後自動撤回我的預測",
+  "3years": "3 年",
+  "resetToDefault": "重設為預設值",
+  "useAccountSettingDescription": "根據您帳戶的預設設置，即問題總時長的 { userForecastExpirationPercent }%（最短為 1 個月）。您可以在您的<settingsLink>設置</settingsLink>中更改此設置",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

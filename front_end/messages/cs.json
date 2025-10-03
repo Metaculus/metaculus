@@ -1378,7 +1378,6 @@
   "predictionDuration": "Doba trvání předpovědi",
   "neverWithdraw": "Nikdy nestahovat",
   "useCustomDuration": "Použít vlastní dobu trvání pro tuto otázku",
-  "useAccountSettingDescription": "Toto je založeno na nastavení {userForecastExpirationPercent}% z celkové doby trvání otázky, minimálně 1 měsíc.",
   "predictionWithdrawalReminderHelpText": "Obdržíte upozornění e-mailem připomínající vám aktualizaci, když bude zbývat přibližně 5% doby.",
   "defaultWithdrawalSettingText": "Ve výchozím nastavení jsou mé předpovědi staženy po % životnosti otázky",
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# předpověď} other {# předpovědí}} bude brzy staženo",
@@ -1530,5 +1529,9 @@
   "strong": "silná",
   "weak": "slabá",
   "none": "žádná",
+  "predictionAutoWithdrawalTitle": "Automaticky stáhnout mou předpověď po",
+  "3years": "3 roky",
+  "resetToDefault": "Obnovit výchozí nastavení",
+  "useAccountSettingDescription": "podle vašeho výchozího nastavení účtu { userForecastExpirationPercent }% z celkové doby trvání otázky (s minimem 1 měsíc). Můžete to změnit ve svých <settingsLink>nastaveních</settingsLink>",
   "othersCount": "Ostatní ({count})"
 }

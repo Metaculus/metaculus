@@ -8,6 +8,7 @@ import {
   formatDuration,
   intervalToDuration,
 } from "date-fns";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { useFeatureFlagEnabled } from "posthog-js/react";
@@ -29,7 +30,7 @@ import { ContinuousGroupOption } from "./continuous_group_accordion/group_foreca
 // TODO: what if user specifies custom date? (what happens with the next forecast)
 // TODO: check existing forecasts made before this change: how reaffirm will act?
 // TODO: what should we show if previous prediction was withdrawn? (Probably fine to keep as-is)
-// TODO: check buildDefaultForecastExpiration usages
+// TODO: should we show "reset to default" for cases when user has exp disabled?
 
 interface ForecastExpirationModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ interface ForecastExpirationModalProps {
   savedState: ModalState;
   setSavedState: (state: ModalState) => void;
   onReaffirm?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
+  questionDuration: number;
 }
 
 type Preset = { id: string; duration?: Duration };
@@ -142,7 +144,6 @@ export const buildDefaultForecastExpiration = (
 
   const defaultState = buildDefaultState(
     lastForecast,
-    modalPresets,
     userDefaultExpirationDurationSec
   );
 
@@ -164,8 +165,6 @@ const getClosestPresetFromDuration = (duration: number): DurationPreset => {
 
 const buildDefaultState = (
   lastForecast: UserForecast | undefined,
-  // TODO: I think we can reuse global value
-  presetDurations: Preset[],
   userDefaultExpirationDurationSec: number | null
 ): ModalState => {
   /*
@@ -263,7 +262,6 @@ export const useExpirationModalState = (
 
   const initialState = buildDefaultState(
     lastForecast,
-    modalPresets,
     userDefaultExpirationDurationSec
   );
 
@@ -277,11 +275,7 @@ export const useExpirationModalState = (
   useEffect(() => {
     // When the user last forecast changes (user withdraws), we need to update the chip to duration closed to the last user forecast
     setModalSavedState(
-      buildDefaultState(
-        lastForecast,
-        modalPresets,
-        userDefaultExpirationDurationSec
-      )
+      buildDefaultState(lastForecast, userDefaultExpirationDurationSec)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastForecast]);
@@ -367,12 +361,19 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   savedState,
   setSavedState,
   onReaffirm,
+  questionDuration,
 }) => {
   const t = useTranslations();
 
   const [currentState, setCurrentState] = useState<ModalState>(savedState);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const { user } = useAuth();
+  const userExpirationPercent = user?.prediction_expiration_percent ?? null;
+  const userDefaultExpirationDurationSec = userExpirationPercent
+    ? ((userExpirationPercent / 100) * questionDuration) / 1000
+    : null;
 
   useEffect(() => {
     setCurrentState({ ...savedState });
@@ -444,14 +445,22 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     handleSave();
   };
 
+  const handleReset = async () => {
+    // TODO: if you close modal without saving state is resets back
+    // TODO: test if account has inf expiration global setting
+    return setCurrentState(
+      buildDefaultState(undefined, userDefaultExpirationDurationSec)
+    );
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={() => handleClose()}
       className="h-full w-full max-w-max md:h-auto"
     >
-      <div className="flex flex-col gap-4 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
-        <h2 className="text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
+      <div className="flex flex-col gap-8 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
+        <h2 className="mb-0 text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
           {t("predictionAutoWithdrawalTitle")}
         </h2>
 
@@ -539,8 +548,36 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
           </Button>
         </div>
 
+        <div className="flex gap-2">
+          <Button
+            variant="tertiary"
+            className="whitespace-nowrap"
+            onClick={handleReset}
+          >
+            {t("resetToDefault")}
+          </Button>
+          <p className="my-0 text-xs text-gray-700 dark:text-gray-700-dark">
+            {t.rich("useAccountSettingDescription", {
+              userForecastExpirationPercent: userExpirationPercent,
+              settingsLink: (chunk) => (
+                <Link
+                  href="/accounts/settings/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-blue-700 underline dark:text-blue-700-dark"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {chunk}
+                </Link>
+              ),
+            })}
+          </p>
+        </div>
+
         {/* Helper text */}
-        <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-700-dark">
+        <p className="my-0 text-xs text-gray-700 dark:text-gray-700-dark">
           {t("predictionWithdrawalReminderHelpText")}
         </p>
 

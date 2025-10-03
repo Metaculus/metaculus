@@ -476,6 +476,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           setIsForecastExpirationModalOpen(false);
         }}
         onReaffirm={hasUserActiveForecast && !isDirty ? submit : undefined}
+        questionDuration={questionDuration}
       />
       <ContinuousInput
         question={question}
