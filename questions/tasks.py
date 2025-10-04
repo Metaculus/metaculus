@@ -73,9 +73,7 @@ def resolve_question_and_send_notifications(question_id: int):
     score_question(
         question,
         question.resolution,
-        spot_scoring_time=(
-            spot_scoring_time.timestamp() if spot_scoring_time else None
-        ),
+        spot_scoring_time=spot_scoring_time,
         score_types=score_types,
     )
 
