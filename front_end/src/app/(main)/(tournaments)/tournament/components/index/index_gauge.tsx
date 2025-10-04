@@ -90,7 +90,7 @@ const IndexGauge: FC<Props> = ({ tournament, barHeight = 8, year }) => {
         />
 
         <div
-          className="absolute left-0 top-[86px] -translate-x-1/2 translate-y-[-150%] text-center"
+          className="absolute left-0 top-[90px] -translate-x-1/2 translate-y-[-150%] text-center"
           style={{ left: `${chipPct}%` }}
         >
           <span className="rounded-sm bg-gray-0 px-1.5 py-0.5 text-base font-bold text-blue-700 dark:bg-gray-0-dark dark:text-blue-700-dark">
@@ -130,12 +130,11 @@ const IndexGauge: FC<Props> = ({ tournament, barHeight = 8, year }) => {
 
 export default IndexGauge;
 
-function getYears(multi?: MultiYearIndexData | null): number[] {
+function getYears(multi?: MultiYearIndexData | null): string[] {
   if (!multi?.series_by_year) return [];
-  return Object.keys(multi.series_by_year)
-    .map((k) => Number(k))
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => a - b);
+  return Object.keys(multi.series_by_year).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+  );
 }
 
 function pickSeries(
@@ -143,11 +142,14 @@ function pickSeries(
   year?: string
 ): IndexSeries | null {
   if (!multi?.series_by_year) return null;
-  const years = getYears(multi);
-  if (!years.length) return null;
-  const key = String(year ?? years[years.length - 1]);
-  const s = multi.series_by_year[key];
-  return s ?? null;
+  const keys = getYears(multi);
+  if (keys.length === 0) return null;
+  if (year) {
+    const hit = keys.find((k) => k === year);
+    if (hit) return multi.series_by_year[hit] ?? null;
+  }
+  const lastKey = keys[keys.length - 1];
+  return lastKey ? multi.series_by_year[lastKey] ?? null : null;
 }
 
 export function computeIndexDeltaFromSeries(
