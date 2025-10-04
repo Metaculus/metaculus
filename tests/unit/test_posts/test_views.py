@@ -355,9 +355,7 @@ def test_delete_post(user1_client, user1, user2_client):
     response = user1_client.delete(url)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert (
-        Post.objects.get(pk=post.pk).curation_status == Post.CurationStatus.DELETED
-    )
+    assert Post.objects.get(pk=post.pk).curation_status == Post.CurationStatus.DELETED
 
 
 def test_post_view_event_api_view(user1, user1_client):

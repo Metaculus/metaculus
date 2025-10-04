@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Driver
+from comments.models import KeyFactor
 from comments.serializers import serialize_key_factors_many
 from misc.models import ITNArticle
 from projects.models import Project
@@ -124,6 +124,9 @@ class PostWriteSerializer(serializers.ModelSerializer):
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
     published_at = serializers.DateTimeField(required=False, allow_null=True)
+    is_automatically_translated = serializers.BooleanField(
+        required=False, allow_null=True
+    )
 
     class Meta:
         model = Post
@@ -137,6 +140,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "notebook",
             "categories",
             "published_at",
+            "is_automatically_translated",
         )
 
     def get_user(self):
@@ -207,7 +211,6 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         required=False, choices=Post.CurationStatus.choices
     )
     news_type = serializers.ListField(child=serializers.CharField(), required=False)
-    public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     withdrawn = serializers.BooleanField(required=False, allow_null=True)
@@ -237,12 +240,6 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
             return Project.objects.get(pk=value)
         except Project.DoesNotExist:
             raise ValidationError("Project does not exist")
-
-    def validate_public_figure(self, value: int):
-        try:
-            return Project.objects.filter(pk=value)
-        except Project.DoesNotExist:
-            raise ValidationError("Slug does not exist")
 
     def validate_news_type(self, values: list[str]):
         news_types = Project.objects.filter_news_category().filter(slug__in=values)
@@ -494,7 +491,7 @@ def serialize_post_many(
     if with_key_factors:
         comment_key_factors_map = generate_map_from_list(
             serialize_key_factors_many(
-                Driver.objects.for_posts(posts)
+                KeyFactor.objects.for_posts(posts)
                 .filter_active()
                 .order_by("-votes_score"),
                 current_user=current_user,
@@ -594,12 +591,6 @@ class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
             "recurrence_interval",
             "created_at",
         )
-
-    def validate_next_trigger_datetime(self, value):
-        if value <= timezone.now():
-            raise ValidationError("Can not be in the past")
-
-        return value
 
     def validate_recurrence_interval(self, value):
         if not value:

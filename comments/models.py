@@ -81,7 +81,7 @@ class CommentQuerySet(models.QuerySet):
 
 class Comment(TimeStampedModel, TranslatedModel):
     comment_votes: QuerySet["CommentVote"]
-    key_factors: QuerySet["Driver"]
+    key_factors: QuerySet["KeyFactor"]
 
     author = models.ForeignKey(User, models.CASCADE)  # are we sure we want this?
     parent = models.ForeignKey(
@@ -101,7 +101,7 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(default=False, db_index=True)
-    text = models.TextField()
+    text = models.TextField(max_length=150_000)
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )
@@ -189,11 +189,42 @@ class KeyFactorQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class Driver(TimeStampedModel, TranslatedModel):
-    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
+class ImpactDirection(models.TextChoices):
+    INCREASE = "increase"
+    DECREASE = "decrease"
+
+
+class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
+    impact_direction = models.CharField(
+        choices=ImpactDirection.choices, null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"Driver {self.text}"
+
+
+class KeyFactor(TimeStampedModel):
+    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
+
+    # If KeyFactor is specifically linked to the subquestion
+    question = models.ForeignKey(
+        "questions.Question",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="key_factors",
+    )
+    # If KeyFactor is linked to the MultipleChoice option
+    question_option = models.CharField(
+        null=False, blank=True, max_length=32, default=""
+    )
+
+    driver = models.OneToOneField(
+        KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
+    )
 
     def get_votes_score(self) -> int:
         """
@@ -203,7 +234,7 @@ class Driver(TimeStampedModel, TranslatedModel):
         """
 
         return (
-            self.votes.filter(vote_type=DriverVote.VoteType.A_UPVOTE_DOWNVOTE)
+            self.votes.filter(vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
             .aggregate(Sum("score"))
             .get("score__sum")
             or 0
@@ -227,7 +258,7 @@ class Driver(TimeStampedModel, TranslatedModel):
     vote_type: str = None
 
     def __str__(self):
-        return f"Driver {getattr(self.comment.on_post, 'title', None)}: {self.text}"
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}"
 
     class Meta:
         # Used to get rid of the type error which complains
@@ -235,7 +266,7 @@ class Driver(TimeStampedModel, TranslatedModel):
         pass
 
 
-class DriverVote(TimeStampedModel):
+class KeyFactorVote(TimeStampedModel):
     class VoteType(models.TextChoices):
         A_UPVOTE_DOWNVOTE = "a_updown"
         B_TWO_STEP_SURVEY = "b_2step"
@@ -258,7 +289,7 @@ class DriverVote(TimeStampedModel):
         INCREASE_HIGH = 5
 
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
-    key_factor = models.ForeignKey(Driver, models.CASCADE, related_name="votes")
+    key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
     score = models.SmallIntegerField(choices=VoteScore.choices, db_index=True)
     # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(

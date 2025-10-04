@@ -744,6 +744,7 @@ const Comment: FC<CommentProps> = ({
                       })}
                       contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
+                      withCodeBlocks
                     />
                   )}
                 </div>
@@ -795,6 +796,7 @@ const Comment: FC<CommentProps> = ({
                     saveEditDraftDebounced(val);
                   }}
                   withUgcLinks
+                  withCodeBlocks
                 />
               )}{" "}
               {!isEditing && (
@@ -806,6 +808,7 @@ const Comment: FC<CommentProps> = ({
                   mode={"read"}
                   withUgcLinks
                   withTwitterPreview
+                  withCodeBlocks
                 />
               )}
             </div>

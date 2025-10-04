@@ -1520,5 +1520,14 @@
   "delays": "atrasos",
   "closeTime": "hora de fechamento",
   "resolveTime": "tempo de resolução",
+  "topCommentsDescription": "Os principais comentários são determinados por votos nos comentários, votos em fatores-chave e mudanças de opinião. Pontos de bônus são concedidos para fortes pontuações em várias categorias. Apenas os votos emitidos dentro de uma semana após um comentário contam, com as classificações sendo finalizadas após esse período de sete dias.",
+  "medalRank": "Sua classificação é baseada em todas as medalhas que você ganhou até aquele ponto. Medalhas de níveis mais altos e mais recentes contam mais.",
+  "learnMoreFAQ": "Saiba mais em nosso FAQ",
+  "belowLowerBound": "Abaixo do limite inferior",
+  "aboveUpperBound": "Acima do limite superior",
+  "certainty": "Certeza:",
+  "strong": "forte",
+  "weak": "fraco",
+  "none": "nenhum",
   "othersCount": "Outros ({count})"
 }

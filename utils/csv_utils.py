@@ -59,8 +59,8 @@ def export_all_data_for_questions(
         user_forecasts = user_forecasts.filter(user_id__in=user_ids)
 
     if not aggregation_methods:
-        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions)
+        aggregate_forecasts = AggregateForecast.objects.filter(
+            start_time__lte=timezone.now(), question__in=questions
         ).order_by("question_id", "start_time")
     else:
         aggregate_forecasts = []
@@ -77,6 +77,7 @@ def export_all_data_for_questions(
                     else question.include_bots_in_aggregates
                 ),
                 histogram=True,
+                include_future=False,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)
@@ -269,6 +270,7 @@ def generate_data(
     #     score_data - Only if scores given
     #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
+    is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
     )
@@ -433,6 +435,7 @@ def generate_data(
                 + "**`Forecaster Username`** - the username of the forecaster or the aggregation method.\n"
             )
         )
+        + "**`Is Bot`** - if user is bot.\n"
         + "**`Start Time`** - the time when the forecast was made.\n"
         + "**`End Time`** - the time when the forecast ends. If not populated, the forecast is still active. Note that this can be set in the future indicating an expiring forecast.\n"
         + "**`Forecaster Count`** - if this is an aggregate forecast, how many forecasts contribute to it.\n"
@@ -458,6 +461,7 @@ def generate_data(
         headers.extend(["Forecaster ID", "Forecaster Username"])
     headers.extend(
         [
+            "Is Bot",
             "Start Time",
             "End Time",
             "Forecaster Count",
@@ -484,6 +488,7 @@ def generate_data(
             row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
+                is_bot_dict.get(forecast.author_id),
                 forecast.start_time,
                 forecast.end_time,
                 None,
@@ -547,6 +552,7 @@ def generate_data(
             row.extend([None, aggregate_forecast.method])
         row.extend(
             [
+                None,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
                 aggregate_forecast.forecaster_count,

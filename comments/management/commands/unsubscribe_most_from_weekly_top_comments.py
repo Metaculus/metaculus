@@ -6,7 +6,7 @@ from django.db.models import F, Func, Value
 
 from notifications.constants import MailingTags
 from questions.models import Forecast
-from comments.models import Comment, CommentVote, DriverVote
+from comments.models import Comment, CommentVote, KeyFactorVote
 from users.models import User
 
 
@@ -37,7 +37,7 @@ class Command(BaseCommand):
             .distinct()
         )
         key_factor_vote_user_ids = set(
-            DriverVote.objects.filter(created_at__gte=cutoff)
+            KeyFactorVote.objects.filter(created_at__gte=cutoff)
             .values_list("user_id", flat=True)
             .distinct()
         )

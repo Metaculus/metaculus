@@ -30,6 +30,7 @@ import {
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
+import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -57,6 +58,7 @@ import cn from "@/utils/core/cn";
 
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartValueBox from "./primitives/chart_value_box";
+import ResolutionTooltip from "./primitives/resolution_tooltip";
 
 type ChartData = {
   line: Line;
@@ -328,6 +330,25 @@ const NumericChart: FC<Props> = ({
     return yScale.ticks;
   }, [yScale, chartWidth]);
 
+  const [yMin, yMax] = useMemo(() => {
+    const [a, b] = yDomain as [number, number];
+    return a <= b ? [a, b] : [b, a];
+  }, [yDomain]);
+
+  const resolutionPlacement = useMemo<"in" | "below" | "above" | null>(() => {
+    const p = resolutionPoint?.[0];
+    if (!p || p.x == null || p.y == null || !Number.isFinite(p.y)) return null;
+    if (p.y < yMin) return "below";
+    if (p.y > yMax) return "above";
+    return "in";
+  }, [resolutionPoint, yMin, yMax]);
+
+  const resolutionClamped = useMemo(() => {
+    const p = resolutionPoint?.[0];
+    if (!p || p.x == null || p.y == null || !Number.isFinite(p.y)) return null;
+    return { x: p.x, y: Math.max(yMin, Math.min(yMax, p.y)) };
+  }, [resolutionPoint, yMin, yMax]);
+
   const colorPalette = useMemo(() => {
     switch (questionStatus) {
       case QuestionStatus.RESOLVED:
@@ -364,6 +385,26 @@ const NumericChart: FC<Props> = ({
 
   const { getReferenceProps, getFloatingProps, refs, floatingStyles } =
     useChartTooltip({ placement: "top", tooltipOffset: 15 });
+  const {
+    isActive: isDiamondActive,
+    getReferenceProps: getDiamondRefProps,
+    getFloatingProps: getDiamondFloatingProps,
+    refs: diamondRefs,
+    floatingStyles: diamondFloatingStyles,
+  } = useChartTooltip({
+    placement: resolutionPlacement === "below" ? "top" : "bottom",
+    tooltipOffset: 8,
+  });
+
+  const clampedPoints = useMemo(() => {
+    return points.map((p) => ({
+      ...p,
+      y: p.y == null ? p.y : Math.max(yMin, Math.min(yMax, p.y)),
+      y1: p.y1 == null ? p.y1 : Math.max(yMin, Math.min(yMax, p.y1)),
+      y2: p.y2 == null ? p.y2 : Math.max(yMin, Math.min(yMax, p.y2)),
+    }));
+  }, [points, yMin, yMax]);
+
   return (
     <>
       <div
@@ -393,7 +434,7 @@ const NumericChart: FC<Props> = ({
           chartTitle={chartTitle}
           leftLegend={leftLegend}
         >
-          {shouldDisplayChart && (
+          {shouldDisplayChart ? (
             <VictoryChart
               domain={{ y: yDomain, x: adjustedXDomain }}
               width={chartWidth}
@@ -484,7 +525,7 @@ const NumericChart: FC<Props> = ({
               />
 
               {/* CP range */}
-              {!hideCP && (
+              {!hideCP ? (
                 <VictoryArea
                   data={area}
                   style={{
@@ -497,10 +538,10 @@ const NumericChart: FC<Props> = ({
                   }}
                   interpolation="stepAfter"
                 />
-              )}
+              ) : null}
 
               {/* CP Line background */}
-              {!hideCP && (
+              {!hideCP ? (
                 <VictoryLine
                   data={line}
                   style={{
@@ -514,10 +555,10 @@ const NumericChart: FC<Props> = ({
                   }}
                   interpolation="stepAfter"
                 />
-              )}
+              ) : null}
 
               {/* CP Line (highlighted to cursor) */}
-              {!hideCP && (
+              {!hideCP ? (
                 <VictoryLine
                   data={highlightedLine}
                   style={{
@@ -530,18 +571,20 @@ const NumericChart: FC<Props> = ({
                   }}
                   interpolation="stepAfter"
                 />
-              )}
+              ) : null}
 
               {/* Prediction points */}
               <VictoryPortal>
                 <VictoryScatter
-                  data={points}
+                  data={clampedPoints}
                   dataComponent={<PredictionWithRange />}
                 />
               </VictoryPortal>
 
               {/* Resolution marker */}
-              {!!resolutionPoint && !isCursorActive && (
+              {!!resolutionPoint &&
+              !isCursorActive &&
+              resolutionPlacement === "in" ? (
                 <VictoryPortal>
                   <VictoryScatter
                     data={resolutionPoint}
@@ -555,10 +598,38 @@ const NumericChart: FC<Props> = ({
                     }}
                   />
                 </VictoryPortal>
-              )}
+              ) : null}
 
               {/* Cursor value chip / box */}
-              {!isNil(highlightedPoint) && !hideCP && (
+              {resolutionClamped &&
+              resolutionPlacement &&
+              resolutionPlacement !== "in" ? (
+                <VictoryPortal>
+                  <VictoryScatter
+                    data={[
+                      {
+                        x: resolutionClamped.x,
+                        y: resolutionClamped.y,
+                        placement: resolutionPlacement,
+                        primary: colorOverride ?? METAC_COLORS.purple["800"],
+                        secondary: METAC_COLORS.purple["500"],
+                      },
+                    ]}
+                    dataComponent={
+                      <ResolutionDiamond
+                        isHovered={isDiamondActive}
+                        refProps={{
+                          ...getDiamondRefProps(),
+                          ref: diamondRefs.setReference,
+                          style: { pointerEvents: "visiblePainted" },
+                        }}
+                      />
+                    }
+                  />
+                </VictoryPortal>
+              ) : null}
+
+              {!isDiamondActive && !isNil(highlightedPoint) && !hideCP ? (
                 <VictoryScatter
                   data={[highlightedPoint]}
                   dataComponent={
@@ -590,14 +661,14 @@ const NumericChart: FC<Props> = ({
                     </VictoryPortal>
                   }
                 />
-              )}
+              ) : null}
             </VictoryChart>
-          )}
+          ) : null}
         </ChartContainer>
       </div>
 
       {/* Forecaster view tooltip */}
-      {isCursorActive && !!cursorTooltip && (
+      {isCursorActive && !!cursorTooltip ? (
         <FloatingPortal>
           <div
             className="pointer-events-none z-100 rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
@@ -608,7 +679,16 @@ const NumericChart: FC<Props> = ({
             {cursorTooltip}
           </div>
         </FloatingPortal>
-      )}
+      ) : null}
+
+      <ResolutionTooltip
+        active={isDiamondActive}
+        placement={resolutionPlacement}
+        resolution={resolution}
+        setFloating={diamondRefs.setFloating}
+        floatingStyles={diamondFloatingStyles}
+        getFloatingProps={getDiamondFloatingProps}
+      />
     </>
   );
 };

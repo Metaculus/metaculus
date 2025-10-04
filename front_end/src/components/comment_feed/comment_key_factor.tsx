@@ -11,7 +11,11 @@ type Props = {
   keyFactor: KeyFactor;
 };
 
-const CommentKeyFactor: FC<Props> = ({ keyFactor: { text } }) => {
+const CommentKeyFactor: FC<Props> = ({
+  keyFactor: {
+    driver: { text },
+  },
+}) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
 

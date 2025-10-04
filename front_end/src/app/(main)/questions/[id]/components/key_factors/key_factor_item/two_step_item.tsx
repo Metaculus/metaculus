@@ -34,7 +34,11 @@ type Props = {
 };
 
 export const TwoStepKeyFactorItem: FC<Props> = ({
-  keyFactor: { text, id, user_votes },
+  keyFactor: {
+    driver: { text },
+    id,
+    user_votes,
+  },
   linkToComment = true,
   linkAnchor,
 }) => {

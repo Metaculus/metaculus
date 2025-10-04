@@ -573,13 +573,34 @@ function buildChartData({
       ? getQuestionForecastAvailability(option.question)
       : { isEmpty: false, cpRevealsOn: null as number | null };
 
-    const isResolved = option.resolved && !unsuccessfullyResolved;
+    const isResolved = !!option.resolved && !unsuccessfullyResolved;
+
+    if (unsuccessfullyResolved) {
+      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved: true });
+      continue;
+    }
+
+    if (option.resolved) {
+      const yVal =
+        Number.isFinite(option.resolvedValue) && option.resolvedValue != null
+          ? (option.resolvedValue as number)
+          : option.question
+            ? getResolutionPosition({ question: option.question, scaling })
+            : NaN;
+
+      resolutionPoints.push({
+        x: option.name,
+        y: yVal,
+        unsuccessfullyResolved: false,
+        resolved: true,
+      });
+    }
 
     if (
       questionForecastAvailability.isEmpty ||
       questionForecastAvailability.cpRevealsOn
     ) {
-      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved });
+      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved: false });
       continue;
     }
 
@@ -629,22 +650,6 @@ function buildChartData({
       }
     }
 
-    if (option.resolved) {
-      const yVal =
-        Number.isFinite(option.resolvedValue) && option.resolvedValue != null
-          ? (option.resolvedValue as number)
-          : option.question
-            ? getResolutionPosition({ question: option.question, scaling })
-            : NaN;
-
-      resolutionPoints.push({
-        x: option.name,
-        y: yVal,
-        unsuccessfullyResolved,
-        resolved: true,
-      });
-    }
-
     if (option.userQuartiles) {
       const { areaPoint: userAreaPoint, point: userPoint } = getOptionGraphData(
         {
@@ -691,6 +696,13 @@ function buildChartData({
   });
   emptyPoints.forEach((pt) => {
     pt.y = Math.round(((finalZoom[0] + finalZoom[1]) / 2) * 100) / 100;
+  });
+
+  const [lo, hi] = finalZoom as Tuple<number>;
+  userPoints.forEach((pt) => {
+    if (Number.isFinite(pt.y)) {
+      pt.y = Math.max(lo, Math.min(hi, pt.y));
+    }
   });
 
   return {
