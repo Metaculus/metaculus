@@ -612,7 +612,7 @@ class Command(BaseCommand):
         # UPDATE Leaderboard
         print("Updating leaderboard...", end="\r")
         leaderboard, _ = Leaderboard.objects.get_or_create(
-            name="Global Bots Leaderboard",
+            name="Global Bot Leaderboard",
             project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
             score_type=LeaderboardScoreTypes.MANUAL,
             bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
