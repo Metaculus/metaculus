@@ -17,6 +17,7 @@ class TestScoringUtilsHelpers:
             ([6, 3, 1, 0], 0, [0.6, 0.3, 0.1, 0]),
             ([6, 3, 1, 0, -1], 0, [0.6, 0.3, 0.1, 0, 0]),
             ([6, 3, 1, 0, -1], 0.25, [2 / 3, 1 / 3, 0, 0, 0]),
+            ([0.90, 0.049, 0.041, 0.01], 0.05, [0.90 / 0.949, 0.049 / 0.949, 0, 0]),
         ],
     )
     def test_prize_percentages(self, entry_takes, minimum_prize_percent, expected):

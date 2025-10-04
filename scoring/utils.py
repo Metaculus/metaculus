@@ -488,15 +488,19 @@ def assign_ranks(
 def assign_prize_percentages(
     entries: list[LeaderboardEntry], minimum_prize_percent: float
 ) -> list[LeaderboardEntry]:
-    total_take = sum(e.take for e in entries if not e.excluded and e.take is not None)
-    for entry in entries:
+    # Distribute prize % according to take
+    # anyone who takes less than the minimum gets redistributed up iteratively
+    scoring_take = sum((e.take or 0) * int(not e.excluded) for e in entries)
+    for entry in entries[::-1]:  # start in reverse
         entry.percent_prize = 0
-        if total_take and not entry.excluded and entry.take is not None:
-            percent_prize = entry.take / total_take
-            if percent_prize >= minimum_prize_percent:
-                # only give percent prize if it's above the minimum
-                entry.percent_prize = percent_prize
-    # renormalize percent_prize to sum to 1
+        if entry.excluded or not entry.take:
+            continue
+        percent_prize = entry.take / (scoring_take or 1)
+        if percent_prize < minimum_prize_percent:
+            # remove take from pool since they don't get prize
+            scoring_take -= entry.take
+        else:
+            entry.percent_prize = percent_prize
     percent_prize_sum = sum(entry.percent_prize for entry in entries) or 1
     for entry in entries:
         entry.percent_prize /= percent_prize_sum
