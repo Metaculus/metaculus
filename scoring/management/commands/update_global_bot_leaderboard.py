@@ -1,9 +1,9 @@
 import random
 from collections import defaultdict, Counter
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
+from django.db.models import QuerySet
 from django.utils import timezone
 import numpy as np
 from scipy import sparse
@@ -12,8 +12,7 @@ from sklearn.linear_model import Ridge
 from posts.models import Post
 from projects.models import Project
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import AggregateForecast, Forecast, Question
-from questions.types import AggregationMethod
+from questions.models import Forecast, Question
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.score_math import (
@@ -22,17 +21,16 @@ from scoring.score_math import (
     get_geometric_means,
 )
 from users.models import User
-from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import string_location_to_bucket_index
 
-SkillType = dict[int | str, float]
+SkillType = dict[int, float]
 
 
 def get_score_pair(
-    user1_forecasts: list[Forecast | AggregateForecast],
-    user2_forecasts: list[Forecast | AggregateForecast],
+    user1_forecasts: list[Forecast],
+    user2_forecasts: list[Forecast],
     question: Question,
-) -> tuple[int, float, float] | None:
+) -> tuple[int, int, int, float, float] | None:
     # Setup for calling evaluate function
     forecasts = user1_forecasts + user2_forecasts
     resolution_bucket = string_location_to_bucket_index(question.resolution, question)
@@ -43,7 +41,7 @@ def get_score_pair(
 
     if question.default_score_type == ScoreTypes.PEER:
         # Coverage
-        coverage = 0.0
+        coverage = 0
         total_duration = forecast_horizon_end - forecast_horizon_start
         current_timestamp = actual_close_time
         for gm in geometric_means[::-1]:
@@ -53,7 +51,7 @@ def get_score_pair(
         if coverage == 0:
             return None
         user1_scores = evaluate_forecasts_peer_accuracy(
-            forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
+            forecasts=user1_forecasts,  # only evalute user1 (user2 is opposite)
             base_forecasts=None,
             resolution_bucket=resolution_bucket,
             forecast_horizon_start=forecast_horizon_start,
@@ -67,19 +65,19 @@ def get_score_pair(
             question.get_spot_scoring_time().timestamp(), actual_close_time
         )
         # Coverage
-        coverage = 0.0
+        coverage = 0
         current_timestamp = actual_close_time
         for gm in geometric_means[::-1]:
             if gm.timestamp <= spot_forecast_timestamp <= current_timestamp:
                 if gm.num_forecasters == 2:
                     # both have a forecast at spot scoring time
-                    coverage = 1 / 3  # downweight spot score questions
+                    coverage = 1
                 break
             current_timestamp = gm.timestamp
         if coverage == 0:
             return None
         user1_scores = evaluate_forecasts_peer_spot_forecast(
-            forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
+            forecasts=user1_forecasts,  # only evalute user1 (user2 is opposite)
             base_forecasts=None,
             resolution_bucket=resolution_bucket,
             spot_forecast_timestamp=spot_forecast_timestamp,
@@ -90,6 +88,8 @@ def get_score_pair(
         raise ValueError("we only do Peer scores 'round hya")
 
     return (
+        user1_forecasts[0].author_id,
+        user2_forecasts[0].author_id,
         question.id,
         sum(s.score for s in user1_scores),
         coverage,
@@ -97,150 +97,77 @@ def get_score_pair(
 
 
 def gather_data(
-    users: QuerySet[User],
-    questions: QuerySet[Question],
-) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
-    # TODO: make authoritative mapping
-    print("creating AIB <> Pro AIB question mapping...", end="\r")
-    aib_projects = Project.objects.filter(
-        id__in=[
-            3349,  # Q3 2024
-            32506,  # Q4 2024
-            32627,  # Q1 2025
-            32721,  # Q2 2025
-            32813,  # fall 2025
-        ]
-    )
-    aib_to_pro_version = {
-        3349: 3345,
-        32506: 3673,
-        32627: 32631,
-        32721: 32761,
-        32813: None,
-    }
-    aib_question_map: dict[Question, Question | None] = dict()
-    for aib in aib_projects:
-        pro_id = aib_to_pro_version[aib.id]
-        aib_questions = Question.objects.filter(
-            related_posts__post__default_project=aib
-        )
-        pro_questions_by_title: dict[str, Question] = {
-            q.title: q
-            for q in (
-                []
-                if not pro_id
-                else Question.objects.filter(
-                    related_posts__post__default_project=pro_id,
-                    resolution__isnull=False,
-                ).exclude(resolution__in=UnsuccessfulResolutionType)
-            )
-        }
-        for question in aib_questions:
-            aib_question_map[question] = pro_questions_by_title.get(
-                question.title, None
-            )
-    print("creating AIB <> Pro AIB question mapping...DONE\n")
-    #
-    user_ids = users.values_list("id", flat=True)
+    users: list[User], questions: list[Question]
+) -> tuple[list[int], list[int], list[int], list[float], list[float]]:
+    user_ids = [u.id for u in users]
     print("Processing Pairwise Scoring:")
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
-    question_count = len(questions)
-    user1_ids: list[int | str] = []
-    user2_ids: list[int | str] = []
-    question_ids: list[int] = []
-    scores: list[float] = []
-    coverages: list[float] = []
-    for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
-        question_print_str = (
-            f"\033[K"
-            f"| {question_number:>5}/{question_count:<5} "
-            f"| {question.id:<5} "
-        )
-        # Get forecasts
-        forecast_dict: dict[int | str, list[Forecast | AggregateForecast]] = (
-            defaultdict(list)
-        )
-        # bot forecasts - simple
-        bot_forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
-            "start_time"
-        )
-        for f in bot_forecasts:
-            forecast_dict[f.author_id].append(f)
-        # human aggregate forecasts - conditional on a bunch of stuff
-        human_question: Question | None = aib_question_map.get(question, question)
-        if not human_question:
-            aggregate_forecasts: list[AggregateForecast] = []
-        else:
-            if question in aib_question_map:
-                question.default_score_type = ScoreTypes.SPOT_PEER
-            aggregation_method = (
-                AggregationMethod.UNWEIGHTED
-                if question.default_score_type == ScoreTypes.SPOT_PEER
-                else AggregationMethod.RECENCY_WEIGHTED
+    try:
+        question_index = 0
+        question_count = len(questions)
+        user1_ids: list[int] = []
+        user2_ids: list[int] = []
+        question_ids: list[int] = []
+        scores: list[float] = []
+        coverages: list[float] = []
+        for question in questions:
+            question_index += 1
+            question_print_str = (
+                f"\033[K"
+                f"| {question_index:>5}/{question_count:<5} "
+                f"| {question.id:<5} "
             )
-            aggregate_forecasts = get_aggregation_history(
-                human_question,
-                [aggregation_method],
-                minimize=False,
-                include_stats=False,
-                include_bots=False,
-                include_future=False,
-            )[aggregation_method]
-            if not aggregate_forecasts:
-                print(f"{human_question.id} doesn't have a human aggregate!")
-                print(f"quivalent question (different if in aib) {question.id}")
-                breakpoint()
-                pass
-            elif question in aib_question_map:
-                # set the last aggregate to be the one that gets scored
-                forecast = aggregate_forecasts[-1]
-                forecast.start_time = question.get_spot_scoring_time() - timedelta(
-                    seconds=1
-                )
-                forecast.end_time = None
-                forecast_dict["pro_aggregate"] = [forecast]
-            else:
-                forecast_dict["community_aggregate"] = aggregate_forecasts
-
-        forecaster_ids = sorted(list(forecast_dict.keys()), key=str, reverse=True)
-        pairing_index = 0
-        pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
-        for i, user1_id in enumerate(forecaster_ids):
-            for user2_id in forecaster_ids[i + 1 :]:
-                pairing_index += 1
-                duration = datetime.now() - t0
-                est_duration = duration / question_number * question_count
-                print(
-                    f"{question_print_str}"
-                    f"| {pairing_index:>5}/{pairing_count:<5} "
-                    f"| {duration} "
-                    f"| {est_duration} "
-                    "|",
-                    end="\r",
-                )
-                result = get_score_pair(
-                    forecast_dict[user1_id],
-                    forecast_dict[user2_id],
-                    question,
-                )
-                if result:
-                    q, u1s, cov = result
-                    user1_ids.append(user1_id)
-                    user2_ids.append(user2_id)
-                    question_ids.append(q)
-                    scores.append(u1s)
-                    coverages.append(cov)
-    print("\n")
+            forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
+                "start_time"
+            )
+            forecast_dict: dict[int, list[Forecast]] = dict()
+            for f in forecasts:
+                if f.author_id not in forecast_dict:
+                    forecast_dict[f.author_id] = []
+                forecast_dict[f.author_id].append(f)
+            forecaster_ids = sorted(list(forecast_dict.keys()))
+            pairing_index = 0
+            pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
+            for i, user1_id in enumerate(forecaster_ids):
+                for j, user2_id in enumerate(forecaster_ids[i + 1 :], start=i + 1):
+                    pairing_index += 1
+                    duration = datetime.now() - t0
+                    est_duration = duration / question_index * question_count
+                    print(
+                        f"{question_print_str}"
+                        f"| {pairing_index:>5}/{pairing_count:<5} "
+                        f"| {duration} "
+                        f"| {est_duration} "
+                        "|",
+                        end="\r",
+                    )
+                    result = get_score_pair(
+                        forecast_dict[user1_id],
+                        forecast_dict[user2_id],
+                        question,
+                    )
+                    if result:
+                        u1, u2, q, u1s, cov = result
+                        user1_ids.append(u1)
+                        user2_ids.append(u2)
+                        question_ids.append(q)
+                        scores.append(u1s)
+                        coverages.append(cov)
+    except KeyboardInterrupt:
+        print()
+        print("Keyboard Interrupt")
+    print()
+    print()
     return (user1_ids, user2_ids, question_ids, scores, coverages)
 
 
 def compute_skills(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    scores: list[float],
-    coverages: list[float],
-    baseline_player: int = 269196,
+    user1_ids,
+    user2_ids,
+    scores,
+    coverages,
+    baseline_player=269196,
 ) -> SkillType:
     """
     Compute player skills using weighted ridge regression with fixed baseline.
@@ -257,6 +184,8 @@ def compute_skills(
 
     One player is fixed at skill=0 to make the system identifiable (otherwise
     we could add any constant to all skills and get the same predictions).
+
+    matches_df is a pandas thing with columns: player_a, player_a, score
     """
 
     # Set alpha using heuristic: variance of scores / average matches per player
@@ -278,12 +207,8 @@ def compute_skills(
     # - If baseline player is involved, their column is omitted (skill=0)
     X = sparse.lil_matrix((matches, len(players)))
     y = np.zeros(matches)
-    # for i, u1id, u2id, score in zip(range(matches), user1_ids, user2_ids, scores):
-    #     y[i] = score
-    for i, u1id, u2id, score, coverage in zip(
-        range(matches), user1_ids, user2_ids, scores, coverages
-    ):
-        y[i] = score / (coverage if coverage != 1 / 3 else 1)
+    for i, u1id, u2id, score in zip(range(matches), user1_ids, user2_ids, scores):
+        y[i] = score
         if u1id != baseline_player:
             X[i, player_to_idx[u1id]] = 1
         if u2id != baseline_player:
@@ -302,17 +227,26 @@ def compute_skills(
     skills = {p: model.coef_[i] for i, p in enumerate(players)}
     skills[baseline_player] = 0.0
 
+    # TODO: unfinished std_error
+    # # Compute standard errors for confidence intervals
+    # # Based on the weighted residual variance and the inverse of (X'WX + alpha*I)
+    # residuals = y - model.predict(X)
+    # sigma2 = np.average(residuals**2, weights=coverages)
+    # # Weighted design matrix for covariance calculation
+    # W_sqrt = sparse.diags(np.sqrt(coverages))
+    # X_weighted = W_sqrt @ X
+    # XtWX = X_weighted.T @ X_weighted
+    # # Covariance matrix of coefficients: sigma^2 * (X'WX + alpha*I)^(-1)
+    # reg_matrix = XtWX + alpha * sparse.eye(len(players))
+    # inv_term = sparse.linalg.inv(reg_matrix)
+    # var_coef = sigma2 * inv_term.diagonal()
+
     return skills
 
 
-def get_var_avg_scores(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    scores: list[float],
-    coverages: list[float],
-) -> float:
+def get_var_avg_scores(user1_ids, user2_ids, scores, coverages) -> float:
     # get per-player coverage-weighted average score
-    scores_by_player: dict[int | str, list[float]] = defaultdict(lambda: [0.0, 0.0])
+    scores_by_player: dict[int, list[float]] = defaultdict(lambda: [0.0, 0.0])
     for u1id, u2id, score, coverage in zip(user1_ids, user2_ids, scores, coverages):
         u1 = scores_by_player[u1id]
         u1[0] += score
@@ -322,12 +256,12 @@ def get_var_avg_scores(
         u2[1] += coverage
     avg_scores = dict()
     for uid, (score, coverage) in scores_by_player.items():
-        avg_scores[uid] = score / max(30, coverage)
+        avg_scores[uid] = score / coverage
     var_avg_scores = np.var(np.array(list(avg_scores.values())))
     return var_avg_scores
 
 
-def rescale_skills_(skills: SkillType, var_avg_scores: float) -> SkillType:
+def rescale_skills_(skills: SkillType, var_avg_scores) -> SkillType:
     """
     rescaled to have skills in same range as peer scores
     NOTE: changes skills in place
@@ -340,15 +274,15 @@ def rescale_skills_(skills: SkillType, var_avg_scores: float) -> SkillType:
 
 
 def bootstrap_skills(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    question_ids: list[int],
-    scores: list[float],
-    coverages: list[float],
-    var_avg_scores: float,
-    baseline_player: int = 269196,
-    n_bootstrap: int = 30,
-    method: str = "matches",
+    user1_ids,
+    user2_ids,
+    question_ids,
+    scores,
+    coverages,
+    var_avg_scores,
+    baseline_player=269196,
+    n_bootstrap=30,
+    method="matches",
 ) -> tuple[SkillType, SkillType]:
     """
     get Confidence Intervals around the skills using Bootstrapping
@@ -368,7 +302,7 @@ def bootstrap_skills(
 
     Uses the 2.5 and 97.5 percentiles of bootstrap distribution for 95% CIs.
     """
-    bootstrap_results: dict[int | str, list[float]] = defaultdict(list)
+    bootstrap_results: dict[int, list[float]] = defaultdict(list)
 
     print(f"Bootstrapping (method - {method}):")
     print("| Bootstrap |    Duration    | Est. Duration  |")
@@ -385,8 +319,8 @@ def bootstrap_skills(
             end="\r",
         )
 
-        boot_user1_ids: list[int | str] = []
-        boot_user2_ids: list[int | str] = []
+        boot_user1_ids: list[int] = []
+        boot_user2_ids: list[int] = []
         boot_scores: list[float] = []
         boot_coverages: list[float] = []
         if method == "matches":
@@ -443,7 +377,8 @@ def bootstrap_skills(
             print("WARNING: user_id didn't appear:", user_id)
             ci_lower[user_id] = 0.0
             ci_upper[user_id] = 0.0
-    print("\n")
+    print()
+    print()
     return ci_lower, ci_upper
 
 
@@ -454,50 +389,34 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # SETUP: we need to choose the baseline player, users to evaluate, and questions
-        baseline_player = 236038
+        baseline_player = 269782
         print("Initializing...", end="\r")
-        users: QuerySet[User] = User.objects.filter(
-            is_active=True,
-            is_bot=True,
-            username__startswith="metac-",
-        ).order_by("id")
-        user_forecast_exists = Forecast.objects.filter(
-            question_id=OuterRef("pk"), author__in=users
+        users: list[User] = list(
+            User.objects.filter(
+                is_active=True,
+                is_bot=True,
+                username__startswith="metac-",
+            ).order_by("id")
         )
-        questions: QuerySet[Question] = (
-            Question.objects.filter(
-                Q(
+        questions: list[Question] = list(
+            (
+                Question.objects.filter(
                     related_posts__post__default_project__default_permission__in=[
                         "viewer",
                         "forecaster",
-                    ]
+                    ],
+                    related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+                    resolution__isnull=False,
                 )
-                | Q(
-                    related_posts__post__default_project_id__in=[
-                        3349,
-                        32506,
-                        32627,
-                        32721,
-                        32813,
-                    ]
-                ),
-                related_posts__post__curation_status=Post.CurationStatus.APPROVED,
-                resolution__isnull=False,
+                .exclude(resolution__in=UnsuccessfulResolutionType)
+                .prefetch_related("user_forecasts")
+                .filter(user_forecasts__author__in=users)
+                .distinct()
             )
-            .exclude(related_posts__post__default_project__slug__startswith="minibench")
-            .exclude(resolution__in=UnsuccessfulResolutionType)
-            .filter(Exists(user_forecast_exists))
-            .prefetch_related(  # only prefetch forecasts from those users
-                Prefetch(
-                    "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
-                )
-            )
-            .order_by("id")
-            .distinct("id")
         )
         print("Initializing... DONE")
 
-        # PROCESS DATA
+        # EXECUTE
         user1_ids, user2_ids, question_ids, scores, coverages = gather_data(
             users, questions
         )
@@ -508,7 +427,8 @@ class Command(BaseCommand):
         )
         var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, coverages)
         skills = rescale_skills_(skills, var_avg_scores)
-        print("Computing Skills initial... DONE\n")
+        print("Computing Skills initial... DONE")
+        print()
 
         match_ci_lower, match_ci_upper = bootstrap_skills(
             user1_ids,
@@ -557,7 +477,7 @@ class Command(BaseCommand):
             "=========================================="
             "=========================================="
         )
-        player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
+        player_stats: dict[int, list] = defaultdict(lambda: [0, set()])
         for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
             player_stats[u1id][0] += 1
             player_stats[u1id][1].add(qid)
@@ -566,14 +486,9 @@ class Command(BaseCommand):
         ordered_skills = sorted(
             [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
         )
-        unevaluated = (
-            set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
-        )
+        unevaluated = set([u.id for u in users])
         for uid, skill in ordered_skills:
-            if isinstance(uid, str):
-                username = uid
-            else:
-                username = User.objects.get(id=uid).username
+            user = User.objects.get(id=uid)
             unevaluated.remove(uid)
             match_lower = match_ci_lower.get(uid, 0)
             match_upper = match_ci_upper.get(uid, 0)
@@ -585,29 +500,26 @@ class Command(BaseCommand):
                 f"| {round(match_upper, 2):>6} {'('+str(round(question_upper, 2))+')':>8} "
                 f"| {player_stats[uid][0]:>6} "
                 f"| {len(player_stats[uid][1]):>6} "
-                f"| {uid if isinstance(uid, int) else '':>6} "
-                f"| {username}"
+                f"| {user.id:>5} "
+                f"| {user.username}"
             )
         for uid in unevaluated:
-            if isinstance(uid, str):
-                username = uid
-            else:
-                username = User.objects.get(id=uid).username
+            user = User.objects.get(id=uid)
             print(
                 "| --------------- "
                 "| ------ "
                 "| --------------- "
                 "| ------ "
                 "| ------ "
-                f"| {uid if isinstance(uid, int) else '':>5} "
-                f"| {username}"
+                f"| {user.id:>5} "
+                f"| {user.username}"
             )
         print()
 
         # UPDATE Leaderboard
         print("Updating leaderboard...", end="\r")
         leaderboard, _ = Leaderboard.objects.get_or_create(
-            name="Global Bot Leaderboard",
+            name="Global Bots Leaderboard",
             project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
             score_type=LeaderboardScoreTypes.MANUAL,
             bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
@@ -617,9 +529,8 @@ class Command(BaseCommand):
         for rank, (uid, skill) in enumerate(ordered_skills, 1):
             contribution_count = len(player_stats[uid][1])
 
-            entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
-            entry.user_id = uid if isinstance(uid, int) else None
-            entry.aggregation_method = uid if isinstance(uid, str) else None
+            entry = entry_dict.pop(uid, LeaderboardEntry())
+            entry.user_id = uid
             entry.leaderboard = leaderboard
             entry.score = skill
             entry.rank = rank
@@ -629,8 +540,6 @@ class Command(BaseCommand):
             entry.calculated_on = timezone.now()
             entry.ci_lower = match_ci_lower.get(uid, None)  # consider question_ci_lower
             entry.ci_upper = match_ci_upper.get(uid, None)  # consider question_ci_upper
-            # TODO: support for more efficient saving once this is implemented
-            # for leaderboards with more than 100 entries
             entry.save()
         print("Updating leaderboard... DONE")
         # delete unseen entries
