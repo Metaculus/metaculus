@@ -178,7 +178,7 @@ class NoOutliers(Weighted):
                     self.question.type,
                 )
             )
-        mask = distances <= np.percentile(distances, 80, axis=0)
+        mask: np.ndarray = distances <= np.percentile(distances, 80, axis=0)
         return mask
 
 
@@ -428,7 +428,7 @@ class LogOddsMeanAggregator(MeanAggregator):
 
 
 class Aggregation(Aggregator, ABC):
-    weighting_classes: list[Type[Weighted]] = []
+    weighting_classes: list[Type[Weighted]] = []  # defined in subclasses
 
     def __init__(
         self, question: Question, user_ids: list[int] | set[int] | None = None
