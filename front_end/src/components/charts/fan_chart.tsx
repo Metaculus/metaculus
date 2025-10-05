@@ -698,6 +698,13 @@ function buildChartData({
     pt.y = Math.round(((finalZoom[0] + finalZoom[1]) / 2) * 100) / 100;
   });
 
+  const [lo, hi] = finalZoom as Tuple<number>;
+  userPoints.forEach((pt) => {
+    if (Number.isFinite(pt.y)) {
+      pt.y = Math.max(lo, Math.min(hi, pt.y));
+    }
+  });
+
   return {
     communityLines,
     communityAreas,

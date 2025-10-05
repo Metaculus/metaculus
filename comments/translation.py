@@ -1,15 +1,15 @@
 from modeltranslation.translator import TranslationOptions, translator
 
-from .models import Comment, Driver
+from .models import Comment, KeyFactorDriver
 
 
 class CommentTranslationOptions(TranslationOptions):
     fields = ("text",)
 
 
-class KeyFactorTranslationOptions(TranslationOptions):
+class DriverTranslationOptions(TranslationOptions):
     fields = ("text",)
 
 
 translator.register(Comment, CommentTranslationOptions)
-translator.register(Driver, KeyFactorTranslationOptions)
+translator.register(KeyFactorDriver, DriverTranslationOptions)

@@ -20,6 +20,18 @@ export default function ContestRules() {
           2025 (the &quot;Tournament&quot;)
         </h1>
         <p className="opacity-70">Last modified: September 30, 2025</p>
+        <p className="mt-2">
+          In any matter not expressly addressed in these rules, the{" "}
+          <Link
+            href="/tournament-rules/"
+            className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Standard Metaculus Contest Rules
+          </Link>{" "}
+          apply.
+        </p>
 
         <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 

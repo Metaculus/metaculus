@@ -120,10 +120,19 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
 
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !!previousForecast?.forecast_values &&
-        !previousForecast.distribution_input
-    );
+    useState<boolean>(() => {
+      const hasValues = !!previousForecast?.forecast_values?.length;
+      const isLegacy = !previousForecast?.distribution_input;
+      const isExpired =
+        !!previousForecast?.end_time &&
+        previousForecast.end_time * 1000 < Date.now();
+      return hasValues && (isLegacy || isExpired);
+    });
+
+  const overlayPreviousCdf =
+    overlayPreviousForecast && previousForecast?.forecast_values
+      ? previousForecast.forecast_values
+      : undefined;
 
   // Update states of forecast maker after new forecast is made
   useEffect(() => {
@@ -474,6 +483,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         dataset={dataset}
         userCdf={userCdf}
         userPreviousCdf={userPreviousCdf}
+        overlayPreviousCdf={overlayPreviousCdf}
         communityCdf={communityCdf}
         sliderComponents={sliderDistributionComponents}
         onSliderChange={(components) => {

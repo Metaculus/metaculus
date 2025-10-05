@@ -396,6 +396,15 @@ const NumericChart: FC<Props> = ({
     tooltipOffset: 8,
   });
 
+  const clampedPoints = useMemo(() => {
+    return points.map((p) => ({
+      ...p,
+      y: p.y == null ? p.y : Math.max(yMin, Math.min(yMax, p.y)),
+      y1: p.y1 == null ? p.y1 : Math.max(yMin, Math.min(yMax, p.y1)),
+      y2: p.y2 == null ? p.y2 : Math.max(yMin, Math.min(yMax, p.y2)),
+    }));
+  }, [points, yMin, yMax]);
+
   return (
     <>
       <div
@@ -567,7 +576,7 @@ const NumericChart: FC<Props> = ({
               {/* Prediction points */}
               <VictoryPortal>
                 <VictoryScatter
-                  data={points}
+                  data={clampedPoints}
                   dataComponent={<PredictionWithRange />}
                 />
               </VictoryPortal>

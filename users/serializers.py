@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from comments.models import Driver
+from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
 from users.models import User, UserCampaignRegistration
@@ -97,7 +97,7 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_should_suggest_keyfactors(self, user: User):
         return (
-            Driver.objects.filter(comment__author=user).exists()
+            KeyFactor.objects.filter(comment__author=user).exists()
             or LeaderboardEntry.objects.filter(
                 user=user, medal=LeaderboardEntry.Medals.GOLD
             ).exists()

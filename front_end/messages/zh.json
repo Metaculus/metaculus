@@ -1529,5 +1529,9 @@
   "learnMoreFAQ": "在我们的常见问题中了解更多信息",
   "belowLowerBound": "低于下限",
   "aboveUpperBound": "高于上限",
+  "certainty": "确定性:",
+  "strong": "强",
+  "weak": "弱",
+  "none": "无",
   "othersCount": "其他（{count}）"
 }

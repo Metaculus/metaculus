@@ -32,7 +32,7 @@ const QuestionInfo: React.FC<Props> = ({
       <ResolutionCriteria post={postData} />
       {isConditionalPost(postData) && <ConditionalTimeline post={postData} />}
 
-      <KeyFactorsSection postId={postData.id} postStatus={postData.status} />
+      <KeyFactorsSection post={postData} />
 
       <CoherenceLinks post={postData}></CoherenceLinks>
 

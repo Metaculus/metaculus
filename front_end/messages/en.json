@@ -1521,5 +1521,9 @@
   "learnMoreFAQ": "Learn more in our FAQ",
   "belowLowerBound": "Below lower bound",
   "aboveUpperBound": "Above upper bound",
-  "hiddenUntil": "Hidden until"
+  "hiddenUntil": "Hidden until",
+  "certainty": "Certainty:",
+  "strong": "strong",
+  "weak": "weak",
+  "none": "none"
 }
