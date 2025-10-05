@@ -9,18 +9,19 @@ Transform back to probabilities.
 Normalise to 1 over all outcomes.
 """
 
+from abc import ABC
 from bisect import bisect_left, bisect_right
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence, Type
-from abc import ABC
 
-import numpy as np
+
+from django.db.models import F, Q, QuerySet
 from django.utils import timezone
-from django.db.models import Q, QuerySet
-from django.utils import timezone as django_timezone
+import numpy as np
 
+from projects.permissions import ObjectPermission
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -28,8 +29,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
+from scoring.models import Score, LeaderboardEntry
 from scoring.constants import ScoreTypes
-from scoring.models import Score
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
@@ -45,6 +46,9 @@ from utils.typing import (
 RangeValuesType = tuple[list[float], list[float], list[float]]
 
 
+##################### Dataclasses #####################
+
+
 @dataclass
 class ForecastSet:
     forecasts_values: ForecastsValues
@@ -58,6 +62,9 @@ class Reputation:
     user_id: int
     value: float
     time: datetime
+
+
+##################### Helpers #####################
 
 
 def get_histogram(
@@ -105,7 +112,7 @@ def compute_discrete_forecast_values(
 
 def compute_weighted_semi_standard_deviations(
     forecasts_values: ForecastsValues,
-    weights: Weights,
+    weights: Weights | None,
 ) -> tuple[ForecastValues, ForecastValues]:
     """returns the upper and lower standard_deviations"""
     forecasts_values = np.array(forecasts_values)
@@ -129,6 +136,9 @@ def compute_weighted_semi_standard_deviations(
     lower_semivariances = np.nan_to_num(lower_semivariances)
     upper_semivariances = np.nan_to_num(upper_semivariances)
     return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
+
+
+##################### Weightings #####################
 
 
 class Weighted(ABC):
@@ -161,7 +171,12 @@ class RecencyWeighted(Weighted):
         )
 
 
+##################### ReputationWeightings #####################
+
+
 class ReputationWeighted(Weighted, ABC):
+    """Uses a Reputation to calculate a forecast's weight.
+    Requires `get_reputation_history`"""
 
     def __init__(self, question: Question, user_ids: list[int] | set[int] | None):
         if question is None or user_ids is None:
@@ -248,6 +263,7 @@ class PeerScoreWeighted(ReputationWeighted):
         return reputations
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        # Custom overwrite to uniquely combine time weighting with reputation
         reps = self.get_reputations(forecast_set)
         # TODO: make these learned parameters
         a = 0.5
@@ -268,6 +284,9 @@ class PeerScoreWeighted(ReputationWeighted):
         if all(weights == 0):
             return None
         return weights if weights.size else None
+
+
+##################### Aggregators #####################
 
 
 class Aggregator(ABC):
@@ -382,7 +401,17 @@ class MeanAggregator(Aggregator):
         return lowers, centers, uppers
 
 
+##################### Aggregations #####################
+
+
 class Aggregation(Aggregator, ABC):
+    """Base class for actual Aggregations.
+    Any class Inheriting this one must also inherit from a single Aggregator class.
+    Multiple weightings/filters are allowed. Their classes must be listed in the
+        `weighting_classes` property. They will be applied multiplicatively in order.
+    """
+
+    method = "N/A"
     weighting_classes: list[Type[Weighted]] = []  # defined in subclasses
 
     def __init__(
@@ -415,7 +444,7 @@ class Aggregation(Aggregator, ABC):
         histogram: bool = False,
     ) -> AggregateForecast:
         weights = self.get_weights(forecast_set)
-        aggregation = AggregateForecast()
+        aggregation = AggregateForecast(question=self.question, method=self.method)
         aggregation.forecast_values = self.calculate_forecast_values(
             forecast_set, weights
         ).tolist()
@@ -451,22 +480,29 @@ class Aggregation(Aggregator, ABC):
 
 
 class UnweightedAggregation(MedianAggregator, Aggregation):
+    method = AggregationMethod.UNWEIGHTED
     weighting_classes = [Unweighted]
 
 
 class RecencyWeightedAggregation(MedianAggregator, Aggregation):
+    method = AggregationMethod.RECENCY_WEIGHTED
     weighting_classes = [RecencyWeighted]
 
 
 class SingleAggregation(MeanAggregator, Aggregation):
+    method = AggregationMethod.SINGLE_AGGREGATION
     weighting_classes = [PeerScoreWeighted]
 
 
-aggregation_method_map: dict[AggregationMethod, type[Aggregation]] = {
-    AggregationMethod.UNWEIGHTED: UnweightedAggregation,
-    AggregationMethod.RECENCY_WEIGHTED: RecencyWeightedAggregation,
-    AggregationMethod.SINGLE_AGGREGATION: SingleAggregation,
-}
+AGGREGATIONS: list[type[Aggregation]] = [
+    UnweightedAggregation,
+    RecencyWeightedAggregation,
+    SingleAggregation,
+]
+
+
+def get_aggregation_by_name(method: AggregationMethod) -> type[Aggregation]:
+    return next(agg.method == method for agg in AGGREGATIONS)
 
 
 def get_aggregations_at_time(
@@ -502,7 +538,7 @@ def get_aggregations_at_time(
 
     aggregations: dict[AggregationMethod, AggregateForecast] = dict()
     for method in aggregation_methods:
-        aggregation_generator = aggregation_method_map[method](
+        aggregation_generator = get_aggregation_by_name(method)(
             question=question,
             user_ids=set(forecast_set.user_ids),
         )
@@ -511,8 +547,6 @@ def get_aggregations_at_time(
             include_stats=include_stats,
             histogram=histogram,
         )
-        new_entry.question = question
-        new_entry.method = method
         aggregations[method] = new_entry
     return aggregations
 
@@ -597,7 +631,7 @@ def minimize_history(
     # start with smallest interval, populating it with timestamps up to it's size. If
     # interval isn't saturated, distribute the remaining allotment to smaller intervals.
 
-    now_or_last = min(h[-1], django_timezone.now().timestamp())
+    now_or_last = min(h[-1], timezone.now().timestamp())
     # Day interval
     day_history = []
     day_interval = []
@@ -719,9 +753,7 @@ def get_aggregation_history(
     if include_future:
         cutoff = question.actual_close_time
     else:
-        cutoff = min(
-            django_timezone.now(), question.actual_close_time or django_timezone.now()
-        )
+        cutoff = min(timezone.now(), question.actual_close_time or timezone.now())
     forecast_history = get_user_forecast_history(
         forecasts,
         minimize,
@@ -740,13 +772,13 @@ def get_aggregation_history(
             continue
 
         aggregation_history: list[AggregateForecast] = []
-        AggregationGenerator: Aggregation = aggregation_method_map[method](
+        AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
             question=question,
             user_ids=forecaster_ids,
         )
 
         last_historical_entry_index = -1
-        now = django_timezone.now()
+        now = timezone.now()
         for entry in forecast_history:
             if entry.timestep < now:
                 last_historical_entry_index += 1
@@ -773,8 +805,6 @@ def get_aggregation_history(
                     include_stats=include_stats,
                     histogram=include_histogram,
                 )
-                new_entry.question = question
-                new_entry.method = method
                 if aggregation_history and aggregation_history[-1].end_time is None:
                     aggregation_history[-1].end_time = new_entry.start_time
                 aggregation_history.append(new_entry)
