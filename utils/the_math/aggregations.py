@@ -184,7 +184,7 @@ class NoOutliers(Weighted):
 
 class ReputationWeighted(Weighted, ABC):
 
-    def __init__(self, question: Question, user_ids: list[int]):
+    def __init__(self, question: Question, user_ids: list[int] | set[int] | None):
         if question is None or user_ids is None:
             raise ValueError("question and user_ids must be provided")
         self.question = question
@@ -193,7 +193,7 @@ class ReputationWeighted(Weighted, ABC):
         )
 
     def get_reputation_history(
-        self, user_ids: list[int]
+        self, user_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
@@ -227,7 +227,7 @@ class PeerScoreWeighted(ReputationWeighted):
         )
 
     def get_reputation_history(
-        self, user_ids: list[int]
+        self, user_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
 
         start = self.question.open_time
@@ -430,7 +430,9 @@ class LogOddsMeanAggregator(MeanAggregator):
 class Aggregation(Aggregator, ABC):
     weighting_classes: list[Type[Weighted]] = []
 
-    def __init__(self, question: Question, user_ids: list[int] | None = None):
+    def __init__(
+        self, question: Question, user_ids: list[int] | set[int] | None = None
+    ):
         self.question = question
         self.weightings: list[Weighted] = [
             Klass(question=question, user_ids=user_ids)
@@ -516,7 +518,7 @@ def get_aggregations_at_time(
     question: Question,
     time: datetime,
     aggregation_methods: list[AggregationMethod],
-    user_ids: list[int] | None = None,
+    user_ids: list[int] | set[int] | None = None,
     include_stats: bool = False,
     histogram: bool = False,
     include_bots: bool = False,
@@ -547,7 +549,7 @@ def get_aggregations_at_time(
     for method in aggregation_methods:
         AggregationGenerator: Aggregation = aggregation_method_map[method](
             question=question,
-            user_ids=list(set(forecast_set.user_ids)),
+            user_ids=set(forecast_set.user_ids),
         )
         new_entry = AggregationGenerator.calculate_aggregation_entry(
             forecast_set,
@@ -735,7 +737,7 @@ def get_aggregation_history(
     question: Question,
     aggregation_methods: list[AggregationMethod],
     forecasts: QuerySet[Forecast] | None = None,
-    user_ids: list[int] | None = None,
+    user_ids: list[int] | set[int] | None = None,
     minimize: bool = True,
     include_stats: bool = True,
     include_bots: bool = False,
@@ -786,7 +788,6 @@ def get_aggregation_history(
         AggregationGenerator: Aggregation = aggregation_method_map[method](
             question=question,
             user_ids=forecaster_ids,
-            question_type=question.type,
         )
 
         last_historical_entry_index = -1
