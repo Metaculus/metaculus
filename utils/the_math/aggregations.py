@@ -161,27 +161,6 @@ class RecencyWeighted(Weighted):
         )
 
 
-class NoOutliers(Weighted):
-    # TODO: move to next PR
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        forecasts_values = forecast_set.forecasts_values
-        if len(forecasts_values) <= 2:
-            return None
-        average_forecast = np.average(forecasts_values, axis=0)
-        distances = []
-        for forecast in forecasts_values:
-            distances.append(
-                prediction_difference_for_sorting(
-                    np.array(forecast),
-                    average_forecast,
-                    self.question.type,
-                )
-            )
-        mask: np.ndarray = distances <= np.percentile(distances, 80, axis=0)
-        return mask
-
-
 class ReputationWeighted(Weighted, ABC):
 
     def __init__(self, question: Question, user_ids: list[int] | set[int] | None):
@@ -401,30 +380,6 @@ class MeanAggregator(Aggregator):
             lowers = (np.array(centers) - lowers_sd).tolist()
             uppers = (np.array(centers) + uppers_sd).tolist()
         return lowers, centers, uppers
-
-
-class LogOddsMeanAggregator(MeanAggregator):
-    # TODO: move to next PR
-    """Takes the mean of the natural log of odds of forecast values"""
-
-    def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
-    ) -> np.ndarray:
-        log_odds = np.log(
-            np.array(forecast_set.forecasts_values)
-            / (1 - np.array(forecast_set.forecasts_values))
-        )
-        average_log_odds = np.average(log_odds, axis=0, weights=weights)
-        average_odds = np.exp(average_log_odds)
-        average = average_odds / (1 + average_odds)
-        # First and last cdf value of continuous questions with closed bounds get
-        # screwed up by the logodds transformation, just replace them with
-        # set values 0 and 1
-        if np.isnan(average[0]):
-            average[0] = 0
-        if np.isnan(average[-1]):
-            average[-1] = 1
-        return average
 
 
 class Aggregation(Aggregator, ABC):
