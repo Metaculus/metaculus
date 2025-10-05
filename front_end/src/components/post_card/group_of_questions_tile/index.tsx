@@ -4,7 +4,7 @@ import { FC, useMemo } from "react";
 
 import {
   MultipleChoiceTile,
-  FanGraphMultipleChoiceTile,
+  FanGraphTile,
 } from "@/components/post_card/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
@@ -24,9 +24,10 @@ const VISIBLE_CHOICES_COUNT = 3;
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
+  showChart?: boolean;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({ post }) => {
+const GroupOfQuestionsTile: FC<Props> = ({ post, showChart }) => {
   const t = useTranslations();
 
   const { hideCP } = useHideCP();
@@ -55,19 +56,23 @@ const GroupOfQuestionsTile: FC<Props> = ({ post }) => {
     {
       activeCount: VISIBLE_CHOICES_COUNT,
       locale,
+      excludeUnit: true,
+      resolutionSigfigs: 4,
     }
   );
 
   switch (graph_type) {
     case GroupOfQuestionsGraphType.FanGraph: {
       return (
-        <FanGraphMultipleChoiceTile
+        <FanGraphTile
           choices={choices}
           visibleChoicesCount={VISIBLE_CHOICES_COUNT}
           group={post.group_of_questions}
           groupType={groupType}
           canPredict={canPredict}
           hideCP={hideCP}
+          showChart={showChart}
+          optionsLimit={10}
         />
       );
     }
@@ -97,6 +102,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ post }) => {
           forecastAvailability={forecastAvailability}
           canPredict={canPredict}
           hideCP={hideCP}
+          showChart={showChart}
         />
       );
     }

@@ -3,6 +3,7 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -30,6 +31,8 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
+import { isForecastActive } from "@/utils/forecasts/helpers";
+import { getQuestionStatus } from "@/utils/questions/helpers";
 
 import CommentWelcomeMessage, {
   getIsMessagePreviouslyClosed,
@@ -65,6 +68,7 @@ type Props = {
   id?: string;
   inNotebook?: boolean;
   showTitle?: boolean;
+  compactVersion?: boolean;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -81,7 +85,7 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
       return false;
     }
     const latest = postData.question.my_forecasts?.latest;
-    return !!latest && isNil(latest.end_time);
+    return !!latest && isForecastActive(latest);
   }
 
   return false;
@@ -95,6 +99,7 @@ const CommentFeed: FC<Props> = ({
   id,
   inNotebook = false,
   showTitle = true,
+  compactVersion = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -109,6 +114,11 @@ const CommentFeed: FC<Props> = ({
     userCommentsAmount !== null &&
     userCommentsAmount < NEW_USER_COMMENT_LIMIT &&
     !PUBLIC_MINIMAL_UI;
+
+  const { isDone } = getQuestionStatus(postData ?? null);
+
+  const shouldSuggestKeyFactors =
+    user?.should_suggest_keyfactors && !postData?.notebook && !isDone;
 
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);
@@ -170,7 +180,7 @@ const CommentFeed: FC<Props> = ({
         [key]: value,
       });
     },
-    [feedFilters]
+    [feedFilters, setComments, setOffset]
   );
 
   const hash = useHash();
@@ -213,6 +223,7 @@ const CommentFeed: FC<Props> = ({
       offset,
     };
     void fetchComments(true, finalFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedFilters]);
 
   useEffect(() => {
@@ -319,6 +330,7 @@ const CommentFeed: FC<Props> = ({
         toast(t("commentUnpinned"));
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t]
   );
 
@@ -339,7 +351,12 @@ const CommentFeed: FC<Props> = ({
       PostStatus.PENDING_RESOLUTION,
     ].includes(postData?.status ?? PostStatus.CLOSED);
 
-    if (postId && isSimpleQuestion && user?.has_key_factors && isPostOpen) {
+    if (
+      postId &&
+      isSimpleQuestion &&
+      user?.should_suggest_keyfactors &&
+      isPostOpen
+    ) {
       setUserKeyFactorsComment(newComment);
     }
   };
@@ -359,48 +376,51 @@ const CommentFeed: FC<Props> = ({
           {
             "w-[48rem] border-transparent bg-gray-0 px-3 py-2 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark xs:px-4 lg:border":
               !inNotebook,
-          }
+          },
+          compactVersion && "p-0 xs:p-0"
         )}
       >
-        <div className="mb-4 mt-2 flex flex-col items-start gap-3">
-          <div
-            className={cn(
-              "flex w-full flex-row justify-between gap-4 md:gap-3",
-              {
-                "justify-center sm:justify-start": !showTitle,
-              }
-            )}
-          >
-            {showTitle && (
-              <h2
-                className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-                id="comments"
-              >
-                {t("comments")}
-              </h2>
-            )}
-            {!profileId &&
-              user &&
-              (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
-                <ButtonGroup
-                  value={feedFilters.is_private ? "private" : "public"}
-                  buttons={feedOptions}
-                  onChange={(section) => {
-                    handleFilterChange("is_private", section === "private");
-                  }}
-                  variant="tertiary"
-                />
+        {!compactVersion && (
+          <div className="mb-4 mt-2 flex flex-col items-start gap-3">
+            <div
+              className={cn(
+                "flex w-full flex-row justify-between gap-4 md:gap-3",
+                {
+                  "justify-center sm:justify-start": !showTitle,
+                }
               )}
+            >
+              {showTitle && (
+                <h2
+                  className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+                  id="comments"
+                >
+                  {t("comments")}
+                </h2>
+              )}
+              {!profileId &&
+                user &&
+                (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
+                  <ButtonGroup
+                    value={feedFilters.is_private ? "private" : "public"}
+                    buttons={feedOptions}
+                    onChange={(section) => {
+                      handleFilterChange("is_private", section === "private");
+                    }}
+                    variant="tertiary"
+                  />
+                )}
+            </div>
+            {postId && showWelcomeMessage && (
+              <CommentWelcomeMessage
+                onClick={() => {
+                  setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
+                }}
+              />
+            )}
           </div>
-          {postId && showWelcomeMessage && (
-            <CommentWelcomeMessage
-              onClick={() => {
-                setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
-              }}
-            />
-          )}
-        </div>
-        {postId && (
+        )}
+        {!compactVersion && postId && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
               <CommentEditor
@@ -452,7 +472,7 @@ const CommentFeed: FC<Props> = ({
               // This is the newly added comment, so we want to suggest key factors
               comment.id === userKeyFactorsComment?.id
             }
-            shouldSuggestKeyFactors={user?.has_key_factors}
+            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           />
         ))}
         {comments.length === 0 && !isLoading && (
@@ -523,4 +543,6 @@ function extractUniqueAuthors({
   }));
 }
 
-export default CommentFeed;
+export default dynamic(() => Promise.resolve(CommentFeed), {
+  ssr: false,
+});

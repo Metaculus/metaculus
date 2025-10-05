@@ -10,6 +10,7 @@ import {
   POST_ORDER_BY_FILTER,
   POST_TOPIC_FILTER,
   POST_USERNAMES_FILTER,
+  POST_WEEKLY_TOP_COMMENTS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -26,6 +27,7 @@ const useFeed = () => {
   const following = params.get(POST_FOLLOWING_FILTER);
   const orderBy = params.get(POST_ORDER_BY_FILTER);
   const communities = params.get(POST_COMMUNITIES_FILTER);
+  const weeklyTopComments = params.get(POST_WEEKLY_TOP_COMMENTS_FILTER);
 
   const currentFeed = useMemo(() => {
     if (selectedTopic) return null;
@@ -42,6 +44,9 @@ const useFeed = () => {
     if (communities) {
       return FeedType.COMMUNITIES;
     }
+    if (weeklyTopComments) {
+      return FeedType.WEEKLY_TOP_COMMENTS;
+    }
     return FeedType.HOME;
   }, [
     selectedTopic,
@@ -50,6 +55,7 @@ const useFeed = () => {
     authorUsernames,
     communities,
     user,
+    weeklyTopComments,
   ]);
 
   const clearInReview = useCallback(() => {
@@ -64,6 +70,7 @@ const useFeed = () => {
         case FeedType.MY_PREDICTIONS:
           if (!user) return {};
           return {
+            [POST_FOR_MAIN_FEED]: "false",
             [POST_FORECASTER_ID_FILTER]: user.id.toString(),
             [POST_ORDER_BY_FILTER]: QuestionOrder.WeeklyMovementDesc,
           };
@@ -75,6 +82,8 @@ const useFeed = () => {
           };
         case FeedType.COMMUNITIES:
           return { [POST_COMMUNITIES_FILTER]: "true" };
+        case FeedType.WEEKLY_TOP_COMMENTS:
+          return { [POST_WEEKLY_TOP_COMMENTS_FILTER]: "true" };
         case FeedType.FOLLOWING:
           return { [POST_FOLLOWING_FILTER]: "true" };
         case FeedType.HOME:

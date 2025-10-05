@@ -1,4 +1,16 @@
+from typing import TypedDict
+
 from django.db import models
+from django.db.models import TextChoices
+
+
+class Direction(TextChoices):
+    UNCHANGED = "unchanged"
+    UP = "up"
+    DOWN = "down"
+    EXPANDED = "expanded"
+    CONTRACTED = "contracted"
+    CHANGED = "changed"  # failsafe
 
 
 class AggregationMethod(models.TextChoices):
@@ -16,3 +28,8 @@ class AggregationMethod(models.TextChoices):
         "recency_weighted_experienced_users_25_resolved"
     )
     RECENCY_WEIGHTED_LOG_ODDS_NO_OUTLIERS = "recency_weighted_log_odds_no_outliers"
+
+
+QuestionMovement = TypedDict(
+    "QuestionMovement", {"direction": Direction, "movement": float}
+)

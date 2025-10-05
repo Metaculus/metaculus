@@ -8,11 +8,16 @@ import {
   VictoryBar,
   VictoryChart,
   VictoryContainer,
+  VictoryLabel,
+  VictoryPortal,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
-import cn from "@/utils/core/cn";
+import useContainerSize from "@/hooks/use_container_size";
+
+import ChartContainer from "./primitives/chart_container";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];
@@ -30,9 +35,10 @@ const Histogram: React.FC<HistogramProps> = ({
   width,
 }) => {
   const t = useTranslations();
-  const { theme } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-
+  const { ref: chartContainerRef, width: chartWidth } =
+    useContainerSize<HTMLDivElement>();
   const maxY = Math.max(...histogramData.map((d) => d.y));
 
   return (
@@ -42,11 +48,13 @@ const Histogram: React.FC<HistogramProps> = ({
           <span className="text-sm font-bold capitalize">
             {t("median")}{" "}
             <span
-              className={cn(
-                color === "blue"
-                  ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
-                  : `placeholder:text-[light${color}]`
-              )}
+              style={{
+                color: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["500"]
+                    : METAC_COLORS.gray["500"]
+                ),
+              }}
             >{`${(100 * median).toFixed(1)}%`}</span>
           </span>
         )}
@@ -54,57 +62,128 @@ const Histogram: React.FC<HistogramProps> = ({
           <span className="ml-8 text-sm font-bold capitalize">
             {t("mean")}{" "}
             <span
-              className={cn(
-                color === "blue"
-                  ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
-                  : `text-[light${color}]`
-              )}
+              style={{
+                color: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["500"]
+                    : METAC_COLORS.gray["500"]
+                ),
+              }}
             >{`${(100 * mean).toFixed(1)}%`}</span>
           </span>
         )}
       </div>
-      <VictoryChart
-        theme={chartTheme}
-        domain={{
-          x: [0, 100],
-          y: [0, maxY],
-        }}
-        containerComponent={
-          <VictoryContainer
-            responsive={true}
+      <ChartContainer ref={chartContainerRef} height={75}>
+        <VictoryChart
+          theme={chartTheme}
+          domain={{
+            x: [0, 100],
+            y: [0, maxY * 1.01], // prevent highest bar being cut off
+          }}
+          containerComponent={
+            <VictoryContainer
+              responsive={true}
+              style={{
+                touchAction: "pan-y",
+              }}
+            />
+          }
+          padding={{ top: 0, bottom: 20, left: 12, right: 12 }}
+          height={75}
+          width={!!width ? width : undefined}
+        >
+          <VictoryBar
+            data={histogramData}
             style={{
-              touchAction: "pan-y",
+              data: {
+                borderTop: "1px solid",
+                borderTopColor: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["500"]
+                    : METAC_COLORS.gray["500"]
+                ),
+                fill: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["500"]
+                    : METAC_COLORS.gray["500"]
+                ),
+              },
+            }}
+            barRatio={0.85}
+            alignment="start"
+          />
+          {/* Top line bars */}
+          <VictoryBar
+            data={histogramData}
+            style={{
+              data: {
+                fill: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["800"]
+                    : METAC_COLORS.gray["800"]
+                ),
+              },
+            }}
+            barRatio={0.85}
+            alignment="start"
+            getPath={(props: unknown) => {
+              const { x0, x1, y1, datum } = props as {
+                x0: number;
+                x1: number;
+                y1: number;
+                datum: { y: number };
+              };
+
+              if (!datum || datum.y === 0) return "";
+
+              return `M ${x0}, ${y1}
+                L ${x1}, ${y1}
+                L ${x1}, ${y1 + 1}
+                L ${x0}, ${y1 + 1}
+                z`;
             }}
           />
-        }
-        padding={{ top: 0, bottom: 15, left: 10, right: 10 }}
-        height={75}
-        width={!!width ? width : undefined}
-      >
-        <VictoryAxis
-          tickValues={range(0, 101)}
-          tickFormat={(x: number) => (x % 10 === 0 ? `${x}%` : "")}
-          style={{
-            tickLabels: {
-              fontSize: 8,
-            },
-            axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-            grid: { stroke: "none" },
-          }}
-        />
-        <VictoryBar
-          data={histogramData}
-          style={{
-            data: {
-              fill: "light" + color,
-              stroke: "dark" + color,
-              strokeWidth: 1,
-            },
-          }}
-          barRatio={1.1}
-          x={(d) => d.x + 0.5}
-        />
-      </VictoryChart>
+          <VictoryAxis
+            tickValues={chartWidth > 400 ? range(0, 101) : range(0, 101, 5)}
+            tickFormat={(x: number) =>
+              chartWidth > 400
+                ? x % 10 === 0
+                  ? `${x}%`
+                  : ""
+                : [0, 50, 100].includes(x)
+                  ? `${x}%`
+                  : ""
+            }
+            tickLabelComponent={
+              <VictoryPortal>
+                <VictoryLabel dy={3} />
+              </VictoryPortal>
+            }
+            style={{
+              tickLabels: {
+                fontSize: 10,
+                fontWeight: 400,
+                fill: getThemeColor(METAC_COLORS.gray["700"]),
+              },
+              ticks: {
+                stroke: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["400"]
+                    : METAC_COLORS.gray["400"]
+                ),
+              },
+              axis: {
+                stroke: getThemeColor(
+                  color === "blue"
+                    ? METAC_COLORS.blue["400"]
+                    : METAC_COLORS.gray["400"]
+                ),
+              },
+              grid: { stroke: "none" },
+            }}
+          />
+        </VictoryChart>
+      </ChartContainer>
     </>
   );
 };

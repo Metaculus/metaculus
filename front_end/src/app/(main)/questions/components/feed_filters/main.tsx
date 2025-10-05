@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -16,6 +17,7 @@ import {
   POST_STATUS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
@@ -36,6 +38,8 @@ const MainFeedFilters: FC<Props> = ({
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
+
+  const isLargeScreen = useBreakpoint("md");
 
   const [projectFilters, setProjectFilters] = useState<
     TournamentPreview[] | undefined
@@ -84,6 +88,9 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
+  const mainSortNewsVisible = isLargeScreen || isNil(user);
+  const mainSortNewVisible = isLargeScreen || !isNil(user);
+
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
@@ -94,12 +101,25 @@ const MainFeedFilters: FC<Props> = ({
         value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
-      {
-        value: QuestionOrder.OpenTimeDesc,
-        label: t("new"),
-      },
+      ...(mainSortNewVisible
+        ? [
+            {
+              value: QuestionOrder.OpenTimeDesc,
+              label: t("new"),
+            },
+          ]
+        : []),
+      ...(mainSortNewsVisible
+        ? [
+            {
+              value: QuestionOrder.NewsHotness,
+              label: t("inTheNews"),
+            },
+          ]
+        : []),
     ],
-    [t]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t, isLargeScreen]
   );
 
   const sortOptions = useMemo(
@@ -107,14 +127,27 @@ const MainFeedFilters: FC<Props> = ({
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
       {
+        value: QuestionOrder.UnreadCommentCountDesc,
+        label: t("newComments"),
+      },
+      {
         value: QuestionOrder.PredictionCountDesc,
         label: t("mostPredictions"),
       },
+      {
+        value: QuestionOrder.ForecastersCountDesc,
+        label: t("mostForecasters"),
+      },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
-      { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
+      ...(!mainSortNewVisible
+        ? [{ value: QuestionOrder.OpenTimeDesc, label: t("new") }]
+        : []),
+      ...(!mainSortNewsVisible
+        ? [{ value: QuestionOrder.NewsHotness, label: t("inTheNews") }]
+        : []),
     ],
-    [t]
+    [mainSortNewVisible, mainSortNewsVisible, t]
   );
 
   const onOrderChange = (

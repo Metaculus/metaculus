@@ -17,6 +17,8 @@ from django.db.models import (
     Value,
     Func,
     FloatField,
+    Case,
+    When,
 )
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
@@ -109,11 +111,19 @@ class PostQuerySet(models.QuerySet):
                     [
                         Prefetch(
                             f"{rel}__scores",
-                            Score.objects.filter(aggregation_method__isnull=False),
+                            Score.objects.filter(
+                                aggregation_method=F(
+                                    "question__default_aggregation_method"
+                                )
+                            ),
                         ),
                         Prefetch(
                             f"{rel}__archived_scores",
-                            Score.objects.filter(aggregation_method__isnull=False),
+                            Score.objects.filter(
+                                aggregation_method=F(
+                                    "question__default_aggregation_method"
+                                )
+                            ),
                         ),
                     ]
                     for rel in question_relations
@@ -162,9 +172,29 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             has_active_forecast=Exists(
                 Forecast.objects.filter(
-                    post_id=OuterRef("pk"), author_id=author_id, end_time__isnull=True
+                    Q(end_time__isnull=True) | Q(end_time__gt=timezone.now()),
+                    post_id=OuterRef("pk"),
+                    author_id=author_id,
                 )
             )
+        )
+
+    def annotate_next_withdraw_time(self, author_id: int):
+        """
+        Annotates with the earliest upcoming forecast end_time for the user on this post
+        """
+        next_withdraw_time_subquery = (
+            Forecast.objects.filter(
+                post_id=OuterRef("pk"),
+                author_id=author_id,
+                end_time__gt=timezone.now(),
+            )
+            .order_by("end_time")
+            .values("end_time")[:1]
+        )
+
+        return self.annotate(
+            user_next_withdraw_time=Subquery(next_withdraw_time_subquery)
         )
 
     def annotate_user_is_following(self, user: User):
@@ -226,31 +256,38 @@ class PostQuerySet(models.QuerySet):
         )
 
     def annotate_news_hotness(self):
-        # prepare a subquery for the single nearest PostArticle
         from misc.models import PostArticle
 
-        nearest = PostArticle.objects.filter(post_id=OuterRef("pk")).order_by(
-            "distance"
+        per_article = (
+            PostArticle.objects.filter(post_id=OuterRef("pk"))
+            .annotate(
+                contribution=(
+                    Greatest(Value(0.5) - F("distance"), Value(0.0))
+                    / Func(
+                        F("created_at"),
+                        function="POWER",
+                        template=(
+                            "CASE "
+                            "WHEN ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float) <= 3.5 "
+                            "THEN 1 "
+                            "ELSE POWER(((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float / 3.5), 2) "
+                            "END"
+                        ),
+                        output_field=FloatField(),
+                    )
+                )
+            )
+            .values("post_id")
+            .annotate(hotness_sum=Sum("contribution", output_field=FloatField()))
+            .values("hotness_sum")
         )
 
         return self.annotate(
-            news_distance=Coalesce(
-                Subquery(nearest.values("distance")[:1]), Value(1.0)
-            ),
-            news_created_at=Subquery(nearest.values("created_at")[:1]),
-        ).annotate(
-            news_hotness=Coalesce(
-                20
-                * Greatest(Value(0.5) - F("news_distance"), Value(0.0))
-                / Func(
-                    F("news_created_at"),
-                    function="POWER",
-                    template=(
-                        "POWER(2, ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float/7))"
-                    ),
-                    output_field=FloatField(),
+            news_hotness=Case(
+                When(notebook_id__isnull=False, then=Value(0.0)),
+                default=Coalesce(
+                    Subquery(per_article, output_field=FloatField()), Value(0.0)
                 ),
-                Value(0.0),
                 output_field=FloatField(),
             )
         )
@@ -457,18 +494,18 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
 
 
 class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
-    class NotebookType(models.TextChoices):
-        DISCUSSION = "discussion"
-        NEWS = "news"
-        PUBLIC_FIGURE = "public_figure"
-
     markdown = models.TextField()
-    type = models.CharField(max_length=100, choices=NotebookType)
-    news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
+    markdown_summary = models.TextField(blank=True, default="")
+
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     def __str__(self):
-        return f"{self.type} Notebook for {self.post} by {self.post.author}"
+        return f"Notebook for {self.post} by {self.post.author}"
 
 
 class Post(TimeStampedModel, TranslatedModel):  # type: ignore
@@ -479,6 +516,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     question_id: int | None
     conditional_id: int | None
     group_of_questions_id: int | None
+    default_project_id: int
 
     # Annotated fields
     user_vote = None
@@ -539,10 +577,13 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     scheduled_close_time = models.DateTimeField(
         null=True, blank=True, db_index=True, editable=False
     )
+    actual_close_time = models.DateTimeField(null=True, blank=True, editable=False)
     scheduled_resolve_time = models.DateTimeField(
         null=True, blank=True, db_index=True, editable=False
     )
-    actual_close_time = models.DateTimeField(null=True, blank=True, editable=False)
+    actual_resolve_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
     resolved = models.BooleanField(default=False, editable=False)
 
     embedding_vector = VectorField(
@@ -643,6 +684,18 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         else:
             self.actual_close_time = None
 
+    def set_actual_resolve_time(self):
+        questions = self.get_questions()
+        actual_resolve_time = None
+
+        if questions:
+            actual_resolve_times = [q.actual_resolve_time for q in questions]
+
+            if all(actual_resolve_times):
+                actual_resolve_time = max(actual_resolve_times)
+
+        self.actual_resolve_time = actual_resolve_time
+
     def set_resolved(self):
         if self.question:
             if self.question.resolution:
@@ -707,6 +760,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         self.set_scheduled_close_time()
         self.set_actual_close_time()
         self.set_scheduled_resolve_time()
+        self.set_actual_resolve_time()
         self.set_open_time()
         self.set_resolved()
         self.save()
@@ -740,7 +794,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True, blank=True, db_index=True
     )  # Jeffrey's Divergence
 
-    hotness = models.IntegerField(default=0, editable=False, db_index=True)
+    hotness = models.FloatField(default=0, editable=False, db_index=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
@@ -755,7 +809,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.count()
+        self.forecasts_count = self.forecasts.filter_within_question_period().count()
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):
@@ -799,7 +853,13 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             return []
 
     def get_forecasters(self) -> QuerySet["User"]:
-        return User.objects.filter(forecast__post=self).distinct("pk")
+        return User.objects.filter(
+            Exists(
+                Forecast.objects.filter(
+                    post=self, author=OuterRef("id")
+                ).filter_within_question_period()
+            )
+        )
 
     def get_votes_score(self) -> int:
         return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0

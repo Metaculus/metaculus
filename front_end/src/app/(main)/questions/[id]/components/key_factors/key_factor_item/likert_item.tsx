@@ -30,7 +30,11 @@ type Props = {
 };
 
 export const LikertKeyFactorItem: FC<Props> = ({
-  keyFactor: { text, id, user_votes },
+  keyFactor: {
+    driver: { text },
+    id,
+    user_votes,
+  },
   linkToComment = true,
   linkAnchor,
 }) => {

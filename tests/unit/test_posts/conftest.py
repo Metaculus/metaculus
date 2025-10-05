@@ -6,6 +6,14 @@ from django.utils.timezone import make_aware
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 
+__all__ = [
+    "post_binary_public",
+    "post_multiple_choice_public",
+    "post_numeric_public",
+    "post_discrete_public",
+    "post_date_public",
+]
+
 
 @pytest.fixture()
 def post_binary_public(user1, question_binary):

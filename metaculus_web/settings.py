@@ -22,6 +22,7 @@ from django.core.exceptions import DisallowedHost
 from dramatiq.errors import RateLimitExceeded
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
+from sentry_sdk.scrubber import EventScrubber
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
     "notifications",
     "fab_management",
     "django_select2",
+    "coherence",
 ]
 
 MIDDLEWARE = [
@@ -186,6 +188,8 @@ AUTHENTICATION_BACKENDS = (
 AUTH_SIGNUP_VERIFY_EMAIL = (
     os.environ.get("AUTH_SIGNUP_VERIFY_EMAIL", "True").lower() == "true"
 )
+# Simplified signup flow. If contains token -> allows fast signup with username only
+AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
@@ -307,6 +311,7 @@ DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
     "url": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
 }
 
+
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
 if IS_TEST_ENV:
@@ -383,6 +388,7 @@ ALLOWED_HOSTS = [
     ".metaculus.com",
     "localhost",
     "127.0.0.1",
+    "host.docker.internal",
     "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
 
@@ -459,18 +465,6 @@ def traces_sampler(sampling_context):
     return SENTRY_SAMPLE_RATE
 
 
-def sentry_before_send_transaction(event, hint=None):
-    """
-    Keep only insensitive user data for sentry.
-    """
-    user = event.get("user")
-    if isinstance(user, dict):
-        if "email" in user:
-            del user["email"]
-
-    return event
-
-
 if SENTRY_DNS:
     sentry_sdk.init(
         dsn=SENTRY_DNS,
@@ -490,7 +484,7 @@ if SENTRY_DNS:
             DisallowedHost,
         ],
         send_default_pii=True,
-        before_send_transaction=sentry_before_send_transaction,
+        event_scrubber=EventScrubber(pii_denylist=["email"]),
     )
 
 
@@ -527,11 +521,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = {
     "zh-TW": ("zh",),
 }
 
-# This is used to mark the fallback value for translations that are not available. The default of "" is not good
-# because it prevents us from being able to set fields to empty strings. None is also not good because
-# it cannot be set from admin, in case admins want to mark a field to not be translated.
-TRANSLATIONS_FALLBACK_UNDEFINED = "--NOT_TRANSLATED--"
-
 USE_I18N = True
 
 LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
@@ -546,4 +535,8 @@ CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
 
 CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS = (
     os.environ.get("CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS", "false").lower() == "true"
+)
+
+WEEKLY_TOP_COMMENTS_SEND_EMAILS = (
+    os.environ.get("WEEKLY_TOP_COMMENTS_SEND_EMAILS", "false").lower() == "true"
 )

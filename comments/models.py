@@ -101,7 +101,7 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(default=False, db_index=True)
-    text = models.TextField()
+    text = models.TextField(max_length=150_000)
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )
@@ -189,11 +189,42 @@ class KeyFactorQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class KeyFactor(TimeStampedModel, TranslatedModel):
-    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
+class ImpactDirection(models.TextChoices):
+    INCREASE = "increase"
+    DECREASE = "decrease"
+
+
+class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
+    impact_direction = models.CharField(
+        choices=ImpactDirection.choices, null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"Driver {self.text}"
+
+
+class KeyFactor(TimeStampedModel):
+    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
+
+    # If KeyFactor is specifically linked to the subquestion
+    question = models.ForeignKey(
+        "questions.Question",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="key_factors",
+    )
+    # If KeyFactor is linked to the MultipleChoice option
+    question_option = models.CharField(
+        null=False, blank=True, max_length=32, default=""
+    )
+
+    driver = models.OneToOneField(
+        KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
+    )
 
     def get_votes_score(self) -> int:
         """
@@ -209,6 +240,12 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
             or 0
         )
 
+    def get_votes_count(self) -> int:
+        """
+        Counts the number of votes for the key factor
+        """
+        return self.votes.aggregate(Count("id")).get("id__count") or 0
+
     def update_vote_score(self):
         self.votes_score = self.get_votes_score()
         self.save(update_fields=["votes_score"])
@@ -221,7 +258,7 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
     vote_type: str = None
 
     def __str__(self):
-        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}"
 
     class Meta:
         # Used to get rid of the type error which complains
@@ -269,3 +306,29 @@ class KeyFactorVote(TimeStampedModel):
         indexes = [
             models.Index(fields=["key_factor", "score"]),
         ]
+
+
+class CommentsOfTheWeekEntry(TimeStampedModel):
+    comment = models.OneToOneField(
+        Comment, models.CASCADE, related_name="comments_of_the_week_entry"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    week_start_date = models.DateField()
+    score = models.FloatField(default=0)
+    excluded = models.BooleanField(default=False)
+
+    # Snapshots of comment stats at the given point of time
+    votes_score = models.IntegerField(default=0, editable=False)
+    changed_my_mind_count = models.PositiveIntegerField(default=0, editable=False)
+    key_factor_votes_score = models.FloatField(default=0.0, editable=False)
+
+
+class CommentsOfTheWeekNotification(TimeStampedModel):
+    """
+    Used to keep track of the last time a notification was sent for
+    a given week, so we avoid sending duplicate notifications
+    """
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    week_start_date = models.DateField()
+    email_sent = models.BooleanField(default=False)

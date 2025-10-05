@@ -14,8 +14,8 @@ from questions.models import Question
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import create_question
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_questions.factories import create_question
 
 
 class TestPostCreate:
@@ -214,13 +214,12 @@ class TestPostCreate:
 
 class TestPostUpdate:
     def test_dont_clear_tags(self, user1, user1_client):
-        tag = factory_project(type=Project.ProjectTypes.TAG)
         category = factory_project(type=Project.ProjectTypes.CATEGORY)
         tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
 
         post = factory_post(
             author=user1,
-            projects=[tag, category, tournament],
+            projects=[category, tournament],
             default_project=get_site_main_project(),
             curation_status=Post.CurationStatus.DRAFT,
         )
@@ -241,7 +240,7 @@ class TestPostUpdate:
         post.refresh_from_db()
 
         # Assert other projects were not updated
-        assert set(post.projects.all()) == {tag, category_updated, tournament}
+        assert set(post.projects.all()) == {category_updated, tournament}
         # Ensure default project
         assert post.default_project == get_site_main_project()
 
@@ -356,7 +355,7 @@ def test_delete_post(user1_client, user1, user2_client):
     response = user1_client.delete(url)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Post.objects.filter(pk=post.pk).exists()
+    assert Post.objects.get(pk=post.pk).curation_status == Post.CurationStatus.DELETED
 
 
 def test_post_view_event_api_view(user1, user1_client):

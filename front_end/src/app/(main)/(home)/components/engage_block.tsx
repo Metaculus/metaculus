@@ -8,8 +8,8 @@ import Button from "@/components/ui/button";
 import { useModal } from "@/contexts/modal_context";
 
 const EngageBlock: FC = () => {
-  const { setCurrentModal } = useModal();
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   return (
     <div className="my-6 flex flex-col gap-10 rounded-md bg-blue-900 p-10 dark:bg-blue-900-dark sm:p-16 md:my-12 lg:my-16 lg:flex-row xl:px-24">
@@ -40,15 +40,8 @@ const EngageBlock: FC = () => {
         <Button
           variant="tertiary"
           size="lg"
-          className="whitespace-nowrap"
-          onClick={() =>
-            setCurrentModal({
-              type: "contactUs",
-              data: {
-                defaultSubject: "Tag Feedback",
-              },
-            })
-          }
+          className="whitespace-nowrap hover:!no-underline"
+          onClick={() => setCurrentModal({ type: "contactUs" })}
         >
           {t("contactUs")}
         </Button>

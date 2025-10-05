@@ -53,10 +53,6 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         label: t("divergence"),
       },
       {
-        value: QuestionOrder.LastPredictionTimeAsc,
-        label: t("stale"),
-      },
-      {
         value: QuestionOrder.UnreadCommentCountDesc,
         label: t("newComments"),
       },
@@ -70,9 +66,15 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         value: QuestionOrder.LastPredictionTimeDesc,
         label: t("recentPredictions"),
       },
+      {
+        value: QuestionOrder.UserNextWithdrawTimeAsc,
+        label: t("withdrawingSoon"),
+      },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ScoreDesc, label: t("bestScores") },
       { value: QuestionOrder.ScoreAsc, label: t("worstScores") },
+      { value: QuestionOrder.LastPredictionTimeAsc, label: t("stale") },
+      { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
     [t]
   );
@@ -130,6 +132,8 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         QuestionOrder.UnreadCommentCountDesc,
         QuestionOrder.CloseTimeAsc,
         QuestionOrder.LastPredictionTimeAsc,
+        QuestionOrder.UserNextWithdrawTimeAsc,
+        QuestionOrder.NewsHotness,
       ].includes(order)
     ) {
       setFilterParam(POST_STATUS_FILTER, "open", false);

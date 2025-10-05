@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
 from posts.models import Post
@@ -58,8 +59,8 @@ def export_all_data_for_questions(
         user_forecasts = user_forecasts.filter(user_id__in=user_ids)
 
     if not aggregation_methods:
-        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions)
+        aggregate_forecasts = AggregateForecast.objects.filter(
+            start_time__lte=timezone.now(), question__in=questions
         ).order_by("question_id", "start_time")
     else:
         aggregate_forecasts = []
@@ -76,6 +77,7 @@ def export_all_data_for_questions(
                     else question.include_bots_in_aggregates
                 ),
                 histogram=True,
+                include_future=False,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)
@@ -124,6 +126,7 @@ def export_data_for_questions(
     user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
+    include_future: bool = False,
     **kwargs,
 ) -> bytes:
     user = User.objects.get(id=user_id) if user_id is not None else None
@@ -139,15 +142,36 @@ def export_data_for_questions(
     if not (is_whitelisted or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
-    if not aggregation_methods or (
-        aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED] and minimize is True
+    if is_whitelisted or is_staff:
+        questions_with_revealed_cp = questions
+    else:
+        questions_with_revealed_cp = questions.filter(
+            Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
+        )
+    if not user_ids and (
+        not aggregation_methods
+        or (
+            aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
+            and minimize is True
+        )
     ):
-        aggregate_forecasts: QuerySet[AggregateForecast] | list[AggregateForecast] = (
-            AggregateForecast.objects.filter(question__in=questions)
-        ).order_by("question_id", "start_time")
+        aggregate_forecasts: list[AggregateForecast] = list(
+            AggregateForecast.objects.filter(
+                Q() if include_future else Q(start_time__lte=timezone.now()),
+                question__in=questions_with_revealed_cp,
+            ).order_by("question_id", "start_time")
+        )
+        if not include_future:
+            # remove end_time from any live aggregate forecasts
+            for aggregate_forecast in aggregate_forecasts:
+                if (
+                    aggregate_forecast.end_time
+                    and aggregate_forecast.end_time > timezone.now()
+                ):
+                    aggregate_forecast.end_time = None
     else:
         aggregate_forecasts = []
-        for question in questions:
+        for question in questions_with_revealed_cp:
             aggregation_dict = get_aggregation_history(
                 question,
                 aggregation_methods,
@@ -160,6 +184,7 @@ def export_data_for_questions(
                     else question.include_bots_in_aggregates
                 ),
                 histogram=True,
+                include_future=include_future,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)
@@ -241,16 +266,77 @@ def generate_data(
     # generate a zip file with up to 4 csv files:
     #     question_data - Always
     #     forecast_data - Always (populated by user_forecasts and aggregate_forecasts)
-    #     comment_data - only if comments given
-    #     score_data - only if scores given
+    #     comment_data - Only if comments given
+    #     score_data - Only if scores given
+    #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
+    is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
     questions = questions.prefetch_related(
         "related_posts__post", "related_posts__post__default_project"
     )
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
+    # README md file
+    readme_output = io.StringIO()
+    readme_output.write(
+        "This README file describes how to interpret the data in this zip file.\n"
+        + "If you have any questions or comments, please contact the Metaculus team: support@metaculus.com.\n"
+        + "\n"
+        + "Metadata:\n"
+        + f"This data was exported on {timezone.now()}\n"
+        + f"Contains the data for {len(questions)} questions\n"
+    )
+    if user_forecasts:
+        readme_output.write(
+            f"Contains the data for {len(user_forecasts)} user forecasts\n"
+        )
+    if aggregate_forecasts:
+        readme_output.write(
+            f"Contains the data for {len(aggregate_forecasts)} aggregate forecasts\n"
+        )
+    if comments:
+        readme_output.write(f"Contains the data for {len(comments)} comments\n")
+    if scores:
+        readme_output.write(f"Contains the data for {len(scores)} scores\n")
+    if anonymized:
+        readme_output.write("User IDs have been obscured\n")
+    readme_output.write("\n" + "\n" + "# File: README.md\n" + "\n" + "This File\n")
     # question_data csv file
+    readme_output.write(
+        "\n"
+        + "\n"
+        + "# File: `question_data.csv`\n"
+        + "\n"
+        + "This file contains summary data of the questions specific to this dataset\n"
+        + "\n"
+        + "### columns:\n"
+        + "\n"
+        + "**`Question ID`** - the id of the question. This is not the value in the URL.\n"
+        + "**`Question URL`** - the URL of the question.\n"
+        + "**`Question Title`** - the title of the question.\n"
+        + "**`Post ID`** - the id of the Post that this question is part of. This is the value in the URL.\n"
+        + "**`Post Curation Status`** - the curation status of the Post.\n"
+        + "**`Post Published Time`** - the time the Post was published.\n"
+        + "**`Default Project`** - the name of the default project (usually a tournament or community) for the Post.\n"
+        + "**`Default Project ID`** - the id of the default project for the Post.\n"
+        + "**`Label`** - for a group question, this is the sub-question object.\n"
+        + "**`Question Type`** - the type of the question. Binary, Multiple Choice, Numeric, Discrete, or Date.\n"
+        + "**`MC Options`** - the options for a multiple choice question, if applicable.\n"
+        + "**`Lower Bound`** - the lower bound of the forecasting range for a continuous question.\n"
+        + "**`Open Lower Bound`** - whether the lower bound is open.\n"
+        + "**`Upper Bound`** - the upper bound of the forecasting range for a continuous question.\n"
+        + "**`Open Upper Bound`** - whether the upper bound is open.\n"
+        + "**`Continuous Range`** - the locations where the CDF is evaluated for a continuous question.\n"
+        + "**`Open Time`** - the time when the question was opened for forecasting.\n"
+        + "**`CP Reveal Time`** - the time when the community prediction is revealed.\n"
+        + "**`Scheduled Close Time`** - the time when forecasting ends.\n"
+        + "**`Actual Close Time`** - the earlier of the scheduled close time and the time when the resolution became known.\n"
+        + "**`Resolution`** - the resolution for the question.\n"
+        + "**`Resolution Known Time`** - the time when the resolution became known.\n"
+        + "**`Include Bots in Aggregates`** - whether bots are included in the aggregations by default.\n"
+        + "**`Question Weight`** - the weight of the question in the leaderboard.\n"
+    )
     question_output = io.StringIO()
     question_writer = csv.writer(question_output)
     question_writer.writerow(
@@ -331,6 +417,41 @@ def generate_data(
             ]
         )
     # forecast_data csv file
+    readme_output.write(
+        "\n"
+        + "\n"
+        + "# File: `forecast_data.csv`\n"
+        + "\n"
+        + "This file contains the user and aggregation forecast data for the questions in this dataset.\n"
+        + "\n"
+        + "### columns:\n"
+        + "\n"
+        + "**`Question ID`** - the id of the question this forecast is for. Cross-reference with 'Question ID' in `question_data.csv`.\n"
+        + (
+            "**`Forecaster (Anonymized)`** - the anonymized reference to the forecaster.\n"
+            if anonymized
+            else (
+                "**`Forecaster ID`** - the id of the forecaster.\n"
+                + "**`Forecaster Username`** - the username of the forecaster or the aggregation method.\n"
+            )
+        )
+        + "**`Is Bot`** - if user is bot.\n"
+        + "**`Start Time`** - the time when the forecast was made.\n"
+        + "**`End Time`** - the time when the forecast ends. If not populated, the forecast is still active. Note that this can be set in the future indicating an expiring forecast.\n"
+        + "**`Forecaster Count`** - if this is an aggregate forecast, how many forecasts contribute to it.\n"
+        + "**`Probability Yes`** - the probability of the binary question resolving to 'Yes'\n"
+        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options' in `question_data.csv`.\n"
+        + "**`Continuous CDF`** - the value of the CDF (cumulative distribution function) at each of the locations in the continuous range for a continuous question. Cross-reference 'Continuous Range' in `question_data.csv`.\n"
+        + "**`Probability Below Lower Bound`** - the probability of the question resolving below the lower bound for a continuous question.\n"
+        + "**`Probability Above Upper Bound`** - the probability of the question resolving above the upper bound for a continuous question.\n"
+        + "**`5th Percentile`** - the 5th percentile of forecast for a continuous question.\n"
+        + "**`25th Percentile`** - the 25th percentile of forecast for a continuous question.\n"
+        + "**`Median`** - the median of forecast for a continuous question.\n"
+        + "**`75th Percentile`** - the 75th percentile of forecast for a continuous question.\n"
+        + "**`95th Percentile`** - the 95th percentile of forecast for a continuous question.\n"
+        + "**`Probability of Resolution`** - the actual probability assigned to the Resolution of the question, if resolved. This is the value used in scoring. Cross reference 'Resolution' in `question_data.csv`.\n"
+        + "**`PDF at Resolution`** - the height of the PDF (probability density function) value at the resolution for a continuous question. This is the value that will show on the continuous range in the prediction interface.\n"
+    )
     forecast_output = io.StringIO()
     forecast_writer = csv.writer(forecast_output)
     headers = ["Question ID"]
@@ -340,6 +461,7 @@ def generate_data(
         headers.extend(["Forecaster ID", "Forecaster Username"])
     headers.extend(
         [
+            "Is Bot",
             "Start Time",
             "End Time",
             "Forecaster Count",
@@ -366,6 +488,7 @@ def generate_data(
             row.extend([forecast.author_id, username_dict[forecast.author_id]])
         row.extend(
             [
+                is_bot_dict.get(forecast.author_id),
                 forecast.start_time,
                 forecast.end_time,
                 None,
@@ -429,6 +552,7 @@ def generate_data(
             row.extend([None, aggregate_forecast.method])
         row.extend(
             [
+                None,
                 aggregate_forecast.start_time,
                 aggregate_forecast.end_time,
                 aggregate_forecast.forecaster_count,
@@ -451,7 +575,7 @@ def generate_data(
                 )
                 if aggregate_forecast.question.type == Question.QuestionType.DATE:
                     scaled_location = datetime.datetime.fromtimestamp(
-                        val, datetime.timezone.utc
+                        scaled_location, datetime.timezone.utc
                     ).strftime("%Y-%m-%d")
                 continuous_columns.append(scaled_location)
             row.extend(continuous_columns)
@@ -473,6 +597,30 @@ def generate_data(
         forecast_writer.writerow(row)
 
     # comment_data csv file
+    if comments is not None:
+        readme_output.write(
+            "\n"
+            + "\n"
+            + "# File: `comment_data.csv`\n"
+            + "\n"
+            + "This file contains the comments made on the questions in this dataset.\n"
+            + "\n"
+            + "### columns:\n"
+            + "\n"
+            + "**`Post ID`** - the id of the Post that this comment is on. Cross-reference with 'Post ID' in `question_data.csv`.\n"
+            + (
+                "**`Author (Anonymized)`** - the anonymized reference to the author of the comment.\n"
+                if anonymized
+                else (
+                    "**`Author ID`** - the id of the author of the comment.\n"
+                    + "**`Author Username`** - the username of the author of the comment.\n"
+                )
+            )
+            + "**`Parent Comment ID`** - the id of the comment this is a reply to, if any.\n"
+            + "**`Root Comment ID`** - the id of the top-level comment in a thread.\n"
+            + "**`Created At`** - the time when the comment was created.\n"
+            + "**`Comment Text`** - the text of the comment. May contain commas and special characters that don't display well in all CSV interpreters.\n"
+        )
     comment_output = io.StringIO()
     comment_writer = csv.writer(comment_output)
     headers = ["Post ID"]
@@ -492,9 +640,9 @@ def generate_data(
     for comment in comments or []:
         row = [comment.on_post_id]
         if anonymized:
-            row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
+            row.append(hashlib.sha256(str(comment.author_id).encode()).hexdigest())
         else:
-            row.extend([forecast.author_id, username_dict[forecast.author_id]])
+            row.extend([comment.author_id, username_dict[comment.author_id]])
         row.extend(
             [
                 comment.parent_id,
@@ -506,6 +654,29 @@ def generate_data(
         comment_writer.writerow(row)
 
     # score_data csv file
+    if scores is not None:
+        readme_output.write(
+            "\n"
+            + "\n"
+            + "# File: `score_data.csv`\n"
+            + "\n"
+            + "This file contains the scores for the questions in this dataset.\n"
+            + "\n"
+            + "### columns:\n"
+            + "\n"
+            + "**`Question ID`** - the id of the question this score is for. Cross-reference with 'Question ID' in `question_data.csv`.\n"
+            + (
+                "**`User (Anonymized)`** - the anonymized reference to the user this score is for.\n"
+                if anonymized
+                else (
+                    "**`User ID`** - the id of the user this score is for.\n"
+                    + "**`User Username`** - the username of the user this score is for.\n"
+                )
+            )
+            + "**`Score Type`** - the type of score. E.g. 'Peer', 'Baseline', etc.\n"
+            + "**`Score`** - the value of the score.\n"
+            + "**`Coverage`** - the coverage of the score, if applicable.\n"
+        )
     score_output = io.StringIO()
     score_writer = csv.writer(score_output)
     headers = ["Question ID"]
@@ -552,6 +723,7 @@ def generate_data(
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+        zip_file.writestr("README.md", readme_output.getvalue())
         zip_file.writestr("question_data.csv", question_output.getvalue())
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())
         if comments:

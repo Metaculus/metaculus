@@ -1,4 +1,5 @@
 import { SubscriptionEmailType } from "@/types/notifications";
+import { AppTheme } from "@/types/theme";
 import {
   TrackRecordScatterPlotItem,
   TrackRecordHistogramItem,
@@ -59,7 +60,11 @@ export type CurrentUser = User & {
   hide_community_prediction: boolean;
   is_onboarding_complete: boolean;
   registered_campaigns: { key: string; details: object }[];
-  has_key_factors: boolean;
+  should_suggest_keyfactors: boolean;
+  prediction_expiration_percent: number | null;
+  app_theme?: AppTheme | null;
+  interface_type: InterfaceType;
+  language?: string | null;
 };
 
 export enum ProfilePageMode {
@@ -68,4 +73,9 @@ export enum ProfilePageMode {
   Medals = "medals",
   Comments = "comments",
   Questions = "questions",
+}
+
+export enum InterfaceType {
+  ConsumerView = "consumer_view",
+  ForecasterView = "forecaster_view",
 }

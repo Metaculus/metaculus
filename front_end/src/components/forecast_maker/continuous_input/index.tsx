@@ -1,8 +1,8 @@
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useEffect, useRef } from "react";
 
 import ContinuousTable from "@/components/forecast_maker/continuous_table";
+import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -13,7 +13,10 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
+import {
+  isAllQuantileComponentsDirty,
+  isForecastActive,
+} from "@/utils/forecasts/helpers";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -34,6 +37,7 @@ type Props = {
   };
   userCdf: number[] | undefined;
   userPreviousCdf: number[] | undefined;
+  overlayPreviousCdf?: number[] | undefined;
   communityCdf: number[] | undefined;
   sliderComponents: DistributionSliderComponent[];
   onSliderChange: (components: DistributionSliderComponent[]) => void;
@@ -51,6 +55,10 @@ type Props = {
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
+  userPreviousLabel?: string;
+  userPreviousRowClassName?: string;
+  hideCurrentUserRow?: boolean;
+  outlineUser?: boolean;
 };
 
 const ContinuousInput: FC<Props> = ({
@@ -75,6 +83,11 @@ const ContinuousInput: FC<Props> = ({
   predictionMessage,
   menu,
   copyMenu,
+  userPreviousLabel,
+  userPreviousRowClassName,
+  hideCurrentUserRow,
+  overlayPreviousCdf,
+  outlineUser = false,
 }) => {
   const { user } = useAuth();
   const { hideCP } = useHideCP();
@@ -94,7 +107,7 @@ const ContinuousInput: FC<Props> = ({
       (isDirty ||
         (previousForecast?.distribution_input?.type ===
           ContinuousForecastInputType.Slider &&
-          isNil(previousForecast.end_time)))
+          isForecastActive(previousForecast)))
     ) {
       onQuantileChange(
         getQuantilesDistributionFromSlider(sliderComponents, question, true)
@@ -116,6 +129,10 @@ const ContinuousInput: FC<Props> = ({
   }, [forecastInputMode]);
 
   const discrete = question.type === QuestionType.Discrete;
+
+  const derivedHideCurrentUserRow =
+    hideCurrentUserRow ??
+    (!isDirty && (!hasUserForecast || !userCdf || userCdf.length === 0));
 
   return (
     <ContinuousInputContainer
@@ -139,9 +156,11 @@ const ContinuousInput: FC<Props> = ({
                 : tableGraphType
             }
             overlayPreviousForecast={overlayPreviousForecast}
+            previousCdf={overlayPreviousCdf}
             question={question}
             readOnly={disabled}
             showCP={!user || !hideCP || !!question.resolution}
+            outlineUser={outlineUser}
           />
 
           {forecastInputMode === ContinuousForecastInputType.Slider && (
@@ -155,11 +174,7 @@ const ContinuousInput: FC<Props> = ({
             </>
           )}
 
-          {predictionMessage && (
-            <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-              {predictionMessage}
-            </div>
-          )}
+          <ForecastPredictionMessage predictionMessage={predictionMessage} />
 
           <ContinuousTable
             question={question}
@@ -188,6 +203,9 @@ const ContinuousInput: FC<Props> = ({
             disableQuantileInput={disabled}
             hasUserForecast={hasUserForecast}
             forecastInputMode={forecastInputMode}
+            userPreviousLabel={userPreviousLabel}
+            userPreviousRowClassName={userPreviousRowClassName}
+            hideCurrentUserRow={derivedHideCurrentUserRow}
           />
 
           {forecastInputMode === ContinuousForecastInputType.Quantile && (

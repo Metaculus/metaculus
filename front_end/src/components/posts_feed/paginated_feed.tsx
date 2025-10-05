@@ -2,15 +2,15 @@
 import { isNil } from "lodash";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useEffect, useState } from "react";
+import { FC, Fragment, useEffect, useMemo, useState } from "react";
 
+import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
-import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -20,7 +20,7 @@ import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { safeSessionStorage } from "@/utils/core/storage";
-import { isConditionalPost, isNotebookPost } from "@/utils/questions/helpers";
+import { isNotebookPost } from "@/utils/questions/helpers";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 import EmptyCommunityFeed from "./empty_community_feed";
@@ -35,6 +35,7 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
+  indexWeights?: Record<string, number>;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
@@ -42,11 +43,11 @@ const PaginatedPostsFeed: FC<Props> = ({
   filters,
   type = "posts",
   isCommunity,
+  indexWeights = {},
 }) => {
   const t = useTranslations();
   const pathname = usePathname();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
-  const { user } = useAuth();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
@@ -58,6 +59,15 @@ const PaginatedPostsFeed: FC<Props> = ({
       ? pageNumber * POSTS_PER_PAGE
       : POSTS_PER_PAGE
   );
+  const weightByPostId = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const [key, weight] of Object.entries(indexWeights)) {
+      const id = Number(key);
+      if (Number.isFinite(id)) map.set(id, weight);
+    }
+    return map;
+  }, [indexWeights]);
+
   const [hasMoreData, setHasMoreData] = useState(
     initialQuestions.length >= POSTS_PER_PAGE
   );
@@ -135,14 +145,30 @@ const PaginatedPostsFeed: FC<Props> = ({
   };
 
   const renderPost = (post: PostWithForecasts) => {
+    const indexWeight = weightByPostId.get(post.id);
     if (isNotebookPost(post) && type === "news") {
       return <NewsCard post={post} />;
     }
 
-    if (isNil(user) && !isNotebookPost(post) && !isConditionalPost(post)) {
-      return <ConsumerPostCard post={post} forCommunityFeed={isCommunity} />;
-    }
-    return <PostCard post={post} forCommunityFeed={isCommunity} />;
+    return (
+      <QuestionVariantComposer
+        postData={post}
+        consumer={
+          <ConsumerPostCard
+            post={post}
+            forCommunityFeed={isCommunity}
+            indexWeight={indexWeight}
+          />
+        }
+        forecaster={
+          <PostCard
+            post={post}
+            forCommunityFeed={isCommunity}
+            indexWeight={indexWeight}
+          />
+        }
+      />
+    );
   };
 
   return (

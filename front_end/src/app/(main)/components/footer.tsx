@@ -50,7 +50,11 @@ const Footer: FC = () => {
         </ul>
         <ul className="mr-3">
           <li className="my-2">
-            <button onClick={() => setCurrentModal({ type: "contactUs" })}>
+            <button
+              type="button"
+              className="text-left capitalize no-underline"
+              onClick={() => setCurrentModal({ type: "contactUs" })}
+            >
               {t("contact")}
             </button>
           </li>

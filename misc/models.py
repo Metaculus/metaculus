@@ -43,6 +43,9 @@ class Bulletin(TimeStampedModel):
     bulletin_end = models.DateTimeField()
     text = models.TextField()
 
+    def __str__(self):
+        return self.text[:150] + "..." if len(self.text) > 150 else self.text
+
 
 class BulletinViewedBy(TimeStampedModel):
     bulletin = models.ForeignKey(Bulletin, on_delete=models.CASCADE)
@@ -56,6 +59,7 @@ class WhitelistUser(TimeStampedModel):
     project = models.ForeignKey(
         Project,
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="whitelists",
         help_text="Optional. If provided, this allows the user to download user-level "
@@ -65,11 +69,22 @@ class WhitelistUser(TimeStampedModel):
     post = models.ForeignKey(
         Post,
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="whitelists",
         help_text="Optional. If provided, this allows the user to download user-level "
         "data for the post. If neither project nor post is set, the user is "
         "whitelisted for all data.",
+    )
+    view_deanonymized_data = models.BooleanField(
+        default=False,
+        help_text="If False, all downloaded data will be anonymized.",
+    )
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Optional notes about the whitelisting, e.g., reason for access. "
+        "Please note any specific conditions.",
     )
 
 

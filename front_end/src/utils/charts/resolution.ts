@@ -2,9 +2,21 @@ import { isNil } from "lodash";
 
 import { LinePoint } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { Question, QuestionType, Scaling } from "@/types/question";
+import {
+  AggregateForecast,
+  Question,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
 import { unscaleNominalLocation } from "@/utils/math";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
+
+function numericOobOffset(s: Scaling): number {
+  const min = s.range_min ?? 0;
+  const max = s.range_max ?? 1;
+  const span = Math.abs(max - min) || 1;
+  return span * 0.02;
+}
 
 export function getResolutionPoint({
   questionType,
@@ -12,12 +24,16 @@ export function getResolutionPoint({
   resolveTime,
   scaling,
   inboundOutcomeCount,
+  lastAggregation,
+  size,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
   resolveTime: number;
   scaling: Scaling;
   inboundOutcomeCount?: number | null;
+  lastAggregation?: AggregateForecast;
+  size?: number;
 }): LinePoint | null {
   if (isUnsuccessfullyResolved(resolution)) {
     return null;
@@ -26,61 +42,104 @@ export function getResolutionPoint({
     case QuestionType.Binary: {
       // format data for binary question
       return {
-        y:
-          resolution === "no" ? scaling.range_min ?? 0 : scaling.range_max ?? 1,
+        y: lastAggregation
+          ? (lastAggregation.centers?.[0] as number)
+          : resolution === "no"
+            ? scaling.range_min ?? 0
+            : scaling.range_max ?? 1,
         x: resolveTime,
         symbol: "diamond",
-        size: 4,
+        size: size ?? 4,
       };
     }
     case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
+      let rawSec: number | undefined;
 
-      return {
-        y: unscaledResolution,
-        x: resolveTime,
-        symbol: "diamond",
-        size: 4,
-      };
+      if (typeof resolution === "string") {
+        if (resolution === "below_lower_bound") {
+          rawSec = (scaling.range_min ?? 0) - numericOobOffset(scaling);
+        } else if (resolution === "above_upper_bound") {
+          rawSec = (scaling.range_max ?? 1) + numericOobOffset(scaling);
+        } else {
+          const n = Number(resolution);
+          if (Number.isFinite(n)) {
+            rawSec = n > 1e12 ? n / 1000 : n;
+          } else {
+            const d = new Date(resolution);
+            const ms = d.getTime();
+            if (Number.isFinite(ms)) rawSec = ms / 1000;
+          }
+        }
+      } else if (
+        typeof resolution === "number" &&
+        Number.isFinite(resolution)
+      ) {
+        rawSec = resolution;
+      }
+
+      if (!Number.isFinite(rawSec as number)) return null;
+      const y = unscaleNominalLocation(rawSec as number, scaling);
+      if (!Number.isFinite(y)) return null;
+      return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
     }
     case QuestionType.Numeric: {
-      // format data for numerical question
-      const unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-      return {
-        y: unscaledResolution,
-        x: resolveTime,
-        symbol: "diamond",
-        size: 4,
-      };
-    }
-    case QuestionType.Discrete: {
-      // format data for discrete question
-      let unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-      if (resolution === "below_lower_bound" || unscaledResolution <= 0) {
-        unscaledResolution = inboundOutcomeCount
-          ? -0.5 / inboundOutcomeCount
-          : 0;
-      }
-      if (resolution === "above_upper_bound" || unscaledResolution >= 1) {
-        unscaledResolution = inboundOutcomeCount
-          ? 1 + 0.5 / inboundOutcomeCount
-          : 1;
+      let raw: number | undefined;
+
+      if (typeof resolution === "number" && Number.isFinite(resolution)) {
+        raw = resolution;
+      } else if (typeof resolution === "string") {
+        if (resolution === "below_lower_bound") {
+          raw = (scaling.range_min ?? 0) - numericOobOffset(scaling);
+        } else if (resolution === "above_upper_bound") {
+          raw = (scaling.range_max ?? 1) + numericOobOffset(scaling);
+        } else {
+          const n = Number(resolution);
+          if (Number.isFinite(n)) raw = n;
+        }
       }
 
-      return {
-        y: unscaledResolution,
-        x: resolveTime,
-        symbol: "diamond",
-        size: 4,
-      };
+      if (!Number.isFinite(raw as number)) {
+        const c = lastAggregation?.centers?.[0] as number | undefined;
+        if (Number.isFinite(c)) raw = c as number;
+        else return null;
+      }
+
+      const y = unscaleNominalLocation(raw as number, scaling);
+      if (!Number.isFinite(y)) return null;
+
+      return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
+    }
+    case QuestionType.Discrete: {
+      const step =
+        inboundOutcomeCount && inboundOutcomeCount > 0
+          ? 1 / inboundOutcomeCount
+          : 0;
+
+      if (resolution === "below_lower_bound") {
+        return {
+          y: step ? -0.5 * step : 0,
+          x: resolveTime,
+          symbol: "diamond",
+          size: size ?? 4,
+        };
+      }
+      if (resolution === "above_upper_bound") {
+        return {
+          y: step ? 1 + 0.5 * step : 1,
+          x: resolveTime,
+          symbol: "diamond",
+          size: size ?? 4,
+        };
+      }
+
+      const n = Number(resolution);
+      if (!Number.isFinite(n)) return null;
+      let y = unscaleNominalLocation(n, scaling);
+
+      if (y <= 0) y = step ? -0.5 * step : 0;
+      else if (y >= 1) y = step ? 1 + 0.5 * step : 1;
+
+      return { y, x: resolveTime, symbol: "diamond", size: size ?? 4 };
     }
     default:
       return null;
@@ -118,4 +177,15 @@ export function getResolutionPosition({
       ? unscaleNominalLocation(Number(resolution), scaling)
       : unscaleNominalLocation(new Date(resolution).getTime() / 1000, scaling);
   }
+}
+
+export function getPlacementForY(
+  y: number | null | undefined,
+  yDomain: [number, number]
+): "in" | "below" | "above" {
+  if (y == null) return "in";
+  const [yMin, yMax] = yDomain;
+  if (y < yMin) return "below";
+  if (y > yMax) return "above";
+  return "in";
 }

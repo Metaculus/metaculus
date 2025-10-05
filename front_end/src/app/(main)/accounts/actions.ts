@@ -3,15 +3,29 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
+import { z } from "zod";
 
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { LanguageService } from "@/services/language_service";
 import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
+
+type FieldErrorsFrom<TSchema extends z.ZodTypeAny> =
+  z.inferFlattenedErrors<TSchema>["fieldErrors"];
+
+export type ApiErrorPayload = {
+  message?: string;
+  detail?: string;
+  non_field_errors?: string[];
+  fieldErrors?: Record<string, string[]>;
+  [key: string]: unknown;
+};
 
 export type PostLoginAction = {
   type: "redirect";
@@ -19,7 +33,7 @@ export type PostLoginAction = {
 };
 
 export type LoginActionState = {
-  errors?: any;
+  errors?: FieldErrorsFrom<typeof signInSchema> | ApiErrorPayload;
   user?: CurrentUser;
   postLoginAction?: PostLoginAction;
 } | null;
@@ -45,13 +59,20 @@ export default async function loginAction(
       validatedFields.data.login,
       validatedFields.data.password
     );
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 
   await setServerSession(response.token);
+
+  // Set user's language preference as the active locale
+  if (response.user.language) {
+    await LanguageService.setLocaleCookie(response.user.language);
+  }
 
   const { PUBLIC_LANDING_PAGE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
     getPublicSettings();
@@ -65,15 +86,22 @@ export default async function loginAction(
 }
 
 export type SignUpActionState =
-  | ({
-      errors?: any;
-    } & Partial<SignUpResponse> & { postLoginAction?: PostLoginAction })
+  | (Partial<SignUpResponse> & {
+      errors?: ApiErrorPayload;
+      postLoginAction?: PostLoginAction;
+    })
   | null;
 
 export async function signUpAction(
-  validatedSignupData: SignUpSchema & { redirectUrl?: string }
+  validatedSignupData: SignUpSchema & {
+    redirectUrl?: string;
+    appTheme?: string;
+  }
 ): Promise<SignUpActionState> {
   const headersList = await headers();
+
+  // Get current language from cookie or autodetected locale
+  const currentLanguage = await getLocale();
 
   const ipAddress =
     headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
@@ -90,6 +118,9 @@ export async function signUpAction(
         campaign_data: validatedSignupData.campaignData,
         redirect_url: validatedSignupData.redirectUrl,
         invite_token: validatedSignupData.inviteToken,
+        newsletter_optin: validatedSignupData.newsletterOptin,
+        language: currentLanguage,
+        app_theme: validatedSignupData.appTheme,
       },
       {
         ...(validatedSignupData.turnstileToken
@@ -103,6 +134,11 @@ export async function signUpAction(
 
     if (response.is_active && response.token) {
       await setServerSession(response.token);
+
+      // Set user's language preference as the active locale
+      if (response.user?.language) {
+        await LanguageService.setLocaleCookie(response.user.language);
+      }
 
       revalidatePath("/");
 
@@ -118,9 +154,11 @@ export async function signUpAction(
     }
 
     return signUpActionState;
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
@@ -132,15 +170,17 @@ export async function LogOut() {
 
 export async function registerUserCampaignAction(
   key: string,
-  details: object,
+  details: Record<string, unknown>,
   addToProject?: number
-): Promise<{ errors?: any }> {
+): Promise<{ errors?: ApiErrorPayload | null }> {
   try {
     await ServerProfileApi.registerUserCampaign(key, details, addToProject);
     return { errors: null };
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
@@ -148,17 +188,39 @@ export async function registerUserCampaignAction(
 export async function resendActivationEmailAction(
   login: string,
   redirectUrl: string
-): Promise<{ errors?: any }> {
+): Promise<{ errors?: ApiErrorPayload | null }> {
   try {
     await ServerAuthApi.resendActivationEmail(login, redirectUrl);
     return { errors: null };
-  } catch (err) {
+  } catch (err: unknown) {
     return {
-      errors: ApiError.isApiError(err) ? err.data : undefined,
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
     };
   }
 }
 
 export async function inviteUsers(emails: string[]) {
   await ServerAuthApi.inviteUsers(emails);
+}
+
+export async function simplifiedSignUpAction(
+  username: string,
+  authToken: string
+) {
+  try {
+    const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
+
+    if (response?.token) {
+      await setServerSession(response.token);
+    }
+    return response;
+  } catch (err: unknown) {
+    return {
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : undefined,
+    };
+  }
 }

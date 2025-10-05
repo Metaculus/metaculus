@@ -158,7 +158,7 @@ class Command(BaseCommand):
         idx = 0
 
         while idx <= total_questions:
-            chunk = qs.all()[idx: idx + self.chunk_size]
+            chunk = qs.all()[idx : idx + self.chunk_size]
             idx += self.chunk_size
 
             if not len(chunk):

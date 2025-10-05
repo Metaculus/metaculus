@@ -7,7 +7,12 @@ import { FC } from "react";
 import ButtonGroup from "@/components/ui/button_group";
 import Listbox from "@/components/ui/listbox";
 import useSearchParams from "@/hooks/use_search_params";
+import { LeaderboardTag } from "@/types/projects";
 import { LeaderboardFilters } from "@/types/scoring";
+import {
+  buildLeaderboardTagSlug,
+  getLeaderboardTagFeedUrl,
+} from "@/utils/navigation";
 
 import { RANKING_CATEGORIES } from "../../ranking_categories";
 import {
@@ -19,9 +24,10 @@ import { LEADERBOARD_YEAR_OPTIONS } from "../filters";
 
 type Props = {
   filters: LeaderboardFilters;
+  leaderboardTags: LeaderboardTag[];
 };
 
-const LeaderboardHeader: FC<Props> = ({ filters }) => {
+const LeaderboardHeader: FC<Props> = ({ filters, leaderboardTags }) => {
   const t = useTranslations();
   const { setParam, navigateToSearchParams } = useSearchParams();
 
@@ -41,6 +47,10 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
     setParam(SCORING_DURATION_FILTER, duration, withNavigation);
     navigateToSearchParams();
   };
+  const leaderboardTag = leaderboardTags.find(
+    (obj) =>
+      obj.slug === buildLeaderboardTagSlug(Number(year), Number(duration))
+  );
 
   return (
     <section className="flex w-full flex-col items-center gap-3.5 text-blue-800 dark:text-blue-800-dark max-sm:pt-3 sm:m-8 sm:mb-6 sm:gap-6">
@@ -73,7 +83,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
         {durations &&
           duration &&
           ["all", "peer", "baseline"].includes(category) && (
-            <div className="flex flex-row items-center justify-center gap-2.5">
+            <div className="flex flex-col items-center justify-center gap-2.5 md:flex-row">
               <span className="text-base font-medium">{t("duration:")}</span>
               <ButtonGroup
                 buttons={durations}
@@ -84,7 +94,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
             </div>
           )}
         {periods && year && (
-          <div className="flex flex-row items-center justify-center gap-2.5">
+          <div className="flex flex-col items-center justify-center gap-2.5 md:flex-row">
             <span className="text-base font-medium">{t("timePeriod")}</span>
             <ButtonGroup
               buttons={periods}
@@ -128,20 +138,33 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           </div>
         )}
       </div>
-      {Number(year) + Number(duration) > 2024 && (
-        <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
-          {t("liveLeaderboardDisclaimer")}
-        </div>
-      )}
-      {category === "peer" && Number(year) + Number(duration) <= 2024 && (
-        <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
-          {t.rich("legacyPeerDisclaimer", {
-            link: (chunks) => (
-              <Link href="/help/medals-faq/#peer-medals">{chunks}</Link>
-            ),
-          })}
-        </div>
-      )}
+      <div className="flex flex-col gap-3">
+        {Number(year) + Number(duration) > 2024 && (
+          <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
+            {t("liveLeaderboardDisclaimer")}
+          </div>
+        )}
+        {category === "peer" && Number(year) + Number(duration) <= 2024 && (
+          <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
+            {t.rich("legacyPeerDisclaimer", {
+              link: (chunks) => (
+                <Link href="/help/medals-faq/#peer-medals">{chunks}</Link>
+              ),
+            })}
+          </div>
+        )}
+        {leaderboardTag && (
+          <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
+            {t.rich("LeaderboardTagDisclaimer", {
+              link: (obj) => (
+                <Link href={getLeaderboardTagFeedUrl(leaderboardTag)}>
+                  {obj}
+                </Link>
+              ),
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 };

@@ -1,23 +1,26 @@
 "use client";
 
-import { getUnixTime } from "date-fns";
 import { isNil } from "lodash";
-import React, { FC, useCallback, useMemo } from "react";
+import { useLocale } from "next-intl";
+import { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { TimelineChartZoomOption } from "@/types/charts";
-import { Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 import {
   AggregateForecastHistory,
+  ForecastAvailability,
   QuestionType,
   Scaling,
   UserForecastHistory,
 } from "@/types/question";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { formatResolution } from "@/utils/formatters/resolution";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { buildNumericChartData } from "./helpers";
-import NewNumericChart from "./new_numeric_chart";
+import NumericChart from "./numeric_chart";
 
 type Props = {
   aggregation: AggregateForecastHistory;
@@ -26,6 +29,7 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   height?: number;
+  cursorTimestamp?: number | null;
   onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
@@ -40,6 +44,15 @@ type Props = {
   unit?: string;
   tickFontSize?: number;
   nonInteractive?: boolean;
+  inboundOutcomeCount?: number | null;
+  isEmbedded?: boolean;
+  simplifiedCursor?: boolean;
+  title?: string;
+  forecastAvailability?: ForecastAvailability;
+  questionStatus?: QuestionStatus;
+  cursorTooltip?: ReactNode;
+  isConsumerView?: boolean;
+  forFeedPage?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -49,9 +62,11 @@ const NumericTimeline: FC<Props> = ({
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker,
   height = 150,
+  cursorTimestamp,
   onCursorChange,
   onChartReady,
   questionType,
+  questionStatus,
   actualCloseTime,
   scaling,
   extraTheme,
@@ -63,19 +78,52 @@ const NumericTimeline: FC<Props> = ({
   unit,
   tickFontSize,
   nonInteractive,
+  inboundOutcomeCount,
+  isEmbedded,
+  simplifiedCursor,
+  title,
+  forecastAvailability,
+  cursorTooltip,
+  isConsumerView,
+  forFeedPage,
 }) => {
+  const locale = useLocale();
   const resolutionPoint = useMemo(() => {
     if (!resolution || !resolveTime || isNil(actualCloseTime)) {
       return null;
     }
+    const lastAggregation = aggregation.latest;
+
+    const resolveSec = (() => {
+      const n = Number(resolveTime);
+      if (Number.isFinite(n) && String(resolveTime).trim() !== "") {
+        return Math.floor(n > 1e12 ? n / 1000 : n);
+      }
+      const d = new Date(String(resolveTime));
+      const ms = d.getTime();
+      return Number.isFinite(ms) ? Math.floor(ms / 1000) : null;
+    })();
+
+    if (resolveSec == null) return null;
 
     return getResolutionPoint({
+      lastAggregation,
       questionType,
       resolution,
-      resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime / 1000),
+      resolveTime: Math.min(resolveSec, Math.floor(actualCloseTime / 1000)),
       scaling,
+      inboundOutcomeCount,
+      size: 5,
     });
-  }, [actualCloseTime, questionType, resolution, resolveTime, scaling]);
+  }, [
+    inboundOutcomeCount,
+    actualCloseTime,
+    questionType,
+    resolution,
+    resolveTime,
+    scaling,
+    aggregation.latest,
+  ]);
 
   const getCursorValue = useCallback(
     (value: number) => {
@@ -107,7 +155,9 @@ const NumericTimeline: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
-        forceYTickCount: 5,
+        forceYTickCount: forFeedPage ? 3 : 5,
+        alwaysShowYTicks: true,
+        inboundOutcomeCount,
       }),
     [
       questionType,
@@ -121,14 +171,23 @@ const NumericTimeline: FC<Props> = ({
       isEmptyDomain,
       openTime,
       unit,
+      inboundOutcomeCount,
+      forFeedPage,
     ]
   );
-
+  const formattedResolution = formatResolution({
+    resolution,
+    questionType,
+    locale,
+    scaling,
+    actual_resolve_time: resolveTime ?? null,
+  });
   return (
-    <NewNumericChart
+    <NumericChart
       buildChartData={buildChartData}
       extraTheme={extraTheme}
       onChartReady={onChartReady}
+      cursorTimestamp={cursorTimestamp}
       onCursorChange={onCursorChange}
       defaultZoom={defaultZoom}
       withZoomPicker={withZoomPicker}
@@ -138,6 +197,20 @@ const NumericTimeline: FC<Props> = ({
       height={height}
       tickFontSize={tickFontSize}
       nonInteractive={nonInteractive}
+      isEmbedded={isEmbedded}
+      simplifiedCursor={simplifiedCursor}
+      chartTitle={title}
+      yLabel={unit?.length && unit.length > 3 ? unit : undefined}
+      forecastAvailability={forecastAvailability}
+      questionStatus={questionStatus}
+      resolution={
+        isNil(resolution) || isUnsuccessfullyResolved(resolution)
+          ? null
+          : formattedResolution
+      }
+      cursorTooltip={cursorTooltip}
+      isConsumerView={isConsumerView}
+      questionType={questionType}
     />
   );
 };

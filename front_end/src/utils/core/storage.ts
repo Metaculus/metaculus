@@ -1,3 +1,5 @@
+import { logError } from "./errors";
+
 export const safeLocalStorage = {
   getItem: (key: string): string | null => {
     if (typeof window === "undefined") return null;
@@ -85,3 +87,17 @@ export const safeSessionStorage = {
     }
   },
 };
+
+export function readJSON<T>(key: string): T | null {
+  try {
+    const raw = safeLocalStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch (e) {
+    logError(e, { message: `Failed to parse localStorage for ${key}` });
+    return null;
+  }
+}
+
+export function writeJSON(key: string, val: unknown) {
+  safeLocalStorage.setItem(key, JSON.stringify(val));
+}

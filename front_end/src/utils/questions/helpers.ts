@@ -5,6 +5,7 @@ import {
   GroupOfQuestionsPost,
   NotebookPost,
   Post,
+  PostGroupOfQuestions,
   PostStatus,
   PostWithForecasts,
   QuestionPost,
@@ -12,6 +13,7 @@ import {
 import {
   Question,
   QuestionType,
+  QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
   Scaling,
@@ -167,4 +169,36 @@ export function getContinuousGroupScaling(
     scaling.zero_point = null;
   }
   return scaling;
+}
+
+export function checkGroupOfQuestionsPostType<T extends QuestionType>(
+  post: PostWithForecasts,
+  type: T
+): post is PostWithForecasts & {
+  group_of_questions: PostGroupOfQuestions<QuestionWithForecasts & { type: T }>;
+} {
+  return (
+    isGroupOfQuestionsPost(post) &&
+    post.group_of_questions.questions[0]?.type === type
+  );
+}
+
+export function isContinuousQuestion(question: QuestionWithForecasts): boolean {
+  return [
+    QuestionType.Numeric,
+    QuestionType.Discrete,
+    QuestionType.Date,
+  ].includes(question.type);
+}
+
+export function isValidScaling(
+  scaling: Scaling | null | undefined
+): scaling is {
+  range_min: number;
+  range_max: number;
+  zero_point: number | null;
+} {
+  return (
+    !isNil(scaling) && !isNil(scaling.range_min) && !isNil(scaling.range_max)
+  );
 }

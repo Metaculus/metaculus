@@ -31,11 +31,13 @@ const getDisclaimerCopy = (
           {project.name}
         </Button>
       ),
-      learnMore: (child) => (
-        <Button href="/faq/" variant="link" className="text-xs">
-          {child}
-        </Button>
-      ),
+      learnMore: () => "",
+      // TODO: uncomment when we have a FAQ section for that
+      // learnMore: (child) => (
+      //   <Button href="/faq/" variant="link" className="text-xs">
+      //     {child}
+      //   </Button>
+      // ),
     });
   }
   if (project.type === TournamentType.SiteMain) {
@@ -61,7 +63,7 @@ const CommunityDisclaimer: FC<PropsWithChildren<Props>> = ({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 border border-blue-500 bg-blue-300 px-3 py-2.5 dark:border-blue-500-dark dark:bg-blue-300-dark",
+        "flex flex-col gap-1  border border-blue-400 bg-blue-500/20 px-2 pb-2 pt-1.5 dark:border-blue-400-dark dark:bg-blue-500/10",
         {
           "mx-2 -mb-1 rounded-t sm:mx-4": variant === "inline",
           rounded: variant === "standalone",

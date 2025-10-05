@@ -1,7 +1,9 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
 import ForecastMakerGroupCopyMenu from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_copy_menu";
+import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -14,10 +16,12 @@ import {
   DistributionSliderComponent,
   Quartiles,
   QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
 import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
+import { ForecastExpirationValue } from "../forecast_expiration";
 import ContinuousInputWrapper from "../forecast_maker_group/continuous_input_wrapper";
 
 export type ContinuousGroupOption = {
@@ -33,6 +37,9 @@ export type ContinuousGroupOption = {
   hasUserForecast: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
+  forecastExpiration?: ForecastExpirationValue;
+  wasWithdrawn?: boolean;
+  withdrawnEndTimeSec?: number | null;
 };
 
 type Props = {
@@ -48,7 +55,10 @@ type Props = {
   ) => void;
   handleAddComponent: (option: ContinuousGroupOption) => void;
   handleResetForecasts: (option?: ContinuousGroupOption) => void;
-  handlePredictSubmit: (id: number) => Promise<
+  handlePredictSubmit: (
+    id: number,
+    forecastExpiration: ForecastExpirationValue
+  ) => Promise<
     | {
         errors: ErrorResponse | undefined;
       }
@@ -65,6 +75,10 @@ type Props = {
     mode: ContinuousForecastInputType
   ) => void;
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
+  handleForecastExpiration: (
+    optionId: number,
+    forecastExpiration: ForecastExpirationValue
+  ) => void;
 };
 
 const GroupForecastAccordion: FC<Props> = ({
@@ -80,6 +94,7 @@ const GroupForecastAccordion: FC<Props> = ({
   handlePredictSubmit,
   handlePredictWithdraw,
   handleForecastInputModeChange,
+  handleForecastExpiration,
   handleCopy,
 }) => {
   const t = useTranslations();
@@ -115,6 +130,27 @@ const GroupForecastAccordion: FC<Props> = ({
       [options]
     );
 
+  const [expandAll, setExpandAll] = useState(false);
+  const toggleExpandAll = () => setExpandAll((prev) => !prev);
+
+  // Compute global nominal bounds across all questions in the group
+  const globalScaling = useMemo<Scaling>(
+    () => ({
+      range_min: Math.min(
+        ...options
+          .map((obj) => obj.question.scaling.range_min)
+          .filter((obj) => !isNil(obj))
+      ),
+      range_max: Math.max(
+        ...options
+          .map((obj) => obj.question.scaling.range_max)
+          .filter((obj) => !isNil(obj))
+      ),
+      zero_point: null,
+    }),
+    [options]
+  );
+
   const homogeneousUnit = useMemo(() => {
     const units = Array.from(new Set(options.map((obj) => obj.question.unit)));
 
@@ -125,6 +161,16 @@ const GroupForecastAccordion: FC<Props> = ({
 
   return (
     <div className="w-full">
+      <div className="absolute right-4 top-4 mb-2 hidden justify-end sm:flex">
+        <Button
+          onClick={toggleExpandAll}
+          size="xs"
+          variant="tertiary"
+          className="ml-auto"
+        >
+          {expandAll ? t("collapseAll") : t("expandAll")}
+        </Button>
+      </div>
       {!!activeOptions.length && (
         <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
           <div className="flex shrink grow items-center overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
@@ -149,10 +195,12 @@ const GroupForecastAccordion: FC<Props> = ({
           <AccordionItem
             option={option}
             showCP={showCP}
-            key={option.id}
+            key={`${option.id}-expand-${expandAll}`}
             forcedOpenId={forcedOpenId}
+            forcedExpandAll={expandAll}
             subQuestionId={subQuestionId}
             type={QuestionStatus.OPEN}
+            globalScaling={globalScaling}
             unit={
               option.question.unit && isUnitCompact(option.question.unit)
                 ? option.question.unit
@@ -162,8 +210,7 @@ const GroupForecastAccordion: FC<Props> = ({
             <ContinuousInputWrapper
               option={option}
               copyMenu={
-                openOptions.length > 1 &&
-                option.question.status === QuestionStatus.OPEN ? (
+                openOptions.length > 0 ? (
                   <ForecastMakerGroupCopyMenu
                     option={option}
                     options={openOptions}
@@ -180,6 +227,7 @@ const GroupForecastAccordion: FC<Props> = ({
               handleResetForecasts={handleResetForecasts}
               handlePredictSubmit={handlePredictSubmit}
               handlePredictWithdraw={handlePredictWithdraw}
+              handleForecastExpiration={handleForecastExpiration}
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
@@ -199,11 +247,23 @@ const GroupForecastAccordion: FC<Props> = ({
             option={option}
             showCP={true}
             subQuestionId={subQuestionId}
+            forcedExpandAll={expandAll}
             type={QuestionStatus.CLOSED}
-            key={option.id}
+            key={`${option.id}-expand-${expandAll}`}
+            globalScaling={globalScaling}
           >
             <ContinuousInputWrapper
               option={option}
+              copyMenu={
+                openOptions.length > 0 ? (
+                  <ForecastMakerGroupCopyMenu
+                    option={option}
+                    options={openOptions}
+                    handleCopy={handleCopy}
+                    setForcedOpenId={setForcedOpenId}
+                  />
+                ) : undefined
+              }
               canPredict={false}
               isPending={isPending}
               handleChange={handleChange}
@@ -214,6 +274,7 @@ const GroupForecastAccordion: FC<Props> = ({
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
+              handleForecastExpiration={handleForecastExpiration}
             />
           </AccordionItem>
         );
@@ -230,11 +291,23 @@ const GroupForecastAccordion: FC<Props> = ({
             option={option}
             showCP={true}
             subQuestionId={subQuestionId}
+            forcedExpandAll={expandAll}
             type={QuestionStatus.RESOLVED}
-            key={option.id}
+            key={`${option.id}-expand-${expandAll}`}
+            globalScaling={globalScaling}
           >
             <ContinuousInputWrapper
               option={option}
+              copyMenu={
+                openOptions.length > 0 ? (
+                  <ForecastMakerGroupCopyMenu
+                    option={option}
+                    options={openOptions}
+                    handleCopy={handleCopy}
+                    setForcedOpenId={setForcedOpenId}
+                  />
+                ) : undefined
+              }
               canPredict={false}
               isPending={isPending}
               handleChange={handleChange}
@@ -245,6 +318,7 @@ const GroupForecastAccordion: FC<Props> = ({
               setForecastInputMode={(mode) =>
                 handleForecastInputModeChange(option.id, mode)
               }
+              handleForecastExpiration={handleForecastExpiration}
             />
           </AccordionItem>
         );

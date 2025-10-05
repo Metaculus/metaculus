@@ -38,6 +38,7 @@ const ProjectPickerInput: React.FC<{
           ) || obj.id == currentProject?.id
       ),
     ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // populate selected project from draft
@@ -56,7 +57,7 @@ const ProjectPickerInput: React.FC<{
         project.name.toLowerCase().includes(query.toLowerCase())
       )
     );
-  }, [query]);
+  }, [query, initialProjects]);
 
   // Show selector only if user has at least 2 projects
   // With admin/curator permissions
@@ -68,8 +69,9 @@ const ProjectPickerInput: React.FC<{
     <InputContainer labelText={t("projects")}>
       <Combobox
         immediate
-        onChange={() => {
-          onChange(selectedProject);
+        onChange={(project: TournamentPreview) => {
+          onChange(project);
+          setSelectedProject(project);
         }}
       >
         <div className="relative mt-1">
@@ -114,8 +116,6 @@ const ProjectPickerInput: React.FC<{
                     }
                     value={project}
                     onClick={() => {
-                      setSelectedProject(project);
-                      onChange(project);
                       setQuery("");
                       setFilteredProjects(initialProjects);
                       // we need timeout to blur the combobox after the selection is made

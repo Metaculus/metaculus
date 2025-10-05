@@ -4,6 +4,7 @@ import "./editor.css";
 import {
   CodeBlockEditorDescriptor,
   codeBlockPlugin,
+  codeMirrorPlugin,
   diffSourcePlugin,
   headingsPlugin,
   imagePlugin,
@@ -21,7 +22,8 @@ import {
 } from "@mdxeditor/editor";
 import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
 import { useTranslations } from "next-intl";
-import React, {
+import { Highlight, themes as prismThemes } from "prism-react-renderer";
+import {
   FC,
   ForwardedRef,
   useCallback,
@@ -44,9 +46,16 @@ import EditorToolbar from "./editor_toolbar";
 import { embeddedQuestionDescriptor } from "./embedded_question";
 import { tweetDescriptor } from "./embedded_twitter";
 import { processMarkdown } from "./helpers";
+import { codeFenceShortcutPlugin } from "./plugins/code/code_fence_shortcut";
+import {
+  CANONICAL_TO_LABEL,
+  CANONICAL_TO_PRISM,
+  normalizeLang,
+} from "./plugins/code/languages";
 import { equationPlugin } from "./plugins/equation";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
+import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
 
 type EditorMode = "write" | "read";
 
@@ -55,23 +64,48 @@ const beautifulMentionsTheme: BeautifulMentionsTheme = {
   "@Focused": "ring-2 ring-offset-1 ring-blue-500 dark:ring-blue-500-dark",
 };
 
-const jsxComponentDescriptors: JsxComponentDescriptor[] = [
-  embeddedQuestionDescriptor,
-  tweetDescriptor,
-];
+const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
+  code,
+  language,
+}) => {
+  const { theme } = useAppTheme();
+  const prismTheme =
+    theme === "dark" ? prismThemes.dracula : prismThemes.github;
 
-const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
+  const raw = (language as string | undefined) ?? "ts";
+  const prismLang = CANONICAL_TO_PRISM[normalizeLang(raw)] ?? "tsx";
+  const codeTrimmed = (code ?? "").replace(/^\n+|\n+$/g, "");
+
+  return (
+    <div className="my-4">
+      <Highlight
+        key={theme}
+        theme={prismTheme}
+        code={codeTrimmed}
+        language={prismLang}
+      >
+        {({ className, tokens, getLineProps, getTokenProps }) => (
+          <pre
+            className={`${className} overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark`}
+          >
+            {tokens.map((line, i) => (
+              <div key={i} {...getLineProps({ line })}>
+                {line.map((token, key) => (
+                  <span key={key} {...getTokenProps({ token })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        )}
+      </Highlight>
+    </div>
+  );
+};
+
+const PrismCodeBlockDescriptor: CodeBlockEditorDescriptor = {
   match: () => true,
   priority: 0,
-  Editor: (props) => {
-    return (
-      <div>
-        <pre className="m-4 mx-5 overflow-x-auto whitespace-pre-wrap break-normal rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark">
-          {props.code}
-        </pre>
-      </div>
-    );
-  },
+  Editor: PrismCodeBlock,
 };
 
 export type MarkdownEditorProps = {
@@ -86,6 +120,7 @@ export type MarkdownEditorProps = {
   className?: string;
   initialMention?: string;
   withTwitterPreview?: boolean;
+  withCodeBlocks?: boolean;
 };
 
 /**
@@ -107,6 +142,7 @@ const InitializedMarkdownEditor: FC<
   withUgcLinks,
   initialMention,
   withTwitterPreview = false,
+  withCodeBlocks = false,
 }) => {
   const { user } = useAuth();
   const { theme } = useAppTheme();
@@ -146,76 +182,134 @@ const InitializedMarkdownEditor: FC<
     if (mode == "read") {
       editorRef.current?.setMarkdown(formattedMarkdown);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formattedMarkdown]);
 
-  const baseFormattingPlugins = [
-    headingsPlugin(),
-    listsPlugin(),
-    linkPlugin({
-      withUgcLinks,
-    }),
-    ...(withUserMentions
-      ? [
-          mentionsPlugin({
-            initialMention,
-            isStuff: user?.is_staff || user?.is_superuser,
-          }),
-        ]
-      : []),
-    quotePlugin(),
-    markdownShortcutPlugin(),
-    codeBlockPlugin({
-      codeBlockEditorDescriptors: [PlainTextCodeEditorDescriptor],
-    }),
-    thematicBreakPlugin(),
-    linkDialogPlugin(),
-    tablePlugin(),
-    imagePlugin({
-      disableImageSettingsButton: true,
-      imageUploadHandler,
-    }),
-    equationPlugin(),
-  ];
+  const jsxDescriptors: JsxComponentDescriptor[] = useMemo(
+    () => [embeddedQuestionDescriptor, tweetDescriptor],
+    []
+  );
 
-  const editorDiffSourcePlugin = useMemo(() => {
-    if (mode === "read") return null;
+  const imageUploadHandler = useCallback(
+    async (image: File) => {
+      const MAX_FILE_SIZE_MB = 3;
+      const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+      if (image.size > maxFileSizeBytes) {
+        const msg = t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB });
+        toast(msg);
+        return Promise.reject(new Error(msg));
+      }
 
-    return diffSourcePlugin({
-      viewMode: "rich-text",
-    });
-  }, [mode]);
+      const formData = new FormData();
+      formData.append("image", image);
+      const response = await uploadImage(formData);
+      if (!!response && "errors" in response) {
+        console.error(response.errors);
+        const msg = t("errorUploadingImage");
+        toast(msg);
+        return Promise.reject(
+          new Error(response.errors?.message ?? "Error uploading image")
+        );
+      } else {
+        return response.url;
+      }
+    },
+    [t]
+  );
+
+  const baseFormattingPlugins = useMemo(() => {
+    const common = [
+      headingsPlugin(),
+      listsPlugin(),
+      linkPlugin({ withUgcLinks }),
+      ...(withUserMentions
+        ? [
+            mentionsPlugin({
+              initialMention,
+              isStuff: user?.is_staff || user?.is_superuser,
+            }),
+          ]
+        : []),
+      quotePlugin(),
+      markdownShortcutPlugin(),
+      thematicBreakPlugin(),
+      linkDialogPlugin(),
+      tablePlugin(),
+      imagePlugin({
+        disableImageSettingsButton: true,
+        imageUploadHandler,
+      }),
+      equationPlugin(),
+    ];
+
+    if (!withCodeBlocks) {
+      return common;
+    }
+
+    if (mode === "read") {
+      return [
+        ...common,
+        codeBlockPlugin({
+          codeBlockEditorDescriptors: [PrismCodeBlockDescriptor],
+        }),
+      ];
+    }
+    return [
+      ...common,
+      codeBlockPlugin({ defaultCodeBlockLanguage: "ts" }),
+      codeMirrorPlugin({
+        codeBlockLanguages: CANONICAL_TO_LABEL,
+      }),
+      codeFenceShortcutPlugin(),
+    ];
+  }, [
+    withUgcLinks,
+    withUserMentions,
+    initialMention,
+    user?.is_staff,
+    user?.is_superuser,
+    imageUploadHandler,
+    mode,
+    withCodeBlocks,
+  ]);
 
   const editorToolbarPlugin = useMemo(() => {
     if (mode === "read") return null;
 
     return toolbarPlugin({
-      toolbarContents: () => <EditorToolbar />,
+      toolbarContents: () => <EditorToolbar withCodeBlocks={withCodeBlocks} />,
     });
+  }, [mode, withCodeBlocks]);
+
+  const editorDiffSourcePlugin = useMemo(() => {
+    if (mode === "read") return null;
+    return diffSourcePlugin({ viewMode: "rich-text" });
   }, [mode]);
 
-  async function imageUploadHandler(image: File) {
-    const MAX_FILE_SIZE_MB = 3;
-    const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
-    if (image.size > maxFileSizeBytes) {
-      toast(t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB }));
-      return Promise.reject(
-        new Error(t("fileSizeExceedsLimit", { value: MAX_FILE_SIZE_MB }))
-      );
-    }
+  const plugins = useMemo(() => {
+    const list = [
+      ...baseFormattingPlugins,
+      jsxPlugin({ jsxComponentDescriptors: jsxDescriptors }),
+    ];
+    if (editorToolbarPlugin) list.push(editorToolbarPlugin);
+    if (mode === "read") list.push(trimTrailingParagraphPlugin());
+    if (editorDiffSourcePlugin) list.push(editorDiffSourcePlugin);
+    return list;
+  }, [
+    baseFormattingPlugins,
+    jsxDescriptors,
+    editorToolbarPlugin,
+    editorDiffSourcePlugin,
+    mode,
+  ]);
 
-    const formData = new FormData();
-    formData.append("image", image);
-    const response = await uploadImage(formData);
-    if (!!response && "errors" in response) {
-      console.error(response.errors);
-      toast(t("errorUploadingImage"));
-      return Promise.reject(
-        new Error(response.errors?.message ?? "Error uploading image")
-      );
-    } else {
-      return response.url;
-    }
-  }
+  const lexicalTheme = useMemo(
+    () => ({
+      beautifulMentions: beautifulMentionsTheme,
+      text: { underline: "underline" },
+    }),
+    []
+  );
 
   if (errorMarkdown) {
     return <div className="whitespace-pre-line">{errorMarkdown}</div>;
@@ -248,18 +342,8 @@ const InitializedMarkdownEditor: FC<
         }
       }}
       readOnly={mode === "read"}
-      plugins={[
-        ...baseFormattingPlugins,
-        jsxPlugin({ jsxComponentDescriptors }),
-        ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
-        ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
-      ]}
-      lexicalTheme={{
-        beautifulMentions: beautifulMentionsTheme,
-        text: {
-          underline: "underline",
-        },
-      }}
+      plugins={plugins}
+      lexicalTheme={lexicalTheme}
     />
   );
 };

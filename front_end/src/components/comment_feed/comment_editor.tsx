@@ -1,30 +1,24 @@
 "use client";
 
 import { MDXEditorMethods } from "@mdxeditor/editor";
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/form_field";
+import { FormErrorMessage, Textarea } from "@/components/ui/form_field";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useDebouncedValue } from "@/hooks/use_debounce";
+import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
+import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseComment } from "@/utils/comments";
-import {
-  saveCommentDraft,
-  getCommentDraft,
-  deleteCommentDraft,
-  cleanupCommentDrafts,
-} from "@/utils/drafts/comments";
 
 import { validateComment } from "./validate_comment";
 
@@ -62,12 +56,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
    * This is a workaround for MDX editor issue when`setMarkdown` method won't properly update editor state if the user is on the "source" mode
    */
   const [editorRenderKey, setEditorRenderKey] = useState(0);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivateFeed);
-  const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
-  const [markdown, setMarkdown] = useState(text ?? "");
-  const debouncedMarkdown = useDebouncedValue(markdown, 1000);
-  const [errorMessage, setErrorMessage] = useState<string | ReactNode>();
+  const [clientError, setClientError] = useState<React.ReactNode>(null);
+  const [serverError, setServerError] = useState<string | ErrorResponse>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -81,34 +74,23 @@ const CommentEditor: FC<CommentEditorProps> = ({
     }
   }, [isReplying, isPrivateFeed]);
 
-  // Load comment draft and remove old ones on mount
-  useEffect(() => {
-    if (postId && user?.id) {
-      cleanupCommentDrafts();
-      const draft = getCommentDraft(user.id, postId, parentId);
-      if (draft) {
-        setMarkdown(draft.markdown ?? "");
-        setHasIncludedForecast(draft.includeForecast ?? false);
-        editorRef.current?.setMarkdown(draft.markdown ?? "");
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // save draft on debounced markdown change
-  useEffect(() => {
-    if (!isNil(postId) && hasInteracted && user) {
-      saveCommentDraft({
-        markdown: debouncedMarkdown,
-        includeForecast: hasIncludedForecast,
-        lastModified: Date.now(),
-        userId: user.id,
-        postId,
-        parentId,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedMarkdown, hasIncludedForecast, postId, parentId]);
+  const {
+    draftReady,
+    initialMarkdown,
+    setInitialMarkdown,
+    stopAndDiscardDraft,
+    markdownRef,
+    hasIncludedForecast,
+    setHasIncludedForecast,
+    hasContent,
+    setHasContent,
+    saveDraftDebounced,
+  } = useCommentDraft({
+    text,
+    postId,
+    parentId,
+    userId: user?.id,
+  });
 
   useEffect(() => {
     if (params.get("action") === "comment-with-forecast") {
@@ -124,19 +106,35 @@ const CommentEditor: FC<CommentEditorProps> = ({
       // Set the forecast checkbox
       setHasIncludedForecast(true);
     }
-  }, [params, clearParams, shallowNavigateToSearchParams]);
+  }, [
+    params,
+    clearParams,
+    shallowNavigateToSearchParams,
+    setHasIncludedForecast,
+  ]);
+
+  useEffect(() => {
+    if (draftReady && (initialMarkdown?.trim().length ?? 0) > 0) {
+      setHasInteracted(true);
+    }
+  }, [draftReady, initialMarkdown]);
 
   const handleSubmit = async () => {
-    setErrorMessage("");
+    setClientError(null);
+    setServerError(undefined);
     setIsLoading(true);
+
+    const markdown = markdownRef.current ?? "";
+
     if (user && !PUBLIC_MINIMAL_UI) {
-      const validateMessage = validateComment(markdown, user, t);
-      if (validateMessage) {
-        setErrorMessage(validateMessage);
+      const validateNode = validateComment(markdown.trim(), user, t);
+      if (validateNode) {
+        setClientError(validateNode);
         setIsLoading(false);
         return;
       }
     }
+
     sendAnalyticsEvent("postComment", {
       event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
@@ -155,38 +153,38 @@ const CommentEditor: FC<CommentEditorProps> = ({
       });
 
       if (!response) {
-        setErrorMessage(t("outdatedServerActionMessage"));
+        setServerError(t("outdatedServerActionMessage"));
         return;
       }
-
       if (!!response && "errors" in response) {
-        const errorMessage =
-          response.errors?.message ?? response.errors?.non_field_errors?.[0];
-
-        setErrorMessage(errorMessage);
+        setServerError(response.errors as ErrorResponse);
         return;
       }
 
-      // Delete the draft after successful submission
-      if (postId && user) {
-        deleteCommentDraft({ userId: user.id, postId, parentId });
-      }
+      stopAndDiscardDraft();
 
       setHasIncludedForecast(false);
-      setMarkdown("");
-      editorRef.current?.setMarkdown("");
+      markdownRef.current = "";
+      setHasContent(false);
+      setInitialMarkdown("");
       setEditorRenderKey((prev) => prev + 1);
       onSubmit?.(parseComment(response));
     } finally {
       setIsLoading(false);
     }
   };
-  const handleMarkdownChange = (newMarkdown: string) => {
-    setMarkdown(newMarkdown);
-    if (!hasInteracted) {
-      setHasInteracted(true);
-    }
-  };
+  const handleMarkdownChange = useCallback(
+    (next: string) => {
+      markdownRef.current = next;
+      if (!draftReady) return;
+      if (!hasInteracted) {
+        setHasInteracted(true);
+      }
+      setHasContent(next.trim().length > 0);
+      saveDraftDebounced(next);
+    },
+    [draftReady, hasInteracted, saveDraftDebounced, setHasContent, markdownRef]
+  );
 
   if (user == null)
     return (
@@ -206,8 +204,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   return (
     <>
-      {/* TODO: this box can only be shown in create, not edit mode */}
+      {clientError && (
+        <div className="mt-3 rounded-tl-md rounded-tr-md border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950 dark:text-red-200">
+          {clientError}
+        </div>
+      )}
 
+      {/* TODO: this box can only be shown in create, not edit mode */}
       {shouldIncludeForecast && (
         <Checkbox
           checked={hasIncludedForecast}
@@ -226,16 +229,19 @@ const CommentEditor: FC<CommentEditorProps> = ({
         ref={editorWrapperRef}
         className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
       >
-        <MarkdownEditor
-          key={editorRenderKey}
-          ref={editorRef}
-          mode="write"
-          markdown={markdown}
-          onChange={handleMarkdownChange}
-          withUgcLinks
-          withUserMentions
-          initialMention={!markdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
-        />
+        {draftReady && (
+          <MarkdownEditor
+            key={editorRenderKey}
+            ref={editorRef}
+            mode="write"
+            markdown={initialMarkdown}
+            onChange={handleMarkdownChange}
+            withUgcLinks
+            withUserMentions
+            initialMention={!initialMarkdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
+            withCodeBlocks
+          />
+        )}
       </div>
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
@@ -246,18 +252,17 @@ const CommentEditor: FC<CommentEditorProps> = ({
           )}
           <Button
             className="p-2"
-            disabled={markdown.length === 0 || isLoading}
+            disabled={!hasContent || isLoading}
             onClick={handleSubmit}
           >
             {t("submit")}
           </Button>
         </div>
       )}
-      {!!errorMessage && (
-        <div className="text-balance text-center text-red-500 dark:text-red-500-dark">
-          {errorMessage}
-        </div>
-      )}
+      <FormErrorMessage
+        errors={serverError}
+        containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
+      />
     </>
   );
 };

@@ -4,23 +4,28 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import Button from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth_context";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
+import UnfinalizedPrizeTooltip from "../prize_unfinalized_tooltip";
 
 type Props = {
   leaderboardDetails: LeaderboardDetails;
   userId?: number;
   paginationStep?: number;
+  isAdvanced?: boolean;
 };
 
 const ProjectLeaderboardTable: FC<Props> = ({
   leaderboardDetails,
   userId,
   paginationStep = 5,
+  isAdvanced,
 }) => {
   const t = useTranslations();
+  const { user: currentUser } = useAuth();
 
   const [step, setStep] = useState(paginationStep);
   const leaderboardEntries = useMemo(() => {
@@ -36,28 +41,15 @@ const ProjectLeaderboardTable: FC<Props> = ({
     setStep((prev) => (isNil(prev) ? prev : prev * 10));
   };
 
-  const withCoverage =
-    leaderboardDetails.score_type === "relative_legacy_tournament";
+  const maxCoverage =
+    leaderboardDetails.score_type === "relative_legacy_tournament"
+      ? undefined
+      : leaderboardDetails.max_coverage;
 
   return (
     <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
-          {!!leaderboardDetails.prize_pool && (
-            <tr>
-              <th
-                colSpan={
-                  withCoverage && !!leaderboardDetails.prize_pool ? 7 : 6
-                }
-                className="bg-mint-300 py-2 text-center font-medium text-mint-700 dark:bg-mint-800 dark:text-mint-300"
-              >
-                {t("prizePool") + ": "}
-                <span className="font-bold text-mint-800 dark:text-mint-200">
-                  ${leaderboardDetails.prize_pool.toLocaleString()}
-                </span>
-              </th>
-            </tr>
-          )}
           <tr>
             <TableHeader className="sticky left-0 text-left">
               {t("rank")}
@@ -66,18 +58,35 @@ const ProjectLeaderboardTable: FC<Props> = ({
               {t("forecaster")}
             </TableHeader>
             <TableHeader className="text-right">{t("totalScore")}</TableHeader>
+            {isAdvanced && (
+              <>
+                <TableHeader className=" text-right">
+                  {t("questions")}
+                </TableHeader>
+                <TableHeader className="text-right">
+                  {t("coverage")}
+                </TableHeader>
+              </>
+            )}
             {!!leaderboardDetails.prize_pool && (
               <>
-                {withCoverage && (
-                  <TableHeader className="text-right">
-                    {t("coverage")}
-                  </TableHeader>
+                {isAdvanced && (
+                  <>
+                    <TableHeader className="text-right">
+                      {t("take")}
+                    </TableHeader>
+                    <TableHeader className="text-right">
+                      {t("percentPrize")}
+                    </TableHeader>
+                  </>
                 )}
-                <TableHeader className="text-right">{t("take")}</TableHeader>
-                <TableHeader className="text-right">
-                  {t("percentPrize")}
+                <TableHeader className=" text-right">
+                  {leaderboardDetails.finalized ? (
+                    t("prize")
+                  ) : (
+                    <UnfinalizedPrizeTooltip />
+                  )}
                 </TableHeader>
-                <TableHeader className=" text-right">{t("prize")}</TableHeader>
               </>
             )}
           </tr>
@@ -91,19 +100,32 @@ const ProjectLeaderboardTable: FC<Props> = ({
               }
               rowEntry={leaderboardDetails.userEntry}
               userId={userId}
-              withCoverage={withCoverage}
+              maxCoverage={maxCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
+              isAdvanced={isAdvanced}
             />
           )}
-          {leaderboardEntries.map((entry) => (
-            <TableRow
-              key={entry.user?.id ?? entry.aggregation_method}
-              rowEntry={entry}
-              userId={userId}
-              withCoverage={withCoverage}
-              withPrizePool={!!leaderboardDetails.prize_pool}
-            />
-          ))}
+          {leaderboardEntries.map((entry) => {
+            // only show entries that are not excluded or if advanced mode is on
+            // or if the current user is staff
+            if (
+              entry.excluded &&
+              (!isAdvanced ||
+                !(currentUser?.is_staff || entry.show_when_excluded))
+            ) {
+              return null;
+            }
+            return (
+              <TableRow
+                key={entry.user?.id ?? entry.aggregation_method}
+                rowEntry={entry}
+                userId={userId}
+                maxCoverage={maxCoverage}
+                withPrizePool={!!leaderboardDetails.prize_pool}
+                isAdvanced={isAdvanced}
+              />
+            );
+          })}
         </tbody>
       </table>
       {hasMore && (

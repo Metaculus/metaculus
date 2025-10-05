@@ -1,11 +1,22 @@
 "use client";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import { logError } from "@/utils/core/errors";
 
 import Bulletin from "./bulletin";
+
+const HIDE_PREFIXES = [
+  "/about",
+  "/services",
+  "/help",
+  "/faq",
+  "/press",
+  "/privacy-policy",
+  "/terms-of-use",
+] as const;
 
 const Bulletins: FC = () => {
   const [bulletins, setBulletins] = useState<
@@ -16,7 +27,13 @@ const Bulletins: FC = () => {
   >([]);
 
   const pathname = usePathname();
-  const isHomePage = pathname === "/";
+
+  const shouldHide = useMemo(() => {
+    return (
+      HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p)) ||
+      pathname === "/"
+    );
+  }, [pathname]);
 
   const fetchBulletins = useCallback(async () => {
     try {
@@ -28,12 +45,16 @@ const Bulletins: FC = () => {
   }, []);
 
   useEffect(() => {
-    void fetchBulletins();
-  }, [fetchBulletins]);
+    if (!shouldHide) {
+      void fetchBulletins();
+    } else {
+      setBulletins([]);
+    }
+  }, [shouldHide, fetchBulletins]);
 
   return (
     <div className="mt-12 flex w-full flex-col items-center justify-center bg-transparent">
-      {!isHomePage &&
+      {!shouldHide &&
         bulletins.map((bulletin) => (
           <Bulletin key={bulletin.id} text={bulletin.text} id={bulletin.id} />
         ))}
@@ -41,4 +62,6 @@ const Bulletins: FC = () => {
   );
 };
 
-export default Bulletins;
+export default dynamic(() => Promise.resolve(Bulletins), {
+  ssr: false,
+});

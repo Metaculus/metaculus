@@ -11,7 +11,10 @@ from comments.constants import CommentReportType
 from comments.models import Comment
 from notifications.constants import MailingTags
 from notifications.models import Notification
-from notifications.utils import generate_email_comment_preview_text
+from notifications.utils import (
+    generate_email_comment_preview_text,
+    generate_email_notebook_preview_text,
+)
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -21,7 +24,7 @@ from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
 from utils.formatters import abbreviated_number, format_value_unit
-from utils.frontend import build_post_comment_url
+from utils.frontend import build_post_comment_url, build_post_url, build_news_url
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +73,8 @@ class NotificationQuestionParams:
     id: int
     title: str
     type: str
+    post_id: int | None = None
+    post_title: str | None = None
     label: str = ""
     unit: str = None
 
@@ -81,6 +86,8 @@ class NotificationQuestionParams:
             type=question.type,
             label=question.label,
             unit=question.unit,
+            post_id=question.get_post_id(),
+            post_title=question.get_post().title,
         )
 
 
@@ -121,8 +128,8 @@ class CPChangeData:
         if not self.cp_change_value:
             return ""
         return {
-            "goneUp": _("gone up"),
-            "goneDown": _("gone down"),
+            "up": _("gone up"),
+            "down": _("gone down"),
             "expanded": _("expanded"),
             "contracted": _("contracted"),
             "changed": _("changed"),
@@ -131,11 +138,12 @@ class CPChangeData:
     def get_cp_change_symbol(self):
         if not self.cp_change_value:
             return ""
+
         return {
-            "goneUp": "+",
-            "goneDown": "-",
-            "expanded": "←→",
-            "contracted": "→←",
+            "up": "+",
+            "down": "-",
+            "expanded": "↔ ",
+            "contracted": "→← ",
             "changed": "↕",
         }.get(self.cp_change_label, self.cp_change_label)
 
@@ -177,7 +185,9 @@ class CPChangeData:
             Question.QuestionType.NUMERIC,
             Question.QuestionType.DISCRETE,
         ]:
-            return format_value_unit(abbreviated_number(value), self.question.unit)
+            return format_value_unit(
+                abbreviated_number(round(value, 2)), self.question.unit
+            )
 
         return value
 
@@ -456,6 +466,7 @@ class NotificationPostStatusChange(
         event: Post.PostStatusChange
         project: NotificationProjectParams = None
         question: NotificationQuestionParams = None
+        notebook_id: int = None
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
@@ -633,6 +644,7 @@ class NotificationPredictedQuestionResolved(
         resolution: str
         forecasts_count: int
         coverage: float
+        linked_questions: list[NotificationQuestionParams] | None = None
         peer_score: float = 0
         baseline_score: float = 0
 
@@ -725,6 +737,7 @@ def send_comment_report_notification_to_staff(
         "emails/comment_report.html",
         context={
             "params": {
+                "post_title": comment.on_post.title,
                 "comment": comment,
                 "preview_text": generate_email_comment_preview_text(
                     comment.text, max_chars=300
@@ -738,3 +751,101 @@ def send_comment_report_notification_to_staff(
         },
         from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
+
+
+def send_forecast_autowidrawal_notification(
+    user: User,
+    posts_data: list[dict],
+    account_settings_url: str,
+):
+    send_email_with_template(
+        to=user.email,
+        subject=_(
+            f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"
+        ),
+        template_name="emails/forecast_auto_withdraw.html",
+        context={
+            "recipient": user,
+            "posts_data": posts_data,
+            "account_settings_url": account_settings_url,
+            "number_of_posts": len(posts_data),
+        },
+        use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+    return True
+
+
+def send_weekly_top_comments_notification(
+    recipients: list[str] | str,
+    top_comments: list[Comment],
+    top_comments_url: str,
+    other_usernames: str,
+    account_settings_url: str,
+):
+    send_email_with_template(
+        to=recipients,
+        subject=_("Last week’s top Metaculus comments"),
+        template_name="emails/weekly_top_comments.html",
+        context={
+            "top_comments": top_comments,
+            "top_comments_url": top_comments_url,
+            "other_usernames": other_usernames,
+            "account_settings_url": account_settings_url,
+        },
+        use_async=False,
+    )
+
+    return True
+
+
+def send_news_category_notebook_publish_notification(user: User, post: Post):
+    """
+    For notebooks published in News Category projects (e.g. Platform News),
+    we want to send them as separate emails, but still grouped —
+    just like we do for regular questions and notebooks via the
+    `NotificationPostStatusChange` notification type.
+    """
+
+    preview_text = generate_email_notebook_preview_text(
+        post.notebook.markdown, max_words=100
+    )
+
+    return send_email_with_template(
+        to=user.email,
+        subject=f"[Metaculus News] {post.title}",
+        template_name="emails/subscribed_news_notebook_published.html",
+        context={
+            "recipient": user,
+            "params": {
+                "post": NotificationPostParams.from_post(post),
+                "preview_text": preview_text,
+                "post_url": build_post_url(post),
+                "news_url": build_news_url(),
+            },
+        },
+        use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+
+def delete_scheduled_question_resolution_notifications(question: Question):
+    """
+    Sometimes a question can be resolved and then later unresolved,
+    so we don’t want users to receive the initial resolution notification that’s no longer valid.
+    This service handles cleanup of unsent messages in such cases.
+    """
+
+    qs = Notification.objects.filter(
+        email_sent=False,
+        type=NotificationPredictedQuestionResolved.type,
+        params__question__id=question.id,
+    )
+
+    logger.info(
+        f"Deleting {qs.count()} scheduled question resolution notifications "
+        f"for question id {question.id}"
+    )
+
+    qs.delete()

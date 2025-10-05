@@ -15,4 +15,9 @@ urlpatterns = [
         name="itn-article-remove",
     ),
     path("select2/", include("django_select2.urls")),
+    path(
+        "get-whitelist-status/",
+        views.get_whitelist_status_api_view,
+        name="get-whitelist-status",
+    ),
 ]

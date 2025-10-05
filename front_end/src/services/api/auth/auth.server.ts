@@ -19,6 +19,9 @@ export type SignUpProps = {
   campaign_data?: object;
   redirect_url?: string;
   invite_token?: string;
+  newsletter_optin?: boolean;
+  language?: string;
+  app_theme?: string;
 };
 
 class ServerAuthApiClass extends ApiService {
@@ -115,6 +118,16 @@ class ServerAuthApiClass extends ApiService {
     return this.post(`/auth/invite/`, {
       emails,
     });
+  }
+
+  async simplifiedSignUp(
+    username: string,
+    auth_token: string
+  ): Promise<SignUpResponse> {
+    return this.post<SignUpResponse, { username: string; auth_token: string }>(
+      "/auth/signup/simplified/",
+      { username, auth_token }
+    );
   }
 }
 

@@ -1,4 +1,5 @@
-from django.conf import settings
+import pytest
+from django.test import override_settings
 from rest_framework.reverse import reverse
 
 from authentication.services import SignupInviteService
@@ -55,8 +56,8 @@ class TestVerifyEmail:
         assert response.data["token"]
         mock_send_activation_email.assert_not_called()
 
+    @override_settings(PUBLIC_ALLOW_SIGNUP=False)
     def test_signup_invitation(self, anon_client):
-        settings.PUBLIC_ALLOW_SIGNUP = False
         token = SignupInviteService()._generate_token("invitedUser@metaculus.com")
 
         # Wrong email + token
@@ -100,3 +101,31 @@ class TestVerifyEmail:
         assert response.status_code == 201
         assert response.data["is_active"] == True
         assert response.data["token"]
+
+    @pytest.mark.parametrize(
+        "params,expected_langauge",
+        [
+            [{"language": "unknown"}, None],
+            [{"language": None}, None],
+            [{"language": "en"}, "en"],
+        ],
+    )
+    def test_signup__language_variations(
+        self, anon_client, mocker, params, expected_langauge
+    ):
+        mocker.patch("authentication.views.common.send_activation_email")
+
+        response = anon_client.post(
+            self.url,
+            data={
+                "email": "user@metaculus.com",
+                "username": "new_user",
+                "password": "StrongPassword@1",
+                "is_bot": False,
+                **params,
+            },
+            format="json",
+        )
+        assert response.status_code == 201
+        user = User.objects.get(username="new_user")
+        assert user.language == expected_langauge

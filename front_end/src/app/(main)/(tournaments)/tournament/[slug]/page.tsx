@@ -1,13 +1,14 @@
 import { isNil } from "lodash";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
-import IndexSection from "@/app/(main)/(tournaments)/tournament/components/index";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
@@ -20,6 +21,8 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
+import { getValidString } from "@/utils/formatters/string";
+import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import HeaderBlockInfo from "../components/header_block_info";
@@ -27,6 +30,7 @@ import HeaderBlockNav from "../components/header_block_navigation";
 import ProjectMembers from "../components/members";
 import NavigationBlock from "../components/navigation_block";
 import ParticipationBlock from "../components/participation_block";
+import PredictionFlowButton from "../components/prediction_flow_button";
 import TournamentFeed from "../components/tournament_feed";
 
 type Props = {
@@ -35,27 +39,45 @@ type Props = {
 };
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
-  const tournament = await ServerProjectsApi.getTournament(params.slug);
+  const { slug } = await props.params;
+  const tournament = await ServerProjectsApi.getTournament(slug);
+  if (!tournament) return {};
 
-  if (!tournament) {
-    return {};
-  }
-  const parsedDescription = tournament.description
-    .replace(/<[^>]*>/g, "")
-    .split("\n")[0];
+  const raw = tournament.subtitle || tournament.description || "";
+  const parsedDescription =
+    raw.replace(/<[^>]*>/g, "").split("\n")[0] || defaultDescription;
+
+  const { PUBLIC_APP_URL } = getPublicSettings();
+
+  const img = `${PUBLIC_APP_URL}/og/tournament/${encodeURIComponent(slug)}/route?theme=light`;
 
   return {
-    title: tournament.name,
-    description: !!parsedDescription ? parsedDescription : defaultDescription,
-    // Hide unlisted pages from search engines
+    title:
+      getValidString(tournament.html_metadata_json?.title) ?? tournament.name,
+    description:
+      getValidString(tournament.html_metadata_json?.description) ??
+      getValidString(parsedDescription) ??
+      defaultDescription,
+    openGraph: {
+      title: tournament.name,
+      description: parsedDescription,
+      images: [
+        {
+          url: img,
+          width: 1200,
+          height: 630,
+          alt: tournament.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: tournament.name,
+      description: parsedDescription,
+      images: [img],
+    },
     ...(tournament.visibility === ProjectVisibility.Unlisted
-      ? {
-          robots: {
-            index: false,
-            follow: false,
-          },
-        }
+      ? { robots: { index: false, follow: false } }
       : {}),
   };
 }
@@ -64,6 +86,17 @@ export default async function TournamentSlug(props: Props) {
   const params = await props.params;
   const tournament = await ServerProjectsApi.getTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+
+  // Ensure project has a correct link.
+  // E.g. if tournament with /index/ url -> redirect to /tournament/
+  const correctLink = getProjectLink(tournament);
+  const headersList = await headers();
+  const originalUrl = headersList.get("x-url") || "";
+
+  if (!originalUrl.includes(correctLink)) {
+    redirect(correctLink);
+  }
+
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const currentUser = await ServerProfileApi.getMyProfile();
   const isForecastsFlowEnabled =
@@ -79,12 +112,10 @@ export default async function TournamentSlug(props: Props) {
     ? t("SeriesContents")
     : t("questions");
 
-  const indexWeights = tournament.index_weights ?? [];
-
   return (
     <main className="mx-auto mb-16 min-h-min w-full max-w-[780px] flex-auto px-0 sm:mt-[52px]">
       {/* header block */}
-      <div className="overflow-hidden rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
+      <div className="rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
             <HeaderBlockNav
@@ -93,14 +124,16 @@ export default async function TournamentSlug(props: Props) {
               variant="image_overflow"
             />
 
-            <Image
-              src={tournament.header_image}
-              alt=""
-              fill
-              priority
-              className="size-full object-cover object-center"
-              unoptimized
-            />
+            <div className="overflow-hidden">
+              <Image
+                src={tournament.header_image}
+                alt=""
+                fill
+                priority
+                className="size-full object-cover object-center"
+                unoptimized
+              />
+            </div>
           </div>
         )}
         <div className="px-4 pb-5 pt-4 sm:p-8">
@@ -128,16 +161,17 @@ export default async function TournamentSlug(props: Props) {
       </div>
 
       <NavigationBlock tournament={tournament} />
-      <ParticipationBlock tournament={tournament} posts={predictionFlowPosts} />
+      {tournament.type !== TournamentType.Index && (
+        <ParticipationBlock
+          tournament={tournament}
+          posts={predictionFlowPosts}
+        />
+      )}
 
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
           <HtmlContent content={tournament.description} />
-
-          {indexWeights.length > 0 && (
-            <IndexSection indexWeights={indexWeights} tournament={tournament} />
-          )}
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">
@@ -155,6 +189,16 @@ export default async function TournamentSlug(props: Props) {
             </div>
           )}
         </div>
+
+        {tournament.type === TournamentType.Index && (
+          <div className="mt-4">
+            <PredictionFlowButton tournament={tournament} />
+            <ParticipationBlock
+              tournament={tournament}
+              posts={predictionFlowPosts}
+            />
+          </div>
+        )}
       </div>
 
       {/* Questions block */}

@@ -25,7 +25,9 @@ def index_itn_articles__worker(ids, worker_idx):
             generate_related_posts_for_article(article)
 
             if idx % 100 == 0:
-                logger.info(f"[W{worker_idx}] ITN Articles sync: Processed {idx}/{len(ids)} records")
+                logger.info(
+                    f"[W{worker_idx}] ITN Articles sync: Processed {idx}/{len(ids)} records"
+                )
         except Exception:
             logger.exception("Error during generation of the vector")
 

@@ -1,0 +1,68 @@
+.dark .sb-show-main {
+  background-color: rgb(38, 47, 56) !important;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter_18pt-medium.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter_18pt-mediumitalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "InterVariable";
+  src: url("/fonts/inter_variable.ttf") format("truetype");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif Pro";
+  src:
+    url("/fonts/SourceSerifPro-Regular.woff2") format("woff2"),
+    url("/fonts/SourceSerifPro-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif Pro";
+  src:
+    url("/fonts/SourceSerifPro-Italic.woff2") format("woff2"),
+    url("/fonts/SourceSerifPro-Italic.woff") format("woff");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif Pro";
+  src:
+    url("/fonts/SourceSerifPro-Bold.woff2") format("woff2"),
+    url("/fonts/SourceSerifPro-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif Pro";
+  src:
+    url("/fonts/SourceSerifPro-BoldItalic.woff2") format("woff2"),
+    url("/fonts/SourceSerifPro-BoldItalic.woff") format("woff");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "League Gothic";
+  src: url("/fonts/league_gothic_variable.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

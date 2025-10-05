@@ -26,6 +26,7 @@ import { canWithdrawForecast } from "@/utils/questions/predictions";
 import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 import QuestionResolutionModal from "../resolution/resolution_modal";
+import WithdrawConfirmation from "../withdraw/withdraw_confirmation";
 
 type Props = {
   question: Question;
@@ -43,11 +44,22 @@ const ForecastMakerGroupControls: FC<Props> = ({
   onPredictionSubmit,
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const t = useTranslations();
   const { setCurrentModal } = useModal();
   const [unresolveQuestion, isPending] = useServerAction(
     unresolveQuestionAction
   );
+
+  const handleWithdraw = async () => {
+    if (post) {
+      await withdrawForecasts(post.id, [{ question: question.id }]);
+      onPredictionSubmit?.();
+      setIsWithdrawModalOpen(false);
+    }
+  };
+
+  const [withdraw, withdrawalIsPending] = useServerAction(handleWithdraw);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -101,11 +113,8 @@ const ForecastMakerGroupControls: FC<Props> = ({
                 {
                   id: "withdraw",
                   name: t("withdrawForecast"),
-                  onClick: async () => {
-                    await withdrawForecasts(post.id, [
-                      { question: question.id },
-                    ]);
-                    onPredictionSubmit?.();
+                  onClick: () => {
+                    setIsWithdrawModalOpen(true);
                   },
                 },
               ]
@@ -156,6 +165,14 @@ const ForecastMakerGroupControls: FC<Props> = ({
         isOpen={isResolutionModalOpen}
         onClose={() => setIsResolutionModalOpen(false)}
       />
+
+      {/* Withdraw Confirmation Modal */}
+      <WithdrawConfirmation
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        onSubmit={withdraw}
+        isPending={withdrawalIsPending}
+      />
     </>
   );
 };
@@ -195,12 +212,18 @@ const GroupQuestionInfo = ({ question }: { question: Question }) => {
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
           <span className="w-min text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
             {question.status === QuestionStatus.RESOLVED
-              ? t("resolves")
+              ? t("resolved")
               : t("scheduledResolution")}
             :
           </span>
           <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-            <LocalDaytime date={question.scheduled_resolve_time} />
+            <LocalDaytime
+              date={
+                (question.status === QuestionStatus.RESOLVED &&
+                  question.actual_resolve_time) ||
+                question.scheduled_resolve_time
+              }
+            />
           </span>
         </div>
 

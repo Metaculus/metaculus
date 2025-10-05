@@ -16,7 +16,7 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
     <section
       id="prediction-section"
       className={cn(
-        "my-4 rounded bg-blue-200 p-3 dark:bg-blue-200-dark",
+        "relative rounded bg-blue-200 p-3 dark:bg-blue-200-dark",
         className
       )}
     >

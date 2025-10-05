@@ -42,6 +42,14 @@ export type CommentType = BECommentType & {
   children: CommentType[];
 };
 
+export type CommentOfWeekEntry = {
+  votes_score: number;
+  changed_my_mind_count: number;
+  key_factor_votes_score: number;
+  excluded: boolean;
+  comment: BECommentType;
+};
+
 export type ForecastType = {
   start_time: Date;
   probability_yes: number;
@@ -84,21 +92,47 @@ export type KeyFactorVote = {
   second_step_completed?: boolean; // used only for two step survey
 };
 
+export enum ImpactDirection {
+  Increase = "increase",
+  Decrease = "decrease",
+}
+
+export type Driver = {
+  text: string;
+  impact_direction: ImpactDirection;
+};
+
 export type KeyFactor = {
   id: number;
-  text: string;
+  driver: Driver;
   author: AuthorType; // used to set limit per question
   comment_id: number;
   user_votes: KeyFactorVote[]; // empty array if the user has not voted
   vote_type: KeyFactorVoteType | null; // null if the user has not voted
   votes_score: number;
+  votes_count: number;
 };
 
-export type CommentDraft = {
+export type DraftKind = "create" | "edit";
+
+type DraftBase = {
   markdown: string;
-  includeForecast: boolean;
   lastModified: number;
-  postId: number;
   userId: number;
-  parentId?: number;
 };
+
+export type CreateDraft = DraftBase & {
+  kind: "create";
+  postId: number;
+  parentId?: number;
+  includeForecast: boolean;
+};
+
+export type EditDraft = DraftBase & {
+  kind: "edit";
+  commentId: number;
+  onPostId?: number;
+  isPrivate?: boolean;
+};
+
+export type Draft = CreateDraft | EditDraft;

@@ -1,86 +1,133 @@
-import { CommentDraft } from "@/types/comment";
-import { safeLocalStorage } from "@/utils/core/storage";
-
-import { logError } from "../core/errors";
+import type { CreateDraft, Draft, EditDraft } from "@/types/comment";
+import { logError } from "@/utils/core/errors";
+import { readJSON, safeLocalStorage, writeJSON } from "@/utils/core/storage";
 
 import { cleanupDrafts } from ".";
 
-const DRAFT_KEY_PREFIX = "comment_draft_";
+const PREFIX = {
+  create: "comment_draft_",
+  edit: "comment_edit_draft_",
+} as const;
+
 const MAX_COMMENTS_DRAFT_SIZE_MB = 1.5;
 
-function getDraftKey({
-  userId,
-  postId,
-  parentId,
-}: {
-  userId: number;
-  postId: number;
-  parentId?: number;
-}): string {
-  return `${DRAFT_KEY_PREFIX}${userId}_${postId}${parentId ? `_parent_${parentId}` : ""}`;
+function keyFor(d: Draft): string {
+  return d.kind === "create"
+    ? `${PREFIX.create}${d.userId}_${d.postId}${d.parentId ? `_parent_${d.parentId}` : ""}`
+    : `${PREFIX.edit}${d.userId}_${d.commentId}`;
 }
 
-export function saveCommentDraft(draft: CommentDraft): void {
+function keyForCreate(
+  userId: number,
+  postId: number,
+  parentId?: number
+): string {
+  return `${PREFIX.create}${userId}_${postId}${parentId ? `_parent_${parentId}` : ""}`;
+}
+
+function keyForEdit(userId: number, commentId: number): string {
+  return `${PREFIX.edit}${userId}_${commentId}`;
+}
+
+function upsertDraft(draft: Draft): void {
   try {
-    if (!draft.markdown.trim()) {
-      deleteCommentDraft({ ...draft });
+    if (!draft.markdown?.trim()) {
+      draft.kind === "create"
+        ? removeCreate(draft.userId, draft.postId, draft.parentId)
+        : removeEdit(draft.userId, draft.commentId);
       return;
     }
-    const existingDraft = getCommentDraft(
-      draft.userId,
-      draft.postId,
-      draft.parentId
-    );
-    if (existingDraft && existingDraft.markdown === draft.markdown) {
+
+    const k = keyFor(draft);
+    const existing = readJSON<Draft>(k);
+
+    if (existing && existing.lastModified > draft.lastModified) {
       return;
     }
-    const draftKey = getDraftKey({ ...draft });
-    safeLocalStorage.setItem(draftKey, JSON.stringify(draft));
-  } catch (error) {
-    logError(error, { message: "Failed to save comment draft" });
+
+    if (existing) {
+      const sameText = existing.markdown === draft.markdown;
+      if (sameText) return;
+    }
+
+    writeJSON(k, draft);
+  } catch (e) {
+    logError(e, { message: "Failed to upsert draft" });
   }
+}
+
+function getCreate(
+  userId: number,
+  postId: number,
+  parentId?: number
+): CreateDraft | null {
+  return readJSON<CreateDraft>(keyForCreate(userId, postId, parentId));
+}
+
+function getEdit(userId: number, commentId: number): EditDraft | null {
+  return readJSON<EditDraft>(keyForEdit(userId, commentId));
+}
+
+function removeCreate(userId: number, postId: number, parentId?: number) {
+  try {
+    safeLocalStorage.removeItem(keyForCreate(userId, postId, parentId));
+  } catch (e) {
+    logError(e, { message: "Failed to delete comment draft" });
+  }
+}
+
+function removeEdit(userId: number, commentId: number) {
+  try {
+    safeLocalStorage.removeItem(keyForEdit(userId, commentId));
+  } catch (e) {
+    logError(e, { message: "Failed to delete comment edit draft" });
+  }
+}
+
+export function saveCommentDraft(draft: CreateDraft): void {
+  upsertDraft({ ...draft, kind: "create" });
 }
 export function getCommentDraft(
   userId: number,
   postId: number,
   parentId?: number
-): CommentDraft | null {
-  try {
-    if (!postId || !userId) return null;
-    const draftKey = getDraftKey({ userId, postId, parentId });
-    if (!draftKey) return null;
-
-    const draftJson = safeLocalStorage.getItem(draftKey);
-    return draftJson ? JSON.parse(draftJson) : null;
-  } catch (error) {
-    logError(error, { message: "Failed to get comment draft" });
-    return null;
-  }
+): CreateDraft | null {
+  return getCreate(userId, postId, parentId);
 }
-
-export const deleteCommentDraft = ({
-  userId,
-  postId,
-  parentId,
-}: {
+export function deleteCommentDraft(args: {
   userId: number;
   postId: number;
   parentId?: number;
-}): void => {
-  try {
-    if (!postId || !userId) return;
-    const draftKey = getDraftKey({ userId, postId, parentId });
+}): void {
+  removeCreate(args.userId, args.postId, args.parentId);
+}
 
-    if (!draftKey) return;
-    safeLocalStorage.removeItem(draftKey);
-  } catch (error) {
-    logError(error, { message: "Failed to delete comment draft" });
-  }
-};
+export function saveCommentEditDraft(draft: EditDraft): void {
+  upsertDraft({ ...draft, kind: "edit" });
+}
+export function getCommentEditDraft(
+  userId: number,
+  commentId: number
+): EditDraft | null {
+  return getEdit(userId, commentId);
+}
+export function deleteCommentEditDraft(args: {
+  userId: number;
+  commentId: number;
+}): void {
+  removeEdit(args.userId, args.commentId);
+}
 
 export const cleanupCommentDrafts = (maxAgeDays = 14): void => {
   cleanupDrafts({
-    keyPrefix: DRAFT_KEY_PREFIX,
+    keyPrefix: PREFIX.create,
+    maxAgeDays,
+    maxSizeMB: MAX_COMMENTS_DRAFT_SIZE_MB,
+  });
+};
+export const cleanupCommentEditDrafts = (maxAgeDays = 14): void => {
+  cleanupDrafts({
+    keyPrefix: PREFIX.edit,
     maxAgeDays,
     maxSizeMB: MAX_COMMENTS_DRAFT_SIZE_MB,
   });

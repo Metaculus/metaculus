@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
@@ -14,6 +15,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   getDiscreteValueOptions,
   getForecastPctDisplayValue,
@@ -25,6 +27,7 @@ import { formatValueUnit } from "@/utils/questions/units";
 type Props = {
   question: QuestionWithNumericForecasts;
   overlayPreviousForecast?: boolean;
+  previousCdf?: number[];
   dataset: {
     cdf: number[];
     pmf: number[];
@@ -35,24 +38,45 @@ type Props = {
   height?: number;
   width?: number;
   showCP?: boolean;
+  chartTheme?: VictoryThemeDefinition;
+  outlineUser?: boolean;
+};
+
+const arraysAlmostEqual = (
+  a: ReadonlyArray<number> | null | undefined,
+  b: ReadonlyArray<number> | null | undefined,
+  eps = 1e-9
+): boolean => {
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    const ai = a[i];
+    const bi = b[i];
+    if (ai === undefined || bi === undefined) return false;
+    if (Math.abs(ai - bi) > eps) return false;
+  }
+  return true;
 };
 
 const ContinuousPredictionChart: FC<Props> = ({
   question,
   overlayPreviousForecast,
+  previousCdf,
   dataset,
   graphType,
   readOnly = false,
   height = 300,
-  showCP = true,
   width = undefined,
+  showCP = true,
+  chartTheme,
+  outlineUser = false,
 }) => {
   const t = useTranslations();
 
   const [hoverState, setHoverState] = useState<ContinuousAreaHoverState | null>(
     null
   );
-
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cursorDisplayData = useMemo(() => {
@@ -96,13 +120,20 @@ const ContinuousPredictionChart: FC<Props> = ({
     []
   );
 
+  const defaultAggMethod = question.default_aggregation_method;
+
+  const latestAggLatest = useMemo(
+    () => question.aggregations[defaultAggMethod]?.latest ?? null,
+    [question.aggregations, defaultAggMethod]
+  );
+
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
-    const latest = question.aggregations.recency_weighted.latest;
-    if (showCP && latest && !latest.end_time) {
+
+    if (showCP && latestAggLatest && isForecastActive(latestAggLatest)) {
       charts.push({
-        pmf: cdfToPmf(latest.forecast_values),
-        cdf: latest.forecast_values,
+        pmf: cdfToPmf(latestAggLatest.forecast_values),
+        cdf: latestAggLatest.forecast_values,
         type:
           question.status === QuestionStatus.CLOSED
             ? "community_closed"
@@ -110,15 +141,20 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
-    if (overlayPreviousForecast && question.my_forecasts?.latest) {
+    const sameAsPrev = previousCdf
+      ? arraysAlmostEqual(dataset.cdf, previousCdf)
+      : false;
+    const shouldShowPrev =
+      !!overlayPreviousForecast && !!previousCdf?.length && !sameAsPrev;
+    if (shouldShowPrev && previousCdf) {
       charts.push({
-        pmf: cdfToPmf(question.my_forecasts.latest.forecast_values),
-        cdf: question.my_forecasts.latest.forecast_values,
+        pmf: cdfToPmf(previousCdf),
+        cdf: previousCdf,
         type: "user_previous",
       });
     }
 
-    if (!readOnly || !!question.my_forecasts?.latest) {
+    if (!readOnly || !!previousCdf) {
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
@@ -129,13 +165,13 @@ const ContinuousPredictionChart: FC<Props> = ({
 
     return charts;
   }, [
-    question.aggregations.recency_weighted.latest,
-    question.status,
-    dataset,
-    readOnly,
     showCP,
-    question.my_forecasts?.latest,
+    latestAggLatest,
+    question.status,
     overlayPreviousForecast,
+    previousCdf,
+    readOnly,
+    dataset,
   ]);
 
   const xLabel = cursorDisplayData?.xLabel ?? "";
@@ -166,7 +202,9 @@ const ContinuousPredictionChart: FC<Props> = ({
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
-        readOnly={readOnly}
+        extraTheme={chartTheme}
+        alignChartTabs={true}
+        outlineUser={outlineUser}
       />
       <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (

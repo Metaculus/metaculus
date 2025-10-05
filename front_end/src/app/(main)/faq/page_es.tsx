@@ -520,18 +520,38 @@ export default function FAQ() {
           Metaculus es un mercado de previsión?
         </h3>
         <p>
-          Metaculus tiene algunas similitudes con un mercado de previsión, pero
-          al final no es uno. Metaculus tiene como objetivo agregar información,
-          conocimiento y poder predictivo de muchas personas en pronósticos de
-          alta calidad. Sin embargo, los mercados de previsión a menudo operan
-          utilizando moneda real o virtual, donde los asistentes compran (o
-          venden) acciones si encuentran que los precios permanentes reflejan
-          demasiado bajas (o altas) una probabilidad de que ocurra un evento.
-          Metaculus, en cambio, solicita directamente las probabilidades
-          previstas de sus usuarios y luego agrega esas probabilidades. Creemos
-          que este tipo de predictores de &amp;&quot; tiene ventajas y
-          desventajas sobre un mercado de previsión.
+          Metaculus tiene algunas similitudes con un mercado de predicciones,
+          pero en última instancia no lo es. Metaculus busca agregar la
+          información, la experiencia y el poder predictivo de muchas personas
+          para generar pronósticos de alta calidad. Sin embargo, los mercados de
+          predicciones generalmente operan con moneda real o virtual, donde los
+          participantes compran (o venden) acciones si consideran que los
+          precios actuales reflejan una probabilidad demasiado baja (o demasiado
+          alta) de que ocurra un evento. Metaculus, en cambio, solicita
+          directamente a sus usuarios las probabilidades predichas y luego las
+          agrega. Creemos que este tipo de «agregador de predicciones» tiene
+          ventajas y desventajas en comparación con un mercado de predicciones.
+          Mercado de predicciones, y profundizamos en esto en nuestra entrada de
+          blog{" "}
+          <i>
+            <a
+              href="https://www.metaculus.com/notebooks/38198/metaculus-and-markets-whats-the-difference/"
+              target="_blank"
+            >
+              Metaculus y los mercados: ¿Cuál es la diferencia?
+            </a>
+          </i>
+          . Aquí tienes un gráfico de esa publicación con un breve resumen:
         </p>
+
+        <Image
+          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets.jpg"
+          alt="Comparación entre Metaculus y los mercados"
+          className="my-4"
+          width={700}
+          height={207}
+        />
+
         <h4 className="text-lg font-semibold">
           Ventajas de Metaculus en relación con las previsiones de los mercados
         </h4>
@@ -942,15 +962,15 @@ export default function FAQ() {
         </p>
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>
-            Una fuente acreditable será considerada una historia en línea o
-            impresa publicada de una fuente periodística, o información
-            publicada públicamente en un sitio web de una organización que hace
-            información pública sobre esa organización, o en otra fuente donde
-            la preponderancia de la evidencia sugiere que la información es
-            correcta y que no hay una controversia significativa en torno a la
-            información o su corrección. Generalmente, no incluye información no
-            obtenida en blogs, publicaciones en Facebook o Twitter, ni en sitios
-            web de individuos.
+            Se considerará una &#34;fuente creíble&#34; un artículo publicado en
+            línea o impreso de una fuente periodística o académica, información
+            publicada por una fuente autorizada con conocimiento o
+            responsabilidad específica en el tema, o, en general, información de
+            una fuente cuya preponderancia de la evidencia sugiera que la
+            información es correcta, siempre que no exista controversia
+            significativa en torno a su exactitud. Las fuentes creíbles
+            generalmente no incluyen información sin fuentes, presente en blogs,
+            publicaciones en redes sociales o sitios web de particulares.
           </li>
           <li>
             La frase $quot;Antes [fecha X] se tomará como resultado antes del

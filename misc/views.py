@@ -21,6 +21,7 @@ from .serializers import (
     SidebarItemSerializer,
 )
 from .services.itn import remove_article
+from .utils import get_whitelist_status
 
 
 @api_view(["POST"])
@@ -109,10 +110,11 @@ def get_bulletins(request):
 @permission_classes([AllowAny])
 def get_site_stats(request):
     now_year = datetime.now().year
+    public_questions = Question.objects.filter_public()
     stats = {
-        "predictions": Forecast.objects.count(),
-        "questions": Question.objects.count(),
-        "resolved_questions": Question.objects.filter(
+        "predictions": Forecast.objects.filter(question__in=public_questions).count(),
+        "questions": public_questions.count(),
+        "resolved_questions": public_questions.filter(
             actual_resolve_time__isnull=False
         ).count(),
         "years_of_predictions": now_year - 2015 + 1,
@@ -141,3 +143,23 @@ def sidebar_api_view(request: Request):
     )
 
     return Response(SidebarItemSerializer(sidebar_items, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_whitelist_status_api_view(request: Request):
+    data = request.query_params
+    post_id = data.get("post_id")
+    project_id = data.get("project_id")
+
+    is_whitelisted, view_deanonymized_data = get_whitelist_status(
+        request.user, post_id, project_id
+    )
+
+    return Response(
+        {
+            "is_whitelisted": is_whitelisted,
+            "view_deanonymized_data": view_deanonymized_data,
+        },
+        status=status.HTTP_200_OK,
+    )

@@ -1,14 +1,16 @@
 import datetime
 import logging
 import time
+from typing import Sequence
 
 from django.db.models import Prefetch
+from django.urls import reverse
 from django.utils import timezone
 
 from comments.models import Comment
 from misc.models import PostArticle
 from posts.models import Post, Vote, PostActivityBoost
-from questions.constants import QuestionStatus
+from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.models import Question
 from users.models import User
 from utils.models import ModelBatchUpdater
@@ -17,39 +19,70 @@ logger = logging.getLogger(__name__)
 
 
 def decay(val: float, dt: datetime.datetime) -> float:
-    return val / 2 ** ((timezone.now() - dt).days / 7)
+    delta = (timezone.now() - dt).days
+
+    if delta <= 3.5:
+        return val
+
+    return val * ((delta / 3.5) ** -2)
 
 
-def compute_question_hotness(question: Question) -> float:
-    """
-    Compute the hotness of post subquestion.
-    """
+def _sum_components(subject, components):
+    total = 0.0
+    results = []
+    for label, fn in components:
+        res = fn(subject)
+        if isinstance(res, Sequence):
+            score, children = res
+            results.append({"label": label, "score": score, "children": children})
+        else:
+            score = float(res)
+            results.append({"label": label, "score": score})
 
-    now = timezone.now()
-    hotness = 0
+        total += score
 
-    # Movement calculation for open questions
-    hotness += (
+    return total, results
+
+
+def _compute_question_hotness_movement(question: Question) -> float:
+    return (
         20 * (question.movement or 0) if question.status == QuestionStatus.OPEN else 0
     )
 
-    # Open time
-    hotness += (
+
+def _compute_question_hotness_open_time(question: Question) -> float:
+    return (
         decay(20, question.open_time)
-        if question.open_time and now > question.open_time
+        if question.open_time and timezone.now() > question.open_time
         else 0
     )
 
-    # Resolution time
-    hotness += (
-        decay(20, question.resolution_set_time)
-        if question.resolution_set_time and now > question.resolution_set_time
-        else 0
-    )
 
-    return hotness
+def _compute_question_hotness_resolution_time(question: Question) -> float:
+    if (
+        question.resolution_set_time
+        and question.resolution
+        and question.resolution not in UnsuccessfulResolutionType
+    ):
+        return decay(20, question.resolution_set_time)
+
+    return 0
 
 
+QUESTION_HOTNESS_COMPONENTS = [
+    ("Movement Score", _compute_question_hotness_movement),
+    ("Open Time Score", _compute_question_hotness_open_time),
+    ("Resolution Time Score", _compute_question_hotness_resolution_time),
+]
+
+
+def compute_question_hotness(question: Question) -> float:
+    return _sum_components(question, QUESTION_HOTNESS_COMPONENTS)[0]
+
+
+#
+# Post hotness calculations
+#
 def _compute_hotness_approval_score(post: Post) -> float:
     now = timezone.now()
     return (
@@ -60,13 +93,17 @@ def _compute_hotness_approval_score(post: Post) -> float:
 
 
 def _compute_hotness_relevant_news(post: Post) -> float:
-    related_article = PostArticle.objects.filter(post=post).order_by("distance").first()
+    # Notebooks should not have news hotness score
+    if post.notebook_id:
+        return 0.0
 
-    if not related_article:
-        return 0
+    qs = PostArticle.objects.filter(post=post)
 
-    return decay(
-        20 * max(0, 0.5 - related_article.distance), related_article.created_at
+    return sum(
+        [
+            decay(max(0, 0.5 - related_article.distance), related_article.created_at)
+            for related_article in qs
+        ]
     )
 
 
@@ -82,8 +119,27 @@ def _compute_hotness_comments(post: Post) -> float:
     return sum([decay(2, c.created_at) for c in comments if not c.is_private])
 
 
-def _compute_hotness_questions(post: Post) -> float:
-    return max([compute_question_hotness(q) for q in post.get_questions()], default=0)
+def _compute_hotness_questions(post: Post) -> tuple[float, list]:
+    questions = post.get_questions()
+    if not questions:
+        return 0.0, []
+
+    evaluated = [
+        (q, *_sum_components(q, QUESTION_HOTNESS_COMPONENTS)) for q in questions
+    ]
+    q_best, best_score, best_components = max(evaluated, key=lambda t: t[1])
+
+    return best_score, [
+        {
+            "label": (
+                f'<a href="{reverse("admin:questions_question_change", args=[q_best.id])}" target="_blank">'
+                f"{q_best.title}"
+                f"</a>"
+            ),
+            "score": best_score,
+            "children": best_components,
+        }
+    ]
 
 
 def compute_hotness_total_boosts(post: Post) -> float:
@@ -92,7 +148,7 @@ def compute_hotness_total_boosts(post: Post) -> float:
     return sum([decay(x.score, x.created_at) for x in boosts])
 
 
-HOTNESS_COMPONENTS = [
+POST_HOTNESS_COMPONENTS = [
     ("Approval score", _compute_hotness_approval_score),
     ("Relevant ITN news", _compute_hotness_relevant_news),
     ("Net post votes score", _compute_hotness_post_votes),
@@ -103,16 +159,12 @@ HOTNESS_COMPONENTS = [
 
 
 def compute_post_hotness(post: Post) -> float:
-    return sum([f(post) for _, f in HOTNESS_COMPONENTS])
+    return _sum_components(post, POST_HOTNESS_COMPONENTS)[0]
 
 
 def explain_post_hotness(post: Post):
-    return {
-        "hotness": compute_post_hotness(post),
-        "components": [
-            {"label": label, "score": f(post)} for label, f in HOTNESS_COMPONENTS
-        ],
-    }
+    total, components = _sum_components(post, POST_HOTNESS_COMPONENTS)
+    return {"hotness": total, "components": components}
 
 
 def compute_feed_hotness():
@@ -136,7 +188,7 @@ def compute_feed_hotness():
                 "comments",
                 queryset=Comment.objects.filter(
                     created_at__gte=min_creation_date, is_private=False
-                ).only("id", "created_at"),
+                ).only("id", "created_at", "is_private"),
             ),
         )
     )

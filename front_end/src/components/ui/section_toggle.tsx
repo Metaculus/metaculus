@@ -23,9 +23,13 @@ type Props = {
   defaultOpen?: boolean;
   className?: string;
   wrapperClassName?: string;
+  contentWrapperClassName?: string;
   variant?: SectionVariant;
   id?: string;
-  detailElement?: React.ReactNode | null;
+  detailElement?:
+    | ((isOpen: boolean) => React.ReactNode)
+    | React.ReactNode
+    | null;
 };
 
 const SectionToggle: FC<PropsWithChildren<Props>> = ({
@@ -35,6 +39,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
   defaultOpen,
   className,
   wrapperClassName,
+  contentWrapperClassName,
   children,
   detailElement,
 }) => {
@@ -110,13 +115,19 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
               />
               <span>{title}</span>
 
-              {detailElement}
+              {typeof detailElement === "function"
+                ? detailElement(open)
+                : detailElement}
             </div>
           </DisclosureButton>
           <DisclosurePanel
-            className={cn("p-3 pt-0", {
-              "xs:px-4": variant === "light",
-            })}
+            className={cn(
+              "p-3 pt-0",
+              {
+                "xs:px-4": variant === "light",
+              },
+              contentWrapperClassName
+            )}
           >
             {children}
           </DisclosurePanel>

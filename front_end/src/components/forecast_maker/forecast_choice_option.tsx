@@ -1,7 +1,9 @@
 "use client";
 
+import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   FC,
   useCallback,
@@ -14,14 +16,17 @@ import {
 import ChoiceIcon from "@/components/choice_icon";
 import ResolutionIcon from "@/components/icons/resolution";
 import Slider from "@/components/sliders/slider";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/core/cn";
+import { formatRelativeDate } from "@/utils/formatters/date";
 import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
 
 import ForecastTextInput from "./forecast_text_input";
+import Tooltip from "../ui/tooltip";
 
 type OptionResolution = {
   resolution: Resolution | null;
@@ -45,6 +50,8 @@ type Props<T> = {
   optionResolution?: OptionResolution;
   highlightedOptionId?: T;
   onOptionClick?: (id: T) => void;
+  withdrawn?: boolean;
+  withdrawnEndTimeSec?: number | null;
 };
 
 const ForecastChoiceOption = <T = string,>({
@@ -64,14 +71,21 @@ const ForecastChoiceOption = <T = string,>({
   disabled = false,
   optionResolution,
   onOptionClick,
+  withdrawn = false,
+  withdrawnEndTimeSec = null,
 }: Props<T>) => {
   const t = useTranslations();
+  const locale = useLocale();
 
-  const inputDisplayValue = forecastValue
-    ? forecastValue?.toString() + "%"
-    : "—";
+  const inputDisplayValue =
+    withdrawn && !isDirty
+      ? `${defaultSliderValue}%`
+      : forecastValue != null
+        ? `${forecastValue}%`
+        : "—";
   const [inputValue, setInputValue] = useState(inputDisplayValue);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const { getThemeColor } = useAppTheme();
 
   const { resolution, type: resolutionType } = optionResolution ?? {};
   const isQuestionResolved =
@@ -92,9 +106,11 @@ const ForecastChoiceOption = <T = string,>({
 
     return (
       <>
-        {communityForecast
-          ? getForecastPctDisplayValue(communityForecast)
-          : "-"}
+        {communityForecast ? (
+          getForecastPctDisplayValue(communityForecast)
+        ) : (
+          <span className="opacity-35">—</span>
+        )}
       </>
     );
   }, [communityForecast, resolution, resolutionType]);
@@ -121,12 +137,16 @@ const ForecastChoiceOption = <T = string,>({
     [id, onChange]
   );
 
+  const withdrawnLabel = withdrawnEndTimeSec
+    ? `Withdrawn ${formatRelativeDate(locale, new Date(withdrawnEndTimeSec * 1000), { short: true })}`
+    : "Withdrawn";
+
   const SliderElement = (
-    <div className="ml-5 mr-7">
+    <div className="sm:ml-5 sm:mr-7">
       <Slider
         inputMin={inputMin}
         inputMax={inputMax}
-        defaultValue={forecastValue ?? defaultSliderValue}
+        defaultValue={disabled ? 0 : forecastValue ?? defaultSliderValue}
         onChange={handleSliderForecastChange}
         step={1}
         arrowStep={0.1}
@@ -145,7 +165,18 @@ const ForecastChoiceOption = <T = string,>({
             : undefined
         }
         disabled={disabled}
-        styles={disabled ? { handle: { display: "none" } } : {}}
+        styles={
+          disabled
+            ? {
+                handle: { display: "none" },
+                rail: {
+                  height: "1px",
+                  opacity: 0.35,
+                  backgroundColor: getThemeColor(METAC_COLORS.gray["1000"]),
+                },
+              }
+            : {}
+        }
       />
     </div>
   );
@@ -155,14 +186,13 @@ const ForecastChoiceOption = <T = string,>({
       <tr
         className={cn({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
-          "bg-blue-200 bg-fixed dark:bg-blue-200-dark":
-            highlightedOptionId === id,
-          "bg-gradient-to-r from-purple-200 to-gray-0 bg-fixed dark:from-purple-200-dark dark:to-gray-0-dark":
+          "bg-blue-200  dark:bg-blue-200-dark": highlightedOptionId === id,
+          "bg-gradient-to-r from-purple-200 to-gray-0 dark:from-purple-200-dark dark:to-gray-0-dark":
             isQuestionResolved || isGroupResolutionHighlighted,
         })}
         onClick={() => onOptionClick?.(id)}
       >
-        <th className="w-full border-t border-gray-300 p-2 text-left text-sm font-bold leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
+        <th className="w-full border-t border-gray-300 px-3 py-2 text-left text-sm font-medium leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
           <div className="flex gap-2">
             <ChoiceIcon className="mt-1 shrink-0" color={choiceColor} />
             <div className="flex flex-col">
@@ -178,18 +208,52 @@ const ForecastChoiceOption = <T = string,>({
         <td className="border-t border-gray-300 p-2 text-right text-sm font-medium dark:border-gray-300-dark">
           {forecastColumnValue}
         </td>
-        <td className="border-t border-gray-300 p-2 text-center dark:border-gray-300-dark">
-          <ForecastTextInput
-            onChange={handleInputChange}
-            onForecastChange={handleInputForecastChange}
-            isDirty={isDirty}
-            minValue={inputMin}
-            maxValue={inputMax}
-            value={inputValue}
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-            disabled={disabled}
-          />
+        <td className="border-t border-gray-300 px-3 text-center dark:border-gray-300-dark sm:px-2 sm:py-2">
+          {withdrawn && !isDirty && !isInputFocused ? (
+            <Tooltip
+              tooltipContent={withdrawnLabel}
+              showDelayMs={120}
+              placement="right-start"
+              tooltipClassName="z-[999] rounded-sm sm:ml-2.5 ml-16 -mt-6  sm:-mt-[9px] border-0 bg-salmon-800 px-1.5 py-0.5 text-[10px] font-normal leading-tight dark:text-gray-0-dark text-gray-0 shadow-none dark:bg-salmon-800-dark"
+            >
+              <div className="group relative inline-block">
+                <div className="!opacity-70">
+                  <ForecastTextInput
+                    onChange={handleInputChange}
+                    onForecastChange={handleInputForecastChange}
+                    isDirty={isDirty}
+                    minValue={inputMin}
+                    maxValue={inputMax}
+                    value={inputValue}
+                    onFocus={() => {
+                      setIsInputFocused(true);
+                      onChange(id, defaultSliderValue);
+                    }}
+                    onBlur={() => setIsInputFocused(false)}
+                    disabled={disabled}
+                  />
+                </div>
+
+                <div className="absolute -right-2 -top-3  opacity-60 transition-opacity hover:opacity-100 group-hover:opacity-100">
+                  <span className="inline-flex h-3 w-3 items-center justify-center text-salmon-800 dark:text-salmon-800-dark">
+                    <FontAwesomeIcon size="xs" icon={faTriangleExclamation} />
+                  </span>
+                </div>
+              </div>
+            </Tooltip>
+          ) : (
+            <ForecastTextInput
+              onChange={handleInputChange}
+              onForecastChange={handleInputForecastChange}
+              isDirty={isDirty}
+              minValue={inputMin}
+              maxValue={inputMax}
+              value={inputValue}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+              disabled={disabled}
+            />
+          )}
         </td>
         <td className="hidden w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
           <div className="flex">
@@ -205,7 +269,10 @@ const ForecastChoiceOption = <T = string,>({
         onClick={() => onOptionClick?.(id)}
       >
         <td
-          className="w-full border-t border-none border-gray-300 p-2 px-6 pt-0 dark:border-gray-300-dark"
+          className={cn(
+            "w-full border-t border-none border-gray-300 px-3 py-2 pt-0 dark:border-gray-300-dark sm:px-6",
+            { "hidden sm:table-cell": disabled }
+          )}
           colSpan={4}
         >
           {SliderElement}

@@ -13,6 +13,7 @@ from comments.models import (
     ChangedMyMindEntry,
     Comment,
     CommentVote,
+    CommentsOfTheWeekEntry,
     KeyFactor,
     KeyFactorVote,
 )
@@ -22,14 +23,16 @@ from comments.serializers import (
     serialize_comment,
     serialize_comment_many,
     CommentFilterSerializer,
+    serialize_comments_of_the_week_many,
 )
 from comments.services.common import (
+    set_comment_excluded_from_week_top,
     create_comment,
     pin_comment,
     unpin_comment,
     soft_delete_comment,
+    update_comment,
 )
-from comments.services.common import update_comment
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors import (
     create_key_factors,
@@ -343,8 +346,11 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
     existing_keyfactors = [
-        keyfactor.text
-        for keyfactor in KeyFactor.objects.for_posts([comment.on_post]).filter_active()
+        keyfactor.driver.text
+        for keyfactor in KeyFactor.objects.for_posts([comment.on_post])
+        .filter_active()
+        .filter(driver__isnull=False)
+        .select_related("driver")
     ]
 
     suggested_key_factors = generate_keyfactors_for_comment(
@@ -376,3 +382,38 @@ def comment_toggle_pin_view(request: Request, pk: int):
         unpin_comment(comment)
 
     return Response(serialize_comment(comment))
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def comments_of_week_view(request: Request):
+    user = request.user
+    # Parse and validate the start_date query parameter
+    week_start_date = serializers.DateField(input_formats=["%Y-%m-%d"]).run_validation(
+        request.query_params.get("start_date")
+    )
+
+    # Admins can see all top (max 18) candidates for the weekly top comments
+    top_comments_of_week_entries = CommentsOfTheWeekEntry.objects.filter(
+        week_start_date=week_start_date
+    ).order_by("-score", "comment__created_at")
+
+    # Users only see the top 6 comments which are not excluded
+    if not (user.is_staff or user.is_superuser):
+        top_comments_of_week_entries = top_comments_of_week_entries.filter(
+            excluded=False
+        )[:6]
+
+    return Response(serialize_comments_of_the_week_many(top_comments_of_week_entries))
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def comment_set_excluded_from_week_top_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+    excluded = serializers.BooleanField(allow_null=False).run_validation(
+        request.data.get("excluded")
+    )
+
+    set_comment_excluded_from_week_top(comment, excluded=excluded)
+    return Response(status=status.HTTP_200_OK)

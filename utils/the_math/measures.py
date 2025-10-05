@@ -1,7 +1,7 @@
 import numpy as np
-from django.db.models import TextChoices
 
 from questions.models import Question, AggregateForecast
+from questions.types import Direction
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
     ForecastValues,
@@ -14,7 +14,7 @@ from utils.typing import (
 def weighted_percentile_2d(
     values: ForecastsValues,
     weights: Weights | None = None,
-    percentiles: Percentiles | None = None,
+    percentiles: Percentiles = None,
 ) -> Percentiles:
     values = np.array(values)
     if weights is None:
@@ -64,7 +64,7 @@ def percent_point_function(
     percent_point_function(cdf, [10, 50, 90]) -> [0.0, 0.5, 1.0]
     """
     if return_float := isinstance(percentiles, float | int):
-        percentiles = [percentiles]
+        percentiles = np.array([percentiles])
     ppf_values = []
     for percent in percentiles:
         # percent is a float between 0 and 100
@@ -130,15 +130,6 @@ def prediction_difference_for_display(
             asymmetric if not np.isnan(asymmetric) else None,
         )
     ]
-
-
-class Direction(TextChoices):
-    UNCHANGED = "unchanged"
-    UP = "up"
-    DOWN = "down"
-    EXPANDED = "expanded"
-    CONTRACTED = "contracted"
-    CHANGED = "changed"  # failsafe
 
 
 def get_difference_display(

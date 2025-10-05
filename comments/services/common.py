@@ -1,18 +1,37 @@
+import datetime
 import difflib
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import (
+    F,
+    Sum,
+    Count,
+    Max,
+    OuterRef,
+    Subquery,
+    IntegerField,
+    Avg,
+    FloatField,
+)
+from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment, CommentDiff
+from comments.models import (
+    ChangedMyMindEntry,
+    Comment,
+    CommentDiff,
+    CommentsOfTheWeekEntry,
+    CommentVote,
+    KeyFactor,
+    KeyFactorVote,
+)
 from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
-
 from ..tasks import run_on_post_comment_create
 
 spam_error = ValidationError(
@@ -184,3 +203,191 @@ def soft_delete_comment(comment: Comment):
     comment.save(update_fields=["is_soft_deleted"])
 
     post.update_comment_count()
+
+
+def compute_comment_score(
+    comment_votes: int,
+    change_my_minds: int,
+    key_factor_votes_score: int,
+    maximum_comment_votes: int,
+    maximum_cmms: int,
+    maximum_key_factor_score: int,
+):
+    handicap = 3  # downweight scores that have a maximum << 3
+    normalised_comment_votes = (comment_votes + handicap) / (
+        maximum_comment_votes + handicap
+    )
+    normalised_cmms = (change_my_minds + handicap) / (maximum_cmms + handicap)
+    normalised_kf_votes = (key_factor_votes_score + handicap) / (
+        maximum_key_factor_score + handicap
+    )
+
+    cv_weight = 1
+    cmm_weight = 1
+    kfv_weight = 0.5
+    kfv_exponent = 0.5
+
+    # additive score rewards doing well in any
+    # exponent flattens: first vote counts more than last
+    add_score = cv_weight * normalised_comment_votes
+    add_score += cmm_weight * normalised_cmms
+    add_score += kfv_weight * normalised_kf_votes**kfv_exponent
+    add_score /= cv_weight + cmm_weight + kfv_weight
+
+    # multiplicative scores rewards doing well in all three
+    mult_score = normalised_comment_votes**cv_weight
+    mult_score *= normalised_cmms**cmm_weight
+    mult_score *= normalised_kf_votes**kfv_weight
+    mult_score = mult_score ** (1 / (cv_weight + cmm_weight + kfv_weight))
+
+    score = 0.5 * add_score + 0.5 * mult_score
+    return score
+
+
+def set_comment_excluded_from_week_top(comment: Comment, excluded: bool = True):
+    entry = comment.comments_of_the_week_entry
+    if entry:
+        entry.excluded = excluded
+        entry.save(update_fields=["excluded"])
+
+
+def update_top_comments_of_week(week_start_date: datetime.date):
+    week_start_datetime = timezone.make_aware(
+        datetime.datetime.combine(week_start_date, datetime.time.min)
+    )
+    week_end_datetime = week_start_datetime + datetime.timedelta(days=7)
+    weeks_comments = Comment.objects.filter(
+        created_at__gte=week_start_datetime,
+        created_at__lt=week_end_datetime,
+    ).exclude(author__is_staff=True)
+
+    comments_of_week = weeks_comments.annotate(
+        vote_score=Coalesce(
+            Subquery(
+                CommentVote.objects.filter(
+                    comment=OuterRef("pk"),
+                    created_at__gte=F("comment__created_at"),
+                    created_at__lt=F("comment__created_at")
+                    + datetime.timedelta(days=7),
+                )
+                .values("comment")
+                .annotate(total=Sum("direction"))
+                .values("total")[:1],
+                output_field=IntegerField(),
+            ),
+            0,
+            output_field=IntegerField(),
+        ),
+        changed_my_mind_count=Coalesce(
+            Subquery(
+                ChangedMyMindEntry.objects.filter(
+                    comment=OuterRef("pk"),
+                    created_at__gte=F("comment__created_at"),
+                    created_at__lt=F("comment__created_at")
+                    + datetime.timedelta(days=7),
+                )
+                .values("comment")
+                .annotate(total=Count("id"))
+                .values("total")[:1],
+                output_field=IntegerField(),
+            ),
+            0,
+            output_field=IntegerField(),
+        ),
+        key_factor_votes_score=Coalesce(
+            Subquery(
+                KeyFactor.objects.filter(comment=OuterRef("pk"))
+                .annotate(
+                    avg_score=Coalesce(
+                        Subquery(
+                            KeyFactorVote.objects.filter(
+                                key_factor=OuterRef("pk"),
+                                created_at__gte=F("key_factor__comment__created_at"),
+                                created_at__lt=F("key_factor__comment__created_at")
+                                + datetime.timedelta(days=7),
+                            )
+                            .exclude(user_id=OuterRef("comment__author_id"))
+                            .values("key_factor")
+                            .annotate(avg=Avg(Abs("score")))
+                            .values("avg")[:1],
+                            output_field=FloatField(),
+                        ),
+                        0.0,
+                        output_field=FloatField(),
+                    )
+                )
+                .values("comment")
+                .annotate(total=Sum("avg_score"))
+                .values("total")[:1],
+                output_field=FloatField(),
+            ),
+            0.0,
+            output_field=FloatField(),
+        ),
+    )
+
+    stats = comments_of_week.aggregate(
+        count=Count("id"),
+        max_vote_score=Max("vote_score"),
+        max_changed_my_mind_count=Max("changed_my_mind_count"),
+        max_key_factor_votes_score=Max("key_factor_votes_score"),
+    )
+
+    maximum_comment_votes = stats["max_vote_score"]
+    maximum_cmms = stats["max_changed_my_mind_count"]
+    maximum_key_factor_score = stats["max_key_factor_votes_score"]
+
+    top_comments_of_week: list[CommentsOfTheWeekEntry] = []
+    for comment in comments_of_week:
+        comment_score = compute_comment_score(
+            comment_votes=max(0, comment.vote_score),
+            change_my_minds=comment.changed_my_mind_count,
+            key_factor_votes_score=comment.key_factor_votes_score,
+            maximum_comment_votes=maximum_comment_votes,
+            maximum_cmms=maximum_cmms,
+            maximum_key_factor_score=maximum_key_factor_score,
+        )
+
+        top_comments_of_week.append(
+            CommentsOfTheWeekEntry(
+                comment=comment,
+                score=comment_score,
+                created_at=timezone.now(),
+                week_start_date=week_start_date,
+                # Store snapshot of comment counters
+                # for the moment of week entry creation
+                votes_score=comment.vote_score,
+                changed_my_mind_count=comment.changed_my_mind_count,
+                key_factor_votes_score=comment.key_factor_votes_score,
+            )
+        )
+
+    sorted_comments_of_week = sorted(
+        top_comments_of_week, key=lambda x: x.score, reverse=True
+    )
+
+    # we need at most 18, out of which admins can exclude some if they want.
+    # the non-admin users will always get the top 6 which are not excluded.
+    top_18 = sorted_comments_of_week[:18]
+
+    # Bulk create or update entries
+    created_entries = CommentsOfTheWeekEntry.objects.bulk_create(
+        top_18,
+        update_conflicts=True,
+        unique_fields=["comment"],
+        update_fields=[
+            "score",
+            "created_at",
+            "week_start_date",
+            "votes_score",
+            "changed_my_mind_count",
+            "key_factor_votes_score",
+        ],
+    )
+
+    # Remove entries for this week that are not in the top 18
+    CommentsOfTheWeekEntry.objects.filter(
+        week_start_date=week_start_date,
+    ).exclude(
+        id__in=[entry.id for entry in created_entries],
+    ).delete()

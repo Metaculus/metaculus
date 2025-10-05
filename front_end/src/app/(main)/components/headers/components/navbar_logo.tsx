@@ -13,7 +13,7 @@ const NavbarLogo: FC = () => {
   return (
     <Link
       href="/"
-      className="inline-flex aspect-square max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center bg-blue-800 text-center no-underline md:bg-transparent"
+      className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center bg-blue-800 text-center no-underline md:bg-transparent"
     >
       <h1 className="mx-[17px] my-0 md:mx-3">
         <span className="hidden md:inline">

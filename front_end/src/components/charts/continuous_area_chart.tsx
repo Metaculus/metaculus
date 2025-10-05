@@ -1,5 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
+import { useLocale } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tuple,
@@ -9,6 +10,7 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLine,
   VictoryPortal,
   VictoryScatter,
@@ -24,23 +26,34 @@ import {
   ContinuousAreaHoverState,
   ContinuousAreaType,
   Line,
+  ScaleDirection,
 } from "@/types/charts";
 import {
   GraphingQuestionProps,
   Question,
   QuestionType,
   QuestionWithForecasts,
+  Scaling,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import {
-  getClosestYValue,
   getClosestXValue,
+  getClosestYValue,
   interpolateYValue,
 } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
-import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
+import { isForecastActive } from "@/utils/forecasts/helpers";
+import { formatResolution } from "@/utils/formatters/resolution";
+import {
+  cdfToPmf,
+  computeQuartilesFromCDF,
+  unscaleNominalLocation,
+} from "@/utils/math";
+import { isValidScaling } from "@/utils/questions/helpers";
 
+import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
+import ResolutionDiamond from "./primitives/resolution_diamond";
 
 type ContinuousAreaColor = "orange" | "green" | "gray";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
@@ -49,6 +62,12 @@ const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   user: "orange",
   user_previous: "orange",
   user_components: "orange",
+};
+
+export type DomainOverride = {
+  xDomain: [number, number];
+  isGlobalMin: boolean;
+  isGlobalMax: boolean;
 };
 
 export type ContinuousAreaGraphInput = Array<{
@@ -75,7 +94,12 @@ type Props = {
   hideCP?: boolean;
   hideLabels?: boolean;
   shortLabels?: boolean;
-  readOnly?: boolean;
+  alignChartTabs?: boolean;
+  forceTickCount?: number; // is used on feed page
+  withResolutionChip?: boolean;
+  withTodayLine?: boolean;
+  domainOverride?: DomainOverride;
+  outlineUser?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -89,8 +113,18 @@ const ContinuousAreaChart: FC<Props> = ({
   hideCP,
   hideLabels = false,
   shortLabels = false,
-  readOnly,
+  alignChartTabs,
+  forceTickCount,
+  withResolutionChip = true,
+  withTodayLine = true,
+  domainOverride = {
+    xDomain: [0, 1],
+    isGlobalMin: true,
+    isGlobalMax: true,
+  },
+  outlineUser = false,
 }) => {
+  const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
@@ -121,7 +155,7 @@ const ContinuousAreaChart: FC<Props> = ({
           question,
         })
       );
-      if (componentCdfs) {
+      if (componentCdfs && componentCdfs.length > 1) {
         for (const componentCdf of componentCdfs) {
           chartData.push(
             generateNumericAreaGraph({
@@ -145,7 +179,7 @@ const ContinuousAreaChart: FC<Props> = ({
     if (question.type !== QuestionType.Discrete) {
       if (graphType === "cdf") {
         return {
-          xDomain: [0, 1],
+          xDomain: domainOverride?.xDomain ?? [0, 1],
           yDomain: [0, 1],
         };
       }
@@ -154,54 +188,68 @@ const ContinuousAreaChart: FC<Props> = ({
         ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
       );
       return {
-        xDomain: [0, 1],
+        xDomain: domainOverride?.xDomain ?? [0, 1],
         yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
-    const xDomain: Tuple<number> = [
-      Math.min(
-        ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
-        0
-      ),
-      Math.max(
-        ...charts.map(
-          (chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)
-        ),
-        1
-      ),
-    ];
-    if (graphType === "cdf") {
-      return {
-        xDomain: xDomain,
-        yDomain: [0, 1],
-      };
+    let xMin = Math.min(
+      ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
+      0
+    );
+    let xMax = Math.max(
+      ...charts.map((chart) => 1 + 2 * ((chart.graphLine.at(-1)?.x ?? 1) - 1)),
+      1
+    );
+
+    const N =
+      question.inbound_outcome_count ??
+      Math.max(1, (data.at(0)?.cdf?.length ?? 1) - 1);
+    if (Number.isFinite(N) && N > 0) {
+      const halfBin = 0.5 / N;
+      if (question.resolution === "below_lower_bound")
+        xMin = Math.min(xMin, -halfBin);
+      if (question.resolution === "above_upper_bound")
+        xMax = Math.max(xMax, 1 + halfBin);
     }
+    const xDomain: Tuple<number> = [xMin, xMax];
+    if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
     const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
-      xDomain: xDomain,
+      xDomain,
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
-  }, [data, graphType, question.type, charts]);
+  }, [
+    data,
+    charts,
+    graphType,
+    question.type,
+    question.resolution,
+    domainOverride?.xDomain,
+    question.inbound_outcome_count,
+  ]);
+
   const xScale = useMemo(
     () =>
       generateScale({
         displayType: question.type,
         axisLength: chartWidth,
-        direction: "horizontal",
+        direction: ScaleDirection.Horizontal,
         domain: xDomain,
         shortLabels,
         adjustLabels: true,
         question: question,
+        forceTickCount,
+        alwaysShowTicks: !isNil(forceTickCount),
       }),
-    [chartWidth, question, xDomain, shortLabels]
+    [chartWidth, question, xDomain, shortLabels, forceTickCount]
   );
   const yScale = useMemo(
     () =>
       generateScale({
         displayType: QuestionType.Binary,
         axisLength: height - BOTTOM_PADDING - paddingTop,
-        direction: "vertical",
+        direction: ScaleDirection.Vertical,
         domain: yDomain,
         zoomedDomain: yDomain,
         adjustLabels: true,
@@ -220,25 +268,74 @@ const ContinuousAreaChart: FC<Props> = ({
         })
       : null;
 
+  const toDiscreteBarCenter = useCallback(
+    (norm: number): number => {
+      const N =
+        question.inbound_outcome_count ??
+        Math.max(1, (data.at(0)?.cdf?.length ?? 1) - 1);
+      if (!Number.isFinite(norm) || N <= 0) return norm;
+      if (norm <= 0 || norm >= 1) return norm;
+      const idx = Math.round(norm * (N - 1));
+      return (idx + 0.5) / N;
+    },
+    [question.inbound_outcome_count, data]
+  );
+
+  const resX = useMemo(() => {
+    if (!resolutionPoint || !Number.isFinite(resolutionPoint.y as number)) {
+      return null;
+    }
+    return question.type === QuestionType.Discrete
+      ? toDiscreteBarCenter(resolutionPoint.y as number)
+      : (resolutionPoint.y as number);
+  }, [resolutionPoint, question.type, toDiscreteBarCenter]);
+
+  const forcedOobSide: "left" | "right" | null = useMemo(() => {
+    if (question.resolution === "below_lower_bound") return "left";
+    if (question.resolution === "above_upper_bound") return "right";
+    return null;
+  }, [question.resolution]);
+
+  const resPlacement = useMemo<"in" | "left" | "right" | null>(() => {
+    if (resX == null || !Number.isFinite(resX)) return null;
+    if (forcedOobSide) return forcedOobSide;
+
+    const baseMin = 0;
+    const baseMax = 1;
+    const EPS = 1e-9;
+
+    if (resX < baseMin - EPS) return "left";
+    if (resX > baseMax + EPS) return "right";
+    return "in";
+  }, [resX, forcedOobSide]);
+
+  const formattedResolution = formatResolution({
+    resolution: question.resolution,
+    questionType: question.type,
+    locale,
+    scaling: question.scaling,
+    actual_resolve_time: null,
+  });
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
   const horizontalPadding = useMemo(() => {
     if (
-      (!readOnly && graphType === "cdf") ||
+      alignChartTabs ||
+      graphType === "cdf" ||
       question.type === QuestionType.Discrete
     ) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
       );
-      const longestLabelWidth = Math.max(5, longestLabelLength) * 9;
+      const longestLabelWidth = Math.max(5, longestLabelLength) * 5;
 
       return HORIZONTAL_PADDING + longestLabelWidth;
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type, readOnly]);
+  }, [graphType, yScale, question.type, alignChartTabs]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -425,6 +522,25 @@ const ContinuousAreaChart: FC<Props> = ({
       }}
     />
   );
+  const todayLabelPosition = useMemo(() => {
+    const visibleChartLength = chartWidth - 2 * horizontalPadding;
+    const point = {
+      x:
+        horizontalPadding +
+        ((chartWidth - 2 * horizontalPadding) *
+          (unscaleNominalLocation(
+            Math.floor(Date.now() / 1000),
+            question.scaling
+          ) -
+            xDomain[0])) /
+          (xDomain[1] - xDomain[0]),
+      y: 0,
+    };
+    if (point.x < 0 || point.x > visibleChartLength) {
+      return null;
+    }
+    return point;
+  }, [chartWidth, horizontalPadding, question.scaling, xDomain]);
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -465,11 +581,14 @@ const ContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (extraTheme?.area?.style?.data?.fill) {
+                            return extraTheme.area.style.data.fill;
+                          }
                           switch (chart.color) {
                             case "orange":
                               return getThemeColor(
                                 METAC_COLORS.orange[
-                                  chart.type === "user" ? "700" : "400"
+                                  chart.type === "user" ? "500" : "400"
                                 ]
                               );
                             case "green":
@@ -480,7 +599,12 @@ const ContinuousAreaChart: FC<Props> = ({
                               return undefined;
                           }
                         })(),
-                        opacity: chart.type === "user_previous" ? 0.1 : 0.3,
+                        opacity:
+                          outlineUser && chart.type === "user"
+                            ? 0
+                            : chart.type === "user_previous"
+                              ? 0.1
+                              : 0.3,
                       },
                     }}
                   />
@@ -493,11 +617,14 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       fill: (() => {
+                        if (extraTheme?.area?.style?.data?.fill) {
+                          return extraTheme.area.style.data.fill;
+                        }
                         switch (chart.color) {
                           case "orange":
                             return getThemeColor(
                               METAC_COLORS.orange[
-                                chart.type === "user" ? "700" : "400"
+                                chart.type === "user" ? "500" : "400"
                               ]
                             );
                           case "green":
@@ -523,12 +650,15 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (extraTheme?.line?.style?.data?.stroke) {
+                          return extraTheme?.line?.style?.data?.stroke;
+                        }
                         switch (chart.color) {
                           case "orange":
                             return getThemeColor(
                               METAC_COLORS.orange[
                                 chart.type === "user"
-                                  ? "800"
+                                  ? "500"
                                   : chart.type === "user_components"
                                     ? "500"
                                     : "200"
@@ -543,39 +673,27 @@ const ContinuousAreaChart: FC<Props> = ({
                         }
                       })(),
                       strokeDasharray:
-                        chart.color === "orange" ? "2,2" : undefined,
+                        chart.type === "user_previous" ? "2,2" : undefined,
                     },
                   }}
                 />
               ))
             : null}
-          {resolutionPoint && (
-            <VictoryScatter
-              data={[
-                {
-                  x: resolutionPoint.y,
-                  y: 0,
-                  symbol: "diamond",
-                  size: 4,
-                },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
-                  fill: "none",
-                  strokeWidth: 2.5,
-                },
-              }}
-            />
-          )}
           {(graphType === "cdf" || question.type === QuestionType.Discrete) && (
             // Prevent Y axis being cut off in edge cases
             <VictoryPortal>
               <VictoryAxis
                 dependentAxis
                 style={{
-                  tickLabels: { padding: 2 },
-                  ticks: { strokeWidth: 1 },
+                  tickLabels: {
+                    padding: 2,
+                    fill: getThemeColor(METAC_COLORS.gray["700"]),
+                  },
+                  ticks: { stroke: "transparent" },
+                  axis: {
+                    stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                    strokeWidth: 1,
+                  },
                 }}
                 tickValues={yScale.ticks}
                 tickFormat={yScale.tickFormat}
@@ -585,21 +703,84 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels ? () => "" : xScale.tickFormat}
+            tickFormat={hideLabels || hideCP ? () => "" : xScale.tickFormat}
             style={{
-              ticks: { strokeWidth: 1 },
+              ticks: {
+                strokeWidth: 1,
+                stroke: "transparent",
+              },
+              axis: {
+                strokeWidth: 0,
+              },
               tickLabels: {
+                fontSize: 10,
+                fill: getThemeColor(METAC_COLORS.gray["700"]),
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
-                  index === 0
+                  // except for discrete questions, whose first and last ticks are not
+                  // at the edges of the chart
+                  index === 0 && question.type !== QuestionType.Discrete
                     ? "start"
-                    : index === ticks.length - 1
+                    : index === ticks.length - 1 &&
+                        question.type !== QuestionType.Discrete
                       ? "end"
                       : "middle",
               },
             }}
           />
-
+          {/* Horizontal line */}
+          {charts.map((chart, index) => (
+            <VictoryLine
+              key={`line-${index}`}
+              data={[
+                { x: 0, y: 0 },
+                { x: 1, y: 0 },
+              ]}
+              style={{
+                data: {
+                  stroke: (() => {
+                    switch (chart.color) {
+                      case "orange":
+                        return getThemeColor(METAC_COLORS.orange["800"]);
+                      case "gray":
+                        return getThemeColor(METAC_COLORS.gray["500"]);
+                      default:
+                        return undefined;
+                    }
+                  })(),
+                },
+              }}
+            />
+          ))}
+          {/* Left/Right borders at bounds if requested */}
+          {!domainOverride.isGlobalMin && (
+            <VictoryLine
+              data={[
+                { x: 0, y: yDomain[0] },
+                { x: 0, y: yDomain[1] * 0.9 },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                  strokeWidth: 0.5,
+                },
+              }}
+            />
+          )}
+          {!domainOverride.isGlobalMax && (
+            <VictoryLine
+              data={[
+                { x: 1, y: yDomain[0] },
+                { x: 1, y: yDomain[1] * 0.9 },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                  strokeWidth: 0.5,
+                },
+              }}
+            />
+          )}
           {charts.map((chart, k) =>
             chart.verticalLines.map((line, index) => (
               <VictoryLine
@@ -613,19 +794,135 @@ const ContinuousAreaChart: FC<Props> = ({
                     stroke: (() => {
                       switch (chart.color) {
                         case "orange":
-                          return getThemeColor(METAC_COLORS.orange["800"]);
+                          return getThemeColor(METAC_COLORS.orange["700"]);
                         case "gray":
                           return getThemeColor(METAC_COLORS.gray["500"]);
                         default:
                           return undefined;
                       }
                     })(),
-                    strokeDasharray: "2,1",
+                    strokeDasharray: "2,2",
                   },
                 }}
               />
             ))
           )}
+          {/* Resolution point */}
+          {resX != null && resPlacement === "in" && (
+            <VictoryScatter
+              data={[
+                {
+                  x: resX,
+                  y: 0,
+                  symbol: "diamond",
+                  size: 4,
+                },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: getThemeColor(METAC_COLORS.gray["200"]),
+                  strokeWidth: 2.5,
+                },
+              }}
+            />
+          )}
+          {/* Resolution chip */}
+          {resX != null &&
+            resPlacement === "in" &&
+            withResolutionChip &&
+            (question.type === QuestionType.Discrete ||
+              question.type === QuestionType.Numeric) && (
+              <VictoryScatter
+                data={[
+                  {
+                    x: resX,
+                    y: 0,
+                    symbol: "diamond",
+                    size: 4,
+                  },
+                ]}
+                dataComponent={
+                  <VictoryPortal>
+                    <ChartValueBox
+                      rightPadding={0}
+                      chartWidth={chartWidth}
+                      isCursorActive={false}
+                      isDistributionChip
+                      colorOverride={METAC_COLORS.purple["800"]}
+                      resolution={formattedResolution}
+                    />
+                  </VictoryPortal>
+                }
+              />
+            )}
+
+          {resX != null && resPlacement && resPlacement !== "in" && (
+            <VictoryPortal>
+              <VictoryScatter
+                data={[
+                  {
+                    x:
+                      resPlacement === "left"
+                        ? Math.min(...xDomain)
+                        : Math.max(...xDomain),
+                    y: yDomain[1] - (yDomain[1] - yDomain[0]) * 0.04,
+                    placement: resPlacement === "left" ? "above" : "below",
+                    primary: METAC_COLORS.purple["800"],
+                    secondary: METAC_COLORS.purple["500"],
+                  },
+                ]}
+                dataComponent={
+                  <ResolutionDiamond
+                    hoverable={false}
+                    axisPadPx={3}
+                    rotateDeg={resPlacement === "left" ? 90 : -90}
+                    refProps={{}}
+                  />
+                }
+              />
+            </VictoryPortal>
+          )}
+          {/* Today's date dot for date questions */}
+          {question.type === QuestionType.Date && withTodayLine && (
+            <VictoryScatter
+              data={[
+                {
+                  x: unscaleNominalLocation(
+                    Math.floor(Date.now() / 1000),
+                    question.scaling
+                  ),
+                  y: yDomain[0], // Bottom of the chart
+                  symbol: "circle",
+                  size: 3,
+                },
+              ]}
+              style={{
+                data: {
+                  fill: getThemeColor(METAC_COLORS.blue["700"]),
+                  stroke: "none",
+                },
+              }}
+            />
+          )}
+
+          {question.type === QuestionType.Date &&
+            todayLabelPosition &&
+            withTodayLine && (
+              <VictoryPortal>
+                <VictoryLabel
+                  x={todayLabelPosition.x}
+                  y={height - BOTTOM_PADDING - 12} // Position above the dot
+                  text="Today"
+                  style={{
+                    fill: getThemeColor(METAC_COLORS.blue["700"]),
+                    fontSize: 12,
+                  }}
+                  textAnchor="middle"
+                />
+              </VictoryPortal>
+            )}
+
           {/* Manually render cursor component when cursor is on edge */}
           {!isNil(cursorEdge) && (
             <LineCursorPoints
@@ -805,10 +1102,11 @@ export function getContinuousAreaChartData({
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
-  const latest = question.aggregations.recency_weighted.latest;
+  const latest =
+    question.aggregations[question.default_aggregation_method].latest;
   const userForecast = question.my_forecasts?.latest;
 
-  if (latest && !latest.end_time) {
+  if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
@@ -822,7 +1120,7 @@ export function getContinuousAreaChartData({
       cdf: userForecastOverride.cdf,
       type: "user" as ContinuousAreaType,
     });
-  } else if (!!userForecast && !userForecast.end_time) {
+  } else if (!!userForecast && isForecastActive(userForecast)) {
     chartData.push({
       pmf: cdfToPmf(userForecast.forecast_values),
       cdf: userForecast.forecast_values,
@@ -831,6 +1129,28 @@ export function getContinuousAreaChartData({
   }
 
   return chartData;
+}
+
+export function generateXDomainOverride(
+  globalScaling: Scaling | undefined | null,
+  question: Question
+): DomainOverride {
+  if (!isValidScaling(question.scaling) || !isValidScaling(globalScaling)) {
+    return {
+      xDomain: [0, 1],
+      isGlobalMin: true,
+      isGlobalMax: true,
+    };
+  }
+
+  return {
+    xDomain: [
+      unscaleNominalLocation(globalScaling.range_min, question.scaling),
+      unscaleNominalLocation(globalScaling.range_max, question.scaling),
+    ],
+    isGlobalMin: question.scaling.range_min <= globalScaling.range_min,
+    isGlobalMax: question.scaling.range_max >= globalScaling.range_max,
+  };
 }
 
 export default React.memo(ContinuousAreaChart);

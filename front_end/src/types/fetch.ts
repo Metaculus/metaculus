@@ -35,6 +35,7 @@ export type ApiErrorResponse = Record<string, string[]> & {
 export type ErrorResponse = {
   // Summary message
   message?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   non_field_errors?: string[];
 };

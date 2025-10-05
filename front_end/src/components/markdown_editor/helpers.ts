@@ -9,40 +9,73 @@ const BLOCK_MATH_REGEX = /(?<!\\)\$\$(?:[^$]|\\\$)*?\$\$/g;
 // match valid inline math: $...$ that starts and ends with a non-word character
 const INLINE_MATH_REGEX = /(?<!\\)(?<!\w|\d)\$([^\$]+?)\$(?!\w|\d)/gs;
 
-// escape < and { that is not correctly used
-function escapePlainTextSymbols(str: string) {
-  // pre-process html tags
-  const tags: string[] = [];
-  const tagRegex = /<\/?\s*[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*?)?>/g;
-  let tempStr = str.replace(tagRegex, function (match) {
-    tags.push(match);
-    return "___HTML_TAG___";
+const preProcessMarkdownContent = (
+  markdown: string,
+  {
+    search,
+    placeholderName,
+  }: { search: string | RegExp; placeholderName: string }
+) => {
+  const placeholders: {
+    placeholder: string;
+    original: string;
+  }[] = [];
+
+  let placeholderId = 0;
+  markdown = markdown.replace(search, (match) => {
+    const placeholder = `___${placeholderName}_${placeholderId++}___`;
+    placeholders.push({ placeholder, original: match });
+    return placeholder;
   });
 
+  return { markdown, placeholders };
+};
+
+// escape < and { that is not correctly used
+function escapePlainTextSymbols(str: string) {
+  let tempStr = str;
+
+  // pre-process html tags
+  const tagRegex = /<\/?\s*[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*?)?>/g;
+  const { markdown: processedTagsMarkdown, placeholders: tags } =
+    preProcessMarkdownContent(tempStr, {
+      search: tagRegex,
+      placeholderName: "HTML_TAG",
+    });
+  tempStr = processedTagsMarkdown;
+
   // pre-process math expressions
-  const mathExpressions: string[] = [];
-  tempStr = tempStr.replace(BLOCK_MATH_REGEX, function (match) {
-    mathExpressions.push(match);
-    return "___MATH_BLOCK___";
+  const {
+    markdown: processedBlockMathMarkdown,
+    placeholders: blockMathExpressions,
+  } = preProcessMarkdownContent(tempStr, {
+    search: BLOCK_MATH_REGEX,
+    placeholderName: "MATH_BLOCK",
   });
-  tempStr = tempStr.replace(INLINE_MATH_REGEX, function (match) {
-    mathExpressions.push(match);
-    return "___MATH_INLINE___";
+  tempStr = processedBlockMathMarkdown;
+  const {
+    markdown: processedInlineMathMarkdown,
+    placeholders: inlineMathExpressions,
+  } = preProcessMarkdownContent(tempStr, {
+    search: INLINE_MATH_REGEX,
+    placeholderName: "MATH_INLINE",
   });
+  tempStr = processedInlineMathMarkdown;
 
   // escape < that is not correctly used
   tempStr = tempStr.replace(/([^\\])</g, "$1\\<").replace(/^</g, "\\<");
 
   // restore math expressions
-  let mathIndex = 0;
-  tempStr = tempStr.replace(/___MATH_(BLOCK|INLINE)___/g, function () {
-    return mathExpressions[mathIndex++] ?? "";
+  blockMathExpressions.forEach(({ placeholder, original }) => {
+    tempStr = tempStr.replace(placeholder, () => original);
+  });
+  inlineMathExpressions.forEach(({ placeholder, original }) => {
+    tempStr = tempStr.replace(placeholder, () => original);
   });
 
   // restore html tags
-  let tagIndex = 0;
-  tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
-    return tags[tagIndex++] ?? "";
+  tags.forEach(({ placeholder, original }) => {
+    tempStr = tempStr.replace(placeholder, () => original);
   });
 
   // escape { that is not correctly used
@@ -54,7 +87,7 @@ function escapePlainTextSymbols(str: string) {
 }
 
 function formatBlockquoteNewlines(markdown: string): string {
-  return markdown.replace(/>\s*\n/g, "> \u00A0\n");
+  return markdown.replace(/^>\s*\n/gm, "> &#x20;\n");
 }
 
 // backwards compatibility util to handle the old mathjax syntax
@@ -119,7 +152,7 @@ const transformMathJaxToLatex = (markdown: string): string => {
 };
 
 // escape dollar signs that are not used for math
-export const escapeRawDollarSigns = (markdown: string): string => {
+const escapeRawDollarSigns = (markdown: string): string => {
   const placeholders = new Map<string, string>();
   let placeholderIndex = 0;
 
@@ -149,29 +182,18 @@ export const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
-const preProcessMarkdownContent = (
-  markdown: string,
-  {
-    search,
-    placeholderName,
-  }: { search: string | RegExp; placeholderName: string }
-) => {
-  const placeholders: {
-    placeholder: string;
-    original: string;
-  }[] = [];
-
-  let placeholderId = 0;
-  markdown = markdown.replace(search, (match) => {
-    const placeholder = `___${placeholderName}_${placeholderId++}___`;
-    placeholders.push({ placeholder, original: match });
-    return placeholder;
-  });
-
-  return { markdown, placeholders };
-};
-
 function sanitizeHtml(markdown: string) {
+  // Pre-process blockquote spaces to protect them from sanitization
+  const blockquoteSpaceRegex = /^>\s*&#x20;\n/gm;
+  const {
+    markdown: blockquoteProcessed,
+    placeholders: blockquotePlaceholders,
+  } = preProcessMarkdownContent(markdown, {
+    search: blockquoteSpaceRegex,
+    placeholderName: "BLOCKQUOTE_SPACE",
+  });
+  markdown = blockquoteProcessed;
+
   // pre-process embedded JSX as otherwise it will be removed by DOMPurify
   const supportedComponents = [
     EMBEDDED_QUESTION_COMPONENT_NAME,
@@ -211,7 +233,7 @@ function sanitizeHtml(markdown: string) {
 
   // restore JSX components
   jsxComponents.forEach(({ placeholder, original }) => {
-    markdown = markdown.replace(placeholder, original);
+    markdown = markdown.replace(placeholder, () => original);
   });
   // restore native self-closing tags
   selfClosingTags.forEach(({ placeholder, original }) => {
@@ -220,13 +242,17 @@ function sanitizeHtml(markdown: string) {
     if (!nativeTag.endsWith("/>") && !nativeTag.endsWith("/ >")) {
       nativeTag = nativeTag.replace(/>$/, " />");
     }
-    markdown = markdown.replace(placeholder, nativeTag);
+    markdown = markdown.replace(placeholder, () => nativeTag);
+  });
+  blockquotePlaceholders.forEach(({ placeholder, original }) => {
+    markdown = markdown.replace(placeholder, () => original);
   });
 
   // decode gt and lt to < and >, so MDXEditor can render it properly
   markdown = markdown.replace(/&lt;/g, "<");
   markdown = markdown.replace(/&gt;/g, ">");
-
+  // also decode &amp; to &
+  markdown = markdown.replace(/&amp;/g, "&");
   return markdown;
 }
 

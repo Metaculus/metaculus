@@ -14,16 +14,14 @@ import {
   NOTEBOOK_CONTENT_SECTION,
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
-import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
+import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import CommentFeed from "@/components/comment_feed";
-import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
+import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
-import {
-  POST_CATEGORIES_FILTER,
-  POST_TAGS_FILTER,
-} from "@/constants/posts_feed";
+import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
+import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostStatus } from "@/types/post";
@@ -80,7 +78,7 @@ const IndividualNotebookPage: FC<{
             />
           )}
 
-        <PostHeader post={postData} questionTitle={questionTitle} />
+        <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
 
         <h1
           id={NOTEBOOK_TITLE}
@@ -116,25 +114,26 @@ const IndividualNotebookPage: FC<{
               })}
             </span>
           </div>
-          <div className="flex flex-col items-center justify-end gap-1 sm:flex-row">
+          <div className="flex items-center justify-end gap-1">
             <PostVoter
-              className="w-full justify-end sm:mr-3 sm:w-auto"
+              className="justify-end sm:mr-3 sm:w-auto"
               post={postData}
               questionPage
             />
             <div className="flex items-center gap-1">
-              {postData.curation_status == PostStatus.APPROVED && (
-                <>
-                  <div className="mr-2 hidden lg:block">
-                    <PostSubscribeButton post={postData} />
-                  </div>
-                  <div className="lg:hidden">
-                    <PostSubscribeButton post={postData} mini />
-                  </div>
-                </>
-              )}
-              <SharePostMenu questionTitle={questionTitle} />
-              <PostDropdownMenu post={postData} />
+              <PostSubscriptionProvider post={postData}>
+                {postData.curation_status == PostStatus.APPROVED && (
+                  <>
+                    <div className="mr-2 hidden lg:block">
+                      <PostSubscribeButton />
+                    </div>
+                  </>
+                )}
+                <div className="hidden lg:block">
+                  <SharePostMenu questionTitle={questionTitle} />
+                </div>
+                <PostDropdownMenu post={postData} />
+              </PostSubscriptionProvider>
             </div>
           </div>
         </div>
@@ -142,7 +141,7 @@ const IndividualNotebookPage: FC<{
         <hr className="my-4 border-gray-400 dark:border-gray-400-dark" />
 
         <div className="block md:flex md:gap-8">
-          <div className="inline w-full md:mt-3 md:min-w-56 md:max-w-56">
+          <div className="mb-2 w-full md:mb-0 md:mt-3 md:min-w-56 md:max-w-56">
             <NotebookContentSections
               commentsCount={postData.comment_count ?? 0}
               unreadComments={postData.unread_comment_count}
@@ -167,25 +166,6 @@ const IndividualNotebookPage: FC<{
                         {category.name}
                       </Link>
                       {index < (postData.projects.category?.length ?? 0) - 1
-                        ? ","
-                        : "."}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {!!postData.projects.tag?.length && (
-                <div>
-                  <span className="font-medium">{t("tags") + ":"}</span>
-                  {postData.projects.tag?.map((tag, index) => (
-                    <span key={tag.id}>
-                      {" "}
-                      <Link
-                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
-                        href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}
-                      >
-                        {tag.name}
-                      </Link>
-                      {index < (postData.projects.tag?.length ?? 0) - 1
                         ? ","
                         : "."}
                     </span>

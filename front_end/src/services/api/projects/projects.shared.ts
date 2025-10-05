@@ -6,22 +6,18 @@ import {
   Community,
   NewsCategory,
   ProjectVisibility,
-  Tag,
   Tournament,
   TournamentMember,
   TournamentPreview,
+  LeaderboardTag,
 } from "@/types/projects";
-import { LeaderboardDetails } from "@/types/scoring";
 import { encodeQueryParams } from "@/utils/navigation";
-
-export type TagsParams = {
-  search?: string;
-};
 
 export type TournamentFilterParams = {
   // Min permission
   permission?: ProjectPermissions;
   show_on_homepage?: boolean;
+  show_on_services_page?: boolean;
 };
 
 export type CommunitiesParams = PaginationParams & {
@@ -46,10 +42,8 @@ class ProjectsApi extends ApiService {
     return await this.get<NewsCategory[]>("/projects/news-categories/");
   }
 
-  async getTags(params?: TagsParams): Promise<Tag[]> {
-    const queryParams = encodeQueryParams(params ?? {});
-
-    return await this.get<Tag[]>(`/projects/tags/${queryParams}`);
+  async getLeaderboardTags(): Promise<LeaderboardTag[]> {
+    return await this.get(`/projects/leaderboard-tags/`);
   }
 
   async getSiteMain(): Promise<Tournament> {
@@ -70,22 +64,6 @@ class ProjectsApi extends ApiService {
 
   async getTournament(slug: string | number): Promise<Tournament | null> {
     return await this.get<Tournament>(`/projects/tournaments/${slug}/`);
-  }
-
-  async getProjectLeaderboard(
-    projectId: number,
-    leaderboardType: string | null = null
-  ): Promise<LeaderboardDetails> {
-    const queryParams = encodeQueryParams(
-      leaderboardType
-        ? {
-            leaderboardType,
-          }
-        : {}
-    );
-    return this.get<LeaderboardDetails>(
-      `/projects/${projectId}/leaderboard/${queryParams}`
-    );
   }
 
   async getMembers(projectId: number): Promise<TournamentMember[]> {

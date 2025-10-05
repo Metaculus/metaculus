@@ -220,7 +220,15 @@ export default async function FAQ() {
               </a>
             </li>
             <li>
+              <a href="#reaffirming">
+                What is &quot;Reaffirming&quot; a prediction?
+              </a>
+            </li>
+            <li>
               <a href="#howwithdraw">How can I withdraw my prediction?</a>
+            </li>
+            <li>
+              <a href="#auto-withdrawal">What is prediction auto-withdrawal?</a>
             </li>
             <li>
               <a href="#range-interface">How do I use the range interface?</a>
@@ -233,11 +241,6 @@ export default async function FAQ() {
             <li>
               <a href="#metaculus-prediction">
                 What is the Metaculus Prediction?
-              </a>
-            </li>
-            <li>
-              <a href="#reaffirming">
-                What is &quot;Reaffirming&quot; a prediction?
               </a>
             </li>
           </ul>
@@ -253,6 +256,9 @@ export default async function FAQ() {
             </li>
             <li>
               <a href="#whatmedals">What are medals?</a>
+            </li>
+            <li>
+              <a href="#whatmedalranks">What are medal ranks?</a>
             </li>
           </ul>
         </div>
@@ -377,10 +383,9 @@ export default async function FAQ() {
 
         <p>
           Second, Metaculus aggregates the forecasts into a community prediction
-          based on the
-          <a href="https://en.wikipedia.org/wiki/Median"> median</a>of user
-          forecasts weighted by recency. Surprisingly, the Community Prediction
-          is often{" "}
+          based on the <a href="https://en.wikipedia.org/wiki/Median">median</a>{" "}
+          of user forecasts weighted by recency. Surprisingly, the Community
+          Prediction is often
           <Link href="/questions/track-record/">
             better than any individual predictor
           </Link>
@@ -510,6 +515,12 @@ export default async function FAQ() {
           proportion of the prize pool you receive.
         </p>
 
+        <p>
+          For more information about how scores are calculated and prizes are
+          awarded, see the tournament scores section of our{" "}
+          <Link href="/help/scores-faq/#tournament-scores">scores FAQ</Link>.
+        </p>
+
         <h4 className="text-lg font-semibold">
           Can I donate my tournament winnings?
         </h4>
@@ -549,118 +560,25 @@ export default async function FAQ() {
           predicted probabilities from its users, then aggregates those
           probabilities. We believe that this sort of &quot;prediction
           aggregator&quot; has both advantages and disadvantages relative to a
-          prediction market.
-        </p>
-
-        <h4 className="text-lg font-semibold">
-          Advantages of Metaculus over prediction markets
-        </h4>
-        <p>
-          Metaculus has several advantages over prediction markets, described
-          below, but we want to preface this by saying that despite the
-          potential issues with prediction markets that we describe here, we
-          think prediction markets are valuable, are glad they exist, and would
-          be glad to see more use of them.
-        </p>
-
-        <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
-          <li>
-            <b>Poor incentives for longer term forecasts.</b> It&apos;s usually
-            not a good use of your funds to lock them up in a prediction market
-            for the long term, since you can usually get much better returns by
-            investing, which means longer term markets are likely to have low
-            liquidity. For an example see{" "}
-            <a href="https://wip.gatspress.com/wp-content/uploads/2024/05/thu9F-cumulative-traded-volume-on-the-2020-us-election-4-1024x897.png">
-              this plot
-            </a>{" "}
-            from a{" "}
-            <a href="https://worksinprogress.co/issue/why-prediction-markets-arent-popular/">
-              Works in Progress article
-            </a>{" "}
-            showing the trading volume on Betfair for the 2020 US presidential
-            election. There was very little volume far in advance of the
-            election, with most of the trading volume occurring only a month out
-            from the election.
-          </li>
-          <li>
-            <b>Problems with low probabilities.</b> Prediction markets have
-            market frictions that make them less useful for low probabilities.
-            The return on using your money to bring a probability from 2% to 1%
-            is negligible, or potentially negative if the prediction market
-            extract a fee from traders. That&apos;s why you get weird results
-            like Michelle Obama at 6% chance of becoming the Democratic nominee
-            for the 2024 US presidential election in June of 2024, as was the
-            case{" "}
-            <a href="https://polymarket.com/event/democratic-nominee-2024?tid=1724174308005">
-              on Polymarket
+          prediction market, and we go into detail about these in our blog post{" "}
+          <i>
+            <a
+              href="https://www.metaculus.com/notebooks/38198/metaculus-and-markets-whats-the-difference/"
+              target="_blank"
+            >
+              Metaculus and Markets: What&#39;s the Difference?
             </a>
-            .
-          </li>
-          <li>
-            <b>The focus isn&apos;t always forecasting.</b> Prediction market
-            incentives aren&apos;t always aligned with making the most accurate
-            predictions. Consider that one potential use for prediction markets
-            is hedging against risky outcomes. Additionally, people who are
-            irrational but willing to put a ton of money behind their beliefs
-            may skew the outcome. Sure, ideally a liquid market will correct for
-            these skews, but it&apos;s possible that they could have an effect
-            on the price. See{" "}
-            <a href="https://asteriskmag.com/issues/05/prediction-markets-have-an-elections-problem-jeremiah-johnson">
-              this piece in Asterisk Magazine
-            </a>{" "}
-            for more on &quot;dumb money&quot; in prediction markets.
-          </li>
-          <li>
-            <b>What do individuals think will happen?</b> Participants in
-            prediction markets are expressing whether they think the probability
-            is higher or lower than the market price, not making a forecast. If
-            someone thinks the market is too low at 35% and bets accordingly,
-            you don&apos;t know whether they think the true probability is 40%
-            or 80%. This doesn&apos;t really impact the usefulness of the
-            aggregate, but it does make the data less rich and informative, and
-            harder to see the full distribution of forecasts like you can with
-            the histograms for binary questions on Metaculus.
-          </li>
-          <li>
-            <b>
-              Individual market performance is not always a clear indication of
-              forecasting skill.
-            </b>{" "}
-            Excellent individual market performance might just signal
-            proficiency at operating in markets, or ability to take advantage of
-            bad bets made by others. For example, see{" "}
-            <a href="https://www.cspicenter.com/p/salem-tournament-5-days-in#:~:text=The%20first%20problem%20we%20saw%20was%20that%20there%20were%20some%20individuals%20who%20made%20a%20killing%20by%20taking%20advantage%20of%20those%20who%20did%20not%20know%20how%20the%20markets%20work%20(see%20discussion%20here).">
-              this post
-            </a>{" "}
-            about a tournament organized on Manifold where traders took a large
-            early lead just due to intelligent use of limit orders. Since
-            Metaculus elicits individual probabilities from every forecaster, we
-            can better assess and recruit excellent forecasters.
-          </li>
-          <li>
-            <b>
-              Metaculus performs comparably to markets without the need to
-              manage a portfolio.
-            </b>{" "}
-            There are only a handful of apples-to-apples comparisons between
-            platforms, but{" "}
-            <a href="https://www.metaculus.com/notebooks/15359/predictive-performance-on-metaculus-vs-manifold-markets/">
-              these
-            </a>{" "}
-            <a href="https://firstsigma.substack.com/p/midterm-elections-forecast-comparison-analysis">
-              find
-            </a>{" "}
-            an{" "}
-            <a href="https://www.astralcodexten.com/p/who-predicted-2023">
-              advantage
-            </a>{" "}
-            for Metaculus over prediction markets. Note that sample sizes tend
-            to be small. However, there is also an{" "}
-            <a href="https://calibration.city/">indirect comparison</a>{" "}
-            (indirect because it does not consider the same questions across
-            platforms) which found that prediction markets are more calibrated.
-          </li>
-        </ol>
+          </i>
+          . Here&#39;s a graphic from that post with a quick overview:
+        </p>
+
+        <Image
+          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
+          alt="Metaculus and Markets Comparison"
+          className="my-4"
+          width={700}
+          height={207}
+        />
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="justpolling">
           Are Metaculus Questions Polls?
@@ -912,7 +830,7 @@ export default async function FAQ() {
           <li>Users are welcome comment on any question.</li>
           <li>
             Comments and questions can use{" "}
-            <Link href="/help/markdown/">markdown formatting</Link>
+            <Link href="/help/markdown/">markdown formatting</Link>.
           </li>
           <li>
             Metaculus aims at a high level of discourse. Comments should be on
@@ -922,7 +840,7 @@ export default async function FAQ() {
             offensive, derogatory, or harassing are not tolerated, as well as
             those that are explicitly commercial advertising or those that are
             in some way unlawful. See the Metaculus{" "}
-            <Link href="/terms-of-use/">terms of use</Link>for more
+            <Link href="/terms-of-use/">terms of use</Link> for more.
           </li>
           <li>
             You can ping other users using &quot;@username&quot;, which will
@@ -951,16 +869,15 @@ export default async function FAQ() {
         </p>
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>
-            A &quot;credible source&quot; will be taken to be an online or
-            in-print published story from a journalistic source, or information
-            publicly posted on a the website of an organization by that
-            organization making public information pertaining to that
-            organization, or in another source where the preponderance of
-            evidence suggests that the information is correct and that there is
-            no significant controversy surrounding the information or its
-            correctness. It will generally not include unsourced information
-            found in blogs, facebook or twitter postings, or websites of
-            individuals.
+            A &quot;credible source&quot; will be taken to be an online or print
+            published article from a journalistic or academic source,
+            information publicly posted by an authoritative source with specific
+            knowledge or responsibility for the subject matter, or in general
+            information from a source where the preponderance of evidence
+            suggests that the information is correct—provided in all cases that
+            there is no significant controversy surrounding its correctness.
+            Credible sources will generally not include unsourced information
+            found in blogs, social media postings, or websites of individuals.
           </li>
           <li>
             The phrase &quot;Before [date X] will be taken to mean prior to the
@@ -1452,10 +1369,10 @@ export default async function FAQ() {
         <p>
           Only Metaculus Administrators can resolve questions. Binary questions
           can resolve <strong>Yes</strong>, <strong>No</strong>,{" "}
-          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</Link>.
+          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annulled</Link>.
           Range questions can resolve to a specific value, an out-of-bounds
           value,{" "}
-          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</Link>.
+          <Link href="/faq/#ambiguous-annulled">Ambiguous, or Annulled</Link>.
         </p>
 
         <h3
@@ -2439,6 +2356,43 @@ export default async function FAQ() {
             light, it is beneficial to take it into account.
           </p>
         </div>
+
+        <div>
+          <h3
+            id="reaffirming"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is &quot;Reaffirming&quot; a prediction?
+          </h3>
+          <p>
+            Sometimes you haven&apos;t changed your mind on a question, but you
+            still want to record your current forecast. This is called
+            &quot;reaffirming&quot;: predicting the same value you predicted
+            before, now.
+          </p>
+          <p>
+            It is also useful when sorting questions by the age of your latest
+            forecast. Reaffirming a question sends it to the bottom of that
+            list.
+          </p>
+          <p>
+            You can reaffirm a question from the normal forecast interface on
+            the question page, or using a special button in feeds.
+          </p>
+          <Image
+            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
+            alt="Reaffirming a prediction"
+            className="my-4"
+            width={922}
+            height={575}
+          />
+
+          <p>
+            On question groups, reaffirming impacts all subquestions on which
+            you had a forecast, but not the others.
+          </p>
+        </div>
+
         <div>
           <h3
             id="howwithdraw"
@@ -2708,6 +2662,45 @@ export default async function FAQ() {
             height={300}
           />
         </div>
+
+        <div>
+          <h3
+            id="auto-withdrawal"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is prediction auto-withdrawal?
+          </h3>
+          <p>
+            Prediction auto-withdrawal is a feature that automatically{" "}
+            <Link href="/faq/#howwithdraw">withdraws</Link> your forecast after
+            a set amount of time, unless you update or re-affirm it.
+          </p>
+          <p>
+            By default, a prediction will be withdrawn after 10% of the
+            question’s lifetime has passed. You can adjust this percentage in
+            your account <Link href="/accounts/settings/">settings</Link>.
+          </p>
+          <p>When a prediction is withdrawn:</p>
+          <ul className="ml-5 list-disc">
+            <li>
+              Your forecast{" "}
+              <span className="italic">up to the point of withdrawal</span>{" "}
+              still counts toward your score.
+            </li>
+            <li>You’ll receive a reminder email before the withdrawal date.</li>
+            <li>
+              You can re-affirm the forecast later if it still reflects your
+              view — but the time between withdrawal and re-affirmation won’t
+              count toward your score.
+            </li>
+          </ul>
+
+          <p>
+            This helps reduce the impact of stale forecasts on your accuracy and
+            the community prediction.
+          </p>
+        </div>
+
         <div>
           <h3
             id="range-interface"
@@ -2782,9 +2775,7 @@ export default async function FAQ() {
             height={799}
           />
           {/* TODO: add image of Discrete input */}
-        </div>
 
-        <div>
           <h4
             id="out-of-bounds-resolution"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2806,9 +2797,7 @@ export default async function FAQ() {
             Questions can have open or closed boundaries on either end of the
             specified range.
           </p>
-        </div>
 
-        <div>
           <h4
             id="closed-boundaries"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2825,9 +2814,7 @@ export default async function FAQ() {
             Closed boundaries restrict forecasters from assigning probabilities
             outside the specified range.
           </p>
-        </div>
 
-        <div>
           <h4
             id="open-boundaries"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2850,9 +2837,7 @@ export default async function FAQ() {
             weight can also be lowered or increased to adjust the probability
             assigned to an out of bounds resolution.
           </p>
-        </div>
 
-        <div>
           <h4
             id="multiple-components"
             className="mb-4 scroll-mt-nav text-xl font-semibold"
@@ -2991,41 +2976,6 @@ export default async function FAQ() {
           </p>
         </div>
 
-        <div>
-          <h3
-            id="reaffirming"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What is &quot;Reaffirming&quot; a prediction?
-          </h3>
-          <p>
-            Sometimes you haven&apos;t changed your mind on a question, but you
-            still want to record your current forecast. This is called
-            &quot;reaffirming&quot;: predicting the same value you predicted
-            before, now.
-          </p>
-          <p>
-            It is also useful when sorting questions by the age of your latest
-            forecast. Reaffirming a question sends it to the bottom of that
-            list.
-          </p>
-          <p>
-            You can reaffirm a question from the normal forecast interface on
-            the question page, or using a special button in feeds.
-          </p>
-          <Image
-            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
-            alt="Reaffirming a prediction"
-            className="my-4"
-            width={922}
-            height={575}
-          />
-
-          <p>
-            On question groups, reaffirming impacts all subquestions on which
-            you had a forecast, but not the others.
-          </p>
-        </div>
         <hr />
         <div>
           <h2
@@ -3071,6 +3021,46 @@ export default async function FAQ() {
           <p>
             Learn more in the dedicated{" "}
             <Link href="/help/medals-faq/">Medals FAQ</Link>.
+          </p>
+
+          <h4
+            id="whatmedalranks"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What are medal ranks?
+          </h4>
+          <p>
+            The ranks shown on user profiles below medals are a measure of how
+            that user&#39;s achievements compare to all other users in that
+            category.
+          </p>
+          <p>
+            Each user is assigned a score based on which medal they received,
+            and when they received them. Higher tier medals give more points:
+            gold medals give 10 points each, silver medals give 4 each and
+            bronze medals give 1 each. Points also decay by 2× per year. The
+            general formula is:
+          </p>
+          <KatexRenderer
+            equation="
+            \begin{align*}
+            \text{points} &=&
+            1&0 \sum_{\text{gold medals} } &2^{-\text{medal age in years}}
+            \\
+            &&+&
+            4 \sum_{\text{silver medals} } &2^{-\text{medal age in years}}
+            \\
+            &&+&
+            1 \sum_{\text{bronze medals} } &2^{-\text{medal age in years}}
+            \end{align*}
+          "
+            inline={false}
+          />
+          <p>
+            Then, all Metaculus users are sorted by how many points they have in
+            each medal category, and it’s their rank in that list that is shown
+            in their profile. The “best ever” rank is simply the best rank they
+            have ever reached in the past.
           </p>
         </div>
 
@@ -3355,7 +3345,7 @@ export default async function FAQ() {
               , and share posts you like.
             </li>
             <li>
-              <a href="mailto:support@metaculus.com">Contact us</a>for other
+              <a href="mailto:support@metaculus.com">Contact us</a> for other
               ideas.
             </li>
           </ol>
@@ -3370,7 +3360,7 @@ export default async function FAQ() {
           </h3>
           <p>
             Of course, if you wish to close your account, please email your
-            request to
+            request to{" "}
             <a href="mailto:closemyaccount@metaculus.com">
               closemyaccount@metaculus.com
             </a>

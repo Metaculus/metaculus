@@ -1,8 +1,11 @@
+"use client";
+
 import "./styles.scss";
 
-import { isNil } from "lodash";
+import { parse, isValid } from "date-fns";
+import { isNil, round } from "lodash";
 import { useLocale } from "next-intl";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import {
   LineSegment,
   VictoryAxis,
@@ -22,29 +25,57 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { calculateCharWidth } from "@/utils/charts/helpers";
 import { getResolutionPosition } from "@/utils/charts/resolution";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getContinuousGroupScaling } from "@/utils/questions/helpers";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
+import UpcomingCP from "../upcoming_cp";
 import TimeSeriesLabel from "./time_series_label";
 
 type Props = {
   questions: QuestionWithNumericForecasts[];
   height?: number;
+  variant?: "default" | "colorful";
 };
 
-const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
+const MULTIPLE_CHOICE_LIGHT_COLOR_SCALE = Object.values(
+  METAC_COLORS["mc-option-light"]
+) as ThemeColor[];
+const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(
+  METAC_COLORS["mc-option"]
+) as ThemeColor[];
+
+function getNormalizedTicks(maxValue: number): number[] {
+  return [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
+}
+
+const TimeSeriesChart: FC<Props> = ({
+  questions,
+  height = 130,
+  variant = "default",
+}) => {
   const { theme, getThemeColor } = useAppTheme();
   const locale = useLocale();
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const chartData = buildChartData(questions, locale);
+  const orderedQuestions = useMemo(
+    () =>
+      [...questions]
+        .map((q, i) => ({ q, i, k: monthYearKey(q.label) }))
+        .sort((a, b) => (a.k === b.k ? a.i - b.i : a.k - b.k))
+        .map(({ q }) => q),
+    [questions]
+  );
+
+  const chartData = buildChartData(orderedQuestions, locale);
   const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
   const { labelVisibilityMap: tickLabelVisibilityMap, widthPerLabel } =
@@ -56,6 +87,42 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
     true
   );
 
+  const allQuestionsEmpty = adjustedChartData.every((datum) => datum.isEmpty);
+
+  // Forecast availabilities map
+  const questionAvailabilities = useMemo(
+    () => orderedQuestions.map((q) => getQuestionForecastAvailability(q)),
+    [orderedQuestions]
+  );
+
+  // Show upcoming label if any empty questions have cpRevealsOn
+  const shouldShowCPLabel = useMemo(() => {
+    return questionAvailabilities.some(
+      (availability) => availability.isEmpty && availability.cpRevealsOn
+    );
+  }, [questionAvailabilities]);
+
+  // Get the earliest CP reveal time from empty questions
+  const earliestCPRevealTime = useMemo(() => {
+    if (!shouldShowCPLabel) return null;
+
+    const cpRevealTimes = questionAvailabilities
+      .filter(
+        (availability) =>
+          availability.isEmpty && !isNil(availability.cpRevealsOn)
+      )
+      .map((availability) => availability.cpRevealsOn as string);
+
+    if (cpRevealTimes.length === 0) return null;
+
+    return cpRevealTimes.reduce((earliest, current) => {
+      return new Date(current) < new Date(earliest) ? current : earliest;
+    });
+  }, [shouldShowCPLabel, questionAvailabilities]);
+
+  const maxValue = Math.max(...adjustedChartData.map((d) => d.y), 1);
+  const tickValues = getNormalizedTicks(maxValue);
+
   if (chartData.length === 0) {
     return null;
   }
@@ -65,13 +132,13 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
-          height={height}
+          height={allQuestionsEmpty ? 46 : height}
           theme={chartTheme}
           padding={{
             left: 0,
             top: 20,
             right: 0,
-            bottom: 25,
+            bottom: 30,
           }}
           domainPadding={{
             x: chartWidth > 400 ? 80 : chartData.length > 3 ? 40 : 50,
@@ -92,8 +159,10 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
           <VictoryAxis
             style={{
               axis: {
-                stroke: getThemeColor(METAC_COLORS.blue["300"]),
-                strokeDasharray: "4, 4",
+                stroke: allQuestionsEmpty
+                  ? "transparent"
+                  : getThemeColor(METAC_COLORS.blue["300"]),
+                strokeDasharray: allQuestionsEmpty ? "none" : "4, 4",
               },
               ticks: {
                 stroke: "transparent",
@@ -110,13 +179,17 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
               ticks: { stroke: "transparent" },
               tickLabels: { fill: "none" },
               grid: {
-                stroke: getThemeColor(METAC_COLORS.blue["300"]),
-                strokeDasharray: "4, 4",
+                stroke: allQuestionsEmpty
+                  ? "transparent"
+                  : getThemeColor(METAC_COLORS.blue["400"]),
+                strokeDasharray: allQuestionsEmpty ? "none" : "4, 4",
               },
             }}
             gridComponent={<LineSegment />}
-            tickCount={5}
+            tickValues={variant === "colorful" ? tickValues : undefined}
+            tickCount={variant === "default" ? 5 : undefined}
           />
+
           <VictoryGroup data={adjustedChartData}>
             <VictoryBar
               style={{
@@ -127,6 +200,8 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                   isTickLabel={true}
                   labelVisibilityMap={tickLabelVisibilityMap}
                   widthPerLabel={widthPerLabel}
+                  allQuestionsEmpty={allQuestionsEmpty}
+                  colorful={variant === "colorful"}
                 />
               }
             />
@@ -135,36 +210,91 @@ const TimeSeriesChart: FC<Props> = ({ questions, height = 130 }) => {
                 <TimeSeriesLabel
                   isTickLabel={false}
                   labelVisibilityMap={barLabelVisibilityMap}
+                  allQuestionsEmpty={allQuestionsEmpty}
+                  colorful={variant === "colorful"}
                 />
               }
               style={{
-                border: {
-                  stroke: getThemeColor(METAC_COLORS.blue["400"]),
-                  strokeWidth: 2,
-                  borderRadius: 2,
-                },
                 data: {
-                  fill: ({ datum }) =>
-                    datum.resolution
-                      ? getThemeColor(
-                          ["no", "yes"].includes(datum.resolution as string)
-                            ? METAC_COLORS.purple["400"]
-                            : METAC_COLORS.purple["500"]
-                        )
-                      : datum.isClosed
-                        ? getThemeColor(METAC_COLORS.gray["500"])
-                        : getThemeColor(METAC_COLORS.blue["400"]),
-                  display: "block",
+                  fill: ({ datum, index }) => {
+                    if (variant === "colorful" && !datum.isEmpty) {
+                      if (datum.resolution) {
+                        return "transparent";
+                      }
+                      const safeIndex = typeof index === "number" ? index : 0;
+                      const color: ThemeColor =
+                        MULTIPLE_CHOICE_LIGHT_COLOR_SCALE[
+                          safeIndex % MULTIPLE_CHOICE_LIGHT_COLOR_SCALE.length
+                        ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+
+                      return getThemeColor(color);
+                    }
+
+                    if (datum.resolution) {
+                      return getThemeColor(
+                        ["no", "yes"].includes(datum.resolution as string)
+                          ? METAC_COLORS.purple["400"]
+                          : METAC_COLORS.purple["500"]
+                      );
+                    }
+
+                    return datum.isClosed
+                      ? getThemeColor(METAC_COLORS.gray["500"])
+                      : getThemeColor(METAC_COLORS.blue["400"]);
+                  },
+                  stroke:
+                    variant === "colorful"
+                      ? ({ datum, index }) => {
+                          if (datum.resolution) {
+                            return getThemeColor(METAC_COLORS.purple["600"]);
+                          }
+                          if (!datum.isEmpty) {
+                            const safeIndex =
+                              typeof index === "number" ? index : 0;
+                            const color: ThemeColor =
+                              MULTIPLE_CHOICE_COLOR_SCALE[
+                                safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
+                              ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+
+                            return getThemeColor(color);
+                          }
+                          return "transparent";
+                        }
+                      : undefined,
                   strokeLinejoin: "round",
-                  strokeWidth: ({ datum }) =>
-                    ["no", "yes"].includes(datum.resolution as string) ? 0 : 5,
+                  strokeWidth: ({ datum }) => {
+                    if (variant === "colorful") {
+                      if (datum.resolution) {
+                        return 2;
+                      }
+                      return datum.isEmpty ||
+                        ["no", "yes"].includes(datum.resolution as string)
+                        ? 0
+                        : 1;
+                    }
+                    return datum.isEmpty
+                      ? 0
+                      : ["no", "yes"].includes(datum.resolution as string)
+                        ? 0
+                        : 5;
+                  },
                   width: ({ datum }) =>
-                    ["no", "yes"].includes(datum.resolution as string) ? 2 : 16,
+                    datum.isEmpty
+                      ? 0
+                      : ["no", "yes"].includes(datum.resolution as string)
+                        ? 2
+                        : 16,
                 },
               }}
             />
           </VictoryGroup>
         </VictoryChart>
+      )}
+      {shouldShowCPLabel && earliestCPRevealTime && (
+        <UpcomingCP
+          cpRevealsOn={earliestCPRevealTime}
+          className="mt-5 text-sm font-normal text-gray-500 dark:text-gray-500-dark"
+        />
       )}
     </div>
   );
@@ -179,15 +309,16 @@ function buildChartData(
   label: string;
   isClosed: boolean;
   resolution: Resolution | null;
+  isEmpty: boolean;
 }[] {
   const scaling = getContinuousGroupScaling(questions);
   return [...questions]
-    .filter(
-      (question) =>
-        !isUnsuccessfullyResolved(question.resolution) &&
-        !isNil(question.aggregations.recency_weighted.latest?.centers?.[0])
-    )
+    .filter((question) => !isUnsuccessfullyResolved(question.resolution))
     .map((question) => {
+      const latest_centers =
+        question.aggregations[question.default_aggregation_method].latest
+          ?.centers?.[0];
+      const hasData = !isNil(latest_centers);
       const resolutionPoint = question.resolution
         ? getResolutionPosition({
             question,
@@ -203,34 +334,36 @@ function buildChartData(
             scaling: question.scaling,
             completeBounds: true,
             actual_resolve_time: null,
+            sigfigs: 4,
           })
         : null;
 
-      const point = getOptionPoint(
-        {
-          value:
-            question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
-          optionScaling: question.scaling,
-          questionScaling: scaling,
-        },
-        question.type === QuestionType.Binary
-      );
+      const point = hasData
+        ? getOptionPoint(
+            {
+              value: latest_centers ?? 0,
+              optionScaling: question.scaling,
+              questionScaling: scaling,
+            },
+            question.type === QuestionType.Binary
+          )
+        : 0.5; // Default position for empty state
 
       return {
         x: question.label,
         y: !isNil(resolutionPoint) ? resolutionPoint : point,
         label: !isNil(formatedResolution)
           ? formatedResolution
-          : getPredictionDisplayValue(
-              question.aggregations.recency_weighted.latest?.centers?.[0] ?? 0,
-              {
+          : hasData
+            ? getPredictionDisplayValue(latest_centers ?? 0, {
                 questionType: question.type,
                 scaling: question.scaling,
                 actual_resolve_time: null,
-              }
-            ),
+              })
+            : "?",
         isClosed: question.status === QuestionStatus.CLOSED,
         resolution: question.resolution,
+        isEmpty: !hasData,
       };
     });
 }
@@ -250,9 +383,12 @@ function getOptionPoint(
   if (withoutScaling) {
     return value;
   }
-  return unscaleNominalLocation(
-    scaleInternalLocation(value, optionScaling),
-    questionScaling
+  return round(
+    unscaleNominalLocation(
+      scaleInternalLocation(value, optionScaling),
+      questionScaling
+    ),
+    2
   );
 }
 
@@ -262,6 +398,7 @@ function adjustLabelsForDisplay(
     label: string;
     isClosed: boolean;
     resolution: Resolution | null;
+    isEmpty: boolean;
   }>,
   chartWidth: number,
   isBarLabel?: boolean
@@ -273,7 +410,9 @@ function adjustLabelsForDisplay(
     ...datum.map((item) => {
       let adjustedLabel = isBarLabel ? item.label : item.x;
       if (isBarLabel) {
-        if (item.isClosed) {
+        if (item.isEmpty) {
+          adjustedLabel = "?";
+        } else if (item.isClosed) {
           adjustedLabel = "closed";
         } else if (item.resolution) {
           adjustedLabel = "resolved";
@@ -340,6 +479,7 @@ function adjustChartData(
     label: string;
     isClosed: boolean;
     resolution: Resolution | null;
+    isEmpty: boolean;
   }[],
   chartWidth: number
 ) {
@@ -378,5 +518,24 @@ function adjustChartData(
       unresolvedPoints.length === 0 ? ([0, 1] as [number, number]) : undefined,
   };
 }
+const F = [
+  "MMM-yy",
+  "MMM yy",
+  "MMM yyyy",
+  "MM/yyyy",
+  "MM-yyyy",
+  "yyyy-MM",
+  "yyyy/MM",
+] as const;
+
+const monthYearKey = (s?: string): number => {
+  if (!s) return Infinity;
+  s = s.replace(/[’]/g, "'").replace(/[—–]/g, "-").trim();
+  for (const f of F) {
+    const d = parse(s, f, new Date());
+    if (isValid(d)) return d.getFullYear() * 12 + d.getMonth();
+  }
+  return Infinity;
+};
 
 export default TimeSeriesChart;

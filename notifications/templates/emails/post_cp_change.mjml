@@ -37,7 +37,7 @@
                         {% with question_data=notification.question_data.0 %}
 
                         {% blocktrans with direction=question_data.get_cp_change_label cp_change_value=question_data.format_cp_change_value user_forecast_date=question_data.format_forecast_date last_sent=notification.format_last_sent median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %}
-                        The community prediction has {{direction}} by <b>{{cp_change_value}}</b> since {{last_sent}}.
+                        The community prediction has {{direction}} by <b>{{cp_change_value}}</b> since {{last_sent}}
                         It is now <b>{{median}}</b>.
                         {% endblocktrans %}
 
@@ -50,34 +50,26 @@
                         {% endwith %}
                     {% else %}
                             {% blocktrans with last_sent=notification.format_last_sent %}
-                            Movement is calculated against {{last_sent}}.
+                            Movement is calculated against {{last_sent}}
                             {% endblocktrans %}
-                        <table style="background-color: #eff4f4">
+                        <table style="background-color: #eff4f4; width: 100%; table-layout: fixed; border-collapse: collapse;">
                             <tr>
-                                <th style="font-weight: bold; padding: 4px 2px 4px 0; text-align: left">
-                                    {% blocktrans %}
-                                    Option
-                                    {% endblocktrans %}
+                                <th style="font-weight: bold; padding: 4px; text-align: left; white-space: normal; word-wrap: break-word; width: 19%;">
+                                    {% blocktrans %}Option{% endblocktrans %}
                                 </th>
-                                <th style="font-weight: bold; padding: 4px 2px; text-align: right">
-                                    {% blocktrans %}
-                                    Movement
-                                    {% endblocktrans %}
+                                <th style="font-weight: bold; padding: 4px 2px; text-align: center; white-space: normal; word-wrap: break-word; width: 27%">
+                                    {% blocktrans %}Movement{% endblocktrans %}
                                 </th>
-                                <th style="font-weight: bold; padding: 4px 2px; text-align: right">
-                                    {% blocktrans %}
-                                    Community now
-                                    {% endblocktrans %}
+                                <th style="font-weight: bold; padding: 4px 2px; text-align: center; white-space: normal; word-wrap: break-word; width: 27%">
+                                    {% blocktrans %}Community now{% endblocktrans %}
                                 </th>
-                                <th style="font-weight: bold; padding: 4px 0 4px 2px; text-align: right">
-                                    {% blocktrans %}
-                                    Your last prediction
-                                    {% endblocktrans %}
+                                <th style="font-weight: bold; padding: 4px 4px 4px 2px; text-align: right; white-space: normal; word-wrap: break-word;">
+                                    {% blocktrans %}Your last prediction{% endblocktrans %}
                                 </th>
                             </tr>
                             {% for item in notification.question_data %}
                             <tr>
-                                <td style="padding: 4px 2px 4px 0; text-align: left">
+                                <td style="padding: 4px; text-align: left">
                                     {% if item.question.type == "multiple_choice" %}
                                         {{ item.label }}
                                     {% else %}
@@ -90,7 +82,7 @@
                                     {{ cp_median }}
                                     {% endwith %}
                                 </td>
-                                <td style="padding: 4px 0 4px 2px; text-align: center">
+                                <td style="padding: 4px 4px 4px 2px; text-align: right">
                                     {{ item.format_user_forecast }}
                                 </td>
                             </tr>

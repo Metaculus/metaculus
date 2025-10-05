@@ -55,7 +55,7 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
           ?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
     },
-    [handleCopy, option.id, option.name, t]
+    [handleCopy, option.id, option.name, t, setForcedOpenId]
   );
 
   const handleCopyFrom = useCallback(
@@ -85,7 +85,7 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
         {
           id: "forecastCopyTo",
           name: t("forecastCopyTo"),
-          onClick: (e: any) => {
+          onClick: (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
             setMenuMode("copyTo");
           },
@@ -93,7 +93,7 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
         {
           id: "forecastCopyFrom",
           name: t("forecastCopyFrom"),
-          onClick: (e: any) => {
+          onClick: (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
             setMenuMode("copyFrom");
           },

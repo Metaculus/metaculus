@@ -38,6 +38,10 @@ def check_and_handle_content_spam(
     admin_emails: list[str],
     email_content_quote: str | None = None,
 ) -> bool:
+    # Skip spam checking for whitelisted users
+    if not author.check_for_spam:
+        return False
+
     if (
         not settings.CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS
         or not should_check_for_user_spam(author)
@@ -147,6 +151,10 @@ def check_profile_data_for_spam(user: User, **args):
 def check_profile_update_for_spam(
     user: User, valid_serializer: UserUpdateProfileSerializer
 ) -> tuple[bool, str]:
+    # Skip spam checking for whitelisted users
+    if not user.check_for_spam:
+        return False, "User is whitelisted for spam checking"
+
     days_since_joined = (timezone.now() - user.date_joined).days
     days_since_joined_threshold = 7
     request_data = cast(dict, valid_serializer.validated_data)

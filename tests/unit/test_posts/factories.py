@@ -1,9 +1,9 @@
 from datetime import timedelta
 
-from django_dynamic_fixture import G
 from django.utils import timezone
+from django_dynamic_fixture import G
 
-from posts.models import Post, PostUserSnapshot
+from posts.models import Post, PostUserSnapshot, Notebook
 from projects.models import Project
 from projects.services.common import get_site_main_project
 from questions.models import Question, Conditional
@@ -53,3 +53,11 @@ def factory_post_snapshot(*, user: User = None, post: Post = None, **kwargs):
             post=post,
         )
     )
+
+
+def factory_notebook(**kwargs) -> Notebook:
+    """
+    Notebook factory
+    """
+
+    return G(Notebook, **kwargs)

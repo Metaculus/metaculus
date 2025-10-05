@@ -76,7 +76,9 @@ class DataGetRequestSerializer(serializers.Serializer):
     include_comments = serializers.BooleanField(required=False, default=False)
     include_scores = serializers.BooleanField(required=False, default=True)
     include_user_data = serializers.BooleanField(required=False, allow_null=True)
-    user_ids = serializers.CharField(required=False, allow_null=True)
+    user_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_null=True
+    )
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     anonymized = serializers.BooleanField(required=False)
 
@@ -109,14 +111,9 @@ class DataGetRequestSerializer(serializers.Serializer):
             ]
         return methods
 
-    def validate_user_ids(self, value):
-        if not value:
-            return value
-        user_ids = value.split(",")
-        if not all(user_id.isdigit() for user_id in user_ids):
-            raise serializers.ValidationError(
-                "Invalid user_ids. Must be a comma-separated list of integers."
-            )
+    def validate_user_ids(self, user_ids: list[int]):
+        if not user_ids:
+            return user_ids
         if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
@@ -187,7 +184,7 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
             raise serializers.ValidationError(
                 f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
             )
-        if not user.is_staff:
+        if not user or not user.is_staff:
             methods = [
                 method
                 for method in methods
