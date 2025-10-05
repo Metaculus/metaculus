@@ -14,7 +14,7 @@ from utils.typing import (
 def weighted_percentile_2d(
     values: ForecastsValues,
     weights: Weights | None = None,
-    percentiles: Percentiles | None = None,
+    percentiles: Percentiles = None,
 ) -> Percentiles:
     values = np.array(values)
     if weights is None:
@@ -64,7 +64,7 @@ def percent_point_function(
     percent_point_function(cdf, [10, 50, 90]) -> [0.0, 0.5, 1.0]
     """
     if return_float := isinstance(percentiles, float | int):
-        percentiles = [percentiles]
+        percentiles = np.array([percentiles])
     ppf_values = []
     for percent in percentiles:
         # percent is a float between 0 and 100

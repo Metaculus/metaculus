@@ -13,7 +13,8 @@ from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone as dt_timezone
-from typing import Sequence
+from typing import Sequence, Type
+from abc import ABC
 
 import numpy as np
 from django.utils import timezone
@@ -27,6 +28,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from scoring.models import Score
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -40,6 +42,8 @@ from utils.typing import (
     Percentiles,
 )
 
+RangeValuesType = tuple[list[float], list[float], list[float]]
+
 
 @dataclass
 class ForecastSet:
@@ -49,10 +53,17 @@ class ForecastSet:
     timesteps: list[datetime] = list
 
 
+@dataclass
+class Reputation:
+    user_id: int
+    value: float
+    time: datetime
+
+
 def get_histogram(
     values: ForecastsValues,
-    weights: Weights | None,
-    question_type: Question.QuestionType = Question.QuestionType.BINARY,
+    weights: Weights,
+    question_type: Question.QuestionType,
 ) -> np.ndarray:
     values = np.array(values)
     if len(values) == 0:
@@ -74,12 +85,12 @@ def get_histogram(
 
 def compute_discrete_forecast_values(
     forecasts_values: ForecastsValues,
-    weights: Weights | None = None,
-    percentile: float | Percentiles = 50.0,
+    weights: Weights = None,
+    percentile: float | list[float] | Percentiles = 50.0,
 ) -> ForecastsValues:
     forecasts_values = np.array(forecasts_values)
     if isinstance(percentile, float):
-        percentile = [percentile]
+        percentile = np.array([percentile])
     if forecasts_values.shape[1] == 2:
         return weighted_percentile_2d(
             forecasts_values, weights=weights, percentiles=percentile
@@ -94,7 +105,7 @@ def compute_discrete_forecast_values(
 
 def compute_weighted_semi_standard_deviations(
     forecasts_values: ForecastsValues,
-    weights: Weights | None,
+    weights: Weights,
 ) -> tuple[ForecastValues, ForecastValues]:
     """returns the upper and lower standard_deviations"""
     forecasts_values = np.array(forecasts_values)
@@ -120,39 +131,28 @@ def compute_weighted_semi_standard_deviations(
     return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
 
 
-class Weighting:
-    def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
-        """Combine all weights multiplicatively"""
-        mro = type(self).__mro__
-        weights = None
-        for klass in mro:
-            new_weights = None
-            if "calculate_weights" in klass.__dict__:
-                new_weights = klass.calculate_weights(self, forecast_set)
-            if weights is None:
-                weights = new_weights
-            elif new_weights is not None:
-                weights = weights * new_weights
-        if weights is None or np.all(weights == 0):
-            return None
-        if len(forecast_set.forecasts_values) != weights.shape[0]:
-            weights = weights[0]
-        return weights
+class Weighted(ABC):
+
+    def __init__(self, question: Question, **kwargs):
+        self.question = question
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        raise NotImplementedError("Implement in Child Class")
 
 
-class Unweighted(Weighting):
+class Unweighted(Weighted):
     """No special weighting"""
 
-    def calculate_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         return None
 
 
-class RecencyWeighted(Weighting):
+class RecencyWeighted(Weighted):
     """Applies a recency weighting to the forecasts equal to:
     e^(sqrt(n) - sqrt(N)) where n is the nth forecast of the N active forecasts,
     ordered by start_time ascending."""
 
-    def calculate_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         number_of_forecasts = len(forecast_set.forecasts_values)
         if number_of_forecasts <= 2:
             return None
@@ -161,25 +161,175 @@ class RecencyWeighted(Weighting):
         )
 
 
-class MedianValues:
-    """Takes the median of the forecasts values for Binary and MC, mean for continuous"""
+class NoOutliers(Weighted):
+    # TODO: move to next PR
 
-    def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
-        super().__init__(*args, question_type=question_type, **kwargs)
-        self.question_type = question_type
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        forecasts_values = forecast_set.forecasts_values
+        if len(forecasts_values) <= 2:
+            return None
+        average_forecast = np.average(forecasts_values, axis=0)
+        distances = []
+        for forecast in forecasts_values:
+            distances.append(
+                prediction_difference_for_sorting(
+                    np.array(forecast),
+                    average_forecast,
+                    self.question.type,
+                )
+            )
+        mask = distances <= np.percentile(distances, 80, axis=0)
+        return mask
+
+
+class ReputationWeighted(Weighted, ABC):
+
+    def __init__(self, question: Question, user_ids: list[int]):
+        if question is None or user_ids is None:
+            raise ValueError("question and user_ids must be provided")
+        self.question = question
+        self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
+            user_ids
+        )
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+        raise NotImplementedError("Implement in Child Class")
+
+    def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
+        reps = []
+        for user_id in forecast_set.user_ids:
+            found = False
+            for reputation in self.reputations[user_id][::-1]:
+                if reputation.time <= forecast_set.timestep:
+                    reps.append(reputation)
+                    found = True
+                    break
+            if not found:
+                # no reputation -> no weight
+                reps.append(Reputation(user_id, 0, forecast_set.timestep))
+        return reps
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        reps = self.get_reputations(forecast_set)
+        return np.array([reputation.value for reputation in reps])
+
+
+class PeerScoreWeighted(ReputationWeighted):
+
+    @staticmethod
+    def reputation_value(scores: Sequence[Score]) -> float:
+        return max(
+            sum([score.score for score in scores])
+            / (30 + sum([score.coverage for score in scores])),
+            1e-6,
+        )
+
+    def get_reputation_history(
+        self, user_ids: list[int]
+    ) -> dict[int, list[Reputation]]:
+
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        peer_scores = Score.objects.filter(
+            user_id__in=user_ids,
+            score_type=ScoreTypes.PEER,
+            question__in=Question.objects.filter_public(),
+            edited_at__lte=end,
+        ).distinct()
+
+        # setup
+        scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish reputations at the start of the interval.
+        old_peer_scores = list(
+            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
+        )
+        for score in old_peer_scores:
+            scores_by_user[score.user_id][score.question_id] = score
+        for user_id in user_ids:
+            value = self.reputation_value(list(scores_by_user[user_id].values()))
+            reputations[user_id].append(Reputation(user_id, value, start))
+
+        # Then, for each new score, add a new reputation record
+        new_peer_scores = list(
+            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
+        )
+        for score in new_peer_scores:
+            # update the scores by user, then calculate the updated reputation
+            scores_by_user[score.user_id][score.question_id] = score
+            value = self.reputation_value(list(scores_by_user[score.user_id].values()))
+            reputations[score.user_id].append(
+                Reputation(score.user_id, value, score.edited_at)
+            )
+        return reputations
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        reps = self.get_reputations(forecast_set)
+        # TODO: make these learned parameters
+        a = 0.5
+        b = 6.0
+        decays = [
+            np.exp(
+                -(forecast_set.timestep - start_time)
+                / (self.question.scheduled_close_time - self.question.open_time)
+            )
+            for start_time in forecast_set.timesteps
+        ]
+        weights = np.array(
+            [
+                (decay**a * reputation.value ** (1 - a)) ** b
+                for decay, reputation in zip(decays, reps)
+            ]
+        )
+        if all(weights == 0):
+            return None
+        return weights if weights.size else None
+
+
+class Aggregator(ABC):
+    """
+    The method of aggregating forecasts, given their weights
+    requires `calculate_forecast_values` and `get_range_values`
+    """
+
+    question: Question
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        raise NotImplementedError("Implement in subclass")
+
+    def get_range_values(
+        self,
+        forecast_set: ForecastSet,
+        aggregation_forecast_values: ForecastValues,
+        weights: np.ndarray | None = None,
+    ) -> RangeValuesType:
+        raise NotImplementedError("Implement in subclass")
+
+
+class MedianAggregator(Aggregator):
+    """
+    Takes the median of the forecasts values for Binary and MC, mean for continuous
+    """
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
     ) -> np.ndarray:
         # Default Aggregation method uses weighted medians for binary and MC questions
         # and weighted average for continuous
-        if self.question_type == Question.QuestionType.BINARY:
+        if self.question.type == Question.QuestionType.BINARY:
             return np.array(
                 compute_discrete_forecast_values(
                     forecast_set.forecasts_values, weights, 50.0
                 )[0]
             )
-        elif self.question_type == Question.QuestionType.MULTIPLE_CHOICE:
+        elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
             medians = np.array(
                 compute_discrete_forecast_values(
                     forecast_set.forecasts_values, weights, 50.0
@@ -197,11 +347,11 @@ class MedianValues:
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
     ):
-        if self.question_type == Question.QuestionType.BINARY:
+        if self.question.type == Question.QuestionType.BINARY:
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
             )
-        elif self.question_type == Question.QuestionType.MULTIPLE_CHOICE:
+        elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
             )
@@ -222,12 +372,8 @@ class MedianValues:
         return lowers, centers, uppers
 
 
-class MeanValues:
+class MeanAggregator(Aggregator):
     """Takes the mean of the forecast values"""
-
-    def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
-        super().__init__(*args, question_type=question_type, **kwargs)
-        self.question_type = question_type
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
@@ -240,7 +386,7 @@ class MeanValues:
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
     ):
-        if self.question_type in QUESTION_CONTINUOUS_TYPES:
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
             lowers, centers, uppers = percent_point_function(
                 aggregation_forecast_values, [25.0, 50.0, 75.0]
             )
@@ -257,12 +403,9 @@ class MeanValues:
         return lowers, centers, uppers
 
 
-class LogOddsMeanValues:
+class LogOddsMeanAggregator(MeanAggregator):
+    # TODO: move to next PR
     """Takes the mean of the natural log of odds of forecast values"""
-
-    def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
-        super().__init__(*args, question_type=question_type, **kwargs)
-        self.question_type = question_type
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
@@ -283,120 +426,30 @@ class LogOddsMeanValues:
             average[-1] = 1
         return average
 
-    def get_range_values(
-        self,
-        forecast_set: ForecastSet,
-        aggregation_forecast_values: ForecastValues,
-        weights: np.ndarray | None = None,
-    ):
-        if self.question_type in QUESTION_CONTINUOUS_TYPES:
-            lowers, centers, uppers = percent_point_function(
-                aggregation_forecast_values, [25.0, 50.0, 75.0]
-            )
-            lowers = [lowers]
-            centers = [centers]
-            uppers = [uppers]
-        else:
-            centers = aggregation_forecast_values
-            lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
-                forecast_set.forecasts_values, weights
-            )
-            lowers = (np.array(centers) - lowers_sd).tolist()
-            uppers = (np.array(centers) + uppers_sd).tolist()
-        return lowers, centers, uppers
 
+class Aggregation(Aggregator, ABC):
+    weighting_classes: list[Type[Weighted]] = []
 
-@dataclass
-class Reputation:
-    user_id: int
-    value: float
-    time: datetime
-
-
-class ReputationWeighted(Weighting):
-    reputations: dict[int, list[Reputation]]
-    question: Question
-
-    def __init__(
-        self,
-        *args,
-        question: Question | None = None,
-        user_ids: list[int] | None = None,
-        **kwargs,
-    ):
-        super().__init__(*args, question=question, user_ids=user_ids, **kwargs)
-        if question is None or user_ids is None:
-            raise ValueError("question and user_ids must be provided")
+    def __init__(self, question: Question, user_ids: list[int] | None = None):
         self.question = question
-        self.reputations = self.get_reputation_history(user_ids)
+        self.weightings: list[Weighted] = [
+            Klass(question=question, user_ids=user_ids)
+            for Klass in self.weighting_classes
+        ]
 
-    def get_reputation_history(
-        self, user_ids: list[int]
-    ) -> dict[int, list[Reputation]]:
-        """implement in subclass
-        returns a dict of reputations. Each one is a record of what a particular
-        user's reputation was at a particular time.
-        The reputation can change during the interval."""
-        start = self.question.open_time
-        return {user_id: [Reputation(user_id, 1, start)] for user_id in user_ids}
-
-    def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
-        reps = []
-        for user_id in forecast_set.user_ids:
-            found = False
-            for reputation in self.reputations[user_id][::-1]:
-                if reputation.time <= forecast_set.timestep:
-                    reps.append(reputation)
-                    found = True
-                    break
-            if not found:
-                # no reputation -> no weight
-                reps.append(Reputation(user_id, 0, forecast_set.timestep))
-        return reps
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
-        reps = self.get_reputations(forecast_set)
-        return np.array([reputation.value for reputation in reps])
-
-
-class NoOutliers:
-
-    question_type: Question.QuestionType
-
-    def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
-        super().__init__(*args, question_type=question_type, **kwargs)
-        self.question_type = question_type
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
-        forecasts_values = forecast_set.forecasts_values
-        if len(forecasts_values) <= 2:
+    def get_weights(self, forecast_set: ForecastSet) -> Weights:
+        weights = None
+        for weighting in self.weightings:
+            new_weights = weighting.calculate_weights(forecast_set)
+            if weights is None:
+                weights = new_weights
+            elif new_weights is not None:
+                weights = weights * new_weights
+        if weights is None or np.all(weights == 0):
             return None
-        average_forecast = np.average(forecasts_values, axis=0)
-        distances = []
-        for forecast in forecasts_values:
-            distances.append(
-                prediction_difference_for_sorting(
-                    np.array(forecast),
-                    average_forecast,
-                    self.question_type,
-                )
-            )
-        mask = distances <= np.percentile(distances, 80, axis=0)
-        return mask
-
-
-class Aggregation(Unweighted, MedianValues):
-    """
-    Base class for specific aggregation methods to inherit from.
-    Unweighted
-    Median
-    """
-
-    question_type: Question.QuestionType
-    method: AggregationMethod
-
-    def __init__(self, *args, question_type: Question.QuestionType, **kwargs):
-        self.question_type = question_type
+        if len(forecast_set.forecasts_values) != weights.shape[0]:
+            weights = weights[0]
+        return weights
 
     def calculate_aggregation_entry(
         self,
@@ -419,7 +472,7 @@ class Aggregation(Unweighted, MedianValues):
             aggregation.interval_lower_bounds = lowers
             aggregation.centers = centers
             aggregation.interval_upper_bounds = uppers
-            if self.question_type in [
+            if self.question.type in [
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
@@ -427,120 +480,29 @@ class Aggregation(Unweighted, MedianValues):
                     forecast_set.forecasts_values, weights=weights, axis=0
                 ).tolist()
 
-        if histogram and self.question_type in [
+        if histogram and self.question.type in [
             Question.QuestionType.BINARY,
             Question.QuestionType.MULTIPLE_CHOICE,
         ]:
             aggregation.histogram = get_histogram(
                 forecast_set.forecasts_values,
                 weights,
-                question_type=self.question_type,
+                question_type=self.question.type,
             ).tolist()
 
         return aggregation
 
 
-class UnweightedAggregation(Aggregation):
-    """
-    unweighted
-    median
-    """
-
-    method = AggregationMethod.UNWEIGHTED
+class UnweightedAggregation(MedianAggregator, Aggregation):
+    weighting_classes = [Unweighted]
 
 
-class RecencyWeightedAggregation(RecencyWeighted, Aggregation):
-    """
-    recency weighted
-    median
-    """
-
-    method = AggregationMethod.RECENCY_WEIGHTED
+class RecencyWeightedAggregation(MedianAggregator, Aggregation):
+    weighting_classes = [RecencyWeighted]
 
 
-class SingleAggregation(MeanValues, ReputationWeighted, Aggregation):
-    """
-    Custom Reputation weighting
-    mean
-    """
-
-    method = AggregationMethod.SINGLE_AGGREGATION
-    reputations: dict[int, list[Reputation]]
-    question: Question
-
-    @staticmethod
-    def reputation_value(scores: Sequence[Score]) -> float:
-        return max(
-            sum([score.score for score in scores])
-            / (30 + sum([score.coverage for score in scores])),
-            1e-6,
-        )
-
-    def get_reputation_history(
-        self, user_ids: list[int]
-    ) -> dict[int, list[Reputation]]:
-
-        start = self.question.open_time
-        end = self.question.scheduled_close_time
-        if end is None:
-            end = timezone.now()
-        peer_scores = Score.objects.filter(
-            user_id__in=user_ids,
-            score_type=Score.ScoreTypes.PEER,
-            question__in=Question.objects.filter_public(),
-            edited_at__lte=end,
-        ).distinct()
-
-        # setup
-        scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
-        reputations: dict[int, list[Reputation]] = defaultdict(list)
-
-        # Establish reputations at the start of the interval.
-        old_peer_scores = list(
-            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
-        )
-        for score in old_peer_scores:
-            scores_by_user[score.user_id][score.question_id] = score
-        for user_id in user_ids:
-            value = self.reputation_value(scores_by_user[user_id].values())
-            reputations[user_id].append(Reputation(user_id, value, start))
-
-        # Then, for each new score, add a new reputation record
-        new_peer_scores = list(
-            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
-        )
-        for score in new_peer_scores:
-            # update the scores by user, then calculate the updated reputation
-            scores_by_user[score.user_id][score.question_id] = score
-            value = self.reputation_value(scores_by_user[score.user_id].values())
-            reputations[score.user_id].append(
-                Reputation(score.user_id, value, score.edited_at)
-            )
-        return reputations
-
-    def get_weights(self, forecast_set: ForecastSet) -> np.ndarray | None:
-        # This is a custom weighting scheme via learned paramaeters
-        # so not implemented with "calculate_weights"
-        reps = self.get_reputations(forecast_set)
-        # TODO: make these learned parameters
-        a = 0.5
-        b = 6.0
-        decays = [
-            np.exp(
-                -(forecast_set.timestep - start_time)
-                / (self.question.scheduled_close_time - self.question.open_time)
-            )
-            for start_time in forecast_set.timesteps
-        ]
-        weights = np.array(
-            [
-                (decay**a * reputation.value ** (1 - a)) ** b
-                for decay, reputation in zip(decays, reps)
-            ]
-        )
-        if all(weights == 0):
-            return None
-        return weights if weights.size else None
+class SingleAggregation(MeanAggregator, Aggregation):
+    weighting_classes = [PeerScoreWeighted]
 
 
 aggregation_method_map: dict[AggregationMethod, type[Aggregation]] = {
@@ -585,8 +547,7 @@ def get_aggregations_at_time(
     for method in aggregation_methods:
         AggregationGenerator: Aggregation = aggregation_method_map[method](
             question=question,
-            user_ids=set(forecast_set.user_ids),
-            question_type=question.type,
+            user_ids=list(set(forecast_set.user_ids)),
         )
         new_entry = AggregationGenerator.calculate_aggregation_entry(
             forecast_set,

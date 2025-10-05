@@ -11,6 +11,8 @@ from utils.the_math.aggregations import (
 from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast
 
+from tests.unit.test_questions.conftest import question_binary
+
 
 @pytest.mark.parametrize(
     "array, max_size, expceted_array",
@@ -36,7 +38,7 @@ class TestAggregations:
         "init_params, forecast_set, include_stats, histogram, expected",
         [
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -53,7 +55,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -75,7 +77,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -98,7 +100,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -126,7 +128,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -156,7 +158,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.1, 0.9],
@@ -189,13 +191,14 @@ class TestAggregations:
     )
     def test_UnweightedAggregation(
         self,
+        question_binary: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = UnweightedAggregation(**init_params)
+        aggregation = UnweightedAggregation(question=question_binary, **init_params)
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
@@ -229,7 +232,7 @@ class TestAggregations:
         "init_params, forecast_set, include_stats, histogram, expected",
         [
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -245,7 +248,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -266,7 +269,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -288,7 +291,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -315,7 +318,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -344,7 +347,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -381,7 +384,7 @@ class TestAggregations:
                 ),
             ),
             (
-                {"question_type": Question.QuestionType.BINARY},
+                {},
                 ForecastSet(
                     forecasts_values=[
                         [0.2, 0.8],
@@ -415,13 +418,16 @@ class TestAggregations:
     )
     def test_RecencyWeightedAggregation(
         self,
+        question_binary: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = RecencyWeightedAggregation(**init_params)
+        aggregation = RecencyWeightedAggregation(
+            question=question_binary, **init_params
+        )
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
