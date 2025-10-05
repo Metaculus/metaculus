@@ -547,11 +547,11 @@ def get_aggregations_at_time(
 
     aggregations: dict[AggregationMethod, AggregateForecast] = dict()
     for method in aggregation_methods:
-        AggregationGenerator: Aggregation = aggregation_method_map[method](
+        aggregation_generator = aggregation_method_map[method](
             question=question,
             user_ids=set(forecast_set.user_ids),
         )
-        new_entry = AggregationGenerator.calculate_aggregation_entry(
+        new_entry = aggregation_generator.calculate_aggregation_entry(
             forecast_set,
             include_stats=include_stats,
             histogram=histogram,
