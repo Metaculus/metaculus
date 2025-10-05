@@ -17,11 +17,10 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence, Type
 
 
-from django.db.models import F, Q, QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 import numpy as np
 
-from projects.permissions import ObjectPermission
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -29,12 +28,11 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry
+from scoring.models import Score
 from scoring.constants import ScoreTypes
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
-    prediction_difference_for_sorting,
 )
 from utils.typing import (
     ForecastValues,
@@ -46,7 +44,7 @@ from utils.typing import (
 RangeValuesType = tuple[list[float], list[float], list[float]]
 
 
-##################### Dataclasses #####################
+# Dataclasses ##########################################
 
 
 @dataclass
@@ -64,7 +62,7 @@ class Reputation:
     time: datetime
 
 
-##################### Helpers #####################
+# Helpers ##########################################
 
 
 def get_histogram(
@@ -138,7 +136,7 @@ def compute_weighted_semi_standard_deviations(
     return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
 
 
-##################### Weightings #####################
+# Weightings ##########################################
 
 
 class Weighted(ABC):
@@ -171,7 +169,7 @@ class RecencyWeighted(Weighted):
         )
 
 
-##################### ReputationWeightings #####################
+# ReputationWeightings ##########################################
 
 
 class ReputationWeighted(Weighted, ABC):
@@ -286,7 +284,7 @@ class PeerScoreWeighted(ReputationWeighted):
         return weights if weights.size else None
 
 
-##################### Aggregators #####################
+# Aggregators ##########################################
 
 
 class Aggregator(ABC):
@@ -401,7 +399,7 @@ class MeanAggregator(Aggregator):
         return lowers, centers, uppers
 
 
-##################### Aggregations #####################
+# Aggregations ##########################################
 
 
 class Aggregation(Aggregator, ABC):
@@ -502,7 +500,7 @@ AGGREGATIONS: list[type[Aggregation]] = [
 
 
 def get_aggregation_by_name(method: AggregationMethod) -> type[Aggregation]:
-    return next(agg.method == method for agg in AGGREGATIONS)
+    return next(agg for agg in AGGREGATIONS if agg.method == method)
 
 
 def get_aggregations_at_time(
