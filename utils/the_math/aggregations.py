@@ -34,7 +34,6 @@ from scoring.constants import ScoreTypes
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
-    prediction_difference_for_sorting,
 )
 from utils.typing import (
     ForecastValues,
@@ -46,7 +45,7 @@ from utils.typing import (
 RangeValuesType = tuple[list[float], list[float], list[float]]
 
 
-##################### Dataclasses #####################
+# Dataclasses ##########################################
 
 
 @dataclass
@@ -64,7 +63,7 @@ class Reputation:
     time: datetime
 
 
-##################### Helpers #####################
+# Helpers ##########################################
 
 
 def get_histogram(
@@ -138,7 +137,7 @@ def compute_weighted_semi_standard_deviations(
     return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
 
 
-##################### Weightings #####################
+# Weightings ##########################################
 
 
 class Weighted(ABC):
@@ -192,7 +191,7 @@ class NoOutliers(Weighted):
         return mask
 
 
-##################### ReputationWeightings #####################
+# ReputationWeightings ##########################################
 
 
 class ReputationWeighted(Weighted, ABC):
@@ -404,7 +403,7 @@ class Experienced25ResolvedFilter(ReputationWeighted):
         return reputations
 
 
-##################### Aggregators #####################
+# Aggregators ##########################################
 
 
 class Aggregator(ABC):
@@ -573,7 +572,7 @@ class LogOddsMeanAggregator(MeanAggregator):
         return average
 
 
-##################### Aggregations #####################
+# Aggregations ##########################################
 
 
 class Aggregation(Aggregator, ABC):
@@ -722,7 +721,7 @@ AGGREGATIONS: list[type[Aggregation]] = [
 
 
 def get_aggregation_by_name(method: AggregationMethod) -> type[Aggregation]:
-    return next(agg.method == method for agg in AGGREGATIONS)
+    return next(agg for agg in AGGREGATIONS if agg.method == method)
 
 
 def get_aggregations_at_time(
