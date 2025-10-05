@@ -17,10 +17,11 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence, Type
 
 
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 from django.utils import timezone
 import numpy as np
 
+from projects.permissions import ObjectPermission
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -28,11 +29,12 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score
+from scoring.models import Score, LeaderboardEntry
 from scoring.constants import ScoreTypes
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
+    prediction_difference_for_sorting,
 )
 from utils.typing import (
     ForecastValues,
@@ -169,6 +171,27 @@ class RecencyWeighted(Weighted):
         )
 
 
+class NoOutliers(Weighted):
+    """Removes the most extreme 20% of forecasts measured by Jeffreys Divergence"""
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        forecasts_values = forecast_set.forecasts_values
+        if len(forecasts_values) <= 2:
+            return None
+        average_forecast = np.average(forecasts_values, axis=0)
+        distances = []
+        for forecast in forecasts_values:
+            distances.append(
+                prediction_difference_for_sorting(
+                    np.array(forecast),
+                    average_forecast,
+                    self.question.type,
+                )
+            )
+        mask: np.ndarray = distances <= np.percentile(distances, 80, axis=0)
+        return mask
+
+
 # ReputationWeightings ##########################################
 
 
@@ -284,6 +307,103 @@ class PeerScoreWeighted(ReputationWeighted):
         return weights if weights.size else None
 
 
+class MedalistsFilter(ReputationWeighted):
+    """Filters out forecasts by users with no medals"""
+
+    def get_reputation_history(
+        self, user_ids: list[int] | set[int]
+    ) -> dict[int, list[Reputation]]:
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        medals = (
+            LeaderboardEntry.objects.filter(
+                user_id__in=user_ids,
+                medal__isnull=False,
+                leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+            )
+            .annotate(set_time=F("leaderboard__finalize_time"))
+            .filter(set_time__lte=end)
+            .order_by("set_time")
+        )
+
+        # setup
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish initial reputations at the start of the interval.
+        old_medals = list(medals.filter(set_time__lte=start).order_by("set_time"))
+        for medal in old_medals:
+            user_id = medal.user_id
+            reputations[user_id] = [Reputation(user_id, 1, start)]
+        for user_id in user_ids:
+            if user_id not in reputations:
+                reputations[user_id] = [Reputation(user_id, 0, start)]
+        # Then, for each new medal, add a new reputation record
+        new_medals = list(medals.filter(set_time__gt=start).order_by("set_time"))
+        for medal in new_medals:
+            user_id = medal.user_id
+            if reputations[user_id][-1].value == 0:
+                reputations[user_id].append(
+                    Reputation(user_id, 1, medal.edited_at or medal.created_at)
+                )
+        return reputations
+
+
+class Experienced25ResolvedFilter(ReputationWeighted):
+    """Filters out Forecasters with fewer than 25 resolved questions"""
+
+    def get_reputation_history(
+        self, user_ids: list[int] | set[int]
+    ) -> dict[int, list[Reputation]]:
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        peer_scores = (
+            Score.objects.filter(
+                user_id__in=user_ids,
+                score_type=Score.ScoreTypes.PEER,
+                question__in=Question.objects.filter_public(),
+            )
+            .annotate(set_time=F("question__actual_resolve_time"))
+            .order_by("set_time")
+            .filter(set_time__lte=end)
+            .distinct()
+        )
+
+        # setup
+        resolved_per_user: dict[int, int] = defaultdict(int)
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish reputations at the start of the interval.
+        old_peer_scores = list(
+            peer_scores.filter(set_time__lte=start).order_by("set_time")
+        )
+        for score in old_peer_scores:
+            resolved_per_user[score.user_id] += 1
+        for user_id in user_ids:
+            reputations[user_id].append(
+                Reputation(user_id, 1 if resolved_per_user[user_id] >= 25 else 0, start)
+            )
+
+        # Then, for each new score, add a new reputation record
+        new_peer_scores = list(
+            peer_scores.filter(set_time__gt=start).order_by("set_time")
+        )
+        for score in new_peer_scores:
+            # update the scores by user, then calculate the updated reputation
+            resolved_per_user[score.user_id] += 1
+            reputations[score.user_id].append(
+                Reputation(
+                    score.user_id,
+                    1 if resolved_per_user[score.user_id] >= 25 else 0,
+                    score.set_time,
+                )
+            )
+        return reputations
+
+
 # Aggregators ##########################################
 
 
@@ -307,6 +427,37 @@ class Aggregator(ABC):
         weights: np.ndarray | None = None,
     ) -> RangeValuesType:
         raise NotImplementedError("Implement in subclass")
+
+
+class IgnorantAggregator(Aggregator):
+    """Always returns the ignorance prior, ignoring weights."""
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        values_count = len(forecast_set.forecasts_values[0])
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            # prediction is a CDF
+            return np.linspace(0.05, 0.95, values_count)
+        else:
+            return np.ones_like(forecast_set.forecasts_values[0]) / values_count
+
+    def get_range_values(
+        self,
+        forecast_set: ForecastSet,
+        aggregation_forecast_values: ForecastValues,
+        weights: np.ndarray | None = None,
+    ) -> RangeValuesType:
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            lowers, centers, uppers = percent_point_function(
+                aggregation_forecast_values, [25.0, 50.0, 75.0]
+            )
+            lowers = [lowers]
+            centers = [centers]
+            uppers = [uppers]
+        else:
+            lowers = centers = uppers = aggregation_forecast_values
+        return lowers, centers, uppers
 
 
 class MedianAggregator(Aggregator):
@@ -397,6 +548,29 @@ class MeanAggregator(Aggregator):
             lowers = (np.array(centers) - lowers_sd).tolist()
             uppers = (np.array(centers) + uppers_sd).tolist()
         return lowers, centers, uppers
+
+
+class LogOddsMeanAggregator(MeanAggregator):
+    """Takes the mean of the natural log of odds of forecast values"""
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        log_odds = np.log(
+            np.array(forecast_set.forecasts_values)
+            / (1 - np.array(forecast_set.forecasts_values))
+        )
+        average_log_odds = np.average(log_odds, axis=0, weights=weights)
+        average_odds = np.exp(average_log_odds)
+        average = average_odds / (1 + average_odds)
+        # First and last cdf value of continuous questions with closed bounds get
+        # screwed up by the logodds transformation, just replace them with
+        # set values 0 and 1
+        if np.isnan(average[0]):
+            average[0] = 0
+        if np.isnan(average[-1]):
+            average[-1] = 1
+        return average
 
 
 # Aggregations ##########################################
@@ -492,10 +666,58 @@ class SingleAggregation(MeanAggregator, Aggregation):
     weighting_classes = [PeerScoreWeighted]
 
 
+class MedalistsAggregation(MedianAggregator, Aggregation):
+    method = AggregationMethod.MEDALISTS
+    weighting_classes = [MedalistsFilter]
+
+
+class Experienced25ResolvedAggregation(MedianAggregator, Aggregation):
+    method = AggregationMethod.EXPERIENCED_USERS_25_RESOLVED
+    weighting_classes = [Experienced25ResolvedFilter]
+
+
+class IgnoranceAggregation(IgnorantAggregator, Aggregation):
+    method = AggregationMethod.IGNORANCE
+    weighting_classes = [Unweighted]
+
+
+class RecencyWeightedLogOddsAggregation(LogOddsMeanAggregator, Aggregation):
+    method = AggregationMethod.RECENCY_WEIGHTED_LOG_ODDS
+    weighting_classes = [RecencyWeighted]
+
+
+class RecencyWeightedMeanNoOutliersAggregation(MeanAggregator, Aggregation):
+    method = AggregationMethod.RECENCY_WEIGHTED_MEAN_NO_OUTLIERS
+    weighting_classes = [RecencyWeighted, NoOutliers]
+
+
+class RecencyWeightedMedalistsAggregation(MedianAggregator, Aggregation):
+    method = AggregationMethod.RECENCY_WEIGHTED_MEDALISTS
+    weighting_classes = [RecencyWeighted, MedalistsFilter]
+
+
+class RecencyWeightedExperienced25ResolvedAggregation(MedianAggregator, Aggregation):
+    method = AggregationMethod.RECENCY_WEIGHTED_EXPERIENCED_USERS_25_RESOLVED
+    weighting_classes = [RecencyWeighted, Experienced25ResolvedFilter]
+
+
+class RecencyWeightedLogOddsNoOutliersAggregation(LogOddsMeanAggregator, Aggregation):
+    method = AggregationMethod.RECENCY_WEIGHTED_LOG_ODDS_NO_OUTLIERS
+    weighting_classes = [RecencyWeighted, NoOutliers]
+
+
 AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
     SingleAggregation,
+    MedalistsAggregation,
+    Experienced25ResolvedAggregation,
+    IgnoranceAggregation,
+    RecencyWeightedLogOddsAggregation,
+    RecencyWeightedMeanNoOutliersAggregation,
+    RecencyWeightedMedalistsAggregation,
+    RecencyWeightedExperienced25ResolvedAggregation,
+    RecencyWeightedLogOddsNoOutliersAggregation,
 ]
 
 
