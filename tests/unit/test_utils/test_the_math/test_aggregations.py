@@ -191,14 +191,13 @@ class TestAggregations:
     )
     def test_UnweightedAggregation(
         self,
-        question_binary: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = UnweightedAggregation(question=question_binary, **init_params)
+        aggregation = UnweightedAggregation(question=question_binary(), **init_params)
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
@@ -418,7 +417,6 @@ class TestAggregations:
     )
     def test_RecencyWeightedAggregation(
         self,
-        question_binary: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
@@ -426,7 +424,7 @@ class TestAggregations:
         expected: AggregateForecast,
     ):
         aggregation = RecencyWeightedAggregation(
-            question=question_binary, **init_params
+            question=question_binary(), **init_params
         )
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
