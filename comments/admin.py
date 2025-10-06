@@ -8,9 +8,17 @@ from .models import Comment, KeyFactor, KeyFactorDriver
 class KeyFactorInline(admin.TabularInline):
     model = KeyFactor
     extra = 0
-    fields = ["text", "votes_score", "is_active"]
-    readonly_fields = ["votes_score"]
+    fields = ["get_content", "votes_score", "is_active"]
+    readonly_fields = ["get_content", "votes_score"]
     can_delete = True
+
+    def get_content(self, obj: KeyFactor):
+        if obj.driver_id:
+            return obj.driver.text
+
+        return "-"
+
+    get_content.short_description = "Content"
 
 
 @admin.register(Comment)
