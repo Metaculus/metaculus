@@ -5,14 +5,16 @@ import React from "react";
 
 import { Tabs, TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 
+import AIBBenchmarkTab from "./benchmark/aib-benchmark-tab";
+
 const AIBTabs: React.FC = () => {
   return (
     <Tabs
       variant="group"
       defaultValue="benchmark"
-      className="bg-blue-200 dark:bg-blue-200-dark"
+      className="bg-blue-200 dark:bg-blue-50-dark"
     >
-      <TabsList className="mt-8 py-0">
+      <TabsList className="mt-8 py-0 dark:bg-blue-50-dark">
         {AIB_TABS.map((tab) => (
           <TabsTab key={tab.value} value={tab.value} icon={tab.icon}>
             {tab.label}
@@ -20,7 +22,11 @@ const AIBTabs: React.FC = () => {
         ))}
       </TabsList>
       {AIB_TABS.map((tab) => (
-        <TabsSection className="mt-0" key={tab.value} value={tab.value}>
+        <TabsSection
+          className="mt-[120px] space-y-[120px]"
+          key={tab.value}
+          value={tab.value}
+        >
           {tab.content}
         </TabsSection>
       ))}
@@ -38,7 +44,7 @@ const AIB_TABS: {
     value: "benchmark",
     label: "Benchmark",
     icon: <FontAwesomeIcon className="scale-[1.11]" icon={faBullseye} />,
-    content: "Benchmark content",
+    content: <AIBBenchmarkTab />,
   },
   {
     value: "info",

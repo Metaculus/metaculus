@@ -83,8 +83,8 @@ export const TabsList = ({
   return (
     <div
       className={cn(
-        "scrollbar-none sticky top-12 z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
-        ctx.variant === "separated" && "gap-2",
+        "scrollbar-none z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
+        ctx.variant === "separated" && "sticky top-12 gap-2",
         className
       )}
     >
@@ -101,7 +101,7 @@ export const TabsTab = ({
 }: {
   value: string;
   children: ReactNode;
-  icon: ReactNode;
+  icon?: ReactNode;
   className?: string;
 }) => {
   const ctx = useTabsContext();
