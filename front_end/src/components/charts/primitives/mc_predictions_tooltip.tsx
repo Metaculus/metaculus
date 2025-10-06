@@ -1,7 +1,7 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useMemo } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceTooltipItem } from "@/types/choices";
@@ -12,6 +12,7 @@ type Props = {
   title?: string;
   communityPredictions: ChoiceTooltipItem[];
   userPredictions?: ChoiceTooltipItem[];
+  showMeColumn?: boolean;
   FooterRow?: ReactNode;
 };
 
@@ -19,9 +20,17 @@ const MCPredictionsTooltip: FC<Props> = ({
   title,
   communityPredictions,
   userPredictions,
+  showMeColumn = true,
   FooterRow = null,
 }) => {
   const t = useTranslations();
+  const showMe = useMemo(
+    () =>
+      typeof showMeColumn === "boolean"
+        ? showMeColumn
+        : (userPredictions?.length ?? 0) > 0,
+    [showMeColumn, userPredictions]
+  );
 
   return (
     <table
@@ -38,24 +47,27 @@ const MCPredictionsTooltip: FC<Props> = ({
           >
             {title}
           </th>
-          <td className={" text-center"}>
+
+          <td className="text-center">
             <FontAwesomeIcon
               icon={faUserGroup}
               className="size-3.5 align-middle text-olive-700 dark:text-olive-700-dark"
             />
           </td>
 
-          <td className="px-5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
-            {t("me")}
-          </td>
+          {showMe && (
+            <td className="px-5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
+              {t("me")}
+            </td>
+          )}
         </tr>
       </thead>
       <tbody>
         {communityPredictions.map(
           ({ color, choiceLabel, valueElement }, idx) => {
-            const choiceValueElement =
+            const userVal =
               userPredictions?.find((item) => item.choiceLabel === choiceLabel)
-                ?.valueElement || "?";
+                ?.valueElement ?? "?";
 
             return (
               <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
@@ -82,20 +94,23 @@ const MCPredictionsTooltip: FC<Props> = ({
                   {valueElement}
                 </td>
 
-                <td
-                  className={cn(
-                    "px-2.5 py-1 text-sm font-normal tabular-nums",
-                    choiceValueElement === "?" || choiceValueElement === "..."
-                      ? "text-center text-gray-500 dark:text-gray-500-dark"
-                      : "text-right text-orange-800 dark:text-orange-800-dark"
-                  )}
-                >
-                  {choiceValueElement}
-                </td>
+                {showMe && (
+                  <td
+                    className={cn(
+                      "px-2.5 py-1 text-sm font-normal tabular-nums",
+                      userVal === "?" || userVal === "..."
+                        ? "text-center text-gray-500 dark:text-gray-500-dark"
+                        : "text-right text-orange-800 dark:text-orange-800-dark"
+                    )}
+                  >
+                    {userVal}
+                  </td>
+                )}
               </tr>
             );
           }
         )}
+
         {FooterRow}
       </tbody>
     </table>
