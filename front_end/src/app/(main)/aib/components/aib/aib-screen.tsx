@@ -1,6 +1,6 @@
 import AIBContainer from "./aib-container";
 import AIBHero from "./aib-hero";
-import AIBTabs from "./aib-tabs";
+import AIBTabs from "./tabs/aib-tabs";
 
 const AIBScreen: React.FC = () => {
   return (
