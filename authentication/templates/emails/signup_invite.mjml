@@ -36,6 +36,6 @@
             </mj-column>
 
         </mj-section>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        
     </mj-body>
 </mjml>

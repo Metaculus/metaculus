@@ -1,7 +1,7 @@
 <mj-section css-class="subscribe-session" background-color="#ffffff" padding-bottom="0px">
     <mj-column>
         <mj-text>
-            <p style="font-size:85%; color:#aaaaaa;">
+            <p style="font-size:14px; line-height:150%; color:#777777; margin-top:0px;">
                 {% blocktrans %}
                 If you no longer wish to receive this type of email, you can
                 <a href="%unsubscribe_url%">unsubscribe here</a>.

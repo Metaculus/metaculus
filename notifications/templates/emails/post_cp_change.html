@@ -207,14 +207,14 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:0px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:8px;padding-top:24px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>👀 Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;padding-bottom:8px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:left;color:#161C22;">{% blocktrans %} Related questions you might find interesting {% endblocktrans %}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -233,24 +233,40 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:0px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-left:16px;padding-right:16px;padding-top:0px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><![endif]-->
               <!-- {% for post in chunk %} -->
-              <!--[if mso | IE]><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+              <!--[if mso | IE]><td class="" style="vertical-align:top;width:284px;" ><![endif]-->
               <div class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
-                          <div style="margin-bottom: 8px">
-                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                              {{ post.title }}
-                            </a> {% if IS_SCREENSHOT_SERVICE_ENABLED %} <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                              <img class="question_graph_img" src="{% build_question_graph_image_url post.id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
-                            </a> {% endif %}
-                          </div>
-                        </div>
+                      <td style="vertical-align:top;padding:8px;">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                          <tbody>
+                            <tr>
+                              <td align="left" class="general-text" style="font-size:0px;padding:0px;word-break:break-word;">
+                                <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url post.id post.title %}" style="font-weight: bold; display: block; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; background-color: #EFF4F4; min-height: 100px; text-decoration: none; color: #161C22; transition: background-color 0.2s;">
+                                    <div style="font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 12px; color: #161C22;">
+                                      {{ post.title }}
+                                    </div>
+                                    <div style="font-size: 13px; font-weight:500; color: #2F4155;">
+                                      <!-- {% if post.nr_forecasters %} -->
+                                      <span style="display: inline-flex; align-items: center;">
+                                        <span style="margin-right: 5px;">👥</span>
+                                        {{ post.nr_forecasters }} predictor{{ post.nr_forecasters|pluralize }}
+                                      </span>
+                                      <!-- {% elif post.probability %} -->
+                                      <span style="display: inline-flex; align-items: center;">
+                                        <span style="margin-right: 5px;">📊</span>
+                                        {{ post.probability }}% chance </span>
+                                      <!-- {% endif %} -->
+                                    </div>
+                                  </a></div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -266,31 +282,7 @@
     </div>
     <!--[if mso | IE]></td></tr></table><![endif]-->
     <!-- {% endfor %} -->
-    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
-        <tbody>
-          <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:0px;text-align:center;">
-              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
-              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                  <tbody>
-                    <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <!--[if mso | IE]></td></tr></table><![endif]-->
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="subscribe-session-outlook" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="subscribe-session-outlook" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
     <div class="subscribe-session" style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
@@ -303,7 +295,7 @@
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
-                          <p style="font-size:85%; color:#aaaaaa;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus {% endblocktrans %} <a href="{% tag_notification_settings_url %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{% trans "settings page" %}</a>. </p>
+                          <p style="font-size:14px; line-height:150%; color:#777777; margin-top:0px;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus {% endblocktrans %} <a href="{% tag_notification_settings_url %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{% trans "settings page" %}</a>. </p>
                         </div>
                       </td>
                     </tr>
