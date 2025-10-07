@@ -129,7 +129,7 @@
                     </tr>
                     <tr>
                       <td align="center" class="email-subject" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:center;color:#ffffff;">{{ email_subject }}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:center;color:#ffffff;">{{ email_subject_display|default:email_subject }}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -158,7 +158,7 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} We’re excited to share the latest update from Metaculus: {% endblocktrans %} <p style="white-space: pre;">{{ params.preview_text }}</p>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} We're excited to share the latest update from Metaculus: {% endblocktrans %} <p>{{ params.preview_text }}</p>
                           <a href="{{ params.post_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{% trans "👉 Read the full article." %}</a>
                           <p style="font-size:85%; color:#aaaaaa;"> {% blocktrans with news_url=params.news_url %} You're receiving this email because you're subscribed to News. Unsubscribe <a href="{{ news_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">here</a>. {% endblocktrans %} </p>
                         </div>
