@@ -12,8 +12,16 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { useFeatureFlagEnabled } from "posthog-js/react";
-import { FC, useEffect, useRef, useState } from "react";
+import React, {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import PredictButton from "@/components/forecast_maker/predict_button";
 import { useAuth } from "@/contexts/auth_context";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -31,14 +39,19 @@ import { ContinuousGroupOption } from "./continuous_group_accordion/group_foreca
 // TODO: check existing forecasts made before this change: how reaffirm will act?
 // TODO: what should we show if previous prediction was withdrawn? (Probably fine to keep as-is)
 // TODO: should we show "reset to default" for cases when user has exp disabled?
+// TODO: modal label
 
 interface ForecastExpirationModalProps {
   isOpen: boolean;
   onClose: () => void;
   savedState: ModalState;
-  setSavedState: (state: ModalState) => void;
-  onReaffirm?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
+  setSavedState: Dispatch<SetStateAction<ModalState>>;
+  onSubmit?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
   questionDuration: number;
+  isDirty: boolean;
+  hasUserForecast: boolean;
+  isUserForecastActive?: boolean;
+  isSubmissionDisabled?: boolean;
 }
 
 type Preset = { id: string; duration?: Duration };
@@ -360,12 +373,15 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   onClose,
   savedState,
   setSavedState,
-  onReaffirm,
+  onSubmit,
   questionDuration,
+  isDirty,
+  hasUserForecast,
+  isUserForecastActive,
+  isSubmissionDisabled,
 }) => {
   const t = useTranslations();
 
-  const [currentState, setCurrentState] = useState<ModalState>(savedState);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -375,29 +391,21 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     ? ((userExpirationPercent / 100) * questionDuration) / 1000
     : null;
 
-  useEffect(() => {
-    setCurrentState({ ...savedState });
-  }, [savedState]);
-
-  const restoreFromSavedState = () => {
-    setCurrentState({ ...savedState });
-  };
-
-  const datePickerDate = currentState.datePickerDate;
+  const datePickerDate = savedState.datePickerDate;
   useEffect(() => {
     if (!datePickerDate) return;
-    setCurrentState((prev) => ({
+    setSavedState((prev) => ({
       ...prev,
       forecastExpiration: {
         kind: "date",
         value: datePickerDate,
       },
     }));
-  }, [datePickerDate]);
+  }, [datePickerDate, setSavedState]);
 
   const onCustomOptionSelected = (preset: Preset) => {
-    setCurrentState({
-      ...currentState,
+    setSavedState({
+      ...savedState,
       selectedPreset: preset.id,
       forecastExpiration: {
         kind: "duration",
@@ -409,20 +417,20 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   };
 
   const onCustomDateSelected = () => {
-    setCurrentState({
-      ...currentState,
+    setSavedState({
+      ...savedState,
       selectedPreset: "customDate",
       forecastExpiration: {
         kind: "date",
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        value: currentState.datePickerDate!,
+        value: savedState.datePickerDate!,
       },
     });
   };
 
   const onNeverExpiresSelected = () => {
-    setCurrentState({
-      ...currentState,
+    setSavedState({
+      ...savedState,
       selectedPreset: "neverWithdraw",
       forecastExpiration: {
         kind: "infinity",
@@ -430,25 +438,15 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
     });
   };
 
-  const handleClose = () => {
+  const handlePredict = async () => {
+    onSubmit?.(savedState.forecastExpiration);
     onClose();
-    restoreFromSavedState();
-  };
-
-  const handleSave = async () => {
-    onClose();
-    setSavedState({ ...currentState });
-  };
-
-  const handleReaffirm = async () => {
-    onReaffirm?.(currentState.forecastExpiration);
-    handleSave();
   };
 
   const handleReset = async () => {
     // TODO: if you close modal without saving state is resets back
     // TODO: test if account has inf expiration global setting
-    return setCurrentState(
+    return setSavedState(
       buildDefaultState(undefined, userDefaultExpirationDurationSec)
     );
   };
@@ -456,7 +454,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={() => handleClose()}
+      onClose={() => onClose()}
       className="h-full w-full max-w-max md:h-auto"
     >
       <div className="flex flex-col gap-8 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
@@ -470,7 +468,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
               key={getPresetLabel(preset.id, t)}
               type="button"
               variant={
-                currentState.selectedPreset === preset.id
+                savedState.selectedPreset === preset.id
                   ? "primary"
                   : "secondary"
               }
@@ -488,7 +486,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             key="customDate"
             type="button"
             variant={
-              currentState.selectedPreset === "customDate"
+              savedState.selectedPreset === "customDate"
                 ? "primary"
                 : "secondary"
             }
@@ -514,17 +512,17 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
                 const now = new Date();
                 // Only update if the selected date is not in the past
                 if (selectedDate >= now) {
-                  setCurrentState({
-                    ...currentState,
+                  setSavedState({
+                    ...savedState,
                     datePickerDate: selectedDate,
                   });
                 }
               }}
             />
 
-            {showDatePicker && currentState.datePickerDate && (
+            {showDatePicker && savedState.datePickerDate && (
               <span className="text-sm">
-                {": " + format(currentState.datePickerDate, "d MMMM yyyy")}
+                {": " + format(savedState.datePickerDate, "d MMMM yyyy")}
               </span>
             )}
           </Button>
@@ -533,7 +531,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             key="neverWithdraw"
             type="button"
             variant={
-              currentState.selectedPreset === "neverWithdraw"
+              savedState.selectedPreset === "neverWithdraw"
                 ? "primary"
                 : "secondary"
             }
@@ -583,26 +581,19 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
 
         {/* Footer */}
         <div className="flex items-start justify-between">
-          <Button
-            type="button"
-            onClick={() => handleClose()}
-            variant="tertiary"
-          >
+          <Button type="button" onClick={() => onClose()} variant="tertiary">
             {t("close")}
           </Button>
 
-          <Button
-            type="button"
-            variant="primary"
-            onClick={onReaffirm ? handleReaffirm : handleSave}
-            disabled={
-              currentState.selectedPreset === savedState.selectedPreset &&
-              JSON.stringify(currentState.forecastExpiration) ===
-                JSON.stringify(savedState.forecastExpiration)
-            }
-          >
-            {onReaffirm ? t("reaffirm") : t("saveChanges")}
-          </Button>
+          <PredictButton
+            onSubmit={handlePredict}
+            isDirty={isDirty}
+            hasUserForecast={hasUserForecast}
+            isUserForecastActive={isUserForecastActive}
+            isPending={false}
+            predictLabel={t("predict")}
+            isDisabled={isSubmissionDisabled}
+          />
         </div>
       </div>
     </BaseModal>

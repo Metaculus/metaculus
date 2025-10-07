@@ -385,7 +385,20 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           isOpen={isForecastExpirationModalOpen}
           onClose={() => setIsForecastExpirationModalOpen(false)}
           questionDuration={questionDuration}
-          onReaffirm={hasActiveUserForecast && !isDirty ? onSubmit : undefined}
+          onSubmit={onSubmit}
+          isDirty={option.isDirty}
+          hasUserForecast={hasUserForecast}
+          isUserForecastActive={hasActiveUserForecast}
+          isSubmissionDisabled={
+            forecastInputMode === ContinuousForecastInputType.Slider
+              ? option.userSliderForecast === null &&
+                option.question.status !== QuestionStatus.OPEN
+              : validateAllQuantileInputs({
+                  question: option.question,
+                  components: option.userQuantileForecast,
+                  t,
+                }).length !== 0 || !isNil(submitError)
+          }
         />
 
         <ContinuousInput

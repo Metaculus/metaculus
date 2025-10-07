@@ -466,6 +466,9 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
   }
 
+  console.log("isDirty", isDirty);
+  console.log("isPending", isPending);
+
   return (
     <>
       <ForecastExpirationModal
@@ -475,8 +478,20 @@ const ForecastMakerContinuous: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={hasUserActiveForecast && !isDirty ? submit : undefined}
+        isDirty={isDirty}
+        hasUserForecast={!!previousForecast}
+        isUserForecastActive={hasUserActiveForecast}
+        onSubmit={submit}
         questionDuration={questionDuration}
+        isSubmissionDisabled={
+          (forecastInputMode === ContinuousForecastInputType.Quantile &&
+            validateAllQuantileInputs({
+              question,
+              components: quantileDistributionComponents,
+              t,
+            }).length !== 0) ||
+          !isNil(submitError)
+        }
       />
       <ContinuousInput
         question={question}
