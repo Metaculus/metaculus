@@ -83,7 +83,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const prevNoForecastValue = latestNo
     ? extractPrevBinaryForecastValue(latestNo.forecast_values[1])
     : null;
-  const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
+
   const hasUserActiveForecast = hasLatestActiveYes || hasLatestActiveNo;
 
   const latestAggregationYes =
@@ -130,6 +130,12 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     activeTableOption === questionYesId
       ? questionYesDuration
       : questionNoDuration;
+
+  const activeQuestionPrevForecastValue = activeQuestion?.my_forecasts?.latest
+    ? extractPrevBinaryForecastValue(
+        activeQuestion?.my_forecasts?.latest?.forecast_values[0]
+      )
+    : null;
 
   const {
     modalSavedState,
@@ -473,7 +479,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
               onSubmit={handlePredictSubmit}
               isUserForecastActive={hasUserActiveForecast}
               isDirty={isPickerDirty}
-              hasUserForecast={hasUserForecast}
+              hasUserForecast={!!activeQuestionPrevForecastValue}
               isPending={isSubmitting}
               isDisabled={!questionsToSubmit.length}
               predictionExpirationChip={expirationShortChip}
