@@ -263,6 +263,21 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   }, [handleForecastExpiration, option.id, modalSavedState.forecastExpiration]);
 
   let SubmitControls: ReactNode = null;
+
+  const predictButtonIsDirty =
+    forecastInputMode === ContinuousForecastInputType.Slider
+      ? option.isDirty
+      : option.userQuantileForecast.some((q) => q.isDirty);
+  const predictButtonIsDisabled =
+    forecastInputMode === ContinuousForecastInputType.Slider
+      ? option.userSliderForecast === null &&
+        option.question.status !== QuestionStatus.OPEN
+      : validateAllQuantileInputs({
+          question: option.question,
+          components: option.userQuantileForecast,
+          t,
+        }).length !== 0 || !isNil(submitError);
+
   if (option.question.status === QuestionStatus.OPEN && canPredict) {
     SubmitControls = (
       <>
@@ -317,43 +332,19 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             </>
           )}
 
-          {forecastInputMode === ContinuousForecastInputType.Slider ? (
-            <PredictButton
-              onSubmit={() => onSubmit(modalSavedState.forecastExpiration)}
-              isDirty={option.isDirty}
-              hasUserForecast={hasUserForecast}
-              isUserForecastActive={hasActiveUserForecast}
-              isPending={isPending}
-              isDisabled={
-                option.userSliderForecast === null &&
-                option.question.status !== QuestionStatus.OPEN
-              }
-              predictLabel={previousForecast ? undefined : t("predict")}
-              predictionExpirationChip={expirationShortChip}
-              onPredictionExpirationClick={() =>
-                setIsForecastExpirationModalOpen(true)
-              }
-            />
-          ) : (
-            <PredictButton
-              onSubmit={() => onSubmit(modalSavedState.forecastExpiration)}
-              isDirty={option.userQuantileForecast.some((q) => q.isDirty)}
-              hasUserForecast={hasUserForecast}
-              isPending={isPending}
-              isDisabled={
-                validateAllQuantileInputs({
-                  question: option.question,
-                  components: option.userQuantileForecast,
-                  t,
-                }).length !== 0 || !isNil(submitError)
-              }
-              predictLabel={previousForecast ? undefined : t("predict")}
-              predictionExpirationChip={expirationShortChip}
-              onPredictionExpirationClick={() =>
-                setIsForecastExpirationModalOpen(true)
-              }
-            />
-          )}
+          <PredictButton
+            onSubmit={() => onSubmit(modalSavedState.forecastExpiration)}
+            isDirty={predictButtonIsDirty}
+            hasUserForecast={hasUserForecast}
+            isUserForecastActive={hasActiveUserForecast}
+            isPending={isPending}
+            isDisabled={predictButtonIsDisabled}
+            predictLabel={previousForecast ? undefined : t("predict")}
+            predictionExpirationChip={expirationShortChip}
+            onPredictionExpirationClick={() =>
+              setIsForecastExpirationModalOpen(true)
+            }
+          />
         </div>
         {previousForecastExpiration && (
           <span
@@ -386,19 +377,10 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           onClose={() => setIsForecastExpirationModalOpen(false)}
           questionDuration={questionDuration}
           onSubmit={onSubmit}
-          isDirty={option.isDirty}
+          isDirty={predictButtonIsDirty}
           hasUserForecast={hasUserForecast}
           isUserForecastActive={hasActiveUserForecast}
-          isSubmissionDisabled={
-            forecastInputMode === ContinuousForecastInputType.Slider
-              ? option.userSliderForecast === null &&
-                option.question.status !== QuestionStatus.OPEN
-              : validateAllQuantileInputs({
-                  question: option.question,
-                  components: option.userQuantileForecast,
-                  t,
-                }).length !== 0 || !isNil(submitError)
-          }
+          isSubmissionDisabled={predictButtonIsDisabled}
         />
 
         <ContinuousInput
