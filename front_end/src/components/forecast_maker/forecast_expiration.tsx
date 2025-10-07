@@ -34,11 +34,6 @@ import BaseModal from "../base_modal";
 import Button from "../ui/button";
 import { ContinuousGroupOption } from "./continuous_group_accordion/group_forecast_accordion";
 
-// TODO: check existing forecasts made before this change: how reaffirm will act?
-// TODO: what should we show if previous prediction was withdrawn? (Probably fine to keep as-is)
-// TODO: should we show "reset to default" for cases when user has exp disabled?
-// TODO: modal label
-
 interface ForecastExpirationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -195,7 +190,6 @@ const buildDefaultState = (
 
   // case 2, user has some value in their setting and no previous forecast, so using that value
   if (!lastForecast) {
-    // TODO: consider native ms support
     const closestPreset = getClosestPresetFromDuration(
       userDefaultExpirationDurationSec * 1000
     );
@@ -223,7 +217,6 @@ const buildDefaultState = (
   // case 3.b - user has a previous forecast with an auto-withdraw date
 
   // Convert the last forecast duration to milliseconds for comparison
-  // TODO: replace
   const lastForecastDurationMs =
     (lastForecast.end_time - lastForecast.start_time) * 1000;
   const closestPreset = getClosestPresetFromDuration(lastForecastDurationMs);
@@ -442,8 +435,6 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   };
 
   const handleReset = async () => {
-    // TODO: if you close modal without saving state is resets back
-    // TODO: test if account has inf expiration global setting
     return setSavedState(
       buildDefaultState(undefined, userDefaultExpirationDurationSec)
     );
