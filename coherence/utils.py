@@ -5,56 +5,67 @@ from scipy.stats import sem
 from coherence.models import CoherenceLink, Direction, Strength, AggregateCoherenceLink
 
 
-def convert_to_vector(direction: Direction, strength: Strength) -> int:
+def convert_direction_to_number(direction: Direction) -> int:
     direction_map = {
         Direction.POSITIVE: 1,
         Direction.NEGATIVE: -1,
     }
-
-    strength_map = {Strength.LOW: 1, Strength.MEDIUM: 2, Strength.HIGH: 3}
-    return direction_map[direction] * strength_map[strength]
+    return direction_map[direction]
 
 
-def custom_round(x: float) -> int:
-    fractional_part = abs(x - int(x))
-    if abs(fractional_part - 0.5) < 1e-10:
-        return int(x)
-    else:
-        return round(x)
+def convert_strength_to_number(strength: Strength) -> int:
+    strength_map = {Strength.LOW: 1, Strength.MEDIUM: 2, Strength.HIGH: 5}
+    return strength_map[strength]
 
 
-def convert_to_direction_strength(
+def convert_to_vector(direction: Direction, strength: Strength) -> int:
+    return convert_direction_to_number(direction) * convert_strength_to_number(strength)
+
+
+def convert_direction_number_to_label(direction: int) -> Direction:
+    direction_map = {1: Direction.POSITIVE, -1: Direction.NEGATIVE}
+    return direction_map[direction]
+
+
+def convert_strength_number_to_label(strength: int) -> Strength:
+    strength_map = {
+        1: Strength.LOW,
+        2: Strength.MEDIUM,
+        3: Strength.MEDIUM,
+        4: Strength.HIGH,
+        5: Strength.HIGH,
+    }
+    return strength_map[strength]
+
+
+def convert_vector_to_direction_strength(
     vector_value: float,
-) -> tuple[Direction | None, Strength | None]:
-    strength_map = {1: Strength.LOW, 2: Strength.MEDIUM, 3: Strength.HIGH}
-    vector_value = custom_round(vector_value)
+) -> tuple[int | None, int | None]:
+    vector_value = round(vector_value)
     if vector_value == 0:
         return None, None
-    direction = Direction.POSITIVE if vector_value > 0 else Direction.NEGATIVE
-    strength = strength_map[abs(vector_value)]
+    strength = abs(vector_value)
+    direction = vector_value // strength
     return direction, strength
 
 
 def get_aggregation_results(
     links: list[CoherenceLink],
-) -> tuple[Direction | None, Strength | None, float | None]:
+) -> tuple[int | None, int | None, float | None]:
     if len(links) == 0:
         return None, None, None
     elif len(links) == 1:
         link = links[0]
-        return Direction(link.direction), Strength(link.strength), None
+        return link.direction, link.strength, None
     else:
-        vectors = [
-            convert_to_vector(Direction(link.direction), Strength(link.strength))
-            for link in links
-        ]
+        vectors = [link.direction * link.strength for link in links]
         mean = statistics.mean(vectors)
-        mean_direction, mean_strength = convert_to_direction_strength(mean)
+        mean_direction, mean_strength = convert_vector_to_direction_strength(mean)
         relative_standard_error_mean = (
             abs(float(sem(vectors) / mean)) if mean != 0 else None
         )
         return mean_direction, mean_strength, relative_standard_error_mean
 
 
-def link_to_question_id_pair(link: AggregateCoherenceLink) -> str:
+def link_to_question_id_pair(link: CoherenceLink | AggregateCoherenceLink) -> str:
     return f"{link.question1_id}, {link.question2_id}"

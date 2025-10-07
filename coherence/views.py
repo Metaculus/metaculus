@@ -14,6 +14,7 @@ from coherence.serializers import (
     serialize_aggregate_coherence_link_many,
 )
 from coherence.services import create_coherence_link
+from coherence.utils import convert_direction_to_number, convert_strength_to_number
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -22,7 +23,10 @@ from questions.models import Question
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_link_api_view(request):
-    serializer = CoherenceLinkSerializer(data=request.data)
+    data = request.data.copy()
+    data["direction"] = convert_direction_to_number(request.data["direction"])
+    data["strength"] = convert_strength_to_number(request.data["strength"])
+    serializer = CoherenceLinkSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
@@ -39,7 +43,6 @@ def create_link_api_view(request):
         question2.get_post(), user=request.user
     )
     ObjectPermission.can_view(question2_permission, raise_exception=True)
-
     coherence_link = create_coherence_link(
         user=request.user,
         question1=question1,
