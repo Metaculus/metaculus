@@ -12,9 +12,9 @@ const AIBTabs: React.FC = () => {
     <Tabs
       variant="group"
       defaultValue="benchmark"
-      className="bg-blue-200 dark:bg-blue-50-dark"
+      className="bg-blue-200 dark:bg-blue-50-dark "
     >
-      <TabsList className="mt-8 py-0 dark:bg-blue-50-dark">
+      <TabsList className="mt-8 justify-center py-0 dark:bg-blue-50-dark lg:justify-start">
         {AIB_TABS.map((tab) => (
           <TabsTab key={tab.value} value={tab.value} icon={tab.icon}>
             {tab.label}
@@ -23,7 +23,7 @@ const AIBTabs: React.FC = () => {
       </TabsList>
       {AIB_TABS.map((tab) => (
         <TabsSection
-          className="mt-[120px] space-y-[120px]"
+          className="mt-[60px] space-y-[60px] 2xl:mt-[120px] 2xl:space-y-[120px]"
           key={tab.value}
           value={tab.value}
         >
@@ -43,14 +43,19 @@ const AIB_TABS: {
   {
     value: "benchmark",
     label: "Benchmark",
-    icon: <FontAwesomeIcon className="scale-[1.11]" icon={faBullseye} />,
+    icon: (
+      <FontAwesomeIcon
+        className="scale-[1] sm:scale-[1.11]"
+        icon={faBullseye}
+      />
+    ),
     content: <AIBBenchmarkTab />,
   },
   {
     value: "info",
     label: "Info",
     icon: (
-      <span className="relative inline-block">
+      <span className="relative inline-block scale-[0.8] sm:scale-[100%]">
         <FontAwesomeIcon icon={faCircle} className="h-5 w-5" />
         <FontAwesomeIcon
           icon={faInfo}
@@ -63,7 +68,9 @@ const AIB_TABS: {
   {
     value: "news",
     label: "News",
-    icon: <FontAwesomeIcon className="scale-[1.11]" icon={faBook} />,
+    icon: (
+      <FontAwesomeIcon className="scale-[1] sm:scale-[1.11]" icon={faBook} />
+    ),
     content: "News content",
   },
 ];

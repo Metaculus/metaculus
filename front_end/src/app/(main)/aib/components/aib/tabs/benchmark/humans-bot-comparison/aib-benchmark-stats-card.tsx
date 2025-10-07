@@ -20,16 +20,16 @@ const AIBBenchmarkStatsCard: React.FC<Props> = ({
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center gap-2 rounded-[12px] bg-opacity-10 p-6 antialiased dark:bg-opacity-10",
+        "flex flex-1 flex-col items-center gap-2 rounded-[12px] bg-opacity-10 px-6 py-4 antialiased dark:bg-opacity-10 sm:p-6",
         t.bgClass,
         t.textClass
       )}
     >
-      <p className="m-0 text-4xl font-bold leading-[40px] tracking-wider">
+      <p className="m-0 text-[28px] font-bold leading-[116%] tracking-wider sm:text-4xl sm:leading-[40px]">
         {value}
       </p>
-      <div className="flex flex-col items-center text-lg font-normal tracking-wide">
-        <p className="m-0">{label}</p>
+      <div className="flex flex-col items-center text-base font-normal tracking-wide sm:text-lg">
+        <p className="m-0 text-center">{label}</p>
         <p className="m-0">{subLabel}</p>
       </div>
     </div>

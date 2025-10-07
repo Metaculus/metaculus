@@ -133,8 +133,8 @@ export const TabsTab = ({
           "first:rounded-l-full",
           "last:rounded-r-full",
           "[&:not(:first-child)]:-ml-px",
-          "border text-lg leading-[26px]",
-          "px-5 py-2 font-[500]",
+          "border text-sm leading-[16px] sm:text-lg sm:leading-[26px]",
+          "px-3 py-1 font-[500] sm:px-5 sm:py-1.5",
           !isActive && "text-blue-700 dark:text-blue-700-dark",
           isActive
             ? "border-transparent"
@@ -155,7 +155,7 @@ export const TabsTab = ({
       }}
     >
       {icon ? (
-        <span className="mt-[1px] inline-flex items-center gap-3">
+        <span className="mt-[1px] inline-flex items-center gap-2 sm:gap-3">
           {icon}
           <span>{children}</span>
         </span>
