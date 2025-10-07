@@ -34,8 +34,6 @@ import BaseModal from "../base_modal";
 import Button from "../ui/button";
 import { ContinuousGroupOption } from "./continuous_group_accordion/group_forecast_accordion";
 
-// TODO: check duration next to the "predict" button
-// TODO: what if user specifies custom date? (what happens with the next forecast)
 // TODO: check existing forecasts made before this change: how reaffirm will act?
 // TODO: what should we show if previous prediction was withdrawn? (Probably fine to keep as-is)
 // TODO: should we show "reset to default" for cases when user has exp disabled?
