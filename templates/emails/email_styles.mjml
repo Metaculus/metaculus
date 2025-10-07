@@ -80,6 +80,11 @@
         font-size: 14px !important;
         line-height: 20px !important;
       }
+      
+      .email-subject div {
+        font-size: 16px !important;
+        line-height: 22px !important;
+      }
     }
   </mj-style>
 
@@ -87,8 +92,8 @@
   <mj-attributes>
     <mj-all font-family="Inter Variable, Inter, Arial, sans-serif" font-size="16px" > </mj-all>
     <mj-text css-class="general-text" color="rgba(22, 28, 34, 1)" line-height="24px"/>
-    <mj-body background-color="rgb(239, 244, 244)"/>
-    <mj-section background-color="rgb(255, 255, 255)" padding-top="10px" padding-bottom="0px" />
+    <mj-body background-color="rgb(238, 242, 242)"/>
+    <mj-section background-color="rgb(255, 255, 255)" padding-top="10px" padding-bottom="10px" />
     <mj-class css-class="primary-button" name="primary-button" inner-padding="15px 0px" font-weight="700" font-size="18px" font-family="Inter Variable, Inter, Arial, sans-serif" color="rgba(0, 0, 0, 1)" width="100%" background-color="rgba(159, 209, 159, 1)" border-radius="27px"/>
     <mj-class name="secondary-button" inner-padding="8px 13px" font-weight="500" font-size="13px" font-family="Inter Variable" color="#2d2e2e" border="1px solid #555" background-color="rgba(255, 255, 255, 1)" border-radius="27px"/>
   </mj-attributes>
