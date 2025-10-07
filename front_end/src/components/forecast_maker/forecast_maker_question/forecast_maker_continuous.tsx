@@ -358,6 +358,19 @@ const ForecastMakerContinuous: FC<Props> = ({
       />
     ) : null;
 
+  const predictButtonIsDirty =
+    forecastInputMode === ContinuousForecastInputType.Slider
+      ? isDirty
+      : quantileDistributionComponents.some((q) => q.isDirty);
+  const predictButtonIsDisabled =
+    forecastInputMode === ContinuousForecastInputType.Quantile
+      ? validateAllQuantileInputs({
+          question,
+          components: quantileDistributionComponents,
+          t,
+        }).length !== 0 || !isNil(submitError)
+      : undefined;
+
   let SubmitControls: ReactNode = null;
   if (canPredict) {
     SubmitControls = (
@@ -397,41 +410,19 @@ const ForecastMakerContinuous: FC<Props> = ({
                 </WithdrawButton>
               )
             )}
-
-            {forecastInputMode === ContinuousForecastInputType.Slider ? (
-              <PredictButton
-                onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                isDirty={isDirty}
-                hasUserForecast={!!previousForecast}
-                isUserForecastActive={hasUserActiveForecast}
-                isPending={isPending}
-                predictLabel={previousForecast ? undefined : t("predict")}
-                predictionExpirationChip={expirationShortChip}
-                onPredictionExpirationClick={() =>
-                  setIsForecastExpirationModalOpen(true)
-                }
-              />
-            ) : (
-              <PredictButton
-                onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
-                hasUserForecast={!!previousForecast}
-                isUserForecastActive={hasUserActiveForecast}
-                isPending={isPending}
-                predictLabel={previousForecast ? undefined : t("predict")}
-                predictionExpirationChip={expirationShortChip}
-                onPredictionExpirationClick={() =>
-                  setIsForecastExpirationModalOpen(true)
-                }
-                isDisabled={
-                  validateAllQuantileInputs({
-                    question,
-                    components: quantileDistributionComponents,
-                    t,
-                  }).length !== 0 || !isNil(submitError)
-                }
-              />
-            )}
+            <PredictButton
+              onSubmit={() => submit(modalSavedState.forecastExpiration)}
+              isDirty={predictButtonIsDirty}
+              hasUserForecast={!!previousForecast}
+              isUserForecastActive={hasUserActiveForecast}
+              isPending={isPending}
+              predictLabel={previousForecast ? undefined : t("predict")}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
+              isDisabled={predictButtonIsDisabled}
+            />
           </div>
           {previousForecastExpiration && (
             <span
@@ -466,9 +457,6 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
   }
 
-  console.log("isDirty", isDirty);
-  console.log("isPending", isPending);
-
   return (
     <>
       <ForecastExpirationModal
@@ -478,20 +466,12 @@ const ForecastMakerContinuous: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        isDirty={isDirty}
+        isDirty={predictButtonIsDirty}
         hasUserForecast={!!previousForecast}
         isUserForecastActive={hasUserActiveForecast}
         onSubmit={submit}
         questionDuration={questionDuration}
-        isSubmissionDisabled={
-          (forecastInputMode === ContinuousForecastInputType.Quantile &&
-            validateAllQuantileInputs({
-              question,
-              components: quantileDistributionComponents,
-              t,
-            }).length !== 0) ||
-          !isNil(submitError)
-        }
+        isSubmissionDisabled={predictButtonIsDisabled}
       />
       <ContinuousInput
         question={question}
