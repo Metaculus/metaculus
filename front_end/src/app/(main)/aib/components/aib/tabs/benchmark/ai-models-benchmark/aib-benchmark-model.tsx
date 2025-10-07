@@ -18,23 +18,23 @@ type Props = {
 const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
   return (
     <div
-      className="flex items-center justify-between rounded-[4px] bg-gray-0 p-[10px] dark:bg-gray-0-dark"
+      className="flex items-center justify-between rounded-[4px] bg-gray-0 p-[10px] py-2 antialiased dark:bg-gray-0-dark"
       style={{ width: `${widthPct}%` }}
     >
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-[10px] text-zinc-900 dark:text-zinc-100">
           <Image
             src={ICONS[model.iconKey]}
-            className="h-6 w-6"
+            className="h-4 w-4 sm:h-6 sm:w-6"
             alt={model.name}
           />
           <p className="m-0 text-base font-[500] leading-[100%] text-gray-800 dark:text-gray-800-dark">
             {model.name}
           </p>
-          <p className="font-base m-0 text-sm text-gray-500 dark:text-gray-500-dark">{`${model.forecasts} forecasts`}</p>
+          <p className="font-base m-0 hidden text-sm text-gray-500 dark:text-gray-500-dark sm:block">{`${model.forecasts} forecasts`}</p>
         </div>
       </div>
-      <p className="m-0 text-lg font-semibold text-purple-700 dark:text-purple-700-dark">
+      <p className="m-0 text-[14px] font-semibold tracking-wider text-purple-700 dark:text-purple-700-dark sm:text-lg">
         {model.score}
       </p>
     </div>

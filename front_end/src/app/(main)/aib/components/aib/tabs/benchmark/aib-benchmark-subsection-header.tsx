@@ -15,10 +15,10 @@ const AIBBenchmarkSubsectionHeader: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <h3 className="m-0 text-4xl font-bold leading-[40px] text-blue-800 dark:text-blue-800-dark">
+      <h3 className="m-0 text-center text-[24px] font-bold leading-[116%] text-blue-800 dark:text-blue-800-dark sm:text-[32px] sm:leading-[40px] lg:text-left lg:text-4xl">
         {title}
       </h3>
-      <p className="m-0 mt-3 inline-flex items-center gap-2 text-xl font-medium text-blue-700 dark:text-blue-700-dark">
+      <p className="m-0 mt-3 flex items-center justify-center gap-2 text-center text-[14px] font-normal leading-[20px] text-blue-700 dark:text-blue-700-dark sm:text-xl sm:font-medium sm:leading-normal lg:justify-start lg:text-left">
         {subtitle}
       </p>
       {children}
@@ -37,9 +37,9 @@ export const AIBBenchmarkModelsSubsectionHeader: React.FC = () => {
         </>
       }
     >
-      <p className="m-0 mt-2 text-base text-blue-800 opacity-60 dark:text-blue-800-dark">
-        Updated every day based on our standardized forecasting bot performance
-        measurement.
+      <p className="m-0 mx-auto mt-2 max-w-[400px] text-center text-[12px] leading-[16px] text-blue-800 opacity-60 dark:text-blue-800-dark sm:text-base sm:leading-normal lg:max-w-none lg:text-left">
+        Updated every day based on our standardized <br className="sm:hidden" />{" "}
+        forecasting bot performance measurement.
       </p>
     </AIBBenchmarkSubsectionHeader>
   );
@@ -52,7 +52,9 @@ export const AIBBenchmarkBotsVsHumansSubsectionHeader: React.FC = () => {
       subtitle={
         <>
           <span>
-            Based on performance in our quarterly{" "}
+            Based on performance in our{" "}
+            <br className="hidden sm:block lg:hidden" /> quarterly{" "}
+            <br className="block sm:hidden" />
             <Link
               className="text-blue-600 dark:text-blue-600-dark"
               href="/aib/2025/q1"
@@ -60,7 +62,6 @@ export const AIBBenchmarkBotsVsHumansSubsectionHeader: React.FC = () => {
               AI Benchmarking Tournament.
             </Link>
           </span>
-          <FontAwesomeIcon icon={faQuestionCircle} />
         </>
       }
     />

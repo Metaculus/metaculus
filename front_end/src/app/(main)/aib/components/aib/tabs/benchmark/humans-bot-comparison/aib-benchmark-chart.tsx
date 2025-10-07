@@ -28,6 +28,7 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 
@@ -101,6 +102,8 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
     return { yDomain: [lo, hi] as [number, number], ticks: t };
   }, [data]);
 
+  const smUp = useBreakpoint("sm");
+
   const rowByX: Record<string, BenchmarkRow> = useMemo(
     () =>
       Object.fromEntries(
@@ -123,7 +126,7 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
 
   return (
     <div ref={wrapRef} className={className ?? "relative w-full"}>
-      <div className="mb-9 flex w-full items-center justify-center gap-8 antialiased">
+      <div className="mb-4 flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-2 antialiased sm:mb-9 sm:gap-6">
         {SERIES_SPECS.map(({ key, label }) => (
           <div key={key} className="inline-flex items-center gap-2">
             <span
@@ -131,18 +134,18 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
               className="inline-block h-[14px] w-[14px] rounded-[2px]"
               style={{ background: colorOf(key) }}
             />
-            <span className="text-lg font-[400] text-gray-900 dark:text-gray-900-dark">
+            <span className="text-base font-[400] text-gray-900 dark:text-gray-900-dark sm:text-lg">
               {label}
             </span>
           </div>
         ))}
       </div>
 
-      {width === 0 && <div style={{ height: 360 }} />}
+      {width === 0 && <div style={{ height: smUp ? 360 : 200 }} />}
       {width > 0 && (
         <VictoryChart
           width={width}
-          height={360}
+          height={smUp ? 360 : 200}
           theme={chartTheme}
           domain={{ y: yDomain }}
           domainPadding={{ x: 20 }}
@@ -228,7 +231,7 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
               ticks: { stroke: "transparent" },
               tickLabels: {
                 fill: getThemeColor(METAC_COLORS.gray[600]),
-                fontSize: 16,
+                fontSize: smUp ? 16 : 12,
               },
               grid: { stroke: "transparent" },
             }}
