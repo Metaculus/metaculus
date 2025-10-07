@@ -15,7 +15,8 @@ def modify_link_direction_strength(
     for link in CoherenceLink.objects.all():
         link.direction = convert_direction_to_number(link.direction)
         link.strength = convert_strength_to_number(link.strength)
-        link.save(update_fields=['direction', 'strength'])
+        link.save(update_fields=["direction", "strength"])
+
 
 def undo_modify_link_direction_strength(
     apps: StateApps, schema_editor: BaseDatabaseSchemaEditor
@@ -24,7 +25,7 @@ def undo_modify_link_direction_strength(
     for link in CoherenceLink.objects.all():
         link.direction = convert_direction_number_to_label(link.direction)
         link.strength = convert_strength_number_to_label(link.strength)
-        link.save(update_fields=['direction', 'strength'])
+        link.save(update_fields=["direction", "strength"])
 
 
 class Migration(migrations.Migration):
