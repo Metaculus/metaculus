@@ -14,10 +14,8 @@ from comments.models import (
     Comment,
     CommentVote,
     CommentsOfTheWeekEntry,
-    KeyFactor,
-    KeyFactorVote,
 )
-from comments.serializers import (
+from comments.serializers.common import (
     CommentWriteSerializer,
     OldAPICommentWriteSerializer,
     serialize_comment,
@@ -34,11 +32,7 @@ from comments.services.common import (
     update_comment,
 )
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors import (
-    create_key_factors,
-    generate_keyfactors_for_comment,
-    key_factor_vote,
-)
+from comments.services.key_factors import create_key_factors
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -297,72 +291,6 @@ def comment_create_oldapi_view(request: Request):
     )
 
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
-
-
-@api_view(["POST"])
-def key_factor_vote_view(request: Request, pk: int):
-    key_factor = get_object_or_404(KeyFactor, pk=pk)
-    vote = serializers.ChoiceField(
-        required=False, allow_null=True, choices=KeyFactorVote.VoteStrength.choices
-    ).run_validation(request.data.get("vote"))
-    # vote_type is always required, and when vote is None, the type is being used to
-    # decide which vote to delete based on the type
-    vote_type = serializers.ChoiceField(
-        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
-    ).run_validation(request.data.get("vote_type"))
-
-    score = key_factor_vote(
-        key_factor, user=request.user, vote=vote, vote_type=vote_type
-    )
-
-    return Response({"score": score})
-
-
-@api_view(["POST"])
-@transaction.atomic
-def comment_add_key_factors_view(request: Request, pk: int):
-    comment = get_object_or_404(Comment, pk=pk)
-
-    if comment.author != request.user:
-        raise PermissionDenied(
-            "You do not have permission to add key factors to this comment."
-        )
-
-    key_factors = serializers.ListField(
-        child=serializers.CharField(allow_blank=False), allow_null=True
-    ).run_validation(request.data.get("key_factors"))
-
-    create_key_factors(comment, key_factors)
-
-    return Response(
-        serialize_comment_many([comment], with_key_factors=True)[0],
-        status=status.HTTP_200_OK,
-    )
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def comment_suggested_key_factors_view(request: Request, pk: int):
-    comment = get_object_or_404(Comment, pk=pk)
-
-    existing_keyfactors = [
-        keyfactor.driver.text
-        for keyfactor in KeyFactor.objects.for_posts([comment.on_post])
-        .filter_active()
-        .filter(driver__isnull=False)
-        .select_related("driver")
-    ]
-
-    suggested_key_factors = generate_keyfactors_for_comment(
-        comment.text,
-        existing_keyfactors,
-        comment.on_post,  # type: ignore (on_post is not None)
-    )
-
-    return Response(
-        suggested_key_factors,
-        status=status.HTTP_200_OK,
-    )
 
 
 @api_view(["POST"])

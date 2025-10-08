@@ -1,7 +1,7 @@
 import pytest  # noqa
 
 from comments.models import KeyFactorVote, KeyFactorDriver
-from comments.serializers import serialize_key_factors_many
+from comments.serializers.key_factors import serialize_key_factors_many
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa

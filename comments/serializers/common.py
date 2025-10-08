@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
+from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
 from comments.services.key_factors import get_votes_for_key_factors
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
@@ -16,6 +17,7 @@ from questions.serializers.common import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import flatten, generate_map_from_list
+from .key_factors import serialize_key_factors_many
 
 
 class CommentFilterSerializer(serializers.Serializer):
@@ -209,56 +211,6 @@ def serialize_comment_many(
             key_factors=comment_key_factors_map.get(comment.id),
         )
         for comment in objects
-    ]
-
-
-def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[int]):
-    pivot_votes = Counter(vote_scores)
-
-    return {
-        "score": key_factor.votes_score,
-        "aggregated_data": [
-            {"score": score, "count": count} for score, count in pivot_votes.items()
-        ],
-        "user_vote": key_factor.user_vote,
-    }
-
-
-def serialize_key_factor(key_factor: KeyFactor, vote_scores: list[int] = None) -> dict:
-    return {
-        "id": key_factor.id,
-        "driver": {"text": key_factor.driver.text} if key_factor.driver else None,
-        "author": BaseUserSerializer(key_factor.comment.author).data,
-        "comment_id": key_factor.comment_id,
-        "post_id": key_factor.comment.on_post_id,
-        "vote": serialize_key_factor_votes(key_factor, vote_scores or []),
-    }
-
-
-def serialize_key_factors_many(
-    key_factors: Iterable[KeyFactor], current_user: User = None
-):
-    # Get original ordering of the comments
-    ids = [p.pk for p in key_factors]
-    qs = (
-        KeyFactor.objects.filter(pk__in=ids)
-        .filter_active()
-        .select_related("comment__author", "driver")
-    )
-
-    if current_user:
-        qs = qs.annotate_user_vote(current_user)
-
-    # Restore the original ordering
-    objects = list(qs.all())
-    objects.sort(key=lambda obj: ids.index(obj.id))
-
-    # Extract user votes
-    votes_map = get_votes_for_key_factors(key_factors)
-
-    return [
-        serialize_key_factor(key_factor, vote_scores=votes_map.get(key_factor.id))
-        for key_factor in objects
     ]
 
 
