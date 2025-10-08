@@ -288,6 +288,7 @@ class NotificationTypeSimilarPostsMixin:
     @classmethod
     def get_similar_posts(cls, post_ids: list[int]):
         from posts.services.feed import get_similar_posts_for_posts
+        from questions.services import get_aggregated_forecasts_for_questions
 
         similar_posts = []
         posts = Post.objects.filter(pk__in=post_ids).only("id", "title")
@@ -300,11 +301,29 @@ class NotificationTypeSimilarPostsMixin:
 
         if posts:
             similar_posts = []
-            for p in (
+            posts_with_questions = (
                 Post.objects.filter(pk__in=similar_post_ids)
                 .select_related("question")
-                .only("id", "title", "forecasters_count", "question__id")
-            ):
+                .only(
+                    "id", "title", "forecasters_count", "question__id", "question__type"
+                )
+            )
+
+            # Collect questions for binary posts to fetch aggregations in bulk
+            binary_questions = []
+            for p in posts_with_questions:
+                if p.question and p.question.type == Question.QuestionType.BINARY:
+                    binary_questions.append(p.question)
+
+            # Fetch aggregated forecasts for all binary questions at once
+            forecasts_by_question = {}
+            if binary_questions:
+                forecasts_by_question = get_aggregated_forecasts_for_questions(
+                    binary_questions
+                )
+
+            # Build post data with probabilities from the fetched forecasts
+            for p in posts_with_questions:
                 post_data = {
                     "id": p.pk,
                     "title": p.title,
@@ -313,21 +332,15 @@ class NotificationTypeSimilarPostsMixin:
 
                 # Add probability for binary questions
                 if p.question and p.question.type == Question.QuestionType.BINARY:
-                    try:
-                        latest_aggregate = (
-                            p.question.aggregate_forecasts.filter(
-                                method=p.question.default_aggregation_method
-                            )
-                            .order_by("-start_time")
-                            .first()
-                        )
-                        if latest_aggregate and latest_aggregate.forecast_values:
+                    forecasts = forecasts_by_question.get(p.question, [])
+                    if forecasts:
+                        # Get the last forecast (list is sorted by start_time)
+                        latest_forecast = forecasts[-1]
+                        if latest_forecast.forecast_values:
                             probability = round(
-                                latest_aggregate.forecast_values[1] * 100
+                                latest_forecast.forecast_values[1] * 100
                             )
                             post_data["probability"] = probability
-                    except Exception:
-                        pass  # Skip probability if not available
 
                 similar_posts.append(post_data)
 
