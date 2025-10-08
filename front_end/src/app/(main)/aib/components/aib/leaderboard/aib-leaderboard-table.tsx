@@ -29,9 +29,9 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
   return (
     <table className="mx-auto w-full max-w-[854px] table-fixed border-collapse border-spacing-0 border-[1px] border-gray-300 dark:border-gray-300-dark">
       <colgroup>
-        <col className="w-16" />
+        <col className="w-8 sm:w-16" />
         <col />
-        <col className="w-[100px]" />
+        <col className="hidden w-[100px] sm:table-cell" />
         <col className="w-[100px]" />
       </colgroup>
 
@@ -39,7 +39,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
         <tr className="items-center border-b-[1px] border-blue-400 bg-blue-100 text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
           <Th></Th>
           <Th>Model</Th>
-          <Th className="text-center">Forecasts</Th>
+          <Th className="hidden text-center sm:table-cell">Forecasts</Th>
           <Th className="text-center">Avg Score</Th>
         </tr>
       </thead>
@@ -52,26 +52,28 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
             <Td className="text-center">{r.rank}</Td>
 
             <Td>
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                 {r.icon && (
                   <Image
                     src={r.icon}
                     alt={r.label}
-                    className="h-5 w-5 shrink-0"
+                    className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
                   />
                 )}
                 <div className="min-w-0">
-                  <div className="truncate text-base leading-[24px]">
+                  <div className="truncate text-sm leading-[24px] sm:text-base">
                     {r.label}
                   </div>
-                  <div className="truncate text-xs text-gray-500 dark:text-gray-500-dark">
+                  <div className="truncate text-[10px] text-gray-500 dark:text-gray-500-dark sm:text-xs">
                     {r.username}
                   </div>
                 </div>
               </div>
             </Td>
 
-            <Td className="text-center">{fmt(r.forecasts, 3)}</Td>
+            <Td className="hidden text-center sm:table-cell">
+              {fmt(r.forecasts, 3)}
+            </Td>
             <Td className="text-center">{fmt(r.score, 2)}</Td>
           </tr>
         ))}
