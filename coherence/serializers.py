@@ -11,8 +11,6 @@ from .models import CoherenceLink, AggregateCoherenceLink
 from .utils import (
     get_aggregation_results,
     link_to_question_id_pair,
-    convert_direction_number_to_label,
-    convert_strength_number_to_label,
 )
 
 
@@ -51,12 +49,6 @@ def serialize_coherence_link(
 ):
     serialized_data = CoherenceLinkSerializer(link).data
     serialized_data["id"] = link.id
-    serialized_data["direction"] = convert_direction_number_to_label(
-        serialized_data["direction"]
-    )
-    serialized_data["strength"] = convert_strength_number_to_label(
-        serialized_data["strength"]
-    )
     if question1:
         serialized_data["question1"] = serialize_question(question1)
     if question2:
@@ -95,12 +87,8 @@ def serialize_aggregate_coherence_link(
         serialized_data["question2"] = serialize_question(question2)
     serialized_data["links_nr"] = len(matching_links)
     direction, strength, rsem = get_aggregation_results(list(matching_links))
-    serialized_data["direction"] = (
-        convert_direction_number_to_label(direction) if direction else None
-    )
-    serialized_data["strength"] = (
-        convert_strength_number_to_label(strength) if strength else None
-    )
+    serialized_data["direction"] = direction
+    serialized_data["strength"] = strength
     serialized_data["rsem"] = rsem if rsem else None
     return serialized_data
 
