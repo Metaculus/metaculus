@@ -3,7 +3,10 @@ from collections import defaultdict, Counter
 
 from datetime import datetime
 from django.core.management.base import BaseCommand
+<<<<<<< HEAD
 from django.db.models import Exists, OuterRef, Prefetch, QuerySet
+=======
+>>>>>>> 4b77fe49f6cd1298db358751b6c9efbd4e36d6ca
 from django.utils import timezone
 import numpy as np
 from scipy import sparse
@@ -533,7 +536,6 @@ class Command(BaseCommand):
             entry.ci_lower = match_ci_lower.get(uid, None)  # consider question_ci_lower
             entry.ci_upper = match_ci_upper.get(uid, None)  # consider question_ci_upper
             entry.save()
-        LeaderboardEntry.objects.batch_update
         print("Updating leaderboard... DONE")
         # delete unseen entries
         for entry in entry_dict.values():
