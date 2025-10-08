@@ -532,6 +532,8 @@ class Command(BaseCommand):
             entry.calculated_on = timezone.now()
             entry.ci_lower = match_ci_lower.get(uid, None)  # consider question_ci_lower
             entry.ci_upper = match_ci_upper.get(uid, None)  # consider question_ci_upper
+            # TODO: support for more efficient saving once this is implemented
+            # for leaderboards with more than 100 entries
             entry.save()
         print("Updating leaderboard... DONE")
         # delete unseen entries
