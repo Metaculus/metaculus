@@ -21,15 +21,13 @@ export default async function AIBLeaderboardsPage() {
     <AIBContainer className="pb-[148px] min-[376px]:pb-[58px]">
       <AIBLeaderboardHero />
 
-      <div className="mt-8 sm:mt-10">
-        {data?.entries?.length ? (
-          <AIBLeaderboardTable details={data} />
-        ) : (
-          <div className="mx-auto mt-10 w-full max-w-[570px] rounded-[2px] border-[1px] border-gray-300 bg-gray-0 p-8 text-base font-normal text-gray-700 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-700-dark">
-            Leaderboard data not currently available, please check back soon!
-          </div>
-        )}
-      </div>
+      {data?.entries?.length ? (
+        <AIBLeaderboardTable details={data} />
+      ) : (
+        <div className="mx-auto mt-10 w-full max-w-[570px] rounded-[2px] border-[1px] border-gray-300 bg-gray-0 p-8 text-base font-normal text-gray-700 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-700-dark">
+          Leaderboard data not currently available, please check back soon!
+        </div>
+      )}
     </AIBContainer>
   );
 }
