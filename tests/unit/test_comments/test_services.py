@@ -109,30 +109,30 @@ def test_notify_mentioned_users(
 
 
 def test_key_factor_vote(user1, user2):
+    user3 = factory_user()
+    user4 = factory_user()
     comment = factory_comment(author=user1, on_post=factory_post(author=user1))
     kf = factory_key_factor(
         comment=comment,
         driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
-        votes={user2: -1},
-        vote_type=KeyFactorVote.VoteType.UP_DOWN,
+        votes={user1: 1},
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
     )
 
-    assert (
-        key_factor_vote(
-            kf, user1, vote=-1, vote_type=KeyFactorVote.VoteType.UP_DOWN
+    def assert_vote(u, vt, expected):
+        assert (
+            key_factor_vote(kf, u, vote=vt, vote_type=KeyFactorVote.VoteType.STRENGTH)
+            == expected
         )
-        == -2
-    )
-    assert (
-        key_factor_vote(kf, user1, vote_type=KeyFactorVote.VoteType.UP_DOWN)
-        == -1
-    )
-    assert (
-        key_factor_vote(
-            kf, user1, vote=1, vote_type=KeyFactorVote.VoteType.UP_DOWN
-        )
-        == 0
-    )
+
+    assert_vote(user3, 5, pytest.approx(2.33, abs=0.01))
+    assert_vote(user2, 2, pytest.approx(2.66, abs=0.01))
+    # Remove vote
+    assert_vote(user2, None, pytest.approx(2.33, abs=0.01))
+    # Add neutral vote
+    assert_vote(user2, 0, 2)
+    # Add 4th vote
+    assert_vote(user4, 5, 2.75)
 
 
 def test_soft_delete_comment(user1, user2, post):

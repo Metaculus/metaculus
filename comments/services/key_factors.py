@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Iterable
 
 from django.db import transaction
@@ -6,7 +7,6 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor, KeyFactorVote, Comment, KeyFactorDriver
 from posts.models import Post
 from users.models import User
-from utils.dtypes import generate_map_from_list
 from utils.openai import generate_keyfactors
 
 
@@ -36,16 +36,20 @@ def key_factor_vote(
     return key_factor.votes_score
 
 
-def get_user_votes_for_key_factors(
-    key_factors: Iterable[KeyFactor], user: User
-) -> dict[int, list[KeyFactor]]:
+def get_votes_for_key_factors(key_factors: Iterable[KeyFactor]) -> dict[int, list[int]]:
     """
     Generates map of user votes for a set of KeyFactors
     """
 
-    votes = KeyFactorVote.objects.filter(key_factor__in=key_factors, user=user)
+    votes = KeyFactorVote.objects.filter(key_factor__in=key_factors).only(
+        "key_factor_id", "score"
+    )
+    votes_map = defaultdict(list)
 
-    return generate_map_from_list(list(votes), key=lambda vote: vote.key_factor_id)
+    for vote in votes:
+        votes_map[vote.key_factor_id].append(vote.score)
+
+    return votes_map
 
 
 @transaction.atomic

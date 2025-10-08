@@ -188,6 +188,19 @@ class KeyFactorQuerySet(models.QuerySet):
     def filter_active(self):
         return self.filter(is_active=True)
 
+    def annotate_user_vote(self, user: User):
+        """
+        Annotates queryset with the user's vote option
+        """
+
+        return self.annotate(
+            user_vote=Subquery(
+                KeyFactorVote.objects.filter(
+                    user=user, key_factor=OuterRef("pk")
+                ).values("score")[:1]
+            ),
+        )
+
 
 class ImpactDirection(models.TextChoices):
     INCREASE = "increase"
@@ -234,11 +247,11 @@ class KeyFactor(TimeStampedModel):
 
     objects = models.Manager.from_queryset(KeyFactorQuerySet)()
 
-    # Annotated placeholders
-    vote_type: str = None
-
     def __str__(self):
         return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}"
+
+    # Annotated fields
+    user_vote: int = None
 
     class Meta:
         # Used to get rid of the type error which complains
