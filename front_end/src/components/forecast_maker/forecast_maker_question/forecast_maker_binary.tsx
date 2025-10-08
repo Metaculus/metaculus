@@ -167,9 +167,10 @@ const ForecastMakerBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={
-          !!activeUserForecast && !isForecastDirty ? submit : undefined
-        }
+        onSubmit={submit}
+        hasUserForecast={hasUserForecast}
+        isUserForecastActive={!!activeUserForecast}
+        isDirty={isForecastDirty}
         questionDuration={questionDuration}
       />
 
