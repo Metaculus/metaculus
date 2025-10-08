@@ -316,11 +316,7 @@ def evaluate_question(
     score_types: list[ScoreTypes],
     spot_forecast_time: datetime | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-<<<<<<< HEAD
     only_include_user_ids: list[int] | None = None,
-=======
-    user_ids: list[int] | None = None,
->>>>>>> d6e867bdb (save work)
 ) -> list[Score]:
     """
     user_ids: optional - list of user IDs. If given, this question will be evaluated
@@ -357,11 +353,7 @@ def evaluate_question(
         aggregation_methods=aggregations_to_calculate,
         include_bots=bool(only_include_user_ids) or question.include_bots_in_aggregates,
         include_stats=False,
-<<<<<<< HEAD
         only_include_user_ids=only_include_user_ids,
-=======
-        user_ids=user_ids,
->>>>>>> d6e867bdb (save work)
     )
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
 
