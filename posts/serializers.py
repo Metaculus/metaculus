@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor
-from comments.serializers import serialize_key_factors_many
+from comments.serializers.key_factors import serialize_key_factors_many
 from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
