@@ -12,8 +12,16 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { useFeatureFlagEnabled } from "posthog-js/react";
-import { FC, useState, useRef, useEffect } from "react";
+import React, {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import PredictButton from "@/components/forecast_maker/predict_button";
 import { useAuth } from "@/contexts/auth_context";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -30,12 +38,17 @@ interface ForecastExpirationModalProps {
   isOpen: boolean;
   onClose: () => void;
   savedState: ModalState;
-  setSavedState: (state: ModalState) => void;
-  onReaffirm?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
+  setSavedState: Dispatch<SetStateAction<ModalState>>;
+  onSubmit?: (forecastExpiration: ForecastExpirationValue) => Promise<void>;
   questionDuration: number;
+  isDirty: boolean;
+  hasUserForecast: boolean;
+  isUserForecastActive?: boolean;
+  isSubmissionDisabled?: boolean;
 }
 
 type Preset = { id: string; duration?: Duration };
+type DurationPreset = Required<Preset>;
 
 export type ForecastExpirationValue =
   | { kind: "duration"; value: Duration }
@@ -43,7 +56,6 @@ export type ForecastExpirationValue =
   | { kind: "infinity" };
 
 interface ModalState {
-  option: "account" | "custom";
   selectedPreset: Preset["id"];
   forecastExpiration: ForecastExpirationValue;
   datePickerDate: Date | null;
@@ -70,13 +82,18 @@ export const forecastExpirationToDate = (
   return expiration.value;
 };
 
-const modalPresets: Preset[] = [
+const durationPresets: DurationPreset[] = [
   { id: "1d", duration: { days: 1 } },
   { id: "3d", duration: { days: 3 } },
   { id: "1w", duration: { weeks: 1 } },
   { id: "1m", duration: { months: 1 } },
   { id: "3m", duration: { months: 3 } },
   { id: "1y", duration: { years: 1 } },
+  { id: "3y", duration: { years: 3 } },
+];
+
+const modalPresets: Preset[] = [
+  ...durationPresets,
   { id: "customDate" },
   { id: "neverWithdraw" },
 ] as const;
@@ -133,16 +150,27 @@ export const buildDefaultForecastExpiration = (
 
   const defaultState = buildDefaultState(
     lastForecast,
-    modalPresets,
     userDefaultExpirationDurationSec
   );
 
   return defaultState.forecastExpiration;
 };
 
+const getClosestPresetFromDuration = (duration: number): DurationPreset => {
+  const presetsWithDurationMs = durationPresets.map((preset) => ({
+    durationMs: add(new Date(0), preset.duration).getTime(),
+    preset,
+  }));
+
+  return presetsWithDurationMs.reduce((closest, current) => {
+    const diffClosest = Math.abs(duration - closest.durationMs);
+    const diffCurrent = Math.abs(duration - current.durationMs);
+    return diffCurrent < diffClosest ? current : closest;
+  }).preset;
+};
+
 const buildDefaultState = (
   lastForecast: UserForecast | undefined,
-  presetDurations: Preset[],
   userDefaultExpirationDurationSec: number | null
 ): ModalState => {
   /*
@@ -151,12 +179,9 @@ const buildDefaultState = (
   - 3. if they do have a previous forecast, use that forecast duration to find the closest preset to use
   */
 
-  const now = new Date();
-
   // case 1, user has their setting to never auto withdraw
   if (!userDefaultExpirationDurationSec) {
     return {
-      option: "account",
       selectedPreset: "neverWithdraw",
       forecastExpiration: { kind: "infinity" },
       datePickerDate: null,
@@ -165,21 +190,16 @@ const buildDefaultState = (
 
   // case 2, user has some value in their setting and no previous forecast, so using that value
   if (!lastForecast) {
+    const closestPreset = getClosestPresetFromDuration(
+      userDefaultExpirationDurationSec * 1000
+    );
+
     return {
-      option: "account",
-      selectedPreset: "1w",
+      selectedPreset: closestPreset.id,
       datePickerDate: null,
       forecastExpiration: {
         kind: "duration",
-        value: intervalToDuration({
-          start: now,
-          end: add(now, {
-            seconds: Math.max(
-              userDefaultExpirationDurationSec,
-              30 * 24 * 60 * 60 // 1 month minimum (30 days in seconds)
-            ),
-          }),
-        }),
+        value: closestPreset.duration,
       },
     };
   }
@@ -188,7 +208,6 @@ const buildDefaultState = (
 
   if (lastForecast.end_time == null) {
     return {
-      option: "custom",
       selectedPreset: "neverWithdraw",
       datePickerDate: null,
       forecastExpiration: { kind: "infinity" },
@@ -200,32 +219,9 @@ const buildDefaultState = (
   // Convert the last forecast duration to milliseconds for comparison
   const lastForecastDurationMs =
     (lastForecast.end_time - lastForecast.start_time) * 1000;
-  // Only consider presets with actual durations and transform them in
-  const presetsWithDurationMs = presetDurations
-    .filter((preset) => !!preset.duration)
-    .map((preset) => {
-      return {
-        durationMs: preset.duration
-          ? add(new Date(0), preset.duration).getTime()
-          : Infinity,
-        preset,
-      };
-    });
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  let closestPreset = presetsWithDurationMs[0]!.preset; // we know it's not undefined because we filtered it out above
-  let minDifference = Infinity;
-
-  for (const preset of presetsWithDurationMs) {
-    const difference = Math.abs(lastForecastDurationMs - preset.durationMs);
-    if (difference < minDifference) {
-      minDifference = difference;
-      closestPreset = preset.preset;
-    }
-  }
+  const closestPreset = getClosestPresetFromDuration(lastForecastDurationMs);
 
   return {
-    option: "custom",
     selectedPreset: closestPreset.id,
     forecastExpiration: {
       kind: "duration",
@@ -247,6 +243,7 @@ const getPresetLabel = (
     { id: "1m", label: t("1month") },
     { id: "3m", label: t("3months") },
     { id: "1y", label: t("1year") },
+    { id: "3y", label: t("3years") },
     { id: "customDate", label: t("customDate") },
     { id: "neverWithdraw", label: t("neverWithdraw") },
   ] as const;
@@ -269,7 +266,6 @@ export const useExpirationModalState = (
 
   const initialState = buildDefaultState(
     lastForecast,
-    modalPresets,
     userDefaultExpirationDurationSec
   );
 
@@ -283,11 +279,7 @@ export const useExpirationModalState = (
   useEffect(() => {
     // When the user last forecast changes (user withdraws), we need to update the chip to duration closed to the last user forecast
     setModalSavedState(
-      buildDefaultState(
-        lastForecast,
-        modalPresets,
-        userDefaultExpirationDurationSec
-      )
+      buildDefaultState(lastForecast, userDefaultExpirationDurationSec)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastForecast]);
@@ -372,86 +364,40 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   onClose,
   savedState,
   setSavedState,
-  onReaffirm,
+  onSubmit,
   questionDuration,
+  isDirty,
+  hasUserForecast,
+  isUserForecastActive,
+  isSubmissionDisabled,
 }) => {
   const t = useTranslations();
 
-  const [currentState, setCurrentState] = useState<ModalState>(savedState);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setCurrentState({ ...savedState });
-  }, [savedState]);
-
-  const restoreFromSavedState = () => {
-    setCurrentState({ ...savedState });
-  };
-
-  const optionClasses = (selected: boolean) =>
-    cn(
-      "border rounded p-4 flex flex-col gap-2 cursor-pointer bg-gray-0 border-gray-400 dark:bg-gray-0-dark dark:border-gray-400-dark",
-      selected &&
-        "bg-blue-200 border-blue-500 dark:bg-blue-200-dark dark:border-blue-500-dark"
-    );
-
   const { user } = useAuth();
-
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
     ? ((userExpirationPercent / 100) * questionDuration) / 1000
     : null;
 
-  const now = new Date();
-
-  // intervalToDuration is needed so the duration will contain all units
-  const userDefaultExpirationDuration = userDefaultExpirationDurationSec
-    ? truncateDuration(
-        intervalToDuration({
-          start: now,
-          end: add(now, {
-            seconds: Math.max(
-              userDefaultExpirationDurationSec,
-              30 * 24 * 60 * 60 // 1 month minimum (30 days in seconds)
-            ),
-          }),
-        }),
-        1
-      )
-    : null;
-
-  const userDefaultExpirationDurationStr = userDefaultExpirationDuration
-    ? formatDuration(userDefaultExpirationDuration, {
-        format: [
-          "years",
-          "months",
-          "weeks",
-          "days",
-          "hours",
-          "minutes",
-          "seconds",
-        ],
-      })
-    : null;
-
-  const datePickerDate = currentState.datePickerDate;
+  const datePickerDate = savedState.datePickerDate;
   useEffect(() => {
     if (!datePickerDate) return;
-    setCurrentState((prev) => ({
+    setSavedState((prev) => ({
       ...prev,
       forecastExpiration: {
         kind: "date",
         value: datePickerDate,
       },
     }));
-  }, [datePickerDate]);
+  }, [datePickerDate, setSavedState]);
 
   const onCustomOptionSelected = (preset: Preset) => {
-    setCurrentState({
-      ...currentState,
+    setSavedState({
+      ...savedState,
       selectedPreset: preset.id,
-      option: "custom",
       forecastExpiration: {
         kind: "duration",
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -462,250 +408,181 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   };
 
   const onCustomDateSelected = () => {
-    setCurrentState({
-      ...currentState,
+    setSavedState({
+      ...savedState,
       selectedPreset: "customDate",
-      option: "custom",
       forecastExpiration: {
         kind: "date",
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        value: currentState.datePickerDate!,
+        value: savedState.datePickerDate!,
       },
     });
   };
 
-  const onAccountOptionSelected = () => {
-    setCurrentState({
-      ...currentState,
-      option: "account",
-      forecastExpiration: userDefaultExpirationDurationSec
-        ? {
-            kind: "date",
-            value: add(new Date(), {
-              seconds: userDefaultExpirationDurationSec,
-            }),
-          }
-        : { kind: "infinity" },
-    });
-  };
-
   const onNeverExpiresSelected = () => {
-    setCurrentState({
-      ...currentState,
+    setSavedState({
+      ...savedState,
       selectedPreset: "neverWithdraw",
-      option: "custom",
       forecastExpiration: {
         kind: "infinity",
       },
     });
   };
 
-  const handleClose = () => {
+  const handlePredict = async () => {
+    onSubmit?.(savedState.forecastExpiration);
     onClose();
-    restoreFromSavedState();
   };
 
-  const handleSave = async () => {
-    onClose();
-    setSavedState({ ...currentState });
-  };
-
-  const handleReaffirm = async () => {
-    onReaffirm?.(currentState.forecastExpiration);
-    handleSave();
+  const handleReset = async () => {
+    return setSavedState(
+      buildDefaultState(undefined, userDefaultExpirationDurationSec)
+    );
   };
 
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={() => handleClose()}
+      onClose={() => onClose()}
       className="h-full w-full max-w-max md:h-auto"
     >
-      <div className="flex flex-col gap-4 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
-        <h2 className="text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
+      <div className="flex flex-col gap-8 rounded bg-gray-0 dark:bg-gray-0-dark md:w-[628px]">
+        <h2 className="mb-0 text-lg font-medium leading-7 text-gray-1000 dark:text-gray-1000-dark">
           {t("predictionAutoWithdrawalTitle")}
         </h2>
 
-        <div
-          className={optionClasses(currentState.option === "account")}
-          onClick={onAccountOptionSelected}
-        >
-          <div className="flex items-center gap-2.5 lg:items-start">
-            <span className="flex h-4 w-4 items-center justify-center">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-900 dark:border-gray-900-dark">
-                {currentState.option === "account" && (
-                  <span className="h-2 w-2 rounded-full bg-gray-900 dark:bg-gray-900-dark" />
-                )}
-              </span>
-            </span>
+        <div className="flex flex-wrap gap-1">
+          {modalPresets.slice(0, -2).map((preset) => (
+            <Button
+              key={getPresetLabel(preset.id, t)}
+              type="button"
+              variant={
+                savedState.selectedPreset === preset.id
+                  ? "primary"
+                  : "secondary"
+              }
+              className={cn("rounded-[3px]")}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCustomOptionSelected(preset);
+              }}
+            >
+              {getPresetLabel(preset.id, t)}
+            </Button>
+          ))}
 
-            <div className="flex flex-1 flex-col gap-2">
-              <p className="my-0 text-base md:mt-0 md:leading-none">
-                {t("useAccountSetting")}
-                <span className="ml-1 font-medium">
-                  (
-                  {userDefaultExpirationDurationStr ?? (
-                    <FontAwesomeIcon icon={faInfinity} />
-                  )}
-                  )
-                </span>
-              </p>
-              <p className="my-0 text-xs leading-none">
-                {t("useAccountSettingDescription", {
-                  userForecastExpirationPercent: userExpirationPercent,
-                })}
+          <Button
+            key="customDate"
+            type="button"
+            variant={
+              savedState.selectedPreset === "customDate"
+                ? "primary"
+                : "secondary"
+            }
+            className={"relative flex items-center gap-0 rounded-[3px]"}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCustomDateSelected();
+              setShowDatePicker(true);
+              // Call showPicker synchronously for iOS compatibility
+              dateInputRef.current?.showPicker();
+            }}
+          >
+            {t("customDate")}
+
+            {/* Always render input but conditionally show the date display */}
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="absolute left-0 top-0 opacity-0"
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => {
+                const selectedDate = endOfDay(new Date(e.target.value));
+                const now = new Date();
+                // Only update if the selected date is not in the past
+                if (selectedDate >= now) {
+                  setSavedState({
+                    ...savedState,
+                    datePickerDate: selectedDate,
+                  });
+                }
+              }}
+            />
+
+            {showDatePicker && savedState.datePickerDate && (
+              <span className="text-sm">
+                {": " + format(savedState.datePickerDate, "d MMMM yyyy")}
+              </span>
+            )}
+          </Button>
+
+          <Button
+            key="neverWithdraw"
+            type="button"
+            variant={
+              savedState.selectedPreset === "neverWithdraw"
+                ? "primary"
+                : "secondary"
+            }
+            className={cn("rounded-[3px]")}
+            onClick={(e) => {
+              e.stopPropagation();
+              onNeverExpiresSelected();
+              setShowDatePicker(false);
+            }}
+          >
+            {t("neverWithdraw")}
+          </Button>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant="tertiary"
+            className="whitespace-nowrap"
+            onClick={handleReset}
+          >
+            {t("resetToDefault")}
+          </Button>
+          <p className="my-0 text-xs text-gray-700 dark:text-gray-700-dark">
+            {t.rich("useAccountSettingDescription", {
+              userForecastExpirationPercent: userExpirationPercent,
+              settingsLink: (chunk) => (
                 <Link
                   href="/accounts/settings/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-1 font-bold text-blue-700 underline dark:text-blue-700-dark"
+                  className="font-bold text-blue-700 underline dark:text-blue-700-dark"
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
                 >
-                  {t("change")}
+                  {chunk}
                 </Link>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={optionClasses(currentState.option === "custom")}
-          onClick={() => setCurrentState({ ...currentState, option: "custom" })}
-        >
-          <div className="flex items-center gap-3">
-            {/* radio */}
-            <span className="flex h-4 w-4 items-center justify-center">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-900 dark:border-gray-900-dark">
-                {currentState.option === "custom" && (
-                  <span className="h-2 w-2 rounded-full bg-gray-900 dark:bg-gray-900-dark" />
-                )}
-              </span>
-            </span>
-            <p className="my-0 text-base leading-normal">
-              {t("useCustomDuration")}
-            </p>
-          </div>
-
-          {currentState.option === "custom" && (
-            <div className="mt-3 flex flex-wrap gap-1">
-              {modalPresets.slice(0, -2).map((preset) => (
-                <Button
-                  key={getPresetLabel(preset.id, t)}
-                  type="button"
-                  variant={
-                    currentState.selectedPreset === preset.id &&
-                    currentState.option === "custom"
-                      ? "primary"
-                      : "secondary"
-                  }
-                  className={cn("rounded-[3px]")}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCustomOptionSelected(preset);
-                  }}
-                >
-                  {getPresetLabel(preset.id, t)}
-                </Button>
-              ))}
-
-              <Button
-                key="customDate"
-                type="button"
-                variant={
-                  currentState.selectedPreset === "customDate" &&
-                  currentState.option === "custom"
-                    ? "primary"
-                    : "secondary"
-                }
-                className={"relative flex items-center gap-0 rounded-[3px]"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCustomDateSelected();
-                  setShowDatePicker(true);
-                  // Call showPicker synchronously for iOS compatibility
-                  dateInputRef.current?.showPicker();
-                }}
-              >
-                {t("customDate")}
-
-                {/* Always render input but conditionally show the date display */}
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  className="absolute left-0 top-0 opacity-0"
-                  min={new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => {
-                    const selectedDate = endOfDay(new Date(e.target.value));
-                    const now = new Date();
-                    // Only update if the selected date is not in the past
-                    if (selectedDate >= now) {
-                      setCurrentState({
-                        ...currentState,
-                        datePickerDate: selectedDate,
-                      });
-                    }
-                  }}
-                />
-
-                {showDatePicker && currentState.datePickerDate && (
-                  <span className="text-sm">
-                    {": " + format(currentState.datePickerDate, "d MMMM yyyy")}
-                  </span>
-                )}
-              </Button>
-
-              <Button
-                key="neverWithdraw"
-                type="button"
-                variant={
-                  currentState.selectedPreset === "neverWithdraw" &&
-                  currentState.option === "custom"
-                    ? "primary"
-                    : "secondary"
-                }
-                className={cn("rounded-[3px]")}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNeverExpiresSelected();
-                  setShowDatePicker(false);
-                }}
-              >
-                {t("neverWithdraw")}
-              </Button>
-            </div>
-          )}
+              ),
+            })}
+          </p>
         </div>
 
         {/* Helper text */}
-        <p className="mx-auto max-w-[408px] text-wrap text-center text-sm leading-tight text-gray-700 dark:text-gray-700-dark">
+        <p className="my-0 text-xs text-gray-700 dark:text-gray-700-dark">
           {t("predictionWithdrawalReminderHelpText")}
         </p>
 
         {/* Footer */}
         <div className="flex items-start justify-between">
-          <Button
-            type="button"
-            onClick={() => handleClose()}
-            variant="tertiary"
-          >
+          <Button type="button" onClick={() => onClose()} variant="tertiary">
             {t("close")}
           </Button>
 
-          <Button
-            type="button"
-            variant="primary"
-            onClick={onReaffirm ? handleReaffirm : handleSave}
-            disabled={
-              currentState.option === savedState.option &&
-              currentState.selectedPreset === savedState.selectedPreset &&
-              JSON.stringify(currentState.forecastExpiration) ===
-                JSON.stringify(savedState.forecastExpiration)
-            }
-          >
-            {onReaffirm ? t("reaffirm") : t("saveChanges")}
-          </Button>
+          <PredictButton
+            onSubmit={handlePredict}
+            isDirty={isDirty}
+            hasUserForecast={hasUserForecast}
+            isUserForecastActive={isUserForecastActive}
+            isPending={false}
+            predictLabel={t("predict")}
+            isDisabled={isSubmissionDisabled}
+          />
         </div>
       </div>
     </BaseModal>
