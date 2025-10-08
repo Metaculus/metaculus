@@ -311,23 +311,25 @@ class NotificationTypeSimilarPostsMixin:
                     "nr_forecasters": p.forecasters_count,
                 }
 
-            # Add probability for binary questions
-            if p.question and p.question.type == Question.QuestionType.BINARY:
-                try:
-                    latest_aggregate = (
-                        p.question.aggregate_forecasts.filter(
-                            method=p.question.default_aggregation_method
+                # Add probability for binary questions
+                if p.question and p.question.type == Question.QuestionType.BINARY:
+                    try:
+                        latest_aggregate = (
+                            p.question.aggregate_forecasts.filter(
+                                method=p.question.default_aggregation_method
+                            )
+                            .order_by("-start_time")
+                            .first()
                         )
-                        .order_by("-start_time")
-                        .first()
-                    )
-                    if latest_aggregate and latest_aggregate.forecast_values:
-                        probability = round(latest_aggregate.forecast_values[1] * 100)
-                        post_data["probability"] = probability
-                except Exception:
-                    pass  # Skip probability if not available
+                        if latest_aggregate and latest_aggregate.forecast_values:
+                            probability = round(
+                                latest_aggregate.forecast_values[1] * 100
+                            )
+                            post_data["probability"] = probability
+                    except Exception:
+                        pass  # Skip probability if not available
 
-            similar_posts.append(post_data)
+                similar_posts.append(post_data)
 
         return similar_posts
 
