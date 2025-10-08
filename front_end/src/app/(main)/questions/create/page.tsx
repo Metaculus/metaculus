@@ -162,15 +162,13 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
             questionType={t("numericGroup")}
             questionExample={`"${t("numericGroupExample")}"`}
           />
-          {/* {currentUser?.is_staff && ( // TODO: launch Discrete group questions
-            <QuestionTypePicker
-              url={createHref("/questions/create/group", {
-                subtype: QuestionType.Discrete,
-              })}
-              questionType={t("discreteGroup")}
-              questionExample={`"${t("discreteGroupExample")}"`}
-            />
-          )} */}
+          <QuestionTypePicker
+            url={createHref("/questions/create/group", {
+              subtype: QuestionType.Discrete,
+            })}
+            questionType={t("discreteGroup")}
+            questionExample={`"${t("discreteGroupExample")}"`}
+          />
           <QuestionTypePicker
             url={createHref("/questions/create/group", {
               subtype: QuestionType.Date,

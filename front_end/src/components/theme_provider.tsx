@@ -29,16 +29,22 @@ const BlockCrossTabThemeSync: FC = () => {
   return null;
 };
 
+const ALLOWED: AppTheme[] = Object.values(AppTheme);
+
 const AppThemeProvided: FC<PropsWithChildren> = ({ children }) => {
   const params = useSearchParams();
-  const themeParam = params.get(ENFORCED_THEME_PARAM) as AppTheme | null;
+  const raw = params.get(ENFORCED_THEME_PARAM);
+
+  const themeParam = (ALLOWED as readonly string[]).includes(raw ?? "")
+    ? (raw as AppTheme)
+    : undefined;
 
   return (
     <ThemeProvider
       attribute="class"
       defaultTheme="system"
       enableSystem
-      forcedTheme={themeParam ?? undefined}
+      forcedTheme={themeParam}
     >
       <BlockCrossTabThemeSync />
       <InnerTheme>{children}</InnerTheme>
