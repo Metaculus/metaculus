@@ -18,10 +18,6 @@ def convert_strength_to_number(strength: Strength) -> int:
     return strength_map[strength]
 
 
-def convert_to_vector(direction: Direction, strength: Strength) -> int:
-    return convert_direction_to_number(direction) * convert_strength_to_number(strength)
-
-
 def convert_direction_number_to_label(direction: int) -> Direction:
     direction_map = {1: Direction.POSITIVE, -1: Direction.NEGATIVE}
     return direction_map[direction]
