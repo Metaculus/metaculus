@@ -21,8 +21,8 @@ def send_email_with_template(
     # Add subject to context so it can be displayed in email header
     if context is None:
         context = {}
-    context['email_subject'] = subject
-    
+    context["email_subject"] = subject
+
     convert_to_html_content = render_to_string(
         template_name=template_name, context=context
     )

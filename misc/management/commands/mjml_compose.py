@@ -77,39 +77,41 @@ class Command(BaseCommand):
                 html_file.write(html_content)
 
             logger.info(f"Converted {mjml_file_path} to {html_file_path}")
-    
+
     def mjml_render_direct(self, mjml_content):
         """
         Render MJML content using direct CLI call to avoid django-mjml stderr issues
         """
         try:
             # Create a temporary file for the MJML content
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.mjml', delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".mjml", delete=False
+            ) as temp_file:
                 temp_file.write(mjml_content)
                 temp_file_path = temp_file.name
-            
+
             try:
                 # Call MJML CLI directly
                 result = subprocess.run(
-                    ['mjml', temp_file_path, '--stdout'],
+                    ["mjml", temp_file_path, "--stdout"],
                     capture_output=True,
                     text=True,
-                    check=True
+                    check=True,
                 )
-                
+
                 # Remove the temp file path comment to avoid spurious diffs
                 html_output = result.stdout
                 # Remove lines like: <!-- FILE: /var/folders/.../tmpXXXX.mjml -->
                 html_output = re.sub(
-                    r'<!-- FILE: /var/folders/[^\n]+ -->\n?',
-                    '',
-                    html_output
+                    r"<!-- FILE: /var/folders/[^\n]+ -->\n?",
+                    "",
+                    html_output,
                 )
                 return html_output
             finally:
                 # Clean up temp file
                 os.unlink(temp_file_path)
-                
+
         except subprocess.CalledProcessError as e:
             logger.error(f"MJML compilation failed: {e.stderr}")
             return None
