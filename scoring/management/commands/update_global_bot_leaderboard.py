@@ -3,6 +3,7 @@ from collections import defaultdict, Counter
 
 from datetime import datetime
 from django.core.management.base import BaseCommand
+from django.db.models import Exists, OuterRef, Prefetch, QuerySet
 from django.utils import timezone
 import numpy as np
 from scipy import sparse
