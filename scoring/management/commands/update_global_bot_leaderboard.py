@@ -629,6 +629,7 @@ class Command(BaseCommand):
             # TODO: support for more efficient saving once this is implemented
             # for leaderboards with more than 100 entries
             entry.save()
+        LeaderboardEntry.objects.batch_update
         print("Updating leaderboard... DONE")
         # delete unseen entries
         for entry in entry_dict.values():
