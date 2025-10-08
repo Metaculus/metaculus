@@ -3,6 +3,7 @@ from collections import defaultdict, Counter
 
 from datetime import datetime
 from django.core.management.base import BaseCommand
+from django.db.models import Exists, OuterRef, Prefetch, QuerySet
 from django.utils import timezone
 import numpy as np
 from scipy import sparse
@@ -29,7 +30,7 @@ def get_score_pair(
     user1_forecasts: list[Forecast],
     user2_forecasts: list[Forecast],
     question: Question,
-) -> tuple[int, int, int, float, float] | None:
+) -> tuple[int, float, float] | None:
     # Setup for calling evaluate function
     forecasts = user1_forecasts + user2_forecasts
     resolution_bucket = string_location_to_bucket_index(question.resolution, question)
@@ -50,7 +51,7 @@ def get_score_pair(
         if coverage == 0:
             return None
         user1_scores = evaluate_forecasts_peer_accuracy(
-            forecasts=user1_forecasts,  # only evalute user1 (user2 is opposite)
+            forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
             base_forecasts=None,
             resolution_bucket=resolution_bucket,
             forecast_horizon_start=forecast_horizon_start,
@@ -76,7 +77,7 @@ def get_score_pair(
         if coverage == 0:
             return None
         user1_scores = evaluate_forecasts_peer_spot_forecast(
-            forecasts=user1_forecasts,  # only evalute user1 (user2 is opposite)
+            forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
             base_forecasts=None,
             resolution_bucket=resolution_bucket,
             spot_forecast_timestamp=spot_forecast_timestamp,
@@ -87,8 +88,6 @@ def get_score_pair(
         raise ValueError("we only do Peer scores 'round hya")
 
     return (
-        user1_forecasts[0].author_id,
-        user2_forecasts[0].author_id,
         question.id,
         sum(s.score for s in user1_scores),
         coverage,
@@ -96,68 +95,61 @@ def get_score_pair(
 
 
 def gather_data(
-    users: list[User], questions: list[Question]
+    users: QuerySet[User], questions: QuerySet[Question]
 ) -> tuple[list[int], list[int], list[int], list[float], list[float]]:
-    user_ids = [u.id for u in users]
+    user_ids = users.values_list("id", flat=True)
     print("Processing Pairwise Scoring:")
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
-    try:
-        question_index = 0
-        question_count = len(questions)
-        user1_ids: list[int] = []
-        user2_ids: list[int] = []
-        question_ids: list[int] = []
-        scores: list[float] = []
-        coverages: list[float] = []
-        for question in questions:
-            question_index += 1
-            question_print_str = (
-                f"\033[K"
-                f"| {question_index:>5}/{question_count:<5} "
-                f"| {question.id:<5} "
-            )
-            forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
-                "start_time"
-            )
-            forecast_dict: dict[int, list[Forecast]] = dict()
-            for f in forecasts:
-                if f.author_id not in forecast_dict:
-                    forecast_dict[f.author_id] = []
-                forecast_dict[f.author_id].append(f)
-            forecaster_ids = sorted(list(forecast_dict.keys()))
-            pairing_index = 0
-            pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
-            for i, user1_id in enumerate(forecaster_ids):
-                for j, user2_id in enumerate(forecaster_ids[i + 1 :], start=i + 1):
-                    pairing_index += 1
-                    duration = datetime.now() - t0
-                    est_duration = duration / question_index * question_count
-                    print(
-                        f"{question_print_str}"
-                        f"| {pairing_index:>5}/{pairing_count:<5} "
-                        f"| {duration} "
-                        f"| {est_duration} "
-                        "|",
-                        end="\r",
-                    )
-                    result = get_score_pair(
-                        forecast_dict[user1_id],
-                        forecast_dict[user2_id],
-                        question,
-                    )
-                    if result:
-                        u1, u2, q, u1s, cov = result
-                        user1_ids.append(u1)
-                        user2_ids.append(u2)
-                        question_ids.append(q)
-                        scores.append(u1s)
-                        coverages.append(cov)
-    except KeyboardInterrupt:
-        print()
-        print("Keyboard Interrupt")
-    print()
-    print()
+    question_count = len(questions)
+    user1_ids: list[int] = []
+    user2_ids: list[int] = []
+    question_ids: list[int] = []
+    scores: list[float] = []
+    coverages: list[float] = []
+    for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
+        if question_number > 100:
+            continue
+        question_print_str = (
+            f"\033[K"
+            f"| {question_number:>5}/{question_count:<5} "
+            f"| {question.id:<5} "
+        )
+        forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
+            "start_time"
+        )
+        forecast_dict: dict[int, list[Forecast]] = defaultdict(list)
+        for f in forecasts:
+            forecast_dict[f.author_id].append(f)
+        forecaster_ids = sorted(list(forecast_dict.keys()))
+        pairing_index = 0
+        pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
+        for i, user1_id in enumerate(forecaster_ids):
+            for user2_id in forecaster_ids[i + 1 :]:
+                pairing_index += 1
+                duration = datetime.now() - t0
+                est_duration = duration / question_number * question_count
+                print(
+                    f"{question_print_str}"
+                    f"| {pairing_index:>5}/{pairing_count:<5} "
+                    f"| {duration} "
+                    f"| {est_duration} "
+                    "|",
+                    end="\r",
+                )
+                result = get_score_pair(
+                    forecast_dict[user1_id],
+                    forecast_dict[user2_id],
+                    question,
+                )
+                if result:
+                    q, u1s, cov = result
+                    user1_ids.append(user1_id)
+                    user2_ids.append(user2_id)
+                    question_ids.append(q)
+                    scores.append(u1s)
+                    coverages.append(cov)
+    print("\n")
     return (user1_ids, user2_ids, question_ids, scores, coverages)
 
 
@@ -376,8 +368,7 @@ def bootstrap_skills(
             print("WARNING: user_id didn't appear:", user_id)
             ci_lower[user_id] = 0.0
             ci_upper[user_id] = 0.0
-    print()
-    print()
+    print("\n")
     return ci_lower, ci_upper
 
 
@@ -390,32 +381,35 @@ class Command(BaseCommand):
         # SETUP: we need to choose the baseline player, users to evaluate, and questions
         baseline_player = 269782
         print("Initializing...", end="\r")
-        users: list[User] = list(
-            User.objects.filter(
-                is_active=True,
-                is_bot=True,
-                username__startswith="metac-",
-            ).order_by("id")
+        users: QuerySet[User] = User.objects.filter(
+            is_active=True,
+            is_bot=True,
+            username__startswith="metac-",
+        ).order_by("id")
+        user_forecast_exists = Forecast.objects.filter(
+            question_id=OuterRef("pk"), author__in=users
         )
-        questions: list[Question] = list(
-            (
-                Question.objects.filter(
-                    related_posts__post__default_project__default_permission__in=[
-                        "viewer",
-                        "forecaster",
-                    ],
-                    related_posts__post__curation_status=Post.CurationStatus.APPROVED,
-                    resolution__isnull=False,
-                )
-                .exclude(resolution__in=UnsuccessfulResolutionType)
-                .prefetch_related("user_forecasts")
-                .filter(user_forecasts__author__in=users)
-                .distinct()
+        questions: QuerySet[Question] = (
+            Question.objects.filter(
+                related_posts__post__default_project__default_permission__in=[
+                    "viewer",
+                    "forecaster",
+                ],
+                related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+                resolution__isnull=False,
             )
+            .exclude(resolution__in=UnsuccessfulResolutionType)
+            .filter(Exists(user_forecast_exists))
+            .prefetch_related(  # only prefetch forecasts from those users
+                Prefetch(
+                    "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
+                )
+            )
+            .order_by("id")
         )
         print("Initializing... DONE")
 
-        # EXECUTE
+        # PROCESS DATA
         user1_ids, user2_ids, question_ids, scores, coverages = gather_data(
             users, questions
         )
@@ -426,8 +420,7 @@ class Command(BaseCommand):
         )
         var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, coverages)
         skills = rescale_skills_(skills, var_avg_scores)
-        print("Computing Skills initial... DONE")
-        print()
+        print("Computing Skills initial... DONE\n")
 
         match_ci_lower, match_ci_upper = bootstrap_skills(
             user1_ids,
@@ -540,6 +533,7 @@ class Command(BaseCommand):
             entry.ci_lower = match_ci_lower.get(uid, None)  # consider question_ci_lower
             entry.ci_upper = match_ci_upper.get(uid, None)  # consider question_ci_upper
             entry.save()
+        LeaderboardEntry.objects.batch_update
         print("Updating leaderboard... DONE")
         # delete unseen entries
         for entry in entry_dict.values():
