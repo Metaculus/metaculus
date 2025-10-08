@@ -687,6 +687,24 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ? aggregateLatest.forecast_values
       : undefined;
 
+  const predictButtonIsDisabled =
+    activeOptionData?.forecastInputMode === ContinuousForecastInputType.Slider
+      ? !questionsToSubmit.length
+      : activeOptionData?.forecastInputMode ===
+            ContinuousForecastInputType.Quantile && activeQuestion
+        ? validateAllQuantileInputs({
+            question: activeQuestion,
+            components: activeOptionData.quantileForecast,
+            t,
+          }).length !== 0 || !isNil(submitError)
+        : undefined;
+
+  const predictButtonIsDirty =
+    activeOptionData?.forecastInputMode ===
+      ContinuousForecastInputType.Quantile && activeOptionData?.quantileForecast
+      ? activeOptionData.quantileForecast.some((q) => q.isDirty)
+      : isPickerDirty;
+
   let SubmitControls: ReactNode = null;
   if (canPredict) {
     SubmitControls = (
@@ -763,48 +781,19 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             </>
           )}
 
-          {activeOptionData?.forecastInputMode ===
-            ContinuousForecastInputType.Slider && (
-            <PredictButton
-              onSubmit={handlePredictSubmit}
-              isUserForecastActive={hasUserActiveForecast}
-              isDirty={isPickerDirty}
-              hasUserForecast={hasUserForecast}
-              isPending={isSubmitting}
-              isDisabled={!questionsToSubmit.length}
-              predictLabel={previousForecast ? undefined : t("predict")}
-              predictionExpirationChip={expirationShortChip}
-              onPredictionExpirationClick={() =>
-                setIsForecastExpirationModalOpen(true)
-              }
-            />
-          )}
-
-          {activeOptionData?.forecastInputMode ===
-            ContinuousForecastInputType.Quantile &&
-            activeQuestion && (
-              <PredictButton
-                onSubmit={handlePredictSubmit}
-                isUserForecastActive={hasUserActiveForecast}
-                isDirty={activeOptionData.quantileForecast.some(
-                  (q) => q.isDirty
-                )}
-                hasUserForecast={hasUserForecast}
-                isPending={isSubmitting}
-                predictLabel={previousForecast ? undefined : t("predict")}
-                isDisabled={
-                  validateAllQuantileInputs({
-                    question: activeQuestion,
-                    components: activeOptionData.quantileForecast,
-                    t,
-                  }).length !== 0 || !isNil(submitError)
-                }
-                predictionExpirationChip={expirationShortChip}
-                onPredictionExpirationClick={() =>
-                  setIsForecastExpirationModalOpen(true)
-                }
-              />
-            )}
+          <PredictButton
+            onSubmit={handlePredictSubmit}
+            isUserForecastActive={hasUserActiveForecast}
+            isDirty={predictButtonIsDirty}
+            hasUserForecast={hasUserForecast}
+            isPending={isSubmitting}
+            predictLabel={previousForecast ? undefined : t("predict")}
+            isDisabled={predictButtonIsDisabled}
+            predictionExpirationChip={expirationShortChip}
+            onPredictionExpirationClick={() =>
+              setIsForecastExpirationModalOpen(true)
+            }
+          />
         </div>
 
         <FormError
@@ -851,11 +840,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={
-          !!hasUserActiveForecast && !isPickerDirty
-            ? handlePredictSubmit
-            : undefined
-        }
+        onSubmit={handlePredictSubmit}
+        isUserForecastActive={hasUserActiveForecast}
+        isDirty={predictButtonIsDirty}
+        hasUserForecast={hasUserForecast}
+        isSubmissionDisabled={predictButtonIsDisabled}
         questionDuration={questionDuration}
       />
 
