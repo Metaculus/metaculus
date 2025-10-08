@@ -1,3 +1,5 @@
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+
 import AIBScreen from "./components/aib/aib-screen";
 
 export const metadata = {
@@ -7,5 +9,11 @@ export const metadata = {
 };
 
 export default async function AIBPage() {
-  return <AIBScreen />;
+  const leaderboard = await ServerLeaderboardApi.getGlobalLeaderboard(
+    null,
+    null,
+    "manual",
+    "Global Bot Leaderboard"
+  );
+  return <AIBScreen leaderboard={leaderboard} />;
 }
