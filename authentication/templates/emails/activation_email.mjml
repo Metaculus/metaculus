@@ -29,11 +29,13 @@
                 
         <!-- Prominent activation CTA section -->
         <mj-wrapper 
-                    background-color="#EFF4F4" 
-                    border="1px solid #D7E4F2" 
-                    padding="8px 24px"
+                    padding="0px 24px"
+                    background-color="#FFFFFF"
                     css-class="activation-cta">
-                    <mj-section background-color="transparent" padding="0px">
+                    <mj-section 
+                        background-color="#EFF4F4"
+                        border="1px solid #D7E4F2"
+                        padding="8px 24px">
                         <mj-column padding="0px">
                             <mj-text 
                                 align="center" 

@@ -21,29 +21,33 @@
         <!-- {% for notification in notifications %} -->
         <!-- Question Card -->
         <mj-wrapper 
-                    background-color="#EFF4F4" 
-                    border="1px solid #D7E4F2"
-                    padding="16px 16px"
+                    padding="0px 24px 16px 24px"
+                    background-color="#FFFFFF"
                     css-class="question-card">
                     
-                    <mj-section background-color="transparent" padding="0px">
-                <mj-column padding="0 2px 0 2px">
-                    <!-- Question Title & Comment Count -->
-                    <mj-text css-class="question-title" padding="0px">
-                        <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
-                           style="font-size: 18px; font-weight: 600; line-height: 1.4; color: #161C22; text-decoration: none; display: block; margin-bottom: 2px; padding-top:6px; padding-bottom: 0px;">
-                            {{ notification.post.post_title }}
-                        </a>
-                        <div style="font-size: 13px; font-weight: 500; color: #758EA9;">
-                            💬 {{ notification.comments_count }} new comment{{ notification.comments_count|pluralize }}
-                        </div>
-                    </mj-text>
-                </mj-column>
-            </mj-section>
+                    <mj-section 
+                        background-color="#EFF4F4"
+                        border-top="1px solid #D7E4F2"
+                        border-left="1px solid #D7E4F2"
+                        border-right="1px solid #D7E4F2"
+                        padding="16px 16px 0px 16px">
+                        <mj-column padding="0 2px 0 2px">
+                            <!-- Question Title & Comment Count -->
+                            <mj-text css-class="question-title" padding="0px">
+                                <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
+                                style="font-size: 18px; font-weight: 600; line-height: 1.4; color: #161C22; text-decoration: none; display: block; margin-bottom: 2px; padding-top:6px; padding-bottom: 0px;">
+                                    {{ notification.post.post_title }}
+                                </a>
+                                <div style="font-size: 13px; font-weight: 500; color: #758EA9;">
+                                    💬 {{ notification.comments_count }} new comment{{ notification.comments_count|pluralize }}
+                                </div>
+                            </mj-text>
+                        </mj-column>
+                    </mj-section>
 
             <!-- Comments Container -->
             <!-- {% for comment in notification.comments %} -->
-            <mj-section background-color="transparent" padding="0px 0px 8px 0px">
+            <mj-section background-color="#EFF4F4" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2" padding="0px 16px 8px 16px">
                 <mj-column>
                     <mj-text padding="0px">
                         <a href="{{ comment.url }}" style="display: block; text-decoration: none; color: inherit;">
@@ -71,7 +75,7 @@
 
             <!-- Read More Link -->
             <!-- {% if notification.read_more_count %} -->
-            <mj-section background-color="transparent" padding="4px 0px 0px 0px">
+            <mj-section background-color="#EFF4F4" padding="4px 16px 16px 16px" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2" border-bottom="1px solid #D7E4F2" >
                 <mj-column>
                     <mj-text padding="0px" align="center">
                         <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
