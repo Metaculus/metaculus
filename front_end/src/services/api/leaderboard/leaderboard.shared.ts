@@ -31,7 +31,8 @@ class LeaderboardApi extends ApiService {
   async getGlobalLeaderboard(
     startTime: string | null = null,
     endTime: string | null = null,
-    leaderboardType: string | null = null
+    leaderboardType: string | null = null,
+    name: string | null = null
   ): Promise<LeaderboardDetails> {
     // TODO: make paginated
     const params = new URLSearchParams();
@@ -43,6 +44,9 @@ class LeaderboardApi extends ApiService {
     }
     if (leaderboardType) {
       params.append("score_type", leaderboardType);
+    }
+    if (name) {
+      params.append("name", name);
     }
     const url = `/leaderboards/global/${params.toString() ? `?${params.toString()}` : ""}`;
     return await this.get<LeaderboardDetails>(url);
