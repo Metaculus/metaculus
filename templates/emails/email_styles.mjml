@@ -72,6 +72,27 @@
           width: 100%;
           height: auto;
       }
+
+      /* Question card styles */
+      .question-card {
+        padding: 0px !important;
+      }
+      
+      .question-card table {
+      }
+      
+      .question-card td {
+        padding-top:2px !important;
+        padding-bottom:2px !important;
+      }
+      
+      .question-title {
+        padding: 0 !important;
+      }
+      
+      .question-title div {
+        padding: 0 !important;
+      }
   </mj-style>
 
   <mj-style>

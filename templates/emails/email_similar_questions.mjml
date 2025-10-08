@@ -13,7 +13,7 @@
     <!-- {% for post in chunk %} -->
     <mj-column width="50%" padding="8px">
         <mj-text padding="0px">
-            <a href="{% post_url post.id post.title %}" style="display: block; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; background-color: #EFF4F4; min-height: 100px; text-decoration: none; color: #161C22; transition: background-color 0.2s;">
+            <a href="{% post_url post.id post.title %}" style="display: block; border: 1px solid #D7E4F2; padding: 16px; background-color: #F9FBFB; min-height: 100px; text-decoration: none; color: #161C22; transition: background-color 0.2s;">
                 <div style="font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 12px; color: #161C22;">
                     {{ post.title }}
                 </div>
