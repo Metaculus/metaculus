@@ -1,4 +1,3 @@
-from collections import Counter
 from typing import Iterable
 
 from django.db.models.query import QuerySet
@@ -7,8 +6,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
-from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
-from comments.services.key_factors import get_votes_for_key_factors
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
 from posts.services.common import get_posts_staff_users
