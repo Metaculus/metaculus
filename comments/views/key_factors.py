@@ -13,6 +13,7 @@ from comments.models import (
     KeyFactorVote,
 )
 from comments.serializers.common import serialize_comment_many
+from comments.serializers.key_factors import KeyFactorWriteSerializer
 from comments.services.key_factors import (
     create_key_factors,
     generate_keyfactors_for_comment,
@@ -49,11 +50,10 @@ def comment_add_key_factors_view(request: Request, pk: int):
             "You do not have permission to add key factors to this comment."
         )
 
-    key_factors = serializers.ListField(
-        child=serializers.CharField(allow_blank=False), allow_null=True
-    ).run_validation(request.data.get("key_factors"))
+    serializer = KeyFactorWriteSerializer(data=request.data, many=True)
+    serializer.is_valid(raise_exception=True)
 
-    create_key_factors(comment, key_factors)
+    create_key_factors(comment, serializer.validated_data)
 
     return Response(
         serialize_comment_many([comment], with_key_factors=True)[0],

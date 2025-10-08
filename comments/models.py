@@ -203,6 +203,7 @@ class KeyFactorQuerySet(models.QuerySet):
 
 
 class ImpactDirection(models.TextChoices):
+    # TODO: should it be 1/-1?
     INCREASE = "increase"
     DECREASE = "decrease"
 

@@ -3,9 +3,19 @@ from typing import Iterable
 
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 
-from comments.models import KeyFactor, KeyFactorVote, Comment, KeyFactorDriver
+from comments.models import (
+    KeyFactor,
+    KeyFactorVote,
+    Comment,
+    KeyFactorDriver,
+    ImpactDirection,
+)
 from posts.models import Post
+from posts.services.common import get_post_permission_for_user
+from projects.permissions import ObjectPermission
+from questions.models import Question
 from users.models import User
 from utils.openai import generate_keyfactors
 
@@ -53,7 +63,7 @@ def get_votes_for_key_factors(key_factors: Iterable[KeyFactor]) -> dict[int, lis
 
 
 @transaction.atomic
-def create_key_factors(comment: Comment, key_factors: list[str]):
+def create_key_factors(comment: Comment, key_factors: list[dict]):
     # Limit total key-factors for one user per comment
     if comment.key_factors.filter_active().count() + len(key_factors) > 4:
         raise ValidationError(
@@ -73,9 +83,12 @@ def create_key_factors(comment: Comment, key_factors: list[str]):
             "Exceeded the maximum limit of 6 key factors allowed per question"
         )
 
-    for key_factor in key_factors:
-        driver = KeyFactorDriver.objects.create(text=key_factor)
-        KeyFactor.objects.create(comment=comment, driver=driver)
+    for key_factor_data in key_factors:
+        create_key_factor(
+            user=comment.author,
+            comment=comment,
+            **key_factor_data,
+        )
 
 
 def generate_keyfactors_for_comment(
@@ -100,6 +113,72 @@ def generate_keyfactors_for_comment(
         comment_text,
         existing_keyfactors,
     )
+
+
+@transaction.atomic
+def create_key_factor(
+    *,
+    user: User = None,
+    comment: Comment = None,
+    question_id: int = None,
+    question_option: str = None,
+    driver: dict = None,
+    **kwargs,
+) -> KeyFactor:
+    question = None
+
+    # Validate question
+    if question_id:
+        question = get_object_or_404(Question, pk=question_id)
+
+        # Check permissions
+        permission = get_post_permission_for_user(question.get_post(), user=user)
+        ObjectPermission.can_view(permission, raise_exception=True)
+
+    if question_option:
+        if not question:
+            raise ValidationError(
+                {"question_option": "Question ID is required for options"}
+            )
+
+        if question.type != Question.QuestionType.MULTIPLE_CHOICE:
+            raise ValidationError(
+                {"question_option": "Should be a multiple-choice question"}
+            )
+
+        if question_option not in question.options:
+            raise ValidationError(
+                {"question_option": "Question option must be one of the options"}
+            )
+
+    obj = KeyFactor(
+        comment=comment,
+        question_id=question_id,
+        question_option=question_option or "",
+        **kwargs,
+    )
+
+    # Adding types
+    if driver:
+        obj.driver = create_key_factor_driver(**driver)
+    else:
+        raise ValidationError("Wrong Key Factor Type")
+
+    # Save object and validate
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_key_factor_driver(
+    *, text: str = None, impact_direction: ImpactDirection = None, **kwargs
+) -> KeyFactorDriver:
+    obj = KeyFactorDriver(text=text, impact_direction=impact_direction, **kwargs)
+    obj.full_clean()
+    obj.save()
+
+    return obj
 
 
 def calculate_votes_strength(scores: list[int]):
