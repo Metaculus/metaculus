@@ -303,7 +303,7 @@ class TestCommentCreation:
                         "question_id": question_binary.pk,
                         "driver": {
                             "text": "Key Factor Driver",
-                            "impact_direction": ImpactDirection.DECREASE,
+                            "impact_direction": -1,
                         },
                     }
                 ],
@@ -318,4 +318,4 @@ class TestCommentCreation:
         kf1 = response.data["key_factors"][0]
         assert kf1["question_id"] == question_binary.pk
         assert kf1["driver"]["text"] == "Key Factor Driver"
-        assert kf1["driver"]["impact_direction"] == "decrease"
+        assert kf1["driver"]["impact_direction"] == -1
