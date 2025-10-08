@@ -12,30 +12,60 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    Thanks for signing up!
+                    Thanks for signing up! Only one step left before you can start predicting.
                     {% endblocktrans %}
-                    <p>
-                        {% blocktrans %}
-                        By completing your registration, you acknowledge and agree to Metaculus's
-                        <a href="{{ PUBLIC_APP_URL }}/terms-of-use/">terms of use</a>
-                        and
-                        <a href="{{ PUBLIC_APP_URL }}/privacy-policy/">privacy policy</a>.
-                        {% endblocktrans %}
-                    </p>
-                    <p>
-                        {% blocktrans %}
-                        Please <a href="{{ activation_link }}">click here</a> to complete your registration and activate
-                        your account.
-                        {% endblocktrans %}
-                    </p>
-                    <p style="font-size: 80%;">
-                        {% blocktrans %}
-                        Alternatively, you can copy and paste the following link into a browser:
-                        {% endblocktrans %}
-                        <br/>
-                        {{ activation_link }}
-                    </p>
-
+                </mj-text>
+                
+                <mj-text color="#6B7280" font-size="13px">
+                    {% blocktrans %}
+                    By completing your registration, you acknowledge and agree to Metaculus's
+                    <a href="{{ PUBLIC_APP_URL }}/terms-of-use/">Terms of Use</a>
+                    and
+                    <a href="{{ PUBLIC_APP_URL }}/privacy-policy/">Privacy Policy</a>.
+                    {% endblocktrans %}
+                </mj-text>
+                
+                <!-- Prominent activation CTA section -->
+                <mj-wrapper 
+                    background-color="#EFF4F4" 
+                    border="1px solid #D7E4F2" 
+                    padding="8px 24px"
+                    css-class="activation-cta">
+                    <mj-section background-color="transparent" padding="0px">
+                        <mj-column padding="0px">
+                            <mj-text 
+                                align="center" 
+                                color="#161C22" 
+                                font-size="16px" 
+                                font-weight="500" 
+                                padding-bottom="6px"
+                                line-height="1.5">
+                                {% blocktrans %}
+                                Click the button below to complete your registration and activate your account.
+                                {% endblocktrans %}
+                            </mj-text>
+                            
+                            <mj-button 
+                                href="{{ activation_link }}"
+                                background-color="#758EA9"
+                                color="#ffffff"
+                                font-size="16px"
+                                font-weight="600"
+                                border-radius="6px"
+                                padding="12px 32px"
+                                align="center">
+                                Activate Your Account
+                            </mj-button>
+                        </mj-column>
+                    </mj-section>
+                </mj-wrapper>
+                
+                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+                    {% blocktrans %}
+                    Alternatively, you can copy and paste the following link into a browser:
+                    {% endblocktrans %}
+                    <br/>
+                    <a href="{{ activation_link }}" style="color: #0A66C2; word-break: break-all;">{{ activation_link }}</a>
                 </mj-text>
             </mj-column>
 
