@@ -722,7 +722,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
     return send_email_with_template(
         recipient.email,
         _(
-            f'{comment.author.username} mentioned {mention_label} on "{comment.on_post.title}"'
+            f"{comment.author.username} mentioned {mention_label} on “{comment.on_post.title}”"
         ),
         "emails/comment_mention.html",
         context={
