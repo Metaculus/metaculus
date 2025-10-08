@@ -24,9 +24,11 @@
                     <a href="{{ PUBLIC_APP_URL }}/privacy-policy/">Privacy Policy</a>.
                     {% endblocktrans %}
                 </mj-text>
+            </mj-column>
+        </mj-section>
                 
-                <!-- Prominent activation CTA section -->
-                <mj-wrapper 
+        <!-- Prominent activation CTA section -->
+        <mj-wrapper 
                     background-color="#EFF4F4" 
                     border="1px solid #D7E4F2" 
                     padding="8px 24px"
@@ -58,8 +60,10 @@
                             </mj-button>
                         </mj-column>
                     </mj-section>
-                </mj-wrapper>
-                
+        </mj-wrapper>
+        
+        <mj-section>
+            <mj-column>
                 <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
                     {% blocktrans %}
                     Alternatively, you can copy and paste the following link into a browser:

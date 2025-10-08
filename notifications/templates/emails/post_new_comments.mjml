@@ -19,10 +19,8 @@
         </mj-section>
 
         <!-- {% for notification in notifications %} -->
-        <mj-section background-color="#ffffff" padding="0px 24px 16px 24px">
-            <mj-column>
-                <!-- Question Card -->
-                <mj-wrapper 
+        <!-- Question Card -->
+        <mj-wrapper 
                     background-color="#EFF4F4" 
                     border="1px solid #D7E4F2"
                     padding="16px 16px"
@@ -85,9 +83,7 @@
             </mj-section>
             <!-- {% endif %} -->
                 
-                </mj-wrapper>
-            </mj-column>
-        </mj-section>
+        </mj-wrapper>
         <!-- {% endfor %} -->
 
         <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
