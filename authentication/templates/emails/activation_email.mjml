@@ -28,14 +28,8 @@
         </mj-section>
                 
         <!-- Prominent activation CTA section -->
-        <mj-wrapper 
-                    padding="0px 24px"
-                    background-color="#FFFFFF"
-                    css-class="activation-cta">
-                    <mj-section 
-                        background-color="#EFF4F4"
-                        border="1px solid #D7E4F2"
-                        padding="8px 24px">
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
+                    <mj-section mj-class="content-block" padding="8px 24px">
                         <mj-column padding="0px">
                             <mj-text 
                                 align="center" 
@@ -49,15 +43,7 @@
                                 {% endblocktrans %}
                             </mj-text>
                             
-                            <mj-button 
-                                href="{{ activation_link }}"
-                                background-color="#758EA9"
-                                color="#ffffff"
-                                font-size="16px"
-                                font-weight="600"
-                                border-radius="6px"
-                                padding="12px 32px"
-                                align="center">
+                            <mj-button mj-class="cta-button" href="{{ activation_link }}">
                                 Activate Your Account
                             </mj-button>
                         </mj-column>

@@ -20,17 +20,9 @@
 
         <!-- {% for notification in notifications %} -->
         <!-- Question Card -->
-        <mj-wrapper 
-                    padding="0px 24px 16px 24px"
-                    background-color="#FFFFFF"
-                    css-class="question-card">
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-compact" padding-bottom="16px">
                     
-                    <mj-section 
-                        background-color="#EFF4F4"
-                        border-top="1px solid #D7E4F2"
-                        border-left="1px solid #D7E4F2"
-                        border-right="1px solid #D7E4F2"
-                        padding="16px 16px 0px 16px">
+                    <mj-section mj-class="content-block-top" padding="16px 16px 0px 16px">
                         <mj-column padding="0 2px 0 2px">
                             <!-- Question Title & Comment Count -->
                             <mj-text css-class="question-title" padding="0px">
@@ -47,7 +39,7 @@
 
             <!-- Comments Container -->
             <!-- {% for comment in notification.comments %} -->
-            <mj-section background-color="#EFF4F4" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2" padding="0px 16px 8px 16px">
+            <mj-section mj-class="content-block-middle" padding="0px 16px 8px 16px">
                 <mj-column>
                     <mj-text padding="0px">
                         <a href="{{ comment.url }}" style="display: block; text-decoration: none; color: inherit;">
@@ -75,7 +67,7 @@
 
             <!-- Read More Link -->
             <!-- {% if notification.read_more_count %} -->
-            <mj-section background-color="#EFF4F4" padding="4px 16px 16px 16px" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2" border-bottom="1px solid #D7E4F2" >
+            <mj-section mj-class="content-block-bottom" padding="4px 16px 16px 16px">
                 <mj-column>
                     <mj-text padding="0px" align="center">
                         <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
