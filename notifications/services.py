@@ -309,8 +309,8 @@ class NotificationTypeSimilarPostsMixin:
                     "nr_forecasters": p.forecasters_count,
                 }
                 
-                # Add probability for binary questions
-                if p.question and p.question.type == "binary":
+            # Add probability for binary questions
+            if p.question and p.question.type == Question.QuestionType.BINARY:
                     try:
                         latest_aggregate = p.question.aggregate_forecasts.filter(
                             method=p.question.default_aggregation_method
