@@ -1,12 +1,11 @@
 import logging
 import os
 import re
-import subprocess
-import tempfile
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.utils import get_app_template_dirs
+from mjml.tools import mjml_render
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +67,7 @@ class Command(BaseCommand):
             mjml_content, os.path.dirname(mjml_file_path)
         )
 
-        # Use direct MJML CLI instead of django-mjml to avoid stderr issues
-        html_content = self.mjml_render_direct(mjml_content)
+        html_content = mjml_render(mjml_content)
 
         if html_content:
             html_file_path = mjml_file_path.replace(".mjml", ".html")
@@ -77,47 +75,3 @@ class Command(BaseCommand):
                 html_file.write(html_content)
 
             logger.info(f"Converted {mjml_file_path} to {html_file_path}")
-
-    def mjml_render_direct(self, mjml_content):
-        """
-        Render MJML content using direct CLI call to avoid django-mjml stderr issues
-        """
-        try:
-            # Create a temporary file for the MJML content
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".mjml", delete=False
-            ) as temp_file:
-                temp_file.write(mjml_content)
-                temp_file_path = temp_file.name
-
-            try:
-                # Call MJML CLI directly
-                result = subprocess.run(
-                    ["mjml", temp_file_path, "--stdout"],
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
-
-                # Remove the temp file path comment to avoid spurious diffs
-                html_output = result.stdout
-                # Remove lines like: <!-- FILE: /var/folders/.../tmpXXXX.mjml -->
-                html_output = re.sub(
-                    r"<!-- FILE: /var/folders/[^\n]+ -->\n?",
-                    "",
-                    html_output,
-                )
-                return html_output
-            finally:
-                # Clean up temp file
-                os.unlink(temp_file_path)
-
-        except subprocess.CalledProcessError as e:
-            logger.error(f"MJML compilation failed: {e.stderr}")
-            return None
-        except FileNotFoundError:
-            logger.error("MJML CLI not found. Please install with: npm install -g mjml")
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error during MJML compilation: {e}")
-            return None
