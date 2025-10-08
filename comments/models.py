@@ -202,14 +202,14 @@ class KeyFactorQuerySet(models.QuerySet):
         )
 
 
-class ImpactDirection(models.TextChoices):
-    INCREASE = "increase"
-    DECREASE = "decrease"
+class ImpactDirection(models.IntegerChoices):
+    INCREASE = 1
+    DECREASE = -1
 
 
 class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
-    impact_direction = models.CharField(
+    impact_direction = models.IntegerField(
         choices=ImpactDirection.choices, null=True, blank=True
     )
 
