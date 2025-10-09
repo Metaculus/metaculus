@@ -420,6 +420,7 @@ def post_view_event_api_view(request: Request, pk: int):
     """
     Mark post view
     """
+
     post = get_object_or_404(Post, pk=pk)
 
     # Check permissions
