@@ -71,7 +71,7 @@ def get_score_pair(
             if gm.timestamp <= spot_forecast_timestamp <= current_timestamp:
                 if gm.num_forecasters == 2:
                     # both have a forecast at spot scoring time
-                    coverage = 1
+                    coverage = 1 / 3  # downweight spot score questions
                 break
             current_timestamp = gm.timestamp
         if coverage == 0:
@@ -103,62 +103,53 @@ def gather_data(
     print("Processing Pairwise Scoring:")
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
-    try:
-        question_index = 0
-        question_count = len(questions)
-        user1_ids: list[int] = []
-        user2_ids: list[int] = []
-        question_ids: list[int] = []
-        scores: list[float] = []
-        coverages: list[float] = []
-        for question in questions:
-            question_index += 1
-            question_print_str = (
-                f"\033[K"
-                f"| {question_index:>5}/{question_count:<5} "
-                f"| {question.id:<5} "
-            )
-            forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
-                "start_time"
-            )
-            forecast_dict: dict[int, list[Forecast]] = dict()
-            for f in forecasts:
-                if f.author_id not in forecast_dict:
-                    forecast_dict[f.author_id] = []
-                forecast_dict[f.author_id].append(f)
-            forecaster_ids = sorted(list(forecast_dict.keys()))
-            pairing_index = 0
-            pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
-            for i, user1_id in enumerate(forecaster_ids):
-                for j, user2_id in enumerate(forecaster_ids[i + 1 :], start=i + 1):
-                    pairing_index += 1
-                    duration = datetime.now() - t0
-                    est_duration = duration / question_index * question_count
-                    print(
-                        f"{question_print_str}"
-                        f"| {pairing_index:>5}/{pairing_count:<5} "
-                        f"| {duration} "
-                        f"| {est_duration} "
-                        "|",
-                        end="\r",
-                    )
-                    result = get_score_pair(
-                        forecast_dict[user1_id],
-                        forecast_dict[user2_id],
-                        question,
-                    )
-                    if result:
-                        u1, u2, q, u1s, cov = result
-                        user1_ids.append(u1)
-                        user2_ids.append(u2)
-                        question_ids.append(q)
-                        scores.append(u1s)
-                        coverages.append(cov)
-    except KeyboardInterrupt:
-        print()
-        print("Keyboard Interrupt")
-    print()
-    print()
+    question_count = len(questions)
+    user1_ids: list[int] = []
+    user2_ids: list[int] = []
+    question_ids: list[int] = []
+    scores: list[float] = []
+    coverages: list[float] = []
+    for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
+        question_print_str = (
+            f"\033[K"
+            f"| {question_number:>5}/{question_count:<5} "
+            f"| {question.id:<5} "
+        )
+        forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
+            "start_time"
+        )
+        forecast_dict: dict[int, list[Forecast]] = defaultdict(list)
+        for f in forecasts:
+            forecast_dict[f.author_id].append(f)
+        forecaster_ids = sorted(list(forecast_dict.keys()))
+        pairing_index = 0
+        pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
+        for i, user1_id in enumerate(forecaster_ids):
+            for user2_id in forecaster_ids[i + 1 :]:
+                pairing_index += 1
+                duration = datetime.now() - t0
+                est_duration = duration / question_number * question_count
+                print(
+                    f"{question_print_str}"
+                    f"| {pairing_index:>5}/{pairing_count:<5} "
+                    f"| {duration} "
+                    f"| {est_duration} "
+                    "|",
+                    end="\r",
+                )
+                result = get_score_pair(
+                    forecast_dict[user1_id],
+                    forecast_dict[user2_id],
+                    question,
+                )
+                if result:
+                    q, u1s, cov = result
+                    user1_ids.append(user1_id)
+                    user2_ids.append(user2_id)
+                    question_ids.append(q)
+                    scores.append(u1s)
+                    coverages.append(cov)
+    print("\n")
     return (user1_ids, user2_ids, question_ids, scores, coverages)
 
 
