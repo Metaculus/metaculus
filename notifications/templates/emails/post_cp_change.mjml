@@ -16,7 +16,7 @@
             <mj-column>
                 <mj-text font-size="15px" color="#161C22" padding="0px 24px 8px 24px">
                     {% blocktrans with count=params|length %}
-                    There has been significant change in the Community prediction for these
+                    There has been significant change in the Community Prediction for these
                     {{count}} questions:
                     {% endblocktrans %}
                 </mj-text>
@@ -48,9 +48,15 @@
                             {% with question_data=notification.question_data.0 %}
                             
                             <div style="font-size: 14px; color: #161C22; line-height: 1.6; margin-bottom: 12px;">
-                                {% blocktrans with direction=question_data.get_cp_change_label cp_change_value=question_data.format_cp_change_value last_sent=notification.format_last_sent %}
-                                The community prediction has <b>{{direction}}</b> by <b>{{cp_change_value}}</b> since {{last_sent}}
-                                {% endblocktrans %}
+                                {% if question_data.question.type == "binary" %}
+                                    {% blocktrans with direction=question_data.get_cp_change_label cp_change_value=question_data.format_cp_change_value last_sent=notification.format_last_sent %}
+                                    The Community Prediction has <b>{{direction}}</b> by <b>{{cp_change_value}} points</b> since {{last_sent}}
+                                    {% endblocktrans %}
+                                {% else %}
+                                    {% blocktrans with direction=question_data.get_cp_change_label cp_change_value=question_data.format_cp_change_value last_sent=notification.format_last_sent %}
+                                    The Community Prediction has <b>{{direction}}</b> by <b>{{cp_change_value}}</b> since {{last_sent}}
+                                    {% endblocktrans %}
+                                {% endif %}
                             </div>
                             
                             <div style="font-size: 14px; color: #161C22; line-height: 1.6; margin-bottom: 12px;">
@@ -62,7 +68,7 @@
                             {% if question_data.format_user_forecast %}
                             <div style="font-size: 14px; color: #758EA9; line-height: 1.6;">
                                 {% blocktrans with user_forecast_date=question_data.format_forecast_date user_forecast=question_data.format_user_forecast %}
-                                Your last prediction was <b>{{user_forecast}}</b> on {{user_forecast_date}}.
+                                Your last prediction was <b>{{user_forecast}}</b> on {{user_forecast_date}}
                                 {% endblocktrans %}
                             </div>
                             {% endif %}
