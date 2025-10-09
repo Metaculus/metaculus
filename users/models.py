@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+import random
 from typing import TYPE_CHECKING
 
 import dateutil.parser
@@ -8,6 +9,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
 
 from utils.models import TimeStampedModel
 
@@ -146,6 +148,62 @@ class User(TimeStampedModel, AbstractUser):
         from posts.models import Post
 
         self.posts.update(curation_status=Post.CurationStatus.DELETED)
+
+        self.save()
+
+    def clean_user_data_delete(self: "User") -> None:
+        # Update User object
+        self.is_active = False
+        self.bio = ""
+        self.old_usernames = None
+        self.website = None
+        self.twitter = None
+        self.linkedin = None
+        self.facebook = None
+        self.github = None
+        self.good_judgement_open = None
+        self.kalshi = None
+        self.manifold = None
+        self.infer = None
+        self.hypermind = None
+        self.occupation = None
+        self.location = None
+        self.profile_picture = None
+        self.unsubscribed_mailing_tags = []
+        self.language = None
+
+        self.username = "deleted_user-" + "".join(
+            random.choices("qwertyuioopasdfghjklzxxcvbnm", k=20)
+        )
+        self.first_name = ""
+        self.last_name = ""
+        self.email = ""
+        self.set_password(None)
+        self.save()
+
+        # wipe comments content
+        self.comment_set.update(is_soft_deleted=True, text="")
+        # TODO: remove text from translations
+
+        # Token
+        Token.objects.filter(user=self).delete()
+
+        # TODO: Conversion rates, event tracking
+        # TODO: Session Identifiers
+        # TODO: Advertiser cookies and pixels
+        # TODO: Facebook or Google login credentials
+
+        # soft delete posts, wipe content fields
+        from posts.models import Post
+
+        posts = self.posts.all()
+        for post in posts:
+            post.curation_status = Post.CurationStatus.DELETED
+            post.title = ""
+            post.short_title = ""
+            post.save()
+            # TODO: wipe content from assicated questions and
+            # group of questions etc
 
         self.save()
 
