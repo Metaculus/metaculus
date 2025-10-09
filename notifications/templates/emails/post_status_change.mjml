@@ -20,7 +20,7 @@
                     {% if params.from_projects %}
                     
                     <!-- Intro text for tournament changes -->
-                    <div style="font-size: 15px; color: #6B7280; margin: 0px 24px 8px 24px;">
+                    <div style="font-size: 15px; color: #161C22; margin: 0px 24px 8px 24px;">
                         {% blocktrans %}
                         These questions have changed status:
                         {% endblocktrans %}
@@ -32,9 +32,9 @@
                     <div style="margin-bottom: 16px;">
                         <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; margin: 0px 24px;">
                             <!-- Project Header -->
-                            <div style="font-size: 15px; color: #6B7280; margin-bottom: 12px;">
+                            <div style="font-size: 15px; color: #2F4155; margin-bottom: 12px;">
                                 {% blocktrans with project_name=item.project.name %}
-                                In <b>🏆 {{project_name}}</b>:
+                                In <b>{{project_name}}</b>:
                                 {% endblocktrans %}
                             </div>
                             
@@ -44,7 +44,7 @@
                                 <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id notification.post.post_type %}" 
                                    style="display: block; text-decoration: none; color: inherit;">
                                     <div style="background-color: #ffffff; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px;">
-                                        <div style="font-size: 14px; font-weight: 500; color: #161C22; line-height: 1.4; margin-bottom: 6px;">
+                                        <div style="font-size: 14px; font-weight: 600; color: #161C22; line-height: 1.4; margin-bottom: 2px;">
                                             {{ notification.question.title|default:notification.post.post_title }}
                                         </div>
                                         {% if notification.post.post_type != 'notebook' %}
@@ -68,37 +68,35 @@
                     
                     <!-- Intro text -->
                     {% if params.from_projects %}
-                    <div style="font-size: 15px; color: #6B7280; margin: 0px 24px 8px 24px;">
+                    <div style="font-size: 15px; color: #161C22; margin: 0px 24px 8px 24px;">
                         {% blocktrans %}
                         In the rest of Metaculus:
                         {% endblocktrans %}
                     </div>
                     {% endif %}
                     
-                    <div style="font-size: 15px; color: #6B7280; margin: 0px 24px 8px 24px;">
+                    <div style="font-size: 15px; color: #161C22; margin: 0px 24px 8px 24px;">
                         {% blocktrans with count=params.from_posts|length %}
                         These {{count}} questions have changed status:
                         {% endblocktrans %}
                     </div>
                     
-                    <!-- Status changes container -->
-                    <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; margin: 0px 24px 16px 24px;">
-                        {% for item in params.from_posts %}
-                        <div style="{% if not forloop.last %}margin-bottom: 8px;{% endif %}">
-                            <a href="{% post_url item.post.post_id item.post.post_title item.question.id item.post.post_type %}" 
-                               style="display: block; text-decoration: none; color: inherit;">
-                                <div style="background-color: #ffffff; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px;">
-                                    <div style="font-size: 14px; font-weight: 500; color: #161C22; line-height: 1.4; margin-bottom: 6px;">
-                                        {{ item.question.title|default:item.post.post_title }}
-                                    </div>
-                                    <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
-                                        is now {{ item.event }}
-                                    </div>
+                    <!-- Question cards directly (no outer container) -->
+                    {% for item in params.from_posts %}
+                    <div style="margin: 0px 24px {% if not forloop.last %}8px{% else %}16px{% endif %} 24px;">
+                        <a href="{% post_url item.post.post_id item.post.post_title item.question.id item.post.post_type %}" 
+                           style="display: block; text-decoration: none; color: inherit;">
+                            <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 12px;">
+                                <div style="font-size: 14px; font-weight: 500; color: #161C22; line-height: 1.4; margin-bottom: 2px;">
+                                    {{ item.question.title|default:item.post.post_title }}
                                 </div>
-                            </a>
-                        </div>
-                        {% endfor %}
+                                <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
+                                    is now {{ item.event }}
+                                </div>
+                            </div>
+                        </a>
                     </div>
+                    {% endfor %}
                     
                     {% endif %}
                 </mj-text>
