@@ -121,15 +121,6 @@ export function formatNumberWithUnit(
   return `${formattedNumber} ${unit}`;
 }
 
-/**
- * Format a number for leaderboard display with thin space thousands separators.
- * Never uses "k" notation - always shows full digits with thin space separators.
- * Uses thin space (U+2009) per BIPM standards for thousands separators.
- *
- * @param val - The number to format
- * @param decimals - Number of decimal places (default: 0 for integers)
- * @returns Formatted string with thin space separators
- */
 export function formatLeaderboardNumber(
   val: number | string,
   decimals: number = 0
