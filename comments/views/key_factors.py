@@ -18,7 +18,10 @@ from comments.services.key_factors import (
     create_key_factors,
     generate_keyfactors_for_comment,
     key_factor_vote,
+    delete_key_factor,
 )
+from posts.services.common import get_post_permission_for_user
+from projects.permissions import ObjectPermission
 
 
 @api_view(["POST"])
@@ -84,3 +87,20 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
         suggested_key_factors,
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["DELETE"])
+def key_factor_delete(request: Request, pk: int):
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
+
+    # Check access
+    permission = (
+        ObjectPermission.CREATOR
+        if key_factor.comment.author_id == request.user.id
+        else get_post_permission_for_user(key_factor.comment.on_post, user=request.user)
+    )
+    ObjectPermission.can_delete_key_factor(permission, raise_exception=True)
+
+    delete_key_factor(key_factor)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

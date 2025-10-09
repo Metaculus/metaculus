@@ -187,3 +187,9 @@ def calculate_votes_strength(scores: list[int]):
     """
 
     return (sum(scores) + max(0, 3 - len(scores))) / max(3, len(scores))
+
+
+def delete_key_factor(key_factor: KeyFactor):
+    # TODO: should it delete a comment if that comment was automatically created?
+
+    key_factor.delete()
