@@ -2,9 +2,9 @@ import { faCircleDot } from "@fortawesome/free-regular-svg-icons";
 import { faBrain, faBullseye } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 
-import AIBIdeaCard from "./aib-idea-card";
+import AIBInfoIdeaCard from "./aib-info-idea-card";
 
-const AIBIdeaDescription: React.FC = () => {
+const AIBInfoIdeaDescription: React.FC = () => {
   return (
     <div className="space-y-16">
       <div className="max-w-[840px] space-y-8 antialiased">
@@ -36,9 +36,9 @@ const AIBIdeaDescription: React.FC = () => {
 
       <div className="flex gap-14">
         {IDEA_CARDS.map((card) => (
-          <AIBIdeaCard key={card.title} icon={card.icon} title={card.title}>
+          <AIBInfoIdeaCard key={card.title} icon={card.icon} title={card.title}>
             {card.content}
-          </AIBIdeaCard>
+          </AIBInfoIdeaCard>
         ))}
       </div>
     </div>
@@ -97,4 +97,4 @@ const IDEA_CARDS = [
   },
 ];
 
-export default AIBIdeaDescription;
+export default AIBInfoIdeaDescription;

@@ -8,8 +8,8 @@ type Props = {
 };
 
 const AIBInfoTournamentCard: React.FC<Props> = ({ title, href, img }) => (
-  <Link href={href} className="block focus:outline-none">
-    <h5 className="m-0 mb-[18px] text-center text-[16px] font-medium text-blue-800 no-underline dark:text-blue-800-dark">
+  <Link href={href} className="block no-underline focus:outline-none">
+    <h5 className="m-0 mb-[18px] text-center text-[16px] font-medium text-blue-800 dark:text-blue-800-dark">
       {title}
     </h5>
 
