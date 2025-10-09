@@ -106,25 +106,22 @@ const ProjectLeaderboardTable: FC<Props> = ({
             />
           )}
           {leaderboardEntries.map((entry) => {
-            // only show entries that are not excluded or if advanced mode is on
-            // or if the current user is staff
-            if (
-              entry.excluded &&
-              (!isAdvanced ||
-                !(currentUser?.is_staff || entry.show_when_excluded))
-            ) {
-              return null;
+            // show non-excluded entries
+            // or if they should show even when excluded
+            // or if we are in the advanced view
+            if (!entry.excluded || entry.show_when_excluded || isAdvanced) {
+              return (
+                <TableRow
+                  key={entry.user?.id ?? entry.aggregation_method}
+                  rowEntry={entry}
+                  userId={userId}
+                  maxCoverage={maxCoverage}
+                  withPrizePool={!!leaderboardDetails.prize_pool}
+                  isAdvanced={isAdvanced}
+                />
+              );
             }
-            return (
-              <TableRow
-                key={entry.user?.id ?? entry.aggregation_method}
-                rowEntry={entry}
-                userId={userId}
-                maxCoverage={maxCoverage}
-                withPrizePool={!!leaderboardDetails.prize_pool}
-                isAdvanced={isAdvanced}
-              />
-            );
+            return null;
           })}
         </tbody>
       </table>
