@@ -7,7 +7,7 @@ type Props = PropsWithChildren<{
   title?: string;
 }>;
 
-const AIBIdeaCard: React.FC<Props> = ({ icon, title, children }) => {
+const AIBInfoIdeaCard: React.FC<Props> = ({ icon, title, children }) => {
   return (
     <div className="flex flex-1 flex-col items-start">
       <FontAwesomeIcon
@@ -24,4 +24,4 @@ const AIBIdeaCard: React.FC<Props> = ({ icon, title, children }) => {
   );
 };
 
-export default AIBIdeaCard;
+export default AIBInfoIdeaCard;
