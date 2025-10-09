@@ -171,7 +171,6 @@ class User(TimeStampedModel, AbstractUser):
         self.profile_picture = None
         self.unsubscribed_mailing_tags = []
         self.language = None
-
         self.username = "deleted_user-" + "".join(
             random.choices("qwertyuioopasdfghjklzxxcvbnm", k=20)
         )
@@ -204,6 +203,9 @@ class User(TimeStampedModel, AbstractUser):
             post.save()
             # TODO: wipe content from assicated questions and
             # group of questions etc
+            # be sure to address translations... Maybe hard delete
+            # post & questions if no other user's forecasts
+            # and dont do anything if yes other user's forecasts?
 
         self.save()
 
