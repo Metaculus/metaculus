@@ -71,7 +71,7 @@ def get_score_pair(
             if gm.timestamp <= spot_forecast_timestamp <= current_timestamp:
                 if gm.num_forecasters == 2:
                     # both have a forecast at spot scoring time
-                    coverage = 1
+                    coverage = 1 / 3  # downweight spot score questions
                 break
             current_timestamp = gm.timestamp
         if coverage == 0:
@@ -108,8 +108,6 @@ def gather_data(
     scores: list[float] = []
     coverages: list[float] = []
     for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
-        if question_number > 100:
-            continue
         question_print_str = (
             f"\033[K"
             f"| {question_number:>5}/{question_count:<5} "
