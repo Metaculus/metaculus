@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from social_django.models import UserSocialAuth
 
 from utils.models import TimeStampedModel
 
@@ -155,7 +156,7 @@ class User(TimeStampedModel, AbstractUser):
         # Update User object
         self.is_active = False
         self.bio = ""
-        self.old_usernames = None
+        self.old_usernames = []
         self.website = None
         self.twitter = None
         self.linkedin = None
@@ -171,9 +172,7 @@ class User(TimeStampedModel, AbstractUser):
         self.profile_picture = None
         self.unsubscribed_mailing_tags = []
         self.language = None
-        self.username = "deleted_user-" + "".join(
-            random.choices("qwertyuioopasdfghjklzxxcvbnm", k=20)
-        )
+        self.username = "deleted_user-" + str(self.id)
         self.first_name = ""
         self.last_name = ""
         self.email = ""
@@ -181,31 +180,50 @@ class User(TimeStampedModel, AbstractUser):
         self.save()
 
         # wipe comments content
-        self.comment_set.update(is_soft_deleted=True, text="")
-        # TODO: remove text from translations
+        self.comment_set.filter(is_private=True).delete()
+        public_comments = self.comment_set.filter(is_private=False)
+        for comment in public_comments:
+            comment.is_soft_deleted = True
+            comment.text = ""
+            comment.edit_history = []
+            comment.update_and_maybe_translate(should_translate_if_dirty=False)
+            comment.save()
 
         # Token
         Token.objects.filter(user=self).delete()
 
-        # TODO: Conversion rates, event tracking
-        # TODO: Session Identifiers
-        # TODO: Advertiser cookies and pixels
-        # TODO: Facebook or Google login credentials
+        # Social Auth login credentials
+        UserSocialAuth.objects.filter(user=self).delete()
 
-        # soft delete posts, wipe content fields
+        # Posts (Notebooks/Questions)
         from posts.models import Post
+
+        def hard_delete_post(post: Post):
+            if question := post.question:
+                question.delete()
+            if group_of_questions := post.group_of_questions:
+                group_of_questions.delete()
+            if conditional := post.conditional:
+                conditional.delete()
+            if notebook := post.notebook:
+                notebook.delete()
+            post.delete()
 
         posts = self.posts.all()
         for post in posts:
-            post.curation_status = Post.CurationStatus.DELETED
-            post.title = ""
-            post.short_title = ""
-            post.save()
-            # TODO: wipe content from assicated questions and
-            # group of questions etc
-            # be sure to address translations... Maybe hard delete
-            # post & questions if no other user's forecasts
-            # and dont do anything if yes other user's forecasts?
+            if post.curation_status != Post.CurationStatus.APPROVED:
+                hard_delete_post(post)
+                return
+            questions = post.get_questions()
+            if questions:
+                # hard delete if the user is the only one who forecasted
+                if not any(
+                    [q.user_forecasts.exclude(author=self).exists() for q in questions]
+                ):
+                    hard_delete_post(post)
+                    return
+            # Post is either a notebook or a quesiton with others' forecasts...
+            # ?do nothing?
 
         self.save()
 
