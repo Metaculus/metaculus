@@ -124,8 +124,6 @@ def comment_delete_api_view(request: Request, pk: int):
 @transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
-    # TODO: allow empty text if has a key factor,
-    #  so frontend could dynamically render "Created {Key Factor Type}:" copy
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
