@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import TableHeader from "./table_header";
@@ -25,7 +24,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
   isAdvanced,
 }) => {
   const t = useTranslations();
-  const { user: currentUser } = useAuth();
 
   const [step, setStep] = useState(paginationStep);
   const leaderboardEntries = useMemo(() => {
