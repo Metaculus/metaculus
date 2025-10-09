@@ -183,21 +183,41 @@ def test_soft_delete_comment(user1, user2, post):
 def test_create_key_factors__limit_validation(user1, user2, post):
     c1 = factory_comment(author=user1, on_post=post)
     c2 = factory_comment(author=user1, on_post=post)
-    create_key_factors(c1, ["1", "2", "3"])
+    create_key_factors(
+        c1,
+        [
+            {"driver": {"text": "1"}},
+            {"driver": {"text": "2"}},
+            {"driver": {"text": "3"}},
+        ],
+    )
 
     assert c1.key_factors.count() == 3
 
     # Create too many key-factors for one comment
     with pytest.raises(ValidationError):
-        create_key_factors(c1, ["4", "5"])
+        create_key_factors(
+            c1,
+            [
+                {"driver": {"text": "4"}},
+                {"driver": {"text": "5"}},
+            ],
+        )
 
-    create_key_factors(c2, ["2.1", "2.2", "2.3"])
+    create_key_factors(
+        c2,
+        [
+            {"driver": {"text": "2.1"}},
+            {"driver": {"text": "2.2"}},
+            {"driver": {"text": "2.3"}},
+        ],
+    )
     assert c2.key_factors.count() == 3
 
     # Create too many key-factors for one post
     with pytest.raises(ValidationError):
-        create_key_factors(c2, ["2.4"])
+        create_key_factors(c2, [{"driver": {"text": "2.4"}}])
 
     # Check limit does not affect other users
     c3 = factory_comment(author=user2, on_post=post)
-    create_key_factors(c3, ["3.1"])
+    create_key_factors(c3, [{"driver": {"text": "3.1"}}])

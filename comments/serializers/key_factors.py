@@ -1,7 +1,10 @@
 from collections import Counter
 from typing import Iterable
 
-from comments.models import KeyFactor
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+from comments.models import KeyFactor, KeyFactorDriver, ImpactDirection
 from comments.services.key_factors import get_votes_for_key_factors
 from users.models import User
 from users.serializers import BaseUserSerializer
@@ -22,11 +25,18 @@ def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[int]):
 def serialize_key_factor(key_factor: KeyFactor, vote_scores: list[int] = None) -> dict:
     return {
         "id": key_factor.id,
-        "driver": {"text": key_factor.driver.text} if key_factor.driver else None,
         "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
         "post_id": key_factor.comment.on_post_id,
         "vote": serialize_key_factor_votes(key_factor, vote_scores or []),
+        "question_id": key_factor.question_id,
+        "question_option": key_factor.question_option,
+        # Type-specific fields
+        "driver": (
+            KeyFactorDriverSerializer(key_factor.driver).data
+            if key_factor.driver
+            else None
+        ),
     }
 
 
@@ -55,3 +65,35 @@ def serialize_key_factors_many(
         serialize_key_factor(key_factor, vote_scores=votes_map.get(key_factor.id))
         for key_factor in objects
     ]
+
+
+class KeyFactorDriverSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(max_length=150)
+    impact_direction = serializers.ChoiceField(choices=ImpactDirection.choices)
+
+    class Meta:
+        model = KeyFactorDriver
+        fields = ("text", "impact_direction")
+
+
+class KeyFactorWriteSerializer(serializers.ModelSerializer):
+    driver = KeyFactorDriverSerializer(required=False)
+    question_id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = KeyFactor
+        fields = (
+            "question_id",
+            "question_option",
+            "driver",
+        )
+
+    def validate(self, attrs: dict):
+        key_factor_types = ["driver"]
+
+        if len([True for kf_type in key_factor_types if attrs.get(kf_type)]) != 1:
+            raise ValidationError(
+                "Key Factor should have exactly one type-specific object"
+            )
+
+        return attrs
