@@ -120,3 +120,40 @@ export function formatNumberWithUnit(
   }
   return `${formattedNumber} ${unit}`;
 }
+
+/**
+ * Format a number for leaderboard display with thin space thousands separators.
+ * Never uses "k" notation - always shows full digits with thin space separators.
+ * Uses thin space (U+2009) per BIPM standards for thousands separators.
+ *
+ * @param val - The number to format
+ * @param decimals - Number of decimal places (default: 0 for integers)
+ * @returns Formatted string with thin space separators
+ */
+export function formatLeaderboardNumber(
+  val: number | string,
+  decimals: number = 0
+): string {
+  const num = +val;
+
+  if (!isFinite(num)) {
+    return "0";
+  }
+
+  // Format the number with the specified decimal places
+  const fixed = num.toFixed(decimals);
+
+  // Split into integer and decimal parts
+  const [integerPart, decimalPart] = fixed.split(".");
+
+  // Add thin space separators every 3 digits from the right
+  // U+2009 is the thin space character per BIPM standards
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009");
+
+  // Combine with decimal part if it exists and has non-zero digits
+  if (decimalPart && parseInt(decimalPart) !== 0) {
+    return `${formattedInteger}.${decimalPart}`;
+  }
+
+  return formattedInteger;
+}

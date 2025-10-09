@@ -4,6 +4,7 @@ import { FC, PropsWithChildren } from "react";
 
 import { LeaderboardEntry } from "@/types/scoring";
 import cn from "@/utils/core/cn";
+import { formatLeaderboardNumber } from "@/utils/formatters/number";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
@@ -85,12 +86,12 @@ const TableRow: FC<Props> = ({
         </Link>
       </Td>
       <Td className="text-right tabular-nums" highlight={highlight}>
-        {score.toFixed(3)}
+        {formatLeaderboardNumber(score, 3)}
       </Td>
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>
-            {contribution_count ? `${contribution_count.toFixed(0)}` : "-"}
+            {contribution_count ? formatLeaderboardNumber(contribution_count) : "-"}
           </Td>
           <Td className="text-right tabular-nums" highlight={highlight}>
             {coveragePercent}
@@ -110,7 +111,7 @@ const TableRow: FC<Props> = ({
             </>
           )}
           <Td className="text-right tabular-nums" highlight={highlight}>
-            {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
+            {prize && prize >= 10 ? "$" + formatLeaderboardNumber(prize) : "-"}
           </Td>
         </>
       )}

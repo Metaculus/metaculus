@@ -21,7 +21,7 @@ import {
   LeaderboardType,
 } from "@/types/scoring";
 import cn from "@/utils/core/cn";
-import { abbreviatedNumber } from "@/utils/formatters/number";
+import { formatLeaderboardNumber } from "@/utils/formatters/number";
 import { getMarkdownSummary } from "@/utils/markdown";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
@@ -142,7 +142,7 @@ const ContributionsTable: FC<Props> = ({
               { "w-20": isQuestionCategory }
             )}
           >
-            {abbreviatedNumber(totalScore, 4, false)}
+            {formatLeaderboardNumber(totalScore)}
           </InfoHeaderTd>
           {leaderboardType === "peer_global" && (
             <InfoHeaderTd className="w-24 font-medium leading-4 " />
