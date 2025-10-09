@@ -6,17 +6,6 @@ from users.models import User
 from utils.models import TimeStampedModel
 
 
-class Direction(models.TextChoices):
-    POSITIVE = "positive"
-    NEGATIVE = "negative"
-
-
-class Strength(models.TextChoices):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-
 class LinkType(models.TextChoices):
     CAUSAL = "causal"
 

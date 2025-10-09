@@ -2,36 +2,7 @@ import statistics
 
 from scipy.stats import sem
 
-from coherence.models import CoherenceLink, Direction, Strength, AggregateCoherenceLink
-
-
-def convert_direction_to_number(direction: Direction) -> int:
-    direction_map = {
-        Direction.POSITIVE: 1,
-        Direction.NEGATIVE: -1,
-    }
-    return direction_map[direction]
-
-
-def convert_strength_to_number(strength: Strength) -> int:
-    strength_map = {Strength.LOW: 1, Strength.MEDIUM: 2, Strength.HIGH: 5}
-    return strength_map[strength]
-
-
-def convert_direction_number_to_label(direction: int) -> Direction:
-    direction_map = {1: Direction.POSITIVE, -1: Direction.NEGATIVE}
-    return direction_map[direction]
-
-
-def convert_strength_number_to_label(strength: int) -> Strength:
-    strength_map = {
-        1: Strength.LOW,
-        2: Strength.MEDIUM,
-        3: Strength.MEDIUM,
-        4: Strength.HIGH,
-        5: Strength.HIGH,
-    }
-    return strength_map[strength]
+from coherence.models import CoherenceLink, AggregateCoherenceLink
 
 
 def convert_vector_to_direction_strength(
