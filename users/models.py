@@ -183,15 +183,9 @@ class User(TimeStampedModel, AbstractUser):
         self.set_password(None)
         self.save()
 
-        # wipe comments content
+        # Comments
         self.comment_set.filter(is_private=True).delete()
-        public_comments = self.comment_set.filter(is_private=False)
-        for comment in public_comments:
-            comment.is_soft_deleted = True
-            comment.text = ""
-            comment.edit_history = []
-            comment.update_and_maybe_translate(should_translate_if_dirty=False)
-            comment.save()
+        # don't touch public comments
 
         # Token
         Token.objects.filter(user=self).delete()
@@ -226,8 +220,8 @@ class User(TimeStampedModel, AbstractUser):
                 ):
                     hard_delete_post(post)
                     return
-            # Post is either a notebook or a quesiton with others' forecasts...
-            # ?do nothing?
+            # Post is either a notebook or a quesiton with others' forecasts
+            # nothing required
 
         self.save()
 
