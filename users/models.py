@@ -141,12 +141,17 @@ class User(TimeStampedModel, AbstractUser):
         # set to inactive
         self.is_active = False
 
-        # set soft delete comments
-        self.comment_set.update(is_soft_deleted=True)
-
-        # soft delete posts
         from posts.models import Post
 
+        # set soft delete comments
+        comments = self.comment_set.all()
+        posts: QuerySet[Post] = Post.objects.filter(comments__in=comments).distinct()
+        comments.update(is_soft_deleted=True)
+        # update comment counts on said questions
+        for post in posts:
+            post.update_comment_count()
+
+        # soft delete user's authored posts
         self.posts.update(curation_status=Post.CurationStatus.DELETED)
 
         self.save()
