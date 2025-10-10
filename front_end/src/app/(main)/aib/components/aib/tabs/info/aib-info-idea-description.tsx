@@ -6,17 +6,17 @@ import AIBInfoIdeaCard from "./aib-info-idea-card";
 
 const AIBInfoIdeaDescription: React.FC = () => {
   return (
-    <div className="space-y-16">
+    <div className="space-y-8 sm:space-y-[56px] sm:pt-5 md:space-y-16 2xl:pt-0">
       <div className="max-w-[840px] space-y-8 antialiased">
-        <h1 className="m-0 text-5xl font-bold leading-[116%] -tracking-[1.92px] text-blue-800 dark:text-blue-800-dark">
+        <h1 className="m-0 text-center text-2xl font-bold leading-[116%] -tracking-[0.96px] text-blue-800 dark:text-blue-800-dark md:text-[32px] md:-tracking-[1.28px] lg:text-left lg:text-5xl lg:-tracking-[1.92px]">
           Forecasting is one of the few ways to evaluate{" "}
           <span className="text-blue-600 dark:text-blue-600-dark">
             reasoning against reality.
           </span>
         </h1>
 
-        <div className="space-y-6 text-xl font-medium text-blue-700 dark:text-blue-700-dark">
-          <p className="m-0">
+        <div className="space-y-6 text-sm font-normal text-blue-700 dark:text-blue-700-dark md:text-xl md:font-medium">
+          <p className="m-0 hidden text-center sm:block lg:text-left">
             This benchmark measures AI’s ability to forecast the outcome of
             future events, which is essential to many real-world use cases. High
             benchmark scores are indicators that models will be better in
@@ -25,16 +25,26 @@ const AIBInfoIdeaDescription: React.FC = () => {
             topics.
           </p>
 
-          <p className="m-0">
+          <p className="m-0 block sm:hidden">
+            This benchmark helps us measure how well both humans and AI systems
+            reason under uncertainty.
+          </p>
+
+          <p className="m-0 hidden text-center sm:block lg:text-left">
             This benchmark is unique in that it cannot be overfit. Additionally,
             base models compete against both human forecasters and the best
             community prompting approaches. FutureEval uses 2 initiatives to
             measure this.
           </p>
+
+          <p className="m-0 block sm:hidden">
+            The results inform progress in safety, alignment, and real-world
+            decision-making.
+          </p>
         </div>
       </div>
 
-      <div className="flex gap-14">
+      <div className="flex flex-col gap-14 lg:flex-row">
         {IDEA_CARDS.map((card) => (
           <AIBInfoIdeaCard key={card.title} icon={card.icon} title={card.title}>
             {card.content}

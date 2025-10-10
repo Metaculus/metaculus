@@ -13,7 +13,7 @@ import AIBInfoTournamentCard from "./aib-info-tournament-card";
 const AIBInfoTournaments: React.FC = () => {
   return (
     <div className="flex flex-col">
-      <h4 className="m-0 mb-5 text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark">
+      <h4 className="m-0 mb-5 text-center text-2xl font-bold leading-[116%] text-blue-800 dark:text-blue-800-dark md:text-4xl">
         Benchmarking Tournaments
       </h4>
 
@@ -22,13 +22,11 @@ const AIBInfoTournaments: React.FC = () => {
         renderItem={(card) => <AIBInfoTournamentCard {...card} />}
       />
 
-      <div className="mb-6" />
-
       <div
-        className="rounded-[10px] p-4"
+        className="mt-6 rounded-[10px] p-4"
         style={{ backgroundColor: "rgba(169, 192, 214, 0.30)" }}
       >
-        <p className="m-0 text-center text-lg font-medium text-blue-800 antialiased dark:text-blue-800-dark">
+        <p className="m-0 text-center text-sm font-medium text-blue-800 antialiased dark:text-blue-800-dark md:text-lg">
           Make sure to check out{" "}
           <Link href="/tournament/minibench-2025-09-01/">MiniBench</Link>, our
           shorter-term experimental Bot Tournament!
