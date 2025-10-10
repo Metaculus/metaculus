@@ -59,8 +59,9 @@ class LeaderboardEntryInline(admin.TabularInline):
     autocomplete_fields = ("user",)
 
     def get_queryset(self, request):
+        leaderboard_id = request.resolver_match.kwargs["object_id"]
         qs = super().get_queryset(request)
-        qs = qs.filter(rank__lte=50)
+        qs = qs.filter(leaderboard_id=leaderboard_id, rank__lte=50)
         if qs.count() > 100:
             # can happen if large number of high ranking excluded users
             return qs.none()
@@ -150,7 +151,7 @@ class LeaderboardEntryAdmin(admin.ModelAdmin):
         "leaderboard__project__slug",
         "leaderboard__project__name_original",
     ]
-    list_display = ["__str__", "user", "rank", "take", "excluded"]
+    list_display = ["__str__", "user", "rank", "score", "take", "excluded"]
     autocomplete_fields = ["leaderboard", "user"]
     list_filter = [
         AutocompleteFilterFactory("Leaderboard", "leaderboard"),

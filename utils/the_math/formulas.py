@@ -166,7 +166,7 @@ def string_location_to_unscaled_location(
 
 
 def string_location_to_bucket_index(
-    string_location: str, question: Question
+    string_location: str | None, question: Question
 ) -> int | None:
     if not string_location or string_location in UnsuccessfulResolutionType:
         return
