@@ -336,7 +336,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
             difference = prediction_difference_for_sorting(
                 forecast.get_prediction_values(),
                 cp.get_prediction_values(),
-                question,
+                question.type,
             )
             if (forecast.author_id not in user_divergences) or (
                 abs(user_divergences[forecast.author_id]) < abs(difference)
