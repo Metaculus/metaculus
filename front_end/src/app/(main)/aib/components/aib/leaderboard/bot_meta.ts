@@ -15,7 +15,15 @@ const MAP: Record<string, BotMeta> = {
     label: "DeepSeek R1 + Exa (Online)",
     icon: googleIcon,
   },
+  "metac-deepseek-r1+sonnet-4-search": {
+    label: "DeepSeek R1 + Exa (Online)",
+    icon: googleIcon,
+  },
   "metac-gpt-5-mini+asknews": {
+    label: "GPT-5 mini + AskNews",
+    icon: openaiIcon,
+  },
+  "metac-sonnet-4-search[research-only-bot]": {
     label: "GPT-5 mini + AskNews",
     icon: openaiIcon,
   },
@@ -23,7 +31,15 @@ const MAP: Record<string, BotMeta> = {
     label: "DeepSeek V3.1 + AskNews",
     icon: anthropicIcon,
   },
+  "metac-o3+asknews": {
+    label: "DeepSeek V3.1 + AskNews",
+    icon: anthropicIcon,
+  },
   "metac-gpt-5-high+asknews": {
+    label: "GPT-5 high + AskNews",
+    icon: openaiIcon,
+  },
+  "metac-o3-high+asknews": {
     label: "GPT-5 high + AskNews",
     icon: openaiIcon,
   },
