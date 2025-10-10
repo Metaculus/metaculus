@@ -13,7 +13,7 @@ const AIBInfoTournamentCard: React.FC<Props> = ({ title, href, img }) => (
       {title}
     </h5>
 
-    <div className="relative h-[210px] w-[210px] overflow-hidden rounded-[10px]">
+    <div className="relative h-[120px] w-[120px] overflow-hidden rounded-[10px] md:h-[210px] md:w-[210px]">
       <Image
         src={img}
         alt={title}

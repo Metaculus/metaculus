@@ -8,11 +8,11 @@ import AIBResourceCard from "./aib-info-resource-card";
 
 const AIBInfoResources: React.FC = () => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 sm:pt-5 lg:pt-10 2xl:pt-0">
       <h4 className="m-0 text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark">
         Resources
       </h4>
-      <div className="flex gap-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         {RESOURCES_DATA.map((resource, index) => (
           <AIBResourceCard
             key={index}
