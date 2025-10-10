@@ -701,7 +701,7 @@ class NotificationPredictedQuestionResolved(
         Generates subject for group emails
         """
 
-        return _("Predicted questions have been resolved")
+        return _("Predicted Questions Have Been Resolved")
 
 
 NOTIFICATION_TYPE_REGISTRY = [
