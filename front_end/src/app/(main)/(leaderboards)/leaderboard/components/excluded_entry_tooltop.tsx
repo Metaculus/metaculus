@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import Tooltip from "@/components/ui/tooltip";
 
-const ExcludedEntryTooltip: FC<{ rank: number | null }> = ({ rank }) => {
+const ExcludedEntryTooltip: FC = () => {
   const t = useTranslations();
   return (
     <div className="justify-left flex flex-1 items-center">
