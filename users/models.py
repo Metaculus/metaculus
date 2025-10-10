@@ -5,7 +5,7 @@ import dateutil.parser
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -156,6 +156,7 @@ class User(TimeStampedModel, AbstractUser):
 
         self.save()
 
+    @transaction.atomic
     def clean_user_data_delete(self: "User") -> None:
         # Update User object
         self.is_active = False
@@ -212,14 +213,10 @@ class User(TimeStampedModel, AbstractUser):
             if post.curation_status != Post.CurationStatus.APPROVED:
                 hard_delete_post(post)
                 return
-            questions = post.get_questions()
-            if questions:
-                # hard delete if the user is the only one who forecasted
-                if not any(
-                    [q.user_forecasts.exclude(author=self).exists() for q in questions]
-                ):
+            if post.get_questions():
+                # hard delete if no one other than user forecasted
+                if not post.forecasts.exclude(author=self).exists():
                     hard_delete_post(post)
-                    return
             # Post is either a notebook or a quesiton with others' forecasts
             # nothing required
 
