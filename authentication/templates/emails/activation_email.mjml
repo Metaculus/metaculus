@@ -9,16 +9,10 @@
                 <mj-text>
                     Hello {{ username }},
                 </mj-text>
-
-                <mj-text>
-                    {% blocktrans %}
-                    Thanks for signing up! Only one step left before you can start predicting.
-                    {% endblocktrans %}
-                </mj-text>
                 
                 <mj-text color="#6B7280" font-size="13px">
                     {% blocktrans %}
-                    By completing your registration, you acknowledge and agree to Metaculus's
+                    By activating your account, you acknowledge and agree to Metaculus's
                     <a href="{{ PUBLIC_APP_URL }}/terms-of-use/">Terms of Use</a>
                     and
                     <a href="{{ PUBLIC_APP_URL }}/privacy-policy/">Privacy Policy</a>.
