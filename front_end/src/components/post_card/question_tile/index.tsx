@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -13,6 +13,7 @@ import {
   QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
+import { formatDate } from "@/utils/formatters/date";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -41,6 +42,7 @@ const QuestionTile: FC<Props> = ({
   showChart,
 }) => {
   const t = useTranslations();
+  const locale = useLocale();
   const { user } = useAuth();
 
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -50,7 +52,7 @@ const QuestionTile: FC<Props> = ({
       <div>
         {t("createdByUserOnDate", {
           user: authorUsername,
-          date: question.created_at.slice(0, 7),
+          date: formatDate(locale, new Date(question.created_at)),
         })}
       </div>
     );
