@@ -50,20 +50,21 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
           {children}
           <div
             className={cn(
-              "absolute bottom-0 block h-1/2 w-full bg-gradient-to-t to-transparent",
+              "pointer-events-none absolute bottom-0 block h-1/2 w-full bg-gradient-to-t to-transparent",
               { hidden: isExpanded }
             )}
           />
           <div
             className={cn(
               "flex w-full justify-center",
-              isExpanded ? "mt-3" : "absolute bottom-0",
+              isExpanded ? "mt-3" : "pointer-events-none absolute bottom-0",
               { hidden: !isExpandable }
             )}
           >
             <Button
               variant="tertiary"
               onClick={() => setIsExpanded((prev) => !prev)}
+              className="pointer-events-auto"
             >
               <FontAwesomeIcon
                 icon={isExpanded ? faChevronUp : faChevronDown}
