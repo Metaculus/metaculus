@@ -1,23 +1,21 @@
 import { FC, useState } from "react";
 
 import LinkStrengthComponent from "@/app/(main)/questions/components/coherence_links/link_strength_component";
-import { Strengths } from "@/types/coherence";
+import { STRENGTH_OPTIONS } from "@/types/coherence";
 
 type Props = {
-  onSelect: (strength: Strengths) => void;
+  onSelect: (strength: number) => void;
 };
 
 const LinkStrengthSelectorComponent: FC<Props> = ({ onSelect }) => {
-  const [currentStrength, setCurrentStrength] = useState<Strengths>(
-    Strengths.Medium
-  );
-  const valueSelected = (value: Strengths) => {
+  const [currentStrength, setCurrentStrength] = useState<number>(2);
+  const valueSelected = (value: number) => {
     onSelect(value);
     setCurrentStrength(value);
   };
   return (
     <div className="flex items-center justify-start gap-2 pb-2 pt-2">
-      {Object.values(Strengths).map((it, key) => (
+      {STRENGTH_OPTIONS.map((it, key) => (
         <LinkStrengthComponent
           strength={it}
           onClick={() => valueSelected(it)}

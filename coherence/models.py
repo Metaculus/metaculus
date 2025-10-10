@@ -6,17 +6,6 @@ from users.models import User
 from utils.models import TimeStampedModel
 
 
-class Direction(models.TextChoices):
-    POSITIVE = "positive"
-    NEGATIVE = "negative"
-
-
-class Strength(models.TextChoices):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-
 class LinkType(models.TextChoices):
     CAUSAL = "causal"
 
@@ -30,8 +19,8 @@ class CoherenceLink(TimeStampedModel):
     question2 = models.ForeignKey(
         Question, models.CASCADE, related_name="coherence_links_as_q2"
     )
-    direction = models.CharField(max_length=16, choices=Direction.choices)
-    strength = models.CharField(max_length=16, choices=Strength.choices)
+    direction = models.IntegerField(default=0, editable=False)
+    strength = models.IntegerField(default=0, editable=False)
     type = models.CharField(max_length=16, choices=LinkType.choices)
 
     class Meta:
