@@ -83,7 +83,7 @@
                                 {% endblocktrans %}
                             </div>
                             
-                            <table style="background-color: #ffffff; width: 100%; table-layout: fixed; border-collapse: collapse; border-radius: 6px; overflow: hidden;">
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; table-layout: fixed; border-collapse: collapse; border-radius: 6px; overflow: hidden;">
                                 <thead>
                                     <tr style="background-color: #F9FBFB;">
                                         <th style="font-weight: 600; font-size: 11px; color: #6B7280; padding: 8px; text-align: left; white-space: normal; word-wrap: break-word; width: 19%;">
