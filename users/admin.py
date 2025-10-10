@@ -135,7 +135,7 @@ class UserAdmin(admin.ModelAdmin):
     actions = [
         "mark_selected_as_spam",
         "soft_delete_selected",
-        "hard_delete_selected",
+        "clean_user_data_deletion",
         "run_profile_spam_detection_on_selected",
     ]
     search_fields = ["username", "email", "pk"]
@@ -220,8 +220,13 @@ class UserAdmin(admin.ModelAdmin):
         for user in queryset:
             user.soft_delete()
 
-    def hard_delete_selected(self, request, queryset: QuerySet[User]):
-        queryset.delete()
+    def clean_user_data_deletion(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            user.clean_user_data_delete()
+
+    clean_user_data_deletion.short_description = (
+        "One click Personal Data deletion (GDPR compliant)"
+    )
 
     def run_profile_spam_detection_on_selected(self, request, queryset: QuerySet[User]):
         for user in queryset:
