@@ -31,6 +31,7 @@ import { METAC_COLORS } from "@/constants/colors";
 import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import { getYMeta } from "@/utils/charts/axis";
 
 import AIBBenchmarkTooltip, { BenchmarkRow } from "./aib-benchmark-tooltip";
 import {
@@ -89,17 +90,15 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
 
   const { yDomain, ticks } = useMemo(() => {
     const values = data.flatMap((d) => [d.baseline, d.pros, d.bots]);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = Math.max(1, max - min);
-    const pad = Math.max(0.5, range * 0.1);
-    const lo = Math.floor(min - pad);
-    const hi = Math.ceil(max + pad);
-    const step = (hi - lo) / (GRIDLINES - 1);
-    const t = Array.from({ length: GRIDLINES }, (_, i) =>
-      Number((lo + i * step).toFixed(6))
-    );
-    return { yDomain: [lo, hi] as [number, number], ticks: t };
+    const meta = getYMeta(values, {
+      gridlines: GRIDLINES,
+      padMin: 0.5,
+      padRatio: 0.1,
+    });
+    return {
+      yDomain: [meta.lo, meta.hi] as [number, number],
+      ticks: meta.ticks,
+    };
   }, [data]);
 
   const smUp = useBreakpoint("sm");
