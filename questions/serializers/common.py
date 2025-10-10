@@ -852,14 +852,19 @@ def serialize_question_movement(
             question,
         )
 
+        options_count = len(display_diff)
+
         # Finds max difference for multiple choice cases
-        direction, change = max(display_diff, key=lambda x: x[1])
+        option_index, (direction, change) = max(
+            enumerate(display_diff), key=lambda x: x[1][1]
+        )
 
         return {
             "divergence": divergence,
             "direction": direction,
             "movement": change,
             "period": period,
+            "option_index": option_index if options_count > 1 else None,
         }
 
     return
