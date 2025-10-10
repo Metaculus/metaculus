@@ -373,7 +373,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
         Generates subject for group emails
         """
 
-        return _("Questions have new comments")
+        return _("Questions Have New Comments")
 
     @classmethod
     def _generate_previews(cls, recipient_username, new_comment_ids: list[int]):
@@ -509,7 +509,7 @@ class NotificationPostStatusChange(
         Generates subject for group emails
         """
 
-        return _("Questions have changed status")
+        return _("Questions Have Changed Status")
 
     @classmethod
     def _group_post_subquestions(cls, params: list[ParamsType]):

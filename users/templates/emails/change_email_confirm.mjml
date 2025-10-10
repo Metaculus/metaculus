@@ -12,7 +12,7 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    We just received a request to change the email address associated with your Metaculus account to <code>{{ new_email }}</code>.
+                    We received a request to change the email address associated with your Metaculus account to <code>{{ new_email }}</code>.
                     {% endblocktrans %}
                 </mj-text>
                 

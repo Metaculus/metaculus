@@ -79,7 +79,7 @@
                             
                             <div style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">
                                 {% blocktrans with last_sent=notification.format_last_sent %}
-                                Movement is calculated against {{last_sent}}
+                                Changes since {{last_sent}}
                                 {% endblocktrans %}
                             </div>
                             

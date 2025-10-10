@@ -95,7 +95,7 @@
                             <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
                                style="display: block; text-decoration: none; margin-bottom: 0px;">
                                 <div style="background-color: #C7EBC7; color: #384F38; text-align: center; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 600;">
-                                    See how you did against the community
+                                    Click to see how you did compared to the community
                                 </div>
                             </a>
                         </div>
