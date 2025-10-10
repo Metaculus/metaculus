@@ -33,7 +33,7 @@
                                 padding-bottom="6px"
                                 line-height="1.5">
                                 {% blocktrans %}
-                                Click the button below to complete your registration and activate your account.
+                                Click the button to activate your account.
                                 {% endblocktrans %}
                             </mj-text>
                             
@@ -48,7 +48,7 @@
             <mj-column>
                 <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
                     {% blocktrans %}
-                    Alternatively, you can copy and paste the following link into a browser:
+                    Or, copy and paste this link into your browser:
                     {% endblocktrans %}
                     <br/>
                     <a href="{{ activation_link }}" style="color: #0A66C2; word-break: break-all;">{{ activation_link }}</a>
