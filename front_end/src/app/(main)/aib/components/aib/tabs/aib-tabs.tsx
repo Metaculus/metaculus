@@ -6,15 +6,16 @@ import React from "react";
 import { Tabs, TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 
 import AIBBenchmarkTab from "./benchmark/aib-benchmark-tab";
+import AIBInfoTab from "./info/aib-info-tab";
 
 const AIBTabs: React.FC = () => {
   return (
     <Tabs
       variant="group"
       defaultValue="benchmark"
-      className="bg-blue-200 dark:bg-blue-50-dark "
+      className="bg-blue-200 dark:bg-blue-200-dark"
     >
-      <TabsList className="mt-8 justify-center py-0 dark:bg-blue-50-dark lg:justify-start">
+      <TabsList className="mt-8 justify-center py-0 lg:justify-start">
         {AIB_TABS.map((tab) => (
           <TabsTab key={tab.value} value={tab.value} icon={tab.icon}>
             {tab.label}
@@ -63,7 +64,7 @@ const AIB_TABS: {
         />
       </span>
     ),
-    content: "Info content",
+    content: <AIBInfoTab />,
   },
   {
     value: "news",
