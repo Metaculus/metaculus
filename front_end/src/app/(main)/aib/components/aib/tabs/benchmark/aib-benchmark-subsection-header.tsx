@@ -67,3 +67,24 @@ export const AIBBenchmarkBotsVsHumansSubsectionHeader: React.FC = () => {
     />
   );
 };
+
+export const AIBBenchmarkForecastingPerformanceHeader: React.FC = () => {
+  return (
+    <AIBBenchmarkSubsectionHeader
+      title="Forecasting Performance Over Time"
+      subtitle={
+        <>
+          <span>
+            Based on performance in the first year of our quarterly{" "}
+            <Link
+              className="text-blue-600 dark:text-blue-600-dark"
+              href="/aib/2025/q1"
+            >
+              AI Benchmarking Tournaments.
+            </Link>
+          </span>
+        </>
+      }
+    />
+  );
+};

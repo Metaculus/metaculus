@@ -1,0 +1,205 @@
+"use client";
+
+import { FC, useMemo } from "react";
+import {
+  VictoryAxis,
+  VictoryChart,
+  VictoryLabel,
+  VictoryScatter,
+  VictoryVoronoiContainer,
+} from "victory";
+import type { CallbackArgs, VictoryLabelProps } from "victory-core";
+
+import EdgeAwareLabel from "@/components/charts/edge_aware_label";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
+import { useBreakpoint } from "@/hooks/tailwind";
+import useAppTheme from "@/hooks/use_app_theme";
+import useContainerSize from "@/hooks/use_container_size";
+import { getYMeta } from "@/utils/charts/axis";
+
+import { ModelPoint } from "./mapping";
+
+type Props = { data: ModelPoint[]; className?: string };
+
+const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
+  const { ref: wrapRef, width } = useContainerSize<HTMLDivElement>();
+  const { theme, getThemeColor } = useAppTheme();
+  const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const smUp = useBreakpoint("sm");
+
+  const points = useMemo(
+    () =>
+      data.map((d, i) => ({
+        i,
+        x:
+          d.releaseDate instanceof Date
+            ? d.releaseDate
+            : new Date(d.releaseDate),
+        y: d.score,
+        name: d.name,
+      })),
+    [data]
+  );
+
+  const yMeta = useMemo(() => {
+    const vals = points.map((p) => p.y);
+    return getYMeta(vals, {
+      gridlines: GRIDLINES,
+      padMin: 2,
+      padRatio: 0.1,
+      clamp: [0, 100],
+    });
+  }, [points]);
+
+  const colorFor = (idxOrArgs: number | CallbackArgs) => {
+    const idx =
+      typeof idxOrArgs === "number" ? idxOrArgs : safeIndex(idxOrArgs.index);
+    const chosen =
+      Object.values(METAC_COLORS["mc-option"])[
+        idx % Object.values(METAC_COLORS["mc-option"]).length
+      ] ?? METAC_COLORS["mc-option"][1];
+    return getThemeColor(chosen);
+  };
+
+  return (
+    <div ref={wrapRef} className={className ?? "relative w-full"}>
+      {width === 0 && <div style={{ height: smUp ? 360 : 220 }} />}
+      {width > 0 && (
+        <VictoryChart
+          width={width}
+          height={smUp ? 360 : 220}
+          theme={chartTheme}
+          scale={{ x: "time" }}
+          domain={{ y: [yMeta.lo - 0.5, yMeta.hi + 0.5] }}
+          domainPadding={{ x: 24 }}
+          padding={{ top: 16, bottom: 68, left: 50, right: 0 }}
+          containerComponent={
+            <VictoryVoronoiContainer
+              labels={() => " "}
+              voronoiBlacklist={["bgPoints", "labelsLayer"]}
+              activateData
+              style={{ touchAction: "pan-y" }}
+              labelComponent={<NullLabel />}
+            />
+          }
+        >
+          <VictoryAxis
+            dependentAxis
+            label="Score"
+            axisLabelComponent={<VictoryLabel angle={-90} dx={-10} dy={-10} />}
+            tickValues={yMeta.ticks}
+            tickFormat={(d: number) => Math.round(d)}
+            style={{
+              grid: {
+                stroke: getThemeColor(METAC_COLORS.gray[400]),
+                strokeWidth: 1,
+                strokeDasharray: "2,5",
+              },
+              axis: { stroke: "transparent" },
+              ticks: { stroke: "transparent" },
+              tickLabels: {
+                fill: getThemeColor(METAC_COLORS.gray[500]),
+                fontSize: smUp ? 16 : 12,
+                fontWeight: 400,
+              },
+              axisLabel: {
+                fill: getThemeColor(METAC_COLORS.gray[700]),
+                fontSize: smUp ? 16 : 12,
+                fontWeight: 400,
+              },
+            }}
+          />
+
+          <VictoryAxis
+            label="Model release date"
+            axisLabelComponent={<VictoryLabel dy={28} />}
+            tickFormat={(d: Date) =>
+              d.toLocaleDateString(undefined, {
+                month: "short",
+                year: "numeric",
+              })
+            }
+            tickLabelComponent={<DateTick />}
+            style={{
+              axis: { stroke: "transparent" },
+              ticks: { stroke: "transparent" },
+              tickLabels: {
+                fill: getThemeColor(METAC_COLORS.gray[500]),
+                fontSize: smUp ? 16 : 12,
+              },
+              axisLabel: {
+                fill: getThemeColor(METAC_COLORS.gray[700]),
+                fontSize: smUp ? 16 : 12,
+              },
+              grid: { stroke: "transparent" },
+            }}
+          />
+
+          <VictoryScatter
+            name="bgPoints"
+            data={points}
+            x="x"
+            y="y"
+            size={14}
+            style={{ data: { opacity: 0 } }}
+          />
+
+          <VictoryScatter
+            data={points}
+            x="x"
+            y="y"
+            size={5}
+            style={{
+              data: {
+                fill: (args: CallbackArgs) => colorFor(args),
+              },
+            }}
+          />
+
+          <VictoryScatter
+            name="labelsLayer"
+            data={points}
+            labelComponent={
+              <EdgeAwareLabel
+                chartWidth={width}
+                padLeft={50}
+                padRight={0}
+                minGap={10}
+                fontSizePx={16}
+                dy={8}
+              />
+            }
+            x="x"
+            y="y"
+            size={6}
+            labels={({ datum }) => (datum as { name: string }).name}
+            style={{
+              labels: {
+                fill: (args: CallbackArgs) => colorFor(args),
+                fontSize: smUp ? 16 : 12,
+              },
+              data: { opacity: 0 },
+            }}
+          />
+        </VictoryChart>
+      )}
+    </div>
+  );
+};
+
+const GRIDLINES = 5;
+const NullLabel: React.FC<Record<string, unknown>> = () => null;
+const safeIndex = (i: CallbackArgs["index"]) => (typeof i === "number" ? i : 0);
+
+const DateTick: React.FC<
+  VictoryLabelProps & { index?: number; ticks?: unknown[] }
+> = (props) => {
+  const i = props.index ?? 0;
+  const count = props.ticks?.length ?? 0;
+  const dx = i === 0 ? -44 : count > 0 && i === count - 1 ? -44 : -4;
+  const dy = 16;
+  return <VictoryLabel {...props} dx={dx} dy={dy} textAnchor="start" />;
+};
+
+export default AIBBenchmarkPerformanceChart;
