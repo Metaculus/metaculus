@@ -9,12 +9,11 @@ Transform back to probabilities.
 Normalise to 1 over all outcomes.
 """
 
-from abc import ABC
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone as dt_timezone
-from typing import Sequence, Type
+from typing import Sequence
 
 
 from django.db.models import Q, QuerySet
@@ -139,7 +138,7 @@ def compute_weighted_semi_standard_deviations(
 # Weightings ##########################################
 
 
-class Weighted(ABC):
+class Weighted:
 
     def __init__(self, question: Question, **kwargs):
         self.question = question
@@ -172,7 +171,7 @@ class RecencyWeighted(Weighted):
 # ReputationWeightings ##########################################
 
 
-class ReputationWeighted(Weighted, ABC):
+class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
     Requires `get_reputation_history`"""
 
@@ -231,7 +230,7 @@ class PeerScoreWeighted(ReputationWeighted):
             score_type=ScoreTypes.PEER,
             question__in=Question.objects.filter_public(),
             edited_at__lte=end,
-        ).distinct()
+        )
 
         # setup
         scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
@@ -287,7 +286,7 @@ class PeerScoreWeighted(ReputationWeighted):
 # Aggregators ##########################################
 
 
-class Aggregator(ABC):
+class AggregatorMixin:
     """
     The method of aggregating forecasts, given their weights
     requires `calculate_forecast_values` and `get_range_values`
@@ -309,10 +308,12 @@ class Aggregator(ABC):
         raise NotImplementedError("Implement in subclass")
 
 
-class MedianAggregator(Aggregator):
+class MedianAggregatorMixin:
     """
     Takes the median of the forecasts values for Binary and MC, mean for continuous
     """
+
+    question: Question
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
@@ -368,8 +369,10 @@ class MedianAggregator(Aggregator):
         return lowers, centers, uppers
 
 
-class MeanAggregator(Aggregator):
+class MeanAggregatorMixin:
     """Takes the mean of the forecast values"""
+
+    question: Question
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
@@ -402,7 +405,7 @@ class MeanAggregator(Aggregator):
 # Aggregations ##########################################
 
 
-class Aggregation(Aggregator, ABC):
+class Aggregation(AggregatorMixin):
     """Base class for actual Aggregations.
     Any class Inheriting this one must also inherit from a single Aggregator class.
     Multiple weightings/filters are allowed. Their classes must be listed in the
@@ -410,7 +413,7 @@ class Aggregation(Aggregator, ABC):
     """
 
     method = "N/A"
-    weighting_classes: list[Type[Weighted]] = []  # defined in subclasses
+    weighting_classes: list[type[Weighted]] = []  # defined in subclasses
 
     def __init__(
         self, question: Question, user_ids: list[int] | set[int] | None = None
@@ -477,17 +480,17 @@ class Aggregation(Aggregator, ABC):
         return aggregation
 
 
-class UnweightedAggregation(MedianAggregator, Aggregation):
+class UnweightedAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.UNWEIGHTED
     weighting_classes = [Unweighted]
 
 
-class RecencyWeightedAggregation(MedianAggregator, Aggregation):
+class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.RECENCY_WEIGHTED
     weighting_classes = [RecencyWeighted]
 
 
-class SingleAggregation(MeanAggregator, Aggregation):
+class SingleAggregation(MeanAggregatorMixin, Aggregation):
     method = AggregationMethod.SINGLE_AGGREGATION
     weighting_classes = [PeerScoreWeighted]
 
