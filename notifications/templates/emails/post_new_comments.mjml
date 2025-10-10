@@ -65,19 +65,19 @@
             </mj-section>
             <!-- {% endfor %} -->
 
-            <!-- Read More Link -->
-            <!-- {% if notification.read_more_count %} -->
+            <!-- Read More Link (always render section for proper bottom border) -->
             <mj-section mj-class="content-block-bottom" padding="4px 16px 16px 16px">
                 <mj-column>
+                    <!-- {% if notification.read_more_count %} -->
                     <mj-text padding="0px" align="center">
                         <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
                            style="display: inline-block; font-size: 14px; font-weight: 600; color: #4F6882; text-decoration: underline; padding: 4px 16px;">
                             And {{ notification.read_more_count }} more comment{{ notification.read_more_count|pluralize }} →
                         </a>
                     </mj-text>
+                    <!-- {% endif %} -->
                 </mj-column>
             </mj-section>
-            <!-- {% endif %} -->
                 
         </mj-wrapper>
         <!-- {% endfor %} -->
