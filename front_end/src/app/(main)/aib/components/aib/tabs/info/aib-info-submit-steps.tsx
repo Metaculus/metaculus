@@ -10,13 +10,22 @@ const AIBInfoSubmitSteps: React.FC = () => {
         <p className="m-0 mx-auto max-w-[400px] text-center text-2xl text-gray-0 dark:text-gray-0-dark">
           Learn how to submit your forecasting bot in 30 minutes
         </p>
-        <Image
-          src={videoThumbnail}
-          alt="Video Thumbnail"
-          width={468}
-          unoptimized
-        />
+
+        <Link
+          href="https://www.loom.com/share/fc3c1a643b984a15b510647d8f760685"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Watch the submission walkthrough video"
+        >
+          <Image
+            src={videoThumbnail}
+            alt="Video Thumbnail"
+            width={468}
+            unoptimized
+          />
+        </Link>
       </div>
+
       <div className="my-6 flex-1">
         <h4 className="m-0 mb-[55px] text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark">
           Submit Your Bot in 3 Steps
