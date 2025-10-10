@@ -451,23 +451,26 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             </div>
           </div>
 
-          {previousForecastExpiration && (
-            <div
-              className={cn(
-                "border-b-lue mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark md:ml-auto",
-                previousForecastExpiration.expiresSoon &&
-                  "text-salmon-800 dark:text-salmon-800-dark"
-              )}
-            >
-              {previousForecastExpiration.isExpired
-                ? t("predictionWithdrawnText", {
-                    time: previousForecastExpiration.string,
-                  })
-                : t("predictionWillBeWithdrawInText", {
-                    time: previousForecastExpiration.string,
-                  })}
-            </div>
-          )}
+          {previousForecastExpiration &&
+            question.my_forecasts?.latest?.end_time &&
+            question.my_forecasts.latest.end_time * 1000 <
+              new Date(question.scheduled_close_time).getTime() && (
+              <div
+                className={cn(
+                  "border-b-lue mt-2 text-center text-xs text-gray-800 dark:text-gray-800-dark md:ml-auto",
+                  previousForecastExpiration.expiresSoon &&
+                    "text-salmon-800 dark:text-salmon-800-dark"
+                )}
+              >
+                {previousForecastExpiration.isExpired
+                  ? t("predictionWithdrawnText", {
+                      time: previousForecastExpiration.string,
+                    })
+                  : t("predictionWillBeWithdrawInText", {
+                      time: previousForecastExpiration.string,
+                    })}
+              </div>
+            )}
         </div>
       )}
 

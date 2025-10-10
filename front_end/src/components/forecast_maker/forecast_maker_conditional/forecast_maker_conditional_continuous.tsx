@@ -806,23 +806,27 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           detached
         />
 
-        {previousForecastExpiration && (
-          <span
-            className={cn(
-              "text-center text-xs text-gray-800 dark:text-gray-800-dark",
-              previousForecastExpiration.expiresSoon &&
-                "text-salmon-800 dark:text-salmon-800-dark"
-            )}
-          >
-            {previousForecastExpiration.isExpired
-              ? t("predictionWithdrawnText", {
-                  time: previousForecastExpiration.string,
-                })
-              : t("predictionWillBeWithdrawInText", {
-                  time: previousForecastExpiration.string,
-                })}
-          </span>
-        )}
+        {previousForecastExpiration &&
+          activeQuestion &&
+          activeQuestion.my_forecasts?.latest?.end_time &&
+          activeQuestion.my_forecasts.latest.end_time * 1000 <
+            new Date(activeQuestion.scheduled_close_time).getTime() && (
+            <span
+              className={cn(
+                "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionWithdrawnText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillBeWithdrawInText", {
+                    time: previousForecastExpiration.string,
+                  })}
+            </span>
+          )}
 
         <div className="h-[32px]">
           {(isSubmitting || withdrawalIsPending) && <LoadingIndicator />}

@@ -346,23 +346,26 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             }
           />
         </div>
-        {previousForecastExpiration && (
-          <span
-            className={cn(
-              "mb-2.5 text-center text-xs text-gray-800 dark:text-gray-800-dark",
-              previousForecastExpiration.expiresSoon &&
-                "text-salmon-800 dark:text-salmon-800-dark"
-            )}
-          >
-            {previousForecastExpiration.isExpired
-              ? t("predictionWithdrawnText", {
-                  time: previousForecastExpiration.string,
-                })
-              : t("predictionWillBeWithdrawInText", {
-                  time: previousForecastExpiration.string,
-                })}
-          </span>
-        )}
+        {previousForecastExpiration &&
+          option.question.my_forecasts?.latest?.end_time &&
+          option.question.my_forecasts.latest.end_time * 1000 <
+            new Date(option.question.scheduled_close_time).getTime() && (
+            <span
+              className={cn(
+                "mb-2.5 text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                previousForecastExpiration.expiresSoon &&
+                  "text-salmon-800 dark:text-salmon-800-dark"
+              )}
+            >
+              {previousForecastExpiration.isExpired
+                ? t("predictionWithdrawnText", {
+                    time: previousForecastExpiration.string,
+                  })
+                : t("predictionWillBeWithdrawInText", {
+                    time: previousForecastExpiration.string,
+                  })}
+            </span>
+          )}
       </>
     );
   }

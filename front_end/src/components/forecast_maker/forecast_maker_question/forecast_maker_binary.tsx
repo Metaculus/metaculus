@@ -218,23 +218,26 @@ const ForecastMakerBinary: FC<Props> = ({
             )}
           </div>
 
-          {previousForecastExpiration && (
-            <span
-              className={cn(
-                "text-center text-xs text-gray-800 dark:text-gray-800-dark",
-                previousForecastExpiration.expiresSoon &&
-                  "text-salmon-800 dark:text-salmon-800-dark"
-              )}
-            >
-              {previousForecastExpiration.isExpired
-                ? t("predictionWithdrawnText", {
-                    time: previousForecastExpiration.string,
-                  })
-                : t("predictionWillBeWithdrawInText", {
-                    time: previousForecastExpiration.string,
-                  })}
-            </span>
-          )}
+          {previousForecastExpiration &&
+            question.my_forecasts?.latest?.end_time &&
+            question.my_forecasts.latest.end_time * 1000 <
+              new Date(question.scheduled_close_time).getTime() && (
+              <span
+                className={cn(
+                  "text-center text-xs text-gray-800 dark:text-gray-800-dark",
+                  previousForecastExpiration.expiresSoon &&
+                    "text-salmon-800 dark:text-salmon-800-dark"
+                )}
+              >
+                {previousForecastExpiration.isExpired
+                  ? t("predictionWithdrawnText", {
+                      time: previousForecastExpiration.string,
+                    })
+                  : t("predictionWillBeWithdrawInText", {
+                      time: previousForecastExpiration.string,
+                    })}
+              </span>
+            )}
         </div>
 
         <FormError
