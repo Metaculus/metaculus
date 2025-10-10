@@ -387,11 +387,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={
-          !!hasUserActiveForecast && !isPickerDirty
-            ? handlePredictSubmit
-            : undefined
-        }
+        onSubmit={handlePredictSubmit}
+        isUserForecastActive={hasUserActiveForecast}
+        isDirty={isPickerDirty}
+        hasUserForecast={hasUserForecast}
+        isSubmissionDisabled={!questionsToSubmit.length}
         questionDuration={questionDuration}
       />
 

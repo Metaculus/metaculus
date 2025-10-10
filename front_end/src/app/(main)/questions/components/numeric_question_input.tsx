@@ -88,6 +88,8 @@ const NumericQuestionInput: React.FC<{
               0.5 * ((defaultMax - defaultMin) / defaultInboundOutcomeCount))
         ) / 1e10
   );
+  const minRef = useRef<HTMLInputElement>(null);
+  const maxRef = useRef<HTMLInputElement>(null);
   const [openUpperBound, setOpenUpperBound] = useState(
     isNil(defaultOpenUpperBound) ? false : defaultOpenUpperBound
   );
@@ -151,7 +153,7 @@ const NumericQuestionInput: React.FC<{
     inbound_outcome_count: isNil(defaultInboundOutcomeCount)
       ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
         ? DefaultInboundOutcomeCount
-        : Math.max(3, Math.min(200, Math.round((max - min) / step)))
+        : Math.max(3, Math.min(200, Math.round((max - min) / step) + 1))
       : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
@@ -277,6 +279,12 @@ const NumericQuestionInput: React.FC<{
               ? 1
               : Math.round(1e10 * ((mx - mn) / inboundOutcomeCount)) / 1e10;
           setStep(draftStep);
+          if (minRef.current) {
+            minRef.current.value = String(mn + 0.5 * draftStep);
+          }
+          if (maxRef.current) {
+            maxRef.current.value = String(mx - 0.5 * draftStep);
+          }
           setMax(mx - 0.5 * draftStep);
           setMin(mn + 0.5 * draftStep);
         } else {
@@ -305,7 +313,10 @@ const NumericQuestionInput: React.FC<{
       return;
     }
     // prevent update of draft timestamp after mounting
-    if (!shouldUpdateParrent.current) {
+    if (
+      !shouldUpdateParrent.current &&
+      questionType !== QuestionType.Discrete
+    ) {
       shouldUpdateParrent.current = true;
       return;
     }
@@ -352,6 +363,7 @@ const NumericQuestionInput: React.FC<{
             <div>
               <span className="mr-2">Min</span>
               <Input
+                ref={minRef}
                 readOnly={hasForecasts}
                 disabled={hasForecasts}
                 type="number"
@@ -366,6 +378,7 @@ const NumericQuestionInput: React.FC<{
             <div>
               <span className="mr-2">Max</span>
               <Input
+                ref={maxRef}
                 readOnly={hasForecasts}
                 disabled={hasForecasts}
                 type="number"

@@ -3,8 +3,6 @@ from django.db import transaction
 from coherence.models import (
     CoherenceLink,
     AggregateCoherenceLink,
-    Direction,
-    Strength,
     LinkType,
 )
 from questions.models import Question
@@ -16,8 +14,8 @@ def create_coherence_link(
     user: User = None,
     question1: Question = None,
     question2: Question = None,
-    direction: Direction = None,
-    strength: Strength = None,
+    direction: int = None,
+    strength: int = None,
     link_type: LinkType = None,
 ):
 
