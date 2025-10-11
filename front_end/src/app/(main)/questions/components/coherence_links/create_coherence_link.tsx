@@ -1,9 +1,7 @@
 import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Select } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import {
-  FC,
   useState,
   useEffect,
   forwardRef,
@@ -13,16 +11,16 @@ import {
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
+import { DirectionSelect } from "@/app/(main)/questions/components/coherence_links/direction_select_component";
 import LinkStrengthSelectorComponent from "@/app/(main)/questions/components/coherence_links/link_strength_selector_component";
 import QuestionPicker, {
   SearchedQuestionType,
 } from "@/app/(main)/questions/components/question_picker";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
-import { Directions, LinkTypes, Strengths } from "@/types/coherence";
+import { LinkTypes } from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question, QuestionType } from "@/types/question";
-import { getTermByDirectionAndQuestionType } from "@/utils/coherence";
 
 type Props = {
   post: Post;
@@ -35,34 +33,6 @@ type Props = {
 
 export type CreateCoherenceLinkRefType = {
   save: () => Promise<boolean>;
-};
-
-const directionOptions = [Directions.Positive, Directions.Negative];
-
-const DirectionSelect: FC<{
-  value: Directions;
-  onChange: (value: string) => void;
-  typeOfSecondQuestion: QuestionType | null;
-  t: ReturnType<typeof useTranslations>;
-}> = ({ value, onChange, typeOfSecondQuestion, t }) => {
-  if (!typeOfSecondQuestion) return null;
-  return (
-    <Select
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className="rounded-md border border-gray-300 bg-gray-50 py-1.5 pl-2.5 pr-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400"
-    >
-      {directionOptions.map((option) => (
-        <option
-          key={option}
-          value={option}
-          className="bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
-        >
-          {t(getTermByDirectionAndQuestionType(option, typeOfSecondQuestion))}
-        </option>
-      ))}
-    </Select>
-  );
 };
 
 enum LinkCreationErrors {
@@ -83,8 +53,8 @@ const CreateCoherenceLink = (
 ) => {
   const [cancelled, setCancelled] = useState<boolean>(false);
   const [isFirstQuestion, setIsFirstQuestion] = useState<boolean>(true);
-  const [direction, setDirection] = useState(Directions.Positive);
-  const [strength, setStrength] = useState(Strengths.Medium);
+  const [direction, setDirection] = useState<number>(1);
+  const [strength, setStrength] = useState<number>(2);
   const [otherQuestion, setOtherQuestion] = useState<Question | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
   const [pickerInitialSearch, setPickerInitialSearch] = useState<string>("");
@@ -205,7 +175,7 @@ const CreateCoherenceLink = (
             direction: () => (
               <DirectionSelect
                 value={direction}
-                onChange={(value) => setDirection(value as Directions)}
+                onChange={(value) => setDirection(value)}
                 typeOfSecondQuestion={typeOfSecondQuestion}
                 t={t}
               />

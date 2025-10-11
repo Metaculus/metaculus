@@ -324,8 +324,8 @@ export async function emailData(params: DataParams) {
 export async function createCoherenceLink(
   question1: Question,
   question2: Question,
-  direction: string,
-  strength: string,
+  direction: number,
+  strength: number,
   type: string
 ): Promise<null | ErrorResponse> {
   try {
