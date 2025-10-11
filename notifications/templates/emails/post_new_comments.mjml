@@ -4,45 +4,84 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-section>
+        <mj-section background-color="#ffffff" padding-bottom="16px">
             <mj-column>
-
-                <mj-text>
+                <mj-text font-size="16px" color="#161C22" padding-bottom="8px">
                     Hello {{recipient.username}},
                 </mj-text>
 
-                <mj-text>
+                <mj-text font-size="15px" color="#6B7280" padding-bottom="4px">
                     {% blocktrans with count=notifications|length %}
                     There are new comments on these {{ count }} questions:
                     {% endblocktrans %}
                 </mj-text>
-
-                <!-- {% for notification in notifications %} -->
-                <mj-text>
-                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                        {{ notification.post.post_title }}
-                    </a>
-                    - {{ notification.comments_count }}
-
-                    <ul>
-                        {% for comment in notification.comments %}
-                        <li>
-                            <span>@{{ comment.author_username }}:</span>
-                            “{{ comment.preview_text | safe }}”
-                            <a href="{{ comment.url }}">(link)</a>
-                        </li>
-                        {% endfor %}
-                        {% if notification.read_more_count %}
-                        <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                            And {{ notification.read_more_count }} more
-                        </a>
-                        {% endif %}
-                    </ul>
-                </mj-text>
-                <!-- {% endfor %} -->
-
             </mj-column>
         </mj-section>
+
+        <!-- {% for notification in notifications %} -->
+        <!-- Question Card -->
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-compact" padding-bottom="16px">
+                    
+                    <mj-section mj-class="content-block-top" padding="16px 16px 0px 16px">
+                        <mj-column padding="0 2px 0 2px">
+                            <!-- Question Title & Comment Count -->
+                            <mj-text css-class="question-title" padding="0px">
+                                <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
+                                style="font-size: 18px; font-weight: 600; line-height: 1.4; color: #161C22; text-decoration: none; display: block; margin-bottom: 2px; padding-top:6px; padding-bottom: 0px;">
+                                    {{ notification.post.post_title }}
+                                </a>
+                                <div style="font-size: 13px; font-weight: 500; color: #758EA9;">
+                                    💬 {{ notification.comments_count }} new comment{{ notification.comments_count|pluralize }}
+                                </div>
+                            </mj-text>
+                        </mj-column>
+                    </mj-section>
+
+            <!-- Comments Container -->
+            <!-- {% for comment in notification.comments %} -->
+            <mj-section mj-class="content-block-middle" padding="0px 16px 8px 16px">
+                <mj-column>
+                    <mj-text padding="0px">
+                        <a href="{{ comment.url }}" style="display: block; text-decoration: none; color: inherit;">
+                            <div style="background-color: #ffffff; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px; transition: background-color 0.2s;">
+                                <!-- Author -->
+                                <div style="font-size: 14px; font-weight: 600; color: #4F6882; margin-bottom: 6px;">
+                                    @{{ comment.author_username }}
+                                </div>
+                                
+                                <!-- Comment Preview -->
+                                <div style="font-size: 14px; font-weight: normal; color: #2F4155; line-height: 1.5; margin-bottom: 8px;">
+                                    "{{ comment.preview_text | safe }}"
+                                </div>
+                                
+                                <!-- View Comment Link -->
+                                <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
+                                    View comment →
+                                </div>
+                            </div>
+                        </a>
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+            <!-- {% endfor %} -->
+
+            <!-- Read More Link (always render section for proper bottom border) -->
+            <mj-section mj-class="content-block-bottom" padding="4px 16px 16px 16px">
+                <mj-column>
+                    <!-- {% if notification.read_more_count %} -->
+                    <mj-text padding="0px" align="center">
+                        <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
+                           style="display: inline-block; font-size: 14px; font-weight: 600; color: #4F6882; text-decoration: underline; padding: 4px 16px;">
+                            And {{ notification.read_more_count }} more comment{{ notification.read_more_count|pluralize }} →
+                        </a>
+                    </mj-text>
+                    <!-- {% endif %} -->
+                </mj-column>
+            </mj-section>
+                
+        </mj-wrapper>
+        <!-- {% endfor %} -->
+
         <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
         <mj-include path="../../../templates/emails/email_greeting.mjml"/>
         <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>

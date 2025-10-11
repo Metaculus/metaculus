@@ -162,3 +162,7 @@ profile.dump
 .env.sh
 staticfiles
 trace.zip
+
+# Email preview tools (local development only)
+email_previews/
+.email-tools/

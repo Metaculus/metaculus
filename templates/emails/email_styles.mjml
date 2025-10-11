@@ -72,6 +72,42 @@
           width: 100%;
           height: auto;
       }
+
+      /* Question card styles */
+      /* Content block padding overrides */
+      /* Generous padding for single-item content blocks (e.g., activation CTA) */
+      .content-block-wrapper-loose {
+        padding: 0px !important;
+      }
+      
+      .content-block-wrapper-loose table {
+      }
+      
+      .content-block-wrapper-loose td {
+        padding-top:8px !important;
+        padding-bottom:8px !important;
+      }
+      
+      /* Compact padding for list-style content blocks (e.g., comments, notifications) */
+      .content-block-wrapper-compact {
+        padding: 0px !important;
+      }
+      
+      .content-block-wrapper-compact table {
+      }
+      
+      .content-block-wrapper-compact td {
+        padding-top:4px !important;
+        padding-bottom:4px !important;
+      }
+      
+      .question-title {
+        padding: 0 !important;
+      }
+      
+      .question-title div {
+        padding: 0 !important;
+      }
   </mj-style>
 
   <mj-style>
@@ -80,6 +116,16 @@
         font-size: 14px !important;
         line-height: 20px !important;
       }
+      
+      .email-subject div {
+        font-size: 16px !important;
+        line-height: 22px !important;
+      }
+      
+      /* Hide non-essential columns on mobile */
+      .hide-mobile {
+        display: none !important;
+      }
     }
   </mj-style>
 
@@ -87,8 +133,27 @@
   <mj-attributes>
     <mj-all font-family="Inter Variable, Inter, Arial, sans-serif" font-size="16px" > </mj-all>
     <mj-text css-class="general-text" color="rgba(22, 28, 34, 1)" line-height="24px"/>
-    <mj-body background-color="rgb(239, 244, 244)"/>
-    <mj-section background-color="rgb(255, 255, 255)" padding-top="10px" padding-bottom="0px" />
+    <mj-body background-color="rgb(238, 242, 242)"/>
+    <mj-section background-color="rgb(255, 255, 255)" padding-top="10px" padding-bottom="10px" />
+    
+    <!-- Reusable content block wrapper (provides outer spacing) -->
+    <mj-class name="content-block-wrapper" padding="0px 24px" background-color="#FFFFFF"/>
+    
+    <!-- Reusable content block (blue background with border) -->
+    <mj-class name="content-block" background-color="#EFF4F4" border="1px solid #D7E4F2"/>
+    
+    <!-- Content block with only top/left/right borders (for stacking sections) -->
+    <mj-class name="content-block-top" background-color="#EFF4F4" border-top="1px solid #D7E4F2" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2"/>
+    
+    <!-- Content block with only left/right borders (for middle sections) -->
+    <mj-class name="content-block-middle" background-color="#EFF4F4" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2"/>
+    
+    <!-- Content block with left/right/bottom borders (for bottom sections) -->
+    <mj-class name="content-block-bottom" background-color="#EFF4F4" border-left="1px solid #D7E4F2" border-right="1px solid #D7E4F2" border-bottom="1px solid #D7E4F2"/>
+    
+    <!-- Reusable CTA button (blue-gray button for content blocks) -->
+    <mj-class name="cta-button" background-color="#758EA9" color="#ffffff" font-size="16px" font-weight="600" border-radius="6px" inner-padding="8px 24px" align="center"/>
+    
     <mj-class css-class="primary-button" name="primary-button" inner-padding="15px 0px" font-weight="700" font-size="18px" font-family="Inter Variable, Inter, Arial, sans-serif" color="rgba(0, 0, 0, 1)" width="100%" background-color="rgba(159, 209, 159, 1)" border-radius="27px"/>
     <mj-class name="secondary-button" inner-padding="8px 13px" font-weight="500" font-size="13px" font-family="Inter Variable" color="#2d2e2e" border="1px solid #555" background-color="rgba(255, 255, 255, 1)" border-radius="27px"/>
   </mj-attributes>

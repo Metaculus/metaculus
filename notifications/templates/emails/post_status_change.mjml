@@ -4,61 +4,106 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-section>
+        <mj-section background-color="#ffffff" padding-bottom="16px">
             <mj-column>
-
-                <mj-text>
+                <mj-text font-size="16px" color="#161C22" padding-bottom="0px">
                     Hello {{recipient.username}},
                 </mj-text>
+            </mj-column>
+        </mj-section>
 
-                <mj-text>
+        <!-- All dynamic content in ONE section -->
+        <mj-section background-color="#ffffff" padding="0px">
+            <mj-column>
+                <mj-text padding="0px">
+                    <!-- Tournament/Project Status Changes -->
                     {% if params.from_projects %}
-                    {% for item in params.from_projects %}
-                    <p>
-                        {% blocktrans with project_name=item.project.name %}
-                        In <b>{{project_name}}</b>:
+                    
+                    <!-- Intro text for tournament changes -->
+                    <div style="font-size: 15px; color: #161C22; margin: 0px 24px 8px 24px;">
+                        {% blocktrans %}
+                        These questions have changed status:
                         {% endblocktrans %}
-                    </p>
-                    {% for notification in item.notifications %}
-
-                    <li>
-                        <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id notification.post.post_type %}">{{ notification.question.title|default:notification.post.post_title }}</a>
-                        {% if notification.post.post_type != 'notebook' %}
-                        <span>is now {{notification.event}}</span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
+                    </div>
+                    
+                    {% for item in params.from_projects %}
+                    {% if item.notifications %}
+                    
+                    <div style="margin-bottom: 16px;">
+                        <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; margin: 0px 24px;">
+                            <!-- Project Header -->
+                            <div style="font-size: 15px; color: #2F4155; margin-bottom: 12px;">
+                                {% blocktrans with project_name=item.project.name %}
+                                In <b>{{project_name}}</b>:
+                                {% endblocktrans %}
+                            </div>
+                            
+                            <!-- Questions in this project -->
+                            {% for notification in item.notifications %}
+                            <div style="{% if not forloop.last %}margin-bottom: 8px;{% endif %}">
+                                <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id notification.post.post_type %}" 
+                                   style="display: block; text-decoration: none; color: inherit;">
+                                    <div style="background-color: #ffffff; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px;">
+                                        <div style="font-size: 14px; font-weight: 600; color: #161C22; line-height: 1.4; margin-bottom: 2px;">
+                                            {{ notification.question.title|default:notification.post.post_title }}
+                                        </div>
+                                        {% if notification.post.post_type != 'notebook' %}
+                                        <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
+                                            is now {{ notification.event }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% endif %}
                     {% endfor %}
                     {% endif %}
-
+                    
+                    <!-- Regular Status Changes -->
                     {% if params.from_posts %}
+                    
+                    <!-- Intro text -->
                     {% if params.from_projects %}
-                    <p>
+                    <div style="font-size: 15px; color: #161C22; margin: 0px 24px 8px 24px;">
                         {% blocktrans %}
                         In the rest of Metaculus:
                         {% endblocktrans %}
-                    </p>
-                    {% else %}
-                    {% blocktrans with count=params.from_posts|length %}
-                    These {{count}} questions have changed status:
-                    {% endblocktrans %}
+                    </div>
                     {% endif %}
-
-                    <ul>
-                        {% for notification in params.from_posts %}
-                        <li>
-                            <a href="{% post_url notification.post.post_id notification.post.post_title notification.question.id notification.post.post_type %}">{{ notification.question.title|default:notification.post.post_title }}</a>
-                            <span>is now {{notification.event}}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    
+                    <div style="font-size: 15px; color: #161C22; margin: 0px 24px 8px 24px;">
+                        {% blocktrans with count=params.from_posts|length %}
+                        These {{count}} questions have changed status:
+                        {% endblocktrans %}
+                    </div>
+                    
+                    <!-- Question cards directly (no outer container) -->
+                    {% for item in params.from_posts %}
+                    <div style="margin: 0px 24px {% if not forloop.last %}8px{% else %}16px{% endif %} 24px;">
+                        <a href="{% post_url item.post.post_id item.post.post_title item.question.id item.post.post_type %}" 
+                           style="display: block; text-decoration: none; color: inherit;">
+                            <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 12px;">
+                                <div style="font-size: 14px; font-weight: 500; color: #161C22; line-height: 1.4; margin-bottom: 2px;">
+                                    {{ item.question.title|default:item.post.post_title }}
+                                </div>
+                                <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
+                                    is now {{ item.event }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                    
                     {% endif %}
                 </mj-text>
-
             </mj-column>
         </mj-section>
+
         <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
         <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
     </mj-body>
 </mjml>

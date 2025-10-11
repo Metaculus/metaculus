@@ -18,7 +18,8 @@ def process_mj_includes(mjml_content, base_path):
     include_pattern = re.compile(r'<mj-include path=["\']([^"\']+)["\']\s*/?>')
 
     def replace_match(match):
-        include_path = os.path.join(base_path, match.group(1))
+        # Properly resolve relative paths like ../../../templates/emails/email_top.mjml
+        include_path = os.path.normpath(os.path.join(base_path, match.group(1)))
         if os.path.exists(include_path):
             with open(include_path, "r") as file:
                 include_content = file.read()
@@ -67,7 +68,6 @@ class Command(BaseCommand):
         )
 
         html_content = mjml_render(mjml_content)
-        # html_content = mjml_content
 
         if html_content:
             html_file_path = mjml_file_path.replace(".mjml", ".html")

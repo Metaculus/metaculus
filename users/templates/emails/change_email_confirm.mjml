@@ -12,22 +12,53 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    We just received a request to change the email address associated with your Metaculus account. <a
-                        href="{{ reset_link }}">Click this link
-                </a> to change your Metaculus email address to <code>{{ new_email }}</code>.
-
-                    <p>If you did not make this request, you can safely ignore this email.</p>
-
-                    <p style="font-size: 80%;">
-                        Alternatively, you can copy and paste the following link into a browser:
-                        <br/>
-                        {{ reset_link }}
-                    </p>
+                    We received a request to change the email address associated with your Metaculus account to <code>{{ new_email }}</code>.
                     {% endblocktrans %}
+                </mj-text>
+                
+                <mj-text color="#6B7280" font-size="13px">
+                    {% blocktrans %}
+                    If you did not make this request, you can safely ignore this email.
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+                
+        <!-- Email Change CTA section -->
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
+            <mj-section mj-class="content-block" padding="8px 24px">
+                <mj-column padding="0px">
+                    <mj-text 
+                        align="center" 
+                        color="#161C22" 
+                        font-size="16px" 
+                        font-weight="500" 
+                        padding-bottom="6px"
+                        line-height="1.5">
+                        {% blocktrans %}
+                        Click the button to confirm this email change.
+                        {% endblocktrans %}
+                    </mj-text>
+                    
+                    <mj-button mj-class="cta-button" href="{{ reset_link }}">
+                        Confirm Email Change
+                    </mj-button>
+                </mj-column>
+            </mj-section>
+        </mj-wrapper>
+        
+        <mj-section>
+            <mj-column>
+                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+                    {% blocktrans %}
+                    Or, copy and paste this link into your browser:
+                    {% endblocktrans %}
+                    <br/>
+                    <a href="{{ reset_link }}" style="color: #0A66C2; word-break: break-all;">{{ reset_link }}</a>
                 </mj-text>
             </mj-column>
 
         </mj-section>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        
     </mj-body>
 </mjml>

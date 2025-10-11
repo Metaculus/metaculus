@@ -127,7 +127,7 @@ def send_email_change_confirmation_email(user: User, new_email: str):
 
     send_email_with_template(
         user.email,
-        "Metaculus account email change",
+        "Metaculus Account Email Change",
         "emails/change_email_confirm.html",
         context={
             "username": user.username,
