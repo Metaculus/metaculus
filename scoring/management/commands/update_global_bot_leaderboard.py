@@ -3,7 +3,7 @@ from collections import defaultdict, Counter
 
 from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, Prefetch, QuerySet
+from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 from scipy import sparse
@@ -130,8 +130,9 @@ def gather_data(
                 []
                 if not pro_id
                 else Question.objects.filter(
-                    related_posts__post__default_project=pro_id
-                )
+                    related_posts__post__default_project=pro_id,
+                    resolution__isnull=False,
+                ).exclude(resolution__in=UnsuccessfulResolutionType)
             )
         }
         for question in aib_questions:
@@ -156,21 +157,29 @@ def gather_data(
             f"| {question_number:>5}/{question_count:<5} "
             f"| {question.id:<5} "
         )
+        # Get forecasts
+        forecast_dict: dict[int | str, list[Forecast | AggregateForecast]] = (
+            defaultdict(list)
+        )
         # bot forecasts - simple
         bot_forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
             "start_time"
         )
-        # human aggregate foreacsts - conditional on a bunch of stuff
+        for f in bot_forecasts:
+            forecast_dict[f.author_id].append(f)
+        # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
         if not human_question:
-            aggregate_forecasts = []
+            aggregate_forecasts: list[AggregateForecast] = []
         else:
+            if question in aib_question_map:
+                question.default_score_type = ScoreTypes.SPOT_PEER
             aggregation_method = (
                 AggregationMethod.UNWEIGHTED
                 if question.default_score_type == ScoreTypes.SPOT_PEER
                 else AggregationMethod.RECENCY_WEIGHTED
             )
-            aggregate_forecasts: list[AggregateForecast] = get_aggregation_history(
+            aggregate_forecasts = get_aggregation_history(
                 human_question,
                 [aggregation_method],
                 minimize=False,
@@ -178,24 +187,23 @@ def gather_data(
                 include_bots=False,
                 include_future=False,
             )[aggregation_method]
-            if question in aib_question_map:
+            if not aggregate_forecasts:
+                print(f"{human_question.id} doesn't have a human aggregate!")
+                print(f"quivalent question (different if in aib) {question.id}")
+                breakpoint()
+                pass
+            elif question in aib_question_map:
                 # set the last aggregate to be the one that gets scored
-                aggregate_forecasts = aggregate_forecasts[-1:]
-                if aggregate_forecasts:
-                    forecast = aggregate_forecasts[0]
-                    forecast.start_time = question.get_spot_scoring_time() - timedelta(
-                        seconds=1
-                    )
-                    forecast.end_time = None
+                forecast = aggregate_forecasts[-1]
+                forecast.start_time = question.get_spot_scoring_time() - timedelta(
+                    seconds=1
+                )
+                forecast.end_time = None
+                forecast_dict["pro_aggregate"] = [forecast]
+            else:
+                forecast_dict["community_aggregate"] = aggregate_forecasts
 
-        forecast_dict: dict[int | str, list[Forecast | AggregateForecast]] = (
-            defaultdict(list)
-        )
-        for f in bot_forecasts:
-            forecast_dict[f.author_id].append(f)
-        for f in aggregate_forecasts:
-            forecast_dict["human_aggregate"].append(f)
-        forecaster_ids = sorted(list(forecast_dict.keys()), key=str)
+        forecaster_ids = sorted(list(forecast_dict.keys()), key=str, reverse=True)
         pairing_index = 0
         pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
         for i, user1_id in enumerate(forecaster_ids):
@@ -270,8 +278,12 @@ def compute_skills(
     # - If baseline player is involved, their column is omitted (skill=0)
     X = sparse.lil_matrix((matches, len(players)))
     y = np.zeros(matches)
-    for i, u1id, u2id, score in zip(range(matches), user1_ids, user2_ids, scores):
-        y[i] = score
+    # for i, u1id, u2id, score in zip(range(matches), user1_ids, user2_ids, scores):
+    #     y[i] = score
+    for i, u1id, u2id, score, coverage in zip(
+        range(matches), user1_ids, user2_ids, scores, coverages
+    ):
+        y[i] = score / coverage
         if u1id != baseline_player:
             X[i, player_to_idx[u1id]] = 1
         if u2id != baseline_player:
@@ -310,7 +322,7 @@ def get_var_avg_scores(
         u2[1] += coverage
     avg_scores = dict()
     for uid, (score, coverage) in scores_by_player.items():
-        avg_scores[uid] = score / coverage
+        avg_scores[uid] = score / max(30, coverage)
     var_avg_scores = np.var(np.array(list(avg_scores.values())))
     return var_avg_scores
 
@@ -454,13 +466,25 @@ class Command(BaseCommand):
         )
         questions: QuerySet[Question] = (
             Question.objects.filter(
-                related_posts__post__default_project__default_permission__in=[
-                    "viewer",
-                    "forecaster",
-                ],
+                Q(
+                    related_posts__post__default_project__default_permission__in=[
+                        "viewer",
+                        "forecaster",
+                    ]
+                )
+                | Q(
+                    related_posts__post__default_project_id__in=[
+                        3349,
+                        32506,
+                        32627,
+                        32721,
+                        32813,
+                    ]
+                ),
                 related_posts__post__curation_status=Post.CurationStatus.APPROVED,
                 resolution__isnull=False,
             )
+            .exclude(related_posts__post__default_project__slug__startswith="minibench")
             .exclude(resolution__in=UnsuccessfulResolutionType)
             .filter(Exists(user_forecast_exists))
             .prefetch_related(  # only prefetch forecasts from those users
@@ -469,6 +493,7 @@ class Command(BaseCommand):
                 )
             )
             .order_by("id")
+            .distinct("id")
         )
         print("Initializing... DONE")
 
@@ -541,7 +566,9 @@ class Command(BaseCommand):
         ordered_skills = sorted(
             [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
         )
-        unevaluated = set(user1_ids) | set(user2_ids)
+        unevaluated = (
+            set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
+        )
         for uid, skill in ordered_skills:
             if isinstance(uid, str):
                 username = uid
@@ -558,7 +585,7 @@ class Command(BaseCommand):
                 f"| {round(match_upper, 2):>6} {'('+str(round(question_upper, 2))+')':>8} "
                 f"| {player_stats[uid][0]:>6} "
                 f"| {len(player_stats[uid][1]):>6} "
-                f"| {uid if isinstance(uid, int) else '':>5} "
+                f"| {uid if isinstance(uid, int) else '':>6} "
                 f"| {username}"
             )
         for uid in unevaluated:
