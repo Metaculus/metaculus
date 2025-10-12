@@ -333,9 +333,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           setIsForecastExpirationModalOpen(false);
         }}
         questionDuration={averageQuestionDuration}
-        onReaffirm={
-          !isPickerDirty && hasSomeActiveUserForecasts ? submit : undefined
-        }
+        onSubmit={submit}
+        isDirty={isPickerDirty}
+        hasUserForecast={hasUserForecast}
+        isUserForecastActive={hasSomeActiveUserForecasts}
+        isSubmissionDisabled={!questionsToSubmit.length}
       />
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>

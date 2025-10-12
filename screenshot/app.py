@@ -26,6 +26,8 @@ PAGE_LOAD_TIMEOUT_MS = 15000
 api_key_header = APIKeyHeader(name="api_key", auto_error=True)
 
 if SENTRY_ENABLED:
+    logging.info("Starting sentry")
+
     sentry_sdk.init(
         dsn="https://d5f1eff59cb84b7fa2124ea11c7ea58b@o1146290.ingest.sentry.io/4505125491703808",
         # Set traces_sample_rate to 1.0 to capture 100%
@@ -33,7 +35,6 @@ if SENTRY_ENABLED:
         # We recommend adjusting this value in production,
         traces_sample_rate=1.0,
     )
-
 
 app = FastAPI()
 g_browser_instance = None
@@ -129,7 +130,7 @@ async def screenshot(request_data: ScreenshotRequest = Body(...)):
 
         buffer = await screenshot_element.screenshot(timeout=DEFAULT_TIMEOUT_MS)
     except Exception as e:
-        logger.exception(f"Screenshot generation failed: {e}")
+        logger.exception(f"Screenshot generation failed for {url}")
         raise HTTPException(
             status_code=400, detail=f"Screenshot generation failed: {e}"
         )

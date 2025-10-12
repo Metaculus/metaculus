@@ -1,58 +1,60 @@
 from django.urls import path
 
-from . import views
+from .views import common, key_factors
 
 urlpatterns = [
-    path("comments/", views.comments_list_api_view, name="comment-list"),
+    path("comments/", common.comments_list_api_view, name="comment-list"),
     path(
         "comments/<int:pk>/delete/",
-        views.comment_delete_api_view,
+        common.comment_delete_api_view,
         name="comment-delete",
     ),
-    path("comments/<int:pk>/edit/", views.comment_edit_api_view, name="comment-edit"),
-    path("comments/<int:pk>/vote/", views.comment_vote_api_view, name="comment-vote"),
+    path("comments/<int:pk>/edit/", common.comment_edit_api_view, name="comment-edit"),
+    path("comments/<int:pk>/vote/", common.comment_vote_api_view, name="comment-vote"),
     path(
         "comments/<int:pk>/toggle_cmm/",
-        views.comment_toggle_cmm_view,
+        common.comment_toggle_cmm_view,
         name="comment-toggle-cmm",
     ),
     path(
         "comments/<int:pk>/report/",
-        views.comment_report_api_view,
+        common.comment_report_api_view,
         name="comment-report",
     ),
     path(
         "comments/<int:pk>/toggle-pin/",
-        views.comment_toggle_pin_view,
+        common.comment_toggle_pin_view,
         name="comment-togle-pin",
     ),
-    path("comments/create/", views.comment_create_api_view, name="comment-create"),
+    path("comments/create/", common.comment_create_api_view, name="comment-create"),
     path(
-        "key-factors/<int:pk>/vote/", views.key_factor_vote_view, name="key-factor-vote"
+        "comments/<int:pk>/set-excluded-from-week-top/",
+        common.comment_set_excluded_from_week_top_view,
+        name="comment-set-excluded-from-week-top",
+    ),
+    path(
+        "comments/comments-of-week/",
+        common.comments_of_week_view,
+        name="comments-of-week",
+    ),
+    # Key Factors layer
+    path(
+        "key-factors/<int:pk>/vote/",
+        key_factors.key_factor_vote_view,
+        name="key-factor-vote",
     ),
     path(
         "comments/<int:pk>/add-key-factors/",
-        views.comment_add_key_factors_view,
+        key_factors.comment_add_key_factors_view,
         name="comment-add-key-factors",
     ),
     path(
         "comments/<int:pk>/suggested-key-factors/",
-        views.comment_suggested_key_factors_view,
+        key_factors.comment_suggested_key_factors_view,
         name="comment-suggested-key-factors",
-    ),
-    path(
-        "comments/comments-of-week/",
-        views.comments_of_week_view,
-        name="comments-of-week",
-    ),
-    path(
-        "comments/<int:pk>/set-excluded-from-week-top/",
-        views.comment_set_excluded_from_week_top_view,
-        name="comment-set-excluded-from-week-top",
     ),
 ]
 
-
 old_api = [
-    path("comments/", views.comment_create_oldapi_view, name="oldapi-comment-create")
+    path("comments/", common.comment_create_oldapi_view, name="oldapi-comment-create")
 ]

@@ -645,7 +645,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             type="button"
             isPromptOpen={isWithdrawModalOpen}
             isPending={isSubmitting}
-            onSubmit={handlePredictWithdraw}
+            onSubmit={() => handlePredictWithdraw()}
             onPromptVisibilityChange={setIsWithdrawModalOpen}
           >
             {t("withdrawAll")}
