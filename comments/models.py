@@ -210,7 +210,7 @@ class ImpactDirection(models.IntegerChoices):
 class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
     impact_direction = models.IntegerField(
-        choices=ImpactDirection.choices, null=True, blank=True
+        choices=ImpactDirection.choices, null=True, blank=False
     )
 
     def __str__(self):

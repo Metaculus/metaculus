@@ -4,14 +4,17 @@ from typing import Iterable
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactor, KeyFactorDriver, ImpactDirection
-from comments.services.key_factors import get_votes_for_key_factors
+from comments.models import KeyFactor, KeyFactorDriver, ImpactDirection, KeyFactorVote
+from comments.services.key_factors import (
+    get_votes_for_key_factors,
+    calculate_key_factors_freshness,
+)
 from users.models import User
 from users.serializers import BaseUserSerializer
 
 
-def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[int]):
-    pivot_votes = Counter(vote_scores)
+def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[KeyFactorVote]):
+    pivot_votes = Counter([v.score for v in vote_scores])
 
     return {
         "score": key_factor.votes_score,
@@ -22,7 +25,11 @@ def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[int]):
     }
 
 
-def serialize_key_factor(key_factor: KeyFactor, vote_scores: list[int] = None) -> dict:
+def serialize_key_factor(
+    key_factor: KeyFactor,
+    vote_scores: list[KeyFactorVote] = None,
+    freshness: float = None,
+) -> dict:
     return {
         "id": key_factor.id,
         "author": BaseUserSerializer(key_factor.comment.author).data,
@@ -31,6 +38,7 @@ def serialize_key_factor(key_factor: KeyFactor, vote_scores: list[int] = None) -
         "vote": serialize_key_factor_votes(key_factor, vote_scores or []),
         "question_id": key_factor.question_id,
         "question_option": key_factor.question_option,
+        "freshness": freshness,
         # Type-specific fields
         "driver": (
             KeyFactorDriverSerializer(key_factor.driver).data
@@ -48,7 +56,7 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
-        .select_related("comment__author", "driver")
+        .select_related("comment__author", "comment__on_post", "question", "driver")
     )
 
     if current_user:
@@ -61,8 +69,15 @@ def serialize_key_factors_many(
     # Extract user votes
     votes_map = get_votes_for_key_factors(key_factors)
 
+    # Generate freshness
+    freshness_map = calculate_key_factors_freshness(key_factors, votes_map)
+
     return [
-        serialize_key_factor(key_factor, vote_scores=votes_map.get(key_factor.id))
+        serialize_key_factor(
+            key_factor,
+            vote_scores=votes_map.get(key_factor.id),
+            freshness=freshness_map.get(key_factor),
+        )
         for key_factor in objects
     ]
 

@@ -1,9 +1,14 @@
 import pytest  # noqa
+from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote, KeyFactorDriver
 from comments.services.common import create_comment, soft_delete_comment
-from comments.services.key_factors import key_factor_vote, create_key_factors
+from comments.services.key_factors import (
+    key_factor_vote,
+    create_key_factors,
+    calculate_freshness_driver,
+)
 from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
@@ -13,6 +18,7 @@ from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import factory_forecast
 from tests.unit.test_users.factories import factory_user
+from tests.unit.utils import datetime_aware
 
 
 @pytest.fixture()
@@ -186,9 +192,9 @@ def test_create_key_factors__limit_validation(user1, user2, post):
     create_key_factors(
         c1,
         [
-            {"driver": {"text": "1"}},
-            {"driver": {"text": "2"}},
-            {"driver": {"text": "3"}},
+            {"driver": {"text": "1", "impact_direction": -1}},
+            {"driver": {"text": "2", "impact_direction": 1}},
+            {"driver": {"text": "3", "impact_direction": -1}},
         ],
     )
 
@@ -199,25 +205,76 @@ def test_create_key_factors__limit_validation(user1, user2, post):
         create_key_factors(
             c1,
             [
-                {"driver": {"text": "4"}},
-                {"driver": {"text": "5"}},
+                {"driver": {"text": "4", "impact_direction": 1}},
+                {"driver": {"text": "5", "impact_direction": -1}},
             ],
         )
 
     create_key_factors(
         c2,
         [
-            {"driver": {"text": "2.1"}},
-            {"driver": {"text": "2.2"}},
-            {"driver": {"text": "2.3"}},
+            {"driver": {"text": "2.1", "impact_direction": 1}},
+            {"driver": {"text": "2.2", "impact_direction": -1}},
+            {"driver": {"text": "2.3", "impact_direction": 1}},
         ],
     )
     assert c2.key_factors.count() == 3
 
     # Create too many key-factors for one post
     with pytest.raises(ValidationError):
-        create_key_factors(c2, [{"driver": {"text": "2.4"}}])
+        create_key_factors(c2, [{"driver": {"text": "2.4", "impact_direction": -1}}])
 
     # Check limit does not affect other users
     c3 = factory_comment(author=user2, on_post=post)
-    create_key_factors(c3, [{"driver": {"text": "3.1"}}])
+    create_key_factors(c3, [{"driver": {"text": "3.1", "impact_direction": 1}}])
+
+
+@freeze_time("2025-09-30")
+def test_calculate_freshness_driver(user1, post):
+    # Lifetime: 100 days
+    post.open_time = datetime_aware(2025, 6, 22)
+    post.save()
+
+    kf = factory_key_factor(
+        comment=factory_comment(author=user1, on_post=post),
+        driver=KeyFactorDriver.objects.create(text="Driver"),
+    )
+
+    # 2**(- (now - vote.created_at) / max(question_lifetime / 5, two_weeks))
+
+    # 1d ago
+    # 2 ** (-1 / max(100 / 5, 14)) == 0.967
+    with freeze_time("2025-09-29"):
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=KeyFactorVote.VoteStrength.LOW_STRENGTH,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.STRENGTH,
+        )
+
+    # 1w ago
+    # 2 ** (-7 / max(100 / 5, 14)) == 0.785
+    with freeze_time("2025-09-23"):
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=KeyFactorVote.VoteStrength.HIGH_STRENGTH,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.STRENGTH,
+        )
+
+    # 2w ago
+    # 2 ** (-14 / max(100 / 5, 14)) == 0.616
+    with freeze_time("2025-09-16"):
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=KeyFactorVote.VoteStrength.MEDIUM_STRENGTH,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.STRENGTH,
+        )
+
+    # ((0.967 * 1 + 0.785 * 5 + 0.616 * 2) + 2 * max(0, 3 - (0.967 + 0.785 + 0.616)))
+    # / max((0.967 + 0.785 + 0.616), 3)
+
+    assert calculate_freshness_driver(kf, list(kf.votes.all())) == pytest.approx(
+        2.463, abs=0.001
+    )

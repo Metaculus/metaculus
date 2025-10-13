@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Iterable
 
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 
@@ -17,6 +18,7 @@ from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from users.models import User
+from utils.datetime import timedelta_to_days
 from utils.openai import generate_keyfactors
 
 
@@ -46,14 +48,14 @@ def key_factor_vote(
     return key_factor.votes_score
 
 
-def get_votes_for_key_factors(key_factors: Iterable[KeyFactor]) -> dict[int, list[int]]:
+def get_votes_for_key_factors(
+    key_factors: Iterable[KeyFactor],
+) -> dict[int, list[KeyFactorVote]]:
     """
     Generates map of user votes for a set of KeyFactors
     """
 
-    votes = KeyFactorVote.objects.filter(key_factor__in=key_factors).only(
-        "key_factor_id", "score"
-    )
+    votes = KeyFactorVote.objects.filter(key_factor__in=key_factors)
     votes_map = defaultdict(list)
 
     for vote in votes:
@@ -193,3 +195,58 @@ def delete_key_factor(key_factor: KeyFactor):
     # TODO: should it delete a comment if that comment was automatically created?
 
     key_factor.delete()
+
+
+def get_key_factor_question_lifetime(key_factor: KeyFactor) -> float:
+    post = key_factor.comment.on_post
+    question = key_factor.question
+
+    open_time = post.open_time
+
+    if question:
+        open_time = question.open_time
+
+    if not open_time:
+        return 0.0
+
+    lifetime = timedelta_to_days(timezone.now() - open_time)
+
+    return lifetime if lifetime > 0 else 0.0
+
+
+def calculate_freshness_driver(
+    key_factor: KeyFactor, votes: list[KeyFactorVote]
+) -> float:
+    now = timezone.now()
+    lifetime = get_key_factor_question_lifetime(key_factor)
+
+    weights_sum = 0
+    strengths_sum = 0
+
+    for vote in votes:
+        weight = 2 ** (
+            -timedelta_to_days(now - vote.created_at) / max(lifetime / 5, 14)
+        )
+        weights_sum += weight
+        strengths_sum += vote.score * weight
+
+    return (strengths_sum + 2 * max(3 - weights_sum, 0)) / max(weights_sum, 3)
+
+
+def calculate_freshness(key_factor: KeyFactor, votes: list[KeyFactorVote]) -> float:
+    if key_factor.driver_id:
+        return calculate_freshness_driver(key_factor, votes)
+
+    raise ValidationError("Key Factor does not support freshness calculation")
+
+
+def calculate_key_factors_freshness(
+    key_factors: Iterable[KeyFactor], votes_map: dict[int, list[KeyFactorVote]]
+) -> dict[KeyFactor, float]:
+    """
+    Generates freshness of KeyFactors
+    """
+
+    return {
+        kf: calculate_freshness(kf, votes_map.get(kf.id) or []) for kf in key_factors
+    }

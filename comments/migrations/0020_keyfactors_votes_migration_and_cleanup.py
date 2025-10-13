@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
             model_name="keyfactordriver",
             name="impact_direction",
             field=models.IntegerField(
-                blank=True, choices=[(1, "Increase"), (-1, "Decrease")], null=True
+                blank=False, choices=[(1, "Increase"), (-1, "Decrease")], null=True
             ),
         ),
         migrations.RunPython(votes_migration, reverse_code=migrations.RunPython.noop),
