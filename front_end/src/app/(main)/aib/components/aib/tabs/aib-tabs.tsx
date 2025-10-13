@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 
 import AIBBenchmarkTab from "./benchmark/aib-benchmark-tab";
 import AIBInfoTab from "./info/aib-info-tab";
+import AIBNewsTab from "./news/aib-news-tab";
 
 const AIBTabs: React.FC = () => {
   const t = useTranslations();
@@ -49,7 +50,7 @@ const AIBTabs: React.FC = () => {
       icon: (
         <FontAwesomeIcon className="scale-[1] sm:scale-[1.11]" icon={faBook} />
       ),
-      content: "",
+      content: <AIBNewsTab />,
     },
   ];
 
