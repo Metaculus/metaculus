@@ -59,7 +59,7 @@ def get_votes_for_key_factors(
     votes_map = defaultdict(list)
 
     for vote in votes:
-        votes_map[vote.key_factor_id].append(vote.score)
+        votes_map[vote.key_factor_id].append(vote)
 
     return votes_map
 
