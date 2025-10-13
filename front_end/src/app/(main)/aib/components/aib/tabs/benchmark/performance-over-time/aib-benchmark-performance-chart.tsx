@@ -5,6 +5,7 @@ import {
   VictoryAxis,
   VictoryChart,
   VictoryLabel,
+  VictoryLine,
   VictoryScatter,
   VictoryVoronoiContainer,
 } from "victory";
@@ -51,6 +52,37 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
       clamp: [0, 100],
     });
   }, [points]);
+
+  const trend = useMemo(() => {
+    if (points.length < 2) return null;
+    const xs = points.map((p) =>
+      (p.x instanceof Date ? p.x : new Date(p.x)).getTime()
+    );
+    const ys = points.map((p) => p.y);
+
+    const n = xs.length;
+    const meanX = xs.reduce((a, b) => a + b, 0) / n;
+    const meanY = ys.reduce((a, b) => a + b, 0) / n;
+
+    const num = xs.reduce(
+      (s, x, i) => s + (x - meanX) * ((ys[i] ?? 0) - meanY),
+      0
+    );
+    const den = xs.reduce((s, x) => s + (x - meanX) ** 2, 0) || 1;
+
+    const m = num / den;
+    const b = meanY - m * meanX;
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+
+    const clampY = (v: number) =>
+      Math.max(yMeta.lo - 0.5, Math.min(yMeta.hi + 0.5, v));
+
+    return [
+      { x: new Date(minX), y: clampY(m * minX + b) },
+      { x: new Date(maxX), y: clampY(m * maxX + b) },
+    ];
+  }, [points, yMeta]);
 
   const colorFor = (idxOrArgs: number | CallbackArgs) => {
     const idx =
@@ -135,6 +167,20 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
               grid: { stroke: "transparent" },
             }}
           />
+
+          {trend && (
+            <VictoryLine
+              name="trend"
+              data={trend}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.blue[800]),
+                  strokeWidth: 2,
+                  strokeDasharray: "6,5",
+                },
+              }}
+            />
+          )}
 
           <VictoryScatter
             name="bgPoints"
