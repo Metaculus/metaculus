@@ -81,26 +81,18 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     return [min, max];
   }, [points]);
 
-  const quarterTicks = useMemo<Date[]>(() => {
+  const targetTicks = smUp ? 5 : 3;
+
+  const timeTicks = useMemo<Date[]>(() => {
     const [min, max] = xDomain;
-    const y = min.getFullYear();
-    let m = min.getMonth();
-    m = m - (m % 3);
-    const start = new Date(y, m, 1);
-    const ticks: Date[] = [];
-    for (
-      let d = new Date(start);
-      d <= max;
-      d = new Date(d.getFullYear(), d.getMonth() + 3, 1)
-    ) {
-      ticks.push(d);
-    }
-    const lastTick = ticks[ticks.length - 1];
-    if (ticks.length === 0 || (lastTick && +lastTick < +max)) {
-      ticks.push(new Date(max.getFullYear(), max.getMonth(), 1));
-    }
-    return ticks;
-  }, [xDomain]);
+    return buildTimeTicks(min, max, targetTicks);
+  }, [xDomain, targetTicks]);
+
+  const xDomainAligned = useMemo<[Date, Date]>(() => {
+    const first = timeTicks[0] ?? xDomain[0];
+    const last = timeTicks[timeTicks.length - 1] ?? xDomain[1];
+    return [first, last];
+  }, [timeTicks, xDomain]);
 
   const trend = useMemo(() => {
     if (points.length < 2) return null;
@@ -168,7 +160,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           height={smUp ? 360 : 220}
           theme={chartTheme}
           scale={{ x: "time" }}
-          domain={{ x: xDomain, y: [yMeta.lo - 0.5, yMeta.hi + 0.5] }}
+          domain={{ x: xDomainAligned, y: [yMeta.lo - 0.5, yMeta.hi + 0.5] }}
           domainPadding={{ x: 24 }}
           padding={{ top: 16, bottom: 68, left: smUp ? 50 : 30, right: 40 }}
           containerComponent={
@@ -219,7 +211,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 year: "numeric",
               })
             }
-            tickValues={quarterTicks}
+            tickValues={timeTicks}
             tickLabelComponent={<VictoryLabel dy={16} textAnchor="middle" />}
             style={{
               axis: { stroke: "transparent" },
@@ -367,5 +359,30 @@ const LegendTrend: FC<{ color: string; label: string }> = ({
 const GRIDLINES = 5;
 const NullLabel: React.FC<Record<string, unknown>> = () => null;
 const safeIndex = (i: CallbackArgs["index"]) => (typeof i === "number" ? i : 0);
+function buildTimeTicks(min: Date, max: Date, target: number): Date[] {
+  const monthDiff =
+    (max.getFullYear() - min.getFullYear()) * 12 +
+    (max.getMonth() - min.getMonth());
+  const steps = [1, 2, 3, 4, 6, 12];
+  const step = steps.find((s) => Math.ceil(monthDiff / s) + 1 <= target) ?? 12;
+  const start = new Date(
+    min.getFullYear(),
+    Math.floor(min.getMonth() / step) * step,
+    1
+  );
+
+  const ticks: Date[] = [];
+  for (
+    let d = new Date(start);
+    d <= max;
+    d = new Date(d.getFullYear(), d.getMonth() + step, 1)
+  ) {
+    ticks.push(d);
+  }
+  if (ticks.length === 0 || +(ticks[ticks.length - 1] ?? 0) < +max) {
+    ticks.push(new Date(max.getFullYear(), max.getMonth(), 1));
+  }
+  return ticks;
+}
 
 export default AIBBenchmarkPerformanceChart;
