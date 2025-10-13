@@ -21,9 +21,17 @@ import { getYMeta } from "@/utils/charts/axis";
 
 import { ModelPoint } from "./mapping";
 
-type Props = { data: ModelPoint[]; className?: string };
+type LegendItem =
+  | { label: string; pointIndex: number }
+  | { label: string; trend: true };
 
-const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
+type Props = { data: ModelPoint[]; className?: string; legend?: LegendItem[] };
+
+const AIBBenchmarkPerformanceChart: FC<Props> = ({
+  data,
+  legend,
+  className,
+}) => {
   const { ref: wrapRef, width } = useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -83,6 +91,22 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
       { x: new Date(maxX), y: clampY(m * maxX + b) },
     ];
   }, [points, yMeta]);
+
+  const groupIndexByLabel = useMemo(() => {
+    const m = new Map<string, number>();
+    (legend ?? []).forEach((item) => {
+      if ("pointIndex" in item) m.set(item.label, item.pointIndex);
+    });
+    return m;
+  }, [legend]);
+
+  const colorForName = (name: string) => {
+    const group = String(name).split(" ")[0] ?? name;
+    const idx = groupIndexByLabel.get(group);
+    return colorFor(
+      typeof idx === "number" ? { index: idx } : { index: 0 }
+    ) as string;
+  };
 
   const colorFor = (idxOrArgs: number | CallbackArgs) => {
     const idx =
@@ -198,7 +222,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
             size={5}
             style={{
               data: {
-                fill: (args: CallbackArgs) => colorFor(args),
+                fill: ({ datum }) =>
+                  colorForName((datum as { name: string }).name),
               },
             }}
           />
@@ -222,7 +247,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
             labels={({ datum }) => (datum as { name: string }).name}
             style={{
               labels: {
-                fill: (args: CallbackArgs) => colorFor(args),
+                fill: (args: CallbackArgs) =>
+                  colorForName((args.datum as { name: string })?.name || ""),
                 fontSize: smUp ? 16 : 12,
               },
               data: { opacity: 0 },
@@ -230,9 +256,64 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({ data, className }) => {
           />
         </VictoryChart>
       )}
+
+      {legend?.length ? (
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          {legend.map((item, i) =>
+            "pointIndex" in item ? (
+              <LegendDot
+                key={`legend-dot-${i}`}
+                color={
+                  colorFor({
+                    index: item.pointIndex,
+                  } as unknown as CallbackArgs) as string
+                }
+                label={item.label}
+              />
+            ) : (
+              <LegendTrend
+                key={`legend-trend-${i}`}
+                color={getThemeColor(METAC_COLORS.blue[800])}
+                label={item.label}
+              />
+            )
+          )}
+        </div>
+      ) : null}
     </div>
   );
 };
+
+const LegendDot: FC<{ color: string; label: string }> = ({ color, label }) => (
+  <span className="inline-flex items-center gap-2">
+    <span
+      aria-hidden
+      className="inline-block h-[14px] w-[14px] rounded-full"
+      style={{ background: color }}
+    />
+    <span className="text-lg text-gray-900 dark:text-gray-900-dark">
+      {label}
+    </span>
+  </span>
+);
+
+const LegendTrend: FC<{ color: string; label: string }> = ({
+  color,
+  label,
+}) => (
+  <span className="inline-flex items-center gap-2">
+    <span className="relative inline-block h-[3px] w-5">
+      <span
+        aria-hidden
+        className="absolute left-0 top-1/2 w-full -translate-y-1/2"
+        style={{ borderTop: `2px dashed ${color}` }}
+      />
+    </span>
+    <span className="text-lg text-gray-900 dark:text-gray-900-dark">
+      {label}
+    </span>
+  </span>
+);
 
 const GRIDLINES = 5;
 const NullLabel: React.FC<Record<string, unknown>> = () => null;
