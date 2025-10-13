@@ -339,9 +339,11 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
     )
 
     # Exclude posts that have a single question with a reveal time in the future.
-    qs = qs.exclude(question__cp_reveal_time__gte=timezone.now()).filter(
-        # Group of questions are fine unless they have at least one open question
-        # hence, post is still open
+    qs = qs.exclude(question__cp_reveal_time__gte=timezone.now())
+
+    # Group of questions are fine unless they have at least one open question
+    # hence, post is still open
+    qs = qs.filter(
         Q(group_of_questions__isnull=True)
         | (
             (
