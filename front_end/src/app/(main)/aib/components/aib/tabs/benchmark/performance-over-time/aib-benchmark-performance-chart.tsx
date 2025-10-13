@@ -9,7 +9,7 @@ import {
   VictoryScatter,
   VictoryVoronoiContainer,
 } from "victory";
-import type { CallbackArgs, VictoryLabelProps } from "victory-core";
+import type { CallbackArgs } from "victory-core";
 
 import EdgeAwareLabel from "@/components/charts/edge_aware_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -50,6 +50,16 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
       })),
     [data]
   );
+  const orgOf = (name: string) => String(name).split(" ")[0] ?? name;
+  const topIndexByOrg = useMemo(() => {
+    const best = new Map<string, { i: number; y: number }>();
+    for (const p of points) {
+      const org = orgOf(p.name);
+      const prev = best.get(org);
+      if (!prev || p.y > prev.y) best.set(org, { i: p.i, y: p.y });
+    }
+    return new Map(Array.from(best.entries()).map(([org, v]) => [org, v.i]));
+  }, [points]);
 
   const yMeta = useMemo(() => {
     const vals = points.map((p) => p.y);
@@ -60,6 +70,37 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
       clamp: [0, 100],
     });
   }, [points]);
+
+  const xDomain = useMemo<[Date, Date]>(() => {
+    if (points.length === 0) return [new Date(), new Date()];
+    const xs = points.map((p) =>
+      (p.x instanceof Date ? p.x : new Date(p.x)).getTime()
+    );
+    const min = new Date(Math.min(...xs));
+    const max = new Date(Math.max(...xs));
+    return [min, max];
+  }, [points]);
+
+  const quarterTicks = useMemo<Date[]>(() => {
+    const [min, max] = xDomain;
+    const y = min.getFullYear();
+    let m = min.getMonth();
+    m = m - (m % 3);
+    const start = new Date(y, m, 1);
+    const ticks: Date[] = [];
+    for (
+      let d = new Date(start);
+      d <= max;
+      d = new Date(d.getFullYear(), d.getMonth() + 3, 1)
+    ) {
+      ticks.push(d);
+    }
+    const lastTick = ticks[ticks.length - 1];
+    if (ticks.length === 0 || (lastTick && +lastTick < +max)) {
+      ticks.push(new Date(max.getFullYear(), max.getMonth(), 1));
+    }
+    return ticks;
+  }, [xDomain]);
 
   const trend = useMemo(() => {
     if (points.length < 2) return null;
@@ -127,9 +168,9 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           height={smUp ? 360 : 220}
           theme={chartTheme}
           scale={{ x: "time" }}
-          domain={{ y: [yMeta.lo - 0.5, yMeta.hi + 0.5] }}
+          domain={{ x: xDomain, y: [yMeta.lo - 0.5, yMeta.hi + 0.5] }}
           domainPadding={{ x: 24 }}
-          padding={{ top: 16, bottom: 68, left: 50, right: 0 }}
+          padding={{ top: 16, bottom: 68, left: smUp ? 50 : 30, right: 40 }}
           containerComponent={
             <VictoryVoronoiContainer
               labels={() => " "}
@@ -143,9 +184,11 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           <VictoryAxis
             dependentAxis
             label="Score"
-            axisLabelComponent={<VictoryLabel angle={-90} dx={-10} dy={-10} />}
+            axisLabelComponent={
+              <VictoryLabel angle={-90} dx={-10} dy={smUp ? -10 : 10} />
+            }
             tickValues={yMeta.ticks}
-            tickFormat={(d: number) => Math.round(d)}
+            tickFormat={smUp ? (d: number) => Math.round(d) : () => ""}
             style={{
               grid: {
                 stroke: getThemeColor(METAC_COLORS.gray[400]),
@@ -161,7 +204,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               },
               axisLabel: {
                 fill: getThemeColor(METAC_COLORS.gray[700]),
-                fontSize: smUp ? 16 : 12,
+                fontSize: 16,
                 fontWeight: 400,
               },
             }}
@@ -176,17 +219,18 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 year: "numeric",
               })
             }
-            tickLabelComponent={<DateTick />}
+            tickValues={quarterTicks}
+            tickLabelComponent={<VictoryLabel dy={16} textAnchor="middle" />}
             style={{
               axis: { stroke: "transparent" },
               ticks: { stroke: "transparent" },
               tickLabels: {
                 fill: getThemeColor(METAC_COLORS.gray[500]),
-                fontSize: smUp ? 16 : 12,
+                fontSize: smUp ? 16 : 10,
               },
               axisLabel: {
                 fill: getThemeColor(METAC_COLORS.gray[700]),
-                fontSize: smUp ? 16 : 12,
+                fontSize: 16,
               },
               grid: { stroke: "transparent" },
             }}
@@ -244,7 +288,12 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             x="x"
             y="y"
             size={6}
-            labels={({ datum }) => (datum as { name: string }).name}
+            labels={({ datum }) => {
+              const { name, i } = datum as { name: string; i: number };
+              if (smUp) return name;
+              const topIndex = topIndexByOrg.get(orgOf(name));
+              return topIndex === i ? name : "";
+            }}
             style={{
               labels: {
                 fill: (args: CallbackArgs) =>
@@ -258,7 +307,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
       )}
 
       {legend?.length ? (
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-[14px] gap-y-2 antialiased sm:gap-x-8 sm:gap-y-3">
           {legend.map((item, i) =>
             "pointIndex" in item ? (
               <LegendDot
@@ -285,13 +334,13 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 };
 
 const LegendDot: FC<{ color: string; label: string }> = ({ color, label }) => (
-  <span className="inline-flex items-center gap-2">
+  <span className="inline-flex items-center gap-1.5">
     <span
       aria-hidden
       className="inline-block h-[14px] w-[14px] rounded-full"
       style={{ background: color }}
     />
-    <span className="text-lg text-gray-900 dark:text-gray-900-dark">
+    <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
       {label}
     </span>
   </span>
@@ -301,7 +350,7 @@ const LegendTrend: FC<{ color: string; label: string }> = ({
   color,
   label,
 }) => (
-  <span className="inline-flex items-center gap-2">
+  <span className="inline-flex items-center gap-1.5">
     <span className="relative inline-block h-[3px] w-5">
       <span
         aria-hidden
@@ -309,7 +358,7 @@ const LegendTrend: FC<{ color: string; label: string }> = ({
         style={{ borderTop: `2px dashed ${color}` }}
       />
     </span>
-    <span className="text-lg text-gray-900 dark:text-gray-900-dark">
+    <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
       {label}
     </span>
   </span>
@@ -318,15 +367,5 @@ const LegendTrend: FC<{ color: string; label: string }> = ({
 const GRIDLINES = 5;
 const NullLabel: React.FC<Record<string, unknown>> = () => null;
 const safeIndex = (i: CallbackArgs["index"]) => (typeof i === "number" ? i : 0);
-
-const DateTick: React.FC<
-  VictoryLabelProps & { index?: number; ticks?: unknown[] }
-> = (props) => {
-  const i = props.index ?? 0;
-  const count = props.ticks?.length ?? 0;
-  const dx = i === 0 ? -44 : count > 0 && i === count - 1 ? -44 : -4;
-  const dy = 16;
-  return <VictoryLabel {...props} dx={dx} dy={dy} textAnchor="start" />;
-};
 
 export default AIBBenchmarkPerformanceChart;
