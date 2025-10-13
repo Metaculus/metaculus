@@ -1,3 +1,4 @@
+// AIBBenchmarkForecastingPerformance.tsx
 "use client";
 
 import AIBBenchmarkPerformanceChart from "./aib-benchmark-performance-chart";
@@ -8,9 +9,23 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
   const { leaderboard } = useAIBLeaderboard();
   const models = mapLeaderboardToModelPoints(leaderboard);
 
+  const firstIdxByGroup = new Map<string, number>();
+  models.forEach((m, i) => {
+    const group = String(m.name).split(" ")[0] ?? m.name;
+    if (!firstIdxByGroup.has(group)) firstIdxByGroup.set(group, i);
+  });
+
+  const legend = [
+    ...Array.from(firstIdxByGroup.entries()).map(([label, pointIndex]) => ({
+      label,
+      pointIndex,
+    })),
+    { label: "Linear Trend", trend: true as const },
+  ];
+
   return (
     <div className="mt-8 rounded-[12px] bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
-      <AIBBenchmarkPerformanceChart data={models} />
+      <AIBBenchmarkPerformanceChart data={models} legend={legend} />
     </div>
   );
 };
