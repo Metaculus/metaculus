@@ -13,7 +13,10 @@ from comments.models import (
     KeyFactorVote,
 )
 from comments.serializers.common import serialize_comment_many
-from comments.serializers.key_factors import KeyFactorWriteSerializer
+from comments.serializers.key_factors import (
+    KeyFactorWriteSerializer,
+    serialize_key_factor_votes,
+)
 from comments.services.key_factors import (
     create_key_factors,
     generate_keyfactors_for_comment,
@@ -36,11 +39,13 @@ def key_factor_vote_view(request: Request, pk: int):
         required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
     ).run_validation(request.data.get("vote_type"))
 
-    score = key_factor_vote(
-        key_factor, user=request.user, vote=vote, vote_type=vote_type
-    )
+    key_factor_vote(key_factor, user=request.user, vote=vote, vote_type=vote_type)
 
-    return Response({"score": score})
+    return Response(
+        serialize_key_factor_votes(
+            key_factor, list(key_factor.votes.all()), user_vote=vote
+        )
+    )
 
 
 @api_view(["POST"])

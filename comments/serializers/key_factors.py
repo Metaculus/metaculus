@@ -13,7 +13,9 @@ from users.models import User
 from users.serializers import BaseUserSerializer
 
 
-def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[KeyFactorVote]):
+def serialize_key_factor_votes(
+    key_factor: KeyFactor, vote_scores: list[KeyFactorVote], user_vote: int = None
+):
     pivot_votes = Counter([v.score for v in vote_scores])
 
     return {
@@ -21,7 +23,8 @@ def serialize_key_factor_votes(key_factor: KeyFactor, vote_scores: list[KeyFacto
         "aggregated_data": [
             {"score": score, "count": count} for score, count in pivot_votes.items()
         ],
-        "user_vote": key_factor.user_vote,
+        "user_vote": user_vote,
+        "count": len(vote_scores),
     }
 
 
@@ -35,7 +38,9 @@ def serialize_key_factor(
         "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
         "post_id": key_factor.comment.on_post_id,
-        "vote": serialize_key_factor_votes(key_factor, vote_scores or []),
+        "vote": serialize_key_factor_votes(
+            key_factor, vote_scores or [], user_vote=key_factor.user_vote
+        ),
         "question_id": key_factor.question_id,
         "question_option": key_factor.question_option,
         "freshness": freshness,
