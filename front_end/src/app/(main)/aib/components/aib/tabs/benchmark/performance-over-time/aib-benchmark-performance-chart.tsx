@@ -89,8 +89,10 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   }, [xDomain, targetTicks]);
 
   const xDomainAligned = useMemo<[Date, Date]>(() => {
-    const first = timeTicks[0] ?? xDomain[0];
-    const last = timeTicks[timeTicks.length - 1] ?? xDomain[1];
+    const [dataMin, dataMax] = xDomain;
+    const first = timeTicks[0] ?? dataMin;
+    const lastTick = timeTicks[timeTicks.length - 1] ?? dataMax;
+    const last = lastTick < dataMax ? dataMax : lastTick;
     return [first, last];
   }, [timeTicks, xDomain]);
 
