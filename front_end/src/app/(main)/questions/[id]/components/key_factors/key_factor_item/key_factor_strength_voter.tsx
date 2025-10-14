@@ -36,7 +36,7 @@ const StrengthScale: FC<{ score: number; count: number }> = ({
         <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
           {t("strength")}
         </div>
-        <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+        <div className="text-[10px] uppercase text-blue-700 dark:text-blue-700-dark">
           {t("votesWithCount", { count })}
         </div>
       </div>
