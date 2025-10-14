@@ -219,7 +219,7 @@ class KeyFactorDriver(TimeStampedModel, TranslatedModel):
 
 class KeyFactor(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
-    votes_score = models.IntegerField(default=0, db_index=True, editable=False)
+    votes_score = models.FloatField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
 
     # If KeyFactor is specifically linked to the subquestion

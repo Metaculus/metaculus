@@ -97,6 +97,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
+            model_name="keyfactor",
+            name="votes_score",
+            field=models.FloatField(db_index=True, default=0, editable=False),
+        ),
+        migrations.AlterField(
             model_name="keyfactordriver",
             name="impact_direction",
             field=models.IntegerField(
