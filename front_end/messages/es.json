@@ -1535,5 +1535,7 @@
   "useAccountSettingDescription": "basado en el valor predeterminado de tu cuenta del { userForecastExpirationPercent }% de la duración total de la pregunta (con un mínimo de 1 mes). Puedes cambiar esto en tus <settingsLink>configuración</settingsLink>",
   "votesWithCount": "{count} {count, plural, =0 {voto} =1 {voto} other {votos} }",
   "strength": "Fuerza",
+  "increasesUncertainty": "Aumenta la Incertidumbre",
+  "impact": "Impacto",
   "othersCount": "Otros ({count})"
 }
