@@ -13,6 +13,7 @@ from posts.services.search import (
     posts_full_text_search,
 )
 from projects.models import Project
+from questions.models import Question
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -319,6 +320,8 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
     https://github.com/Metaculus/metaculus/issues/3377
     """
 
+    now = timezone.now()
+
     allowed_projects = list(
         Project.objects.filter(
             type=Project.ProjectTypes.NEWS_CATEGORY,
@@ -339,17 +342,18 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
     )
 
     # Exclude posts that have a single question with a reveal time in the future.
-    qs = qs.exclude(question__cp_reveal_time__gte=timezone.now())
+    qs = qs.exclude(question__cp_reveal_time__gte=now)
 
-    # Group of questions are fine unless they have at least one open question
-    # hence, post is still open
+    # We should keep groups where at least one subquestion is open and has its CP revealed.
     qs = qs.filter(
         Q(group_of_questions__isnull=True)
-        | (
-            (
+        | Exists(
+            Question.objects.filter(
+                Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
                 Q(actual_close_time__isnull=True)
-                | Q(actual_close_time__gte=timezone.now())
-            )
+                | Q(actual_close_time__gte=timezone.now()),
+                Q(cp_reveal_time__lt=now),
+            ).filter(group_id=OuterRef("group_of_questions__id"))
         )
     )
 
