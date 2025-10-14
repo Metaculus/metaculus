@@ -6,7 +6,6 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import {
   KeyFactorVoteAggregate,
   KeyFactorVoteTypes,
@@ -72,7 +71,6 @@ const KeyFactorStrengthVoter: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { setCurrentModal } = useModal();
   const { setKeyFactorVote } = useCommentsFeed();
 
   const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
@@ -80,10 +78,6 @@ const KeyFactorStrengthVoter: FC<Props> = ({
 
   const submitVote = async (newValue: number | null) => {
     if (isSubmitting) return;
-    if (!user) {
-      setCurrentModal({ type: "signin" });
-      return;
-    }
     setIsSubmitting(true);
     try {
       const response = await voteKeyFactor({
@@ -130,27 +124,29 @@ const KeyFactorStrengthVoter: FC<Props> = ({
         score={aggregate?.score ?? 0}
         count={aggregate?.count ?? 0}
       />
-      <div className="flex flex-col gap-1.5">
-        <div className="w-full text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-          {t("vote")}
+      {user && (
+        <div className="flex flex-col gap-1.5">
+          <div className="w-full text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+            {t("vote")}
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-2">
+            {voteOptions.map(({ value, label }) => (
+              <Button
+                key={value}
+                variant={aggregate.user_vote === value ? "primary" : "tertiary"}
+                size="xs"
+                className={cn("rounded-[4px] px-2 py-1.5 font-medium", {
+                  "border-blue-400 text-blue-800 dark:border-blue-400-dark dark:text-blue-800-dark":
+                    aggregate.user_vote !== value,
+                })}
+                onClick={() => handleSelect(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2">
-          {voteOptions.map(({ value, label }) => (
-            <Button
-              key={value}
-              variant={aggregate.user_vote === value ? "primary" : "tertiary"}
-              size="xs"
-              className={cn("rounded-[4px] px-2 py-1.5 font-medium", {
-                "border-blue-400 text-blue-800 dark:border-blue-400-dark dark:text-blue-800-dark":
-                  aggregate.user_vote !== value,
-              })}
-              onClick={() => handleSelect(value)}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
