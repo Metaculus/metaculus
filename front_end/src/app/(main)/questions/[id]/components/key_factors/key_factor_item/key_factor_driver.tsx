@@ -1,9 +1,11 @@
 "use client";
+import { isNil } from "lodash";
 import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
+import KeyFactorDirectionImpactContainer from "./key_factor_direction_impact";
 import KeyFactorStrengthVoter from "./key_factor_strength_voter";
 import KeyFactorText from "./key_factor_text";
 
@@ -34,7 +36,18 @@ const KeyFactorDriver: FC<Props> = ({
         className="text-base leading-5"
       />
 
-      <KeyFactorStrengthVoter keyFactorId={keyFactor.id} vote={keyFactor.vote} />
+      {!isNil(keyFactor.driver.impact_direction) && (
+        <KeyFactorDirectionImpactContainer
+          impact={keyFactor.driver.impact_direction}
+        />
+      )}
+
+      <hr className="my-0 opacity-20" />
+
+      <KeyFactorStrengthVoter
+        keyFactorId={keyFactor.id}
+        vote={keyFactor.vote}
+      />
     </div>
   );
 };

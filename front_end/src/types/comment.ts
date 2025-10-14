@@ -91,8 +91,9 @@ export type KeyFactorVote = {
 };
 
 export enum ImpactDirection {
-  Increase = "increase",
-  Decrease = "decrease",
+  Increase = 1,
+  Decrease = -1,
+  IncreaseUncertainty = 0,
 }
 
 export type Driver = {
