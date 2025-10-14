@@ -7,7 +7,11 @@ import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import { KeyFactorVoteAggregate, KeyFactorVoteTypes } from "@/types/comment";
+import {
+  KeyFactorVoteAggregate,
+  KeyFactorVoteTypes,
+  StrengthValues,
+} from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
@@ -114,10 +118,10 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   };
 
   const voteOptions = [
-    { value: 0, label: t("noImpact") },
-    { value: 1, label: t("low") },
-    { value: 2, label: t("medium") },
-    { value: 5, label: t("high") },
+    { value: StrengthValues.NO_IMPACT, label: t("noImpact") },
+    { value: StrengthValues.LOW, label: t("lowStrength") },
+    { value: StrengthValues.MEDIUM, label: t("mediumStrength") },
+    { value: StrengthValues.HIGH, label: t("highStrength") },
   ];
 
   return (
