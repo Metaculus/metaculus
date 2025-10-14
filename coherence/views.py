@@ -12,11 +12,14 @@ from coherence.serializers import (
     serialize_coherence_link,
     serialize_coherence_link_many,
     serialize_aggregate_coherence_link_many,
+    NeedsUpdateQuerySerializer,
 )
 from coherence.services import create_coherence_link
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
+from questions.serializers.common import serialize_question
+from questions.services import get_user_last_forecasts_map
 
 
 @api_view(["POST"])
@@ -88,3 +91,36 @@ def delete_link_api_view(request, pk):
 
     link.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def get_questions_requiring_update(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    user = request.user
+
+    serializer = NeedsUpdateQuerySerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    date = serializer.validated_data["date"]
+
+    links = CoherenceLink.objects.filter(Q(question1=question), user=user)
+    questions = [link.question2 for link in links]
+
+    # In order to avoid making a separate query
+    questions.append(question)
+    last_forecast_map = get_user_last_forecasts_map(questions, user=user)
+    question_last_forecast = last_forecast_map.get(question, None)
+
+    questions_to_update = []
+    if question_last_forecast:
+        question_date = question_last_forecast.start_time
+        if date < question_date:
+            for current_question, last_forecast in last_forecast_map.items():
+                # Don't compare question to itself
+                if current_question.id == question.id:
+                    continue
+
+                if last_forecast.start_time < question_date:
+                    questions_to_update.append(current_question)
+
+    serialized_questions = [serialize_question(q) for q in questions_to_update]
+    return Response({"questions": serialized_questions})
