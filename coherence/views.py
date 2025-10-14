@@ -100,7 +100,7 @@ def get_questions_requiring_update(request, pk):
 
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    date = serializer.validated_data["date"]
+    date = serializer.validated_data["datetime"]
 
     links = CoherenceLink.objects.filter(Q(question1=question), user=user)
     questions = [link.question2 for link in links]

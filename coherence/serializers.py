@@ -45,7 +45,7 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
 
 
 class NeedsUpdateQuerySerializer(serializers.Serializer):
-    date = serializers.DateTimeField()
+    datetime = serializers.DateTimeField()
 
 
 def serialize_coherence_link(
