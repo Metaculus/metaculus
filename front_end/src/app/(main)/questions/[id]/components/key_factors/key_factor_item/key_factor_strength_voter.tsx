@@ -1,10 +1,15 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import React, {
+  ButtonHTMLAttributes,
+  FC,
+  PropsWithChildren,
+  useState,
+} from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
-import Button from "@/components/ui/button";
+// Local headless button for voter
 import { useAuth } from "@/contexts/auth_context";
 import {
   KeyFactorVoteAggregate,
@@ -83,7 +88,7 @@ const KeyFactorStrengthVoter: FC<Props> = ({
       const response = await voteKeyFactor({
         id: keyFactorId,
         vote: newValue,
-        user: user.id,
+        user: user?.id ?? 0,
         vote_type: KeyFactorVoteTypes.STRENGTH,
       });
 
@@ -131,18 +136,13 @@ const KeyFactorStrengthVoter: FC<Props> = ({
           </div>
           <div className="flex w-full flex-wrap items-center gap-2">
             {voteOptions.map(({ value, label }) => (
-              <Button
+              <KFButton
                 key={value}
-                variant={aggregate.user_vote === value ? "primary" : "tertiary"}
-                size="xs"
-                className={cn("rounded-[4px] px-2 py-1.5 font-medium", {
-                  "border-blue-400 text-blue-800 dark:border-blue-400-dark dark:text-blue-800-dark":
-                    aggregate.user_vote !== value,
-                })}
+                selected={aggregate.user_vote === value}
                 onClick={() => handleSelect(value)}
               >
                 {label}
-              </Button>
+              </KFButton>
             ))}
           </div>
         </div>
@@ -152,3 +152,30 @@ const KeyFactorStrengthVoter: FC<Props> = ({
 };
 
 export default KeyFactorStrengthVoter;
+
+type KFButtonProps = PropsWithChildren<
+  ButtonHTMLAttributes<HTMLButtonElement> & { selected?: boolean }
+>;
+
+const KFButton: FC<KFButtonProps> = ({
+  selected,
+  className,
+  children,
+  ...rest
+}) => {
+  return (
+    <button
+      type="button"
+      {...rest}
+      className={cn(
+        "rounded-[4px] px-2 py-1.5 text-xs font-medium leading-none outline-none transition-colors",
+        selected
+          ? "border border-transparent bg-olive-800 text-gray-0 dark:bg-olive-800-dark dark:text-gray-0-dark"
+          : "border border-blue-400 text-blue-800 hover:bg-blue-100/50 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark/20",
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+};
