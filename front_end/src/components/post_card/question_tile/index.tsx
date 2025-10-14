@@ -13,8 +13,8 @@ import {
   QuestionWithForecasts,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
-import { formatDate } from "@/utils/formatters/date";
 import { isForecastActive } from "@/utils/forecasts/helpers";
+import { formatDate } from "@/utils/formatters/date";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
