@@ -9,7 +9,6 @@ import React, {
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
-// Local headless button for voter
 import { useAuth } from "@/contexts/auth_context";
 import {
   KeyFactorVoteAggregate,
@@ -19,6 +18,8 @@ import {
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+
+import { SegmentedProgressBar } from "./segmented_progress_bar";
 
 type Props = {
   keyFactorId: number;
@@ -33,7 +34,7 @@ const StrengthScale: FC<{ score: number; count: number }> = ({
 }) => {
   const t = useTranslations();
 
-  const clamped = Math.max(0, Math.min(5, score ?? 0));
+  const clamped = Math.max(0, Math.min(5, score ?? 0)) / 5;
   return (
     <div className="flex w-full flex-col gap-1.5">
       <div className="flex w-full justify-between">
@@ -45,24 +46,7 @@ const StrengthScale: FC<{ score: number; count: number }> = ({
         </div>
       </div>
       <div className="flex w-full gap-[1px]">
-        {Array.from({ length: 5 }).map((_, i) => {
-          const segmentFill = Math.max(0, Math.min(1, clamped - i));
-          const widthPct = Math.round(segmentFill * 100);
-
-          return (
-            <div
-              key={i}
-              className="relative h-2.5 flex-1 rounded-[1px] bg-blue-400 dark:bg-blue-400-dark"
-            >
-              {widthPct > 0 && (
-                <div
-                  className="absolute inset-y-0 left-0 rounded-[1px] bg-olive-600 dark:bg-olive-600-dark"
-                  style={{ width: `${widthPct}%` }}
-                />
-              )}
-            </div>
-          );
-        })}
+        <SegmentedProgressBar progress={clamped} segments={5} />
       </div>
     </div>
   );
