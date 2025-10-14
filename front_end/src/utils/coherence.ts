@@ -29,5 +29,5 @@ export function convertStrengthNumberToLabel(
     4: Strengths.High,
     5: Strengths.High,
   };
-  return strengthMap[strength] ?? null;
+  return strengthMap[Math.round(strength)] ?? null;
 }
