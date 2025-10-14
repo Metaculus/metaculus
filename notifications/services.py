@@ -288,6 +288,7 @@ class NotificationTypeSimilarPostsMixin:
     @classmethod
     def get_similar_posts(cls, post_ids: list[int]):
         from posts.services.feed import get_similar_posts_for_posts
+        from questions.services import get_aggregated_forecasts_for_questions
 
         similar_posts = []
         posts = Post.objects.filter(pk__in=post_ids).only("id", "title")
@@ -299,15 +300,49 @@ class NotificationTypeSimilarPostsMixin:
             similar_post_ids = []
 
         if posts:
-            similar_posts = [
-                {
+            similar_posts = []
+            posts_with_questions = (
+                Post.objects.filter(pk__in=similar_post_ids)
+                .select_related("question")
+                .only(
+                    "id", "title", "forecasters_count", "question__id", "question__type"
+                )
+            )
+
+            # Collect questions for binary posts to fetch aggregations in bulk
+            binary_questions = []
+            for p in posts_with_questions:
+                if p.question and p.question.type == Question.QuestionType.BINARY:
+                    binary_questions.append(p.question)
+
+            # Fetch aggregated forecasts for all binary questions at once
+            forecasts_by_question = {}
+            if binary_questions:
+                forecasts_by_question = get_aggregated_forecasts_for_questions(
+                    binary_questions
+                )
+
+            # Build post data with probabilities from the fetched forecasts
+            for p in posts_with_questions:
+                post_data = {
                     "id": p.pk,
                     "title": p.title,
+                    "nr_forecasters": p.forecasters_count,
                 }
-                for p in Post.objects.filter(pk__in=similar_post_ids).only(
-                    "id", "title"
-                )
-            ]
+
+                # Add probability for binary questions
+                if p.question and p.question.type == Question.QuestionType.BINARY:
+                    forecasts = forecasts_by_question.get(p.question, [])
+                    if forecasts:
+                        # Get the last forecast (list is sorted by start_time)
+                        latest_forecast = forecasts[-1]
+                        if latest_forecast.forecast_values:
+                            probability = round(
+                                latest_forecast.forecast_values[1] * 100
+                            )
+                            post_data["probability"] = probability
+
+                similar_posts.append(post_data)
 
         return similar_posts
 
@@ -338,7 +373,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
         Generates subject for group emails
         """
 
-        return _("Questions have new comments")
+        return _("Questions Have New Comments")
 
     @classmethod
     def _generate_previews(cls, recipient_username, new_comment_ids: list[int]):
@@ -474,7 +509,7 @@ class NotificationPostStatusChange(
         Generates subject for group emails
         """
 
-        return _("Questions have changed status")
+        return _("Questions Have Changed Status")
 
     @classmethod
     def _group_post_subquestions(cls, params: list[ParamsType]):
@@ -666,7 +701,7 @@ class NotificationPredictedQuestionResolved(
         Generates subject for group emails
         """
 
-        return _("Predicted questions have been resolved")
+        return _("Predicted Questions Have Been Resolved")
 
 
 NOTIFICATION_TYPE_REGISTRY = [
@@ -705,6 +740,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
         "emails/comment_mention.html",
         context={
             "recipient": recipient,
+            "email_subject_display": _("New comment mention"),
             "params": {
                 "post": NotificationPostParams.from_post(comment.on_post),
                 "author_id": comment.author_id,
@@ -736,6 +772,7 @@ def send_comment_report_notification_to_staff(
         ),
         "emails/comment_report.html",
         context={
+            "email_subject_display": _("Comment report"),
             "params": {
                 "post_title": comment.on_post.title,
                 "comment": comment,
@@ -766,6 +803,7 @@ def send_forecast_autowidrawal_notification(
         template_name="emails/forecast_auto_withdraw.html",
         context={
             "recipient": user,
+            "email_subject_display": _("Auto-withdrawal notification"),
             "posts_data": posts_data,
             "account_settings_url": account_settings_url,
             "number_of_posts": len(posts_data),
@@ -818,6 +856,7 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
         template_name="emails/subscribed_news_notebook_published.html",
         context={
             "recipient": user,
+            "email_subject_display": _("Metaculus News"),
             "params": {
                 "post": NotificationPostParams.from_post(post),
                 "preview_text": preview_text,
