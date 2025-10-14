@@ -30,6 +30,14 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: "Install Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: front_end/package-lock.json
+      - name: "Install node_modules and build the frontend"
+        run: cd front_end && npm ci
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -47,4 +55,3 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
           # claude_args: '--allowed-tools Bash(gh pr:*)'
-
