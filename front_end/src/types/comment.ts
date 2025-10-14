@@ -63,21 +63,13 @@ export type ForecastType = {
 };
 
 export enum KeyFactorVoteTypes {
-  // TODO: Deprecate legacy variants kept for backward-compatibility of old data
-  UP_DOWN = "a_updown",
-  TWO_STEP = "b_2step",
-  LIKERT = "c_likert",
-  // New unified strength voting
   STRENGTH = "strength",
 }
 
-export enum ImpactValues {
-  LOW = 2,
-  MEDIUM = 3,
+export enum StrengthValues {
+  LOW = 1,
+  MEDIUM = 2,
   HIGH = 5,
-  LOW_NEGATIVE = -2,
-  MEDIUM_NEGATIVE = -3,
-  HIGH_NEGATIVE = -5,
   NO_IMPACT = 0,
 }
 
@@ -128,8 +120,6 @@ export type KeyFactorVoteAggregate = {
   // Total number of votes
   count: number;
 };
-
-export type DraftKind = "create" | "edit";
 
 type DraftBase = {
   markdown: string;
