@@ -43,8 +43,8 @@ export const SERIES_META = {
 export type SeriesKey = keyof typeof SERIES_META;
 
 export const points: BenchmarkPoint[] = [
-  { x: "2024 Q3", baseline: 12.9, pros: 14.0, bots: 10.8 },
-  { x: "2024 Q4", baseline: 13.2, pros: 18.9, bots: 20.0 },
+  { x: "2024 Q3", baseline: 12.9, pros: 8.33, bots: 0.97 },
+  { x: "2024 Q4", baseline: 13.2, pros: 16.13, bots: 8.35 },
   { x: "2025 Q1", baseline: 13.5, pros: 27.299, bots: 9.636 },
   { x: "2025 Q2", baseline: 13.6, pros: 38.974, bots: 19.561 },
 ];

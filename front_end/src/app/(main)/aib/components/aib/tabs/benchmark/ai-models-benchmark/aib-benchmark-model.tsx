@@ -1,6 +1,7 @@
 "use client";
 
 import Image, { StaticImageData } from "next/image";
+import { useTranslations } from "next-intl";
 import React from "react";
 
 import openAiIcon from "@/app/(main)/aib/assets/ai-models/gpt.png";
@@ -17,6 +18,7 @@ type Props = {
 };
 
 const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
+  const t = useTranslations();
   const score = Math.round(model.score * 100) / 100;
   const forecasts = Math.round(model.forecasts * 1000) / 1000;
 
@@ -36,7 +38,7 @@ const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
             {model.name}
           </p>
           <p className="font-base m-0 hidden text-sm text-gray-500 dark:text-gray-500-dark sm:block">
-            {forecasts} forecasts
+            {t("aibForecasts", { count: forecasts })}
           </p>
         </div>
       </div>

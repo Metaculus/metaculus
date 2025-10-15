@@ -1,11 +1,13 @@
-// AIBBenchmarkForecastingPerformance.tsx
 "use client";
+
+import { useTranslations } from "next-intl";
 
 import AIBBenchmarkPerformanceChart from "./aib-benchmark-performance-chart";
 import { mapLeaderboardToModelPoints } from "./mapping";
 import { useAIBLeaderboard } from "../../../leaderboard/aib-leaderboard-provider";
 
 const AIBBenchmarkForecastingPerformance: React.FC = () => {
+  const t = useTranslations();
   const { leaderboard } = useAIBLeaderboard();
   const models = mapLeaderboardToModelPoints(leaderboard);
 
@@ -20,7 +22,7 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
       label,
       pointIndex,
     })),
-    { label: "Linear Trend", trend: true as const },
+    { label: t("aibLinearTrend"), trend: true as const },
   ];
 
   return (
