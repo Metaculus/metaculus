@@ -107,4 +107,4 @@ def calculate_votes_strength(scores: list[int]):
     Calculates overall strengths of the KeyFactor
     """
 
-    return (sum(scores) + max(0, 3 - len(scores))) / max(3, len(scores))
+    return (sum(scores) + 2 * max(0, 3 - len(scores))) / max(3, len(scores))
