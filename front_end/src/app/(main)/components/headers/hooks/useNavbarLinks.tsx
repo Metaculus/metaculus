@@ -131,7 +131,7 @@ const useNavbarLinks = ({
             className={cn(
               "flex h-full items-center capitalize",
               buttonConfig.hasEmphasis &&
-                "rounded-full bg-blue-400 dark:bg-blue-500 px-3 py-1 hover:bg-blue-500 dark:hover:bg-blue-600"
+                "rounded-full bg-blue-400 px-3 py-1 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
             )}
           >
             <FontAwesomeIcon size="xs" className="mr-1" icon={faPlus} />
