@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 
 import AIBBenchmarkModel from "./aib-benchmark-model";
@@ -9,6 +10,7 @@ import { getBotMeta } from "../../../leaderboard/bot_meta";
 const MAX_VISIBLE_MODELS = 7;
 
 const AIBBenchmarkModels: React.FC = () => {
+  const t = useTranslations();
   const { leaderboard } = useAIBLeaderboard();
 
   const entries = useMemo(() => {
@@ -36,8 +38,8 @@ const AIBBenchmarkModels: React.FC = () => {
   return (
     <div className="mt-[20px] space-y-2 md:mt-[43px]">
       <p className="m-0 flex justify-between font-normal text-gray-700 antialiased dark:text-gray-700-dark">
-        <span>Model Name</span>
-        <span>Score</span>
+        <span>{t("aibModelsHeaderName")}</span>
+        <span>{t("aibModelsHeaderScore")}</span>
       </p>
 
       {visible.map((entry) => {
@@ -64,8 +66,9 @@ const AIBBenchmarkModels: React.FC = () => {
         <button
           onClick={() => setIsAllShown(true)}
           className="w-full rounded-[4px] bg-blue-700 bg-opacity-10 p-[10px] text-left text-[14px] font-[500] text-blue-700 antialiased dark:bg-blue-700-dark dark:bg-opacity-10 dark:text-blue-700-dark sm:text-[16px]"
+          aria-label={t("aibShowAllAria", { count: entries.length })}
         >
-          Show all ({entries.length})
+          {t("aibShowAll", { count: entries.length })}
         </button>
       )}
     </div>
