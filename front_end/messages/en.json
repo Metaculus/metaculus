@@ -886,6 +886,7 @@
   "commentUnpinned": "Comment unpinned",
   "finePrintDescription": "Optional: Use the fine print for any sort of lawyerly details which don't need to be prominently displayed.",
   "createQuestion": "create question",
+  "submitAQuestion": "Submit a Question",
   "editQuestion": "Save Edits",
   "longTitle": "long title",
   "longTitleExplanation": "A single sentence that encapsulates what you're trying to predict.  Ends in a question mark.",
