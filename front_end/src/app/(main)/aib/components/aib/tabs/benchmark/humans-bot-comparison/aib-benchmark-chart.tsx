@@ -8,6 +8,7 @@ import {
   shift,
   useFloating,
 } from "@floating-ui/react";
+import { useTranslations } from "next-intl";
 import {
   FC,
   useEffect,
@@ -44,6 +45,7 @@ import {
 type Props = { data: Row[]; className?: string };
 
 const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
+  const t = useTranslations();
   const { ref: wrapRef, width } = useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -123,10 +125,23 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
     data: { stroke: colorOf(series), strokeWidth: 1.5 },
   });
 
+  const seriesSpecs = useMemo(
+    () => [
+      {
+        key: "baseline" as const,
+        name: "baseline",
+        label: t("aibLegendBaseline"),
+      },
+      { key: "pros" as const, name: "pros", label: t("aibLegendPros") },
+      { key: "bots" as const, name: "bots", label: t("aibLegendBots") },
+    ],
+    [t]
+  );
+
   return (
     <div ref={wrapRef} className={className ?? "relative w-full"}>
       <div className="mb-4 flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-2 antialiased sm:mb-9 sm:gap-6">
-        {SERIES_SPECS.map(({ key, label }) => (
+        {seriesSpecs.map(({ key, label }) => (
           <div key={key} className="inline-flex items-center gap-2">
             <span
               aria-hidden
@@ -153,7 +168,7 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
           containerComponent={
             <VictoryVoronoiContainer
               voronoiDimension="x"
-              voronoiBlacklist={SERIES_SPECS.map((s) => `${s.name}-line`)}
+              voronoiBlacklist={seriesSpecs.map((s) => `${s.name}-line`)}
               activateData
               labels={() => " "}
               labelComponent={
@@ -205,6 +220,7 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
               }}
             />
           )}
+
           <VictoryAxis
             dependentAxis
             tickValues={ticks}
@@ -235,11 +251,12 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
               grid: { stroke: "transparent" },
             }}
           />
+
           <VictoryLine
             name="baselineLine"
             data={data.map((d) => ({ x: d.x, y: d.baseline }))}
             style={lineStyle("baseline")}
-          />{" "}
+          />
           <VictoryScatter
             data={data.map((d) => ({ x: d.x, y: d.baseline }))}
             symbol="square"
@@ -251,18 +268,19 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
                 opacity: ({ datum }) => (datum.x === activeX ? 0.18 : 0),
               },
             }}
-          />{" "}
+          />
           <VictoryScatter
             data={data.map((d) => ({ x: d.x, y: d.baseline }))}
             symbol="square"
             size={4}
             style={{ data: { fill: colorOf("baseline") } }}
-          />{" "}
+          />
+
           <VictoryLine
             name="prosLine"
             data={data.map((d) => ({ x: d.x, y: d.pros }))}
             style={lineStyle("pros")}
-          />{" "}
+          />
           <VictoryScatter
             data={data.map((d) => ({ x: d.x, y: d.pros }))}
             symbol="square"
@@ -274,18 +292,19 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
                 opacity: ({ datum }) => (datum.x === activeX ? 0.18 : 0),
               },
             }}
-          />{" "}
+          />
           <VictoryScatter
             data={data.map((d) => ({ x: d.x, y: d.pros }))}
             symbol="square"
             size={4}
             style={{ data: { fill: colorOf("pros") } }}
-          />{" "}
+          />
+
           <VictoryLine
             name="botsLine"
             data={data.map((d) => ({ x: d.x, y: d.bots }))}
             style={lineStyle("bots")}
-          />{" "}
+          />
           <VictoryScatter
             data={data.map((d) => ({ x: d.x, y: d.bots }))}
             symbol="square"
@@ -297,7 +316,7 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
                 opacity: ({ datum }) => (datum.x === activeX ? 0.18 : 0),
               },
             }}
-          />{" "}
+          />
           <VictoryScatter
             data={data.map((d) => ({ x: d.x, y: d.bots }))}
             symbol="square"
@@ -324,7 +343,11 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
                 bots: colorOf("bots"),
                 baseline: colorOf("baseline"),
               }}
-              labels={{ baseline: "Baseline" }}
+              labels={{
+                baseline: t("aibLegendBaselineShort"),
+                pros: t("aibLegendPros"),
+                bots: t("aibLegendBots"),
+              }}
             />
           </div>
         </FloatingPortal>
@@ -333,25 +356,8 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
   );
 };
 
-const SERIES_SPECS = [
-  {
-    key: "baseline",
-    name: "baseline",
-    label: "Baseline (Sonnet 3.7)",
-  },
-  {
-    key: "pros",
-    name: "pros",
-    label: "Pro Forecasters",
-  },
-  {
-    key: "bots",
-    name: "bots",
-    label: "Bots",
-  },
-] as const;
-
 const GRIDLINES = 5;
+
 type VirtualElement = {
   getBoundingClientRect: () => DOMRect;
   _rect?: DOMRect;

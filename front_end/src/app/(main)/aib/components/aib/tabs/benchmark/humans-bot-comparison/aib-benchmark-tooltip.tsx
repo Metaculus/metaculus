@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { SERIES_META, type SeriesKey } from "./config";
@@ -28,13 +29,25 @@ const AIBBenchmarkTooltip: FC<Props> = ({
   order,
   labels,
 }) => {
+  const t = useTranslations();
   const displayOrder = order ?? DEFAULT_ORDER;
+
+  const keyToI18n: Record<SeriesKey, string> = {
+    baseline: "aibLegendBaselineShort",
+    pros: "aibLegendPros",
+    bots: "aibLegendBots",
+  };
+
+  const labelFor = (k: SeriesKey) =>
+    labels?.[k] ??
+    t(keyToI18n[k] as Parameters<typeof t>[0]) ??
+    SERIES_META[k].label;
 
   return (
     <div className="pointer-events-none relative w-[245px] space-y-5 rounded-[4px] bg-gray-0 p-4 pt-3 shadow-[0_10px_24px_rgba(16,24,40,0.14),0_2px_8px_rgba(16,24,40,0.06)] dark:bg-gray-0-dark">
       <div className="flex items-center justify-between gap-3 text-sm font-normal text-gray-700 antialiased dark:text-gray-700-dark">
         <span>{quarter}</span>
-        <span>Avg. Score</span>
+        <span>{t("aibAvgScore")}</span>
       </div>
 
       <div className="absolute left-0 right-0 top-5 h-[1px] bg-gray-300 dark:bg-gray-300-dark" />
@@ -43,7 +56,7 @@ const AIBBenchmarkTooltip: FC<Props> = ({
         {displayOrder.map((key) => (
           <Row
             key={key}
-            label={labels?.[key] ?? SERIES_META[key].label}
+            label={labelFor(key)}
             value={row[key]}
             swatch={colors[key]}
           />

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 import {
   VictoryAxis,
@@ -32,6 +33,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   legend,
   className,
 }) => {
+  const t = useTranslations();
   const { ref: wrapRef, width } = useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -177,7 +179,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
         >
           <VictoryAxis
             dependentAxis
-            label="Score"
+            label={t("aibScore")}
             axisLabelComponent={
               <VictoryLabel angle={-90} dx={-10} dy={smUp ? -10 : 10} />
             }
@@ -205,7 +207,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           />
 
           <VictoryAxis
-            label="Model release date"
+            label={t("aibModelReleaseDate")}
             axisLabelComponent={<VictoryLabel dy={28} />}
             tickFormat={(d: Date) =>
               d.toLocaleDateString(undefined, {
