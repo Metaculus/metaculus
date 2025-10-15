@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
@@ -36,6 +37,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function IndividualNotebook(props: Props) {
   const params = await props.params;
+  const postData = await ServerPostsApi.getPost(params.id);
+
+  // Redirect to URL with slug if accessing without slug
+  if (postData && (!params.slug || params.slug.length === 0) && postData.slug) {
+    redirect(`/notebooks/${params.id}/${postData.slug}/`);
+  }
+
   return (
     <IndividualNotebookPage params={{ id: params.id, slug: params.slug }} />
   );
