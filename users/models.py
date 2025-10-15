@@ -212,15 +212,12 @@ class User(TimeStampedModel, AbstractUser):
         for post in posts:
             if post.curation_status != Post.CurationStatus.APPROVED:
                 hard_delete_post(post)
-                return
-            if post.get_questions():
+            elif post.get_questions():
                 # hard delete if no one other than user forecasted
                 if not post.forecasts.exclude(author=self).exists():
                     hard_delete_post(post)
             # Post is either a notebook or a quesiton with others' forecasts
             # nothing required
-
-        self.save()
 
 
 class UserCampaignRegistration(TimeStampedModel):
