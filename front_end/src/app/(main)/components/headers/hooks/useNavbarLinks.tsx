@@ -33,10 +33,7 @@ type MobileMenuItemDefinition = Omit<NavbarLinkDefinition, "href"> & {
 const getCreateButtonConfig = (t: (key: string) => string) => {
   const variant = posthog.getFeatureFlag("create_question_button_type");
 
-  // Default to control variant (A) if no flag is set
-  const buttonType = variant || "experiment_A";
-
-  switch (buttonType) {
+  switch (variant) {
     case "experiment_A":
       // A: '+ Create' (no emphasis)
       return {
