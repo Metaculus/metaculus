@@ -685,7 +685,6 @@ def get_user_forecast_history(
     forecasts: list[Forecast],
     minimize: bool = False,
     cutoff: datetime | None = None,
-    include_future: bool = True,
 ) -> list[ForecastSet]:
     timestep_set: set[datetime] = set()
     for forecast in forecasts:
