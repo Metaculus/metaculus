@@ -1537,5 +1537,6 @@
   "impact": "Impacto",
   "byUsername": "por <link>{username}</link>",
   "driver": "Condutor",
+  "forOption": "para <strong>{option}</strong>",
   "othersCount": "Outros ({count})"
 }

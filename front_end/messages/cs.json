@@ -1539,5 +1539,6 @@
   "impact": "Dopad",
   "byUsername": "od <link>{username}</link>",
   "driver": "Řidič",
+  "forOption": "pro <strong>{option}</strong>",
   "othersCount": "Ostatní ({count})"
 }

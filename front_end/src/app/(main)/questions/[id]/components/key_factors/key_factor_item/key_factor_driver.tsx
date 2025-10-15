@@ -45,6 +45,7 @@ const KeyFactorDriver: FC<Props> = ({
       {!isNil(keyFactor.driver.impact_direction) && (
         <KeyFactorDirectionImpactContainer
           impact={keyFactor.driver.impact_direction}
+          option={keyFactor.question?.label ?? keyFactor.question_option}
         />
       )}
 

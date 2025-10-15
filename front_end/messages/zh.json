@@ -1541,5 +1541,6 @@
   "impact": "影响",
   "byUsername": "由<link>{username}</link>发布",
   "driver": "驾驶员",
+  "forOption": "对于<strong>{option}</strong>",
   "othersCount": "其他（{count}）"
 }

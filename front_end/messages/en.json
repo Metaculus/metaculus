@@ -1272,6 +1272,7 @@
   "thankYouForSubmission": "Thank you for your submission!",
   "byUsername": "by <link>{username}</link>",
   "driver": "Driver",
+  "forOption": "for <strong>{option}</strong>",
   "vote": "Vote",
   "voted": "Voted",
   "votesWithCount": "{count} {count, plural, =0 {vote} =1 {vote} other {votes} }",

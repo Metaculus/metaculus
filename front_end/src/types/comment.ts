@@ -109,6 +109,10 @@ export type KeyFactor = {
   vote: KeyFactorVoteAggregate;
   post_id?: number;
   question_id?: number | null;
+  question?: {
+    id: number;
+    label: string;
+  } | null;
   question_option?: string;
   freshness?: number;
 };

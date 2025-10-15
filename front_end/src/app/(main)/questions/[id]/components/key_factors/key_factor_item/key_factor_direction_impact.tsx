@@ -10,15 +10,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import RichText from "@/components/rich_text";
 import { ImpactDirection } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
 type Props = {
   impact: ImpactDirection;
   className?: string;
+  option?: string;
 };
 
-const KeyFactorDirectionImpact: FC<Props> = ({ impact, className }) => {
+const KeyFactorDirectionImpact: FC<Props> = ({ impact, className, option }) => {
   const t = useTranslations();
 
   const IMPACT_CONFIG = {
@@ -55,12 +57,27 @@ const KeyFactorDirectionImpact: FC<Props> = ({ impact, className }) => {
       )}
     >
       {icon}
-      <span>{t(textKey)}</span>
+      <span>
+        {t(textKey)}
+        {option && (
+          <>
+            &nbsp;
+            <RichText>
+              {(tags) =>
+                t.rich("forOption", {
+                  ...tags,
+                  option,
+                })
+              }
+            </RichText>
+          </>
+        )}
+      </span>
     </div>
   );
 };
 
-const KeyFactorDirectionImpactContainer: FC<Props> = ({ impact }) => {
+const KeyFactorDirectionImpactContainer: FC<Props> = ({ impact, option }) => {
   const t = useTranslations();
 
   return (
@@ -68,7 +85,7 @@ const KeyFactorDirectionImpactContainer: FC<Props> = ({ impact }) => {
       <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
         {t("impact")}
       </div>
-      <KeyFactorDirectionImpact impact={impact} />
+      <KeyFactorDirectionImpact impact={impact} option={option} />
     </div>
   );
 };

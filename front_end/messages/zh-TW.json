@@ -1536,5 +1536,6 @@
   "impact": "影響",
   "byUsername": "由 <link>{username}</link> 提供",
   "driver": "驅動程式",
+  "forOption": "對 <strong>{option}</strong>",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
