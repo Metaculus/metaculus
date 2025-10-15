@@ -147,6 +147,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""Time when the community prediction is revealed.""",
+        db_index=True,
     )
     spot_scoring_time = models.DateTimeField(
         null=True,
