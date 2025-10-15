@@ -103,78 +103,51 @@
         font-size: 14px !important;
         line-height: 20px !important;
       }
+
+      .email-subject div {
+        font-size: 16px !important;
+        line-height: 22px !important;
+      }
+
+      /* Hide non-essential columns on mobile */
+      .hide-mobile {
+        display: none !important;
+      }
     }
 
   </style>
 </head>
 
-<body style="word-spacing:normal;background-color:rgb(239, 244, 244);">
-  <div style="background-color:rgb(239, 244, 244);" lang="und" dir="auto">
-    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
+<body style="word-spacing:normal;background-color:rgb(238, 242, 242);">
+  <div style="background-color:rgb(238, 242, 242);" lang="und" dir="auto">
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#283441" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#283441;background-color:#283441;margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#283441;background-color:#283441;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:10px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:10px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                      <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                           <tbody>
                             <tr>
-                              <td style="width:60px;">
-                                <img alt="Metaculus Logo" src="{% build_frontend_url 'images/metaculus_logo.png' %}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="60" height="auto">
+                              <td style="width:50px;">
+                                <img alt="Metaculus Logo" src="{% build_frontend_url 'images/metaculus_logo_outlined.png' %}" srcset="{% build_frontend_url 'images/metaculus_logo_outlined@2x.png' %} 2x" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="50" height="auto">
                               </td>
                             </tr>
                           </tbody>
                         </table>
                       </td>
                     </tr>
-                  </tbody>
-                </table>
-              </div>
-              <!--[if mso | IE]></td></tr></table><![endif]-->
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="rgb(255, 255, 255)" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-    <div style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);margin:0px auto;max-width:600px;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);width:100%;">
-        <tbody>
-          <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:10px;text-align:center;">
-              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
-              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                  <tbody>
                     <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{recipient.username}},</div>
+                      <td align="center" class="email-subject" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:center;color:#ffffff;">{{ email_subject_display|default:email_subject }}</div>
                       </td>
                     </tr>
-                    <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with count=notifications|length %} There are new comments on these {{ count }} questions: {% endblocktrans %}</div>
-                      </td>
-                    </tr>
-                    <!-- {% for notification in notifications %} -->
-                    <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                            {{ notification.post.post_title }}
-                          </a> - {{ notification.comments_count }}
-                          <ul> {% for comment in notification.comments %} <li>
-                              <span>@{{ comment.author_username }}:</span> “{{ comment.preview_text | safe }}” <a href="{{ comment.url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">(link)</a>
-                            </li> {% endfor %} {% if notification.read_more_count %} <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;"> And {{ notification.read_more_count }} more </a> {% endif %} </ul>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- {% endfor %} -->
                   </tbody>
                 </table>
               </div>
@@ -189,14 +162,161 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:16px;padding-top:10px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>👀 Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;padding-bottom:8px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#161C22;">Hello {{recipient.username}},</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;padding-bottom:4px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#6B7280;">{% blocktrans with count=notifications|length %} There are new comments on these {{ count }} questions: {% endblocktrans %}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+    <!-- {% for notification in notifications %} --><!-- Question Card -->
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="content-block-wrapper-compact-outlook" role="presentation" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div class="content-block-wrapper-compact" style="background: #FFFFFF; background-color: #FFFFFF; margin: 0px auto; max-width: 600px; padding: 0px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: #FFFFFF; background-color: #FFFFFF; width: 100%;" width="100%" bgcolor="#FFFFFF">
+        <tbody>
+          <tr>
+            <td style="direction: ltr; font-size: 0px; padding: 0px 24px; text-align: center; padding-top: 4px; padding-bottom: 4px;" align="center">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:552px;" width="552" bgcolor="#EFF4F4" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="background:#EFF4F4;background-color:#EFF4F4;margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: #EFF4F4; background-color: #EFF4F4; width: 100%;" width="100%" bgcolor="#EFF4F4">
+                  <tbody>
+                    <tr>
+                      <td style="border-left: 1px solid #D7E4F2; border-right: 1px solid #D7E4F2; border-top: 1px solid #D7E4F2; direction: ltr; font-size: 0px; padding: 16px 16px 0px 16px; text-align: center; padding-top: 4px; padding-bottom: 4px;" align="center">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:518px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                            <tbody>
+                              <tr>
+                                <td style="vertical-align: top; padding: 0 2px 0 2px; padding-top: 4px; padding-bottom: 4px;" valign="top">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                                    <tbody>
+                                      <!-- Question Title & Comment Count -->
+                                      <tr>
+                                        <td align="left" class="question-title" style="font-size: 0px; word-break: break-word; padding: 0; padding-top: 4px; padding-bottom: 4px;">
+                                          <div style="font-family: Inter Variable, Inter, Arial, sans-serif; font-size: 16px; line-height: 24px; text-align: left; color: rgba(22, 28, 34, 1); padding: 0;"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="font-size: 18px; font-weight: 600; line-height: 1.4; color: #161C22; text-decoration: none; display: block; margin-bottom: 2px; padding-top: 6px; padding-bottom: 0px;">
+                                              {{ notification.post.post_title }}
+                                            </a>
+                                            <div style="font-size: 13px; font-weight: 500; color: #758EA9; padding: 0;"> 💬 {{ notification.comments_count }} new comment{{ notification.comments_count|pluralize }}
+                                            </div>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              <!-- Comments Container --><!-- {% for comment in notification.comments %} -->
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:552px;" width="552" bgcolor="#EFF4F4" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="background:#EFF4F4;background-color:#EFF4F4;margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: #EFF4F4; background-color: #EFF4F4; width: 100%;" width="100%" bgcolor="#EFF4F4">
+                  <tbody>
+                    <tr>
+                      <td style="border-left: 1px solid #D7E4F2; border-right: 1px solid #D7E4F2; direction: ltr; font-size: 0px; padding: 0px 16px 8px 16px; text-align: center; padding-top: 4px; padding-bottom: 4px;" align="center">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:518px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align: top;" width="100%" valign="top">
+                            <tbody>
+                              <tr>
+                                <td align="left" class="general-text" style="font-size: 0px; padding: 0px; word-break: break-word; padding-top: 4px; padding-bottom: 4px;">
+                                  <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{{ comment.url }}" style="font-weight: bold; display: block; text-decoration: none; color: inherit;">
+                                      <div style="background-color: #ffffff; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px; transition: background-color 0.2s;">
+                                        <!-- Author -->
+                                        <div style="font-size: 14px; font-weight: 600; color: #4F6882; margin-bottom: 6px;"> @{{ comment.author_username }}
+                                        </div>
+                                        <!-- Comment Preview -->
+                                        <div style="font-size: 14px; font-weight: normal; color: #2F4155; line-height: 1.5; margin-bottom: 8px;"> "{{ comment.preview_text | safe }}" </div>
+                                        <!-- View Comment Link -->
+                                        <div style="font-size: 13px; font-weight: 600; color: #758EA9;"> View comment → </div>
+                                      </div>
+                                    </a></div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              <!-- {% endfor %} --><!-- Read More Link (always render section for proper bottom border) -->
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:552px;" width="552" bgcolor="#EFF4F4" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="background:#EFF4F4;background-color:#EFF4F4;margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: #EFF4F4; background-color: #EFF4F4; width: 100%;" width="100%" bgcolor="#EFF4F4">
+                  <tbody>
+                    <tr>
+                      <td style="border-bottom: 1px solid #D7E4F2; border-left: 1px solid #D7E4F2; border-right: 1px solid #D7E4F2; direction: ltr; font-size: 0px; padding: 4px 16px 16px 16px; text-align: center; padding-top: 4px; padding-bottom: 4px;" align="center">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:518px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align: top;" width="100%" valign="top">
+                            <tbody>
+                              <!-- {% if notification.read_more_count %} -->
+                              <tr>
+                                <td align="center" class="general-text" style="font-size: 0px; padding: 0px; word-break: break-word; padding-top: 4px; padding-bottom: 4px;">
+                                  <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:center;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="display: inline-block; font-size: 14px; font-weight: 600; color: #4F6882; text-decoration: underline; padding: 4px 16px;"> And {{ notification.read_more_count }} more comment{{ notification.read_more_count|pluralize }} → </a></div>
+                                </td>
+                              </tr>
+                              <!-- {% endif %} -->
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+    <!-- {% endfor %} -->
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:8px;padding-top:24px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                  <tbody>
+                    <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;padding-bottom:8px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:left;color:#161C22;">{% blocktrans %} Related questions you might find interesting {% endblocktrans %}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -215,24 +335,40 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-left:16px;padding-right:16px;padding-top:0px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><![endif]-->
               <!-- {% for post in chunk %} -->
-              <!--[if mso | IE]><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+              <!--[if mso | IE]><td class="" style="vertical-align:top;width:284px;" ><![endif]-->
               <div class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
-                          <div style="margin-bottom: 8px">
-                            <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                              {{ post.title }}
-                            </a> {% if IS_SCREENSHOT_SERVICE_ENABLED %} <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                              <img class="question_graph_img" src="{% build_question_graph_image_url post.id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
-                            </a> {% endif %}
-                          </div>
-                        </div>
+                      <td style="vertical-align:top;padding:8px;">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                          <tbody>
+                            <tr>
+                              <td align="left" class="general-text" style="font-size:0px;padding:0px;word-break:break-word;">
+                                <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url post.id post.title %}" style="font-weight: bold; display: block; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; background-color: #F9FBFB; min-height: 100px; text-decoration: none; color: #161C22;">
+                                    <div style="font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 12px; color: #161C22;">
+                                      {{ post.title }}
+                                    </div>
+                                    <div style="font-size: 13px; font-weight:500; color: #2F4155;">
+                                      <!-- {% if post.nr_forecasters %} -->
+                                      <span style="display: inline-flex; align-items: center;">
+                                        <span style="margin-right: 5px;">👥</span>
+                                        {{ post.nr_forecasters }} predictor{{ post.nr_forecasters|pluralize }}
+                                      </span>
+                                      <!-- {% elif post.probability %} -->
+                                      <span style="display: inline-flex; align-items: center;">
+                                        <span style="margin-right: 5px;">📊</span>
+                                        {{ post.probability }}% chance </span>
+                                      <!-- {% endif %} -->
+                                    </div>
+                                  </a></div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -253,7 +389,7 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:0px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
@@ -285,7 +421,7 @@
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
-                          <p style="font-size:85%; color:#aaaaaa;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus {% endblocktrans %} <a href="{% tag_notification_settings_url %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{% trans "settings page" %}</a>. </p>
+                          <p style="font-size:14px; line-height:150%; color:#777777; margin-top:0px;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus {% endblocktrans %} <a href="{% tag_notification_settings_url %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{% trans "settings page" %}</a>. </p>
                         </div>
                       </td>
                     </tr>

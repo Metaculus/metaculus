@@ -39,7 +39,6 @@ def create_link_api_view(request):
         question2.get_post(), user=request.user
     )
     ObjectPermission.can_view(question2_permission, raise_exception=True)
-
     coherence_link = create_coherence_link(
         user=request.user,
         question1=question1,

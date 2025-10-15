@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { Suspense } from "react";
 
 import FeedSidebar from "@/app/(main)/questions/components/sidebar";
@@ -11,8 +12,10 @@ import {
   POST_WEEKLY_TOP_COMMENTS_FILTER,
 } from "@/constants/posts_feed";
 import serverMiscApi from "@/services/api/misc/misc.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { SearchParams } from "@/types/navigation";
 import { QuestionOrder } from "@/types/question";
+import { InterfaceType } from "@/types/users";
 
 import FeedFilters from "./components/feed_filters";
 import { generateFiltersFromSearchParams } from "./helpers/filters";
@@ -26,6 +29,8 @@ export const metadata = {
 export default async function Questions(props: {
   searchParams: Promise<SearchParams>;
 }) {
+  const user = await ServerProfileApi.getMyProfile();
+
   const searchParams = await props.searchParams;
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const isWeeklyTopCommentsFeed = searchParams[POST_WEEKLY_TOP_COMMENTS_FILTER];
@@ -33,6 +38,8 @@ export default async function Questions(props: {
     // Default Feed ordering should be hotness
     defaultOrderBy: QuestionOrder.HotDesc,
     defaultForMainFeed: true,
+    filterForConsumerView:
+      isNil(user) || user.interface_type === InterfaceType.ConsumerView,
   });
   const sidebarItems = await serverMiscApi.getSidebarItems();
 
