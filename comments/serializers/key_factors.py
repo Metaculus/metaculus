@@ -9,6 +9,7 @@ from comments.services.key_factors import (
     get_votes_for_key_factors,
     calculate_key_factors_freshness,
 )
+from questions.models import Question
 from users.models import User
 from users.serializers import BaseUserSerializer
 
@@ -32,6 +33,7 @@ def serialize_key_factor(
     key_factor: KeyFactor,
     vote_scores: list[KeyFactorVote] = None,
     freshness: float = None,
+    question: Question = None,
 ) -> dict:
     return {
         "id": key_factor.id,
@@ -42,6 +44,14 @@ def serialize_key_factor(
             key_factor, vote_scores or [], user_vote=key_factor.user_vote
         ),
         "question_id": key_factor.question_id,
+        "question": (
+            {
+                "id": question.id,
+                "label": question.label,
+            }
+            if question
+            else None
+        ),
         "question_option": key_factor.question_option,
         "freshness": freshness,
         # Type-specific fields
@@ -61,7 +71,9 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
-        .select_related("comment__author", "comment__on_post", "question", "driver")
+        .select_related(
+            "comment__author", "comment__on_post", "question", "driver", "question"
+        )
     )
 
     if current_user:
@@ -82,6 +94,7 @@ def serialize_key_factors_many(
             key_factor,
             vote_scores=votes_map.get(key_factor.id),
             freshness=freshness_map.get(key_factor),
+            question=key_factor.question,
         )
         for key_factor in objects
     ]
