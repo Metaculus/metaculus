@@ -7,18 +7,18 @@ from coherence.models import CoherenceLink, AggregateCoherenceLink
 
 def convert_vector_to_direction_strength(
     vector_value: float,
-) -> tuple[int | None, int | None]:
-    vector_value = round(vector_value)
-    if vector_value == 0:
+) -> tuple[int | None, float | None]:
+    vector_value_int = round(vector_value)
+    if vector_value_int == 0:
         return None, None
     strength = abs(vector_value)
-    direction = vector_value // strength
+    direction = 1 if vector_value_int > 0 else -1
     return direction, strength
 
 
 def get_aggregation_results(
     links: list[CoherenceLink],
-) -> tuple[int | None, int | None, float | None]:
+) -> tuple[int | None, float | None, float | None]:
     if len(links) == 0:
         return None, None, None
     elif len(links) == 1:
