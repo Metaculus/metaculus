@@ -106,7 +106,7 @@ class KeyFactorDriverSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KeyFactorDriver
-        fields = ("text", "impact_direction")
+        fields = ("text", "impact_direction", "certainty")
 
 
 class KeyFactorWriteSerializer(serializers.ModelSerializer):

@@ -176,9 +176,15 @@ def create_key_factor(
 
 
 def create_key_factor_driver(
-    *, text: str = None, impact_direction: ImpactDirection = None, **kwargs
+    *,
+    text: str = None,
+    impact_direction: ImpactDirection = None,
+    certainty: int = None,
+    **kwargs,
 ) -> KeyFactorDriver:
-    obj = KeyFactorDriver(text=text, impact_direction=impact_direction, **kwargs)
+    obj = KeyFactorDriver(
+        text=text, impact_direction=impact_direction, certainty=certainty, **kwargs
+    )
     obj.full_clean()
     obj.save()
 
