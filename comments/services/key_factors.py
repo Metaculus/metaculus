@@ -157,6 +157,8 @@ def create_key_factor(
         comment=comment,
         question_id=question_id,
         question_option=question_option or "",
+        # Initial strength will be always 1
+        votes_score=1,
         **kwargs,
     )
 
