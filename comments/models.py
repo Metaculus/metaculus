@@ -209,9 +209,10 @@ class ImpactDirection(models.IntegerChoices):
 
 class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
-    impact_direction = models.IntegerField(
-        choices=ImpactDirection.choices, null=True, blank=False
+    impact_direction = models.SmallIntegerField(
+        choices=ImpactDirection.choices, null=True, blank=True
     )
+    certainty = models.SmallIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"Driver {self.text}"

@@ -109,8 +109,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="keyfactordriver",
             name="impact_direction",
-            field=models.IntegerField(
-                blank=False, choices=[(1, "Increase"), (-1, "Decrease")], null=True
+            field=models.SmallIntegerField(
+                blank=True, choices=[(1, "Increase"), (-1, "Decrease")], null=True
             ),
         ),
         migrations.RunPython(votes_migration, reverse_code=migrations.RunPython.noop),
@@ -123,5 +123,10 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 fields=("user_id", "key_factor_id"), name="votes_unique_user_key_factor"
             ),
+        ),
+        migrations.AddField(
+            model_name="keyfactordriver",
+            name="certainty",
+            field=models.SmallIntegerField(blank=True, null=True),
         ),
     ]
