@@ -59,7 +59,7 @@ const AIBTabs: React.FC = () => {
       defaultValue="benchmark"
       className="bg-blue-200 dark:bg-blue-200-dark"
     >
-      <TabsList className="mt-8 justify-center py-0 dark:bg-blue-50-dark lg:justify-start">
+      <TabsList className="mt-8 justify-center py-0 dark:bg-blue-200-dark lg:justify-start">
         {TABS.map((tab) => (
           <TabsTab key={tab.value} value={tab.value} icon={tab.icon}>
             {tab.label}
