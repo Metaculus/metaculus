@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import type { LeaderboardDetails } from "@/types/scoring";
@@ -10,6 +11,8 @@ import { getBotMeta } from "./bot_meta";
 type Props = { details: LeaderboardDetails };
 
 const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
+  const t = useTranslations();
+
   const rows = useMemo(() => {
     return (details.entries || []).map((entry, i) => {
       const username = entry.user?.username ?? "";
@@ -38,9 +41,11 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
       <thead>
         <tr className="items-center border-b-[1px] border-blue-400 bg-blue-100 text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
           <Th></Th>
-          <Th>Model</Th>
-          <Th className="hidden text-center sm:table-cell">Forecasts</Th>
-          <Th className="text-center">Avg Score</Th>
+          <Th>{t("aibLbThModel")}</Th>
+          <Th className="hidden text-center sm:table-cell">
+            {t("aibLbThForecasts")}
+          </Th>
+          <Th className="w-[100px] text-center">{t("aibLbThAvgScore")}</Th>
         </tr>
       </thead>
       <tbody className="bg-gray-0 dark:bg-gray-0-dark">
@@ -74,7 +79,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
             <Td className="hidden text-center sm:table-cell">
               {fmt(r.forecasts, 3)}
             </Td>
-            <Td className="text-center">{fmt(r.score, 2)}</Td>
+            <Td className="w-[100px] text-center">{fmt(r.score, 2)}</Td>
           </tr>
         ))}
       </tbody>
