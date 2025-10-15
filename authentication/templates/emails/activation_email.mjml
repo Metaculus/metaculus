@@ -9,33 +9,49 @@
                 <mj-text>
                     Hello {{ username }},
                 </mj-text>
-
-                <mj-text>
+                
+                <mj-text color="#6B7280" font-size="13px">
                     {% blocktrans %}
-                    Thanks for signing up!
+                    By activating your account, you acknowledge and agree to Metaculus's
+                    <a href="{{ PUBLIC_APP_URL }}/terms-of-use/">Terms of Use</a>
+                    and
+                    <a href="{{ PUBLIC_APP_URL }}/privacy-policy/">Privacy Policy</a>.
                     {% endblocktrans %}
-                    <p>
-                        {% blocktrans %}
-                        By completing your registration, you acknowledge and agree to Metaculus's
-                        <a href="{{ PUBLIC_APP_URL }}/terms-of-use/">terms of use</a>
-                        and
-                        <a href="{{ PUBLIC_APP_URL }}/privacy-policy/">privacy policy</a>.
-                        {% endblocktrans %}
-                    </p>
-                    <p>
-                        {% blocktrans %}
-                        Please <a href="{{ activation_link }}">click here</a> to complete your registration and activate
-                        your account.
-                        {% endblocktrans %}
-                    </p>
-                    <p style="font-size: 80%;">
-                        {% blocktrans %}
-                        Alternatively, you can copy and paste the following link into a browser:
-                        {% endblocktrans %}
-                        <br/>
-                        {{ activation_link }}
-                    </p>
-
+                </mj-text>
+            </mj-column>
+        </mj-section>
+                
+        <!-- Prominent activation CTA section -->
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
+                    <mj-section mj-class="content-block" padding="8px 24px">
+                        <mj-column padding="0px">
+                            <mj-text 
+                                align="center" 
+                                color="#161C22" 
+                                font-size="16px" 
+                                font-weight="500" 
+                                padding-bottom="6px"
+                                line-height="1.5">
+                                {% blocktrans %}
+                                Click the button to activate your account.
+                                {% endblocktrans %}
+                            </mj-text>
+                            
+                            <mj-button mj-class="cta-button" href="{{ activation_link }}">
+                                Activate Your Account
+                            </mj-button>
+                        </mj-column>
+                    </mj-section>
+        </mj-wrapper>
+        
+        <mj-section>
+            <mj-column>
+                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+                    {% blocktrans %}
+                    Or, copy and paste this link into your browser:
+                    {% endblocktrans %}
+                    <br/>
+                    <a href="{{ activation_link }}" style="color: #0A66C2; word-break: break-all;">{{ activation_link }}</a>
                 </mj-text>
             </mj-column>
 
