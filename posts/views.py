@@ -373,12 +373,8 @@ def post_make_draft_api_view(request, pk):
 @api_view(["POST"])
 def post_send_back_to_review_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    permission = get_post_permission_for_user(post, user=request.user)
-    if permission not in (ObjectPermission.ADMIN):
-        raise PermissionDenied(
-            "You do not have permission to send back to review this post"
-        )
 
+    check_can_edit_post(post, request.user)
     send_back_to_review(post)
 
     return Response(status=status.HTTP_200_OK)
