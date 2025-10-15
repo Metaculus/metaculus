@@ -1537,6 +1537,7 @@
   "hiddenUntil": "Hidden until",
   "certainty": "Certainty:",
   "strong": "strong",
+  "medium": "medium",
   "weak": "weak",
   "none": "none"
 }
