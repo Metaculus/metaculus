@@ -1,9 +1,4 @@
 import { Question, QuestionType } from "@/types/question";
-
-export enum Directions {
-  Positive = "positive",
-  Negative = "negative",
-}
 export enum Strengths {
   Low = "low",
   Medium = "medium",
