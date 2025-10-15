@@ -1,63 +1,40 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 
-import LikertKeyFactorItem from "./likert_item";
-import TwoStepKeyFactorItem from "./two_step_item";
-import UpdownKeyFactorItem from "./updown_item";
+import KeyFactorDriver from "./key_factor_driver";
+
 type Props = {
   keyFactor: KeyFactor;
+  post: PostWithForecasts;
   linkToComment?: boolean;
   variant?: "default" | "compact";
 };
 
-const FEATURE_FLAG_KEY = "key-factors-p2";
-const LAYOUT_VARIANTS = {
-  UP_DOWN: "default",
-  TWO_STEP: "2-step-survey",
-  LIKERT: "likert-scale",
-} as const;
-
 export const KeyFactorItem: FC<Props> = ({
   keyFactor,
+  post,
   linkToComment = true,
   variant = "default",
 }) => {
-  const layoutVariant = useFeatureFlagVariantKey(FEATURE_FLAG_KEY);
   const linkAnchor = linkToComment
     ? `#comment-${keyFactor.comment_id}`
     : "#key-factors";
 
-  switch (layoutVariant) {
-    case LAYOUT_VARIANTS.TWO_STEP:
-      return (
-        <TwoStepKeyFactorItem
-          keyFactor={keyFactor}
-          linkAnchor={linkAnchor}
-          linkToComment={linkToComment}
-        />
-      );
-    case LAYOUT_VARIANTS.LIKERT:
-      return (
-        <LikertKeyFactorItem
-          keyFactor={keyFactor}
-          linkToComment={linkToComment}
-          linkAnchor={linkAnchor}
-        />
-      );
-    default:
-      return (
-        <UpdownKeyFactorItem
-          keyFactor={keyFactor}
-          linkAnchor={linkAnchor}
-          linkToComment={linkToComment}
-          variant={variant}
-        />
-      );
+  if (keyFactor.driver) {
+    return (
+      <KeyFactorDriver
+        keyFactor={keyFactor}
+        linkAnchor={linkAnchor}
+        linkToComment={linkToComment}
+        variant={variant}
+        post={post}
+      />
+    );
   }
 };
 

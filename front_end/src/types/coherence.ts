@@ -1,9 +1,4 @@
 import { Question, QuestionType } from "@/types/question";
-
-export enum Directions {
-  Positive = "positive",
-  Negative = "negative",
-}
 export enum Strengths {
   Low = "low",
   Medium = "medium",
@@ -25,8 +20,8 @@ export type CoherenceLink = {
   question1?: Question;
   question2_id: number;
   question2?: Question;
-  direction: Directions;
-  strength: Strengths;
+  direction: number;
+  strength: number;
   type: LinkTypes;
   id: number;
 };
@@ -41,8 +36,8 @@ export type FetchedCoherenceLinks = {
 export type FetchedAggregateCoherenceLink = CoherenceLink & {
   rsem: number | null;
   links_nr: number;
-  direction: Directions | null;
-  strength: Strengths | null;
+  direction: number | null;
+  strength: number | null;
 };
 
 export type FetchedAggregateCoherenceLinks = {
@@ -54,3 +49,6 @@ export const ALLOWED_COHERENCE_LINK_QUESTION_TYPES = [
   QuestionType.Numeric,
   QuestionType.Date,
 ];
+
+export const DIRECTION_OPTIONS = [-1, 1];
+export const STRENGTH_OPTIONS = [1, 2, 5];

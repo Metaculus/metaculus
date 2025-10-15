@@ -652,13 +652,14 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.length > 0 && canListKeyFactors && (
+      {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
         <div className="mb-3 mt-1.5 flex flex-col gap-1">
           {commentKeyFactors.map((kf) => (
             <KeyFactorItem
               key={`key-factor-${kf.id}`}
               keyFactor={kf}
               linkToComment={false}
+              post={postData}
             />
           ))}
         </div>
@@ -954,7 +955,7 @@ const Comment: FC<CommentProps> = ({
         />
       )}
 
-      {isKeyfactorsFormOpen && (
+      {isKeyfactorsFormOpen && postData && (
         <CommentForm
           onSubmit={handleSubmit}
           onCancel={onCancel}
@@ -973,6 +974,7 @@ const Comment: FC<CommentProps> = ({
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
+            post={postData}
           />
           <FormError errors={keyFactorsErrors} />
         </CommentForm>
