@@ -1540,5 +1540,9 @@
   "byUsername": "od <link>{username}</link>",
   "driver": "Řidič",
   "forOption": "pro <strong>{option}</strong>",
+  "driverInputPlaceholder": "Zadejte svého řidiče zde",
+  "chooseDirectionOfImpact": "Vyberte směr nárazu:",
+  "less": "Méně",
+  "earlier": "Dříve",
   "othersCount": "Ostatní ({count})"
 }

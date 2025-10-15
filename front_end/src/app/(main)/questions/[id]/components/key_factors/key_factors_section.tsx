@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
 import { FetchedAggregateCoherenceLink } from "@/types/coherence";
-import { Post, PostStatus } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
@@ -24,7 +24,7 @@ import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
-  post: Post;
+  post: PostWithForecasts;
   variant?: "default" | "compact";
 };
 
@@ -54,7 +54,6 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
   post,
   variant = "default",
 }) => {
-  const postId = post.id;
   const postStatus = post.status;
   const t = useTranslations();
   const hash = useHash();
@@ -131,6 +130,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
             key={`post-key-factor-${kf.id}`}
             keyFactor={kf}
             linkToComment={variant === "default"}
+            post={post}
           />
         ))}
         {combinedKeyFactors.length > displayLimit && (
@@ -174,7 +174,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
         <AddKeyFactorsModal
           isOpen={isAddKeyFactorsModalOpen}
           onClose={() => setIsAddKeyFactorsModalOpen(false)}
-          postId={postId}
+          post={post}
           user={user}
         />
       )}

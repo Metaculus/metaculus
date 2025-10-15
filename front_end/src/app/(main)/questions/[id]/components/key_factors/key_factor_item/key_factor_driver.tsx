@@ -5,9 +5,13 @@ import { FC } from "react";
 
 import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/key_factor_header";
 import { KeyFactor } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
+import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
-import KeyFactorDirectionImpactContainer from "./key_factor_direction_impact";
+import KeyFactorImpactDirectionContainer, {
+  convertNumericImpactToDirectionCategory,
+} from "../key_factors_impact_direction";
 import KeyFactorStrengthVoter from "./key_factor_strength_voter";
 import KeyFactorText from "./key_factor_text";
 
@@ -16,6 +20,7 @@ type Props = {
   linkToComment?: boolean;
   linkAnchor: string;
   variant?: "default" | "compact";
+  post: PostWithForecasts;
 };
 
 const KeyFactorDriver: FC<Props> = ({
@@ -23,8 +28,17 @@ const KeyFactorDriver: FC<Props> = ({
   linkToComment = true,
   linkAnchor,
   variant = "default",
+  post,
 }) => {
   const t = useTranslations();
+  const questionType = inferEffectiveQuestionTypeFromPost(post);
+  const directionCategory =
+    questionType &&
+    keyFactor.driver.impact_direction &&
+    convertNumericImpactToDirectionCategory(
+      keyFactor.driver.impact_direction,
+      questionType
+    );
 
   return (
     <div
@@ -42,9 +56,9 @@ const KeyFactorDriver: FC<Props> = ({
         className="text-base leading-5"
       />
 
-      {!isNil(keyFactor.driver.impact_direction) && (
-        <KeyFactorDirectionImpactContainer
-          impact={keyFactor.driver.impact_direction}
+      {!isNil(directionCategory) && (
+        <KeyFactorImpactDirectionContainer
+          impact={directionCategory}
           option={keyFactor.question?.label ?? keyFactor.question_option}
         />
       )}

@@ -1537,5 +1537,9 @@
   "byUsername": "由 <link>{username}</link> 提供",
   "driver": "驅動程式",
   "forOption": "對 <strong>{option}</strong>",
+  "driverInputPlaceholder": "在此輸入您的驅動因素",
+  "chooseDirectionOfImpact": "選擇影響的方向：",
+  "less": "較少",
+  "earlier": "較早",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

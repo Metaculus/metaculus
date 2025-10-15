@@ -1538,5 +1538,9 @@
   "byUsername": "por <link>{username}</link>",
   "driver": "Condutor",
   "forOption": "para <strong>{option}</strong>",
+  "driverInputPlaceholder": "Digite seu driver aqui",
+  "chooseDirectionOfImpact": "Escolha a direção do impacto:",
+  "less": "Menos",
+  "earlier": "Mais cedo",
   "othersCount": "Outros ({count})"
 }

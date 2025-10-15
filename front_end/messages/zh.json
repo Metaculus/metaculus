@@ -1542,5 +1542,9 @@
   "byUsername": "由<link>{username}</link>发布",
   "driver": "驾驶员",
   "forOption": "对于<strong>{option}</strong>",
+  "driverInputPlaceholder": "在此输入您的驱动程序",
+  "chooseDirectionOfImpact": "选择影响方向：",
+  "less": "较少",
+  "earlier": "提前",
   "othersCount": "其他（{count}）"
 }

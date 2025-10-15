@@ -90,15 +90,23 @@ export type KeyFactorVote = {
   second_step_completed?: boolean; // used only for two step survey
 };
 
-export enum ImpactDirection {
-  Increase = 1,
-  Decrease = -1,
-  IncreaseUncertainty = 0,
+export enum ImpactDirectionCategory {
+  Increase,
+  Decrease,
+  More,
+  Less,
+  Earlier,
+  Later,
+  IncreaseUncertainty,
 }
 
-export type Driver = {
+export type ImpactMetadata = {
+  impact_direction: 1 | -1 | null;
+  certainty: -1 | null;
+};
+
+export type Driver = ImpactMetadata & {
   text: string;
-  impact_direction: ImpactDirection;
 };
 
 export type KeyFactor = {
