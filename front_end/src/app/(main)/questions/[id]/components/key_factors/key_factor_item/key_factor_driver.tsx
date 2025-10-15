@@ -1,7 +1,9 @@
 "use client";
 import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/key_factor_header";
 import { KeyFactor } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
@@ -22,6 +24,8 @@ const KeyFactorDriver: FC<Props> = ({
   linkAnchor,
   variant = "default",
 }) => {
+  const t = useTranslations();
+
   return (
     <div
       className={cn(
@@ -29,6 +33,8 @@ const KeyFactorDriver: FC<Props> = ({
         { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
       )}
     >
+      <KeyFactorHeader author={keyFactor.author} label={t("driver")} />
+
       <KeyFactorText
         text={keyFactor.driver.text}
         linkAnchor={variant === "compact" ? undefined : linkAnchor}

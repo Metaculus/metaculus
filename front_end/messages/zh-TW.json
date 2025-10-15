@@ -1534,5 +1534,7 @@
   "strength": "力量",
   "increasesUncertainty": "增加不確定性",
   "impact": "影響",
+  "byUsername": "由 <link>{username}</link> 提供",
+  "driver": "驅動程式",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

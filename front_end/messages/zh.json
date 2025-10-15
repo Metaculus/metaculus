@@ -1539,5 +1539,7 @@
   "strength": "强度",
   "increasesUncertainty": "增加不确定性",
   "impact": "影响",
+  "byUsername": "由<link>{username}</link>发布",
+  "driver": "驾驶员",
   "othersCount": "其他（{count}）"
 }

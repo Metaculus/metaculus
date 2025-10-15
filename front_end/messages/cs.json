@@ -1537,5 +1537,7 @@
   "strength": "Síla",
   "increasesUncertainty": "Zvyšuje nejistotu",
   "impact": "Dopad",
+  "byUsername": "od <link>{username}</link>",
+  "driver": "Řidič",
   "othersCount": "Ostatní ({count})"
 }

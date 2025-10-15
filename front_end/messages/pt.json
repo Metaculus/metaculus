@@ -1535,5 +1535,7 @@
   "strength": "Força",
   "increasesUncertainty": "Aumenta a Incerteza",
   "impact": "Impacto",
+  "byUsername": "por <link>{username}</link>",
+  "driver": "Condutor",
   "othersCount": "Outros ({count})"
 }
