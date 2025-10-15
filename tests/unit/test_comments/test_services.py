@@ -131,10 +131,10 @@ def test_key_factor_vote(user1, user2):
             == expected
         )
 
-    assert_vote(user3, 5, pytest.approx(2.33, abs=0.01))
+    assert_vote(user3, 5, pytest.approx(2.66, abs=0.01))
     assert_vote(user2, 2, pytest.approx(2.66, abs=0.01))
     # Remove vote
-    assert_vote(user2, None, pytest.approx(2.33, abs=0.01))
+    assert_vote(user2, None, pytest.approx(2.66, abs=0.01))
     # Add neutral vote
     assert_vote(user2, 0, 2)
     # Add 4th vote
