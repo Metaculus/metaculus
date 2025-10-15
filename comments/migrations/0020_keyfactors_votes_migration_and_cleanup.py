@@ -38,6 +38,13 @@ def votes_migration(apps, schema_editor):
     # Drop unused a_updown votes
     KeyFactorVote.objects.filter(vote_type="a_updown").delete()
 
+    # There could be cases when users might have multiple vote types against one KeyFactor
+    # So deleting other duplicates
+    votes_qs = KeyFactorVote.objects.order_by(
+        "key_factor_id", "user_id", "-created_at"
+    ).distinct("key_factor_id", "user_id")
+    KeyFactorVote.objects.exclude(pk__in=votes_qs).delete()
+
     # Migrate other votes
     key_factors = list(KeyFactor.objects.prefetch_related("votes").all())
     update_votes = []
@@ -59,8 +66,6 @@ def votes_migration(apps, schema_editor):
             kf.driver.impact_direction = 1 if direction > 0 else 0
             update_drivers.append(kf.driver)
 
-        logger.info(f"KeyFactor {kf.id} has direction = {direction}")
-
         for vote in votes:
             # Update vote type
             vote.vote_type = "strength"
@@ -78,7 +83,7 @@ def votes_migration(apps, schema_editor):
                 # but are converted to the (0, 1, 2, 5) scale
                 vote.score = migrate_strength_vote_score(vote.score)
 
-            update_votes.append(update_votes)
+            update_votes.append(vote)
 
         # Calculate strength
         kf.votes_score = calculate_votes_strength([v.score for v in votes])
@@ -109,4 +114,14 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(votes_migration, reverse_code=migrations.RunPython.noop),
+        migrations.RemoveConstraint(
+            model_name="keyfactorvote",
+            name="votes_unique_user_key_factor",
+        ),
+        migrations.AddConstraint(
+            model_name="keyfactorvote",
+            constraint=models.UniqueConstraint(
+                fields=("user_id", "key_factor_id"), name="votes_unique_user_key_factor"
+            ),
+        ),
     ]

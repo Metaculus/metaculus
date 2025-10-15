@@ -286,7 +286,7 @@ class KeyFactorVote(TimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 name="votes_unique_user_key_factor",
-                fields=["user_id", "key_factor_id", "vote_type"],
+                fields=["user_id", "key_factor_id"],
             )
         ]
         indexes = [
