@@ -3,7 +3,6 @@ from datetime import datetime
 import django
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 from rest_framework import status
