@@ -15,7 +15,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { BECommentType } from "@/types/comment";
+import { BECommentType, Driver } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -69,8 +69,8 @@ export const AddKeyFactorsForm = ({
   setSuggestedKeyFactors,
   post,
 }: {
-  keyFactors: string[];
-  setKeyFactors: (factors: string[]) => void;
+  keyFactors: Driver[];
+  setKeyFactors: React.Dispatch<React.SetStateAction<Driver[]>>;
   isActive: boolean;
   limitError?: string;
   factorsLimit: number;
@@ -132,20 +132,46 @@ export const AddKeyFactorsForm = ({
         <p className="text-base leading-tight">{t("addKeyFactorsModalP1")}</p>
       )}
 
-      {keyFactors.map((keyFactor, idx) => (
+      {keyFactors.map((draft, idx) => (
         <DriverCreationForm
           key={idx}
-          keyFactor={keyFactor}
-          setKeyFactor={(keyFactor) => {
+          keyFactor={draft.text}
+          setKeyFactor={(text) =>
             setKeyFactors(
-              keyFactors.map((k, i) => (i === idx ? keyFactor : k))
-            );
-          }}
+              keyFactors.map((k, i) => (i === idx ? { ...k, text } : k))
+            )
+          }
+          impactMetadata={
+            draft.certainty === -1
+              ? ({ impact_direction: null, certainty: -1 } as const)
+              : ({
+                  impact_direction: (draft.impact_direction ?? 1) as 1 | -1,
+                  certainty: null,
+                } as const)
+          }
+          setImpactMetadata={(m) =>
+            setKeyFactors(
+              keyFactors.map((k, i) => {
+                if (i !== idx) return k;
+                if (m.certainty === -1) {
+                  return { ...k, certainty: -1, impact_direction: null };
+                }
+                if (m.impact_direction === 1 || m.impact_direction === -1) {
+                  return {
+                    ...k,
+                    impact_direction: m.impact_direction,
+                    certainty: null,
+                  };
+                }
+                return { ...k, ...m };
+              })
+            )
+          }
           isActive={isActive}
           showXButton={idx > 0 && isActive}
-          onXButtonClick={() => {
-            setKeyFactors(keyFactors.filter((_, i) => i !== idx));
-          }}
+          onXButtonClick={() =>
+            setKeyFactors(keyFactors.filter((_, i) => i !== idx))
+          }
           post={post}
         />
       ))}
@@ -156,11 +182,14 @@ export const AddKeyFactorsForm = ({
           size="xs"
           className="w-fit"
           onClick={() => {
-            setKeyFactors([...keyFactors, ""]);
+            setKeyFactors([
+              ...keyFactors,
+              { text: "", impact_direction: 1, certainty: null },
+            ]);
           }}
           disabled={
             totalKeyFactorsLimitReached ||
-            keyFactors.at(-1) === "" ||
+            keyFactors.at(-1)?.text === "" ||
             !isNil(limitError)
           }
         >
@@ -310,7 +339,9 @@ const AddKeyFactorsModal: FC<Props> = ({
                   setCurrentStep(currentStep + 1);
                 }}
                 className="px-3"
-                disabled={isPending || !keyFactors.some((k) => k.trim() !== "")}
+                disabled={
+                  isPending || !keyFactors.some((k) => k.text.trim() !== "")
+                }
               >
                 {t("next")}
               </Button>

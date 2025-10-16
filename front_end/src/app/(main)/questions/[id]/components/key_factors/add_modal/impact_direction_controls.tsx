@@ -12,12 +12,19 @@ type ImpactDirectionControlsProps = {
   unit?: string;
 };
 
-type ButtonConfig = {
-  direction: 1 | -1 | null;
-  impact: ImpactDirectionCategory;
-  variant: "green" | "red" | "neutral";
-  certainty?: -1 | null;
-};
+type ButtonConfig =
+  | {
+      direction: 1 | -1;
+      impact: ImpactDirectionCategory;
+      variant: "green" | "red";
+      certainty?: null;
+    }
+  | {
+      direction: null;
+      impact: ImpactDirectionCategory;
+      variant: "neutral";
+      certainty: -1;
+    };
 
 const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
   questionType,
@@ -91,12 +98,16 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
           <LikelihoodButton
             key={impact}
             variant={variant}
-            onClick={() =>
-              onSelect({
-                impact_direction: direction,
-                certainty: btnCertainty ?? null,
-              })
-            }
+            onClick={() => {
+              if (btnCertainty === -1) {
+                onSelect({ impact_direction: null, certainty: -1 });
+              } else {
+                onSelect({
+                  impact_direction: direction as 1 | -1,
+                  certainty: null,
+                });
+              }
+            }}
             selected={
               (direction !== null && impact_direction === direction) ||
               (btnCertainty === -1 && certainty === -1)

@@ -2,7 +2,7 @@ import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC } from "react";
 
 import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/add_modal/impact_direction_controls";
 import Button from "@/components/ui/button";
@@ -17,6 +17,8 @@ import {
 type Props = {
   keyFactor: string;
   setKeyFactor: (keyFactor: string) => void;
+  impactMetadata: ImpactMetadata;
+  setImpactMetadata: (m: ImpactMetadata) => void;
   isActive: boolean;
   showXButton: boolean;
   onXButtonClick: () => void;
@@ -26,16 +28,14 @@ type Props = {
 const DriverCreationForm: FC<Props> = ({
   keyFactor,
   setKeyFactor,
+  impactMetadata,
+  setImpactMetadata,
   isActive,
   showXButton,
   onXButtonClick,
   post,
 }) => {
   const t = useTranslations();
-  const [impactMetadata, setImpactMetadata] = useState<ImpactMetadata>({
-    impact_direction: null,
-    certainty: null,
-  });
   const questionType = inferEffectiveQuestionTypeFromPost(post);
   const unit = isQuestionPost(post) ? post.question.unit : undefined;
 
