@@ -11,7 +11,7 @@ const KeyFactorText: FC<Props> = ({ text, className }) => {
   return (
     <div
       className={cn(
-        "relative inline min-w-0 max-w-full flex-1 break-words text-center font-medium xs:text-left",
+        "relative inline min-w-0 max-w-full flex-1 break-words text-left font-medium",
         className
       )}
     >
