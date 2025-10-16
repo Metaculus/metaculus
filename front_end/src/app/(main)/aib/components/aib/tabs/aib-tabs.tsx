@@ -7,6 +7,8 @@ import React from "react";
 import { Tabs, TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 
 import AIBBenchmarkTab from "./benchmark/aib-benchmark-tab";
+import AIBInfoTab from "./info/aib-info-tab";
+import AIBNewsTab from "./news/aib-news-tab";
 
 const AIBTabs: React.FC = () => {
   const t = useTranslations();
@@ -40,7 +42,7 @@ const AIBTabs: React.FC = () => {
           />
         </span>
       ),
-      content: "",
+      content: <AIBInfoTab />,
     },
     {
       value: "news",
@@ -48,7 +50,7 @@ const AIBTabs: React.FC = () => {
       icon: (
         <FontAwesomeIcon className="scale-[1] sm:scale-[1.11]" icon={faBook} />
       ),
-      content: "",
+      content: <AIBNewsTab />,
     },
   ];
 
@@ -56,9 +58,9 @@ const AIBTabs: React.FC = () => {
     <Tabs
       variant="group"
       defaultValue="benchmark"
-      className="bg-blue-200 dark:bg-blue-50-dark "
+      className="bg-blue-200 dark:bg-blue-200-dark"
     >
-      <TabsList className="mt-8 justify-center py-0 dark:bg-blue-50-dark lg:justify-start">
+      <TabsList className="mt-8 justify-center py-0 dark:bg-blue-200-dark lg:justify-start">
         {TABS.map((tab) => (
           <TabsTab key={tab.value} value={tab.value} icon={tab.icon}>
             {tab.label}
