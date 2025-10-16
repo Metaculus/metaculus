@@ -40,7 +40,7 @@ export default async function IndividualNotebook(props: Props) {
   const postData = await ServerPostsApi.getPost(params.id);
 
   // Redirect to URL with slug if accessing without slug
-  if (postData && (!params.slug || params.slug.length === 0) && postData.slug) {
+  if (postData && !params.slug && postData.slug) {
     redirect(`/notebooks/${params.id}/${postData.slug}/`);
   }
 
