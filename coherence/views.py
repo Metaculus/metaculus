@@ -120,8 +120,8 @@ def get_questions_requiring_update(request, pk):
     questions_to_update = [
         current_question
         for current_question, last_forecast in last_forecast_map.items()
-        if last_forecast.start_time < question_forecast_time
-        and current_question.id != question.id
+        if current_question.id != question.id
+        and last_forecast.start_time < question_forecast_time
     ]
     serialized_questions = [serialize_question(q) for q in questions_to_update]
     return Response({"questions": serialized_questions})
