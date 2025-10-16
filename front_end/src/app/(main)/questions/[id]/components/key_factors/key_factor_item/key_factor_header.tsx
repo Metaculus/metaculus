@@ -9,6 +9,7 @@ type Props = {
   username: string;
   linkAnchor: string;
   linkToComment?: boolean;
+  className?: string;
 };
 
 const KeyFactorHeader: FC<Props> = ({
@@ -22,7 +23,7 @@ const KeyFactorHeader: FC<Props> = ({
 
   return (
     <div className="flex w-full justify-between">
-      <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+      <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
         {label}
       </div>
       <div className="text-[10px] text-gray-600 dark:text-gray-600-dark">

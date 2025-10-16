@@ -12,14 +12,14 @@ type Props = {
   keyFactor: KeyFactor;
   post: PostWithForecasts;
   linkToComment?: boolean;
-  variant?: "default" | "compact";
+  isCompact?: boolean;
 };
 
 export const KeyFactorItem: FC<Props> = ({
   keyFactor,
   post,
   linkToComment = true,
-  variant = "default",
+  isCompact,
 }) => {
   const linkAnchor = linkToComment
     ? `#comment-${keyFactor.comment_id}`
@@ -31,7 +31,8 @@ export const KeyFactorItem: FC<Props> = ({
         keyFactor={keyFactor}
         linkAnchor={linkAnchor}
         linkToComment={linkToComment}
-        variant={variant}
+        mode={"forecaster"}
+        isCompact={isCompact}
         post={post}
       />
     );

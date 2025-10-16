@@ -25,7 +25,7 @@ import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
   post: PostWithForecasts;
-  variant?: "default" | "compact";
+  isCompact?: boolean;
 };
 
 const AddKeyFactorsButton: FC<{
@@ -50,10 +50,7 @@ const AddKeyFactorsButton: FC<{
   );
 };
 
-const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
-  post,
-  variant = "default",
-}) => {
+const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post, isCompact }) => {
   const postStatus = post.status;
   const t = useTranslations();
   const hash = useHash();
@@ -126,10 +123,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
       <div id="key-factors-list" className="flex flex-col gap-2.5">
         {visibleKeyFactors.map((kf) => (
           <KeyFactorItem
-            variant={variant}
+            isCompact={isCompact}
             key={`post-key-factor-${kf.id}`}
             keyFactor={kf}
-            linkToComment={variant === "default"}
+            linkToComment={!isCompact}
             post={post}
           />
         ))}
@@ -179,7 +176,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
         />
       )}
 
-      {variant === "compact" ? (
+      {isCompact ? (
         <div className="space-y-2.5">
           <p className="text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
             {t("keyFactors")}

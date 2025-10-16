@@ -26,26 +26,33 @@ type Props = {
   vote: KeyFactorVoteAggregate;
   className?: string;
   onVoteSuccess?: (newScore: number, newUserVote: number | null) => void;
+  allowVotes?: boolean;
+  mode?: "forecaster" | "consumer";
 };
 
-const StrengthScale: FC<{ score: number; count: number }> = ({
-  score,
-  count,
-}) => {
+const StrengthScale: FC<{
+  score: number;
+  count: number;
+  mode?: "forecaster" | "consumer";
+}> = ({ score, count, mode }) => {
   const t = useTranslations();
 
   const clamped = Math.max(0, Math.min(5, score ?? 0)) / 5;
   return (
     <div className="flex w-full flex-col gap-1.5">
       <div className="flex w-full justify-between">
-        <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+        <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
           {t("strength")}
         </div>
-        <div className="text-[10px] uppercase text-blue-700 dark:text-blue-700-dark">
+        <div className="text-[10px] lowercase text-blue-700 dark:text-blue-700-dark">
           {t("votesWithCount", { count })}
         </div>
       </div>
-      <div className="flex w-full gap-[1px]">
+      <div
+        className={cn("flex w-full gap-[1px]", {
+          "rounded-[2px] border border-white": mode === "consumer",
+        })}
+      >
         <SegmentedProgressBar progress={clamped} segments={5} />
       </div>
     </div>
@@ -57,6 +64,8 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   vote,
   className,
   onVoteSuccess,
+  allowVotes,
+  mode = "forecaster",
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -112,10 +121,11 @@ const KeyFactorStrengthVoter: FC<Props> = ({
       <StrengthScale
         score={aggregate?.score ?? 0}
         count={aggregate?.count ?? 0}
+        mode={mode}
       />
-      {user && (
+      {user && allowVotes && (
         <div className="flex flex-col gap-1.5">
-          <div className="w-full text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+          <div className="w-full text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
             {t("vote")}
           </div>
           <div className="flex w-full flex-wrap items-center gap-2">

@@ -19,7 +19,8 @@ type Props = {
   keyFactor: KeyFactor;
   linkToComment?: boolean;
   linkAnchor: string;
-  variant?: "default" | "compact";
+  isCompact?: boolean;
+  mode?: "forecaster" | "consumer";
   post: PostWithForecasts;
 };
 
@@ -27,7 +28,8 @@ const KeyFactorDriver: FC<Props> = ({
   keyFactor,
   linkToComment = true,
   linkAnchor,
-  variant = "default",
+  isCompact,
+  mode = "forecaster",
   post,
 }) => {
   const t = useTranslations();
@@ -40,37 +42,53 @@ const KeyFactorDriver: FC<Props> = ({
       questionType
     );
 
+  const isCompactConsumer = mode === "consumer" && isCompact;
+
   return (
     <div
       className={cn(
         "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&:hover_.target]:visible",
-        { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
+        {
+          "bg-gray-0 dark:bg-gray-0-dark": linkToComment,
+          "max-w-[280px]": isCompact || mode === "consumer",
+          "max-w-[164px]": isCompactConsumer,
+          "bg-blue-200 p-5 dark:bg-blue-200-dark": mode === "consumer",
+          "p-4": isCompactConsumer,
+        }
       )}
     >
-      <KeyFactorHeader
-        username={keyFactor.author.username}
-        linkAnchor={linkAnchor}
-        linkToComment={linkToComment}
-        label={t("driver")}
-      />
+      {!isCompactConsumer && (
+        <KeyFactorHeader
+          username={keyFactor.author.username}
+          linkAnchor={linkAnchor}
+          linkToComment={linkToComment}
+          label={t("driver")}
+        />
+      )}
 
       <KeyFactorText
         text={keyFactor.driver.text}
-        className="text-base leading-5"
+        className={cn("text-base leading-5", {
+          "text-sm": mode === "consumer",
+          "text-xs": isCompactConsumer,
+        })}
       />
 
       {!isNil(directionCategory) && (
         <KeyFactorImpactDirectionContainer
           impact={directionCategory}
           option={keyFactor.question?.label ?? keyFactor.question_option}
+          isCompact={isCompactConsumer}
         />
       )}
 
-      <hr className="my-0 opacity-20" />
+      {mode === "forecaster" && <hr className="my-0 opacity-20" />}
 
       <KeyFactorStrengthVoter
         keyFactorId={keyFactor.id}
         vote={keyFactor.vote}
+        allowVotes={mode === "forecaster"}
+        mode={mode}
       />
     </div>
   );
