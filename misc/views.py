@@ -115,14 +115,9 @@ def get_site_stats(request):
     stats = {
         "predictions": Forecast.objects.filter(question__in=public_questions).count(),
         "questions": public_questions.count(),
-        "resolved_questions": public_questions.filter(
-            actual_resolve_time__isnull=False
-        ).exclude(
-            resolution__in=[
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ]
-        ).count(),
+        "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
+        .exclude(resolution__in=UnsuccessfulResolutionType)
+        .count(),
         "years_of_predictions": now_year - 2015 + 1,
     }
     return JsonResponse(stats)
