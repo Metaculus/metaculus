@@ -22,6 +22,7 @@ const KeyFactorsCarousel: FC<Props> = ({ post, comment, keyFactors }) => {
       </div>
 
       <ReusableGradientCarousel<(typeof keyFactors)[number]>
+        wheelToHorizontal={false}
         items={keyFactors}
         itemClassName=""
         gapClassName="gap-2.5"
