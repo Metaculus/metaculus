@@ -43,7 +43,7 @@ const AIBBenchmarkModels: React.FC = () => {
       </p>
 
       {visible.map((entry) => {
-        const username = entry.user?.username ?? "unknown";
+        const username = entry.user?.username ?? "Unnamed Model";
         const meta = getBotMeta(username);
         const widthPct = scalePct(entry.score);
 

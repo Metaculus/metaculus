@@ -22,15 +22,17 @@ export function mapLeaderboardToModelPoints(
 
   for (const e of leaderboard.entries) {
     const username = e.user?.username;
-    if (!username) continue;
 
-    const meta = getBotMeta(username);
+    const meta = username ? getBotMeta(username) : undefined;
     const releaseDate =
-      meta.releasedAt ?? (fallbackToCalculatedOn ? e.calculated_on : undefined);
+      meta?.releasedAt ??
+      (fallbackToCalculatedOn ? e.calculated_on : undefined);
     if (!releaseDate) continue;
 
+    const name = meta?.label ?? username ?? "Unnamed Model";
+
     raw.push({
-      name: meta.label,
+      name,
       releaseDate,
       score: e.score,
     });
