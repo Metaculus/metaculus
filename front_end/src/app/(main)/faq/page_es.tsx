@@ -333,12 +333,13 @@ export default function FAQ() {
           comunidad de meteorólogos participantes - usted.
         </p>
         <p>
-          El nombre &amp;&quot;Metaculus&amp;&quot; deriva del
-          <a href="https://en.wikipedia.org/wiki/Eriophyidae">
-            género Metaculus
+          El nombre &amp;&quot;Metaculus&amp;&quot; está inspirado en el
+          Mentaculus, un mapa de probabilidad ficticio del universo, de la
+          película de los hermanos Coen{" "}
+          <a href="https://en.wikipedia.org/wiki/A_Serious_Man">
+            A Serious Man
           </a>
-          de la familia Eriophyidae, un género de ácaros herbívoros que se
-          encuentran en muchos lugares del mundo.
+          .
         </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
