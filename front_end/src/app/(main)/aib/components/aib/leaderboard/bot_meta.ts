@@ -538,6 +538,12 @@ export const BOT_CATALOG = [
     model: "Z.AI GLM 4.5",
     releaseDate: "2025-07-28",
   },
+  {
+    id: 999001,
+    username: "metac-asknews-deepnews[research-only]",
+    model: "N/A",
+    releaseDate: "",
+  },
 ] as const;
 
 const ICONS_BY_FAMILY: Record<string, StaticImageData | undefined> = {
@@ -627,6 +633,6 @@ const META_BY_USERNAME: Record<string, BotMeta> = BOT_CATALOG.reduce(
 );
 
 export function getBotMeta(username?: string): BotMeta {
-  if (!username) return { label: "Unknown Bot" };
+  if (!username) return { label: "Unnamed Model" };
   return META_BY_USERNAME[username] ?? { label: username, username };
 }
