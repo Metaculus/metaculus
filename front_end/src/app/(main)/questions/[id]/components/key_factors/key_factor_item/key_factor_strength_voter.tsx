@@ -50,7 +50,8 @@ const StrengthScale: FC<{
       </div>
       <div
         className={cn("flex w-full gap-[1px]", {
-          "rounded-[2px] border border-white": mode === "consumer",
+          "rounded-[2px] border border-gray-0 dark:border-gray-0-dark":
+            mode === "consumer",
         })}
       >
         <SegmentedProgressBar progress={clamped} segments={5} />
