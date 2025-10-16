@@ -52,7 +52,8 @@ const KeyFactorDriver: FC<Props> = ({
           "bg-gray-0 dark:bg-gray-0-dark": linkToComment,
           "max-w-[280px]": isCompact || mode === "consumer",
           "max-w-[164px]": isCompactConsumer,
-          "bg-blue-200 p-5 dark:bg-blue-200-dark": mode === "consumer",
+          "rounded-xl bg-blue-200 p-5 dark:bg-blue-200-dark":
+            mode === "consumer",
           "p-4": isCompactConsumer,
         }
       )}
