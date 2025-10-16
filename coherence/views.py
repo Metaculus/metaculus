@@ -100,7 +100,7 @@ def get_questions_requiring_update(request, pk):
 
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    date = serializer.validated_data["datetime"]
+    datetime = serializer.validated_data["datetime"]
 
     links = CoherenceLink.objects.filter(Q(question1=question), user=user)
     questions = [link.question2 for link in links]
@@ -110,17 +110,18 @@ def get_questions_requiring_update(request, pk):
     last_forecast_map = get_user_last_forecasts_map(questions, user=user)
     question_last_forecast = last_forecast_map.get(question, None)
 
-    questions_to_update = []
-    if question_last_forecast:
-        question_date = question_last_forecast.start_time
-        if date < question_date:
-            for current_question, last_forecast in last_forecast_map.items():
-                # Don't compare question to itself
-                if current_question.id == question.id:
-                    continue
+    if not question_last_forecast:
+        return Response({"questions": []})
 
-                if last_forecast.start_time < question_date:
-                    questions_to_update.append(current_question)
+    question_forecast_time = question_last_forecast.start_time
+    if datetime > question_forecast_time:
+        return Response({"questions": []})
 
+    questions_to_update = [
+        current_question
+        for current_question, last_forecast in last_forecast_map.items()
+        if last_forecast.start_time < question_forecast_time
+        and current_question.id != question.id
+    ]
     serialized_questions = [serialize_question(q) for q in questions_to_update]
     return Response({"questions": serialized_questions})
