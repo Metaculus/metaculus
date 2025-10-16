@@ -198,16 +198,23 @@ class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
     Requires `get_reputation_history`"""
 
-    def __init__(self, question: Question, user_ids: list[int] | set[int] | None):
+    def __init__(
+        self,
+        question: Question,
+        user_ids: list[int] | set[int] | None,
+        key_timestep: datetime | None = None,
+    ):
         if question is None or user_ids is None:
             raise ValueError("question and user_ids must be provided")
         self.question = question
         self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
-            user_ids
+            user_ids, key_timestep
         )
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self,
+        user_ids: list[int] | set[int],
+        key_timestep: datetime | None = None,
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
@@ -241,7 +248,9 @@ class PeerScoreWeighted(ReputationWeighted):
         )
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self,
+        user_ids: list[int] | set[int],
+        key_timestep: datetime | None = None,
     ) -> dict[int, list[Reputation]]:
 
         start = self.question.open_time
@@ -309,8 +318,12 @@ class PeerScoreWeighted(ReputationWeighted):
 class MedalistsFilter(ReputationWeighted):
     """Filters out forecasts by users with no medals"""
 
+    medal_filter = Q(medal__isnull=False)
+
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self,
+        user_ids: list[int] | set[int],
+        key_timestep: datetime | None = None,
     ) -> dict[int, list[Reputation]]:
         start = self.question.open_time
         end = self.question.scheduled_close_time
@@ -318,8 +331,8 @@ class MedalistsFilter(ReputationWeighted):
             end = timezone.now()
         medals = (
             LeaderboardEntry.objects.filter(
+                self.medal_filter,
                 user_id__in=user_ids,
-                medal__isnull=False,
                 leaderboard__project__default_permission=ObjectPermission.FORECASTER,
             )
             .annotate(set_time=F("leaderboard__finalize_time"))
@@ -349,11 +362,47 @@ class MedalistsFilter(ReputationWeighted):
         return reputations
 
 
+class SilverMedalistsFilter(MedalistsFilter):
+    """Filters for only forecasts by users with silver or better medals"""
+
+    medal_filter = Q(
+        medal__in=[
+            LeaderboardEntry.Medals.GOLD,
+            LeaderboardEntry.Medals.SILVER,
+        ]
+    )
+
+
+class GoldMedalistsFilter(MedalistsFilter):
+    """Filters for only forecasts by users with gold medals"""
+
+    medal_filter = Q(medal=LeaderboardEntry.Medals.GOLD)
+
+
+class ProsFilter(ReputationWeighted):
+    """Filters for only forecasts by Pro users"""
+
+    medal_filter = Q(medal__isnull=False)
+
+    def get_reputation_history(
+        self,
+        user_ids: list[int] | set[int],
+        key_timestep: datetime | None = None,
+    ) -> dict[int, list[Reputation]]:
+        pro_ids = [1, 2, 3]
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+        for pro_id in pro_ids:
+            reputations[pro_id].append(Reputation(pro_id, 1, datetime.min))
+        return reputations
+
+
 class Experienced25ResolvedFilter(ReputationWeighted):
     """Filters out Forecasters with fewer than 25 resolved questions"""
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self,
+        user_ids: list[int] | set[int],
+        key_timestep: datetime | None = None,
     ) -> dict[int, list[Reputation]]:
         start = self.question.open_time
         end = self.question.scheduled_close_time
@@ -594,11 +643,18 @@ class Aggregation(AggregatorMixin):
     weighting_classes: list[type[Weighted]] = []  # defined in subclasses
 
     def __init__(
-        self, question: Question, user_ids: list[int] | set[int] | None = None
+        self,
+        question: Question,
+        user_ids: list[int] | set[int] | None = None,
+        key_timestep: datetime | None = None,
     ):
         self.question = question
         self.weightings: list[Weighted] = [
-            Klass(question=question, user_ids=user_ids)
+            Klass(
+                question=question,
+                user_ids=user_ids,
+                key_timestep=key_timestep,
+            )
             for Klass in self.weighting_classes
         ]
 
@@ -676,6 +732,16 @@ class SingleAggregation(MeanAggregatorMixin, Aggregation):
 class MedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.MEDALISTS
     weighting_classes = [MedalistsFilter]
+
+
+class SilverMedalistsAggregation(MedianAggregatorMixin, Aggregation):
+    method = AggregationMethod.SILVER_MEDALISTS
+    weighting_classes = [SilverMedalistsFilter]
+
+
+class GoldMedalistsAggregation(MedianAggregatorMixin, Aggregation):
+    method = AggregationMethod.GOLD_MEDALISTS
+    weighting_classes = [GoldMedalistsFilter]
 
 
 class Experienced25ResolvedAggregation(MedianAggregatorMixin, Aggregation):

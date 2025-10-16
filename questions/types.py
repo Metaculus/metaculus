@@ -19,6 +19,8 @@ class AggregationMethod(models.TextChoices):
     SINGLE_AGGREGATION = "single_aggregation"
     METACULUS_PREDICTION = "metaculus_prediction"
     MEDALISTS = "medalists"
+    SILVER_MEDALISTS = "silver_medalists"
+    GOLD_MEDALISTS = "gold_medalists"
     EXPERIENCED_USERS_25_RESOLVED = "experienced_users_25_resolved"
     IGNORANCE = "ignorance"
     RECENCY_WEIGHTED_LOG_ODDS = "recency_weighted_log_odds"
