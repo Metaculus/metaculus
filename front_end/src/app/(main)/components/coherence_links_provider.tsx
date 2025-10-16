@@ -11,9 +11,13 @@ import {
 
 import { useAuth } from "@/contexts/auth_context";
 import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
-import { FetchedCoherenceLinks } from "@/types/coherence";
+import {
+  FetchedAggregateCoherenceLinks,
+  FetchedCoherenceLinks,
+} from "@/types/coherence";
 import { Post } from "@/types/post";
 import { Question } from "@/types/question";
+import { logError } from "@/utils/core/errors";
 
 type BaseProviderProps = {
   post: Post;
@@ -23,6 +27,7 @@ export type LinkIdToQuestionMap = Map<number, Question>;
 
 export type CoherenceLinksContextType = {
   coherenceLinks: FetchedCoherenceLinks;
+  aggregateCoherenceLinks: FetchedAggregateCoherenceLinks;
   updateCoherenceLinks: () => Promise<void>;
   getOtherQuestions: () => LinkIdToQuestionMap;
 };
@@ -36,16 +41,24 @@ export const CoherenceLinksProvider: FC<
   const [coherenceLinks, setCoherenceLinks] = useState<FetchedCoherenceLinks>({
     data: [],
   });
+  const [aggregateCoherenceLinks, setAggregateCoherenceLinks] =
+    useState<FetchedAggregateCoherenceLinks>({
+      data: [],
+    });
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
   const updateCoherenceLinks = async () => {
-    if (isLoggedIn) {
-      ClientCoherenceLinksApi.getCoherenceLinksForPost(post)
+    if (isLoggedIn && post.question) {
+      ClientCoherenceLinksApi.getCoherenceLinksForPost(post.question)
         .then((links) => setCoherenceLinks(links))
-        .catch((error) => console.log(error));
+        .catch(logError);
+      ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(post.question)
+        .then((links) => setAggregateCoherenceLinks(links))
+        .catch(logError);
     } else {
       setCoherenceLinks({ data: [] });
+      setAggregateCoherenceLinks({ data: [] });
     }
   };
 
@@ -63,7 +76,12 @@ export const CoherenceLinksProvider: FC<
 
   return (
     <CoherenceLinksContext.Provider
-      value={{ coherenceLinks, updateCoherenceLinks, getOtherQuestions }}
+      value={{
+        coherenceLinks,
+        aggregateCoherenceLinks,
+        updateCoherenceLinks,
+        getOtherQuestions,
+      }}
     >
       {children}
     </CoherenceLinksContext.Provider>

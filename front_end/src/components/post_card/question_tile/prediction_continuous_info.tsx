@@ -66,8 +66,7 @@ const PredictionContinuousInfo: FC<Props> = ({
             <ContinuousCPBar question={question} />
             <QuestionCPMovement
               question={question}
-              unit={""}
-              className="mx-auto max-w-[110px] md:mx-0"
+              className="mx-auto max-w-[200px] md:mx-0"
               size={"xs"}
               boldValueUnit={true}
             />

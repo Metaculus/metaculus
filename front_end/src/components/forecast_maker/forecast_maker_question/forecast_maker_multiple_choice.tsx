@@ -329,7 +329,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           setIsForecastExpirationModalOpen(false);
         }}
         questionDuration={questionDuration}
-        onReaffirm={isDirty ? undefined : submit}
+        isDirty={isDirty}
+        hasUserForecast={forecastHasValues}
+        isUserForecastActive={isOpenQuestionPredicted(question)}
+        isSubmissionDisabled={!isForecastValid}
+        onSubmit={submit}
       />
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>

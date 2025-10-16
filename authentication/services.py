@@ -22,7 +22,7 @@ def send_activation_email(user: User, redirect_url: str | None):
 
     send_email_with_template(
         user.email,
-        "Metaculus Account Creation",
+        "Activate Your Metaculus Account",
         "emails/activation_email.html",
         context={
             "email": user.email,

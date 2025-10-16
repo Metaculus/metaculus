@@ -101,7 +101,7 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(default=False, db_index=True)
-    text = models.TextField()
+    text = models.TextField(max_length=150_000)
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )
@@ -189,11 +189,42 @@ class KeyFactorQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class KeyFactor(TimeStampedModel, TranslatedModel):
-    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
+class ImpactDirection(models.TextChoices):
+    INCREASE = "increase"
+    DECREASE = "decrease"
+
+
+class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
+    impact_direction = models.CharField(
+        choices=ImpactDirection.choices, null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"Driver {self.text}"
+
+
+class KeyFactor(TimeStampedModel):
+    comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.IntegerField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
+
+    # If KeyFactor is specifically linked to the subquestion
+    question = models.ForeignKey(
+        "questions.Question",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="key_factors",
+    )
+    # If KeyFactor is linked to the MultipleChoice option
+    question_option = models.CharField(
+        null=False, blank=True, max_length=32, default=""
+    )
+
+    driver = models.OneToOneField(
+        KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
+    )
 
     def get_votes_score(self) -> int:
         """
@@ -227,7 +258,7 @@ class KeyFactor(TimeStampedModel, TranslatedModel):
     vote_type: str = None
 
     def __str__(self):
-        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}: {self.text}"
+        return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}"
 
     class Meta:
         # Used to get rid of the type error which complains

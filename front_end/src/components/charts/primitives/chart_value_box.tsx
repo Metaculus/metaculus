@@ -11,7 +11,7 @@ import { ThemeColor } from "@/types/theme";
 const ChartValueBox: FC<{
   x?: number | null;
   y?: number | null;
-  datum?: any;
+  datum?: { y: number };
   isCursorActive: boolean;
   chartWidth: number;
   rightPadding: number;
@@ -106,8 +106,8 @@ const ChartValueBox: FC<{
         {!!resolution && !isCursorActive
           ? resolution
           : getCursorValue
-            ? getCursorValue(datum.y)
-            : datum.y.toFixed(1)}
+            ? getCursorValue(datum?.y as number)
+            : datum?.y.toFixed(1)}
       </text>
     </g>
   );

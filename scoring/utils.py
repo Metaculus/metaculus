@@ -48,34 +48,58 @@ from scoring.models import (
 from scoring.score_math import evaluate_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
-from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
 
 logger = logging.getLogger(__name__)
 
 
-def score_question(
+def get_question_scores(
     question: Question,
-    resolution: str,
-    spot_scoring_time: float | None = None,
+    resolution: str | None,
+    spot_scoring_time: datetime | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    protect_uncalculated_scores: bool = False,
-    score_users: bool | list[int] = True,
-):
+    user_ids: list[int] | None = None,
+) -> list[Score]:
     if aggregation_methods is None:
         aggregation_methods = [
             AggregationMethod.RECENCY_WEIGHTED,
             AggregationMethod.UNWEIGHTED,
         ]
-    resolution_bucket = string_location_to_bucket_index(resolution, question)
     if not spot_scoring_time:
-        sst = question.get_spot_scoring_time()
-        spot_scoring_time = sst.timestamp() if sst else None
+        spot_scoring_time = question.get_spot_scoring_time()
     score_types = score_types or [
         c[0] for c in ScoreTypes.choices if c[0] != ScoreTypes.MANUAL
     ]
 
+    new_scores = evaluate_question(
+        question=question,
+        resolution=resolution,
+        score_types=score_types,
+        spot_forecast_time=spot_scoring_time,
+        aggregation_methods=aggregation_methods,
+        user_ids=user_ids,
+    )
+    return new_scores
+
+
+def score_question(
+    question: Question,
+    resolution: str,
+    spot_scoring_time: datetime | None = None,
+    score_types: list[str] | None = None,
+    aggregation_methods: list[AggregationMethod] | None = None,
+    user_ids: list[int] | None = None,
+    protect_uncalculated_scores: bool = False,
+):
+    new_scores = get_question_scores(
+        question,
+        resolution,
+        spot_scoring_time,
+        score_types,
+        aggregation_methods,
+        user_ids,
+    )
     previous_scores = Score.objects.filter(
         question=question, score_type__in=score_types
     )
@@ -83,15 +107,6 @@ def score_question(
         (score.user_id, score.aggregation_method, score.score_type): score.id
         for score in previous_scores
     }
-    new_scores = evaluate_question(
-        question=question,
-        resolution_bucket=resolution_bucket,
-        score_types=score_types,
-        spot_forecast_timestamp=spot_scoring_time,
-        aggregation_methods=aggregation_methods,
-        score_users=score_users,
-    )
-
     seen = set()
     for new_score in new_scores:
         previous_score_id = previous_scores_map.get(
@@ -473,15 +488,19 @@ def assign_ranks(
 def assign_prize_percentages(
     entries: list[LeaderboardEntry], minimum_prize_percent: float
 ) -> list[LeaderboardEntry]:
-    total_take = sum(e.take for e in entries if not e.excluded and e.take is not None)
-    for entry in entries:
+    # Distribute prize % according to take
+    # anyone who takes less than the minimum gets redistributed up iteratively
+    scoring_take = sum((e.take or 0) * int(not e.excluded) for e in entries)
+    for entry in entries[::-1]:  # start in reverse
         entry.percent_prize = 0
-        if total_take and not entry.excluded and entry.take is not None:
-            percent_prize = entry.take / total_take
-            if percent_prize >= minimum_prize_percent:
-                # only give percent prize if it's above the minimum
-                entry.percent_prize = percent_prize
-    # renormalize percent_prize to sum to 1
+        if entry.excluded or not entry.take:
+            continue
+        percent_prize = entry.take / (scoring_take or 1)
+        if percent_prize < minimum_prize_percent:
+            # remove take from pool since they don't get prize
+            scoring_take -= entry.take
+        else:
+            entry.percent_prize = percent_prize
     percent_prize_sum = sum(entry.percent_prize for entry in entries) or 1
     for entry in entries:
         entry.percent_prize /= percent_prize_sum

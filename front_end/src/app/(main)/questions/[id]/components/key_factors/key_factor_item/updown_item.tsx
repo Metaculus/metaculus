@@ -15,7 +15,12 @@ type Props = {
 };
 
 export const UpdownKeyFactorItem: FC<Props> = ({
-  keyFactor: { text, id, votes_score, user_votes },
+  keyFactor: {
+    driver: { text },
+    id,
+    votes_score,
+    user_votes,
+  },
   linkToComment = true,
   linkAnchor,
   variant = "default",

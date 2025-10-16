@@ -1,5 +1,5 @@
 import { isNil } from "lodash";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
@@ -23,6 +23,7 @@ type Props = {
 const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
   const { hideCP } = useHideCP();
   const locale = useLocale();
+  const t = useTranslations();
 
   // Resolved/Annulled/Ambiguous
   if (question.resolution) {
@@ -49,18 +50,24 @@ const ConsumerBinaryTile: FC<Props> = ({ question, forecastAvailability }) => {
 
   return (
     <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
+      {!isNil(forecastAvailability?.cpRevealsOn) && (
+        <div className="flex min-w-[200px] max-w-[200px] flex-col justify-center gap-1 text-center">
+          <div className="text-xs text-olive-700 dark:text-olive-700-dark md:text-sm">
+            {t("currentEstimate")}
+          </div>
+          <div className="text-lg font-bold text-olive-900 dark:text-olive-900-dark">
+            <UpcomingCP cpRevealsOn={forecastAvailability.cpRevealsOn} />
+          </div>
+        </div>
+      )}
+
       <BinaryCPBar question={question as QuestionWithNumericForecasts} />
+
       {!hideCP && (
         <QuestionCPMovement
           question={question}
           unit={"%"}
           boldValueUnit={true}
-        />
-      )}
-      {!isNil(forecastAvailability?.cpRevealsOn) && (
-        <UpcomingCP
-          cpRevealsOn={forecastAvailability.cpRevealsOn}
-          className="mt-4 text-sm font-normal text-gray-600 dark:text-gray-600-dark"
         />
       )}
     </div>

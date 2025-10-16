@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -26,10 +28,14 @@ export default function QuestionChecklist() {
           “Predict”. You can also use the arrows to refine your probability or
           select the field and type the probability.
         </p>
-        <img
+        <Image
           src="https://metaculus-media.s3.amazonaws.com/binary.gif"
           alt="Binary prediction example"
-          className="my-4"
+          className="my-4 h-auto max-w-full"
+          width={1308}
+          height={480}
+          unoptimized
+          priority
         />
         <p>
           <b>Multiple choice</b> questions ask about more than two (Yes/No)
@@ -37,10 +43,14 @@ export default function QuestionChecklist() {
           should sum to 100%. After inputting probabilities, select auto-sum to
           guarantee they do.
         </p>
-        <img
+        <Image
           src="https://metaculus-media.s3.amazonaws.com/multiple-choice.gif"
           alt="Multiple choice prediction example"
-          className="my-4"
+          className="my-4 h-auto max-w-full"
+          width={1152}
+          height={720}
+          unoptimized
+          priority
         />
         <p>
           The higher the probability you place on the correct outcome, the
@@ -64,20 +74,28 @@ export default function QuestionChecklist() {
           change the shape of your bell curve, and focus your prediction on
           values you think are likely.
         </p>
-        <img
+        <Image
           src="https://metaculus-media.s3.amazonaws.com/numerical.gif"
           alt="Numerical prediction example"
-          className="my-4"
+          className="my-4 h-auto max-w-full"
+          width={1148}
+          height={720}
+          unoptimized
+          priority
         />
         <p>
           If you want to distribute your prediction in more than one section of
           the range, you can add up to four independent bell curves to build
           your distribution and assign a weight to each of them.
         </p>
-        <img
+        <Image
           src="https://metaculus-media.s3.amazonaws.com/numerical2.gif"
           alt="Multiple bell curve prediction example"
-          className="my-4"
+          className="my-4 h-auto max-w-full"
+          width={972}
+          height={716}
+          unoptimized
+          priority
         />
         <p>
           The higher your distribution is on the value that ultimately occurs,

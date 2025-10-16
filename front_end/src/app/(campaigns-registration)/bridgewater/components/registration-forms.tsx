@@ -14,6 +14,7 @@ import {
   registerUserCampaignAction,
   signUpAction,
 } from "@/app/(main)/accounts/actions";
+import { firstErrorFor } from "@/app/(main)/accounts/helpers";
 import {
   generateSignUpSchema,
   SignUpSchema,
@@ -274,7 +275,7 @@ export const RegistrationAndSignupForm: FC<
         } else {
           setError(error as keyof TournamentRegistrationSchema, {
             type: "custom",
-            message: response.errors[error][0],
+            message: firstErrorFor(response.errors, error),
           });
         }
       }
@@ -452,7 +453,7 @@ export const RegistrationForm: FC<
         } else {
           setError(error as keyof TournamentRegistrationSchema, {
             type: "custom",
-            message: response.errors[error][0],
+            message: firstErrorFor(response.errors, error),
           });
         }
       }

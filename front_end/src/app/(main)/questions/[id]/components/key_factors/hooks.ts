@@ -65,6 +65,7 @@ export const useKeyFactors = ({
           setIsLoadingSuggestedKeyFactors(false);
         });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commentId, shouldLoadKeyFactors]);
 
   const { factorsLimit } = useMemo(

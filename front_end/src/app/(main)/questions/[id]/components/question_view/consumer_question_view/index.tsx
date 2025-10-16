@@ -84,8 +84,6 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             </p>
           )}
 
-          {isFanGraph && <QuestionTimeline postData={postData} />}
-
           <QuestionActionButton postData={postData} />
         </div>
 
@@ -96,11 +94,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             QuestionType.Date,
           ].includes(postData.question.type) && (
             <div className="sm:hidden">
-              <KeyFactorsSection
-                postId={postData.id}
-                postStatus={postData.status}
-                variant="compact"
-              />
+              <KeyFactorsSection post={postData} variant="compact" />
             </div>
           )}
 

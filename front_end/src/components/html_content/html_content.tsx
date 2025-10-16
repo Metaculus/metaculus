@@ -1,5 +1,6 @@
 "use client";
 import parse, { domToReact } from "html-react-parser";
+import type { DOMNode, Element } from "html-react-parser";
 import { FC, Fragment, ReactNode, useRef } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
@@ -17,28 +18,30 @@ const HtmlContent: FC<Props> = ({ content, className }) => {
   const toggleKey = useRef<string | null>(null);
   const clearContent = sanitizeHtmlContent(content);
 
-  const transform = (node: any, index: number) => {
-    if (!node.attribs) return undefined;
+  const transform = (node: DOMNode, index: number) => {
+    const el = node as Element;
+    if (!el.attribs) return undefined;
 
-    if (node.attribs["toggle-details"]) {
-      toggleKey.current = node.attribs["toggle-details"];
+    if (el.attribs["toggle-details"]) {
+      toggleKey.current = el.attribs["toggle-details"];
 
-      const titleCandidate = domToReact(node.children);
+      const titleCandidate = domToReact(el.children as DOMNode[]);
       const title = typeof titleCandidate === "string" ? titleCandidate : "";
 
       const contentNodes: ReactNode[] = [];
-      let sibling = node.next;
+      let sibling = el.next;
       let safetyCounter = 0;
 
       while (sibling && safetyCounter < TOGGLE_CHILDREN_LOOKUP_LIMIT) {
-        if (sibling.attribs?.["ng-show"] === toggleKey.current) {
-          contentNodes.push(domToReact([sibling]));
+        const sibEl = sibling as Element;
+        if (sibEl.attribs?.["ng-show"] === toggleKey.current) {
+          contentNodes.push(domToReact([sibEl]));
           break;
         }
 
-        if (sibling.attribs?.["toggle-details"]) break;
+        if (sibEl.attribs?.["toggle-details"]) break;
 
-        sibling = sibling.next;
+        sibling = sibEl.next;
         safetyCounter++;
       }
 
@@ -62,7 +65,7 @@ const HtmlContent: FC<Props> = ({ content, className }) => {
       );
     }
 
-    if (node.attribs?.["ng-show"] === toggleKey.current) {
+    if (el.attribs?.["ng-show"] === toggleKey.current) {
       toggleKey.current = null;
       return <></>;
     }

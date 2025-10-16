@@ -3,7 +3,7 @@ from typing import Iterable
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactor, KeyFactorVote, Comment
+from comments.models import KeyFactor, KeyFactorVote, Comment, KeyFactorDriver
 from posts.models import Post
 from users.models import User
 from utils.dtypes import generate_map_from_list
@@ -61,13 +61,13 @@ def create_key_factors(comment: Comment, key_factors: list[str]):
         )
 
     for key_factor in key_factors:
-        KeyFactor.objects.create(comment=comment, text=key_factor)
+        driver = KeyFactorDriver.objects.create(text=key_factor)
+        KeyFactor.objects.create(comment=comment, driver=driver)
 
 
 def generate_keyfactors_for_comment(
     comment_text: str, existing_keyfactors: list[str], post: Post
 ):
-
     if post.question is None and post.group_of_questions is None:
         raise ValidationError(
             "Key factors can only be generated for questions and question groups"

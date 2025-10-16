@@ -300,6 +300,7 @@ const useNavbarLinks = ({
     return links;
   }, [
     LINKS.about,
+    LINKS.services,
     LINKS.aggregationExplorer,
     LINKS.createQuestion,
     LINKS.faq,

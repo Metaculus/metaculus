@@ -17,6 +17,7 @@ type Props = {
   placement: number | null;
   currentUser: CurrentUser | null;
   onExcludeToggleFinished: (commentId: number, excluded: boolean) => void;
+  expandOverride?: "auto" | "expanded" | "collapsed";
 };
 
 const getTrophyType = (placement: number) => {
@@ -60,6 +61,7 @@ const HighlightedCommentCard: FC<Props> = ({
   placement,
   currentUser,
   onExcludeToggleFinished,
+  expandOverride = "auto",
 }) => {
   const [isProcessing, setIsExcluding] = useState(false);
   const t = useTranslations();
@@ -158,6 +160,7 @@ const HighlightedCommentCard: FC<Props> = ({
         keyFactorVotesScore={key_factor_votes_score}
         votesScore={votes_score}
         className="mt-3 border-t border-gray-300  dark:border-gray-300-dark  md:mt-4"
+        expandOverride={expandOverride}
       />
     </div>
   );

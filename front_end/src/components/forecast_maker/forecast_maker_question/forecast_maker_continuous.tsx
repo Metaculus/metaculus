@@ -120,10 +120,19 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
 
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
-    useState<boolean>(
-      !!previousForecast?.forecast_values &&
-        !previousForecast.distribution_input
-    );
+    useState<boolean>(() => {
+      const hasValues = !!previousForecast?.forecast_values?.length;
+      const isLegacy = !previousForecast?.distribution_input;
+      const isExpired =
+        !!previousForecast?.end_time &&
+        previousForecast.end_time * 1000 < Date.now();
+      return hasValues && (isLegacy || isExpired);
+    });
+
+  const overlayPreviousCdf =
+    overlayPreviousForecast && previousForecast?.forecast_values
+      ? previousForecast.forecast_values
+      : undefined;
 
   // Update states of forecast maker after new forecast is made
   useEffect(() => {
@@ -349,6 +358,19 @@ const ForecastMakerContinuous: FC<Props> = ({
       />
     ) : null;
 
+  const predictButtonIsDirty =
+    forecastInputMode === ContinuousForecastInputType.Slider
+      ? isDirty
+      : quantileDistributionComponents.some((q) => q.isDirty);
+  const predictButtonIsDisabled =
+    forecastInputMode === ContinuousForecastInputType.Quantile
+      ? validateAllQuantileInputs({
+          question,
+          components: quantileDistributionComponents,
+          t,
+        }).length !== 0 || !isNil(submitError)
+      : undefined;
+
   let SubmitControls: ReactNode = null;
   if (canPredict) {
     SubmitControls = (
@@ -388,41 +410,19 @@ const ForecastMakerContinuous: FC<Props> = ({
                 </WithdrawButton>
               )
             )}
-
-            {forecastInputMode === ContinuousForecastInputType.Slider ? (
-              <PredictButton
-                onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                isDirty={isDirty}
-                hasUserForecast={!!previousForecast}
-                isUserForecastActive={hasUserActiveForecast}
-                isPending={isPending}
-                predictLabel={previousForecast ? undefined : t("predict")}
-                predictionExpirationChip={expirationShortChip}
-                onPredictionExpirationClick={() =>
-                  setIsForecastExpirationModalOpen(true)
-                }
-              />
-            ) : (
-              <PredictButton
-                onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                isDirty={quantileDistributionComponents.some((q) => q.isDirty)}
-                hasUserForecast={!!previousForecast}
-                isUserForecastActive={hasUserActiveForecast}
-                isPending={isPending}
-                predictLabel={previousForecast ? undefined : t("predict")}
-                predictionExpirationChip={expirationShortChip}
-                onPredictionExpirationClick={() =>
-                  setIsForecastExpirationModalOpen(true)
-                }
-                isDisabled={
-                  validateAllQuantileInputs({
-                    question,
-                    components: quantileDistributionComponents,
-                    t,
-                  }).length !== 0 || !isNil(submitError)
-                }
-              />
-            )}
+            <PredictButton
+              onSubmit={() => submit(modalSavedState.forecastExpiration)}
+              isDirty={predictButtonIsDirty}
+              hasUserForecast={!!previousForecast}
+              isUserForecastActive={hasUserActiveForecast}
+              isPending={isPending}
+              predictLabel={previousForecast ? undefined : t("predict")}
+              predictionExpirationChip={expirationShortChip}
+              onPredictionExpirationClick={() =>
+                setIsForecastExpirationModalOpen(true)
+              }
+              isDisabled={predictButtonIsDisabled}
+            />
           </div>
           {previousForecastExpiration && (
             <span
@@ -466,14 +466,19 @@ const ForecastMakerContinuous: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={hasUserActiveForecast && !isDirty ? submit : undefined}
+        isDirty={predictButtonIsDirty}
+        hasUserForecast={!!previousForecast}
+        isUserForecastActive={hasUserActiveForecast}
+        onSubmit={submit}
         questionDuration={questionDuration}
+        isSubmissionDisabled={predictButtonIsDisabled}
       />
       <ContinuousInput
         question={question}
         dataset={dataset}
         userCdf={userCdf}
         userPreviousCdf={userPreviousCdf}
+        overlayPreviousCdf={overlayPreviousCdf}
         communityCdf={communityCdf}
         sliderComponents={sliderDistributionComponents}
         onSliderChange={(components) => {

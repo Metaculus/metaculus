@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -266,10 +267,13 @@ const DisclosureSection = () => {
             target="_blank"
             rel="noreferrer"
           >
-            <img
-              className="w-full"
+            <Image
+              className="h-auto w-full max-w-full"
               src="https://metaculus-media.s3.us-west-2.amazonaws.com/TheEconomistMetaculusAI.webp"
               alt="The Economist graph based on data by Metaculus on the question of when will the first general-AI system be devised, tested and announced"
+              width={640}
+              height={708}
+              unoptimized
             />
           </a>
         </div>

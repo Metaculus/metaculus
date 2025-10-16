@@ -1,9 +1,12 @@
 "use client";
 
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { addWeeks, isAfter, format, parse } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useCallback, useEffect, useMemo } from "react";
 
+import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
@@ -36,35 +39,25 @@ const CommentsOfWeekContent: FC<Props> = ({
   const [weekStart, setWeekStart] = useState<Date>(
     parse(initialWeekStart, "yyyy-MM-dd", new Date())
   );
+  const [expandAllMode, setExpandAllMode] = useState<
+    "auto" | "expanded" | "collapsed"
+  >("auto");
+
+  const toggleExpandAll = () => {
+    setExpandAllMode((prev) =>
+      prev === "collapsed" ? "expanded" : "collapsed"
+    );
+  };
+
+  const isVisuallyExpanded = expandAllMode !== "collapsed";
+  const buttonLabel = isVisuallyExpanded ? t("collapseAll") : t("expandAll");
+  const buttonIcon = isVisuallyExpanded ? faChevronUp : faChevronDown;
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
-
-  const fetchCommentsForWeek = useCallback(
-    async (newWeekStart: Date) => {
-      setParam("weekly_top_comments", "true", false);
-      setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
-      shallowNavigateToSearchParams();
-      fetchComments(newWeekStart);
-    },
-    [setParam, shallowNavigateToSearchParams]
-  );
-
-  // Debounced version of fetchCommentsForWeek to prevent rapid API calls
-  const debouncedFetchComments = useDebouncedCallback(
-    fetchCommentsForWeek,
-    500
-  );
-
-  const onWeekChange = useCallback(
-    (newWeekStart: Date) => {
-      setWeekStart(newWeekStart);
-      debouncedFetchComments(newWeekStart);
-    },
-    [debouncedFetchComments]
-  );
 
   const fetchComments = useCallback(async (weekStart: Date) => {
     setIsLoading(true);
@@ -82,6 +75,30 @@ const CommentsOfWeekContent: FC<Props> = ({
     }
   }, []);
 
+  const fetchCommentsForWeek = useCallback(
+    async (newWeekStart: Date) => {
+      setParam("weekly_top_comments", "true", false);
+      setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
+      shallowNavigateToSearchParams();
+      fetchComments(newWeekStart);
+    },
+    [fetchComments, setParam, shallowNavigateToSearchParams]
+  );
+
+  // Debounced version of fetchCommentsForWeek to prevent rapid API calls
+  const debouncedFetchComments = useDebouncedCallback(
+    fetchCommentsForWeek,
+    500
+  );
+
+  const onWeekChange = useCallback(
+    (newWeekStart: Date) => {
+      setWeekStart(newWeekStart);
+      debouncedFetchComments(newWeekStart);
+    },
+    [debouncedFetchComments]
+  );
+
   useEffect(() => {
     if (!startDateParam) {
       return;
@@ -95,6 +112,7 @@ const CommentsOfWeekContent: FC<Props> = ({
     }
     // Listen only for changes in startDateParam - we want to fetch comments only when the user
     // navigates with the browser back/forward in history, and not via the week selector button
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDateParam, fetchComments]);
 
   const onExcludeToggleFinished = (commentId: number, excluded: boolean) => {
@@ -134,12 +152,26 @@ const CommentsOfWeekContent: FC<Props> = ({
         />
       </div>
 
-      <p className="mb-5 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
-        Top comments are determined by comment votes, key factor votes, and
-        minds changed. Bonus points are awarded for strong scores across
-        multiple categories. Only votes cast within a week of a comment count,
-        with rankings finalized after that seven-day period.
-      </p>
+      <div className="relative mb-8">
+        <p className="mb-5 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
+          {t("topCommentsDescription")}
+        </p>
+
+        <Button
+          size="sm"
+          variant="tertiary"
+          onClick={toggleExpandAll}
+          aria-pressed={isVisuallyExpanded}
+          aria-controls="weekly-top-comments-list"
+          className="absolute -bottom-5 right-3 whitespace-nowrap rounded-sm px-[10px] py-[6px]"
+        >
+          <FontAwesomeIcon
+            icon={buttonIcon}
+            className="text-blue-700 dark:text-blue-700-dark"
+          />
+          {buttonLabel}
+        </Button>
+      </div>
       <p
         className={cn(
           "font-bold text-gray-800 dark:text-gray-800-dark",
@@ -172,6 +204,7 @@ const CommentsOfWeekContent: FC<Props> = ({
               placement={commentEntry.placement}
               currentUser={currentUser}
               onExcludeToggleFinished={onExcludeToggleFinished}
+              expandOverride={expandAllMode}
             />
           ))}
         </div>

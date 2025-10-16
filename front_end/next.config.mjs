@@ -30,6 +30,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "metaculus-media.s3.us-west-2.amazonaws.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "metaculus-public.s3.us-west-2.amazonaws.com",
         pathname: "/**",
       },

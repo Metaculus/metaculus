@@ -16,6 +16,9 @@ class SignupSerializer(serializers.ModelSerializer):
         required=False, allow_null=True, allow_blank=True
     )
     newsletter_optin = serializers.BooleanField(required=False, allow_null=True)
+    app_theme = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=32
+    )
     language = serializers.CharField(
         required=False, allow_null=True, allow_blank=True, max_length=32
     )
@@ -40,15 +43,19 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def validate_language(self, value: str):
         try:
-            value = serializers.ChoiceField(
-                choices=settings.LANGUAGES,
-                required=False,
-                allow_null=True,
+            return serializers.ChoiceField(
+                choices=settings.LANGUAGES, required=False, allow_null=True
             ).run_validation(value)
         except serializers.ValidationError:
             return
 
-        return value
+    def validate_app_theme(self, value: str):
+        try:
+            return serializers.ChoiceField(
+                choices=User.AppTheme.choices, required=False, allow_null=True
+            ).run_validation(value)
+        except serializers.ValidationError:
+            return
 
     def validate_add_to_project(self, value):
         try:

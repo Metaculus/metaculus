@@ -14,16 +14,12 @@ import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import useEmbedModalContext from "@/contexts/embed_modal_context";
 import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { useShareMenuItems } from "@/hooks/use_share_menu_items";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
-import {
-  Post,
-  PostStatus,
-  ProjectPermissions,
-  QuestionStatus,
-} from "@/types/post";
+import { Post, PostStatus, ProjectPermissions } from "@/types/post";
 import { getPostEditLink } from "@/utils/navigation";
 
 type Props = {
@@ -35,17 +31,23 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const router = useRouter();
+  const { updateIsOpen: openEmbedModal } = useEmbedModalContext();
 
-  const isUpcoming = post.question?.status === QuestionStatus.UPCOMING;
+  const isUpcoming = new Date(post.open_time).getTime() > Date.now();
   const isAdmin = [ProjectPermissions.ADMIN].includes(post.user_permission);
   const isCurator = [ProjectPermissions.CURATOR].includes(post.user_permission);
+  const isCreator = post.user_permission === ProjectPermissions.CREATOR;
+  const isApproved = post.curation_status === PostStatus.APPROVED;
+
   const allowEdit =
+    // Admins can always edit
     isAdmin ||
-    ([ProjectPermissions.CURATOR, ProjectPermissions.CREATOR].includes(
-      post.user_permission
-    ) &&
-      post.curation_status !== PostStatus.APPROVED);
-  const isLargeScreen = useBreakpoint("md");
+    // Curators or creators can edit if not yet approved
+    ((isCurator || isCreator) && !isApproved) ||
+    // Curators can edit approved posts that are not yet open
+    (isCurator && isApproved && isUpcoming);
+
+  const isLargeScreen = useBreakpoint("lg");
 
   const shareMenuItems = useShareMenuItems({
     questionTitle: post.title,
@@ -122,6 +124,12 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
             name: isSubscribed ? t("followingButton") : t("followButton"),
             onClick: toggleSubscription,
           },
+          {
+            id: "embed",
+            name: t("embed"),
+            className: "capitalize",
+            onClick: () => openEmbedModal(true),
+          },
         ]
       : []),
 
@@ -150,14 +158,20 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
             onClick: () => changePostActivity(-1),
           },
           {
-            id: "duplicate",
-            name: t("duplicate"),
-            link: createDuplicateLink(post),
-          },
-          {
             id: "viewInDjangoAdmin",
             name: t("viewInDjangoAdmin"),
             link: `/admin/posts/post/${post.id}/change`,
+          },
+        ]
+      : []),
+
+    // Include if user is Admin Or Curator
+    ...(isAdmin || isCurator
+      ? [
+          {
+            id: "duplicate",
+            name: t("duplicate"),
+            link: createDuplicateLink(post),
           },
         ]
       : []),

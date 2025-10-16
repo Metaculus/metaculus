@@ -23,7 +23,7 @@ const ContentTranslatedBanner: FC<{ forceVisible?: boolean }> = ({
 
   useEffect(() => {
     setBannerIsVisible(false);
-  }, [pathname, params]);
+  }, [pathname, params, setBannerIsVisible]);
 
   if (!bannerIsVisible && !forceVisible) {
     return null;

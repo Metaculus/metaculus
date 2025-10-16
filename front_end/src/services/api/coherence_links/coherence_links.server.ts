@@ -17,8 +17,8 @@ class ServerCoherenceLinksApiClass extends ApiService {
   async createCoherenceLink(body: {
     question1_id: number;
     question2_id: number;
-    direction: string;
-    strength: string;
+    direction: number;
+    strength: number;
     type: string;
   }): Promise<FetchedCoherenceLinks> {
     return await this.post(`/coherence/links/create/`, body);

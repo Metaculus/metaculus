@@ -121,3 +121,11 @@
 .mdx-content-editable a {
   @apply text-blue-800 decoration-blue-500 underline-offset-2 dark:text-blue-800-dark dark:decoration-blue-500-dark;
 }
+
+.mdxeditor-popup-container [role="dialog"] form > *:has(#link-title) {
+  display: none;
+}
+
+div:has(.prism-code) + p:has(> br:only-child) {
+  display: none;
+}
