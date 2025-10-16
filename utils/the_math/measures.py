@@ -14,7 +14,7 @@ from utils.typing import (
 def weighted_percentile_2d(
     values: ForecastsValues,
     weights: Weights | None = None,
-    percentiles: Percentiles | None = None,
+    percentiles: Percentiles = None,
 ) -> Percentiles:
     values = np.array(values)
     if weights is None:
@@ -64,7 +64,7 @@ def percent_point_function(
     percent_point_function(cdf, [10, 50, 90]) -> [0.0, 0.5, 1.0]
     """
     if return_float := isinstance(percentiles, float | int):
-        percentiles = [percentiles]
+        percentiles = np.array([percentiles])
     ppf_values = []
     for percent in percentiles:
         # percent is a float between 0 and 100
@@ -90,13 +90,13 @@ def percent_point_function(
 
 
 def prediction_difference_for_sorting(
-    p1: ForecastValues, p2: ForecastValues, question: "Question"
+    p1: ForecastValues, p2: ForecastValues, question_type: "Question.QuestionType"
 ) -> float:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
     # Uses Jeffrey's Divergence
-    if question.type in ["binary", "multiple_choice"]:
+    if question_type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
     cdf1 = np.array([1 - np.array(p1), p1])
     cdf2 = np.array([1 - np.array(p2), p2])
