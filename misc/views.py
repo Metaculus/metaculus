@@ -106,6 +106,7 @@ def get_bulletins(request):
     return Response(bulletins_ser)
 
 
+# TODO: return to 24 hr cache after crossing 3M predictions
 @cache_page(60 * 60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
