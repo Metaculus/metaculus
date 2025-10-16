@@ -26,10 +26,6 @@ export const KeyFactorItem: FC<Props> = ({
   mode,
   onClick,
 }) => {
-  const linkAnchor = linkToComment
-    ? `#comment-${keyFactor.comment_id}`
-    : "#key-factors";
-
   const isCompactConsumer = mode === "consumer" && isCompact;
 
   return (
@@ -52,8 +48,6 @@ export const KeyFactorItem: FC<Props> = ({
       {keyFactor.driver && (
         <KeyFactorDriver
           keyFactor={keyFactor}
-          linkAnchor={linkAnchor}
-          linkToComment={linkToComment}
           mode={mode}
           isCompact={isCompact}
           post={post}

@@ -17,8 +17,6 @@ import KeyFactorText from "./key_factor_text";
 
 type Props = {
   keyFactor: KeyFactor;
-  linkToComment?: boolean;
-  linkAnchor: string;
   isCompact?: boolean;
   mode?: "forecaster" | "consumer";
   post: PostWithForecasts;
@@ -26,8 +24,6 @@ type Props = {
 
 const KeyFactorDriver: FC<Props> = ({
   keyFactor,
-  linkToComment = true,
-  linkAnchor,
   isCompact,
   mode = "forecaster",
   post,
@@ -49,8 +45,7 @@ const KeyFactorDriver: FC<Props> = ({
       {!isCompactConsumer && (
         <KeyFactorHeader
           username={keyFactor.author.username}
-          linkAnchor={linkAnchor}
-          linkToComment={linkToComment}
+          linkAnchor={`#comment-${keyFactor.comment_id}`}
           label={t("driver")}
         />
       )}

@@ -126,7 +126,6 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post, isCompact }) => {
             isCompact={isCompact}
             key={`post-key-factor-${kf.id}`}
             keyFactor={kf}
-            linkToComment={!isCompact}
             post={post}
           />
         ))}

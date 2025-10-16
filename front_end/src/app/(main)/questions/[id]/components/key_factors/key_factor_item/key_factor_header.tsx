@@ -8,16 +8,10 @@ type Props = {
   label: string;
   username: string;
   linkAnchor: string;
-  linkToComment?: boolean;
   className?: string;
 };
 
-const KeyFactorHeader: FC<Props> = ({
-  label,
-  username,
-  linkAnchor,
-  linkToComment,
-}) => {
+const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
 
@@ -37,13 +31,11 @@ const KeyFactorHeader: FC<Props> = ({
                   linkAnchor.replace("#", "")
                 );
                 if (target) {
-                  if (linkToComment) {
-                    e.preventDefault();
-                  }
+                  e.preventDefault();
                   scrollTo(target.getBoundingClientRect().top);
                 }
                 sendAnalyticsEvent("KeyFactorClick", {
-                  event_label: linkToComment ? "fromList" : "fromComment",
+                  event_label: "fromList",
                 });
               }}
             >
