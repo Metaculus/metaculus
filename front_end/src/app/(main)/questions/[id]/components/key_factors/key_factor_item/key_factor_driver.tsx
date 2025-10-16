@@ -47,12 +47,15 @@ const KeyFactorDriver: FC<Props> = ({
         { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
       )}
     >
-      <KeyFactorHeader author={keyFactor.author} label={t("driver")} />
+      <KeyFactorHeader
+        username={keyFactor.author.username}
+        linkAnchor={linkAnchor}
+        linkToComment={linkToComment}
+        label={t("driver")}
+      />
 
       <KeyFactorText
         text={keyFactor.driver.text}
-        linkAnchor={variant === "compact" ? undefined : linkAnchor}
-        linkToComment={linkToComment}
         className="text-base leading-5"
       />
 
