@@ -45,19 +45,7 @@ const KeyFactorDriver: FC<Props> = ({
   const isCompactConsumer = mode === "consumer" && isCompact;
 
   return (
-    <div
-      className={cn(
-        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&:hover_.target]:visible",
-        {
-          "bg-gray-0 dark:bg-gray-0-dark": linkToComment,
-          "max-w-[280px]": isCompact || mode === "consumer",
-          "max-w-[164px]": isCompactConsumer,
-          "rounded-xl bg-blue-200 p-5 dark:bg-blue-200-dark":
-            mode === "consumer",
-          "p-4": isCompactConsumer,
-        }
-      )}
-    >
+    <>
       {!isCompactConsumer && (
         <KeyFactorHeader
           username={keyFactor.author.username}
@@ -91,7 +79,7 @@ const KeyFactorDriver: FC<Props> = ({
         allowVotes={mode === "forecaster"}
         mode={mode}
       />
-    </div>
+    </>
   );
 };
 
