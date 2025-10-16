@@ -1,6 +1,6 @@
 "use client";
 
-import { faArrowRight, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,21 +12,14 @@ import Button from "@/components/ui/button";
 import { Dates, Prize } from "./cards-q2";
 import HeroQ2 from "./hero-q2";
 import BotLeaderboard from "./leaderboard-q2";
+import TournamentPager, { TOURNAMENT_ITEMS } from "./tournament-pager";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
   const t = useTranslations();
 
   return (
     <div className="mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4 text-blue-700 dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 dark:text-blue-700-dark">
-      <Link href="/aib/2025/q1" className="mb-3 flex w-full no-underline">
-        <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
-          <FontAwesomeIcon
-            icon={faArrowLeft}
-            className="text-lg md:text-lg min-[1920px]:text-xl"
-          />{" "}
-          Check out final rankings for Q1 - 2025
-        </div>
-      </Link>{" "}
+      <TournamentPager items={TOURNAMENT_ITEMS} />
       <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
