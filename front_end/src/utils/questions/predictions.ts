@@ -36,10 +36,11 @@ export function canPredictQuestion({
   ) {
     return false;
   }
-  if (!projects.default_project.allow_forecast_resubmission) {
-    if (!!question?.my_forecasts?.latest) {
-      return false;
-    }
+  if (
+    !projects.default_project.allow_forecast_resubmission &&
+    !!question?.my_forecasts?.latest
+  ) {
+    return false;
   }
 
   // question-specific checks

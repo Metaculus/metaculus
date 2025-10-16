@@ -101,9 +101,11 @@ def bulk_create_forecasts_api_view(request):
         raise ValidationError("At least one forecast is required")
 
     # Prefetching questions for bulk optimization
-    questions = Question.objects.filter(
-        pk__in=[f["question"] for f in validated_data]
-    ).prefetch_related_post()
+    questions = (
+        Question.objects.filter(pk__in=[f["question"] for f in validated_data])
+        .prefetch_related_post()
+        .prefetch_related("related_posts__post__default_project")
+    )
     questions_map: dict[int, Question] = {q.pk: q for q in questions}
 
     # Replacing prefetched optimized questions
@@ -127,7 +129,7 @@ def bulk_create_forecasts_api_view(request):
                         "error": f"Question {question.id}'s Project does not allow "
                         "resubmission of forecasts !"
                     },
-                    status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             # If resubmission is not allowed, forecast duration is set to infinite
             forecast["end_time"] = None
@@ -135,7 +137,7 @@ def bulk_create_forecasts_api_view(request):
         if not question.open_time or question.open_time > now:
             return Response(
                 {"error": f"Question {question.id} is not open for forecasting yet !"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if (question.scheduled_close_time < now) or (
@@ -143,7 +145,7 @@ def bulk_create_forecasts_api_view(request):
         ):
             return Response(
                 {"error": f"Question {question.id} is already closed to forecasting !"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
     create_forecast_bulk(user=request.user, forecasts=validated_data)
@@ -180,7 +182,7 @@ def bulk_withdraw_forecasts_api_view(request):
                     "error": f"Question {question.id}'s Project does not allow "
                     "withdrawal of forecasts !"
                 },
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         withdrawal["question"] = question  # used in withdraw_foreacst_bulk
@@ -190,7 +192,7 @@ def bulk_withdraw_forecasts_api_view(request):
         if now > withdraw_at:
             return Response(
                 {"error": f"Withdrawal time {withdraw_at} cannot be in the past"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not question:
