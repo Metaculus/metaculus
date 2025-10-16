@@ -1628,5 +1628,11 @@
   "aibSubmitStep1": "Crea una nueva cuenta de bot yendo a la <link>Página del Torneo</link>.",
   "aibSubmitStep2": "Construye tu bot usando las instrucciones proporcionadas.",
   "aibSubmitStep3": "¡Mira cómo tu bot pronostica y compite por premios!",
+  "aibLbBrandLink": "Metaculus FutureEval",
+  "aibLbTitle": "Tabla de clasificación del <br></br> Mejor Modelo",
+  "aibLbSubtitle": "por Puntuación Promedio Base",
+  "aibLbThModel": "Modelo",
+  "aibLbThForecasts": "Pronósticos",
+  "aibLbThAvgScore": "Puntuación Prom.",
   "othersCount": "Otros ({count})"
 }

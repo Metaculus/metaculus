@@ -1628,5 +1628,11 @@
   "aibSubmitStep1": "Vytvořte nový účet bota tím, že přejdete na <link>Turnajovou stránku</link>.",
   "aibSubmitStep2": "Postavte svého bota podle poskytnutých instrukcí.",
   "aibSubmitStep3": "Sledujte, jak váš bot předpovídá a soutěží o ceny!",
+  "aibLbBrandLink": "Metaculus FutureEval",
+  "aibLbTitle": "Žebříčky <br></br> nejlepších modelů",
+  "aibLbSubtitle": "podle průměrného základního skóre",
+  "aibLbThModel": "Model",
+  "aibLbThForecasts": "Prognózy",
+  "aibLbThAvgScore": "Průměrné skóre",
   "othersCount": "Ostatní ({count})"
 }

@@ -1630,5 +1630,11 @@
   "aibSubmitStep1": "通过访问<link>比赛页面</link>创建一个新的机器人账户。",
   "aibSubmitStep2": "根据提供的说明构建您的机器人。",
   "aibSubmitStep3": "观看您的机器人预测并竞争奖金！",
+  "aibLbBrandLink": "Metaculus 未来估值",
+  "aibLbTitle": "顶级模型 <br></br> 排行榜",
+  "aibLbSubtitle": "按平均基线评分",
+  "aibLbThModel": "模型",
+  "aibLbThForecasts": "预测",
+  "aibLbThAvgScore": "平均评分",
   "othersCount": "其他（{count}）"
 }

@@ -1622,5 +1622,11 @@
   "aibSubmitStep1": "Create a new bot account by going to the <link>Tournament Page</link>.",
   "aibSubmitStep2": "Build your bot using the instructions provided.",
   "aibSubmitStep3": "Watch your bot forecast and compete for prizes!",
+  "aibLbBrandLink": "Metaculus FutureEval",
+  "aibLbTitle": "Top Model <br></br> Leaderboards",
+  "aibLbSubtitle": "by Average Baseline Score",
+  "aibLbThModel": "Model",
+  "aibLbThForecasts": "Forecasts",
+  "aibLbThAvgScore": "Avg Score",
   "none": "none"
 }
