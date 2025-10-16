@@ -311,6 +311,12 @@ class LeaderboardEntry(TimeStampedModel):
         Leaderboard, on_delete=models.CASCADE, related_name="entries", null=True
     )
     score = models.FloatField()
+    ci_lower = models.FloatField(
+        null=True, blank=True, help_text="Confidence Interval lower bound"
+    )
+    ci_upper = models.FloatField(
+        null=True, blank=True, help_text="Confidence Interval lower bound"
+    )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
     excluded = models.BooleanField(default=False, db_index=True)

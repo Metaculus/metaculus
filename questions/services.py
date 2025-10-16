@@ -180,7 +180,7 @@ def compute_question_movement(question: Question) -> float | None:
     return prediction_difference_for_sorting(
         cp_now.get_prediction_values(),
         cp_previous.get_prediction_values(),
-        question,
+        question.type,
     )
 
 
@@ -625,9 +625,7 @@ def unresolve_question(question: Question):
     score_question(
         question,
         None,  # None is the equivalent of unsetting scores
-        spot_scoring_time=(
-            spot_scoring_time.timestamp() if spot_scoring_time else None
-        ),
+        spot_scoring_time=spot_scoring_time,
         score_types=score_types,
     )
 

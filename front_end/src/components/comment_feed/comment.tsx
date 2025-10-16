@@ -962,7 +962,7 @@ const Comment: FC<CommentProps> = ({
           cancelDisabled={isPending}
           submitDisabled={
             isPending ||
-            (!keyFactors.some((k) => k.trim() !== "") &&
+            (!keyFactors.some((k) => k.text.trim() !== "") &&
               !suggestedKeyFactors.some((k) => k.selected))
           }
         >
