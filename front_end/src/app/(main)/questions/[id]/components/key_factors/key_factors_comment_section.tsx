@@ -14,7 +14,7 @@ type Props = {
   post: PostWithForecasts;
 };
 
-const KeyFactorsCarousel: FC<Props> = ({ post, comment, keyFactors }) => {
+const KeyFactorsCommentSection: FC<Props> = ({ post, comment, keyFactors }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
 
@@ -53,4 +53,4 @@ const KeyFactorsCarousel: FC<Props> = ({ post, comment, keyFactors }) => {
   );
 };
 
-export default KeyFactorsCarousel;
+export default KeyFactorsCommentSection;
