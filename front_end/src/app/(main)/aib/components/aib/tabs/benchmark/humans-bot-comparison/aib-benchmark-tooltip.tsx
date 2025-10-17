@@ -33,7 +33,7 @@ const AIBBenchmarkTooltip: FC<Props> = ({
   const displayOrder = order ?? DEFAULT_ORDER;
 
   const keyToI18n: Record<SeriesKey, string> = {
-    baseline: "aibLegendBaselineShort",
+    baseline: "aibLegendBaseline",
     pros: "aibLegendPros",
     bots: "aibLegendBots",
   };
