@@ -344,7 +344,7 @@ const AIBBenchmarkChart: FC<Props> = ({ data, className }) => {
                 baseline: colorOf("baseline"),
               }}
               labels={{
-                baseline: t("aibLegendBaselineShort"),
+                baseline: t("aibLegendBaseline"),
                 pros: t("aibLegendPros"),
                 bots: t("aibLegendBots"),
               }}

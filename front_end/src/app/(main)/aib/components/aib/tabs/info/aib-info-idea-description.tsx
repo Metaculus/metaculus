@@ -44,7 +44,18 @@ const AIBInfoIdeaDescription: React.FC = () => {
     {
       icon: faBrain,
       title: t("aibIdeaCard3Title"),
-      content: <p>{t("aibIdeaCard3P1")}</p>,
+      content: (
+        <>
+          <p>{t("aibIdeaCard2P1")}</p>
+          <p>
+            {t.rich("aibIdeaCard2P2", {
+              link: (chunks) => (
+                <Link href="/notebooks/38928/aib-resource-page/">{chunks}</Link>
+              ),
+            })}
+          </p>
+        </>
+      ),
     },
   ] as const;
 
