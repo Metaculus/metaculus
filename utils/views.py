@@ -210,6 +210,7 @@ def validate_data_request(request: Request, **kwargs):
         filename = post.short_title or post.title
     elif project:
         filename = project.slug or project.name
+    filename = filename.replace("\n", "").replace("\r", "")
     for char in [" ", "-", "/", ":", ",", "."]:
         filename = filename.replace(char, "_")
     filename = filename.replace("?", "")
