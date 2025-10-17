@@ -3,6 +3,7 @@ from typing import Self, Union
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from utils.the_math.aggregations import AGGREGATIONS
 from questions.types import AggregationMethod
 from users.models import User
 
@@ -76,13 +77,15 @@ class DataGetRequestSerializer(serializers.Serializer):
     include_comments = serializers.BooleanField(required=False, default=False)
     include_scores = serializers.BooleanField(required=False, default=True)
     include_user_data = serializers.BooleanField(required=False, allow_null=True)
-    user_ids = serializers.ListField(
+    only_include_user_ids = serializers.ListField(
         child=serializers.IntegerField(), required=False, allow_null=True
     )
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     anonymized = serializers.BooleanField(required=False)
+    joined_before = serializers.DateTimeField(required=False)
 
     def validate_aggregation_methods(self, value: str | None):
+        valid_aggregation_methods = [aggregation.method for aggregation in AGGREGATIONS]
         if value is None:
             return
         user: User = self.context.get("user")
@@ -97,7 +100,7 @@ class DataGetRequestSerializer(serializers.Serializer):
             return aggregation_methods
         methods: list[str] = [v.strip() for v in value.split(",")]
         invalid_methods = [
-            method for method in methods if method not in AggregationMethod.values
+            method for method in methods if method not in valid_aggregation_methods
         ]
         if invalid_methods:
             raise serializers.ValidationError(
@@ -111,15 +114,15 @@ class DataGetRequestSerializer(serializers.Serializer):
             ]
         return methods
 
-    def validate_user_ids(self, user_ids: list[int]):
-        if not user_ids:
-            return user_ids
+    def validate_user_ids(self, only_include_user_ids: list[int]):
+        if not only_include_user_ids:
+            return only_include_user_ids
         if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
-                "Please remove user_ids parameter."
+                "Please remove only_include_user_ids parameter."
             )
-        uids = [int(user_id) for user_id in user_ids]
+        uids = [int(user_id) for user_id in only_include_user_ids]
         return uids
 
     def validate(self, attrs):
@@ -134,9 +137,10 @@ class DataGetRequestSerializer(serializers.Serializer):
             "include_comments",
             "include_scores",
             "include_user_data",
-            "user_ids",
+            "only_include_user_ids",
             "include_bots",
             "anonymized",
+            "joined_before",
         }
         input_fields = set(self.initial_data.keys())
         unexpected_fields = input_fields - allowed_fields
@@ -145,15 +149,17 @@ class DataGetRequestSerializer(serializers.Serializer):
 
         # Aggregation validation logic
         aggregation_methods = attrs.get("aggregation_methods")
-        user_ids = attrs.get("user_ids")
+        only_include_user_ids = attrs.get("only_include_user_ids")
         include_bots = attrs.get("include_bots")
         minimize = attrs.get("minimize", True)
 
         if not aggregation_methods and (
-            (user_ids is not None) or (include_bots is not None) or not minimize
+            (only_include_user_ids is not None)
+            or (include_bots is not None)
+            or not minimize
         ):
             raise serializers.ValidationError(
-                "If user_ids, include_bots, or minimize is set, "
+                "If only_include_user_ids, include_bots, or minimize is set, "
                 "aggregation_methods must also be set."
             )
 
@@ -173,12 +179,12 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
         child=serializers.IntegerField(), required=False, allow_null=True
     )
 
-    def validate_aggregation_methods(self, methods: str | None):
+    def validate_aggregation_methods(self, methods: list[str] | None):
         if methods is None:
             return
         user: User = self.context.get("user")
         invalid_methods = [
-            method for method in methods if method not in AggregationMethod.values
+            method for method in methods if method not in AggregationMethod
         ]
         if invalid_methods:
             raise serializers.ValidationError(

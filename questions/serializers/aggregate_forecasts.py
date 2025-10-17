@@ -68,22 +68,14 @@ def serialize_question_aggregations(
     Please note: aggregate_forecasts need to be in "start_time" ascending order!
     """
 
-    aggregations = [
-        AggregationMethod.RECENCY_WEIGHTED,
-        AggregationMethod.UNWEIGHTED,
-        AggregationMethod.SINGLE_AGGREGATION,
-        AggregationMethod.METACULUS_PREDICTION,
-    ]
-
-    serialized_data = {
-        aggregation_type: {
+    serialized_data: dict[str, dict] = defaultdict(
+        lambda: {
             "history": [],
             "latest": None,
             "score_data": {},
             "movement": None,
         }
-        for aggregation_type in aggregations
-    }
+    )
 
     if aggregate_forecasts is not None:
         aggregate_forecasts_by_method: dict[

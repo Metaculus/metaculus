@@ -78,7 +78,7 @@ def get_question_scores(
         score_types=score_types,
         spot_forecast_time=spot_scoring_time,
         aggregation_methods=aggregation_methods,
-        user_ids=user_ids,
+        only_include_user_ids=user_ids,
     )
     return new_scores
 
