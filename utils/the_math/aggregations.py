@@ -142,8 +142,8 @@ def compute_weighted_semi_standard_deviations(
 
 class Weighted:
 
-    def __init__(self, question: Question, **kwargs):
-        self.question = question
+    def __init__(self, **kwargs):
+        pass
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         raise NotImplementedError("Implement in Child Class")
@@ -173,6 +173,10 @@ class RecencyWeighted(Weighted):
 class NoOutliers(Weighted):
     """Removes the most extreme 20% of forecasts measured by Jeffreys Divergence"""
 
+    def __init__(self, question: Question, **kwargs):
+        self.question = question
+        super().__init__(question=question, **kwargs)
+
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         forecasts_values = forecast_set.forecasts_values
         if len(forecasts_values) <= 2:
@@ -191,6 +195,58 @@ class NoOutliers(Weighted):
         return mask
 
 
+# FilterWeightings ##########################################
+
+
+class Filtered(Weighted):
+    """Filter by user (yes, no)"""
+
+    def __init__(self, user_ids: list[int] | set[int] | None, **kwargs):
+        if user_ids is None:
+            raise ValueError("user_ids must be provided")
+        self.filter: set[int] = self.get_filter(user_ids)
+
+    def get_filter(self, user_ids: list[int] | set[int]) -> set[int]:
+        raise NotImplementedError("Implement in Child Class")
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        return np.array([user_id in self.filter for user_id in forecast_set.user_ids])
+
+
+class JoinedBeforeFiltered(Filtered):
+    """Filters for only forecasts by users who joined before a given date"""
+
+    def __init__(self, joined_before: datetime | None, **kwargs):
+        if joined_before is None:
+            raise ValueError("joined_before must be provided")
+        self.joined_before = joined_before
+        super().__init__(joined_before=joined_before, **kwargs)
+
+    def get_filter(self, user_ids: list[int] | set[int]) -> set[int]:
+        from users.models import User
+
+        return set(
+            User.objects.filter(
+                id__in=user_ids,
+                date_joined__lte=self.joined_before,
+            ).values_list("id", flat=True)
+        )
+
+
+class ProsFiltered(Filtered):
+    """Filters for only forecasts by Pro users"""
+
+    def get_filter(self, user_ids: list[int] | set[int]) -> set[int]:
+        from users.models import User
+
+        return set(
+            User.objects.filter(
+                id__in=user_ids,
+                metadata__pro_details__isnull=False,
+            ).values_list("id", flat=True)
+        )
+
+
 # ReputationWeightings ##########################################
 
 
@@ -199,22 +255,17 @@ class ReputationWeighted(Weighted):
     Requires `get_reputation_history`"""
 
     def __init__(
-        self,
-        question: Question,
-        user_ids: list[int] | set[int] | None,
-        key_timestep: datetime | None = None,
+        self, question: Question, user_ids: list[int] | set[int] | None, **kwargs
     ):
         if question is None or user_ids is None:
             raise ValueError("question and user_ids must be provided")
         self.question = question
         self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
-            user_ids, key_timestep
+            user_ids
         )
 
     def get_reputation_history(
-        self,
-        user_ids: list[int] | set[int],
-        key_timestep: datetime | None = None,
+        self, user_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
@@ -237,7 +288,7 @@ class ReputationWeighted(Weighted):
         return np.array([reputation.value for reputation in reps])
 
 
-class PeerScoreWeighted(ReputationWeighted):
+class PeerScoreReputationWeighted(ReputationWeighted):
 
     @staticmethod
     def reputation_value(scores: Sequence[Score]) -> float:
@@ -250,7 +301,6 @@ class PeerScoreWeighted(ReputationWeighted):
     def get_reputation_history(
         self,
         user_ids: list[int] | set[int],
-        key_timestep: datetime | None = None,
     ) -> dict[int, list[Reputation]]:
 
         start = self.question.open_time
@@ -315,7 +365,7 @@ class PeerScoreWeighted(ReputationWeighted):
         return weights if weights.size else None
 
 
-class MedalistsFilter(ReputationWeighted):
+class MedalistsReputationWeighted(ReputationWeighted):
     """Filters out forecasts by users with no medals"""
 
     medal_filter = Q(medal__isnull=False)
@@ -323,7 +373,6 @@ class MedalistsFilter(ReputationWeighted):
     def get_reputation_history(
         self,
         user_ids: list[int] | set[int],
-        key_timestep: datetime | None = None,
     ) -> dict[int, list[Reputation]]:
         start = self.question.open_time
         end = self.question.scheduled_close_time
@@ -362,7 +411,7 @@ class MedalistsFilter(ReputationWeighted):
         return reputations
 
 
-class SilverMedalistsFilter(MedalistsFilter):
+class SilverMedalistsReputationWeighted(MedalistsReputationWeighted):
     """Filters for only forecasts by users with silver or better medals"""
 
     medal_filter = Q(
@@ -373,36 +422,17 @@ class SilverMedalistsFilter(MedalistsFilter):
     )
 
 
-class GoldMedalistsFilter(MedalistsFilter):
+class GoldMedalistsReputationWeighted(MedalistsReputationWeighted):
     """Filters for only forecasts by users with gold medals"""
 
     medal_filter = Q(medal=LeaderboardEntry.Medals.GOLD)
 
 
-class ProsFilter(ReputationWeighted):
-    """Filters for only forecasts by Pro users"""
-
-    medal_filter = Q(medal__isnull=False)
-
-    def get_reputation_history(
-        self,
-        user_ids: list[int] | set[int],
-        key_timestep: datetime | None = None,
-    ) -> dict[int, list[Reputation]]:
-        pro_ids = [1, 2, 3]
-        reputations: dict[int, list[Reputation]] = defaultdict(list)
-        for pro_id in pro_ids:
-            reputations[pro_id].append(Reputation(pro_id, 1, datetime.min))
-        return reputations
-
-
-class Experienced25ResolvedFilter(ReputationWeighted):
+class Experienced25ResolvedReputationWeighted(ReputationWeighted):
     """Filters out Forecasters with fewer than 25 resolved questions"""
 
     def get_reputation_history(
-        self,
-        user_ids: list[int] | set[int],
-        key_timestep: datetime | None = None,
+        self, user_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         start = self.question.open_time
         end = self.question.scheduled_close_time
@@ -466,7 +496,7 @@ class AggregatorMixin:
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
     ) -> np.ndarray:
-        raise NotImplementedError("Implement in subclass")
+        raise NotImplementedError("Implementation required in Mixin")
 
     def get_range_values(
         self,
@@ -474,7 +504,7 @@ class AggregatorMixin:
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
     ) -> RangeValuesType:
-        raise NotImplementedError("Implement in subclass")
+        raise NotImplementedError("Implementation required in Mixin")
 
 
 class IgnorantAggregatorMixin:
@@ -604,10 +634,8 @@ class MeanAggregatorMixin:
         return lowers, centers, uppers
 
 
-class LogOddsMeanAggregatorMixin:
+class LogOddsMeanAggregatorMixin(MeanAggregatorMixin):
     """Takes the mean of the natural log of odds of forecast values"""
-
-    question: Question
 
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
@@ -726,27 +754,27 @@ class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
 
 class SingleAggregation(MeanAggregatorMixin, Aggregation):
     method = AggregationMethod.SINGLE_AGGREGATION
-    weighting_classes = [PeerScoreWeighted]
+    weighting_classes = [PeerScoreReputationWeighted]
 
 
 class MedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.MEDALISTS
-    weighting_classes = [MedalistsFilter]
+    weighting_classes = [MedalistsReputationWeighted]
 
 
 class SilverMedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.SILVER_MEDALISTS
-    weighting_classes = [SilverMedalistsFilter]
+    weighting_classes = [SilverMedalistsReputationWeighted]
 
 
 class GoldMedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.GOLD_MEDALISTS
-    weighting_classes = [GoldMedalistsFilter]
+    weighting_classes = [GoldMedalistsReputationWeighted]
 
 
 class Experienced25ResolvedAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.EXPERIENCED_USERS_25_RESOLVED
-    weighting_classes = [Experienced25ResolvedFilter]
+    weighting_classes = [Experienced25ResolvedReputationWeighted]
 
 
 class IgnoranceAggregation(IgnorantAggregatorMixin, Aggregation):
@@ -766,14 +794,14 @@ class RecencyWeightedMeanNoOutliersAggregation(MeanAggregatorMixin, Aggregation)
 
 class RecencyWeightedMedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.RECENCY_WEIGHTED_MEDALISTS
-    weighting_classes = [RecencyWeighted, MedalistsFilter]
+    weighting_classes = [RecencyWeighted, MedalistsReputationWeighted]
 
 
 class RecencyWeightedExperienced25ResolvedAggregation(
     MedianAggregatorMixin, Aggregation
 ):
     method = AggregationMethod.RECENCY_WEIGHTED_EXPERIENCED_USERS_25_RESOLVED
-    weighting_classes = [RecencyWeighted, Experienced25ResolvedFilter]
+    weighting_classes = [RecencyWeighted, Experienced25ResolvedReputationWeighted]
 
 
 class RecencyWeightedLogOddsNoOutliersAggregation(
