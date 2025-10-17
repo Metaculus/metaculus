@@ -16,13 +16,13 @@ const AIBBenchmarkTab: React.FC = () => {
       </div>
 
       <div>
-        <AIBBenchmarkBotsVsHumansSubsectionHeader />
-        <AIBBenchmarkHumansBotComparison />
+        <AIBBenchmarkForecastingPerformanceHeader />
+        <AIBBenchmarkForecastingPerformance />
       </div>
 
       <div>
-        <AIBBenchmarkForecastingPerformanceHeader />
-        <AIBBenchmarkForecastingPerformance />
+        <AIBBenchmarkBotsVsHumansSubsectionHeader />
+        <AIBBenchmarkHumansBotComparison />
       </div>
     </>
   );

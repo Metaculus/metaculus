@@ -35,6 +35,13 @@ const AIBBenchmarkModels: React.FC = () => {
     return (s: number) => (minPct + ((s - min) / span) * (1 - minPct)) * 100;
   }, [entries]);
 
+  const getDisplayName = (entry: (typeof entries)[number]) => {
+    if (entry.user) return entry.user.username;
+    if (entry.aggregation_method === "recency_weighted")
+      return t("communityPrediction");
+    return entry.aggregation_method ?? "Aggregate";
+  };
+
   return (
     <div className="mt-[20px] space-y-2 md:mt-[43px]">
       <p className="m-0 flex justify-between font-normal text-gray-700 antialiased dark:text-gray-700-dark">
@@ -43,18 +50,20 @@ const AIBBenchmarkModels: React.FC = () => {
       </p>
 
       {visible.map((entry) => {
-        const username = entry.user?.username ?? "Unnamed Model";
-        const meta = getBotMeta(username);
+        const meta = getBotMeta(entry.user?.username ?? "");
+        const name = meta ? meta.label : getDisplayName(entry);
         const widthPct = scalePct(entry.score);
+
+        const forecasts = entry.contribution_count ?? 0;
 
         return (
           <AIBBenchmarkModel
-            key={username}
+            key={String(entry.user?.id ?? name)}
             widthPct={widthPct}
             model={{
-              id: String(entry.user?.id ?? username),
-              name: meta.label,
-              forecasts: entry.coverage,
+              id: String(entry.user?.id ?? name),
+              name,
+              forecasts,
               score: entry.score,
               icon: meta.icon,
             }}

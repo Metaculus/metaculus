@@ -74,16 +74,7 @@ export const AIBBenchmarkForecastingPerformanceHeader: React.FC = () => {
   return (
     <AIBBenchmarkSubsectionHeader
       title={t("aibPerfOverTimeTitle")}
-      subtitle={t.rich("aibPerfOverTimeSubtitle", {
-        link: (chunks) => (
-          <Link
-            className="text-blue-600 dark:text-blue-600-dark"
-            href="/aib/2025/q1"
-          >
-            {chunks}
-          </Link>
-        ),
-      })}
+      subtitle={t.rich("aibPerfOverTimeSubtitle")}
     />
   );
 };
