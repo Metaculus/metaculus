@@ -19,7 +19,6 @@ from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers.common import serialize_question
-from questions.services import get_user_last_forecasts_map
 
 
 @api_view(["POST"])
