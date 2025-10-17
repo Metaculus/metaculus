@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 from django.contrib import admin
@@ -7,7 +8,12 @@ from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.models import Forecast
-from users.models import User, UserCampaignRegistration, UserSpamActivity
+from users.models import (
+    USER_METADATA_SCHEMA,
+    User,
+    UserCampaignRegistration,
+    UserSpamActivity,
+)
 from users.services.spam_detection import (
     CONFIDENCE_THRESHOLD,
     check_profile_data_for_spam,
@@ -150,6 +156,18 @@ class UserAdmin(admin.ModelAdmin):
         ForecastedFilter,
         BioLengthFilter,
     ]
+    readonly_fields = ("metadata_schema_display",)
+
+    def metadata_schema_display(self, obj):
+        schema_json = json.dumps(USER_METADATA_SCHEMA, indent=2, sort_keys=True)
+        return format_html(
+            "<details><summary>Show allowed metadata schema</summary>"
+            '<pre style="margin-top:0;">{}</pre>'
+            "</details>",
+            schema_json,
+        )
+
+    metadata_schema_display.short_description = "Metadata schema reference"
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -239,6 +257,14 @@ class UserAdmin(admin.ModelAdmin):
             if is_spam:
                 user.mark_as_spam()
                 send_deactivation_email(user.email)
+
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+        for field in ("metadata", "metadata_schema_display"):
+            if field in fields:
+                fields.remove(field)
+            fields.append(field)
+        return fields
 
 
 @admin.register(UserCampaignRegistration)

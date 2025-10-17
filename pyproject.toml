@@ -30,6 +30,7 @@ django-storages = {extras = ["s3"], version = "^1.14.3"}
 pillow = "^10.3.0"
 setuptools = "78.1.1"
 jinja2 = "^3.1.6"
+jsonschema = "^4.23.0"
 apscheduler = "^3.10.4"
 openai = "^1.36.0"
 pgvector = "^0.3.2"
