@@ -38,11 +38,12 @@ const KeyFactorDriver: FC<Props> = ({
       questionType
     );
 
-  const isCompactConsumer = mode === "consumer" && isCompact;
+  const isConsumer = mode === "consumer";
+  const isCompactConsumer = isConsumer && isCompact;
 
   return (
     <>
-      {!isCompactConsumer && (
+      {!isConsumer && (
         <KeyFactorHeader
           username={keyFactor.author.username}
           linkAnchor={`#comment-${keyFactor.comment_id}`}
@@ -53,7 +54,7 @@ const KeyFactorDriver: FC<Props> = ({
       <KeyFactorText
         text={keyFactor.driver.text}
         className={cn("text-base leading-5", {
-          "text-sm": mode === "consumer",
+          "text-sm": isConsumer,
           "text-xs": isCompactConsumer,
         })}
       />

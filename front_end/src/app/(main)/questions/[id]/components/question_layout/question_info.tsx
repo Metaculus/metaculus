@@ -20,11 +20,13 @@ import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 type Props = {
   postData: PostWithForecasts;
   preselectedGroupQuestionId: number | undefined;
+  isConsumer?: boolean;
 };
 
 const QuestionInfo: React.FC<Props> = ({
   postData,
   preselectedGroupQuestionId,
+  isConsumer,
 }) => {
   const t = useTranslations();
   return (
@@ -32,7 +34,7 @@ const QuestionInfo: React.FC<Props> = ({
       <ResolutionCriteria post={postData} />
       {isConditionalPost(postData) && <ConditionalTimeline post={postData} />}
 
-      <KeyFactorsSection post={postData} />
+      {!isConsumer && <KeyFactorsSection post={postData} />}
 
       <CoherenceLinks post={postData}></CoherenceLinks>
 

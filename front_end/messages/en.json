@@ -1111,6 +1111,7 @@
   "finishRegistration": "Finish Registration",
   "keyFactor": "Key Factor",
   "keyFactors": "Key Factors",
+  "topKeyFactors": "Top Key Factors",
   "notAvailable": "Not available",
   "indexesTitle": "Project",
   "indexScore": "Index value: <bold>{value}</bold>",

@@ -83,6 +83,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <QuestionInfo
                 postData={postData}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
+                isConsumer={true}
               />
             </TabsSection>
           </Tabs>
@@ -91,6 +92,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
           <QuestionInfo
             postData={postData}
             preselectedGroupQuestionId={preselectedGroupQuestionId}
+            isConsumer={true}
           />
         </div>
       </QuestionSection>

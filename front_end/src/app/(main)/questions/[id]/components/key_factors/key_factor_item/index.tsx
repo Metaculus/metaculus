@@ -16,6 +16,7 @@ type Props = {
   isCompact?: boolean;
   mode?: "forecaster" | "consumer";
   onClick?: () => void;
+  className?: string;
 };
 
 export const KeyFactorItem: FC<Props> = ({
@@ -25,6 +26,7 @@ export const KeyFactorItem: FC<Props> = ({
   isCompact,
   mode,
   onClick,
+  className,
 }) => {
   const isCompactConsumer = mode === "consumer" && isCompact;
 
@@ -41,7 +43,8 @@ export const KeyFactorItem: FC<Props> = ({
           "p-4": isCompactConsumer,
           "cursor-pointer hover:border-blue-500 dark:hover:border-blue-500-dark":
             !!onClick,
-        }
+        },
+        className
       )}
       onClick={onClick}
     >
