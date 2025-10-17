@@ -1,9 +1,10 @@
 import { StaticImageData } from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { ComponentType, SVGProps } from "react";
+import React from "react";
 
-import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg";
+import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
+import openAiIconDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
 
 import { IconDisplay } from "../../../aib-icon-display";
 
@@ -14,14 +15,14 @@ type Props = {
     name: string;
     forecasts: number;
     score: number;
-    iconLight?: StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
-    iconDark?: StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
+    iconLight?: StaticImageData | string;
+    iconDark?: StaticImageData | string;
   };
 };
 const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
   const t = useTranslations();
   const lightSrc = model.iconLight ?? openAiIcon;
-  const darkSrc = model.iconDark ?? model.iconLight ?? openAiIcon;
+  const darkSrc = model.iconDark ?? model.iconLight ?? openAiIconDark;
   const score = Math.round(model.score * 100) / 100;
   const forecasts = Math.round(model.forecasts * 1000) / 1000;
 
