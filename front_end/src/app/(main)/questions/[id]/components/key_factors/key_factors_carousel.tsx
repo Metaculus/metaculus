@@ -4,14 +4,16 @@ import React from "react";
 
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 import { useBreakpoint } from "@/hooks/tailwind";
+import cn from "@/utils/core/cn";
 
 type Props<T> = {
   items: T[];
   renderItem: (item: T) => React.ReactNode;
+  listClassName?: string;
 };
 
 function KeyFactorsCarousel<T>(props: Props<T>) {
-  const { items, renderItem } = props;
+  const { items, renderItem, listClassName } = props;
 
   const isDesktop = useBreakpoint("sm");
 
@@ -39,7 +41,7 @@ function KeyFactorsCarousel<T>(props: Props<T>) {
       }
       itemClassName=""
       gapClassName="gap-2.5"
-      listClassName="px-0"
+      listClassName={cn("px-0", listClassName)}
       gradientFromClass="from-gray-0 dark:from-gray-0-dark"
       renderItem={(item) => renderItem(item)}
     />

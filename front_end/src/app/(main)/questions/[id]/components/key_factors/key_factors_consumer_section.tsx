@@ -18,12 +18,16 @@ const KeyFactorsConsumerSection: FC<Props> = ({ post, keyFactors }) => {
   const t = useTranslations();
 
   return (
-    <div className="mt-8 flex flex-col" id="key-factors">
-      <div className="mb-4 text-sm text-blue-800 dark:text-blue-800-dark">
+    <div
+      className="-ml-4 mt-8 flex w-[calc(100%+32px)] flex-col sm:ml-0 sm:w-full"
+      id="key-factors"
+    >
+      <div className="mb-4 pl-4 text-sm text-blue-800 dark:text-blue-800-dark sm:pl-0">
         {t("topKeyFactors")}
       </div>
 
       <KeyFactorsCarousel
+        listClassName="[&>:first-child]:pl-4 [&>:last-child]:pr-4 sm:[&>:first-child]:pl-0 sm:[&>:last-child]:pr-0"
         items={keyFactors}
         renderItem={(kf) => (
           <KeyFactorItem
