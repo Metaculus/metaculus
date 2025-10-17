@@ -19,14 +19,10 @@ def migrate_strength_vote_score(score: int):
     score = abs(score)
 
     return {
-        # No
-        0: 0,
-        # Low
-        2: 1,
-        # Medium
-        3: 2,
-        # Heigh
-        5: 5,
+        0: 0,  # No
+        2: 1,  # Low
+        3: 2,  # Medium
+        5: 5,  # High
     }[score]
 
 
@@ -43,7 +39,11 @@ def votes_migration(apps, schema_editor):
     votes_qs = KeyFactorVote.objects.order_by(
         "key_factor_id", "user_id", "-created_at"
     ).distinct("key_factor_id", "user_id")
-    KeyFactorVote.objects.exclude(pk__in=votes_qs).delete()
+
+    to_delete = KeyFactorVote.objects.exclude(pk__in=votes_qs)
+    logger.info(f"Deleting {to_delete.count()} duplicated KeyFactor votes")
+
+    to_delete.delete()
 
     # Migrate other votes
     key_factors = list(KeyFactor.objects.prefetch_related("votes").all())
@@ -124,9 +124,18 @@ class Migration(migrations.Migration):
                 fields=("user_id", "key_factor_id"), name="votes_unique_user_key_factor"
             ),
         ),
+        migrations.AlterField(
+            model_name="keyfactorvote",
+            name="vote_type",
+            field=models.CharField(
+                choices=[("strength", "Strength"), ("direction", "Direction")],
+                default="direction",
+                max_length=20,
+            ),
+        ),
         migrations.AddField(
             model_name="keyfactordriver",
             name="certainty",
-            field=models.SmallIntegerField(blank=True, null=True),
+            field=models.FloatField(blank=True, null=True),
         ),
     ]
