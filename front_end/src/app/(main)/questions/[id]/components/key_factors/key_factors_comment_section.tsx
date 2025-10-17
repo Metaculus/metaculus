@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
-import ReusableGradientCarousel from "@/components/gradient-carousel";
+import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType, KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
@@ -14,7 +14,7 @@ type Props = {
   post: PostWithForecasts;
 };
 
-const KeyFactorsCommentSection: FC<Props> = ({ post, comment, keyFactors }) => {
+const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
 
@@ -24,13 +24,8 @@ const KeyFactorsCommentSection: FC<Props> = ({ post, comment, keyFactors }) => {
         {t("keyFactors")}
       </div>
 
-      <ReusableGradientCarousel<(typeof keyFactors)[number]>
-        wheelToHorizontal={false}
+      <KeyFactorsCarousel
         items={keyFactors}
-        itemClassName=""
-        gapClassName="gap-2.5"
-        listClassName="px-0"
-        gradientFromClass="from-gray-0 dark:from-gray-0-dark"
         renderItem={(kf) => (
           <KeyFactorItem
             keyFactor={kf}

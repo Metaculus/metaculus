@@ -7,15 +7,18 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import cn from "@/utils/core/cn";
 
 type SlideBy = { mode: "page" } | { mode: "items"; count: number };
+type CarouselNavState = { canPrev: boolean; canNext: boolean };
+type GradientVisibility = boolean | { left: boolean; right: boolean };
+type Resolver<T> = boolean | ((state: CarouselNavState) => T);
 type Props<T> = {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
   itemClassName?: string;
   gapClassName?: string;
   slideBy?: SlideBy;
-  showGradients?: boolean;
+  showGradients?: Resolver<GradientVisibility>;
   gradientFromClass?: string;
-  showArrows?: boolean;
+  showArrows?: Resolver<boolean>;
   arrowClassName?: string;
   prevLabel?: string;
   nextLabel?: string;
@@ -127,6 +130,26 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
     [loop, slideBy]
   );
 
+  const arrowsVisible =
+    typeof showArrows === "function"
+      ? showArrows({ canPrev, canNext })
+      : showArrows;
+
+  const gradients =
+    typeof showGradients === "function"
+      ? showGradients({ canPrev, canNext })
+      : showGradients;
+
+  let leftGradientVisible, rightGradientVisible;
+
+  if (typeof gradients === "boolean") {
+    leftGradientVisible = gradients && canPrev;
+    rightGradientVisible = gradients && canNext;
+  } else {
+    leftGradientVisible = !!gradients?.left && canPrev;
+    rightGradientVisible = !!gradients?.right && canNext;
+  }
+
   return (
     <div className={cn("relative", className)}>
       <div
@@ -156,35 +179,33 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
         </div>
       </div>
 
-      {showGradients && (
-        <>
-          {canPrev && (
-            <div
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute inset-y-0 left-0 w-[152px]",
-                "bg-gradient-to-r",
-                gradientFromClass,
-                "to-transparent"
-              )}
-            />
-          )}
+      <>
+        {leftGradientVisible && (
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-y-0 left-0 w-[152px]",
+              "bg-gradient-to-r",
+              gradientFromClass,
+              "to-transparent"
+            )}
+          />
+        )}
 
-          {canNext && (
-            <div
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute inset-y-0 right-0 w-[152px]",
-                "bg-gradient-to-l",
-                gradientFromClass,
-                "to-transparent"
-              )}
-            />
-          )}
-        </>
-      )}
+        {rightGradientVisible && (
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-y-0 right-0 w-[152px]",
+              "bg-gradient-to-l",
+              gradientFromClass,
+              "to-transparent"
+            )}
+          />
+        )}
+      </>
 
-      {showArrows && (
+      {arrowsVisible && (
         <>
           {canPrev && (
             <button

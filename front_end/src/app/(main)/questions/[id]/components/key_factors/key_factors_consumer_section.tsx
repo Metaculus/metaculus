@@ -3,10 +3,11 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
-import ReusableGradientCarousel from "@/components/gradient-carousel";
 import { KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
+
+import { KeyFactorItem } from "./key_factor_item";
+import KeyFactorsCarousel from "./key_factors_carousel";
 
 type Props = {
   keyFactors: KeyFactor[];
@@ -22,13 +23,8 @@ const KeyFactorsConsumerSection: FC<Props> = ({ post, keyFactors }) => {
         {t("topKeyFactors")}
       </div>
 
-      <ReusableGradientCarousel<(typeof keyFactors)[number]>
-        wheelToHorizontal={false}
+      <KeyFactorsCarousel
         items={keyFactors}
-        itemClassName=""
-        gapClassName="gap-2.5"
-        listClassName="px-0"
-        gradientFromClass="from-gray-0 dark:from-gray-0-dark"
         renderItem={(kf) => (
           <KeyFactorItem
             keyFactor={kf}
