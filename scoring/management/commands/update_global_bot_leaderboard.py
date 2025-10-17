@@ -283,7 +283,7 @@ def compute_skills(
     for i, u1id, u2id, score, coverage in zip(
         range(matches), user1_ids, user2_ids, scores, coverages
     ):
-        y[i] = score / coverage
+        y[i] = score / (coverage if coverage != 1 / 3 else 1)
         if u1id != baseline_player:
             X[i, player_to_idx[u1id]] = 1
         if u2id != baseline_player:
@@ -454,7 +454,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # SETUP: we need to choose the baseline player, users to evaluate, and questions
-        baseline_player = 269782
+        baseline_player = 236038
         print("Initializing...", end="\r")
         users: QuerySet[User] = User.objects.filter(
             is_active=True,

@@ -17,7 +17,7 @@ def test_serialize_key_factors_many(user1, user2):
         driver=KeyFactorDriver.objects.create(text_en="Key Factor Text"),
         votes={user1: 1, user2: -1, user3: -1},
         votes_score=-1,
-        vote_type=KeyFactorVote.VoteType.UP_DOWN,
+        vote_type=KeyFactorVote.VoteType.DIRECTION,
     )
 
     data = serialize_key_factors_many([kf], current_user=user1)
