@@ -18,14 +18,15 @@ import xLight from "@/app/(main)/aib/assets/ai-models/x.svg";
 import xDark from "@/app/(main)/aib/assets/ai-models/x_dark.svg";
 import zaiLight from "@/app/(main)/aib/assets/ai-models/zai.png";
 
-type IconPair = { light?: StaticImageData; dark?: StaticImageData };
+export type IconLike = StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
+type IconPair = { light?: IconLike; dark?: IconLike };
 
 export type BotMeta = {
   label: string;
   username?: string;
   releasedAt?: string;
-  iconLight?: StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
-  iconDark?: StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
+  iconLight?: IconLike;
+  iconDark?: IconLike;
 };
 
 const ICONS_BY_FAMILY: Record<string, IconPair> = {
