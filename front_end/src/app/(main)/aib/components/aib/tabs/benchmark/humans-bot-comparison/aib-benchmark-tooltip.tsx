@@ -21,6 +21,10 @@ type Props = {
 };
 
 const DEFAULT_ORDER: SeriesKey[] = ["pros", "bots", "baseline"];
+const scoreFmt = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 3,
+});
 
 const AIBBenchmarkTooltip: FC<Props> = ({
   quarter,
@@ -71,7 +75,7 @@ const Row: FC<{ label: string; value: number; swatch: string }> = ({
   value,
   swatch,
 }) => (
-  <div className="text-normal flex items-center justify-between font-medium leading-[125%] text-gray-800 antialiased dark:text-gray-800-dark">
+  <div className="grid grid-cols-[1fr_auto] items-center gap-3 leading-[125%] text-gray-800 antialiased dark:text-gray-800-dark">
     <div className="flex items-center gap-[10px]">
       <span
         aria-hidden
@@ -80,8 +84,11 @@ const Row: FC<{ label: string; value: number; swatch: string }> = ({
       />
       <span>{label}</span>
     </div>
-    <span className="font-normal text-blue-800 dark:text-blue-800-dark">
-      {value}
+    <span
+      className="text-right font-normal tabular-nums text-blue-800 dark:text-blue-800-dark"
+      style={{ fontFeatureSettings: "'tnum' 1" }}
+    >
+      {scoreFmt.format(value)}
     </span>
   </div>
 );

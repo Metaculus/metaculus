@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ButtonHTMLAttributes,
   createContext,
   ReactNode,
   useCallback,
@@ -98,12 +99,17 @@ export const TabsTab = ({
   children,
   icon,
   className,
+  onSelect,
+  scrollOnSelect = true,
+  ...buttonProps
 }: {
   value: string;
   children: ReactNode;
   icon?: ReactNode;
   className?: string;
-}) => {
+  onSelect?: (value: string) => void;
+  scrollOnSelect?: boolean;
+} & ButtonHTMLAttributes<HTMLButtonElement>) => {
   const ctx = useTabsContext();
   const isActive = ctx.active === value;
 
@@ -112,6 +118,7 @@ export const TabsTab = ({
     ctx.setActive(value);
     const elementTop = target.getBoundingClientRect().top + window.scrollY;
 
+    if (!scrollOnSelect) return;
     window.scrollTo({
       top: elementTop - HEADER_OFFSET,
       behavior: "smooth",
@@ -120,6 +127,7 @@ export const TabsTab = ({
 
   return (
     <button
+      {...buttonProps}
       className={cn(
         "whitespace-nowrap transition-colors",
         isActive
@@ -144,14 +152,17 @@ export const TabsTab = ({
       )}
       onClick={(e) => {
         ctx.setActive(value);
-        (e.target as HTMLElement).scrollIntoView({
-          inline: "center",
-          behavior: "smooth",
-        });
+        if (scrollOnSelect) {
+          (e.target as HTMLElement).scrollIntoView({
+            inline: "center",
+            behavior: "smooth",
+          });
+        }
 
         if (e.target instanceof HTMLElement) {
           handleClick(value, e.target);
         }
+        onSelect?.(value);
       }}
     >
       {icon ? (
@@ -170,16 +181,24 @@ export function TabsSection({
   value,
   children,
   className,
+  suppress,
+  placeholder,
 }: {
   value: string;
   children: ReactNode;
   className?: string;
+  suppress?: boolean;
+  placeholder?: ReactNode;
 }) {
   const ctx = useTabsContext();
   const ref = useRef<HTMLDivElement>(null);
 
   if (ctx.active !== value) {
     return null;
+  }
+
+  if (suppress) {
+    return placeholder;
   }
 
   return (

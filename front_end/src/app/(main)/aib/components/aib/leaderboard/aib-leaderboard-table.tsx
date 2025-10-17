@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo } from "react";
 
+import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg";
 import type { LeaderboardDetails, LeaderboardEntry } from "@/types/scoring";
 
 import { getBotMeta } from "./bot_meta";
@@ -33,7 +34,8 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
         rank: entry.rank ?? i + 1,
         label: name,
         username,
-        icon: meta?.icon,
+        iconLight: meta?.iconLight,
+        iconDark: meta?.iconDark,
         forecasts: entry.coverage ?? entry.contribution_count ?? 0,
         score: entry.score,
       };
@@ -51,7 +53,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
 
       <thead>
         <tr className="items-center border-b-[1px] border-blue-400 bg-blue-100 text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
-          <Th></Th>
+          <Th />
           <Th>{t("aibLbThModel")}</Th>
           <Th className="hidden text-center sm:table-cell">
             {t("aibLbThForecasts")}
@@ -59,6 +61,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
           <Th className="w-[100px] text-center">{t("aibLbThAvgScore")}</Th>
         </tr>
       </thead>
+
       <tbody className="bg-gray-0 dark:bg-gray-0-dark">
         {rows.map((r) => (
           <tr
@@ -69,12 +72,23 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
 
             <Td>
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                {r.icon && (
-                  <Image
-                    src={r.icon}
-                    alt={r.label}
-                    className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
-                  />
+                {(r.iconLight || r.iconDark) && (
+                  <span className="relative inline-block h-4 w-4 shrink-0 sm:h-5 sm:w-5">
+                    <Image
+                      src={r.iconLight ?? r.iconDark ?? openAiIcon}
+                      alt={r.label}
+                      fill
+                      sizes="20px"
+                      className="block object-contain dark:hidden"
+                    />
+                    <Image
+                      src={r.iconDark ?? r.iconLight ?? openAiIcon}
+                      alt={r.label}
+                      fill
+                      sizes="20px"
+                      className="hidden object-contain dark:block"
+                    />
+                  </span>
                 )}
                 <div className="min-w-0">
                   <div className="truncate text-sm leading-[24px] sm:text-base">
