@@ -295,6 +295,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 fill: (args: CallbackArgs) =>
                   colorForName((args.datum as { name: string })?.name || ""),
                 fontSize: smUp ? 16 : 12,
+                fontFamily: 'interVariable, "interVariable Fallback", inter',
               },
               data: { opacity: 0 },
             }}

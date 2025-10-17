@@ -22,7 +22,12 @@ const AIBInfoTournamentCard: React.FC<Props> = ({
   const t = useTranslations();
 
   return (
-    <Link href={href} className="block no-underline focus:outline-none">
+    <Link
+      href={href}
+      className="block select-none no-underline focus:outline-none"
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
+    >
       <h5 className="m-0 mb-[18px] text-center text-[16px] font-medium text-blue-800 dark:text-blue-800-dark">
         {title}
       </h5>
@@ -35,30 +40,32 @@ const AIBInfoTournamentCard: React.FC<Props> = ({
           className="object-cover"
           priority={false}
           unoptimized
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
         />
 
         {isLive ? (
           <div className="absolute left-2.5 right-2.5 top-2 flex items-center justify-center text-sm md:top-2.5 md:justify-between">
             <span
-              className="hidden rounded-[4px] px-1 py-0.5 font-bold text-olive-400 dark:text-olive-400-dark md:inline-block"
+              className="hidden rounded-[4px] px-1 py-0.5 font-bold text-olive-400 md:inline-block"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.40)" }}
             >
               {prize}
             </span>
             <div
-              className="flex items-center gap-[7px] rounded-[4px] px-1 py-0.5 font-medium text-salmon-400 dark:text-salmon-400-dark"
+              className="flex items-center gap-[7px] rounded-[4px] px-1 py-0.5 font-medium text-salmon-400"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.40)" }}
               aria-label={t("aibLive")}
               title={t("aibLive")}
             >
-              <span className="h-[6px] w-[6px] rounded-full bg-salmon-400 dark:bg-salmon-400-dark" />
+              <span className="h-[6px] w-[6px] rounded-full bg-salmon-400" />
               {t("aibLive")}
             </div>
           </div>
         ) : (
           <div className="absolute left-0 right-0 top-2.5 hidden justify-center md:flex">
             <p
-              className="m-0 rounded-[4px] px-1 py-0.5 text-gray-0/80 dark:text-gray-0-dark/80"
+              className="m-0 rounded-[4px] px-1 py-0.5 text-gray-0/80"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.14)" }}
             >
               <span className="font-bold">{prize}</span> {t("aibInPrizes")}

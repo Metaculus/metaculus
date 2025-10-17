@@ -1,22 +1,46 @@
 import type { StaticImageData } from "next/image";
+import { ComponentType, SVGProps } from "react";
 
-import anthropicIcon from "@/app/(main)/aib/assets/ai-models/claude.png";
-import deepseekIcon from "@/app/(main)/aib/assets/ai-models/deepseek.png";
-import exaIcon from "@/app/(main)/aib/assets/ai-models/exa.png";
-import googleIcon from "@/app/(main)/aib/assets/ai-models/google.png";
-import openaiIcon from "@/app/(main)/aib/assets/ai-models/gpt.png";
-import kimiIcon from "@/app/(main)/aib/assets/ai-models/kimi.png";
-import llamaIcon from "@/app/(main)/aib/assets/ai-models/llama.png";
-import perplexityIcon from "@/app/(main)/aib/assets/ai-models/perplexity.png";
-import qwenIcon from "@/app/(main)/aib/assets/ai-models/qwen.png";
-import xIcon from "@/app/(main)/aib/assets/ai-models/x.png";
-import zaiIcon from "@/app/(main)/aib/assets/ai-models/zai.png";
+import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-black.png";
+import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-white.webp";
+import deepseekLight from "@/app/(main)/aib/assets/ai-models/deepseek.svg";
+import exaLight from "@/app/(main)/aib/assets/ai-models/exa.png";
+import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg";
+import kimiLight from "@/app/(main)/aib/assets/ai-models/kimi-icon.svg";
+import llamaDark from "@/app/(main)/aib/assets/ai-models/ollama_dark.svg";
+import llamaLight from "@/app/(main)/aib/assets/ai-models/ollama_light.svg";
+import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg";
+import openaiDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg";
+import perplexityLight from "@/app/(main)/aib/assets/ai-models/perplexity.svg";
+import qwenDark from "@/app/(main)/aib/assets/ai-models/qwen_dark.svg";
+import qwenLight from "@/app/(main)/aib/assets/ai-models/qwen_light.svg";
+import xLight from "@/app/(main)/aib/assets/ai-models/x.svg";
+import xDark from "@/app/(main)/aib/assets/ai-models/x_dark.svg";
+import zaiLight from "@/app/(main)/aib/assets/ai-models/zai.png";
+
+type IconPair = { light?: StaticImageData; dark?: StaticImageData };
 
 export type BotMeta = {
   label: string;
   username?: string;
   releasedAt?: string;
-  icon?: StaticImageData;
+  iconLight?: StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
+  iconDark?: StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
+};
+
+const ICONS_BY_FAMILY: Record<string, IconPair> = {
+  anthropic: { light: anthropicLight, dark: anthropicDark },
+  google: { light: googleLight },
+  openai: { light: openaiLight, dark: openaiDark },
+  xai: { light: xLight, dark: xDark },
+
+  deepseek: { light: deepseekLight },
+  qwen: { light: qwenLight, dark: qwenDark },
+  kimi: { light: kimiLight },
+  perplexity: { light: perplexityLight },
+  zai: { light: zaiLight },
+  llama: { light: llamaLight, dark: llamaDark },
+  exa: { light: exaLight },
 };
 
 export const BOT_CATALOG = [
@@ -546,21 +570,6 @@ export const BOT_CATALOG = [
   },
 ] as const;
 
-const ICONS_BY_FAMILY: Record<string, StaticImageData | undefined> = {
-  anthropic: anthropicIcon,
-  google: googleIcon,
-  openai: openaiIcon,
-  xai: xIcon,
-
-  deepseek: deepseekIcon,
-  qwen: qwenIcon,
-  kimi: kimiIcon,
-  perplexity: perplexityIcon,
-  zai: zaiIcon,
-  llama: llamaIcon,
-  exa: exaIcon,
-};
-
 function detectFamily(username: string, model?: string) {
   const u = username.toLowerCase();
   const m = (model ?? "").toLowerCase();
@@ -611,21 +620,20 @@ function detectFamily(username: string, model?: string) {
   return undefined;
 }
 
-function pickIcon(
-  username: string,
-  model?: string
-): StaticImageData | undefined {
+function pickIconPair(username: string, model?: string): IconPair | undefined {
   const fam = detectFamily(username, model);
   return fam ? ICONS_BY_FAMILY[fam] : undefined;
 }
 
-const META_BY_USERNAME: Record<string, BotMeta> = BOT_CATALOG.reduce(
+export const META_BY_USERNAME: Record<string, BotMeta> = BOT_CATALOG.reduce(
   (acc, { username, model, releaseDate }) => {
+    const pair = pickIconPair(username, model);
     acc[username] = {
       label: model || username,
       username,
       releasedAt: releaseDate || undefined,
-      icon: pickIcon(username, model),
+      iconLight: pair?.light,
+      iconDark: pair?.dark ?? pair?.light,
     };
     return acc;
   },
