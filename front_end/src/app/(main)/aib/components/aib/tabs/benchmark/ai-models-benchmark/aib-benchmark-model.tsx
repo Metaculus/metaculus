@@ -1,9 +1,11 @@
-import Image, { StaticImageData } from "next/image";
+import { StaticImageData } from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { ComponentType, SVGProps } from "react";
 
 import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg";
+
+import { IconDisplay } from "../../../aib-icon-display";
 
 type Props = {
   widthPct: number;
@@ -32,18 +34,16 @@ const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-[10px] text-zinc-900 dark:text-zinc-100">
           <span className="relative inline-block h-4 w-4 sm:h-6 sm:w-6">
-            <Image
-              src={lightSrc}
+            <IconDisplay
+              icon={lightSrc}
               alt={model.name}
-              fill
-              className="block object-contain dark:hidden"
+              className="block dark:hidden"
               sizes="24px"
             />
-            <Image
-              src={darkSrc}
+            <IconDisplay
+              icon={darkSrc}
               alt={model.name}
-              fill
-              className="hidden object-contain dark:block"
+              className="hidden dark:block"
               sizes="24px"
             />
           </span>
