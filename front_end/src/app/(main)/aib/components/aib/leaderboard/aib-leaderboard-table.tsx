@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo } from "react";
 
 import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg";
 import type { LeaderboardDetails, LeaderboardEntry } from "@/types/scoring";
 
+import { IconDisplay } from "../aib-icon-display";
 import { getBotMeta } from "./bot_meta";
 
 type Props = { details: LeaderboardDetails };
@@ -74,19 +74,17 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                 {(r.iconLight || r.iconDark) && (
                   <span className="relative inline-block h-4 w-4 shrink-0 sm:h-5 sm:w-5">
-                    <Image
-                      src={r.iconLight ?? r.iconDark ?? openAiIcon}
+                    <IconDisplay
+                      icon={r.iconLight ?? r.iconDark ?? openAiIcon}
                       alt={r.label}
-                      fill
+                      className="block dark:hidden"
                       sizes="20px"
-                      className="block object-contain dark:hidden"
                     />
-                    <Image
-                      src={r.iconDark ?? r.iconLight ?? openAiIcon}
+                    <IconDisplay
+                      icon={r.iconDark ?? r.iconLight ?? openAiIcon}
                       alt={r.label}
-                      fill
+                      className="hidden dark:block"
                       sizes="20px"
-                      className="hidden object-contain dark:block"
                     />
                   </span>
                 )}
