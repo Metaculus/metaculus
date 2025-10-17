@@ -20,8 +20,6 @@ import {
 
 import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
-import QuestionTimeline from "./timeline";
-import KeyFactorsSection from "../../key_factors/key_factors_section";
 import QuestionTitle from "../shared/question_title";
 
 type Props = {
@@ -92,8 +90,6 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             keyFactors={postData.key_factors}
           />
         )}
-
-        {!isFanGraph && <QuestionTimeline postData={postData} />}
       </div>
     </div>
   );

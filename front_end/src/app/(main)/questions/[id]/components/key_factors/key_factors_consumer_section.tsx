@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useBreakpoint } from "@/hooks/tailwind";
 import { KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 
@@ -16,10 +17,11 @@ type Props = {
 
 const KeyFactorsConsumerSection: FC<Props> = ({ post, keyFactors }) => {
   const t = useTranslations();
+  const isDesktop = useBreakpoint("sm");
 
   return (
     <div
-      className="-ml-4 mt-8 flex w-[calc(100%+32px)] flex-col sm:ml-0 sm:w-full"
+      className="-ml-4 mt-8 flex w-[calc(100%+32px)] flex-col pb-4 sm:ml-0 sm:w-full"
       id="key-factors"
     >
       <div className="mb-4 pl-4 text-sm text-blue-800 dark:text-blue-800-dark sm:pl-0">
@@ -27,14 +29,15 @@ const KeyFactorsConsumerSection: FC<Props> = ({ post, keyFactors }) => {
       </div>
 
       <KeyFactorsCarousel
-        listClassName="[&>:first-child]:pl-4 [&>:last-child]:pr-4 sm:[&>:first-child]:pl-0 sm:[&>:last-child]:pr-0"
+        listClassName="pb-0 [&>:first-child]:pl-4 [&>:last-child]:pr-4 sm:[&>:first-child]:pl-0 sm:[&>:last-child]:pr-0"
         items={keyFactors}
         renderItem={(kf) => (
           <KeyFactorItem
             keyFactor={kf}
             post={post}
             mode={"consumer"}
-            className="max-w-[200px]"
+            isCompact={!isDesktop}
+            className="sm:max-w-[200px]"
           />
         )}
       />

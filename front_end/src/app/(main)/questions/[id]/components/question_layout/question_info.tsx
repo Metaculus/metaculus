@@ -20,21 +20,33 @@ import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 type Props = {
   postData: PostWithForecasts;
   preselectedGroupQuestionId: number | undefined;
-  isConsumer?: boolean;
+  showKeyFactors?: boolean;
+  showTimeline?: boolean;
 };
 
 const QuestionInfo: React.FC<Props> = ({
   postData,
   preselectedGroupQuestionId,
-  isConsumer,
+  showKeyFactors,
+  showTimeline,
 }) => {
   const t = useTranslations();
   return (
     <div className="flex flex-col gap-2.5">
+      {showTimeline && (
+        <SectionToggle title={t("timeline")} defaultOpen={true}>
+          <QuestionTimeline
+            postData={postData}
+            hideTitle={true}
+            className="m-0"
+          />
+        </SectionToggle>
+      )}
+
       <ResolutionCriteria post={postData} />
       {isConditionalPost(postData) && <ConditionalTimeline post={postData} />}
 
-      {!isConsumer && <KeyFactorsSection post={postData} />}
+      {showKeyFactors && <KeyFactorsSection post={postData} />}
 
       <CoherenceLinks post={postData}></CoherenceLinks>
 
