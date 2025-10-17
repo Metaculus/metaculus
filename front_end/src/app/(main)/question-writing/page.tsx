@@ -523,8 +523,8 @@ export default function QuestionChecklist() {
         </h2>
         <p>
           Metaculus Community Moderators are committed members of the community
-          who help the platform run smoothly. We greatly appreciate
-          their time and talents, and we hope you&apos;ll do the same!
+          who help the platform run smoothly. We greatly appreciate their time
+          and talents, and we hope you&apos;ll do the same!
         </p>
         <p>The main responsibilities of Community Moderators include:</p>
         <ul className="ml-6 list-disc space-y-4">
