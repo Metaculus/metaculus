@@ -1,24 +1,23 @@
 import type { StaticImageData } from "next/image";
-import { ComponentType, SVGProps } from "react";
 
 import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-black.png";
 import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-white.webp";
-import deepseekLight from "@/app/(main)/aib/assets/ai-models/deepseek.svg";
+import deepseekLight from "@/app/(main)/aib/assets/ai-models/deepseek.svg?url";
 import exaLight from "@/app/(main)/aib/assets/ai-models/exa.png";
-import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg";
-import kimiLight from "@/app/(main)/aib/assets/ai-models/kimi-icon.svg";
-import llamaDark from "@/app/(main)/aib/assets/ai-models/ollama_dark.svg";
-import llamaLight from "@/app/(main)/aib/assets/ai-models/ollama_light.svg";
-import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg";
-import openaiDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg";
-import perplexityLight from "@/app/(main)/aib/assets/ai-models/perplexity.svg";
-import qwenDark from "@/app/(main)/aib/assets/ai-models/qwen_dark.svg";
-import qwenLight from "@/app/(main)/aib/assets/ai-models/qwen_light.svg";
-import xLight from "@/app/(main)/aib/assets/ai-models/x.svg";
-import xDark from "@/app/(main)/aib/assets/ai-models/x_dark.svg";
+import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg?url";
+import kimiLight from "@/app/(main)/aib/assets/ai-models/kimi-icon.svg?url";
+import llamaDark from "@/app/(main)/aib/assets/ai-models/ollama_dark.svg?url";
+import llamaLight from "@/app/(main)/aib/assets/ai-models/ollama_light.svg?url";
+import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
+import openaiDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
+import perplexityLight from "@/app/(main)/aib/assets/ai-models/perplexity.svg?url";
+import qwenDark from "@/app/(main)/aib/assets/ai-models/qwen_dark.svg?url";
+import qwenLight from "@/app/(main)/aib/assets/ai-models/qwen_light.svg?url";
+import xLight from "@/app/(main)/aib/assets/ai-models/x.svg?url";
+import xDark from "@/app/(main)/aib/assets/ai-models/x_dark.svg?url";
 import zaiLight from "@/app/(main)/aib/assets/ai-models/zai.png";
 
-export type IconLike = StaticImageData | ComponentType<SVGProps<SVGSVGElement>>;
+export type IconLike = StaticImageData | string;
 type IconPair = { light?: IconLike; dark?: IconLike };
 
 export type BotMeta = {

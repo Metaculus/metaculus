@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo } from "react";
 
-import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg";
+import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
+import openAiDarkIcon from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
 import type { LeaderboardDetails, LeaderboardEntry } from "@/types/scoring";
 
 import { IconDisplay } from "../aib-icon-display";
@@ -81,7 +82,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
                       sizes="20px"
                     />
                     <IconDisplay
-                      icon={r.iconDark ?? r.iconLight ?? openAiIcon}
+                      icon={r.iconDark ?? r.iconLight ?? openAiDarkIcon}
                       alt={r.label}
                       className="hidden dark:block"
                       sizes="20px"
