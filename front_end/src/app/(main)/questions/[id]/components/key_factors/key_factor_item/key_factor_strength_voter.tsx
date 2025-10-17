@@ -14,6 +14,7 @@ import {
   KeyFactorVoteAggregate,
   KeyFactorVoteTypes,
   StrengthValues,
+  StrengthVoteOption,
 } from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -75,10 +76,13 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const submitVote = async (newValue: number | null) => {
+  const submitVote = async (newValue: StrengthVoteOption | null) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
+      // Optimistic vote update
+      setAggregate({ ...aggregate, user_vote: newValue });
+
       const response = await voteKeyFactor({
         id: keyFactorId,
         vote: newValue,
@@ -105,7 +109,7 @@ const KeyFactorStrengthVoter: FC<Props> = ({
     }
   };
 
-  const handleSelect = (value: number) => {
+  const handleSelect = (value: StrengthVoteOption) => {
     const next = aggregate.user_vote === value ? null : value;
     submitVote(next);
   };
