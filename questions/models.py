@@ -83,7 +83,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         """,
     )
     default_aggregation_method: AggregationMethod = models.CharField(
-        max_length=100,
+        max_length=20,
         choices=AggregationMethod.choices,
         default=AggregationMethod.RECENCY_WEIGHTED,
         help_text="""Default aggregation method for this question.
