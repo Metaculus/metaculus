@@ -94,7 +94,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
             QuestionType.Date,
           ].includes(postData.question.type) && (
             <div className="sm:hidden">
-              <KeyFactorsSection post={postData} variant="compact" />
+              <KeyFactorsSection post={postData} isCompact />
             </div>
           )}
 
