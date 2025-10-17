@@ -1,7 +1,7 @@
 import pytest  # noqa
 from django.urls import reverse
 
-from comments.models import Comment, ImpactDirection
+from comments.models import Comment
 from comments.services.feed import get_comments_feed
 from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment
