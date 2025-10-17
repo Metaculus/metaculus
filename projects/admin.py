@@ -451,6 +451,8 @@ class ProjectAdmin(CustomTranslationAdmin):
                 filename = f"{project.slug}_metaculus_data"
             else:
                 name = project.name
+                # Remove newlines completely
+                name = name.replace("\n", "").replace("\r", "")
                 for char in [" ", "-", "/", ":", ",", "."]:
                     name = name.replace(char, "_")
                 filename = f"{name}_metaculus_data"
@@ -495,6 +497,8 @@ class ProjectAdmin(CustomTranslationAdmin):
                 filename = f"{project.slug}_metaculus_data"
             else:
                 name = project.name
+                # Remove newlines completely
+                name = name.replace("\n", "").replace("\r", "")
                 for char in [" ", "-", "/", ":", ",", "."]:
                     name = name.replace(char, "_")
                 filename = f"{name}_metaculus_data"
