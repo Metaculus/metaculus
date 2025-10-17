@@ -218,8 +218,7 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
-    # Metadata - when updating the use of this field, update the description text in
-    # the UserAdmin, and the validation logic in the "save" method on this model.
+    # Metadata - to update the use of the field, update USER_METADATA_SCHEMA
     metadata = models.JSONField(
         null=True,
         blank=True,
