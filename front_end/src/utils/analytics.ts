@@ -20,6 +20,9 @@ export function sendConditionalPredictEvent(
   alreadyPredicted: boolean,
   hideCP: boolean
 ) {
+  const projectId = projects.default_project.id;
+  const tournamentIds = projects.tournament?.map((t) => t.id);
+
   if (!alreadyPredicted) {
     posthog.capture("predict", {
       event_category: "conditional",
@@ -29,6 +32,8 @@ export function sendConditionalPredictEvent(
           : null,
         hideCP ? "CPhidden" : null,
       ].filter(Boolean),
+      project_id: projectId,
+      tournament_ids: tournamentIds,
     });
     sendGAEvent("event", "predict", {
       event_category: "conditional",
@@ -38,6 +43,8 @@ export function sendConditionalPredictEvent(
           : null,
         hideCP ? "CPhidden" : null,
       ].filter(Boolean),
+      project_id: projectId,
+      tournament_ids: tournamentIds,
     });
   } else {
     posthog.capture("predictionUpdated", {
@@ -55,6 +62,9 @@ export function sendPredictEvent(
   hideCP: boolean
 ) {
   const alreadyPredicted = question.my_forecasts?.latest;
+  const projectId = post.projects.default_project.id;
+  const tournamentIds = post.projects.tournament?.map((t) => t.id);
+
   if (!alreadyPredicted) {
     posthog.capture("predict", {
       event_category: question.type,
@@ -64,6 +74,8 @@ export function sendPredictEvent(
           : null,
         hideCP ? "CPhidden" : null,
       ].filter(Boolean),
+      project_id: projectId,
+      tournament_ids: tournamentIds,
     });
     sendGAEvent("event", "predict", {
       event_category: question.type,
@@ -73,6 +85,8 @@ export function sendPredictEvent(
           : null,
         hideCP ? "CPhidden" : null,
       ].filter(Boolean),
+      project_id: projectId,
+      tournament_ids: tournamentIds,
     });
   } else {
     posthog.capture("predictionUpdated", {
