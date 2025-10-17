@@ -44,6 +44,11 @@ urlpatterns = [
         name="key-factor-vote",
     ),
     path(
+        "key-factors/<int:pk>/delete/",
+        key_factors.key_factor_delete,
+        name="key-factor-delete",
+    ),
+    path(
         "comments/<int:pk>/add-key-factors/",
         key_factors.comment_add_key_factors_view,
         name="comment-add-key-factors",
