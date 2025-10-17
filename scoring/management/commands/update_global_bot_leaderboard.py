@@ -32,7 +32,7 @@ def get_score_pair(
     user1_forecasts: list[Forecast | AggregateForecast],
     user2_forecasts: list[Forecast | AggregateForecast],
     question: Question,
-) -> tuple[int, int, int, float, float] | None:
+) -> tuple[int, float, float] | None:
     # Setup for calling evaluate function
     forecasts = user1_forecasts + user2_forecasts
     resolution_bucket = string_location_to_bucket_index(question.resolution, question)
@@ -53,7 +53,7 @@ def get_score_pair(
         if coverage == 0:
             return None
         user1_scores = evaluate_forecasts_peer_accuracy(
-            forecasts=user1_forecasts,  # only evalute user1 (user2 is opposite)
+            forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
             base_forecasts=None,
             resolution_bucket=resolution_bucket,
             forecast_horizon_start=forecast_horizon_start,
@@ -79,7 +79,7 @@ def get_score_pair(
         if coverage == 0:
             return None
         user1_scores = evaluate_forecasts_peer_spot_forecast(
-            forecasts=user1_forecasts,  # only evalute user1 (user2 is opposite)
+            forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
             base_forecasts=None,
             resolution_bucket=resolution_bucket,
             spot_forecast_timestamp=spot_forecast_timestamp,
@@ -90,8 +90,6 @@ def get_score_pair(
         raise ValueError("we only do Peer scores 'round hya")
 
     return (
-        user1_forecasts[0].author_id,
-        user2_forecasts[0].author_id,
         question.id,
         sum(s.score for s in user1_scores),
         coverage,
@@ -455,8 +453,7 @@ def bootstrap_skills(
             print("WARNING: user_id didn't appear:", user_id)
             ci_lower[user_id] = 0.0
             ci_upper[user_id] = 0.0
-    print()
-    print()
+    print("\n")
     return ci_lower, ci_upper
 
 
@@ -504,17 +501,13 @@ class Command(BaseCommand):
                 Prefetch(
                     "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
                 )
-                .exclude(resolution__in=UnsuccessfulResolutionType)
-                .prefetch_related("user_forecasts")
-                .filter(user_forecasts__author__in=users)
-                .distinct()
             )
             .order_by("id")
             .distinct("id")
         )
         print("Initializing... DONE")
 
-        # EXECUTE
+        # PROCESS DATA
         user1_ids, user2_ids, question_ids, scores, coverages = gather_data(
             users, questions
         )
@@ -525,8 +518,7 @@ class Command(BaseCommand):
         )
         var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, coverages)
         skills = rescale_skills_(skills, var_avg_scores)
-        print("Computing Skills initial... DONE")
-        print()
+        print("Computing Skills initial... DONE\n")
 
         ci_lower, ci_upper = bootstrap_skills(
             user1_ids,
