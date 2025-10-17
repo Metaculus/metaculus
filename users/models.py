@@ -113,8 +113,6 @@ USER_METADATA_SCHEMA: dict = {
     },
 }
 
-USER_METADATA_SCHEMA_FORMAT_CHECKER = FormatChecker()
-
 
 def _validate_user_metadata(value) -> None:
     if value is None:
@@ -127,7 +125,7 @@ def _validate_user_metadata(value) -> None:
         jsonschema_validate(
             instance=value,
             schema=USER_METADATA_SCHEMA,
-            format_checker=USER_METADATA_SCHEMA_FORMAT_CHECKER,
+            format_checker=FormatChecker(),
         )
     except JSONSchemaValidationError as exc:
         path = " -> ".join(str(item) for item in exc.path)
