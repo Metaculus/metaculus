@@ -39,7 +39,11 @@ def votes_migration(apps, schema_editor):
     votes_qs = KeyFactorVote.objects.order_by(
         "key_factor_id", "user_id", "-created_at"
     ).distinct("key_factor_id", "user_id")
-    KeyFactorVote.objects.exclude(pk__in=votes_qs).delete()
+
+    to_delete = KeyFactorVote.objects.exclude(pk__in=votes_qs)
+    logger.info(f"Deleting {to_delete.count()} duplicated KeyFactor votes")
+
+    to_delete.delete()
 
     # Migrate other votes
     key_factors = list(KeyFactor.objects.prefetch_related("votes").all())
