@@ -14,7 +14,7 @@ from coherence.serializers import (
     serialize_aggregate_coherence_link_many,
     NeedsUpdateQuerySerializer,
 )
-from coherence.services import create_coherence_link
+from coherence.services import create_coherence_link, get_stale_linked_questions
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -102,26 +102,6 @@ def get_questions_requiring_update(request, pk):
     serializer.is_valid(raise_exception=True)
     datetime = serializer.validated_data["datetime"]
 
-    links = CoherenceLink.objects.filter(Q(question1=question), user=user)
-    questions = [link.question2 for link in links]
-
-    # In order to avoid making a separate query
-    questions.append(question)
-    last_forecast_map = get_user_last_forecasts_map(questions, user=user)
-    question_last_forecast = last_forecast_map.get(question, None)
-
-    if not question_last_forecast:
-        return Response({"questions": []})
-
-    question_forecast_time = question_last_forecast.start_time
-    if datetime > question_forecast_time:
-        return Response({"questions": []})
-
-    questions_to_update = [
-        current_question
-        for current_question, last_forecast in last_forecast_map.items()
-        if current_question.id != question.id
-        and last_forecast.start_time < question_forecast_time
-    ]
+    questions_to_update = get_stale_linked_questions(question, user, datetime)
     serialized_questions = [serialize_question(q) for q in questions_to_update]
     return Response({"questions": serialized_questions})
