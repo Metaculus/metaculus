@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 
 from coherence.models import (
     CoherenceLink,
@@ -6,7 +7,9 @@ from coherence.models import (
     LinkType,
 )
 from questions.models import Question
+from questions.services import get_user_last_forecasts_map
 from users.models import User
+from datetime import datetime
 
 
 def create_coherence_link(
@@ -57,3 +60,27 @@ def create_aggregate_coherence_link(
             obj.save()
 
     return obj
+
+
+def get_stale_linked_questions(question: Question, user: User, last_datetime: datetime):
+    links = CoherenceLink.objects.filter(Q(question1=question), user=user)
+    questions = [link.question2 for link in links]
+
+    # In order to avoid making a separate query
+    questions.append(question)
+    last_forecast_map = get_user_last_forecasts_map(questions, user=user)
+    question_last_forecast = last_forecast_map.get(question, None)
+
+    if not question_last_forecast:
+        return []
+
+    question_forecast_time = question_last_forecast.start_time
+    if last_datetime > question_forecast_time:
+        return []
+
+    return [
+        current_question
+        for current_question, last_forecast in last_forecast_map.items()
+        if current_question.id != question.id
+        and last_forecast.start_time < question_forecast_time
+    ]
