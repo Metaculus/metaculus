@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
-import type { LeaderboardDetails } from "@/types/scoring";
+import type { LeaderboardDetails, LeaderboardEntry } from "@/types/scoring";
 
 import { getBotMeta } from "./bot_meta";
 
@@ -13,21 +13,32 @@ type Props = { details: LeaderboardDetails };
 const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
   const t = useTranslations();
 
+  const getDisplayName = useCallback(
+    (entry: LeaderboardEntry) => {
+      if (entry.user) return entry.user.username;
+      if (entry.aggregation_method === "recency_weighted")
+        return t("communityPrediction");
+      return entry.aggregation_method ?? "Aggregate";
+    },
+    [t]
+  );
+
   const rows = useMemo(() => {
     return (details.entries || []).map((entry, i) => {
       const username = entry.user?.username ?? "";
       const meta = getBotMeta(username);
+      const name = meta ? meta.label : getDisplayName(entry);
 
       return {
         rank: entry.rank ?? i + 1,
-        label: meta.label,
+        label: name,
         username,
-        icon: meta.icon,
+        icon: meta?.icon,
         forecasts: entry.coverage ?? entry.contribution_count ?? 0,
         score: entry.score,
       };
     });
-  }, [details]);
+  }, [details, getDisplayName]);
 
   return (
     <table className="mx-auto w-full max-w-[854px] table-fixed border-collapse border-spacing-0 border-[1px] border-gray-300 dark:border-gray-300-dark">
