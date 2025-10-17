@@ -355,7 +355,8 @@ export default async function FAQ() {
         </p>
         <p>
           The name &quot;Metaculus&quot; is inspired by the Mentaculus, a
-          fictional probability map of the universe, from the Coen brothers&apos;{" "}
+          fictional probability map of the universe, from the Coen
+          brothers&apos;{" "}
           <a href="https://en.wikipedia.org/wiki/A_Serious_Man">
             A Serious Man
           </a>
