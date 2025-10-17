@@ -65,7 +65,7 @@ const AIBBenchmarkModels: React.FC = () => {
               name,
               forecasts,
               score: entry.score,
-              icon: meta.icon,
+              icon: meta?.icon,
             }}
           />
         );

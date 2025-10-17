@@ -632,7 +632,7 @@ const META_BY_USERNAME: Record<string, BotMeta> = BOT_CATALOG.reduce(
   {} as Record<string, BotMeta>
 );
 
-export function getBotMeta(username?: string): BotMeta {
-  if (!username) return { label: "Unnamed Model" };
-  return META_BY_USERNAME[username] ?? { label: username, username };
+export function getBotMeta(username?: string): BotMeta | null {
+  if (!username) return null;
+  return META_BY_USERNAME[username] ?? null;
 }
