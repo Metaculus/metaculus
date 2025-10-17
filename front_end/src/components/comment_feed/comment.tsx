@@ -17,7 +17,7 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
 import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
-import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
+import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
 import {
   createForecasts,
   editComment,
