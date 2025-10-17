@@ -20,6 +20,7 @@ type Props = {
   className?: string;
   option?: string;
   unit?: string;
+  isCompact?: boolean;
 };
 
 export const convertNumericImpactToDirectionCategory = (
@@ -132,15 +133,26 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
   );
 };
 
-const KeyFactorImpactDirectionContainer: FC<Props> = ({ impact, option }) => {
+const KeyFactorImpactDirectionContainer: FC<Props> = ({
+  className,
+  impact,
+  option,
+  isCompact,
+}) => {
   const t = useTranslations();
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+      <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
         {t("impact")}
       </div>
-      <KeyFactorImpactDirectionLabel impact={impact} option={option} />
+      <KeyFactorImpactDirectionLabel
+        impact={impact}
+        option={option}
+        className={cn(className, {
+          "text-[10px]": isCompact,
+        })}
+      />
     </div>
   );
 };

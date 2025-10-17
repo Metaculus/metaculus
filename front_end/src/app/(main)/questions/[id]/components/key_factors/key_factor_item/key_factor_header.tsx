@@ -1,36 +1,48 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import Button from "@/components/ui/button";
+import useScrollTo from "@/hooks/use_scroll_to";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 type Props = {
   label: string;
-  author: {
-    id: number;
-    username: string;
-  };
+  username: string;
+  linkAnchor: string;
+  className?: string;
 };
 
-const KeyFactorHeader: FC<Props> = ({ label, author }) => {
+const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
   const t = useTranslations();
+  const scrollTo = useScrollTo();
 
   return (
     <div className="flex w-full justify-between">
-      <div className="text-xs font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+      <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
         {label}
       </div>
       <div className="text-[10px] text-gray-600 dark:text-gray-600-dark">
         {t.rich("byUsername", {
           link: (chunk) => (
-            <Button
+            <a
               className="text-[10px] font-normal text-blue-700 no-underline dark:text-blue-700-dark"
-              variant="link"
-              href={`/accounts/profile/${author.id}`}
+              href={linkAnchor}
+              onClick={(e) => {
+                const target = document.getElementById(
+                  linkAnchor.replace("#", "")
+                );
+                if (target) {
+                  e.preventDefault();
+                  scrollTo(target.getBoundingClientRect().top);
+                }
+                sendAnalyticsEvent("KeyFactorClick", {
+                  event_label: "fromList",
+                });
+              }}
             >
               {chunk}
-            </Button>
+            </a>
           ),
-          username: `@${author.username}`,
+          username: `@${username}`,
         })}
       </div>
     </div>

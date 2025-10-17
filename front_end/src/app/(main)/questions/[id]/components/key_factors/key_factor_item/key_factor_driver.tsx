@@ -17,17 +17,15 @@ import KeyFactorText from "./key_factor_text";
 
 type Props = {
   keyFactor: KeyFactor;
-  linkToComment?: boolean;
-  linkAnchor: string;
-  variant?: "default" | "compact";
+  isCompact?: boolean;
+  mode?: "forecaster" | "consumer";
   post: PostWithForecasts;
 };
 
 const KeyFactorDriver: FC<Props> = ({
   keyFactor,
-  linkToComment = true,
-  linkAnchor,
-  variant = "default",
+  isCompact,
+  mode = "forecaster",
   post,
 }) => {
   const t = useTranslations();
@@ -40,36 +38,44 @@ const KeyFactorDriver: FC<Props> = ({
       questionType
     );
 
+  const isConsumer = mode === "consumer";
+  const isCompactConsumer = isConsumer && isCompact;
+
   return (
-    <div
-      className={cn(
-        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 hover:border-blue-500 dark:bg-blue-200-dark dark:hover:border-blue-500-dark [&:hover_.target]:visible",
-        { "bg-gray-0 dark:bg-gray-0-dark": linkToComment }
+    <>
+      {!isConsumer && (
+        <KeyFactorHeader
+          username={keyFactor.author.username}
+          linkAnchor={`#comment-${keyFactor.comment_id}`}
+          label={t("driver")}
+        />
       )}
-    >
-      <KeyFactorHeader author={keyFactor.author} label={t("driver")} />
 
       <KeyFactorText
         text={keyFactor.driver.text}
-        linkAnchor={variant === "compact" ? undefined : linkAnchor}
-        linkToComment={linkToComment}
-        className="text-base leading-5"
+        className={cn("text-base leading-5", {
+          "text-sm": isConsumer,
+          "text-xs": isCompactConsumer,
+        })}
       />
 
       {!isNil(directionCategory) && (
         <KeyFactorImpactDirectionContainer
           impact={directionCategory}
           option={keyFactor.question?.label ?? keyFactor.question_option}
+          isCompact={isCompactConsumer}
         />
       )}
 
-      <hr className="my-0 opacity-20" />
+      {mode === "forecaster" && <hr className="my-0 opacity-20" />}
 
       <KeyFactorStrengthVoter
         keyFactorId={keyFactor.id}
         vote={keyFactor.vote}
+        allowVotes={mode === "forecaster"}
+        mode={mode}
       />
-    </div>
+    </>
   );
 };
 
