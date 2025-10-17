@@ -212,7 +212,7 @@ class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     impact_direction = models.SmallIntegerField(
         choices=ImpactDirection.choices, null=True, blank=True
     )
-    certainty = models.SmallIntegerField(null=True, blank=True)
+    certainty = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"Driver {self.text}"
@@ -263,9 +263,9 @@ class KeyFactor(TimeStampedModel):
 class KeyFactorVote(TimeStampedModel):
     class VoteType(models.TextChoices):
         STRENGTH = "strength"
-        UP_DOWN = "up_down"
+        DIRECTION = "direction"
 
-    class VoteScoreUpDown(models.IntegerChoices):
+    class VoteDirection(models.IntegerChoices):
         UP = 1
         DOWN = -1
 
@@ -280,7 +280,7 @@ class KeyFactorVote(TimeStampedModel):
     score = models.SmallIntegerField(db_index=True)
     # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
-        choices=VoteType.choices, max_length=20, default=VoteType.UP_DOWN
+        choices=VoteType.choices, max_length=20, default=VoteType.DIRECTION
     )
 
     class Meta:
