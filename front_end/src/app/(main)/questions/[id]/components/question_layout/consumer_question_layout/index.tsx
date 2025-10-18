@@ -32,6 +32,10 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
   const t = useTranslations();
   const hasTimeline = hasTimelineFn(postData);
 
+  const isFanGraph =
+    postData.group_of_questions?.graph_type ===
+    GroupOfQuestionsGraphType.FanGraph;
+
   return (
     <div className="relative z-10 flex w-full flex-col gap-4">
       <QuestionSection compact>
@@ -83,6 +87,8 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <QuestionInfo
                 postData={postData}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
+                showKeyFactors={false}
+                showTimeline={false}
               />
             </TabsSection>
           </Tabs>
@@ -91,6 +97,8 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
           <QuestionInfo
             postData={postData}
             preselectedGroupQuestionId={preselectedGroupQuestionId}
+            showKeyFactors={false}
+            showTimeline={!isFanGraph}
           />
         </div>
       </QuestionSection>

@@ -1,17 +1,22 @@
 "use client";
-import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
-import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronRight,
+  faMinus,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
-import { FormError, Input } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { BECommentType } from "@/types/comment";
+import { BECommentType, Driver } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
@@ -27,7 +32,7 @@ type Props = {
   commentId?: number;
   // Used when adding key factors and also creating a new comment on a given post
   // This also determines the number of steps in the modal: 2 if a new comment is createad too
-  postId?: number;
+  post: PostWithForecasts;
   // if true, loads a set of suggested key factors
   showSuggestedKeyFactors?: boolean;
   onSuccess?: (comment: BECommentType) => void;
@@ -54,44 +59,6 @@ const Step2AddComment = ({
   );
 };
 
-const KeyFactorField = ({
-  keyFactor,
-  setKeyFactor,
-  isActive,
-  showXButton,
-  onXButtonClick,
-}: {
-  keyFactor: string;
-  setKeyFactor: (keyFactor: string) => void;
-  isActive: boolean;
-  showXButton: boolean;
-  onXButtonClick: () => void;
-}) => {
-  const t = useTranslations();
-
-  return (
-    <div className="flex gap-2">
-      <Input
-        value={keyFactor}
-        placeholder={t("typeKeyFator")}
-        onChange={(e) => setKeyFactor(e.target.value)}
-        className="grow rounded bg-gray-0 px-3 py-2 text-base dark:bg-gray-0-dark"
-        readOnly={!isActive}
-      />
-      {showXButton && (
-        <Button
-          variant="text"
-          size="xs"
-          className="w-fit"
-          onClick={onXButtonClick}
-        >
-          <FontAwesomeIcon icon={faCircleXmark} className="size-4 p-1" />
-        </Button>
-      )}
-    </div>
-  );
-};
-
 export const AddKeyFactorsForm = ({
   keyFactors,
   setKeyFactors,
@@ -100,9 +67,10 @@ export const AddKeyFactorsForm = ({
   limitError,
   suggestedKeyFactors,
   setSuggestedKeyFactors,
+  post,
 }: {
-  keyFactors: string[];
-  setKeyFactors: (factors: string[]) => void;
+  keyFactors: Driver[];
+  setKeyFactors: React.Dispatch<React.SetStateAction<Driver[]>>;
   isActive: boolean;
   limitError?: string;
   factorsLimit: number;
@@ -110,6 +78,7 @@ export const AddKeyFactorsForm = ({
   setSuggestedKeyFactors: (
     factors: { text: string; selected: boolean }[]
   ) => void;
+  post: PostWithForecasts;
 }) => {
   const t = useTranslations();
 
@@ -163,20 +132,47 @@ export const AddKeyFactorsForm = ({
         <p className="text-base leading-tight">{t("addKeyFactorsModalP1")}</p>
       )}
 
-      {keyFactors.map((keyFactor, idx) => (
-        <KeyFactorField
+      {keyFactors.map((draft, idx) => (
+        <DriverCreationForm
           key={idx}
-          keyFactor={keyFactor}
-          setKeyFactor={(keyFactor) => {
+          keyFactor={draft.text}
+          setKeyFactor={(text) =>
             setKeyFactors(
-              keyFactors.map((k, i) => (i === idx ? keyFactor : k))
-            );
-          }}
+              keyFactors.map((k, i) => (i === idx ? { ...k, text } : k))
+            )
+          }
+          impactMetadata={
+            draft.certainty === -1
+              ? ({ impact_direction: null, certainty: -1 } as const)
+              : ({
+                  impact_direction: (draft.impact_direction ?? 1) as 1 | -1,
+                  certainty: null,
+                } as const)
+          }
+          setImpactMetadata={(m) =>
+            setKeyFactors(
+              keyFactors.map((k, i) => {
+                if (i !== idx) return k;
+                if (m.certainty === -1) {
+                  return { ...k, certainty: -1, impact_direction: null };
+                }
+                if (m.impact_direction === 1 || m.impact_direction === -1) {
+                  return {
+                    ...k,
+                    impact_direction: m.impact_direction,
+                    certainty: null,
+                  };
+                }
+                return { ...k, ...m };
+              })
+            )
+          }
           isActive={isActive}
           showXButton={idx > 0 && isActive}
-          onXButtonClick={() => {
-            setKeyFactors(keyFactors.filter((_, i) => i !== idx));
-          }}
+          onXButtonClick={() =>
+            setKeyFactors(keyFactors.filter((_, i) => i !== idx))
+          }
+          post={post}
         />
       ))}
 
@@ -186,11 +182,14 @@ export const AddKeyFactorsForm = ({
           size="xs"
           className="w-fit"
           onClick={() => {
-            setKeyFactors([...keyFactors, ""]);
+            setKeyFactors([
+              ...keyFactors,
+              { text: "", impact_direction: 1, certainty: null },
+            ]);
           }}
           disabled={
             totalKeyFactorsLimitReached ||
-            keyFactors.at(-1) === "" ||
+            keyFactors.at(-1)?.text === "" ||
             !isNil(limitError)
           }
         >
@@ -218,7 +217,7 @@ const AddKeyFactorsModal: FC<Props> = ({
   isOpen,
   onClose,
   commentId,
-  postId,
+  post,
   onSuccess,
   user,
   showSuggestedKeyFactors = false,
@@ -244,7 +243,7 @@ const AddKeyFactorsModal: FC<Props> = ({
   } = useKeyFactors({
     user_id: user.id,
     commentId,
-    postId,
+    postId: post.id,
     suggestKeyFactors: showSuggestedKeyFactors && isOpen,
   });
 
@@ -274,12 +273,19 @@ const AddKeyFactorsModal: FC<Props> = ({
   };
   return (
     <BaseModal
-      label={t("addKeyFactors")}
       isOpen={isOpen}
       onClose={handleOnClose}
       isImmersive={true}
       className="m-0 flex h-full w-full max-w-none flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
     >
+      <h2 className="mb-4 mt-0 flex items-center gap-3 text-xl text-blue-500 dark:text-blue-500-dark">
+        <span>{t("addKeyFactors")}</span>
+        <FontAwesomeIcon icon={faChevronRight} size="lg" className="text-lg" />
+        <span className="text-gray-900 dark:text-gray-900-dark">
+          {t("driver")}
+        </span>
+      </h2>
+
       {isLoadingSuggestedKeyFactors && <LoadingSuggestedKeyFactors />}
 
       {!isLoadingSuggestedKeyFactors && (
@@ -292,6 +298,7 @@ const AddKeyFactorsModal: FC<Props> = ({
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
+            post={post}
           />
 
           {currentStep > 1 && (
@@ -332,7 +339,9 @@ const AddKeyFactorsModal: FC<Props> = ({
                   setCurrentStep(currentStep + 1);
                 }}
                 className="px-3"
-                disabled={isPending || !keyFactors.some((k) => k.trim() !== "")}
+                disabled={
+                  isPending || !keyFactors.some((k) => k.text.trim() !== "")
+                }
               >
                 {t("next")}
               </Button>

@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useHash from "@/hooks/use_hash";
 import { FetchedAggregateCoherenceLink } from "@/types/coherence";
-import { Post, PostStatus } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
@@ -24,8 +24,8 @@ import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
 
 type KeyFactorsSectionProps = {
-  post: Post;
-  variant?: "default" | "compact";
+  post: PostWithForecasts;
+  isCompact?: boolean;
 };
 
 const AddKeyFactorsButton: FC<{
@@ -50,11 +50,7 @@ const AddKeyFactorsButton: FC<{
   );
 };
 
-const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
-  post,
-  variant = "default",
-}) => {
-  const postId = post.id;
+const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post, isCompact }) => {
   const postStatus = post.status;
   const t = useTranslations();
   const hash = useHash();
@@ -127,10 +123,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
       <div id="key-factors-list" className="flex flex-col gap-2.5">
         {visibleKeyFactors.map((kf) => (
           <KeyFactorItem
-            variant={variant}
+            isCompact={isCompact}
             key={`post-key-factor-${kf.id}`}
             keyFactor={kf}
-            linkToComment={variant === "default"}
+            post={post}
           />
         ))}
         {combinedKeyFactors.length > displayLimit && (
@@ -174,12 +170,12 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
         <AddKeyFactorsModal
           isOpen={isAddKeyFactorsModalOpen}
           onClose={() => setIsAddKeyFactorsModalOpen(false)}
-          postId={postId}
+          post={post}
           user={user}
         />
       )}
 
-      {variant === "compact" ? (
+      {isCompact ? (
         <div className="space-y-2.5">
           <p className="text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
             {t("keyFactors")}

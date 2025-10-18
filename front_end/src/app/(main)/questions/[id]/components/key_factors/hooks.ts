@@ -9,12 +9,10 @@ import {
 } from "@/app/(main)/questions/actions";
 import { useServerAction } from "@/hooks/use_server_action";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
-import { BECommentType, KeyFactor } from "@/types/comment";
+import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
+import { BECommentType, Driver, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-
-const FACTORS_PER_QUESTION = 6;
-const FACTORS_PER_COMMENT = 4;
 
 export type SuggestedKeyFactor = {
   text: string;
@@ -40,7 +38,9 @@ export const useKeyFactors = ({
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
 
-  const [keyFactors, setKeyFactors] = useState<string[]>([""]);
+  const [keyFactors, setKeyFactors] = useState<Driver[]>([
+    { text: "", impact_direction: 1, certainty: null },
+  ]);
   const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
     SuggestedKeyFactor[]
@@ -82,7 +82,7 @@ export const useKeyFactors = ({
       : undefined;
 
   const onSubmit = async (
-    keyFactors: string[],
+    keyFactors: Driver[],
     suggestedKeyFactors: SuggestedKeyFactor[],
     markdown?: string
   ): Promise<
@@ -96,27 +96,45 @@ export const useKeyFactors = ({
       }
   > => {
     for (const keyFactor of keyFactors) {
-      if (keyFactor.trim().length > 150) {
+      if (keyFactor.text.trim().length > 150) {
         return { errors: new Error(t("maxKeyFactorLength")) };
       }
     }
 
-    const filteredKeyFactors = keyFactors.filter((f) => f.trim() !== "");
+    const filteredKeyFactors = keyFactors.filter((f) => f.text.trim() !== "");
     const filteredSuggestedKeyFactors = suggestedKeyFactors
       .filter((kf) => kf.selected)
       .map((kf) => kf.text);
 
+    const toDriver = (text: string): KeyFactorWritePayload => ({
+      driver: { text, impact_direction: 1, certainty: null },
+    });
+    const writePayloads: KeyFactorWritePayload[] = [
+      ...filteredKeyFactors.map(
+        (d) =>
+          ({
+            driver: {
+              text: d.text,
+              impact_direction:
+                d.certainty === -1 ? null : d.impact_direction ?? null,
+              certainty:
+                d.impact_direction === 1 || d.impact_direction === -1
+                  ? null
+                  : d.certainty ?? null,
+            },
+          }) as KeyFactorWritePayload
+      ),
+      ...filteredSuggestedKeyFactors.map(toDriver),
+    ];
+
     let comment;
     if (commentId) {
-      comment = await addKeyFactorsToComment(commentId, [
-        ...filteredKeyFactors,
-        ...filteredSuggestedKeyFactors,
-      ]);
+      comment = await addKeyFactorsToComment(commentId, writePayloads);
     } else {
       comment = await createComment({
         on_post: postId,
         text: markdown || "",
-        key_factors: [...filteredKeyFactors, ...filteredSuggestedKeyFactors],
+        key_factors: writePayloads,
         is_private: false,
       });
     }
@@ -148,7 +166,7 @@ export const useKeyFactors = ({
   const [submit, isPending] = useServerAction(onSubmit);
 
   const clearState = () => {
-    setKeyFactors([""]);
+    setKeyFactors([{ text: "", impact_direction: 1, certainty: null }]);
     setErrors(undefined);
     setSuggestedKeyFactors([]);
   };
@@ -176,6 +194,9 @@ export const getKeyFactorsLimits = (
   user_id: number | undefined,
   commentId?: number
 ) => {
+  const FACTORS_PER_QUESTION = 6;
+  const FACTORS_PER_COMMENT = 4;
+
   if (isNil(user_id)) {
     return {
       userPostFactors: [],

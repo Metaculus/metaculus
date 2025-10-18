@@ -7,6 +7,7 @@ import CommentsApi, {
   CreateCommentParams,
   EditCommentParams,
   KeyFactorVoteParams,
+  KeyFactorWritePayload,
   ToggleCMMCommentParams,
   VoteParams,
 } from "./comments.shared";
@@ -34,13 +35,11 @@ class ServerCommentsApiClass extends CommentsApi {
 
   async addKeyFactorsToComment(
     commentId: number,
-    keyFactors: string[]
+    keyFactors: KeyFactorWritePayload[]
   ): Promise<BECommentType> {
-    return await this.post<BECommentType>(
+    return await this.post<BECommentType, KeyFactorWritePayload[]>(
       `/comments/${commentId}/add-key-factors/`,
-      {
-        key_factors: keyFactors,
-      }
+      keyFactors
     );
   }
 

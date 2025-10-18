@@ -17,7 +17,7 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
 import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
-import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
+import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
 import {
   createForecasts,
   editComment,
@@ -652,17 +652,6 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      {commentKeyFactors.length > 0 && canListKeyFactors && (
-        <div className="mb-3 mt-1.5 flex flex-col gap-1">
-          {commentKeyFactors.map((kf) => (
-            <KeyFactorItem
-              key={`key-factor-${kf.id}`}
-              keyFactor={kf}
-              linkToComment={false}
-            />
-          ))}
-        </div>
-      )}
       <div>
         <CmmOverlay
           forecast={100 * userForecast}
@@ -843,6 +832,13 @@ const Comment: FC<CommentProps> = ({
                 </Button>
               </>
             )}
+            {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
+              <KeyFactorsCommentSection
+                keyFactors={commentKeyFactors}
+                post={postData}
+                comment={comment}
+              />
+            )}
             <div className="mb-2 mt-1 h-7 overflow-visible">
               <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
                 <div className="inline-flex items-center gap-2.5">
@@ -953,15 +949,14 @@ const Comment: FC<CommentProps> = ({
           isReplying={isReplying}
         />
       )}
-
-      {isKeyfactorsFormOpen && (
+      {isKeyfactorsFormOpen && postData && (
         <CommentForm
           onSubmit={handleSubmit}
           onCancel={onCancel}
           cancelDisabled={isPending}
           submitDisabled={
             isPending ||
-            (!keyFactors.some((k) => k.trim() !== "") &&
+            (!keyFactors.some((k) => k.text.trim() !== "") &&
               !suggestedKeyFactors.some((k) => k.selected))
           }
         >
@@ -973,18 +968,17 @@ const Comment: FC<CommentProps> = ({
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
+            post={postData}
           />
           <FormError errors={keyFactorsErrors} />
         </CommentForm>
       )}
-
       {isCommentJustCreated && postData && (
         <CoherenceLinksForm
           post={postData}
           comment={comment}
         ></CoherenceLinksForm>
       )}
-
       {comment.children?.length > 0 && !isCollapsed && (
         <CommentChildrenTree
           commentChildren={comment.children}
