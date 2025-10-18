@@ -18,6 +18,10 @@ export enum AggregationMethodWithBots {
   single_aggregation_bot = "single_aggregation_bot",
   metaculus_prediction = "metaculus_prediction",
   metaculus_prediction_bot = "metaculus_prediction_bot",
+  metaculus_pros = "metaculus_pros",
+  medalists = "medalists",
+  silver_medalists = "silver_medalists",
+  gold_medalists = "gold_medalists",
 }
 
 export type AggregationOption = {
