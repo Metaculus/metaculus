@@ -90,7 +90,6 @@ function parseAggregationData({
   choiceItems,
   question,
   locale,
-  isBot,
   tooltips,
   selectedSubQuestionOption,
 }: {
@@ -98,7 +97,6 @@ function parseAggregationData({
   choiceItems: ChoiceItem[];
   question: AggregationExtraQuestion;
   locale?: string;
-  isBot?: boolean;
   tooltips: AggregationTooltip[];
   selectedSubQuestionOption: number | string | null;
 }) {
