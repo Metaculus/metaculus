@@ -57,10 +57,6 @@ export enum AggregationMethod {
   unweighted = "unweighted",
   single_aggregation = "single_aggregation",
   metaculus_prediction = "metaculus_prediction",
-  metaculus_pros = "metaculus_pros",
-  medalists = "medalists",
-  silver_medalists = "silver_medalists",
-  gold_medalists = "gold_medalists",
 }
 
 export enum DownloadAggregationMethod {
@@ -68,10 +64,6 @@ export enum DownloadAggregationMethod {
   unweighted = AggregationMethod.unweighted,
   single_aggregation = AggregationMethod.single_aggregation,
   metaculus_prediction = AggregationMethod.metaculus_prediction,
-  metaculus_pros = AggregationMethod.metaculus_pros,
-  medalists = AggregationMethod.medalists,
-  silver_medalists = AggregationMethod.silver_medalists,
-  gold_medalists = AggregationMethod.gold_medalists,
   geometric_mean = "geometric_mean",
 }
 
@@ -181,6 +173,9 @@ export type Aggregations = {
   single_aggregation: AggregateForecastHistory;
   metaculus_prediction: AggregateForecastHistory;
 };
+
+export type AggregationsExtra = Aggregations &
+  Partial<Record<string, AggregateForecastHistory>>;
 
 export type BaseForecast = {
   timestamps: number[];

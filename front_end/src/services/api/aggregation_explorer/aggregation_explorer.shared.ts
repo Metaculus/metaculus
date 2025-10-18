@@ -1,5 +1,5 @@
+import { AggregationExtraQuestion } from "@/app/(main)/aggregation-explorer/types";
 import { ApiService } from "@/services/api/api_service";
-import { AggregationQuestion } from "@/types/question";
 import { encodeQueryParams } from "@/utils/navigation";
 
 type AggregationExplorerParams = {
@@ -20,7 +20,7 @@ class AggregationExplorerApi extends ApiService {
       ...(params.userIds !== undefined ? { user_ids: params.userIds } : {}),
     });
 
-    return await this.get<AggregationQuestion>(
+    return await this.get<AggregationExtraQuestion>(
       `/aggregation_explorer/${queryParams}`
     );
   }

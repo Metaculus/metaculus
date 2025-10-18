@@ -28,7 +28,6 @@ def aggregation_explorer_api_view(request) -> Response:
     user: User = request.user
     post: Post
     question: Question
-
     question_id = request.GET.get("question_id")
     if question_id:
         question = Question.objects.filter(id=question_id).first()

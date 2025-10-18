@@ -17,7 +17,7 @@ import { AggregationMethodWithBots } from "../types";
 type Props = {
   valueLabel: string;
   tooltips: {
-    aggregationMethod: AggregationMethod;
+    aggregationMethod: AggregationMethod | string;
     choice: AggregationMethodWithBots;
     label: string;
     includeBots: boolean;

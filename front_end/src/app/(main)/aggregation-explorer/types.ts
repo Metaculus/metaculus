@@ -1,12 +1,12 @@
 import {
   AggregationQuestion,
-  Aggregations,
+  AggregationsExtra,
   AggregationMethod,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
-export type AggregationQuestionWithBots = AggregationQuestion & {
-  bot_aggregations?: Aggregations;
+export type AggregationExtraQuestion = AggregationQuestion & {
+  aggregations: AggregationsExtra;
 };
 
 export enum AggregationMethodWithBots {
@@ -26,14 +26,14 @@ export enum AggregationMethodWithBots {
 
 export type AggregationOption = {
   id: AggregationMethodWithBots;
-  value: AggregationMethod;
+  value: AggregationMethod | string;
   label: string;
   includeBots: boolean;
   isStaffOnly?: boolean;
 };
 
 export type AggregationTooltip = {
-  aggregationMethod: AggregationMethod;
+  aggregationMethod: AggregationMethod | string;
   choice: AggregationMethodWithBots;
   label: string;
   includeBots: boolean;

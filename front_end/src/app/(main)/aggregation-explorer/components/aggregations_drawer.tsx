@@ -27,17 +27,14 @@ import {
   generateAggregationTooltips,
   generateChoiceItemsFromAggregations,
 } from "../helpers";
-import {
-  AggregationMethodWithBots,
-  AggregationQuestionWithBots,
-} from "../types";
+import { AggregationMethodWithBots, AggregationExtraQuestion } from "../types";
 
 type Props = {
   onTabChange: (activeTab: AggregationMethodWithBots) => void;
   onFetchData: (
     aggregationOptionId: AggregationMethodWithBots
   ) => Promise<void>;
-  aggregationData: AggregationQuestionWithBots | null;
+  aggregationData: AggregationExtraQuestion | null;
   selectedSubQuestionOption: number | string | null;
 };
 
@@ -138,6 +135,7 @@ const AggregationsDrawer: FC<Props> = ({
     }
   }, [aggregationData, selectedSubQuestionOption, tooltips]);
 
+  console.log({ choiceItems });
   return (
     <>
       {aggregationData && (

@@ -687,6 +687,7 @@ class Aggregation(AggregatorMixin):
         ]
 
     def get_weights(self, forecast_set: ForecastSet) -> Weights | int:
+        """returns 0 as a sentinal for uniform 0 weights"""
         weights = None
         for weighting in self.weightings:
             new_weights = weighting.calculate_weights(forecast_set)
@@ -709,7 +710,8 @@ class Aggregation(AggregatorMixin):
         histogram: bool = False,
     ) -> AggregateForecast | None:
         weights = self.get_weights(forecast_set)
-        if weights is 0:
+        if isinstance(weights, int):
+            assert weights == 0, "0 is only supported int return of get_weights"
             return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
         aggregation.forecast_values = self.calculate_forecast_values(

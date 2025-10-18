@@ -2,14 +2,14 @@ import { uniq } from "lodash";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
-import { Aggregations, QuestionType } from "@/types/question";
+import { AggregationsExtra, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 import { formatResolution } from "@/utils/formatters/resolution";
 
 import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
 import {
   AggregationMethodWithBots,
-  AggregationQuestionWithBots,
+  AggregationExtraQuestion,
   AggregationTooltip,
 } from "./types";
 
@@ -25,6 +25,10 @@ export function generateAggregationTooltips(
         AggregationMethodWithBots.unweighted_bot,
         AggregationMethodWithBots.single_aggregation_bot,
         AggregationMethodWithBots.metaculus_prediction,
+        AggregationMethodWithBots.metaculus_pros,
+        AggregationMethodWithBots.medalists,
+        AggregationMethodWithBots.silver_medalists,
+        AggregationMethodWithBots.gold_medalists,
       ]
     : [
         AggregationMethodWithBots.recency_weighted,
@@ -34,6 +38,10 @@ export function generateAggregationTooltips(
         AggregationMethodWithBots.recency_weighted_bot,
         AggregationMethodWithBots.unweighted_bot,
         AggregationMethodWithBots.single_aggregation_bot,
+        AggregationMethodWithBots.metaculus_pros,
+        AggregationMethodWithBots.medalists,
+        AggregationMethodWithBots.silver_medalists,
+        AggregationMethodWithBots.gold_medalists,
       ];
 
   return [...AGGREGATION_EXPLORER_OPTIONS]
@@ -59,14 +67,13 @@ export function generateChoiceItemsFromAggregations({
   tooltips,
   locale,
 }: {
-  question: AggregationQuestionWithBots;
+  question: AggregationExtraQuestion;
   selectedSubQuestionOption: number | string | null;
   tooltips: AggregationTooltip[];
   locale?: string;
 }): ChoiceItem[] {
   const choiceItems: ChoiceItem[] = [];
   const aggregations = question.aggregations;
-  const botAggregations = question.bot_aggregations;
   parseAggregationData({
     aggregations,
     choiceItems,
@@ -75,16 +82,6 @@ export function generateChoiceItemsFromAggregations({
     tooltips,
     selectedSubQuestionOption,
   });
-  botAggregations &&
-    parseAggregationData({
-      aggregations: botAggregations,
-      choiceItems,
-      question,
-      locale,
-      isBot: true,
-      tooltips,
-      selectedSubQuestionOption,
-    });
   return choiceItems;
 }
 
@@ -97,22 +94,17 @@ function parseAggregationData({
   tooltips,
   selectedSubQuestionOption,
 }: {
-  aggregations: Aggregations;
+  aggregations: AggregationsExtra;
   choiceItems: ChoiceItem[];
-  question: AggregationQuestionWithBots;
+  question: AggregationExtraQuestion;
   locale?: string;
   isBot?: boolean;
   tooltips: AggregationTooltip[];
   selectedSubQuestionOption: number | string | null;
 }) {
-  for (const key in aggregations) {
-    const aggregationKey = key as keyof Aggregations;
-    const aggregation = aggregations[aggregationKey];
-    const tooltip = tooltips.find(
-      (tooltip) =>
-        tooltip.aggregationMethod === aggregationKey &&
-        tooltip.includeBots === !!isBot
-    );
+  for (const [key, aggregation] of Object.entries(aggregations)) {
+    if (!aggregation) continue;
+    const tooltip = tooltips.find((tooltip) => tooltip.choice == key);
 
     if (!aggregation?.history) {
       continue;

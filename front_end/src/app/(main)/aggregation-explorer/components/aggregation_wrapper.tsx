@@ -8,10 +8,7 @@ import { logError } from "@/utils/core/errors";
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
-import {
-  AggregationMethodWithBots,
-  AggregationQuestionWithBots,
-} from "../types";
+import { AggregationMethodWithBots, AggregationExtraQuestion } from "../types";
 
 type Props = {
   activeTab: AggregationMethodWithBots | null;
@@ -35,7 +32,7 @@ export const AggregationWrapper: FC<Props> = ({
     AggregationMethodWithBots[]
   >([]);
   const [aggregationData, setAggregationData] =
-    useState<AggregationQuestionWithBots | null>(null);
+    useState<AggregationExtraQuestion | null>(null);
 
   const handleFetchAggregations = useCallback(
     async (aggregationOptionId: AggregationMethodWithBots) => {
@@ -43,7 +40,11 @@ export const AggregationWrapper: FC<Props> = ({
         AGGREGATION_EXPLORER_OPTIONS.find(
           (option) => option.id === aggregationOptionId
         ) ?? AGGREGATION_EXPLORER_OPTIONS[0];
-      const { value: aggregationMethod, includeBots } = aggregationOption;
+      const {
+        value: methodName,
+        id: methodID,
+        includeBots,
+      } = aggregationOption;
 
       if (selectedAggregationMethods.includes(aggregationOptionId)) {
         return;
@@ -60,45 +61,36 @@ export const AggregationWrapper: FC<Props> = ({
           postId,
           questionId: adjustedQuestionId,
           includeBots,
-          aggregationMethods: aggregationMethod,
+          aggregationMethods: methodName,
           ...additionalParams,
         });
-
-        const fetchedAggregationData = response.aggregations[aggregationMethod];
+        const fetchedAggregationData = response.aggregations[methodName];
         if (fetchedAggregationData !== undefined) {
           setAggregationData((prev) =>
             prev
               ? ({
                   ...prev,
-                  ...(includeBots
-                    ? {
-                        bot_aggregations: {
-                          ...prev.bot_aggregations,
-                          [aggregationMethod]: fetchedAggregationData,
-                        },
-                      }
-                    : {
-                        aggregations: {
-                          ...prev.aggregations,
-                          [aggregationMethod]: fetchedAggregationData,
-                        },
-                      }),
-                } as AggregationQuestionWithBots)
+                  ...{
+                    aggregations: {
+                      ...prev.aggregations,
+                      [methodID]: fetchedAggregationData,
+                    },
+                  },
+                } as AggregationExtraQuestion)
               : ({
                   ...response,
                   ...(includeBots
                     ? {
-                        bot_aggregations: {
-                          [aggregationMethod]: fetchedAggregationData,
+                        aggregations: {
+                          [methodID]: fetchedAggregationData,
                         },
-                        aggregations: {},
                       }
                     : {
                         aggregations: {
-                          [aggregationMethod]: fetchedAggregationData,
+                          [methodID]: fetchedAggregationData,
                         },
                       }),
-                } as AggregationQuestionWithBots)
+                } as AggregationExtraQuestion)
           );
         }
         setSelectedAggregationMethods((prev) => [...prev, aggregationOptionId]);

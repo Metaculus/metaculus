@@ -85,7 +85,9 @@ class DataGetRequestSerializer(serializers.Serializer):
     joined_before = serializers.DateTimeField(required=False)
 
     def validate_aggregation_methods(self, value: str | None):
-        valid_aggregation_methods = [aggregation.method for aggregation in AGGREGATIONS]
+        valid_aggregation_methods = [
+            aggregation.method for aggregation in AGGREGATIONS
+        ] + [AggregationMethod.METACULUS_PREDICTION]
         if value is None:
             return
         user: User = self.context.get("user")
