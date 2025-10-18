@@ -135,7 +135,6 @@ const AggregationsDrawer: FC<Props> = ({
     }
   }, [aggregationData, selectedSubQuestionOption, tooltips]);
 
-  console.log({ choiceItems });
   return (
     <>
       {aggregationData && (

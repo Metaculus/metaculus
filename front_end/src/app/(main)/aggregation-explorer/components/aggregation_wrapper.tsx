@@ -66,32 +66,16 @@ export const AggregationWrapper: FC<Props> = ({
         });
         const fetchedAggregationData = response.aggregations[methodName];
         if (fetchedAggregationData !== undefined) {
-          setAggregationData((prev) =>
-            prev
-              ? ({
-                  ...prev,
-                  ...{
-                    aggregations: {
-                      ...prev.aggregations,
-                      [methodID]: fetchedAggregationData,
-                    },
-                  },
-                } as AggregationExtraQuestion)
-              : ({
-                  ...response,
-                  ...(includeBots
-                    ? {
-                        aggregations: {
-                          [methodID]: fetchedAggregationData,
-                        },
-                      }
-                    : {
-                        aggregations: {
-                          [methodID]: fetchedAggregationData,
-                        },
-                      }),
-                } as AggregationExtraQuestion)
-          );
+          setAggregationData((prev) => {
+            const base = prev ?? response;
+            return {
+              ...base,
+              aggregations: {
+                ...base.aggregations,
+                [methodID]: fetchedAggregationData,
+              },
+            } as AggregationExtraQuestion;
+          });
         }
         setSelectedAggregationMethods((prev) => [...prev, aggregationOptionId]);
       } catch (err) {
