@@ -1,12 +1,12 @@
 import {
   AggregationQuestion,
-  Aggregations,
+  AggregationsExtra,
   AggregationMethod,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
-export type AggregationQuestionWithBots = AggregationQuestion & {
-  bot_aggregations?: Aggregations;
+export type AggregationExtraQuestion = AggregationQuestion & {
+  aggregations: AggregationsExtra;
 };
 
 export enum AggregationMethodWithBots {
@@ -18,18 +18,22 @@ export enum AggregationMethodWithBots {
   single_aggregation_bot = "single_aggregation_bot",
   metaculus_prediction = "metaculus_prediction",
   metaculus_prediction_bot = "metaculus_prediction_bot",
+  metaculus_pros = "metaculus_pros",
+  medalists = "medalists",
+  silver_medalists = "silver_medalists",
+  gold_medalists = "gold_medalists",
 }
 
 export type AggregationOption = {
   id: AggregationMethodWithBots;
-  value: AggregationMethod;
+  value: AggregationMethod | string;
   label: string;
   includeBots: boolean;
   isStaffOnly?: boolean;
 };
 
 export type AggregationTooltip = {
-  aggregationMethod: AggregationMethod;
+  aggregationMethod: AggregationMethod | string;
   choice: AggregationMethodWithBots;
   label: string;
   includeBots: boolean;

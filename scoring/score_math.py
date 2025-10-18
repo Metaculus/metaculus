@@ -316,7 +316,7 @@ def evaluate_question(
     score_types: list[ScoreTypes],
     spot_forecast_time: datetime | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    user_ids: list[int] | None = None,
+    only_include_user_ids: list[int] | None = None,
 ) -> list[Score]:
     """
     user_ids: optional - list of user IDs. If given, this question will be evaluated
@@ -342,17 +342,17 @@ def evaluate_question(
     # We need all user forecasts to calculated GeoMean even
     # if we're only scoring some or none of the users
     user_forecasts = question.user_forecasts.all()
-    if user_ids:
-        user_forecasts = user_forecasts.filter(author__id__in=user_ids)
+    if only_include_user_ids:
+        user_forecasts = user_forecasts.filter(author__id__in=only_include_user_ids)
     elif not question.include_bots_in_aggregates:
         user_forecasts = user_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(
         question,
         minimize=False,
         aggregation_methods=aggregations_to_calculate,
-        include_bots=bool(user_ids) or question.include_bots_in_aggregates,
+        include_bots=bool(only_include_user_ids) or question.include_bots_in_aggregates,
         include_stats=False,
-        user_ids=user_ids,
+        only_include_user_ids=only_include_user_ids,
     )
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
 

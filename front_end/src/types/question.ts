@@ -174,6 +174,9 @@ export type Aggregations = {
   metaculus_prediction: AggregateForecastHistory;
 };
 
+export type AggregationsExtra = Aggregations &
+  Partial<Record<string, AggregateForecastHistory>>;
+
 export type BaseForecast = {
   timestamps: number[];
   nr_forecasters: number[];

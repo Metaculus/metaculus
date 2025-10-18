@@ -30,7 +30,7 @@ from users.models import User
 def export_all_data_for_questions(
     questions: QuerySet[Question],
     aggregation_methods: list[AggregationMethod] | None = None,
-    user_ids: list[int] | None = None,
+    only_include_user_ids: list[int] | None = None,
     include_comments: bool = False,
     include_scores: bool = False,
     include_bots: bool = False,
@@ -45,7 +45,7 @@ def export_all_data_for_questions(
 
     # check input
     if not aggregation_methods and (
-        (user_ids is not None) or include_bots or not minimize
+        (only_include_user_ids is not None) or include_bots or not minimize
     ):
         raise ValueError(
             "If user_ids, include_bots, or minimize is set, "
@@ -55,8 +55,8 @@ def export_all_data_for_questions(
     user_forecasts = Forecast.objects.filter(question__in=questions).order_by(
         "question_id", "start_time"
     )
-    if user_ids:
-        user_forecasts = user_forecasts.filter(user_id__in=user_ids)
+    if only_include_user_ids:
+        user_forecasts = user_forecasts.filter(user_id__in=only_include_user_ids)
 
     if not aggregation_methods:
         aggregate_forecasts = AggregateForecast.objects.filter(
@@ -68,7 +68,7 @@ def export_all_data_for_questions(
             aggregation_dict = get_aggregation_history(
                 question,
                 aggregation_methods,
-                user_ids=user_ids,
+                only_include_user_ids=only_include_user_ids,
                 minimize=minimize,
                 include_stats=True,
                 include_bots=(
@@ -94,10 +94,12 @@ def export_all_data_for_questions(
     if include_scores:
         scores = Score.objects.filter(question__in=questions)
         archived_scores = ArchivedScore.objects.filter(question__in=questions)
-        if user_ids:
-            scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+        if only_include_user_ids:
+            scores = scores.filter(
+                Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
+            )
             archived_scores = archived_scores.filter(
-                Q(user_id__in=user_ids) | Q(user__isnull=True)
+                Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
             )
         all_scores = scores.union(archived_scores)
     else:
@@ -123,7 +125,7 @@ def export_data_for_questions(
     include_scores: bool,
     include_user_data: bool,
     include_comments: bool,
-    user_ids: list[int] | None,
+    only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
     include_future: bool = False,
@@ -137,8 +139,8 @@ def export_data_for_questions(
         user_forecasts = Forecast.objects.filter(question__in=questions).order_by(
             "question_id", "start_time"
         )
-    if user_ids:
-        user_forecasts = user_forecasts.filter(author_id__in=user_ids)
+    if only_include_user_ids:
+        user_forecasts = user_forecasts.filter(author_id__in=only_include_user_ids)
     if not (is_whitelisted or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
@@ -148,7 +150,7 @@ def export_data_for_questions(
         questions_with_revealed_cp = questions.filter(
             Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
         )
-    if not user_ids and (
+    if not only_include_user_ids and (
         not aggregation_methods
         or (
             aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
@@ -175,7 +177,7 @@ def export_data_for_questions(
             aggregation_dict = get_aggregation_history(
                 question,
                 aggregation_methods,
-                user_ids=user_ids,
+                only_include_user_ids=only_include_user_ids,
                 minimize=minimize,
                 include_stats=True,
                 include_bots=(
@@ -205,11 +207,13 @@ def export_data_for_questions(
             # don't include user-specific scores
             scores = scores.filter(user__isnull=True)
             archived_scores = archived_scores.filter(user__isnull=True)
-        elif user_ids:
+        elif only_include_user_ids:
             # only include user-specific scores for the given user_ids
-            scores = scores.filter(Q(user_id__in=user_ids) | Q(user__isnull=True))
+            scores = scores.filter(
+                Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
+            )
             archived_scores = archived_scores.filter(
-                Q(user_id__in=user_ids) | Q(user__isnull=True)
+                Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
             )
         elif not (is_whitelisted or is_staff):
             # only include user-specific scores for the logged-in user

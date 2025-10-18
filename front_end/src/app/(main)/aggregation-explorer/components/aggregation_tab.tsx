@@ -19,10 +19,10 @@ import { getPostDrivenTime } from "@/utils/questions/helpers";
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
-import { AggregationQuestionWithBots } from "../types";
+import { AggregationExtraQuestion } from "../types";
 
 type Props = {
-  aggregationData: AggregationQuestionWithBots | null;
+  aggregationData: AggregationExtraQuestion | null;
   activeTab: string;
   selectedSubQuestionOption: number | string | null;
   postId: number;
@@ -42,7 +42,6 @@ const AggregationsTab: FC<Props> = ({
 
   const {
     aggregations,
-    bot_aggregations,
     actual_close_time,
     resolution,
     unit,
@@ -54,11 +53,8 @@ const AggregationsTab: FC<Props> = ({
     AGGREGATION_EXPLORER_OPTIONS[0];
 
   const activeAggregation = useMemo(
-    () =>
-      tabData?.includeBots
-        ? bot_aggregations?.[tabData.value]
-        : aggregations?.[tabData.value],
-    [aggregations, bot_aggregations, tabData]
+    () => aggregations?.[tabData.id],
+    [aggregations, tabData]
   );
 
   let aggregationIndex: number | undefined;
@@ -124,7 +120,7 @@ const AggregationsTab: FC<Props> = ({
     return null;
   }
 
-  const renderAggregation = (questionData: AggregationQuestionWithBots) => {
+  const renderAggregation = (questionData: AggregationExtraQuestion) => {
     switch (questionData.type) {
       case QuestionType.Binary:
         return (

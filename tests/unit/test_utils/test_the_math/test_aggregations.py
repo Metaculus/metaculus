@@ -40,7 +40,7 @@ class TestAggregations:
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
-                    user_ids=[1],
+                    forecaster_ids=[1],
                     timesteps=[datetime(2023, 1, 1, tzinfo=dt_timezome.utc)],
                 ),
                 False,
@@ -57,7 +57,7 @@ class TestAggregations:
                 ForecastSet(
                     forecasts_values=[[0.5, 0.5]],
                     timestep=datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
-                    user_ids=[1],
+                    forecaster_ids=[1],
                     timesteps=[datetime(2023, 1, 1, tzinfo=dt_timezome.utc)],
                 ),
                 True,
@@ -82,7 +82,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
-                    user_ids=[1, 2],
+                    forecaster_ids=[1, 2],
                     timesteps=[
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -105,7 +105,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
-                    user_ids=[1, 2],
+                    forecaster_ids=[1, 2],
                     timesteps=[
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2023, 1, 1, tzinfo=dt_timezome.utc),
@@ -134,7 +134,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
-                    user_ids=[1, 2, 3],
+                    forecaster_ids=[1, 2, 3],
                     timesteps=[
                         datetime(2021, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
@@ -164,7 +164,7 @@ class TestAggregations:
                         [0.4, 0.6],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezome.utc),
-                    user_ids=[1, 2, 3],
+                    forecaster_ids=[1, 2, 3],
                     timesteps=[
                         datetime(2021, 1, 1, tzinfo=dt_timezome.utc),
                         datetime(2022, 1, 1, tzinfo=dt_timezome.utc),
