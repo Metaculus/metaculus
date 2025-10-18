@@ -257,7 +257,7 @@ class ReputationWeighted(Weighted):
         self,
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None,
-        **kwargs
+        **kwargs,
     ):
         if question is None or all_forecaster_ids is None:
             raise ValueError("question and user_ids must be provided")
