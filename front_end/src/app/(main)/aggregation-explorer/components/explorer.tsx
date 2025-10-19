@@ -26,7 +26,7 @@ import { logError } from "@/utils/core/errors";
 import { parseQuestionId } from "@/utils/questions/helpers";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
-import { AggregationMethodWithBots } from "../types";
+import { AggregationExtraMethod } from "../types";
 
 function sanitizeUserIds(input: string): number[] {
   if (!input) return [];
@@ -59,7 +59,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     string | number | null
   >(parseSubQuestionOption(question_id, option));
 
-  const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
+  const [activeTab, setActiveTab] = useState<AggregationExtraMethod | null>(
     null
   );
   const [postInputText, setPostInputText] = useState<string>(
