@@ -2,11 +2,22 @@ import pytest
 import numpy as np
 from datetime import datetime, timezone as dt_timezone
 
+from posts.models import Post
+from projects.models import Project
+from projects.permissions import ObjectPermission
+from questions.types import AggregationMethod
+from questions.models import Question, AggregateForecast
+from scoring.models import Leaderboard, LeaderboardEntry, Score
+from scoring.constants import ScoreTypes
+from users.models import User
 from utils.the_math.aggregations import (
-    summarize_array,
+    AGGREGATIONS,
     ForecastSet,
-    UnweightedAggregation,
+    get_aggregation_by_name,
     RecencyWeightedAggregation,
+    SingleAggregation,
+    summarize_array,
+    UnweightedAggregation,
 )
 from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast
@@ -31,6 +42,47 @@ def test_summarize_array(array, max_size, expceted_array):
 
 
 class TestAggregations:
+
+    @pytest.mark.parametrize("aggregation_name", [Agg.method for Agg in AGGREGATIONS])
+    def test_aggregations_initialize(
+        self, question_binary: Question, aggregation_name: str
+    ):
+        question_binary.open_time = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
+        user = User.objects.create(
+            username="user",
+            date_joined=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+            metadata={"pro_details": {"is_current_pro": True}},
+        )
+        project, _ = Project.objects.get_or_create(
+            name="test_project",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            finalize_time=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        LeaderboardEntry.objects.get_or_create(
+            leaderboard=leaderboard,
+            user=user,
+            medal="gold",
+            score=0,
+            calculated_on=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+        )
+
+        aggregation = get_aggregation_by_name(aggregation_name)(
+            question=question_binary,
+            all_forecaster_ids=[user.id],
+        )
+        entry = aggregation.calculate_aggregation_entry(
+            forecast_set=ForecastSet(
+                forecasts_values=[[0.5, 0.5]],
+                timestep=datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                forecaster_ids=[user.id],
+                timesteps=[datetime(2023, 1, 1, tzinfo=dt_timezone.utc)],
+            ),
+        )
+        assert entry
 
     @pytest.mark.parametrize(
         "init_params, forecast_set, include_stats, histogram, expected",
@@ -454,3 +506,66 @@ class TestAggregations:
         assert (new_aggregation.histogram == expected.histogram) or np.allclose(
             new_aggregation.histogram, expected.histogram
         )
+
+    def test_SingleAggregation(self, question_binary: Question):
+        high_rep_user = User.objects.create(username="high_rep_user")
+        low_rep_user = User.objects.create(username="low_rep_user")
+
+        question_binary.open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
+        question_binary.scheduled_close_time = datetime(
+            2025, 1, 1, tzinfo=dt_timezone.utc
+        )
+        question_binary.save()
+        project, _ = Project.objects.get_or_create(
+            name="test_project",
+            visibility="normal",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        Post.objects.create(
+            default_project=project,
+            question=question_binary,
+            author=high_rep_user,
+        )
+
+        Score.objects.create(
+            user=high_rep_user,
+            question=question_binary,
+            score=3000,
+            coverage=1,
+            score_type=ScoreTypes.PEER,
+        )
+        Score.objects.create(
+            user=low_rep_user,
+            question=question_binary,
+            score=900,
+            coverage=1,
+            score_type=ScoreTypes.PEER,
+        )
+        Score.objects.update(edited_at=datetime(2020, 1, 1, tzinfo=dt_timezone.utc))
+
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        high_forecast = [0.2, 0.8]
+        low_forecast = [0.8, 0.2]
+        forecast_set = ForecastSet(
+            forecasts_values=[low_forecast, high_forecast],
+            timestep=timestep,
+            forecaster_ids=[low_rep_user.id, high_rep_user.id],
+            timesteps=[timestep, timestep],
+        )
+
+        aggregation = SingleAggregation(
+            question=question_binary,
+            all_forecaster_ids=[low_rep_user.id, high_rep_user.id],
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == AggregationMethod.SINGLE_AGGREGATION
+        assert new_aggregation.forecaster_count == 2
+        assert new_aggregation.start_time == timestep
+        # aggregate should be closer to the user with a higher reputation
+        high_value = high_forecast[1]
+        low_value = low_forecast[1]
+        aggregate_value = new_aggregation.forecast_values[1]
+        assert abs(high_value - aggregate_value) < abs(low_value - aggregate_value)
