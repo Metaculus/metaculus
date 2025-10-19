@@ -5,7 +5,6 @@ import dateutil.parser
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
