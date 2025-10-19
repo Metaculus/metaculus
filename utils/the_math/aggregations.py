@@ -178,7 +178,7 @@ class Filtered(Weighted):
 
     def __init__(self, all_forecaster_ids: list[int] | set[int] | None, **kwargs):
         if all_forecaster_ids is None:
-            raise ValueError("all_forecaster_ids be provided")
+            raise ValueError("all_forecaster_ids must be provided")
         self.filter: set[int] = self.get_filter(all_forecaster_ids)
 
     def get_filter(self, all_forecaster_ids: list[int] | set[int]) -> set[int]:
@@ -234,7 +234,7 @@ class ReputationWeighted(Weighted):
         **kwargs,
     ):
         if question is None or all_forecaster_ids is None:
-            raise ValueError("question and all_forecaster_ids be provided")
+            raise ValueError("question and all_forecaster_ids must be provided")
         self.question = question
         self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
             all_forecaster_ids
