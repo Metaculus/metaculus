@@ -24,13 +24,13 @@ from utils.the_math.aggregations import get_aggregation_history
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def aggregation_explorer_api_view(request):
+def aggregation_explorer_api_view(request) -> Response:
     user: User = request.user
     post: Post
-
+    question: Question
     question_id = request.GET.get("question_id")
     if question_id:
-        question: Question | None = Question.objects.filter(id=question_id).first()
+        question = Question.objects.filter(id=question_id).first()
         if question is None:
             raise ValidationError(f"Question with id {question_id} not found")
         post = question.get_post()
@@ -74,6 +74,7 @@ def aggregation_explorer_api_view(request):
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)
+    joined_before = params.get("joined_before")
 
     aggregations = get_aggregation_history(
         question,
@@ -88,6 +89,7 @@ def aggregation_explorer_api_view(request):
         ),
         histogram=True,
         include_future=False,
+        joined_before=joined_before,
     )
     aggregate_forecasts = []
     for aggregation in aggregations.values():
