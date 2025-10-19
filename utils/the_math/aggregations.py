@@ -140,8 +140,8 @@ def compute_weighted_semi_standard_deviations(
 
 class Weighted:
 
-    def __init__(self, question: Question, **kwargs):
-        self.question = question
+    def __init__(self, **kwargs):
+        pass
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         raise NotImplementedError("Implement in Child Class")
@@ -175,16 +175,18 @@ class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
     Requires `get_reputation_history`"""
 
-    def __init__(self, question: Question, user_ids: list[int] | set[int] | None):
-        if question is None or user_ids is None:
+    def __init__(
+        self, question: Question, all_forecaster_ids: list[int] | set[int] | None
+    ):
+        if question is None or all_forecaster_ids is None:
             raise ValueError("question and user_ids must be provided")
         self.question = question
         self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
-            user_ids
+            all_forecaster_ids
         )
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
@@ -218,7 +220,7 @@ class PeerScoreWeighted(ReputationWeighted):
         )
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
 
         start = self.question.open_time
@@ -226,7 +228,7 @@ class PeerScoreWeighted(ReputationWeighted):
         if end is None:
             end = timezone.now()
         peer_scores = Score.objects.filter(
-            user_id__in=user_ids,
+            user_id__in=all_forecaster_ids,
             score_type=ScoreTypes.PEER,
             question__in=Question.objects.filter_public(),
             edited_at__lte=end,
@@ -242,7 +244,7 @@ class PeerScoreWeighted(ReputationWeighted):
         )
         for score in old_peer_scores:
             scores_by_user[score.user_id][score.question_id] = score
-        for user_id in user_ids:
+        for user_id in all_forecaster_ids:
             value = self.reputation_value(list(scores_by_user[user_id].values()))
             reputations[user_id].append(Reputation(user_id, value, start))
 
@@ -416,11 +418,11 @@ class Aggregation(AggregatorMixin):
     weighting_classes: list[type[Weighted]] = []  # defined in subclasses
 
     def __init__(
-        self, question: Question, user_ids: list[int] | set[int] | None = None
+        self, question: Question, all_forecaster_ids: list[int] | set[int] | None = None
     ):
         self.question = question
         self.weightings: list[Weighted] = [
-            Klass(question=question, user_ids=user_ids)
+            Klass(question=question, user_ids=all_forecaster_ids)
             for Klass in self.weighting_classes
         ]
 
@@ -541,7 +543,7 @@ def get_aggregations_at_time(
     for method in aggregation_methods:
         aggregation_generator = get_aggregation_by_name(method)(
             question=question,
-            user_ids=set(forecast_set.forecaster_ids),
+            all_forecaster_ids=set(forecast_set.forecaster_ids),
         )
         new_entry = aggregation_generator.calculate_aggregation_entry(
             forecast_set,
@@ -774,7 +776,7 @@ def get_aggregation_history(
         aggregation_history: list[AggregateForecast] = []
         AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
             question=question,
-            user_ids=forecaster_ids,
+            all_forecaster_ids=forecaster_ids,
         )
 
         last_historical_entry_index = -1
