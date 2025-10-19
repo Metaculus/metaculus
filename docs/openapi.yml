@@ -1167,6 +1167,32 @@ paths:
             example: [ 'numeric', 'binary' ]
           description: Forecast type. You can apply multiple filters.
         - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 20
+          description: Number of posts to return per page (pagination limit).
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            example: 0
+          description: Number of posts to skip (pagination offset).
+        - in: query
+          name: for_main_feed
+          schema:
+            type: boolean
+            example: true
+          description: Filter posts suitable for the main feed.
+        - in: query
+          name: categories
+          schema:
+            type: array
+            items:
+              type: string
+            example: [ 'nuclear', 'health-pandemics' ]
+          description: Category slugs to filter by. You can apply multiple filters.
+        - in: query
           name: order_by
           schema:
             type: string
@@ -1185,7 +1211,12 @@ paths:
               - hotness
               - score
             example: '-published_at'
-          description: Order by specific fields. For DESC sorting, add `-` prefix, e.g. `-published_at`.
+          description: |
+            Order by specific fields. For DESC sorting, add `-` prefix, e.g. `-published_at`.
+
+            **Sorting option descriptions:**
+            - `hotness`: Composite score based on post approval time, relevant news, votes, comments, and question metrics (movement, open time, resolution). Uses a decay function where scores decrease over time (posts older than 3.5 days decay with (days/3.5)^-2).
+            - `score`: User-specific forecasting performance score. **Requires** `forecaster_id` parameter to be provided.
       responses:
         '200':
           description: A paginated list of posts
