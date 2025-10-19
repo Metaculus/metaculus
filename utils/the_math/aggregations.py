@@ -431,7 +431,8 @@ class Aggregation(AggregatorMixin):
             for Klass in self.weighting_classes
         ]
 
-    def get_weights(self, forecast_set: ForecastSet) -> Weights:
+    def get_weights(self, forecast_set: ForecastSet) -> Weights | int:
+        """returns 0 as a sentinal for uniform 0 weights"""
         weights = None
         for weighting in self.weightings:
             new_weights = weighting.calculate_weights(forecast_set)
@@ -439,8 +440,10 @@ class Aggregation(AggregatorMixin):
                 weights = new_weights
             elif new_weights is not None:
                 weights = weights * new_weights
-        if weights is None or np.all(weights == 0):
+        if weights is None:
             return None
+        if np.all(weights == 0):
+            return 0
         if len(forecast_set.forecasts_values) != weights.shape[0]:
             weights = weights[0]
         return weights
@@ -450,14 +453,21 @@ class Aggregation(AggregatorMixin):
         forecast_set: ForecastSet,
         include_stats: bool = False,
         histogram: bool = False,
-    ) -> AggregateForecast:
+    ) -> AggregateForecast | None:
         weights = self.get_weights(forecast_set)
+        if isinstance(weights, int):
+            assert weights == 0, "0 is only supported int return of get_weights"
+            return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
         aggregation.forecast_values = self.calculate_forecast_values(
             forecast_set, weights
         ).tolist()
 
         aggregation.start_time = forecast_set.timestep
+        if weights is not None:
+            aggregation.forecaster_count = sum(weights > 0)
+        else:
+            aggregation.forecaster_count = len(forecast_set.forecasts_values)
         aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
             lowers, centers, uppers = self.get_range_values(
@@ -509,7 +519,7 @@ AGGREGATIONS: list[type[Aggregation]] = [
 ]
 
 
-def get_aggregation_by_name(method: AggregationMethod) -> type[Aggregation]:
+def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
 
 
@@ -555,7 +565,8 @@ def get_aggregations_at_time(
             include_stats=include_stats,
             histogram=histogram,
         )
-        aggregations[method] = new_entry
+        if new_entry is not None:
+            aggregations[method] = new_entry
     return aggregations
 
 
@@ -812,6 +823,8 @@ def get_aggregation_history(
                     include_stats=include_stats,
                     histogram=include_histogram,
                 )
+                if new_entry is None:
+                    continue
                 if aggregation_history and aggregation_history[-1].end_time is None:
                     aggregation_history[-1].end_time = new_entry.start_time
                 aggregation_history.append(new_entry)
