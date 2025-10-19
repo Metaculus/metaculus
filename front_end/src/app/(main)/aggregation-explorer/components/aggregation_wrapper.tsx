@@ -72,7 +72,6 @@ export const AggregationWrapper: FC<Props> = ({
         if (fetchedAggregationData !== undefined) {
           setAggregationData((prev) => {
             const base = prev ?? response;
-            console.log(base);
             return {
               ...base,
               aggregations: {
