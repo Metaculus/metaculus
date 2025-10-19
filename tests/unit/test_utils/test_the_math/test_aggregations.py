@@ -12,15 +12,18 @@ from scoring.constants import ScoreTypes
 from users.models import User
 from utils.the_math.aggregations import (
     AGGREGATIONS,
+    summarize_array,
     ForecastSet,
     get_aggregation_by_name,
-    RecencyWeightedAggregation,
-    SingleAggregation,
-    summarize_array,
     UnweightedAggregation,
+    RecencyWeightedAggregation,
+    ProAggregation,
+    MedalistsAggregation,
+    SilverMedalistsAggregation,
+    GoldMedalistsAggregation,
+    JoinedBeforeDateAggregation,
+    SingleAggregation,
 )
-from questions.types import AggregationMethod
-from questions.models import Question, AggregateForecast
 
 
 @pytest.mark.parametrize(
@@ -73,6 +76,7 @@ class TestAggregations:
         aggregation = get_aggregation_by_name(aggregation_name)(
             question=question_binary,
             all_forecaster_ids=[user.id],
+            joined_before=datetime.fromisoformat("2023-01-01"),
         )
         entry = aggregation.calculate_aggregation_entry(
             forecast_set=ForecastSet(
@@ -569,3 +573,217 @@ class TestAggregations:
         low_value = low_forecast[1]
         aggregate_value = new_aggregation.forecast_values[1]
         assert abs(high_value - aggregate_value) < abs(low_value - aggregate_value)
+
+    def test_ProAggregation(self, question_binary: Question):
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        pro_user = User.objects.create(
+            username="pro_user",
+            metadata={"pro_details": {"is_current_pro": True}},
+        )
+        regular_user = User.objects.create(
+            username="regular_user",
+        )
+        pro_forecast = [0.8, 0.2]
+        regular_forecast = [0.3, 0.7]
+        forecast_set = ForecastSet(
+            forecasts_values=[regular_forecast, pro_forecast],
+            timestep=timestep,
+            forecaster_ids=[regular_user.id, pro_user.id],
+            timesteps=[
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                datetime(2023, 1, 2, tzinfo=dt_timezone.utc),
+            ],
+        )
+
+        aggregation = ProAggregation(
+            question=question_binary,
+            all_forecaster_ids=[regular_user.id, pro_user.id],
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == ProAggregation.method
+        assert np.allclose(new_aggregation.forecast_values, pro_forecast)
+        assert new_aggregation.forecaster_count == 1
+        assert new_aggregation.start_time == timestep
+
+    def test_MedalistsAggregation(self, question_binary: Question):
+        question_binary.open_time = datetime(2023, 1, 1, tzinfo=dt_timezone.utc)
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        medalist_user = User.objects.create(username="medalist_user")
+        non_medalist = User.objects.create(username="non_medalist")
+        project, _ = Project.objects.get_or_create(
+            name="test_project",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            finalize_time=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        LeaderboardEntry.objects.create(
+            leaderboard=leaderboard,
+            user=medalist_user,
+            medal=LeaderboardEntry.Medals.BRONZE,
+            score=0,
+        )
+        medalist_forecast = [0.6, 0.4]
+        non_medalist_forecast = [0.2, 0.8]
+        forecast_set = ForecastSet(
+            forecasts_values=[non_medalist_forecast, medalist_forecast],
+            timestep=timestep,
+            forecaster_ids=[non_medalist.id, medalist_user.id],
+            timesteps=[
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+            ],
+        )
+
+        aggregation = MedalistsAggregation(
+            question=question_binary,
+            all_forecaster_ids=[non_medalist.id, medalist_user.id],
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == MedalistsAggregation.method
+        assert np.allclose(new_aggregation.forecast_values, medalist_forecast)
+        assert new_aggregation.forecaster_count == 1
+        assert new_aggregation.start_time == timestep
+
+    def test_SilverMedalistsAggregation(self, question_binary: Question):
+        question_binary.open_time = datetime(2023, 1, 1, tzinfo=dt_timezone.utc)
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        bronze_medalist = User.objects.create(username="bronze_user")
+        silver_medalist = User.objects.create(username="silver_user")
+        project, _ = Project.objects.get_or_create(
+            name="test_project",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            finalize_time=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        LeaderboardEntry.objects.create(
+            leaderboard=leaderboard,
+            user=bronze_medalist,
+            medal=LeaderboardEntry.Medals.BRONZE,
+            score=0,
+        )
+        LeaderboardEntry.objects.create(
+            leaderboard=leaderboard,
+            user=silver_medalist,
+            medal=LeaderboardEntry.Medals.SILVER,
+            score=0,
+        )
+        bronze_forecast = [0.2, 0.8]
+        silver_forecast = [0.7, 0.3]
+        forecast_set = ForecastSet(
+            forecasts_values=[bronze_forecast, silver_forecast],
+            timestep=timestep,
+            forecaster_ids=[bronze_medalist.id, silver_medalist.id],
+            timesteps=[
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+            ],
+        )
+
+        aggregation = SilverMedalistsAggregation(
+            question=question_binary,
+            all_forecaster_ids=[bronze_medalist.id, silver_medalist.id],
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == SilverMedalistsAggregation.method
+        assert np.allclose(new_aggregation.forecast_values, silver_forecast)
+        assert new_aggregation.forecaster_count == 1
+        assert new_aggregation.start_time == timestep
+
+    def test_GoldMedalistsAggregation(self, question_binary: Question):
+        question_binary.open_time = datetime(2023, 1, 1, tzinfo=dt_timezone.utc)
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        silver_medalist = User.objects.create(username="silver_user")
+        gold_medalist = User.objects.create(username="gold_user")
+        project, _ = Project.objects.get_or_create(
+            name="test_project",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            finalize_time=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        LeaderboardEntry.objects.create(
+            leaderboard=leaderboard,
+            user=silver_medalist,
+            medal=LeaderboardEntry.Medals.SILVER,
+            score=0,
+        )
+        LeaderboardEntry.objects.create(
+            leaderboard=leaderboard,
+            user=gold_medalist,
+            medal=LeaderboardEntry.Medals.GOLD,
+            score=0,
+        )
+        silver_forecast = [0.4, 0.6]
+        gold_forecast = [0.9, 0.1]
+        forecast_set = ForecastSet(
+            forecasts_values=[silver_forecast, gold_forecast],
+            timestep=timestep,
+            forecaster_ids=[silver_medalist.id, gold_medalist.id],
+            timesteps=[
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+            ],
+        )
+
+        aggregation = GoldMedalistsAggregation(
+            question=question_binary,
+            all_forecaster_ids=[silver_medalist.id, gold_medalist.id],
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == GoldMedalistsAggregation.method
+        assert np.allclose(new_aggregation.forecast_values, gold_forecast)
+        assert new_aggregation.forecaster_count == 1
+        assert new_aggregation.start_time == timestep
+
+    def test_JoinedBeforeDateAggregation(self, question_binary: Question):
+        question_binary.open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
+        joined_before = datetime(2020, 1, 1, tzinfo=dt_timezone.utc)
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        early_user = User.objects.create(
+            username="early_user",
+            date_joined=datetime(2015, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        late_user = User.objects.create(
+            username="late_user",
+            date_joined=datetime(2025, 7, 1, tzinfo=dt_timezone.utc),
+        )
+        early_forecast = [0.65, 0.35]
+        late_forecast = [0.2, 0.8]
+        forecast_set = ForecastSet(
+            forecasts_values=[late_forecast, early_forecast],
+            timestep=timestep,
+            forecaster_ids=[late_user.id, early_user.id],
+            timesteps=[
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+            ],
+        )
+
+        aggregation = JoinedBeforeDateAggregation(
+            question=question_binary,
+            all_forecaster_ids=[late_user.id, early_user.id],
+            joined_before=joined_before,
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == JoinedBeforeDateAggregation.method
+        assert np.allclose(new_aggregation.forecast_values, early_forecast)
+        assert new_aggregation.forecaster_count == 1
+        assert new_aggregation.start_time == timestep
