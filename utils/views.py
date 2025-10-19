@@ -74,7 +74,7 @@ def aggregation_explorer_api_view(request) -> Response:
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)
-    joined_before = params.get("joined_before")
+    joined_before = params.get("joined_before_date")
 
     aggregations = get_aggregation_history(
         question,
