@@ -50,7 +50,7 @@ RangeValuesType = tuple[list[float], list[float], list[float]]
 class ForecastSet:
     forecasts_values: ForecastsValues
     timestep: datetime
-    user_ids: list[int] = list
+    forecaster_ids: list[int] = list
     timesteps: list[datetime] = list
 
 
@@ -190,7 +190,7 @@ class ReputationWeighted(Weighted):
 
     def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
         reps = []
-        for user_id in forecast_set.user_ids:
+        for user_id in forecast_set.forecaster_ids:
             found = False
             for reputation in self.reputations[user_id][::-1]:
                 if reputation.time <= forecast_set.timestep:
@@ -510,7 +510,7 @@ def get_aggregations_at_time(
     question: Question,
     time: datetime,
     aggregation_methods: list[AggregationMethod],
-    user_ids: list[int] | set[int] | None = None,
+    only_include_user_ids: list[int] | set[int] | None = None,
     include_stats: bool = False,
     histogram: bool = False,
     include_bots: bool = False,
@@ -524,8 +524,8 @@ def get_aggregations_at_time(
         .order_by("start_time")
         .select_related("author")
     )
-    if user_ids:
-        forecasts = forecasts.filter(author_id__in=user_ids)
+    if only_include_user_ids:
+        forecasts = forecasts.filter(author_id__in=only_include_user_ids)
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
@@ -533,7 +533,7 @@ def get_aggregations_at_time(
     forecast_set = ForecastSet(
         forecasts_values=[forecast.get_prediction_values() for forecast in forecasts],
         timestep=time,
-        user_ids=[forecast.author_id for forecast in forecasts],
+        forecaster_ids=[forecast.author_id for forecast in forecasts],
         timesteps=[forecast.start_time for forecast in forecasts],
     )
 
@@ -541,7 +541,7 @@ def get_aggregations_at_time(
     for method in aggregation_methods:
         aggregation_generator = get_aggregation_by_name(method)(
             question=question,
-            user_ids=set(forecast_set.user_ids),
+            user_ids=set(forecast_set.forecaster_ids),
         )
         new_entry = aggregation_generator.calculate_aggregation_entry(
             forecast_set,
@@ -700,7 +700,7 @@ def get_user_forecast_history(
         timestep: ForecastSet(
             forecasts_values=[],
             timestep=timestep,
-            user_ids=[],
+            forecaster_ids=[],
             timesteps=[],
         )
         for timestep in timesteps
@@ -716,7 +716,7 @@ def get_user_forecast_history(
         forecast_values = forecast.get_prediction_values()
         for timestep in timesteps[start_index:end_index]:
             forecast_sets[timestep].forecasts_values.append(forecast_values)
-            forecast_sets[timestep].user_ids.append(forecast.author_id)
+            forecast_sets[timestep].forecaster_ids.append(forecast.author_id)
             forecast_sets[timestep].timesteps.append(forecast.start_time)
 
     return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
@@ -726,7 +726,7 @@ def get_aggregation_history(
     question: Question,
     aggregation_methods: list[AggregationMethod],
     forecasts: QuerySet[Forecast] | None = None,
-    user_ids: list[int] | set[int] | None = None,
+    only_include_user_ids: list[int] | set[int] | None = None,
     minimize: bool = True,
     include_stats: bool = True,
     include_bots: bool = False,
@@ -745,8 +745,8 @@ def get_aggregation_history(
         if question.actual_close_time:
             forecasts = forecasts.filter(start_time__lte=question.actual_close_time)
 
-        if user_ids:
-            forecasts = forecasts.filter(author_id__in=user_ids)
+        if only_include_user_ids:
+            forecasts = forecasts.filter(author_id__in=only_include_user_ids)
         if not include_bots:
             forecasts = forecasts.exclude(author__is_bot=True)
 
