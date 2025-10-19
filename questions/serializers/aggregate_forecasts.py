@@ -68,7 +68,14 @@ def serialize_question_aggregations(
     Please note: aggregate_forecasts need to be in "start_time" ascending order!
     """
 
-    serialized_data: dict[str, dict] = dict()
+    serialized_data: dict[str, dict] = {
+        question.default_aggregation_method: {
+            "history": [],
+            "latest": None,
+            "score_data": {},
+            "movement": None,
+        }
+    }
 
     if aggregate_forecasts is not None:
         aggregate_forecasts_by_method: dict[
