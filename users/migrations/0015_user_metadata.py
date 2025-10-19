@@ -16,9 +16,8 @@ class Migration(migrations.Migration):
             name="metadata",
             field=models.JSONField(
                 blank=True,
-                help_text="Optional. This is a field for storing any extra data unique to this user. See below for description of allowed keys and values.",
+                help_text="Optional. This is a field for storing any extra data unique to this user. Structure of this field is not enforced, but should be a dictionary with specific keys. See description in admin panel for an example.",
                 null=True,
-                validators=[users.models._validate_user_metadata],
             ),
         ),
     ]

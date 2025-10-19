@@ -22,119 +22,6 @@ if TYPE_CHECKING:
     from posts.models import Post
 
 
-MODEL_SCHEMA: dict = {
-    "title": "Model details",
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "name": {
-            "type": "string",
-            "description": "Name of the model (e.g. OpenAI 4o).",
-        },
-        "model_release_date": {
-            "type": ["string", "null"],
-            "pattern": r"^\d{4}(-\d{2}(-\d{2})?)?$",
-            "description": "Release date expressed as YYYY, YYYY-MM, or YYYY-MM-DD.",
-        },
-        "estimated_cost_per_question": {
-            "type": ["number", "null"],
-            "description": "Estimated USD cost incurred per answered question.",
-        },
-    },
-}
-
-USER_METADATA_SCHEMA: dict = {
-    "title": "User metadata",
-    "description": "Optional structured data that augments the default user model.",
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "pro_details": {
-            "description": "Information about Pro status.",
-            "type": ["object", "null"],
-            "additionalProperties": False,
-            "properties": {
-                "is_current_pro": {
-                    "type": "boolean",
-                    "description": "Whether the user currently is a Pro.",
-                },
-                "pro_start_date": {
-                    "type": ["string", "null"],
-                    "pattern": r"^\d{4}(-\d{2}(-\d{2})?)?$",
-                    "description": "Pro start date expressed as YYYY, YYYY-MM, or "
-                    "YYYY-MM-DD.",
-                },
-                "pro_end_date": {
-                    "type": ["string", "null"],
-                    "pattern": r"^\d{4}(-\d{2}(-\d{2})?)?$",
-                    "description": "Pro end date expressed as YYYY, YYYY-MM, or "
-                    "YYYY-MM-DD.",
-                },
-            },
-        },
-        "bot_details": {
-            "description": "Metadata about bot accounts.",
-            "type": ["object", "null"],
-            "additionalProperties": False,
-            "properties": {
-                "metac_bot": {
-                    "type": "boolean",
-                    "description": "True when this account is an official "
-                    "Metaculus bot.",
-                    "default": False,
-                },
-                "base_models": {
-                    "description": "Base models used by the bot.",
-                    "anyOf": [
-                        {"type": "null"},
-                        {
-                            "type": "array",
-                            "items": deepcopy(MODEL_SCHEMA),
-                        },
-                    ],
-                },
-                "research_models": {
-                    "description": "Research models used by the bot.",
-                    "anyOf": [
-                        {"type": "null"},
-                        {
-                            "type": "array",
-                            "items": deepcopy(MODEL_SCHEMA),
-                        },
-                    ],
-                },
-                "scaffolding": {
-                    "description": "Arbitrary JSON dict describing the orchestration "
-                    "or scaffolding around the bot.",
-                    "type": ["object", "null"],
-                },
-            },
-        },
-    },
-}
-
-
-def _validate_user_metadata(value) -> None:
-    if value is None:
-        return
-
-    if not isinstance(value, dict):
-        raise ValidationError("Metadata must be a dictionary or null.")
-
-    try:
-        jsonschema_validate(
-            instance=value,
-            schema=USER_METADATA_SCHEMA,
-            format_checker=FormatChecker(),
-        )
-    except JSONSchemaValidationError as exc:
-        path = " -> ".join(str(item) for item in exc.path)
-        message = exc.message
-        if path:
-            message = f"{path}: {message}"
-        raise ValidationError(message) from exc
-
-
 class User(TimeStampedModel, AbstractUser):
     class AppTheme(models.TextChoices):
         SYSTEM = "system"
@@ -218,15 +105,14 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
-    # Metadata - to update the use of the field, update USER_METADATA_SCHEMA
+    # Metadata - to update the intended use of this field, update description in Admin
     metadata = models.JSONField(
         null=True,
         blank=True,
         help_text=(
             "Optional. This is a field for storing any extra data unique to this user. "
-            "See below for description of allowed keys and values."
+            "Structure of this field is not enforced, but should be a dictionary with specific keys. See description in admin panel for an example."
         ),
-        validators=[_validate_user_metadata],
     )
 
     objects: models.Manager["User"] = UserManager()
