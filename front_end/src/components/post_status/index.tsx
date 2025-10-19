@@ -28,7 +28,7 @@ const PostStatus: FC<Props> = ({
   const {
     status,
     scheduled_close_time,
-    actual_close_time,
+    actual_resolve_time,
     scheduled_resolve_time,
     open_time,
   } = post;
@@ -68,7 +68,7 @@ const PostStatus: FC<Props> = ({
         <>
           {t("resolved")}{" "}
           <span className="font-medium tabular-nums">
-            <LocalDaytime date={actual_close_time} />
+            <LocalDaytime date={actual_resolve_time} />
           </span>
         </>
       );
@@ -80,7 +80,7 @@ const PostStatus: FC<Props> = ({
     scheduled_resolve_time,
     open_time,
     scheduled_close_time,
-    actual_close_time,
+    actual_resolve_time,
   ]);
 
   if (!post.scheduled_close_time && !post.actual_close_time) {
