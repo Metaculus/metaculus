@@ -69,12 +69,13 @@ def serialize_question_aggregations(
     """
 
     serialized_data: dict[str, dict] = {
-        question.default_aggregation_method: {
+        method: {
             "history": [],
             "latest": None,
             "score_data": {},
             "movement": None,
         }
+        for method in AggregationMethod
     }
 
     if aggregate_forecasts is not None:
