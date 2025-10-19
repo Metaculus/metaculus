@@ -63,7 +63,7 @@ const PostStatus: FC<Props> = ({
         </>
       );
     }
-    if (status === PostStatusEnum.RESOLVED) {
+    if (status === PostStatusEnum.RESOLVED && actual_resolve_time) {
       return (
         <>
           {t("resolved")}{" "}
