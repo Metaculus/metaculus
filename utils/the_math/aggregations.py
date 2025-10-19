@@ -209,7 +209,7 @@ class ReputationWeighted(Weighted):
         return np.array([reputation.value for reputation in reps])
 
 
-class PeerScoreWeighted(ReputationWeighted):
+class PeerScoreReputationWeighted(ReputationWeighted):
 
     @staticmethod
     def reputation_value(scores: Sequence[Score]) -> float:
@@ -299,7 +299,7 @@ class AggregatorMixin:
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
     ) -> np.ndarray:
-        raise NotImplementedError("Implement in subclass")
+        raise NotImplementedError("Implementation required in Mixin")
 
     def get_range_values(
         self,
@@ -307,7 +307,7 @@ class AggregatorMixin:
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
     ) -> RangeValuesType:
-        raise NotImplementedError("Implement in subclass")
+        raise NotImplementedError("Implementation required in Mixin")
 
 
 class MedianAggregatorMixin:
@@ -414,15 +414,20 @@ class Aggregation(AggregatorMixin):
         `weighting_classes` property. They will be applied multiplicatively in order.
     """
 
-    method = "N/A"
+    method: str = "N/A"
     weighting_classes: list[type[Weighted]] = []  # defined in subclasses
 
     def __init__(
-        self, question: Question, all_forecaster_ids: list[int] | set[int] | None = None
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None = None,
     ):
         self.question = question
         self.weightings: list[Weighted] = [
-            Klass(question=question, user_ids=all_forecaster_ids)
+            Klass(
+                question=question,
+                all_forecaster_ids=all_forecaster_ids,
+            )
             for Klass in self.weighting_classes
         ]
 
@@ -494,7 +499,7 @@ class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
 
 class SingleAggregation(MeanAggregatorMixin, Aggregation):
     method = AggregationMethod.SINGLE_AGGREGATION
-    weighting_classes = [PeerScoreWeighted]
+    weighting_classes = [PeerScoreReputationWeighted]
 
 
 AGGREGATIONS: list[type[Aggregation]] = [
