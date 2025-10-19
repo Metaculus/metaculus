@@ -15,6 +15,7 @@ type Props = {
   onTabChange: (activeTab: AggregationExtraMethod) => void;
   data: QuestionWithForecasts | PostWithForecasts;
   selectedSubQuestionOption: number | string | null;
+  joinedBeforeDate?: string;
   additionalParams?: {
     userIds?: number[]; // Array of user IDs as a comma-separated string
   };
@@ -25,6 +26,7 @@ export const AggregationWrapper: FC<Props> = ({
   onTabChange,
   selectedSubQuestionOption,
   data,
+  joinedBeforeDate,
   additionalParams = {},
 }) => {
   const postId = "post_id" in data ? data.post_id : data.id;
@@ -62,6 +64,7 @@ export const AggregationWrapper: FC<Props> = ({
           questionId: adjustedQuestionId,
           includeBots,
           aggregationMethods: methodName,
+          joinedBeforeDate,
           ...additionalParams,
         });
 
@@ -88,6 +91,7 @@ export const AggregationWrapper: FC<Props> = ({
       selectedAggregationMethods,
       selectedSubQuestionOption,
       postId,
+      joinedBeforeDate,
       additionalParams,
     ]
   );
@@ -107,6 +111,7 @@ export const AggregationWrapper: FC<Props> = ({
       onFetchData={handleFetchAggregations}
       aggregationData={aggregationData}
       selectedSubQuestionOption={selectedSubQuestionOption}
+      joinedBeforeDate={joinedBeforeDate}
     />
   );
 };

@@ -27,7 +27,7 @@ export enum AggregationExtraMethod {
   medalists = "medalists",
   silver_medalists = "silver_medalists",
   gold_medalists = "gold_medalists",
-  joined_bfore = "joined_before",
+  joined_before_date = "joined_before_date",
 }
 
 export type AggregationOption = {

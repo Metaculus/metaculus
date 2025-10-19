@@ -50,4 +50,34 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly [
     includeBots: true,
     isStaffOnly: true,
   },
+  {
+    id: AggregationExtraMethod.metaculus_pros,
+    value: AggregationExtraMethod.metaculus_pros,
+    label: "Metaculus Pros",
+    includeBots: true,
+  },
+  {
+    id: AggregationExtraMethod.medalists,
+    value: AggregationExtraMethod.medalists,
+    label: "Medalists (all)",
+    includeBots: true,
+  },
+  {
+    id: AggregationExtraMethod.silver_medalists,
+    value: AggregationExtraMethod.silver_medalists,
+    label: "Medalists (silver or gold)",
+    includeBots: true,
+  },
+  {
+    id: AggregationExtraMethod.gold_medalists,
+    value: AggregationExtraMethod.gold_medalists,
+    label: "Medalists (gold)",
+    includeBots: true,
+  },
+  {
+    id: AggregationExtraMethod.joined_before_date,
+    value: AggregationExtraMethod.joined_before_date,
+    label: "Only Users Who Joined Before Date (set in Advanced options)",
+    includeBots: true,
+  },
 ];

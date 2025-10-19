@@ -8,28 +8,43 @@ import { formatResolution } from "@/utils/formatters/resolution";
 
 import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
 import {
+  AggregationExtraMethod,
   AggregationExtraQuestion,
   AggregationsExtra,
   AggregationTooltip,
 } from "./types";
 
 export function generateAggregationTooltips(
-  user: CurrentUser | null
+  user: CurrentUser | null,
+  joinedBeforeDate?: string
 ): AggregationTooltip[] {
-  return [...AGGREGATION_EXPLORER_OPTIONS]
-    .map((AggregationOption, index) => {
-      if (AggregationOption.isStaffOnly && (!user || !user.is_staff)) {
-        return null;
-      }
-      return {
-        aggregationMethod: AggregationOption.value,
-        choice: AggregationOption.id,
-        label: AggregationOption.label,
-        includeBots: AggregationOption.includeBots,
-        color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      };
-    })
-    .filter((tooltip) => tooltip !== null) as AggregationTooltip[];
+  return AGGREGATION_EXPLORER_OPTIONS.filter((option) => {
+    if (option.isStaffOnly && (!user || !user.is_staff)) {
+      return false;
+    }
+    if (
+      option.id === AggregationExtraMethod.joined_before_date &&
+      !joinedBeforeDate
+    ) {
+      return false;
+    }
+    return true;
+  }).map((AggregationOption, index) => {
+    const baseLabel = AggregationOption.label;
+    const label =
+      AggregationOption.id === AggregationExtraMethod.joined_before_date &&
+      joinedBeforeDate
+        ? `Only Users who joined before ${joinedBeforeDate}`
+        : baseLabel;
+
+    return {
+      aggregationMethod: AggregationOption.value,
+      choice: AggregationOption.id,
+      label,
+      includeBots: AggregationOption.includeBots,
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+    };
+  });
 }
 
 export function generateChoiceItemsFromAggregations({

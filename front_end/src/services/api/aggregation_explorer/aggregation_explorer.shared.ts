@@ -8,6 +8,7 @@ type AggregationExplorerParams = {
   includeBots?: boolean;
   aggregationMethods?: string;
   userIds?: number[];
+  joinedBeforeDate?: string;
 };
 
 class AggregationExplorerApi extends ApiService {
@@ -17,6 +18,7 @@ class AggregationExplorerApi extends ApiService {
       question_id: params.questionId?.toString() || "",
       include_bots: params.includeBots?.toString() || "false",
       aggregation_methods: params.aggregationMethods || "",
+      joined_before_date: params.joinedBeforeDate || "",
       ...(params.userIds !== undefined ? { user_ids: params.userIds } : {}),
     });
 
