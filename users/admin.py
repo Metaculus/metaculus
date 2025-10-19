@@ -123,16 +123,16 @@ class ProFilter(admin.SimpleListFilter):
         return [
             ("No", "Not Pro"),
             ("Current", "Is Current Pro"),
-            ("All Time", "Has Ever Been Pro"),
+            ("AllTime", "Has Ever Been Pro"),
         ]
 
     def queryset(self, request, queryset):
         if self.value() == "No":
-            return queryset.exclude(metadata__pro_status__isnull=True)
+            return queryset.filter(metadata__pro_details__isnull=True)
         if self.value() == "Current":
-            return queryset.filter(metadata__pro_status__is_current_pro=True)
-        if self.value() == "All Time":
-            return queryset.filter(metadata__pro_status__isnull=False)
+            return queryset.filter(metadata__pro_details__is_current_pro=True)
+        if self.value() == "AllTime":
+            return queryset.filter(metadata__pro_details__isnull=False)
         return queryset
 
 
