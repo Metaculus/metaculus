@@ -1,4 +1,3 @@
-from copy import deepcopy
 from datetime import timedelta, datetime
 from typing import TYPE_CHECKING
 
@@ -10,8 +9,6 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
-from jsonschema import FormatChecker, validate as jsonschema_validate
-from jsonschema.exceptions import ValidationError as JSONSchemaValidationError
 from rest_framework.authtoken.models import Token
 from social_django.models import UserSocialAuth
 
