@@ -609,9 +609,10 @@ def serialize_question(
     )
 
     if question_movement:
-        serialized_data["aggregations"][question.default_aggregation_method][
-            "movement"
-        ] = question_movement
+        if default_agg := serialized_data["aggregations"].get(
+            question.default_aggregation_method
+        ):
+            default_agg["movement"] = question_movement
 
     if (
         current_user
