@@ -965,7 +965,6 @@ const Comment: FC<CommentProps> = ({
           <AddKeyFactorsForm
             keyFactors={keyFactors}
             setKeyFactors={setKeyFactors}
-            isActive={true}
             factorsLimit={factorsLimit}
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
