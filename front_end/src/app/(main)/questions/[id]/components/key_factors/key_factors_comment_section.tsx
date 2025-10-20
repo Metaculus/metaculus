@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -27,11 +28,9 @@ const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
       <KeyFactorsCarousel
         items={keyFactors}
         renderItem={(kf) => (
-          <KeyFactorItem
-            keyFactor={kf}
-            post={post}
-            isCompact={true}
-            mode={"consumer"}
+          <Link
+            href="#key-factors"
+            className="no-underline"
             onClick={() => {
               const target = document.getElementById("key-factors");
               if (target) {
@@ -41,7 +40,14 @@ const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
                 event_label: "fromComment",
               });
             }}
-          />
+          >
+            <KeyFactorItem
+              keyFactor={kf}
+              post={post}
+              isCompact={true}
+              mode={"consumer"}
+            />
+          </Link>
         )}
       />
     </div>

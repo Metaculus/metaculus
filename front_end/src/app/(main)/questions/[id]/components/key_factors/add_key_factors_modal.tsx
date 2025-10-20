@@ -7,7 +7,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, memo, useState } from "react";
 
 import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
 import BaseModal from "@/components/base_modal";
@@ -18,7 +18,6 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import { BECommentType, Driver } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
-import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import { useKeyFactors } from "./hooks";
 import { Target } from "./option_target_picker";
@@ -39,31 +38,12 @@ type Props = {
   onSuccess?: (comment: BECommentType) => void;
 };
 
-const Step2AddComment = ({
-  markdown,
-  setMarkdown,
-}: {
-  markdown: string;
-  setMarkdown: (markdown: string) => void;
-}) => {
-  const t = useTranslations();
-  return (
-    <div className="flex w-full flex-col gap-2">
-      <p className="text-base leading-tight">{t("addKeyFactorsModalP2")}</p>
-      <MarkdownEditor
-        mode="write"
-        markdown={markdown}
-        onChange={setMarkdown}
-        className="border"
-      />
-    </div>
-  );
-};
+// Prevent heavy MDXEditor re-renders when unrelated state (like driver input) changes
+const MemoMarkdownEditor = memo(MarkdownEditor);
 
 export const AddKeyFactorsForm = ({
   keyFactors,
   setKeyFactors,
-  isActive,
   factorsLimit,
   limitError,
   suggestedKeyFactors,
@@ -74,7 +54,6 @@ export const AddKeyFactorsForm = ({
 }: {
   keyFactors: Driver[];
   setKeyFactors: React.Dispatch<React.SetStateAction<Driver[]>>;
-  isActive: boolean;
   limitError?: string;
   factorsLimit: number;
   suggestedKeyFactors: { text: string; selected: boolean }[];
@@ -133,61 +112,62 @@ export const AddKeyFactorsForm = ({
         </div>
       )}
 
-      {suggestedKeyFactors.length === 0 && (
-        <p className="text-base leading-tight">{t("addKeyFactorsModalP1")}</p>
-      )}
+      <div className="flex flex-col gap-3">
+        {suggestedKeyFactors.length === 0 && (
+          <p className="m-0 mb-2 text-base leading-tight">
+            {t("addDriverModalDescription")}
+          </p>
+        )}
 
-      {keyFactors.map((draft, idx) => (
-        <DriverCreationForm
-          key={idx}
-          keyFactor={draft.text}
-          setKeyFactor={(text) =>
-            setKeyFactors(
-              keyFactors.map((k, i) => (i === idx ? { ...k, text } : k))
-            )
-          }
-          impactMetadata={
-            draft.certainty === -1
-              ? ({ impact_direction: null, certainty: -1 } as const)
-              : ({
-                  impact_direction: (draft.impact_direction ?? 1) as 1 | -1,
-                  certainty: null,
-                } as const)
-          }
-          setImpactMetadata={(m) =>
-            setKeyFactors(
-              keyFactors.map((k, i) => {
-                if (i !== idx) return k;
-                if (m.certainty === -1) {
-                  return { ...k, certainty: -1, impact_direction: null };
-                }
-                if (m.impact_direction === 1 || m.impact_direction === -1) {
-                  return {
-                    ...k,
-                    impact_direction: m.impact_direction,
+        {keyFactors.map((draft, idx) => (
+          <DriverCreationForm
+            key={idx}
+            keyFactor={draft.text}
+            setKeyFactor={(text) =>
+              setKeyFactors(
+                keyFactors.map((k, i) => (i === idx ? { ...k, text } : k))
+              )
+            }
+            impactMetadata={
+              draft.certainty === -1
+                ? ({ impact_direction: null, certainty: -1 } as const)
+                : ({
+                    impact_direction: (draft.impact_direction ?? 1) as 1 | -1,
                     certainty: null,
-                  };
-                }
-                return { ...k, ...m };
-              })
-            )
-          }
-          isActive={isActive}
-          showXButton={idx > 0 && isActive}
-          onXButtonClick={() =>
-            setKeyFactors(keyFactors.filter((_, i) => i !== idx))
-          }
-          post={post}
-          target={target}
-          setTarget={setTarget}
-        />
-      ))}
+                  } as const)
+            }
+            setImpactMetadata={(m) =>
+              setKeyFactors(
+                keyFactors.map((k, i) => {
+                  if (i !== idx) return k;
+                  if (m.certainty === -1) {
+                    return { ...k, certainty: -1, impact_direction: null };
+                  }
+                  if (m.impact_direction === 1 || m.impact_direction === -1) {
+                    return {
+                      ...k,
+                      impact_direction: m.impact_direction,
+                      certainty: null,
+                    };
+                  }
+                  return { ...k, ...m };
+                })
+              )
+            }
+            showXButton={idx > 0}
+            onXButtonClick={() =>
+              setKeyFactors(keyFactors.filter((_, i) => i !== idx))
+            }
+            post={post}
+            target={target}
+            setTarget={setTarget}
+          />
+        ))}
 
-      {isActive && (
         <Button
-          variant="secondary"
+          variant="tertiary"
           size="xs"
-          className="w-fit"
+          className="w-fit gap-2 px-3 py-2 font-medium !leading-none sm:text-base"
           onClick={() => {
             setKeyFactors([
               ...keyFactors,
@@ -200,10 +180,10 @@ export const AddKeyFactorsForm = ({
             !isNil(limitError)
           }
         >
-          <FontAwesomeIcon icon={faPlus} className="size-4 p-1" />
-          {t("addKeyFactor")}
+          <FontAwesomeIcon icon={faPlus} className="size-4" />
+          {t("addAnother")}
         </Button>
-      )}
+      </div>
     </div>
   );
 };
@@ -230,8 +210,6 @@ const AddKeyFactorsModal: FC<Props> = ({
   showSuggestedKeyFactors = false,
 }) => {
   const t = useTranslations();
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const numberOfSteps = commentId ? 1 : 2;
   const [markdown, setMarkdown] = useState<string>("");
 
   const [target, setTarget] = useState<Target>({ kind: "whole" });
@@ -258,7 +236,6 @@ const AddKeyFactorsModal: FC<Props> = ({
   });
 
   const resetAll = () => {
-    setCurrentStep(1);
     setTarget({ kind: "whole" });
     setMarkdown("");
     setErrors(undefined);
@@ -295,8 +272,9 @@ const AddKeyFactorsModal: FC<Props> = ({
       isImmersive={true}
       className="m-0 flex h-full w-full max-w-none flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
     >
-      <h2 className="mb-4 mt-0 flex items-center gap-3 text-xl text-blue-500 dark:text-blue-500-dark">
-        <span>{t("addKeyFactors")}</span>
+      <h2 className="mb-6 mt-0 flex items-center gap-3 text-xl text-blue-500 dark:text-blue-500-dark">
+        <span className="hidden sm:block">{t("addKeyFactors")}</span>
+        <span className="sm:hidden">{t("add")}</span>
         <FontAwesomeIcon icon={faChevronRight} size="lg" className="text-lg" />
         <span className="text-gray-900 dark:text-gray-900-dark">
           {t("driver")}
@@ -310,7 +288,6 @@ const AddKeyFactorsModal: FC<Props> = ({
           <AddKeyFactorsForm
             keyFactors={keyFactors}
             setKeyFactors={setKeyFactors}
-            isActive={currentStep === 1}
             factorsLimit={factorsLimit}
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
@@ -320,60 +297,43 @@ const AddKeyFactorsModal: FC<Props> = ({
             setTarget={setTarget}
           />
 
-          {currentStep > 1 && (
-            <Step2AddComment markdown={markdown} setMarkdown={setMarkdown} />
-          )}
+          {/* Comment section */}
+          <div className="flex w-full flex-col gap-2">
+            <p className="my-2 text-base leading-tight sm:mt-6">
+              {t("addDriverModalCommentDescription")}
+            </p>
+            <MemoMarkdownEditor
+              mode="write"
+              markdown={markdown}
+              onChange={setMarkdown}
+              className="border"
+            />
+          </div>
 
           <div className="mt-auto flex w-full gap-3 md:mt-6">
-            {currentStep > 1 ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setCurrentStep(currentStep - 1)}
-                className="ml-auto"
-              >
-                {t("back")}
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleOnClose}
-                className="ml-auto"
-                disabled={isPending}
-              >
-                {t("cancel")}
-              </Button>
-            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleOnClose}
+              className="ml-auto"
+              disabled={isPending}
+            >
+              {t("cancel")}
+            </Button>
 
-            {currentStep < numberOfSteps ? (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  sendAnalyticsEvent("addKeyFactor", {
-                    event_label: "fromList",
-                    event_category: "next",
-                  });
-                  setCurrentStep(currentStep + 1);
-                }}
-                className="px-3"
-                disabled={
-                  isPending || !keyFactors.some((k) => k.text.trim() !== "")
-                }
-              >
-                {t("next")}
-              </Button>
-            ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleSubmit}
-                disabled={isPending || (isNil(commentId) && !markdown)}
-              >
-                {t("submit")}
-              </Button>
-            )}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSubmit}
+              disabled={
+                isPending ||
+                (isNil(commentId) && !markdown) ||
+                keyFactors.length === 0 ||
+                !!keyFactors.find((obj) => !obj.text)
+              }
+            >
+              {t("addDriver")}
+            </Button>
           </div>
           <FormError errors={errors} detached={true} />
         </div>

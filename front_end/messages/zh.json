@@ -1548,5 +1548,12 @@
   "earlier": "提前",
   "medium": "中",
   "topKeyFactors": "主要关键因素",
+  "addDriver": "添加驱动因素",
+  "addDriverModalDescription": "在下面输入您的驱动因素 - 尽量保持简短明了。",
+  "addDriverModalCommentDescription": "驱动因素应有评论支持 - 在下面输入评论并解释您的理由。",
+  "allOptions": "所有选项",
+  "allSubquestions": "所有子问题",
+  "chooseOptionImpactedMost": "选择一个受此驱动因素影响最大的选项：",
+  "chooseSubquestionImpactedMost": "选择一个受此驱动因素影响最大的子问题：",
   "othersCount": "其他（{count}）"
 }
