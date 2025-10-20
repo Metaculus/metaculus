@@ -1546,5 +1546,12 @@
   "earlier": "Antes",
   "medium": "medio",
   "topKeyFactors": "Factores Clave Principales",
+  "addDriver": "Agregar conductor",
+  "addDriverModalDescription": "Introduce tus conductores a continuación - trata de mantenerlos breves y claros.",
+  "addDriverModalCommentDescription": "Los conductores deben estar respaldados por comentarios - introduce un comentario a continuación y explica tu razonamiento.",
+  "allOptions": "Todas las opciones",
+  "allSubquestions": "Todas las subpreguntas",
+  "chooseOptionImpactedMost": "Elige una opción que este conductor impacte más:",
+  "chooseSubquestionImpactedMost": "Elige una subpregunta que este conductor impacte más:",
   "othersCount": "Otros ({count})"
 }

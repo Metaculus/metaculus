@@ -1,5 +1,5 @@
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
-import { faCog } from "@fortawesome/free-solid-svg-icons";
+import { faCog, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
@@ -22,7 +22,6 @@ type Props = {
   setKeyFactor: (keyFactor: string) => void;
   impactMetadata: ImpactMetadata;
   setImpactMetadata: (m: ImpactMetadata) => void;
-  isActive: boolean;
   showXButton: boolean;
   onXButtonClick: () => void;
   post: PostWithForecasts;
@@ -35,7 +34,6 @@ const DriverCreationForm: FC<Props> = ({
   setKeyFactor,
   impactMetadata,
   setImpactMetadata,
-  isActive,
   showXButton,
   onXButtonClick,
   post,
@@ -57,16 +55,25 @@ const DriverCreationForm: FC<Props> = ({
 
   return (
     <div className="flex flex-col gap-3 rounded border border-blue-500 bg-blue-100 px-5 py-4 dark:border-blue-500-dark dark:bg-blue-100-dark">
-      <div className="flex items-center gap-2 text-xs text-blue-700 opacity-50 dark:text-blue-700-dark">
-        <FontAwesomeIcon icon={faCog} />
-        <span className="uppercase">{t("driver")}</span>
+      <div className="flex justify-between">
+        <div className="flex items-center gap-2 text-xs text-blue-700 opacity-50 dark:text-blue-700-dark">
+          <FontAwesomeIcon icon={faCog} />
+          <span className="uppercase">{t("driver")}</span>
+        </div>
+        {showXButton && (
+          <Button variant="link" onClick={onXButtonClick}>
+            <FontAwesomeIcon
+              icon={faXmark}
+              className="size-4 text-salmon-600 dark:text-salmon-600-dark"
+            />
+          </Button>
+        )}
       </div>
       <Input
         value={keyFactor}
         placeholder={t("driverInputPlaceholder")}
         onChange={(e) => setKeyFactor(e.target.value)}
         className="grow rounded-none border-0 border-b border-blue-400 bg-transparent px-0 py-1 text-base text-blue-700 outline-0 placeholder:text-blue-700 placeholder:text-opacity-50 dark:border-blue-400-dark dark:text-blue-700-dark dark:placeholder:text-blue-700-dark"
-        readOnly={!isActive}
       />
       <div className="mt-1">
         <div className="mb-2.5 text-xs font-medium text-blue-700 dark:text-blue-700-dark">
@@ -80,23 +87,8 @@ const DriverCreationForm: FC<Props> = ({
             unit={effectiveUnit}
           />
         )}
-        <OptionTargetPicker
-          post={post}
-          value={target}
-          onChange={setTarget}
-          disabled={!isActive}
-        />
+        <OptionTargetPicker post={post} value={target} onChange={setTarget} />
       </div>
-      {showXButton && (
-        <Button
-          variant="text"
-          size="xs"
-          className="w-fit"
-          onClick={onXButtonClick}
-        >
-          <FontAwesomeIcon icon={faCircleXmark} className="size-4 p-1" />
-        </Button>
-      )}
     </div>
   );
 };

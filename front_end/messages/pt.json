@@ -1544,5 +1544,12 @@
   "earlier": "Mais cedo",
   "medium": "médio",
   "topKeyFactors": "Principais Fatores Chave",
+  "addDriver": "Adicionar Driver",
+  "addDriverModalDescription": "Digite seus drivers abaixo - tente mantê-los curtos e claros.",
+  "addDriverModalCommentDescription": "Os drivers devem ser apoiados por comentários - insira um comentário abaixo e explique seu raciocínio.",
+  "allOptions": "Todas as opções",
+  "allSubquestions": "Todas as subquestões",
+  "chooseOptionImpactedMost": "Escolha uma opção que este driver impacta mais:",
+  "chooseSubquestionImpactedMost": "Escolha uma subquestão que este driver impacta mais:",
   "othersCount": "Outros ({count})"
 }

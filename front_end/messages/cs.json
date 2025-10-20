@@ -1546,5 +1546,12 @@
   "earlier": "Dříve",
   "medium": "střední",
   "topKeyFactors": "Hlavní klíčové faktory",
+  "addDriver": "Přidat řidiče",
+  "addDriverModalDescription": "Zadejte své řidiče níže - snažte se je udržet stručné a jasné.",
+  "addDriverModalCommentDescription": "Řidiče by měly být podloženy komentáři - zadejte níže svůj komentář a vysvětlete své důvody.",
+  "allOptions": "Všechny možnosti",
+  "allSubquestions": "Všechny podotázky",
+  "chooseOptionImpactedMost": "Vyberte možnost, kterou tento řidič ovlivňuje nejvíce:",
+  "chooseSubquestionImpactedMost": "Vyberte podotázku, kterou tento řidič ovlivňuje nejvíce:",
   "othersCount": "Ostatní ({count})"
 }

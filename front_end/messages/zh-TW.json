@@ -1543,5 +1543,12 @@
   "earlier": "較早",
   "medium": "中等",
   "topKeyFactors": "關鍵因素排名",
+  "addDriver": "新增驅動因素",
+  "addDriverModalDescription": "在下方輸入您的驅動因素 - 盡量保持簡短明瞭。",
+  "addDriverModalCommentDescription": "驅動因素應有評論支撐 - 在下方輸入評論並解釋您的理由。",
+  "allOptions": "所有選項",
+  "allSubquestions": "所有子問題",
+  "chooseOptionImpactedMost": "選擇此驅動因素影響最大的選項：",
+  "chooseSubquestionImpactedMost": "選擇此驅動因素影響最大的子問題：",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
