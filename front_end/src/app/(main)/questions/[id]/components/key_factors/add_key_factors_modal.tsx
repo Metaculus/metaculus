@@ -325,7 +325,12 @@ const AddKeyFactorsModal: FC<Props> = ({
               variant="primary"
               size="sm"
               onClick={handleSubmit}
-              disabled={isPending || (isNil(commentId) && !markdown)}
+              disabled={
+                isPending ||
+                (isNil(commentId) && !markdown) ||
+                keyFactors.length === 0 ||
+                !!keyFactors.find((obj) => !obj.text)
+              }
             >
               {t("addDriver")}
             </Button>
