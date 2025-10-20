@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export const metadata = {
   title: "About Metaculus",
   description:
@@ -594,11 +596,14 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 justify-around xs:grid-cols-[192px_192px] sm:grid-cols-[192px_192px_192px] sm:justify-between md:grid-cols-[216px_216px_216px] lg:grid-cols-[216px_216px_216px_216px] xl:grid-cols-[216px_216px_216px_216px_216px]">
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Tom Liptay"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/tom_liptay.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
+                  priority
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -609,11 +614,14 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Leonard Barrett"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
+                  priority
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -624,11 +632,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Ryan Beck"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/ryan_beck.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -639,11 +649,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Christian Williams"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/christian_williams.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -654,11 +666,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Deger Turan"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/deger.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -669,11 +683,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Atakan Seçkin"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.amazonaws.com/ato-bw.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -684,11 +700,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Molly Hickman"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/molly.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -699,11 +717,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Nikos Bosse"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/nikos_bosse.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -714,10 +734,12 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                   alt="Sylvain Chevalier"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/sylvain_chevalier.webp"
                 />
               </div>
@@ -729,11 +751,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Elis Popescu"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/elis_popescu.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -744,11 +768,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Hlib Kononenko"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/Hlib-Kononenko.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -759,11 +785,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="John Bash"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/john-bash.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -774,11 +802,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Luke Sabor"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/luke_sabor.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -789,11 +819,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Ben Wilson"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/Ben-Wilson.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -804,11 +836,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Nikita Oleinykof"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/Nikita-Oleinykof.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -826,11 +860,13 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 justify-around xs:grid-cols-[192px_192px] sm:grid-cols-[192px_192px_192px] sm:justify-between md:grid-cols-[216px_216px_216px] lg:grid-cols-[216px_216px_216px_216px] xl:grid-cols-[216px_216px_216px_216px_216px]">
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Anthony Aguirre"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/anthony_aguirre.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -841,11 +877,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Carroll “Max” Wainwright"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/carroll_wainwright.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -856,11 +894,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="David Levine"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/david_levine.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -871,11 +911,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Joshua Elliott"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -890,11 +932,13 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 justify-around xs:grid-cols-[192px_192px] sm:grid-cols-[192px_192px_192px] sm:justify-between md:grid-cols-[216px_216px_216px] lg:grid-cols-[216px_216px_216px_216px] xl:grid-cols-[216px_216px_216px_216px_216px]">
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Juan Cambeiro"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/juan_cambeiro.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -906,11 +950,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Tamay Besiroglu"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/tamay_besiroglu.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -921,11 +967,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Welton Chang"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/welton_chang.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -936,11 +984,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Burak Nehbit"
                   className="size-full rounded-full object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/burak_nehbit.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
@@ -951,11 +1001,13 @@ export default function AboutPage() {
               </p>
             </button>
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <img
+              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                <Image
                   alt="Steven Schkolne"
-                  className="size-full rounded-full object-cover"
+                  className="object-cover"
                   src="https://metaculus-media.s3.us-west-2.amazonaws.com/about/steven_schkolne.webp"
+                  fill
+                  sizes="(min-width: 768px) 176px, 96px"
                 />
               </div>
               <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">

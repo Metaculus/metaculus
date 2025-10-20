@@ -7,6 +7,7 @@ import { FC, useMemo } from "react";
 import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
+import useAppTheme from "@/hooks/use_app_theme";
 import { ChoiceItem } from "@/types/choices";
 import cn from "@/utils/core/cn";
 
@@ -32,6 +33,7 @@ const ChoicesLegend: FC<Props> = ({
   othersDisabled,
 }) => {
   const t = useTranslations();
+  const { getThemeColor } = useAppTheme();
   const mcMode = typeof othersToggle === "boolean" && !!onOthersToggle;
 
   const { legendChoices, dropdownChoices } = useMemo(() => {
@@ -58,7 +60,7 @@ const ChoicesLegend: FC<Props> = ({
   );
 
   return (
-    <div className="relative flex h-[20.75px] flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
+    <div className="relative flex flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
       {legendChoices.map(({ choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
@@ -124,7 +126,7 @@ const ChoicesLegend: FC<Props> = ({
                     <ChoiceCheckbox
                       key={`multiple-choice-dropdown-${choice}-${idx}`}
                       label={choice}
-                      color={color.DEFAULT}
+                      color={getThemeColor(color)}
                       checked={active}
                       onChange={(checked) => onChoiceChange(choice, checked)}
                       onHighlight={(highlighted) =>

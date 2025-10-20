@@ -5,7 +5,7 @@ import Button from "@/components/ui/button";
 import { API_ERROR_TAG, extractError, logError } from "@/utils/core/errors";
 
 type GlobalErrorProps = {
-  error: any;
+  error: unknown;
   reset?: () => void;
 };
 

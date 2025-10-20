@@ -28,7 +28,7 @@ const PostStatus: FC<Props> = ({
   const {
     status,
     scheduled_close_time,
-    actual_close_time,
+    actual_resolve_time,
     scheduled_resolve_time,
     open_time,
   } = post;
@@ -63,12 +63,12 @@ const PostStatus: FC<Props> = ({
         </>
       );
     }
-    if (status === PostStatusEnum.RESOLVED) {
+    if (status === PostStatusEnum.RESOLVED && actual_resolve_time) {
       return (
         <>
           {t("resolved")}{" "}
           <span className="font-medium tabular-nums">
-            <LocalDaytime date={actual_close_time} />
+            <LocalDaytime date={actual_resolve_time} />
           </span>
         </>
       );
@@ -80,7 +80,7 @@ const PostStatus: FC<Props> = ({
     scheduled_resolve_time,
     open_time,
     scheduled_close_time,
-    actual_close_time,
+    actual_resolve_time,
   ]);
 
   if (!post.scheduled_close_time && !post.actual_close_time) {
@@ -96,8 +96,9 @@ const PostStatus: FC<Props> = ({
     >
       <PostStatusIcon
         status={status}
-        published_at={post.published_at}
         scheduled_close_time={scheduled_close_time}
+        open_time={open_time}
+        published_at={post.published_at}
         resolution={resolution}
       />
       {/* Show text only in non-compact mode */}

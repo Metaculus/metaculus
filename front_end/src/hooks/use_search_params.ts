@@ -70,7 +70,7 @@ const useSearchParams = () => {
     (withNavigation = true) => {
       deleteParams(Array.from(params.keys()), withNavigation);
     },
-    [navigateToSearchParams, params]
+    [deleteParams, params]
   );
 
   const replaceParams = useCallback(

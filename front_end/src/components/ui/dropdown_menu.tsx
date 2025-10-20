@@ -2,7 +2,13 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuItem, MenuItems, MenuButton } from "@headlessui/react";
 import { isNil } from "lodash";
-import { Fragment, useEffect, useState } from "react";
+import {
+  Fragment,
+  MouseEventHandler,
+  ReactElement,
+  useEffect,
+  useState,
+} from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -11,12 +17,12 @@ import Button from "./button";
 export type MenuItemProps = {
   id: string;
   name?: string;
-  onClick?: (...args: unknown[]) => unknown;
+  onClick?: MouseEventHandler;
   link?: string;
   items?: MenuItemProps[];
   openNewTab?: boolean;
   hidden?: boolean;
-  element?: React.ReactElement<any>;
+  element?: ReactElement;
   className?: string;
 };
 
@@ -107,7 +113,7 @@ function InnerMenuContent({
                       itemClassName,
                       item.className
                     )}
-                    onClick={(e: any) => {
+                    onClick={(e: React.MouseEvent<HTMLElement>) => {
                       // Handle nested click
                       if (!isNil(item.items) && item.items.length > 0) {
                         e.preventDefault();

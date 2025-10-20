@@ -5,6 +5,9 @@ import { METAC_COLORS } from "@/constants/colors";
 
 const sansSerif = "var(--font-inter-variable) var(--font-inter)";
 
+type TickSizeFn = (args: { text?: string }) => number;
+const dynamicTickSize: TickSizeFn = ({ text }) => (text === "" ? 3 : 5);
+
 export const baseChartTheme: VictoryThemeDefinition = {
   chart: {
     padding: {
@@ -24,7 +27,7 @@ export const baseChartTheme: VictoryThemeDefinition = {
   axis: {
     style: {
       ticks: {
-        size: (({ text }: { text: string }) => (text === "" ? 3 : 5)) as any,
+        size: dynamicTickSize as unknown as number,
       },
       tickLabels: { fontFamily: sansSerif, fontSize: 9, padding: 0 },
       axisLabel: { fontFamily: sansSerif, fontSize: 9 },

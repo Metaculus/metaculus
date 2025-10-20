@@ -76,6 +76,7 @@ type Props = {
   hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
+  attachRef?: (node: HTMLElement | null) => void;
   extraTheme?: VictoryThemeDefinition;
   scaling?: Scaling;
   isClosed?: boolean;
@@ -103,6 +104,7 @@ const MultipleChoiceChart: FC<Props> = ({
   hideCP,
   onCursorChange,
   onChartReady,
+  attachRef,
   extraTheme,
   scaling,
   isClosed,
@@ -203,6 +205,7 @@ const MultipleChoiceChart: FC<Props> = ({
 
   const CursorContainer = (
     <VictoryCursorContainer
+      containerRef={attachRef}
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
@@ -279,12 +282,10 @@ const MultipleChoiceChart: FC<Props> = ({
                 eventHandlers: {
                   onMouseOverCapture: () => {
                     if (!onCursorChange) return;
-
                     setIsCursorActive(true);
                   },
                   onMouseOutCapture: () => {
                     if (!onCursorChange) return;
-
                     setIsCursorActive(false);
                   },
                 },
@@ -295,6 +296,7 @@ const MultipleChoiceChart: FC<Props> = ({
                 CursorContainer
               ) : (
                 <VictoryContainer
+                  containerRef={attachRef}
                   style={{
                     pointerEvents: "auto",
                     userSelect: "auto",
@@ -411,42 +413,44 @@ const MultipleChoiceChart: FC<Props> = ({
               }}
             />
 
-            <VictoryStack
-              colorScale="qualitative"
-              style={{
-                data: {
-                  fill: "none",
-                  backgroundColor: getThemeColor(METAC_COLORS.gray["200"]),
-                },
-              }}
-            >
-              {graphs.map(
-                ({ line, choice, color, active, resolutionPoint }, index) => {
-                  return active ? (
-                    <VictoryArea
-                      key={`multiple-choice-line-${index}-${choice}`}
-                      data={line}
-                      style={{
-                        data: {
-                          strokeWidth: 2,
-                          stroke: getThemeColor(METAC_COLORS.gray["0"]),
-                          fill: isNil(resolutionPoint)
-                            ? getThemeColor(color)
-                            : `url(#gradient-${index}-${questionKey})`,
-                          fillOpacity: isNil(resolutionPoint)
-                            ? isDarkTheme
-                              ? 0.4
-                              : 0.5
-                            : 1,
-                          strokeOpacity: 1,
-                        },
-                      }}
-                      interpolation="stepAfter"
-                    />
-                  ) : null;
-                }
-              )}
-            </VictoryStack>
+            {!hideCP && !isEmptyDomain && (
+              <VictoryStack
+                colorScale="qualitative"
+                style={{
+                  data: {
+                    fill: "none",
+                    backgroundColor: getThemeColor(METAC_COLORS.gray["200"]),
+                  },
+                }}
+              >
+                {graphs.map(
+                  ({ line, choice, color, active, resolutionPoint }, index) => {
+                    return active ? (
+                      <VictoryArea
+                        key={`multiple-choice-line-${index}-${choice}`}
+                        data={line}
+                        style={{
+                          data: {
+                            strokeWidth: 2,
+                            stroke: getThemeColor(METAC_COLORS.gray["0"]),
+                            fill: isNil(resolutionPoint)
+                              ? getThemeColor(color)
+                              : `url(#gradient-${index}-${questionKey})`,
+                            fillOpacity: isNil(resolutionPoint)
+                              ? isDarkTheme
+                                ? 0.4
+                                : 0.5
+                              : 1,
+                            strokeOpacity: 1,
+                          },
+                        }}
+                        interpolation="stepAfter"
+                      />
+                    ) : null;
+                  }
+                )}
+              </VictoryStack>
+            )}
             {/* User predictions */}
             {userScatters.map((scatter, index) => (
               <VictoryScatter
@@ -836,7 +840,7 @@ function buildChartData({
 const ResolutionChip: FC<{
   x?: number | null;
   y?: number | null;
-  datum?: any;
+  datum?: { y?: number | null };
   chartHeight: number;
   compact?: boolean;
   text: string;

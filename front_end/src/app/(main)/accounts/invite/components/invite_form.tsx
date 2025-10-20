@@ -54,7 +54,7 @@ const InviteForm: FC = () => {
         setIsLoading(false);
       }
     },
-    [reset, t]
+    [reset, t, clearErrors]
   );
 
   return (

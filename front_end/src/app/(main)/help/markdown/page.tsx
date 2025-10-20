@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getLocale } from "next-intl/server";
 
 import KatexRenderer from "@/components/katex_renderer";
@@ -393,9 +394,12 @@ def hello_world():
         {`<img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg" alt="markdown logo">`}
       </pre>
       <p>will render as:</p>
-      <img
+      <Image
         src="https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg"
         alt="markdown logo"
+        width={208}
+        height={208}
+        unoptimized
       />
 
       <hr />

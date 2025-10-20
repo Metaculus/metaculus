@@ -25,6 +25,7 @@ type Props = {
    */
   groupPresentationOverride?: GroupOfQuestionsGraphType;
   className?: string;
+  prioritizeOpenSubquestions?: boolean;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -32,6 +33,7 @@ const DetailedGroupCard: FC<Props> = ({
   preselectedQuestionId,
   groupPresentationOverride,
   className,
+  prioritizeOpenSubquestions = false,
 }) => {
   const {
     open_time,
@@ -84,6 +86,7 @@ const DetailedGroupCard: FC<Props> = ({
             preselectedQuestionId={preselectedQuestionId}
             hideCP={hideCP}
             className={className}
+            prioritizeOpen={prioritizeOpenSubquestions}
           />
           {hideCP && <RevealCPButton />}
         </>

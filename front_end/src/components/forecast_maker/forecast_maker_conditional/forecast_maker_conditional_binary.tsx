@@ -183,6 +183,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             : option.forecastExpiration,
       }))
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalSavedState.forecastExpiration]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -386,11 +387,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={
-          !!hasUserActiveForecast && !isPickerDirty
-            ? handlePredictSubmit
-            : undefined
-        }
+        onSubmit={handlePredictSubmit}
+        isUserForecastActive={hasUserActiveForecast}
+        isDirty={isPickerDirty}
+        hasUserForecast={hasUserForecast}
+        isSubmissionDisabled={!questionsToSubmit.length}
         questionDuration={questionDuration}
       />
 

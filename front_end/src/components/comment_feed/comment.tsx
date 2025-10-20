@@ -498,6 +498,7 @@ const Comment: FC<CommentProps> = ({
         clearTimeout(timeoutId);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment.id]);
 
   const menuItems: MenuItemProps[] = [
@@ -743,6 +744,7 @@ const Comment: FC<CommentProps> = ({
                       })}
                       contentEditableClassName="font-inter !text-gray-700 !dark:text-gray-700-dark *:m-0"
                       withUgcLinks
+                      withCodeBlocks
                     />
                   )}
                 </div>
@@ -794,6 +796,7 @@ const Comment: FC<CommentProps> = ({
                     saveEditDraftDebounced(val);
                   }}
                   withUgcLinks
+                  withCodeBlocks
                 />
               )}{" "}
               {!isEditing && (
@@ -805,6 +808,7 @@ const Comment: FC<CommentProps> = ({
                   mode={"read"}
                   withUgcLinks
                   withTwitterPreview
+                  withCodeBlocks
                 />
               )}
             </div>

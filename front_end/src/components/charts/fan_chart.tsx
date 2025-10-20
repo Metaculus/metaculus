@@ -1,7 +1,7 @@
 "use client";
 
 import { isNil, merge } from "lodash";
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -76,6 +76,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { FanChartVariant, fanVariants } from "./fan_chart_variants";
+import IndexValueTooltip from "./primitives/index_value_tooltip";
 
 type Props = {
   group?: PostGroupOfQuestions<QuestionWithNumericForecasts>;
@@ -251,6 +252,75 @@ const FanChart: FC<Props> = ({
     [normOptions]
   );
 
+  const formatValue = useCallback(
+    (v: number) => yScale.tickFormat(v),
+    [yScale]
+  );
+  const getIndexValueForX = useMemo(() => {
+    const map: Record<string, number | null> = {};
+    for (const o of normOptions) {
+      const val =
+        o.resolved && typeof o.resolvedValue === "number"
+          ? o.resolvedValue
+          : o.communityQuartiles?.median ?? null;
+      map[o.name] = Number.isFinite(val as number) ? (val as number) : null;
+    }
+    return (xName: string) => map[xName] ?? null;
+  }, [normOptions]);
+
+  const tooltipConfig = useMemo(() => {
+    if (effectiveVariant === "index") {
+      return {
+        labels: () => " ",
+        voronoiDimension: "x" as const,
+        labelComponent: (
+          <IndexValueTooltip
+            chartHeight={height}
+            formatValue={formatValue}
+            getValueForX={getIndexValueForX}
+          />
+        ),
+      } as const;
+    }
+    return {
+      labels: ({ datum }: { datum: { x: string } }) => datum.x,
+      voronoiDimension: undefined,
+      labelComponent: (
+        <ChartFanTooltip
+          chartHeight={height}
+          options={tooltipOptions}
+          hideCp={hideCP}
+          forecastAvailability={forecastAvailability}
+        />
+      ),
+    } as const;
+  }, [
+    effectiveVariant,
+    height,
+    formatValue,
+    getIndexValueForX,
+    tooltipOptions,
+    hideCP,
+    forecastAvailability,
+  ]);
+
+  const containerWithTooltip = (
+    <VictoryVoronoiContainer
+      voronoiBlacklist={[
+        "communityFanArea",
+        "userFanArea",
+        "communityFanLine",
+        "userFanLine",
+      ]}
+      style={{ touchAction: "pan-y" }}
+      {...tooltipConfig}
+      onActivated={(points: { x: string }[]) => {
+        const x = points[0]?.x;
+        if (!isNil(x)) setActivePoint(x);
+      }}
+    />
+  );
+
   return (
     <div
       id="fan-graph-container"
@@ -268,28 +338,7 @@ const FanChart: FC<Props> = ({
           padding={v.padding(variantArgs)}
           containerComponent={
             withTooltip ? (
-              <VictoryVoronoiContainer
-                voronoiBlacklist={[
-                  "communityFanArea",
-                  "userFanArea",
-                  "communityFanLine",
-                  "userFanLine",
-                ]}
-                style={{ touchAction: "pan-y" }}
-                labels={({ datum }: { datum: { x: string } }) => datum.x}
-                labelComponent={
-                  <ChartFanTooltip
-                    chartHeight={height}
-                    options={tooltipOptions}
-                    hideCp={hideCP}
-                    forecastAvailability={forecastAvailability}
-                  />
-                }
-                onActivated={(points: { x: string }[]) => {
-                  const x = points[0]?.x;
-                  if (!isNil(x)) setActivePoint(x);
-                }}
-              />
+              containerWithTooltip
             ) : (
               <VictoryContainer
                 style={{
@@ -347,7 +396,7 @@ const FanChart: FC<Props> = ({
                   data: {
                     opacity: 0.3,
                     fill: ({ datum }) =>
-                      (datum as any)?.resolved
+                      datum?.resolved
                         ? getThemeColor(METAC_COLORS.purple["500"])
                         : palette.communityArea,
                   },
@@ -363,7 +412,7 @@ const FanChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke: ({ datum }) =>
-                      (datum as any)?.resolved
+                      datum?.resolved
                         ? getThemeColor(METAC_COLORS.purple["700"])
                         : palette.communityLine,
                   },
@@ -389,7 +438,7 @@ const FanChart: FC<Props> = ({
                   stroke: () => palette.communityPoint,
                   strokeWidth: 6,
                   strokeOpacity: ({ datum }) =>
-                    activePoint === (datum as any).x ? 0.3 : 0,
+                    activePoint === datum.x ? 0.3 : 0,
                 },
               }}
               dataComponent={
@@ -524,13 +573,34 @@ function buildChartData({
       ? getQuestionForecastAvailability(option.question)
       : { isEmpty: false, cpRevealsOn: null as number | null };
 
-    const isResolved = option.resolved && !unsuccessfullyResolved;
+    const isResolved = !!option.resolved && !unsuccessfullyResolved;
+
+    if (unsuccessfullyResolved) {
+      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved: true });
+      continue;
+    }
+
+    if (option.resolved) {
+      const yVal =
+        Number.isFinite(option.resolvedValue) && option.resolvedValue != null
+          ? (option.resolvedValue as number)
+          : option.question
+            ? getResolutionPosition({ question: option.question, scaling })
+            : NaN;
+
+      resolutionPoints.push({
+        x: option.name,
+        y: yVal,
+        unsuccessfullyResolved: false,
+        resolved: true,
+      });
+    }
 
     if (
       questionForecastAvailability.isEmpty ||
       questionForecastAvailability.cpRevealsOn
     ) {
-      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved });
+      emptyPoints.push({ x: option.name, y: 0, unsuccessfullyResolved: false });
       continue;
     }
 
@@ -580,22 +650,6 @@ function buildChartData({
       }
     }
 
-    if (option.resolved) {
-      const yVal =
-        Number.isFinite(option.resolvedValue) && option.resolvedValue != null
-          ? (option.resolvedValue as number)
-          : option.question
-            ? getResolutionPosition({ question: option.question, scaling })
-            : NaN;
-
-      resolutionPoints.push({
-        x: option.name,
-        y: yVal,
-        unsuccessfullyResolved,
-        resolved: true,
-      });
-    }
-
     if (option.userQuartiles) {
       const { areaPoint: userAreaPoint, point: userPoint } = getOptionGraphData(
         {
@@ -642,6 +696,13 @@ function buildChartData({
   });
   emptyPoints.forEach((pt) => {
     pt.y = Math.round(((finalZoom[0] + finalZoom[1]) / 2) * 100) / 100;
+  });
+
+  const [lo, hi] = finalZoom as Tuple<number>;
+  userPoints.forEach((pt) => {
+    if (Number.isFinite(pt.y)) {
+      pt.y = Math.max(lo, Math.min(hi, pt.y));
+    }
   });
 
   return {

@@ -9,6 +9,7 @@ import useAppTheme from "@/hooks/use_app_theme";
 
 type Props = ComponentProps<typeof Point> & {
   pointColor?: string;
+  pointTextColor?: string;
   pointSize?: number;
   scale?: {
     x: (x: number) => number;
@@ -23,6 +24,7 @@ const GroupResolutionPoint: FC<Props> = ({
   y,
   datum,
   pointColor,
+  pointTextColor,
   pointSize = 10,
   scale,
   chartWidth,
@@ -30,8 +32,12 @@ const GroupResolutionPoint: FC<Props> = ({
 }) => {
   const TEXT_PADDING = 2;
   const { getThemeColor } = useAppTheme();
-  const color =
+  const strokeColor =
     pointColor ?? datum?.pointColor ?? getThemeColor(METAC_COLORS.olive["800"]);
+
+  const textColor = pointTextColor ?? strokeColor;
+
+  const labelBg = getThemeColor(METAC_COLORS.gray["0"]);
 
   const { x1, y1, text } = datum;
   if (isNil(x) || isNil(y) || isNil(scale)) {
@@ -56,7 +62,7 @@ const GroupResolutionPoint: FC<Props> = ({
           y1={scale.y(y1)}
           x2={x}
           y2={y - (text ? textOffset : 0)}
-          stroke={color}
+          stroke={strokeColor}
           strokeWidth={1}
           strokeDasharray="2 2"
           opacity={1}
@@ -75,8 +81,8 @@ const GroupResolutionPoint: FC<Props> = ({
             y={y - (pointSize * 1.5) / 2 + textAdjustmentY}
             width={pointSize * (text === "Yes" ? 2.5 : 2) + TEXT_PADDING}
             height={pointSize * 1.5}
-            fill={getThemeColor(METAC_COLORS.gray["200"])}
-            stroke={color}
+            fill={labelBg}
+            stroke={strokeColor}
             strokeWidth={1}
             rx={2}
             ry={2}
@@ -88,7 +94,7 @@ const GroupResolutionPoint: FC<Props> = ({
               (shouldAdjustBorderText ? pointSize / 2 : 0)
             }
             y={y + pointSize / 2 + textAdjustmentY}
-            fill={color}
+            fill={textColor}
             fontSize={pointSize * 1.3}
             fontWeight={500}
           >
@@ -103,7 +109,7 @@ const GroupResolutionPoint: FC<Props> = ({
           x={x - pointSize / 2}
           y={y - pointSize / 2}
           fill={getThemeColor(METAC_COLORS.gray["200"])}
-          stroke={color}
+          stroke={strokeColor}
           strokeWidth={2}
         />
       )}

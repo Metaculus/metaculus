@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { FC, useEffect, useState } from "react";
 
 import PersonModal from "./PersonModal";
@@ -440,12 +441,15 @@ const TeamBlock: FC = ({}) => {
                     })
                   }
                 >
-                  <div className="size-24 rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
+                  <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
                     {imgSrc && (
-                      <img
+                      <Image
                         alt={name}
-                        className="size-full rounded-full object-cover"
                         src={imgSrc}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 768px) 176px, 96px"
+                        unoptimized
                       />
                     )}
                   </div>

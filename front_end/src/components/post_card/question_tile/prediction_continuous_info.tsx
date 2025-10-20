@@ -1,10 +1,12 @@
 import { useLocale } from "next-intl";
 import React, { FC } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import QuestionCPMovement from "@/components/cp_movement";
 import MyPredictionChip from "@/components/my_prediction_chip";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, UserForecast } from "@/types/question";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -25,6 +27,7 @@ const PredictionContinuousInfo: FC<Props> = ({
   showMyPrediction,
 }) => {
   const locale = useLocale();
+  const { hideCP } = useHideCP();
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -58,14 +61,26 @@ const PredictionContinuousInfo: FC<Props> = ({
   return (
     <div className="flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5">
       <div className="flex w-full flex-col gap-1 md:gap-1.5">
-        <ContinuousCPBar question={question} />
-        <QuestionCPMovement
-          question={question}
-          unit={""}
-          className="mx-auto max-w-[110px] md:mx-0"
-          size={"xs"}
-          boldValueUnit={true}
-        />
+        {!hideCP && (
+          <>
+            <ContinuousCPBar question={question} />
+            <QuestionCPMovement
+              question={question}
+              className="mx-auto max-w-[200px] md:mx-0"
+              size={"xs"}
+              boldValueUnit={true}
+            />
+          </>
+        )}
+        {hideCP && (
+          <ForecastersCounter
+            forecasters={
+              question.aggregations[question.default_aggregation_method]?.latest
+                ?.forecaster_count ?? undefined
+            }
+            className="mx-auto md:mx-0"
+          />
+        )}
       </div>
       {showMyPrediction &&
         question.my_forecasts?.latest &&

@@ -50,6 +50,9 @@ type Props = {
   quantileComponents?: DistributionQuantileComponent;
   onQuantileChange?: (quantileComponents: QuantileValue[]) => void;
   disableQuantileInput?: boolean;
+  userPreviousLabel?: string;
+  userPreviousRowClassName?: string;
+  hideCurrentUserRow?: boolean;
 };
 
 const ContinuousTable: FC<Props> = ({
@@ -68,6 +71,9 @@ const ContinuousTable: FC<Props> = ({
   quantileComponents,
   onQuantileChange,
   disableQuantileInput = false,
+  userPreviousLabel,
+  userPreviousRowClassName,
+  hideCurrentUserRow = false,
 }) => {
   const t = useTranslations();
   // initial state is a safety measure to avoid errors when we already have slider forecast
@@ -238,7 +244,7 @@ const ContinuousTable: FC<Props> = ({
             forecastInputMode === ContinuousForecastInputType.Slider && (
               <tr className="text-orange-800 dark:text-orange-800-dark">
                 <Td>{t("myPrediction")}</Td>
-                {isDirty || hasUserForecast ? (
+                {!hideCurrentUserRow && (isDirty || hasUserForecast) ? (
                   <>
                     {question.open_lower_bound && (
                       <Td>
@@ -418,8 +424,13 @@ const ContinuousTable: FC<Props> = ({
             )}
 
           {withUserQuartiles && userPreviousQuartiles && (
-            <tr className="text-orange-800 dark:text-orange-800-dark">
-              <Td>{t("myPredictionPrevious")}</Td>
+            <tr
+              className={cn(
+                "text-orange-800 dark:text-orange-800-dark",
+                userPreviousRowClassName
+              )}
+            >
+              <Td>{userPreviousLabel ?? t("myPredictionPrevious")}</Td>
               <>
                 {question.open_lower_bound && (
                   <Td>
@@ -463,8 +474,13 @@ const ContinuousTable: FC<Props> = ({
               </Td>
             )}
             {withUserQuartiles && userPreviousQuartiles && (
-              <Td className="text-orange-800 dark:text-orange-800-dark">
-                {t("myPredictionPrevious")}
+              <Td
+                className={cn(
+                  "text-orange-800 dark:text-orange-800-dark",
+                  userPreviousRowClassName
+                )}
+              >
+                {userPreviousLabel ?? t("myPredictionPrevious")}
               </Td>
             )}
           </tr>
@@ -503,7 +519,9 @@ const ContinuousTable: FC<Props> = ({
                   </Td>
                 ) : (
                   <Td className="text-orange-800 dark:text-orange-800-dark">
-                    {(isDirty || hasUserForecast) && userBounds
+                    {!hideCurrentUserRow &&
+                    (isDirty || hasUserForecast) &&
+                    userBounds
                       ? `${(userBounds.belowLower * 100).toFixed(1)}%`
                       : "—"}
                   </Td>
@@ -557,7 +575,7 @@ const ContinuousTable: FC<Props> = ({
               </Td>
             ) : (
               <Td className="text-orange-800 dark:text-orange-800-dark">
-                {isDirty || hasUserForecast ? (
+                {!hideCurrentUserRow && (isDirty || hasUserForecast) ? (
                   <>{getDisplayValue(userQuartiles?.lower25)}</>
                 ) : (
                   "—"
@@ -601,7 +619,7 @@ const ContinuousTable: FC<Props> = ({
               </Td>
             ) : (
               <Td className="text-orange-800 dark:text-orange-800-dark">
-                {isDirty || hasUserForecast ? (
+                {!hideCurrentUserRow && (isDirty || hasUserForecast) ? (
                   <>{getDisplayValue(userQuartiles?.median)}</>
                 ) : (
                   "—"
@@ -645,7 +663,7 @@ const ContinuousTable: FC<Props> = ({
               </Td>
             ) : (
               <Td className="text-orange-800 dark:text-orange-800-dark">
-                {isDirty || hasUserForecast ? (
+                {!hideCurrentUserRow && (isDirty || hasUserForecast) ? (
                   <>{getDisplayValue(userQuartiles?.upper75)}</>
                 ) : (
                   "—"
@@ -699,7 +717,7 @@ const ContinuousTable: FC<Props> = ({
                   </Td>
                 ) : (
                   <Td className="text-orange-800 dark:text-orange-800-dark">
-                    {(isDirty || hasUserForecast) && userBounds
+                    {!hideCurrentUserRow && userBounds
                       ? `${(userBounds.aboveUpper * 100).toFixed(1)}%`
                       : "—"}
                   </Td>

@@ -55,6 +55,7 @@ const useFeed = () => {
     authorUsernames,
     communities,
     user,
+    weeklyTopComments,
   ]);
 
   const clearInReview = useCallback(() => {

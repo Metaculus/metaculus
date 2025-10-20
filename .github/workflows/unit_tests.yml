@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   backend-unit-tests:
+    name: "Backend Checks"
     runs-on: ubuntu-latest
     environment: testing_env
     env:
@@ -37,7 +38,7 @@ jobs:
         ports:
           - 5432:5432
       redis:
-        image: "bitnami/redis:7.2.5"
+        image: "redis:8.2.1-alpine"
         env:
           ALLOW_EMPTY_PASSWORD: yes
         ports:
@@ -63,6 +64,9 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+      - name: Check Black formatting
+        if: ${{ !cancelled() }}
+        run: poetry run black --check .
       - name: Run Flake8 Linter
         if: ${{ !cancelled() }}
         run: poetry run flake8 . --exclude=front_end,.venv
@@ -74,6 +78,7 @@ jobs:
         run: poetry run pytest ./tests/unit
 
   frontend-unit-tests:
+    name: "Frontend Checks"
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -88,6 +93,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: front_end
+
+      - name: prettier version
+        run: npx prettier -v
+        working-directory: front_end
+
+      - name: check formatting
+        run: npm run format:check
+        working-directory: front_end
+
+      - name: check linters
+        run: npm run lint
         working-directory: front_end
 
       - name: Run unit tests

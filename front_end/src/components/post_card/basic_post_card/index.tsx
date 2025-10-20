@@ -47,7 +47,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
+          "overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],

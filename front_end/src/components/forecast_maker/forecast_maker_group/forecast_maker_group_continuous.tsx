@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, {
+import {
   FC,
   ReactNode,
   useCallback,
@@ -45,7 +45,6 @@ import {
   clearQuantileComponents,
   getNormalizedContinuousForecast,
   getUserContinuousQuartiles,
-  isAllQuantileComponentsDirty,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import {
@@ -58,9 +57,7 @@ import {
   getSliderDistributionFromQuantiles,
 } from "@/utils/forecasts/switch_forecast_type";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import { canWithdrawForecast } from "@/utils/questions/predictions";
 
-import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import GroupForecastAccordion, {
   ContinuousGroupOption,
 } from "../continuous_group_accordion/group_forecast_accordion";
@@ -68,10 +65,12 @@ import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getEffectiveLatest,
   getTimeToExpireDays,
 } from "../forecast_expiration";
 import { validateUserQuantileData } from "../helpers";
 import PredictButton from "../predict_button";
+import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
@@ -116,20 +115,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     [questions]
   );
 
-  const soonToExpireForecastsCount = useMemo(() => {
-    return questions.filter((q) => {
-      const timeToExpireDays = getTimeToExpireDays(q.my_forecasts?.latest);
-      return timeToExpireDays && timeToExpireDays > 0 && timeToExpireDays < 2;
-    }).length;
-  }, [questions]);
-
-  const expiredForecastsCount = useMemo(() => {
-    return questions.filter((q) => {
-      const timeToExpireDays = getTimeToExpireDays(q.my_forecasts?.latest);
-      return timeToExpireDays && timeToExpireDays < 0;
-    }).length;
-  }, [questions]);
-
   const [groupOptions, setGroupOptions] = useState<ContinuousGroupOption[]>(
     generateGroupOptions({
       questions,
@@ -140,7 +125,24 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     })
   );
 
-  // ensure options have the latest forecast data
+  const soonToExpireCount = useMemo(() => {
+    return groupOptions.filter((opt) => {
+      if (opt.question.status !== QuestionStatus.OPEN) return false;
+      const timeToExpireDays = getTimeToExpireDays(getEffectiveLatest(opt));
+      return timeToExpireDays && timeToExpireDays > 0 && timeToExpireDays < 2;
+    }).length;
+  }, [groupOptions]);
+
+  const expiredCount = useMemo(() => {
+    return groupOptions.filter((opt) => {
+      if (opt.question.status !== QuestionStatus.OPEN) return false;
+      const timeToExpireDays = getTimeToExpireDays(getEffectiveLatest(opt));
+      return timeToExpireDays && timeToExpireDays < 0;
+    }).length;
+  }, [groupOptions]);
+
+  // sync with server: rebuild fresh options and either (a) fully reset rows in
+  // resetTarget or (b) patch server fields while keeping local edits.
   useEffect(() => {
     const newGroupOptions = generateGroupOptions({
       questions,
@@ -151,17 +153,23 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     });
     setGroupOptions((prev) =>
       prev.map((o) => {
-        const newOption = newGroupOptions.find((q) => q.id === o.question.id);
-        // we want to reset all options if we withdraw/reaffirm all group subquestions using button unter the table
-        // but when updating a single subquestion, we want to reset only that subquestion state
+        // after withdraw/reaffirm: reset all rows
+        // on single-row updates, reset only that row.
+        const fresh = newGroupOptions.find((q) => q.id === o.question.id);
+        if (!fresh) return o;
+
+        const shouldReset =
+          resetTarget.current === "all" || resetTarget.current === o.id;
+        const base = shouldReset ? { ...fresh } : o;
+
         return {
-          ...o,
-          ...(resetTarget.current === "all" || resetTarget.current === o.id
-            ? newOption
-            : o),
-          resolution: newOption?.resolution ?? o.resolution,
-          menu: newOption?.menu ?? o.menu,
-          question: newOption?.question ?? o.question,
+          ...base,
+          resolution: fresh.resolution ?? base.resolution,
+          menu: fresh.menu ?? base.menu,
+          question: fresh.question ?? base.question,
+          wasWithdrawn: o.wasWithdrawn ?? base.wasWithdrawn,
+          withdrawnEndTimeSec:
+            o.withdrawnEndTimeSec ?? base.withdrawnEndTimeSec,
         };
       })
     );
@@ -174,8 +182,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () =>
       groupOptions.filter(
         (option) =>
-          option.question.status === QuestionStatus.OPEN &&
-          (option.isDirty || option.hasUserForecast)
+          option.question.status === QuestionStatus.OPEN && option.isDirty
       ),
     [groupOptions]
   );
@@ -222,7 +229,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               isDirty:
                 forecastInputMode === ContinuousForecastInputType.Slider
                   ? true
-                  : isAllQuantileComponentsDirty(components),
+                  : components.some((c) => c?.isDirty),
             };
           }
 
@@ -508,6 +515,27 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         ),
       }));
   }, [questions, user?.prediction_expiration_percent]);
+  const hasActiveUserForecastUI = (opt: ContinuousGroupOption) => {
+    const latest = opt.question.my_forecasts?.latest;
+    return (
+      opt.question.status === QuestionStatus.OPEN &&
+      !!latest?.distribution_input &&
+      !opt.wasWithdrawn
+    );
+  };
+
+  const withdrawAllIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          groupOptions
+            .filter(hasActiveUserForecastUI)
+            .map((o) => o.question.id)
+            .filter((id): id is number => Number.isFinite(id))
+        )
+      ),
+    [groupOptions]
+  );
 
   const handlePredictWithdraw = useCallback(
     async (questionId?: number) => {
@@ -515,24 +543,47 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
       setSubmitError(undefined);
       setIsSubmitting(true);
-      const response = await withdrawForecasts(
-        postId,
-        isNil(questionId)
-          ? predictedQuestions.map((q) => ({
-              question: q.id,
-            }))
-          : [{ question: questionId }]
+      const rawIds = isNil(questionId) ? withdrawAllIds : [questionId];
+      const ids = Array.from(
+        new Set(rawIds.filter((id) => Number.isFinite(id)))
       );
+
+      if (ids.length === 0) {
+        setIsSubmitting(false);
+        setIsWithdrawModalOpen(false);
+        return;
+      }
+
+      const payload: Array<{ question: number }> = ids.map((id) => ({
+        question: id,
+      }));
+
+      const response = await withdrawForecasts(postId, payload);
       setIsSubmitting(false);
 
       if (response && "errors" in response && !!response.errors) {
         setSubmitError(response.errors);
+      } else {
+        const withdrawnAtSec = Math.floor(Date.now() / 1000);
+        setGroupOptions((prev) =>
+          prev.map((opt) =>
+            ids.includes(opt.question.id)
+              ? {
+                  ...opt,
+                  wasWithdrawn: true,
+                  withdrawnEndTimeSec: withdrawnAtSec,
+                  forecastExpiration: undefined,
+                }
+              : opt
+          )
+        );
       }
+
       setIsWithdrawModalOpen(false);
       onPredictionSubmit?.();
       return response;
     },
-    [postId, predictedQuestions, onPredictionSubmit]
+    [postId, withdrawAllIds, onPredictionSubmit]
   );
 
   const handlePredictionReaffirm = useCallback(async () => {
@@ -589,12 +640,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       />
 
       <div className="mx-auto mb-2 mt-4 flex flex-wrap justify-center gap-3">
-        {questions.some((q) => canWithdrawForecast(q, permission)) && (
+        {groupOptions.some(hasActiveUserForecastUI) && (
           <WithdrawButton
             type="button"
             isPromptOpen={isWithdrawModalOpen}
             isPending={isSubmitting}
-            onSubmit={handlePredictWithdraw}
+            onSubmit={() => handlePredictWithdraw()}
             onPromptVisibilityChange={setIsWithdrawModalOpen}
           >
             {t("withdrawAll")}
@@ -632,19 +683,17 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         )}
       </div>
 
-      {(soonToExpireForecastsCount > 0 || expiredForecastsCount > 0) && (
+      {(soonToExpireCount > 0 || expiredCount > 0) && (
         <div className="mt-2 flex flex-col items-center text-xs text-salmon-800 dark:text-salmon-800-dark">
-          {soonToExpireForecastsCount > 0 && (
+          {soonToExpireCount > 0 && (
             <div>
               {t("predictionsSoonToBeWidthdrawnText", {
-                count: soonToExpireForecastsCount,
+                count: soonToExpireCount,
               })}
             </div>
           )}
-          {expiredForecastsCount > 0 && (
-            <div>
-              {t("predictionsWithdrawnText", { count: expiredForecastsCount })}
-            </div>
+          {expiredCount > 0 && (
+            <div>{t("predictionsWithdrawnText", { count: expiredCount })}</div>
           )}
         </div>
       )}
@@ -682,6 +731,8 @@ function generateGroupOptions({
       q
     );
     const latest = q.aggregations[q.default_aggregation_method].latest;
+    const last = q.my_forecasts?.latest;
+    const wasWithdrawn = !!last?.end_time && last.end_time * 1000 < Date.now();
     return {
       id: q.id,
       name: q.label,
@@ -701,6 +752,8 @@ function generateGroupOptions({
       resolution: q.resolution,
       isDirty: false,
       hasUserForecast: !isNil(prevForecast),
+      wasWithdrawn,
+      withdrawnEndTimeSec: last?.end_time ?? null,
       menu: (
         <ForecastMakerGroupControls
           question={q}
@@ -753,6 +806,8 @@ function updateGroupOptions(groupOption: ContinuousGroupOption) {
     userQuartiles,
     isDirty: false,
     hasUserForecast: true,
+    wasWithdrawn: false,
+    withdrawnEndTimeSec: null,
   };
 }
 

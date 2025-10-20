@@ -69,12 +69,14 @@ export default async function Tournaments() {
       />
 
       {indexes.length > 0 && (
-        <TournamentsList
-          title={t("Indexes")}
-          items={indexes}
-          cardsPerPage={12}
-          withEmptyState
-        />
+        <div id="indexes-section">
+          <TournamentsList
+            title={t("Indexes")}
+            items={indexes}
+            cardsPerPage={12}
+            withEmptyState
+          />
+        </div>
       )}
 
       <TournamentsList

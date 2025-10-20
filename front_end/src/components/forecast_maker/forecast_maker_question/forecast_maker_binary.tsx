@@ -139,7 +139,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const handlePredictWithdraw = async () => {
     setSubmitError(undefined);
 
-    if (!prevForecastValue) return;
+    if (!activeUserForecast) return;
 
     const response = await withdrawForecasts(post.id, [
       {
@@ -167,9 +167,10 @@ const ForecastMakerBinary: FC<Props> = ({
         onClose={() => {
           setIsForecastExpirationModalOpen(false);
         }}
-        onReaffirm={
-          !!activeUserForecast && !isForecastDirty ? submit : undefined
-        }
+        onSubmit={submit}
+        hasUserForecast={hasUserForecast}
+        isUserForecastActive={!!activeUserForecast}
+        isDirty={isForecastDirty}
         questionDuration={questionDuration}
       />
 
@@ -191,7 +192,7 @@ const ForecastMakerBinary: FC<Props> = ({
           <div className="flex gap-3">
             {canPredict && (
               <>
-                {!!prevForecastValue && (
+                {!!activeUserForecast && (
                   <WithdrawButton
                     isPromptOpen={isWithdrawModalOpen}
                     isPending={withdrawalIsPending}

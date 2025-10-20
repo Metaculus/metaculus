@@ -1,4 +1,5 @@
 import type { StaticImageData } from "next/image";
+import Image from "next/image";
 
 import tournamentPlaceholder from "@/app/assets/images/tournament.png";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
@@ -33,11 +34,14 @@ export default async function OgTournamentPage({
       className="relative h-[630px] w-[1240px] bg-blue-900 font-sans dark:bg-blue-900-dark"
     >
       <div className="absolute inset-0 overflow-hidden">
-        <img
+        <Image
           src={headerSrcStr}
           alt=""
+          fill
+          priority
+          unoptimized
+          sizes="1240px"
           className="pointer-events-none absolute -left-[0.5%] -top-[0.5%] ml-1.5 block h-[101%] w-[101%] select-none object-cover"
-          loading="eager"
         />
 
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/40 to-blue-900/80" />

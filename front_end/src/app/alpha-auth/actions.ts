@@ -6,9 +6,8 @@ import { devLoginSchema } from "@/app/alpha-auth/schemas";
 import { setAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
-export type AlphaLoginActionState = {
-  errors?: any;
-} | null;
+export type AlphaLoginErrors = Partial<Record<string, string[]>>;
+export type AlphaLoginActionState = { errors?: AlphaLoginErrors } | null;
 
 export default async function alphaLoginAction(
   prevState: AlphaLoginActionState,

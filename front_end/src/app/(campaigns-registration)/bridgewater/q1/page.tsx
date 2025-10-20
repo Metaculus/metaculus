@@ -1,5 +1,6 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import Link from "next/link";
 
 import Announcement from "./components/announcement";
@@ -27,10 +28,14 @@ export default function BridgewaterTournamentPage() {
             <div className="flex w-full flex-col gap-3 md:w-1/2 lg:flex-row">
               <Hero />
               <div className="relative flex size-full min-h-[8rem] flex-row overflow-hidden rounded lg:h-auto lg:w-1/2">
-                <img
-                  className="w-full object-cover"
+                <Image
                   src="https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp"
                   alt=""
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+                  priority
+                  unoptimized
                 />
               </div>
             </div>

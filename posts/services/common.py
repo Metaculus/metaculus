@@ -118,6 +118,7 @@ def create_post(
     author: User = None,
     short_title: str = None,
     published_at: datetime = None,
+    **kwargs,
 ) -> Post:
     # We always want to create post & questions content in the original mode
     activate(settings.ORIGINAL_LANGUAGE_CODE)
@@ -133,6 +134,7 @@ def create_post(
             author=author,
             curation_status=Post.CurationStatus.DRAFT,
             published_at=published_at,
+            **kwargs,
         )
 
         # Adding questions
@@ -334,7 +336,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
             difference = prediction_difference_for_sorting(
                 forecast.get_prediction_values(),
                 cp.get_prediction_values(),
-                question,
+                question.type,
             )
             if (forecast.author_id not in user_divergences) or (
                 abs(user_divergences[forecast.author_id]) < abs(difference)

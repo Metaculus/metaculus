@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 
 from questions.types import AggregationMethod
-from utils.dramatiq import concurrency_retries, task_concurrent_limit
+from utils.dramatiq import task_concurrent_limit
 from utils.translation import (
     update_translations_for_model,
     detect_and_update_content_language,
@@ -12,7 +12,7 @@ from utils.translation import (
 )
 
 
-@dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
+@dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
     lambda app_label, model_name, pk: f"update-translations-{app_label}.{model_name}/{pk}",
     limit=1,
@@ -91,7 +91,7 @@ def email_data_task(
     include_scores: bool,
     include_user_data: bool,
     include_comments: bool,
-    user_ids: list[int] | None,
+    only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
     include_future: bool,
@@ -100,19 +100,19 @@ def email_data_task(
         from utils.csv_utils import export_data_for_questions
 
         data = export_data_for_questions(
-            user_id,
-            is_staff,
-            is_whitelisted,
-            question_ids,
-            aggregation_methods,
-            minimize,
-            include_scores,
-            include_user_data,
-            include_comments,
-            user_ids,
-            include_bots,
-            anonymized,
-            include_future,
+            user_id=user_id,
+            is_staff=is_staff,
+            is_whitelisted=is_whitelisted,
+            question_ids=question_ids,
+            aggregation_methods=aggregation_methods,
+            minimize=minimize,
+            include_scores=include_scores,
+            include_user_data=include_user_data,
+            include_comments=include_comments,
+            only_include_user_ids=only_include_user_ids,
+            include_bots=include_bots,
+            anonymized=anonymized,
+            include_future=include_future,
         )
 
         assert data is not None, "No data generated"

@@ -139,6 +139,12 @@ const MultiChoicesChartView: FC<Props> = ({
     refs,
     floatingStyles,
   } = useChartTooltip();
+  const attachRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (node) refs.setReference(node);
+    },
+    [refs]
+  );
 
   const handleChoiceChange = useCallback(
     (choice: string, checked: boolean) => {
@@ -252,6 +258,7 @@ const MultiChoicesChartView: FC<Props> = ({
     openTime,
     forceAutoZoom: isInteracted.current,
     forecastAvailability,
+    attachRef,
   } as const;
 
   return (
@@ -307,8 +314,12 @@ const MultiChoicesChartView: FC<Props> = ({
             onChoiceHighlight={handleChoiceHighlight}
             onToggleAll={toggleSelectAll}
             maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
-            othersToggle={showOthersToggle ? timelineMode : undefined}
-            onOthersToggle={showOthersToggle ? setTimelineMode : undefined}
+            othersToggle={showOthersToggle ? !timelineMode : undefined}
+            onOthersToggle={
+              showOthersToggle
+                ? (checked) => setTimelineMode(!checked)
+                : undefined
+            }
             othersDisabled={
               showOthersToggle ? totalActiveCount !== 1 : undefined
             }
@@ -335,7 +346,7 @@ const MultiChoicesChartView: FC<Props> = ({
                       className="px-3 pb-1 pt-2 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark"
                       colSpan={2}
                     >
-                      {t("totalForecastersLabel")}
+                      {t("activeForecastersLabel")}
                     </th>
                     <td
                       className="pr-5 pt-1 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
