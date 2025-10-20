@@ -1,11 +1,12 @@
 "use client";
-import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
+import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -28,16 +29,26 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   const expandLabel = _expandLabel ?? t("expand");
   const collapseLabel = _collapseLabel ?? t("collapse");
 
-  const ref = useRef<HTMLDivElement>(null);
+  const { ref, height, width } = useContainerSize<HTMLDivElement>();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isExpandable, setIsExpandable] = useState(true);
+  const [isExpandable, setIsExpandable] = useState(false);
+  const userInteractedRef = useRef(false);
 
   useEffect(() => {
-    if (ref.current && ref.current.scrollHeight <= maxCollapsedHeight) {
+    const element = ref.current;
+    if (!element) return;
+
+    const contentHeight = element.scrollHeight;
+    if (contentHeight <= maxCollapsedHeight) {
       setIsExpandable(false);
       setIsExpanded(true);
+    } else {
+      setIsExpandable(true);
+      if (!userInteractedRef.current) {
+        setIsExpanded(false);
+      }
     }
-  }, [maxCollapsedHeight]);
+  }, [maxCollapsedHeight, height, width, ref]);
 
   return (
     <div className={cn(gradientClassName, className)}>
@@ -63,7 +74,10 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
           >
             <Button
               variant="tertiary"
-              onClick={() => setIsExpanded((prev) => !prev)}
+              onClick={() => {
+                userInteractedRef.current = true;
+                setIsExpanded((prev) => !prev);
+              }}
             >
               <FontAwesomeIcon
                 icon={isExpanded ? faChevronUp : faChevronDown}
