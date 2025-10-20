@@ -7,7 +7,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, memo, useState } from "react";
 
 import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
 import BaseModal from "@/components/base_modal";
@@ -37,6 +37,9 @@ type Props = {
   showSuggestedKeyFactors?: boolean;
   onSuccess?: (comment: BECommentType) => void;
 };
+
+// Prevent heavy MDXEditor re-renders when unrelated state (like driver input) changes
+const MemoMarkdownEditor = memo(MarkdownEditor);
 
 export const AddKeyFactorsForm = ({
   keyFactors,
@@ -299,7 +302,7 @@ const AddKeyFactorsModal: FC<Props> = ({
             <p className="my-2 text-base leading-tight sm:mt-6">
               {t("addDriverModalCommentDescription")}
             </p>
-            <MarkdownEditor
+            <MemoMarkdownEditor
               mode="write"
               markdown={markdown}
               onChange={setMarkdown}

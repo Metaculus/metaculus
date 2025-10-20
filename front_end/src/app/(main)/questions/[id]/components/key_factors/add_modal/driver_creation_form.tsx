@@ -1,4 +1,3 @@
-import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { faCog, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
