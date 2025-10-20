@@ -52,6 +52,7 @@ class Score(TimeStampedModel):
                 condition=Q(aggregation_method__isnull=False),
             ),
             models.Index(fields=["user", "question"]),
+            models.Index(fields=["edited_at"], name="score_edited_at_idx"),
         ]
 
 

@@ -101,6 +101,16 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
+    # Metadata - to update the intended use of this field, update description in Admin
+    metadata = models.JSONField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional. This is a field for storing any extra data unique to this user. "
+            "Structure of this field is not enforced, but should be a dictionary with specific keys. See description in admin panel for an example."
+        ),
+    )
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:
