@@ -62,7 +62,11 @@ const KeyFactorDriver: FC<Props> = ({
       {!isNil(directionCategory) && (
         <KeyFactorImpactDirectionContainer
           impact={directionCategory}
-          option={keyFactor.question?.label ?? keyFactor.question_option}
+          option={
+            keyFactor.question_option?.trim() ||
+            keyFactor.question?.label ||
+            undefined
+          }
           isCompact={isCompactConsumer}
         />
       )}

@@ -1540,5 +1540,9 @@
   "strong": "strong",
   "medium": "medium",
   "weak": "weak",
+  "allOptions": "All options",
+  "allSubquestions": "All subquestions",
+  "chooseOptionImpactedMost": "Choose an option this driver impacts most:",
+  "chooseSubquestionImpactedMost": "Choose a subquestion this driver impacts most:",
   "none": "none"
 }

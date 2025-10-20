@@ -11,8 +11,11 @@ import { ImpactMetadata } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import {
   inferEffectiveQuestionTypeFromPost,
+  isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
+
+import OptionTargetPicker, { Target } from "../option_target_picker";
 
 type Props = {
   keyFactor: string;
@@ -23,6 +26,8 @@ type Props = {
   showXButton: boolean;
   onXButtonClick: () => void;
   post: PostWithForecasts;
+  target: Target;
+  setTarget: (t: Target) => void;
 };
 
 const DriverCreationForm: FC<Props> = ({
@@ -34,10 +39,21 @@ const DriverCreationForm: FC<Props> = ({
   showXButton,
   onXButtonClick,
   post,
+  target,
+  setTarget,
 }) => {
   const t = useTranslations();
-  const questionType = inferEffectiveQuestionTypeFromPost(post);
-  const unit = isQuestionPost(post) ? post.question.unit : undefined;
+  const questionTypeBase = inferEffectiveQuestionTypeFromPost(post);
+  let questionType = questionTypeBase;
+  let effectiveUnit = isQuestionPost(post) ? post.question.unit : undefined;
+
+  if (isGroupOfQuestionsPost(post) && target.kind === "question") {
+    const sq = post.group_of_questions.questions.find(
+      (q) => q.id === target.question_id
+    );
+    questionType = sq?.type ?? questionTypeBase;
+    effectiveUnit = sq?.unit ?? effectiveUnit;
+  }
 
   return (
     <div className="flex flex-col gap-3 rounded border border-blue-500 bg-blue-100 px-5 py-4 dark:border-blue-500-dark dark:bg-blue-100-dark">
@@ -61,9 +77,15 @@ const DriverCreationForm: FC<Props> = ({
             impactMetadata={impactMetadata}
             onSelect={setImpactMetadata}
             questionType={questionType}
-            unit={unit}
+            unit={effectiveUnit}
           />
         )}
+        <OptionTargetPicker
+          post={post}
+          value={target}
+          onChange={setTarget}
+          disabled={!isActive}
+        />
       </div>
       {showXButton && (
         <Button

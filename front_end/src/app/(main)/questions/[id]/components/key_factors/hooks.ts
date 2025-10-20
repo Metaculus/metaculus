@@ -14,6 +14,8 @@ import { BECommentType, Driver, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
+import { Target } from "./option_target_picker";
+
 export type SuggestedKeyFactor = {
   text: string;
   selected: boolean;
@@ -25,6 +27,7 @@ type UseKeyFactorsProps = {
   postId?: number;
   suggestKeyFactors?: boolean;
   onKeyFactorsLoadded?: (success: boolean) => void;
+  target: Target;
 };
 
 export const useKeyFactors = ({
@@ -33,6 +36,7 @@ export const useKeyFactors = ({
   postId,
   suggestKeyFactors: shouldLoadKeyFactors = false,
   onKeyFactorsLoadded,
+  target,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
@@ -47,6 +51,17 @@ export const useKeyFactors = ({
   >([]);
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
+
+  const applyTarget = (p: KeyFactorWritePayload) =>
+    target.kind === "question"
+      ? { ...p, question_id: target.question_id }
+      : target.kind === "option"
+        ? {
+            ...p,
+            question_id: target.question_id,
+            question_option: target.question_option,
+          }
+        : p;
 
   useEffect(() => {
     if (shouldLoadKeyFactors && commentId) {
@@ -106,25 +121,21 @@ export const useKeyFactors = ({
       .filter((kf) => kf.selected)
       .map((kf) => kf.text);
 
-    const toDriver = (text: string): KeyFactorWritePayload => ({
-      driver: { text, impact_direction: 1, certainty: null },
-    });
     const writePayloads: KeyFactorWritePayload[] = [
-      ...filteredKeyFactors.map(
-        (d) =>
-          ({
-            driver: {
-              text: d.text,
-              impact_direction:
-                d.certainty === -1 ? null : d.impact_direction ?? null,
-              certainty:
-                d.impact_direction === 1 || d.impact_direction === -1
-                  ? null
-                  : d.certainty ?? null,
-            },
-          }) as KeyFactorWritePayload
+      ...filteredKeyFactors.map((d) =>
+        applyTarget({
+          driver: toDriverUnion({
+            text: d.text,
+            impact_direction: d.impact_direction ?? null,
+            certainty: d.certainty ?? null,
+          }),
+        })
       ),
-      ...filteredSuggestedKeyFactors.map(toDriver),
+      ...filteredSuggestedKeyFactors.map((text) =>
+        applyTarget({
+          driver: { text, impact_direction: 1, certainty: null },
+        })
+      ),
     ];
 
     let comment;
@@ -225,3 +236,20 @@ export const getKeyFactorsLimits = (
     factorsLimit,
   };
 };
+
+type DriverDraft = {
+  text: string;
+  impact_direction: 1 | -1 | null;
+  certainty: -1 | null;
+};
+
+function toDriverUnion(d: DriverDraft): Driver {
+  if (d.certainty === -1) {
+    return { text: d.text, impact_direction: null, certainty: -1 };
+  }
+  const dir = d.impact_direction;
+  if (dir === 1 || dir === -1) {
+    return { text: d.text, impact_direction: dir, certainty: null };
+  }
+  return { text: d.text, impact_direction: 1, certainty: null };
+}

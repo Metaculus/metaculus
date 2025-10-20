@@ -21,6 +21,7 @@ import { User } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import { useKeyFactors } from "./hooks";
+import { Target } from "./option_target_picker";
 
 const FACTORS_PER_COMMENT = 4;
 
@@ -68,6 +69,8 @@ export const AddKeyFactorsForm = ({
   suggestedKeyFactors,
   setSuggestedKeyFactors,
   post,
+  target,
+  setTarget,
 }: {
   keyFactors: Driver[];
   setKeyFactors: React.Dispatch<React.SetStateAction<Driver[]>>;
@@ -79,6 +82,8 @@ export const AddKeyFactorsForm = ({
     factors: { text: string; selected: boolean }[]
   ) => void;
   post: PostWithForecasts;
+  target: Target;
+  setTarget: (t: Target) => void;
 }) => {
   const t = useTranslations();
 
@@ -173,6 +178,8 @@ export const AddKeyFactorsForm = ({
             setKeyFactors(keyFactors.filter((_, i) => i !== idx))
           }
           post={post}
+          target={target}
+          setTarget={setTarget}
         />
       ))}
 
@@ -227,6 +234,8 @@ const AddKeyFactorsModal: FC<Props> = ({
   const numberOfSteps = commentId ? 1 : 2;
   const [markdown, setMarkdown] = useState<string>("");
 
+  const [target, setTarget] = useState<Target>({ kind: "whole" });
+
   const {
     keyFactors,
     setKeyFactors,
@@ -245,11 +254,19 @@ const AddKeyFactorsModal: FC<Props> = ({
     commentId,
     postId: post.id,
     suggestKeyFactors: showSuggestedKeyFactors && isOpen,
+    target,
   });
 
-  const handleOnClose = () => {
+  const resetAll = () => {
     setCurrentStep(1);
+    setTarget({ kind: "whole" });
+    setMarkdown("");
+    setErrors(undefined);
     clearState();
+  };
+
+  const handleOnClose = () => {
+    resetAll();
     onClose(true);
   };
 
@@ -265,7 +282,7 @@ const AddKeyFactorsModal: FC<Props> = ({
       setErrors(result.errors);
       return;
     }
-    clearState();
+    resetAll();
     if (result?.comment) {
       onSuccess?.(result.comment);
     }
@@ -299,6 +316,8 @@ const AddKeyFactorsModal: FC<Props> = ({
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
             post={post}
+            target={target}
+            setTarget={setTarget}
           />
 
           {currentStep > 1 && (

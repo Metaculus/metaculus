@@ -18,6 +18,7 @@ import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form
 import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
+import { Target } from "@/app/(main)/questions/[id]/components/key_factors/option_target_picker";
 import {
   createForecasts,
   editComment,
@@ -233,6 +234,7 @@ const Comment: FC<CommentProps> = ({
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
+  const [target, setTarget] = useState<Target>({ kind: "whole" });
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
@@ -326,6 +328,7 @@ const Comment: FC<CommentProps> = ({
     commentId: comment.id,
     postId: comment.on_post_data?.id,
     onKeyFactorsLoadded,
+    target,
   });
 
   const canListKeyFactors = !postData?.notebook;
@@ -345,11 +348,9 @@ const Comment: FC<CommentProps> = ({
     canListKeyFactors;
 
   const onAddKeyFactorClick = () => {
-    sendAnalyticsEvent("addKeyFactor", {
-      event_label: "fromComment",
-    });
-
+    sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
     clearState();
+    setTarget({ kind: "whole" });
     if (isKeyfactorsFormOpen) {
       setIsKeyfactorsFormOpen(false);
     } else if (shouldSuggestKeyFactors) {
@@ -404,6 +405,7 @@ const Comment: FC<CommentProps> = ({
   const onCancel = () => {
     setIsKeyfactorsFormOpen(false);
     clearState();
+    setTarget({ kind: "whole" });
   };
 
   const updateForecast = async (value: number) => {
@@ -969,6 +971,8 @@ const Comment: FC<CommentProps> = ({
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
             post={postData}
+            target={target}
+            setTarget={setTarget}
           />
           <FormError errors={keyFactorsErrors} />
         </CommentForm>
