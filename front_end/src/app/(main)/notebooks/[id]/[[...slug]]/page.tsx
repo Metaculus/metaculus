@@ -6,6 +6,7 @@ import strip from "strip-markdown";
 import { defaultDescription } from "@/constants/metadata";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { getValidString } from "@/utils/formatters/string";
+import { getPostLink } from "@/utils/navigation";
 
 import IndividualNotebookPage from "./page_compotent";
 
@@ -41,7 +42,7 @@ export default async function IndividualNotebook(props: Props) {
 
   // Redirect to URL with slug if accessing without slug
   if (postData && !params.slug && postData.slug) {
-    redirect(`/notebooks/${params.id}/${postData.slug}/`);
+    redirect(getPostLink(postData));
   }
 
   return (
