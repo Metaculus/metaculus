@@ -4,7 +4,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -56,7 +56,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
   const hash = useHash();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const [maxCollapsedHeight, setMaxCollapsedHeight] = useState(340);
+  const [forceExpandedState, setForceExpandedState] = useState<boolean>();
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
@@ -67,10 +67,9 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
     ? getKeyFactorsLimits(combinedKeyFactors, user?.id)
     : { factorsLimit: 0 };
 
-  // TODO: implement this!
   useEffect(() => {
     // Expands the key factor list when you follow the #key-factors link.
-    if (hash === "key-factors") setMaxCollapsedHeight(Infinity);
+    if (hash === "key-factors") setForceExpandedState(true);
   }, [hash, combinedKeyFactors.length]);
 
   useEffect(() => {
@@ -118,9 +117,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
     combinedKeyFactors.length > 0 ? (
       <div id="key-factors-list" className="flex flex-col gap-2.5">
         <ExpandableContent
-          maxCollapsedHeight={maxCollapsedHeight}
+          maxCollapsedHeight={340}
           expandLabel={t("showMore")}
           collapseLabel={t("showLess")}
+          forceState={forceExpandedState}
         >
           {combinedKeyFactors.map((kf) => (
             <KeyFactorItem
