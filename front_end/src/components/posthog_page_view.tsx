@@ -37,7 +37,6 @@ function PostHogPageView({ locale }: { locale: string }) {
         url = url + `?${searchParams.toString()}`;
       }
 
-      console.log("Capture $pageleave", { $current_url: url });
       posthog.capture("$pageleave", {
         $current_url: url,
       });
