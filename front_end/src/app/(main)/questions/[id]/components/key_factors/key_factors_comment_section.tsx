@@ -9,6 +9,8 @@ import { CommentType, KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
+import { useKeyFactorsContext } from "./key_factors_provider";
+
 type Props = {
   keyFactors: KeyFactor[];
   comment: CommentType;
@@ -18,6 +20,7 @@ type Props = {
 const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
+  const { requestExpand } = useKeyFactorsContext();
 
   return (
     <div className="flex flex-col">
@@ -31,7 +34,10 @@ const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
           <Link
             href="#key-factors"
             className="no-underline"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              // Expand immediately to avoid post-scroll delay
+              requestExpand();
               const target = document.getElementById("key-factors");
               if (target) {
                 scrollTo(target.getBoundingClientRect().top);

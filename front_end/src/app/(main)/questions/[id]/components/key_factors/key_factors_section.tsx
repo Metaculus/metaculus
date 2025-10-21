@@ -15,7 +15,6 @@ import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import useHash from "@/hooks/use_hash";
 import { FetchedAggregateCoherenceLink } from "@/types/coherence";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -23,6 +22,7 @@ import cn from "@/utils/core/cn";
 
 import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
+import { useKeyFactorsContext } from "./key_factors_provider";
 
 type KeyFactorsSectionProps = {
   post: PostWithForecasts;
@@ -53,24 +53,18 @@ const AddKeyFactorsButton: FC<{
 const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
   const postStatus = post.status;
   const t = useTranslations();
-  const hash = useHash();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const [forceExpandedState, setForceExpandedState] = useState<boolean>();
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
+  const { forceExpandedState } = useKeyFactorsContext();
 
   const { combinedKeyFactors } = useCommentsFeed();
 
   const { factorsLimit } = user?.id
     ? getKeyFactorsLimits(combinedKeyFactors, user?.id)
     : { factorsLimit: 0 };
-
-  useEffect(() => {
-    // Expands the key factor list when you follow the #key-factors link.
-    if (hash === "key-factors") setForceExpandedState(true);
-  }, [hash, combinedKeyFactors.length]);
 
   useEffect(() => {
     if (combinedKeyFactors.length > 0) {
