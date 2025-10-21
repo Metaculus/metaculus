@@ -116,7 +116,7 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
             <KeyFactorImpactDirectionLabel
               impact={impact}
               unit={variant !== "neutral" ? unit : undefined}
-              className="text-inherit"
+              className="!text-inherit"
             />
           </LikelihoodButton>
         )

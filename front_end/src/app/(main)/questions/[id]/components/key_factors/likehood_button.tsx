@@ -24,7 +24,7 @@ export const LikelihoodButton: FC<LikelihoodButtonProps> = ({
       "data-[selected=true]:bg-mint-700 data-[selected=true]:text-gray-0 data-[selected=true]:border-mint-700",
       "dark:border-mint-400-dark dark:text-mint-700-dark dark:hover:border-mint-700-dark dark:hover:text-mint-800-dark",
       "dark:active:border-mint-700-dark dark:active:text-mint-800-dark",
-      "dark:data-[selected=true]:bg-mint-700-dark dark:data-[selected=true]:border-mint-700-dark dark:data-[selected=true]:text-gray-0"
+      "dark:data-[selected=true]:bg-mint-700-dark dark:data-[selected=true]:border-mint-700-dark dark:data-[selected=true]:text-gray-0-dark"
     ),
 
     red: cn(
@@ -33,7 +33,7 @@ export const LikelihoodButton: FC<LikelihoodButtonProps> = ({
       "data-[selected=true]:bg-salmon-700 data-[selected=true]:border-salmon-700 data-[selected=true]:text-gray-0",
       "dark:border-salmon-300-dark dark:text-salmon-700-dark dark:hover:border-salmon-700-dark dark:hover:text-salmon-800-dark",
       "dark:active:border-salmon-700-dark dark:active:text-salmon-800-dark",
-      "dark:data-[selected=true]:bg-salmon-700-dark dark:data-[selected=true]:border-salmon-700-dark dark:data-[selected=true]:text-gray-0"
+      "dark:data-[selected=true]:bg-salmon-700-dark dark:data-[selected=true]:border-salmon-700-dark dark:data-[selected=true]:text-gray-0-dark"
     ),
 
     neutral: cn(
@@ -42,7 +42,7 @@ export const LikelihoodButton: FC<LikelihoodButtonProps> = ({
       "data-[selected=true]:bg-blue-700 data-[selected=true]:border-blue-700 data-[selected=true]:text-gray-0",
       "dark:border-blue-400-dark dark:text-blue-700-dark dark:hover:border-blue-700-dark dark:hover:text-blue-800-dark",
       "dark:active:border-blue-700-dark dark:active:text-blue-800-dark",
-      "dark:data-[selected=true]:bg-blue-700-dark dark:data-[selected=true]:border-blue-700-dark dark:data-[selected=true]:text-gray-0"
+      "dark:data-[selected=true]:bg-blue-700-dark dark:data-[selected=true]:border-blue-700-dark dark:data-[selected=true]:text-gray-0-dark"
     ),
   };
 
