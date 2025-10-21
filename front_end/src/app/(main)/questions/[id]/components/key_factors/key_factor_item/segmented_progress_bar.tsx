@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import React, { FC, useId } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
@@ -9,7 +10,7 @@ type Props = {
   segments: number;
 };
 
-export const SegmentedProgressBar: FC<Props> = ({ progress, segments }) => {
+const SegmentedProgressBar: FC<Props> = ({ progress, segments }) => {
   const maskId = useId();
   const { getThemeColor } = useAppTheme();
 
@@ -84,3 +85,7 @@ export const SegmentedProgressBar: FC<Props> = ({ progress, segments }) => {
     </div>
   );
 };
+
+export default dynamic(() => Promise.resolve(SegmentedProgressBar), {
+  ssr: false,
+});

@@ -20,7 +20,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
-import { SegmentedProgressBar } from "./segmented_progress_bar";
+import SegmentedProgressBar from "./segmented_progress_bar";
 
 type Props = {
   keyFactorId: number;
