@@ -167,7 +167,7 @@ export const AddKeyFactorsForm = ({
         <Button
           variant="tertiary"
           size="xs"
-          className="w-fit gap-2 px-3 py-2 font-medium !leading-none sm:text-base"
+          className="w-fit gap-2 px-3 py-2 text-sm font-medium !leading-none sm:text-base"
           onClick={() => {
             setKeyFactors([
               ...keyFactors,
