@@ -64,6 +64,7 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
         impact: impactMap.positive[questionType] ?? impactMap.positive.default,
         variant: "green",
         certainty: null,
+        unit: unit,
       },
       {
         direction: -1,
@@ -115,7 +116,7 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
           >
             <KeyFactorImpactDirectionLabel
               impact={impact}
-              unit={unit}
+              unit={variant !== "neutral" ? unit : undefined}
               className="text-inherit"
             />
           </LikelihoodButton>
