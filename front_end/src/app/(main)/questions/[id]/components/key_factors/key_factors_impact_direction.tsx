@@ -114,7 +114,7 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
       {icon}
       <span>
         {t(textKey)}
-        {unit && <>{unit}</>}
+        {unit && <>&nbsp;{unit}</>}
         {option && (
           <>
             &nbsp;
