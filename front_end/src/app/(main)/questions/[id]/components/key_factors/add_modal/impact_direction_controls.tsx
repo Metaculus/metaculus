@@ -64,7 +64,6 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
         impact: impactMap.positive[questionType] ?? impactMap.positive.default,
         variant: "green",
         certainty: null,
-        unit: unit,
       },
       {
         direction: -1,
