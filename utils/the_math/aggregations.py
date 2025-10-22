@@ -958,8 +958,8 @@ def get_aggregation_history(
         for entry in forecast_history:
             if entry.timestep < now:
                 last_historical_entry_index += 1
-
-            break
+            else:
+                break
         for i, forecast_set in enumerate(forecast_history):
             if histogram is not None:
                 include_histogram = histogram and (
@@ -970,9 +970,8 @@ def get_aggregation_history(
                     ]
                 )
             else:
-                include_histogram = (
-                    question.type == Question.QuestionType.BINARY
-                    and i == (len(forecast_history) - 1)
+                include_histogram = question.type == Question.QuestionType.BINARY and (
+                    i >= last_historical_entry_index
                 )
 
             if forecast_set.forecasts_values:
