@@ -279,6 +279,7 @@ const AddKeyFactorsModal: FC<Props> = ({
               markdown={markdown}
               onChange={setMarkdown}
               className="border"
+              contentEditableClassName="text-base sm:text-inherit"
             />
           </div>
 
