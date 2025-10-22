@@ -52,7 +52,7 @@ export const LikelihoodButton: FC<LikelihoodButtonProps> = ({
       {...rest}
       data-selected={selected}
       className={cn(
-        "rounded-[1px] border px-1.5 py-1 text-xs capitalize leading-none outline-none transition-colors duration-150",
+        "rounded-[1px] border px-1.5 py-1 text-[10px] capitalize leading-none outline-none transition-colors duration-150 xxs:text-xs",
         variantClasses[variant],
         className
       )}
