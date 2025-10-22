@@ -971,7 +971,7 @@ def get_aggregation_history(
                 )
             else:
                 include_histogram = question.type == Question.QuestionType.BINARY and (
-                    i == last_historical_entry_index or i == (len(forecast_history) - 1)
+                    i >= last_historical_entry_index
                 )
 
             if forecast_set.forecasts_values:
