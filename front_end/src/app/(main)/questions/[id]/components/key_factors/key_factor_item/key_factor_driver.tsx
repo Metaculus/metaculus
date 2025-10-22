@@ -28,13 +28,14 @@ const KeyFactorDriver: FC<Props> = ({
   mode = "forecaster",
   post,
 }) => {
+  const { driver } = keyFactor;
   const t = useTranslations();
   const questionType = inferEffectiveQuestionTypeFromPost(post);
   const directionCategory =
     questionType &&
-    keyFactor.driver.impact_direction &&
     convertNumericImpactToDirectionCategory(
-      keyFactor.driver.impact_direction,
+      driver.impact_direction,
+      driver.certainty,
       questionType
     );
 
@@ -52,7 +53,7 @@ const KeyFactorDriver: FC<Props> = ({
       )}
 
       <KeyFactorText
-        text={keyFactor.driver.text}
+        text={driver.text}
         className={cn("text-base leading-5", {
           "text-sm": isConsumer,
           "text-xs": isCompactConsumer,

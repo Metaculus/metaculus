@@ -24,9 +24,14 @@ type Props = {
 };
 
 export const convertNumericImpactToDirectionCategory = (
-  impactDirection: -1 | 1,
+  impactDirection: -1 | 1 | null,
+  certainty: -1 | null,
   questionType: QuestionType
 ): ImpactDirectionCategory | null => {
+  if (certainty === -1) {
+    return ImpactDirectionCategory.IncreaseUncertainty;
+  }
+
   switch (questionType) {
     case QuestionType.Binary:
     case QuestionType.MultipleChoice:

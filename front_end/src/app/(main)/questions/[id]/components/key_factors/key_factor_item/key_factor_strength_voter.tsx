@@ -41,7 +41,7 @@ const StrengthScale: FC<{
   const clamped = Math.max(0, Math.min(5, score ?? 0)) / 5;
   return (
     <div className="flex w-full flex-col gap-1.5">
-      <div className="flex w-full justify-between">
+      <div className="flex w-full justify-between gap-2">
         <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
           {t("strength")}
         </div>
