@@ -94,7 +94,7 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
   ]);
 
   return (
-    <div className="flex gap-1.5">
+    <div className="flex flex-col items-start gap-1.5 sm:flex-row">
       {buttons.map(
         ({ direction, certainty: btnCertainty, impact, variant }) => (
           <LikelihoodButton

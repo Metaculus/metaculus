@@ -71,6 +71,14 @@ export const useKeyFactors = ({
             suggested.map((text) => ({ text, selected: false }))
           );
           onKeyFactorsLoadded?.(suggested.length !== 0);
+          if (suggested.length > 0) {
+            setTimeout(() => {
+              const el = document.getElementById("suggested-key-factors");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 50);
+          }
         })
         .catch(() => {
           onKeyFactorsLoadded?.(false);

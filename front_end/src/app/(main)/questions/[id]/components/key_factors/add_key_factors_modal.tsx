@@ -69,7 +69,7 @@ export const AddKeyFactorsForm = ({
   return (
     <div className="flex w-full flex-col gap-4">
       {suggestedKeyFactors.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div id="suggested-key-factors" className="flex flex-col gap-2">
           <p className="text-base leading-tight">
             {t("suggestedKeyFactorsSection")}
           </p>
