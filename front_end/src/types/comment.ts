@@ -119,6 +119,7 @@ export type KeyFactor = {
   question?: {
     id: number;
     label: string;
+    unit?: string | null;
   } | null;
   question_option?: string;
   freshness?: number;

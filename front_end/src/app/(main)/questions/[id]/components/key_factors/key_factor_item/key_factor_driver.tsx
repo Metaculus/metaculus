@@ -69,6 +69,7 @@ const KeyFactorDriver: FC<Props> = ({
             undefined
           }
           isCompact={isCompactConsumer}
+          unit={post.question?.unit || keyFactor.question?.unit || undefined}
         />
       )}
 
