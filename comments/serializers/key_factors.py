@@ -48,6 +48,7 @@ def serialize_key_factor(
             {
                 "id": question.id,
                 "label": question.label,
+                "unit": question.unit,
             }
             if question
             else None
@@ -71,9 +72,7 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
-        .select_related(
-            "comment__author", "comment__on_post", "question", "driver", "question"
-        )
+        .select_related("comment__author", "comment__on_post", "question", "driver")
     )
 
     if current_user:
