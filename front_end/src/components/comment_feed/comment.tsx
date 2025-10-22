@@ -18,7 +18,6 @@ import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form
 import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
-import { Target } from "@/app/(main)/questions/[id]/components/key_factors/option_target_picker";
 import {
   createForecasts,
   editComment,
@@ -42,6 +41,7 @@ import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
+import type { KeyFactorDraft } from "@/types/key_factors";
 import {
   PostStatus,
   PostWithForecasts,
@@ -234,7 +234,12 @@ const Comment: FC<CommentProps> = ({
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
-  const [target, setTarget] = useState<Target>({ kind: "whole" });
+  const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
+    {
+      kind: "whole",
+      driver: { text: "", impact_direction: 1, certainty: null },
+    },
+  ]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
@@ -310,8 +315,6 @@ const Comment: FC<CommentProps> = ({
 
   const { comments, setComments } = useCommentsFeed();
   const {
-    keyFactors,
-    setKeyFactors,
     errors: keyFactorsErrors,
     setErrors: setKeyFactorsErrors,
     suggestedKeyFactors,
@@ -328,7 +331,6 @@ const Comment: FC<CommentProps> = ({
     commentId: comment.id,
     postId: comment.on_post_data?.id,
     onKeyFactorsLoadded,
-    target,
   });
 
   const canListKeyFactors = !postData?.notebook;
@@ -350,7 +352,12 @@ const Comment: FC<CommentProps> = ({
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
     clearState();
-    setTarget({ kind: "whole" });
+    setDrafts([
+      {
+        kind: "whole",
+        driver: { text: "", impact_direction: 1, certainty: null },
+      },
+    ]);
     if (isKeyfactorsFormOpen) {
       setIsKeyfactorsFormOpen(false);
     } else if (shouldSuggestKeyFactors) {
@@ -370,7 +377,7 @@ const Comment: FC<CommentProps> = ({
   }, [editDraftReady, editInitialMarkdown]);
 
   const handleSubmit = async () => {
-    const result = await submit(keyFactors, suggestedKeyFactors);
+    const result = await submit(drafts, suggestedKeyFactors);
     if (result && "errors" in result) {
       setKeyFactorsErrors(result.errors);
       return;
@@ -405,7 +412,12 @@ const Comment: FC<CommentProps> = ({
   const onCancel = () => {
     setIsKeyfactorsFormOpen(false);
     clearState();
-    setTarget({ kind: "whole" });
+    setDrafts([
+      {
+        kind: "whole",
+        driver: { text: "", impact_direction: 1, certainty: null },
+      },
+    ]);
   };
 
   const updateForecast = async (value: number) => {
@@ -958,20 +970,18 @@ const Comment: FC<CommentProps> = ({
           cancelDisabled={isPending}
           submitDisabled={
             isPending ||
-            (!keyFactors.some((k) => k.text.trim() !== "") &&
+            (!drafts.some((k) => k.driver.text.trim() !== "") &&
               !suggestedKeyFactors.some((k) => k.selected))
           }
         >
           <AddKeyFactorsForm
-            keyFactors={keyFactors}
-            setKeyFactors={setKeyFactors}
+            drafts={drafts}
+            setDrafts={setDrafts}
             factorsLimit={factorsLimit}
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
             post={postData}
-            target={target}
-            setTarget={setTarget}
           />
           <FormError errors={keyFactorsErrors} />
         </CommentForm>

@@ -39,29 +39,37 @@ const OptionTargetPicker: FC<Props> = ({
 
   const optionClassName =
     "h-8 text-[13px] text-gray-800 dark:text-gray-800 text-left justify-start";
+  const placeholder = isMC ? t("allOptions") : t("allSubquestions");
   const options: SelectOption<string>[] = useMemo(() => {
     if (isMC) {
-      return (post.question.options ?? []).map((opt) => ({
+      const mcOptions = (post.question.options ?? []).map((opt) => ({
         value: opt,
         label: opt,
         className: optionClassName,
       }));
+      return [
+        { value: "", label: placeholder, className: optionClassName },
+        ...mcOptions,
+      ];
     }
     if (isGroup) {
-      return post.group_of_questions.questions.map(
+      const groupOptions = post.group_of_questions.questions.map(
         (q: QuestionWithForecasts) => ({
           value: String(q.id),
           label: q.label || q.title,
           className: optionClassName,
         })
       );
+      return [
+        { value: "", label: placeholder, className: optionClassName },
+        ...groupOptions,
+      ];
     }
     return [];
-  }, [isMC, isGroup, post]);
+  }, [isMC, isGroup, post, placeholder]);
 
   if (!isMC && !isGroup) return null;
 
-  const placeholder = isMC ? t("allOptions") : t("allSubquestions");
   const selectedLabel =
     value.kind === "option"
       ? value.question_option

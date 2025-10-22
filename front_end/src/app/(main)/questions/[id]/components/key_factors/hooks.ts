@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
@@ -12,9 +12,8 @@ import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
 import { BECommentType, Driver, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-
-import { Target } from "./option_target_picker";
 
 export type SuggestedKeyFactor = {
   text: string;
@@ -27,7 +26,6 @@ type UseKeyFactorsProps = {
   postId?: number;
   suggestKeyFactors?: boolean;
   onKeyFactorsLoadded?: (success: boolean) => void;
-  target: Target;
 };
 
 export const useKeyFactors = ({
@@ -36,15 +34,12 @@ export const useKeyFactors = ({
   postId,
   suggestKeyFactors: shouldLoadKeyFactors = false,
   onKeyFactorsLoadded,
-  target,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
 
-  const [keyFactors, setKeyFactors] = useState<Driver[]>([
-    { text: "", impact_direction: 1, certainty: null },
-  ]);
+  // The drafts are managed by the caller now
   const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
     SuggestedKeyFactor[]
@@ -52,16 +47,20 @@ export const useKeyFactors = ({
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
 
-  const applyTarget = (p: KeyFactorWritePayload) =>
-    target.kind === "question"
-      ? { ...p, question_id: target.question_id }
-      : target.kind === "option"
-        ? {
-            ...p,
-            question_id: target.question_id,
-            question_option: target.question_option,
-          }
-        : p;
+  const applyTargetForDraft = (
+    draft: KeyFactorDraft,
+    payload: KeyFactorWritePayload
+  ): KeyFactorWritePayload => {
+    if (draft.kind === "question")
+      return { ...payload, question_id: draft.question_id };
+    if (draft.kind === "option")
+      return {
+        ...payload,
+        question_id: draft.question_id,
+        question_option: draft.question_option,
+      };
+    return payload;
+  };
 
   useEffect(() => {
     if (shouldLoadKeyFactors && commentId) {
@@ -97,7 +96,7 @@ export const useKeyFactors = ({
       : undefined;
 
   const onSubmit = async (
-    keyFactors: Driver[],
+    submittedDrafts: KeyFactorDraft[],
     suggestedKeyFactors: SuggestedKeyFactor[],
     markdown?: string
   ): Promise<
@@ -110,32 +109,32 @@ export const useKeyFactors = ({
         comment: BECommentType;
       }
   > => {
-    for (const keyFactor of keyFactors) {
-      if (keyFactor.text.trim().length > 150) {
+    for (const draft of submittedDrafts) {
+      if (draft.driver.text.trim().length > 150) {
         return { errors: new Error(t("maxKeyFactorLength")) };
       }
     }
 
-    const filteredKeyFactors = keyFactors.filter((f) => f.text.trim() !== "");
+    const filteredDrafts = submittedDrafts.filter(
+      (d) => d.driver.text.trim() !== ""
+    );
     const filteredSuggestedKeyFactors = suggestedKeyFactors
       .filter((kf) => kf.selected)
       .map((kf) => kf.text);
 
     const writePayloads: KeyFactorWritePayload[] = [
-      ...filteredKeyFactors.map((d) =>
-        applyTarget({
+      ...filteredDrafts.map((d) =>
+        applyTargetForDraft(d, {
           driver: toDriverUnion({
-            text: d.text,
-            impact_direction: d.impact_direction ?? null,
-            certainty: d.certainty ?? null,
+            text: d.driver.text,
+            impact_direction: d.driver.impact_direction ?? null,
+            certainty: d.driver.certainty ?? null,
           }),
         })
       ),
-      ...filteredSuggestedKeyFactors.map((text) =>
-        applyTarget({
-          driver: { text, impact_direction: 1, certainty: null },
-        })
-      ),
+      ...filteredSuggestedKeyFactors.map((text) => ({
+        driver: toDriverUnion({ text, impact_direction: 1, certainty: null }),
+      })),
     ];
 
     let comment;
@@ -177,14 +176,11 @@ export const useKeyFactors = ({
   const [submit, isPending] = useServerAction(onSubmit);
 
   const clearState = () => {
-    setKeyFactors([{ text: "", impact_direction: 1, certainty: null }]);
     setErrors(undefined);
     setSuggestedKeyFactors([]);
   };
 
   return {
-    keyFactors,
-    setKeyFactors,
     errors,
     setErrors,
     suggestedKeyFactors,

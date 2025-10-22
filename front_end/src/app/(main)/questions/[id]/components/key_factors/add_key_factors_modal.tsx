@@ -15,12 +15,12 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { BECommentType, Driver } from "@/types/comment";
+import { BECommentType } from "@/types/comment";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 
 import { useKeyFactors } from "./hooks";
-import { Target } from "./option_target_picker";
 
 const FACTORS_PER_COMMENT = 4;
 
@@ -42,18 +42,16 @@ type Props = {
 const MemoMarkdownEditor = memo(MarkdownEditor);
 
 export const AddKeyFactorsForm = ({
-  keyFactors,
-  setKeyFactors,
+  drafts,
+  setDrafts,
   factorsLimit,
   limitError,
   suggestedKeyFactors,
   setSuggestedKeyFactors,
   post,
-  target,
-  setTarget,
 }: {
-  keyFactors: Driver[];
-  setKeyFactors: React.Dispatch<React.SetStateAction<Driver[]>>;
+  drafts: KeyFactorDraft[];
+  setDrafts: React.Dispatch<React.SetStateAction<KeyFactorDraft[]>>;
   limitError?: string;
   factorsLimit: number;
   suggestedKeyFactors: { text: string; selected: boolean }[];
@@ -61,14 +59,11 @@ export const AddKeyFactorsForm = ({
     factors: { text: string; selected: boolean }[]
   ) => void;
   post: PostWithForecasts;
-  target: Target;
-  setTarget: (t: Target) => void;
 }) => {
   const t = useTranslations();
 
   const totalKeyFactorsLimitReached =
-    keyFactors.length +
-      suggestedKeyFactors.filter((kf) => kf.selected).length >=
+    drafts.length + suggestedKeyFactors.filter((kf) => kf.selected).length >=
     Math.min(factorsLimit, FACTORS_PER_COMMENT);
 
   return (
@@ -119,48 +114,18 @@ export const AddKeyFactorsForm = ({
           </p>
         )}
 
-        {keyFactors.map((draft, idx) => (
+        {drafts.map((draft, idx) => (
           <DriverCreationForm
             key={idx}
-            keyFactor={draft.text}
-            setKeyFactor={(text) =>
-              setKeyFactors(
-                keyFactors.map((k, i) => (i === idx ? { ...k, text } : k))
-              )
-            }
-            impactMetadata={
-              draft.certainty === -1
-                ? ({ impact_direction: null, certainty: -1 } as const)
-                : ({
-                    impact_direction: (draft.impact_direction ?? 1) as 1 | -1,
-                    certainty: null,
-                  } as const)
-            }
-            setImpactMetadata={(m) =>
-              setKeyFactors(
-                keyFactors.map((k, i) => {
-                  if (i !== idx) return k;
-                  if (m.certainty === -1) {
-                    return { ...k, certainty: -1, impact_direction: null };
-                  }
-                  if (m.impact_direction === 1 || m.impact_direction === -1) {
-                    return {
-                      ...k,
-                      impact_direction: m.impact_direction,
-                      certainty: null,
-                    };
-                  }
-                  return { ...k, ...m };
-                })
-              )
+            draft={draft}
+            setDraft={(d) =>
+              setDrafts(drafts.map((k, i) => (i === idx ? d : k)))
             }
             showXButton={idx > 0}
-            onXButtonClick={() =>
-              setKeyFactors(keyFactors.filter((_, i) => i !== idx))
-            }
+            onXButtonClick={() => {
+              setDrafts(drafts.filter((_, i) => i !== idx));
+            }}
             post={post}
-            target={target}
-            setTarget={setTarget}
           />
         ))}
 
@@ -169,14 +134,17 @@ export const AddKeyFactorsForm = ({
           size="xs"
           className="w-fit gap-2 px-3 py-2 text-sm font-medium !leading-none sm:text-base"
           onClick={() => {
-            setKeyFactors([
-              ...keyFactors,
-              { text: "", impact_direction: 1, certainty: null },
+            setDrafts([
+              ...drafts,
+              {
+                kind: "whole",
+                driver: { text: "", impact_direction: 1, certainty: null },
+              },
             ]);
           }}
           disabled={
             totalKeyFactorsLimitReached ||
-            keyFactors.at(-1)?.text === "" ||
+            drafts.at(-1)?.driver.text === "" ||
             !isNil(limitError)
           }
         >
@@ -211,12 +179,14 @@ const AddKeyFactorsModal: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const [markdown, setMarkdown] = useState<string>("");
-
-  const [target, setTarget] = useState<Target>({ kind: "whole" });
+  const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
+    {
+      kind: "whole",
+      driver: { text: "", impact_direction: 1, certainty: null },
+    },
+  ]);
 
   const {
-    keyFactors,
-    setKeyFactors,
     errors,
     setErrors,
     suggestedKeyFactors,
@@ -232,11 +202,15 @@ const AddKeyFactorsModal: FC<Props> = ({
     commentId,
     postId: post.id,
     suggestKeyFactors: showSuggestedKeyFactors && isOpen,
-    target,
   });
 
   const resetAll = () => {
-    setTarget({ kind: "whole" });
+    setDrafts([
+      {
+        kind: "whole",
+        driver: { text: "", impact_direction: 1, certainty: null },
+      },
+    ]);
     setMarkdown("");
     setErrors(undefined);
     clearState();
@@ -253,7 +227,7 @@ const AddKeyFactorsModal: FC<Props> = ({
       return;
     }
 
-    const result = await submit(keyFactors, suggestedKeyFactors, markdown);
+    const result = await submit(drafts, suggestedKeyFactors, markdown);
 
     if (result && "errors" in result) {
       setErrors(result.errors);
@@ -286,15 +260,13 @@ const AddKeyFactorsModal: FC<Props> = ({
       {!isLoadingSuggestedKeyFactors && (
         <div className="flex max-w-xl grow flex-col gap-2">
           <AddKeyFactorsForm
-            keyFactors={keyFactors}
-            setKeyFactors={setKeyFactors}
+            drafts={drafts}
+            setDrafts={setDrafts}
             factorsLimit={factorsLimit}
             limitError={limitError}
             suggestedKeyFactors={suggestedKeyFactors}
             setSuggestedKeyFactors={setSuggestedKeyFactors}
             post={post}
-            target={target}
-            setTarget={setTarget}
           />
 
           {/* Comment section */}
@@ -328,8 +300,8 @@ const AddKeyFactorsModal: FC<Props> = ({
               disabled={
                 isPending ||
                 (isNil(commentId) && !markdown) ||
-                keyFactors.length === 0 ||
-                !!keyFactors.find((obj) => !obj.text)
+                drafts.length === 0 ||
+                !!drafts.find((obj) => !obj.driver.text)
               }
             >
               {t("addDriver")}

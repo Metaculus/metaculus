@@ -7,6 +7,7 @@ import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { ImpactMetadata } from "@/types/comment";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import {
   inferEffectiveQuestionTypeFromPost,
@@ -17,36 +18,28 @@ import {
 import OptionTargetPicker, { Target } from "../option_target_picker";
 
 type Props = {
-  keyFactor: string;
-  setKeyFactor: (keyFactor: string) => void;
-  impactMetadata: ImpactMetadata;
-  setImpactMetadata: (m: ImpactMetadata) => void;
+  draft: KeyFactorDraft;
+  setDraft: (d: KeyFactorDraft) => void;
   showXButton: boolean;
   onXButtonClick: () => void;
   post: PostWithForecasts;
-  target: Target;
-  setTarget: (t: Target) => void;
 };
 
 const DriverCreationForm: FC<Props> = ({
-  keyFactor,
-  setKeyFactor,
-  impactMetadata,
-  setImpactMetadata,
+  draft,
+  setDraft,
   showXButton,
   onXButtonClick,
   post,
-  target,
-  setTarget,
 }) => {
   const t = useTranslations();
   const questionTypeBase = inferEffectiveQuestionTypeFromPost(post);
   let questionType = questionTypeBase;
   let effectiveUnit = isQuestionPost(post) ? post.question.unit : undefined;
 
-  if (isGroupOfQuestionsPost(post) && target.kind === "question") {
+  if (isGroupOfQuestionsPost(post) && draft.kind === "question") {
     const sq = post.group_of_questions.questions.find(
-      (q) => q.id === target.question_id
+      (q) => q.id === draft.question_id
     );
     questionType = sq?.type ?? questionTypeBase;
     effectiveUnit = sq?.unit ?? effectiveUnit;
@@ -69,9 +62,14 @@ const DriverCreationForm: FC<Props> = ({
         )}
       </div>
       <Input
-        value={keyFactor}
+        value={draft.driver.text}
         placeholder={t("driverInputPlaceholder")}
-        onChange={(e) => setKeyFactor(e.target.value)}
+        onChange={(e) =>
+          setDraft({
+            ...draft,
+            driver: { ...draft.driver, text: e.target.value },
+          })
+        }
         className="grow rounded-none border-0 border-b border-blue-400 bg-transparent px-0 py-1 text-base text-blue-700 outline-0 placeholder:text-blue-700 placeholder:text-opacity-50 dark:border-blue-400-dark dark:text-blue-700-dark dark:placeholder:text-blue-700-dark"
       />
       <div className="mt-1">
@@ -80,13 +78,58 @@ const DriverCreationForm: FC<Props> = ({
         </div>
         {questionType && (
           <ImpactDirectionControls
-            impactMetadata={impactMetadata}
-            onSelect={setImpactMetadata}
+            impactMetadata={
+              draft.driver.certainty === -1
+                ? ({ impact_direction: null, certainty: -1 } as const)
+                : ({
+                    impact_direction: (draft.driver.impact_direction ?? 1) as
+                      | 1
+                      | -1,
+                    certainty: null,
+                  } as const)
+            }
+            onSelect={(m: ImpactMetadata) =>
+              setDraft({ ...draft, driver: { ...draft.driver, ...m } })
+            }
             questionType={questionType}
             unit={effectiveUnit}
           />
         )}
-        <OptionTargetPicker post={post} value={target} onChange={setTarget} />
+        <OptionTargetPicker
+          post={post}
+          value={
+            {
+              kind: draft.kind,
+              ...(draft.kind === "question"
+                ? { question_id: draft.question_id }
+                : {}),
+              ...(draft.kind === "option"
+                ? {
+                    question_id: draft.question_id,
+                    question_option: draft.question_option,
+                  }
+                : {}),
+            } as Target
+          }
+          onChange={(t) =>
+            setDraft(
+              t.kind === "whole"
+                ? ({ kind: "whole", driver: draft.driver } as KeyFactorDraft)
+                : t.kind === "question"
+                  ? ({
+                      kind: "question",
+                      question_id: t.question_id,
+                      driver: draft.driver,
+                    } as KeyFactorDraft)
+                  : ({
+                      kind: "option",
+                      question_id: t.question_id,
+                      question_option: t.question_option,
+                      driver: draft.driver,
+                    } as KeyFactorDraft)
+            )
+          }
+        />
       </div>
     </div>
   );
