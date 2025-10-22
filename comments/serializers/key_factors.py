@@ -102,11 +102,21 @@ def serialize_key_factors_many(
 
 class KeyFactorDriverSerializer(serializers.ModelSerializer):
     text = serializers.CharField(max_length=150)
-    impact_direction = serializers.ChoiceField(choices=ImpactDirection.choices)
+    impact_direction = serializers.ChoiceField(
+        choices=ImpactDirection.choices, allow_null=True
+    )
 
     class Meta:
         model = KeyFactorDriver
         fields = ("text", "impact_direction", "certainty")
+
+    def validate(self, attrs):
+        if bool(attrs.get("impact_direction")) == bool(attrs.get("certainty")):
+            raise serializers.ValidationError(
+                "Impact Direction or Certainty is required"
+            )
+
+        return attrs
 
 
 class KeyFactorWriteSerializer(serializers.ModelSerializer):
