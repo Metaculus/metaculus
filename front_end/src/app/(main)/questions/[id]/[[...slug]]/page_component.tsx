@@ -79,7 +79,7 @@ const IndividualQuestionPage: FC<{
                         />
                       </div>
                     )}
-                    <KeyFactorsProvider>
+                    <KeyFactorsProvider post={postData}>
                       <QuestionLayout
                         postData={postData}
                         preselectedGroupQuestionId={preselectedGroupQuestionId}
