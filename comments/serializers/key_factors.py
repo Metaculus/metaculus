@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor, KeyFactorDriver, ImpactDirection, KeyFactorVote
-from comments.services.key_factors import (
+from comments.services.key_factors.common import (
     get_votes_for_key_factors,
     calculate_key_factors_freshness,
 )

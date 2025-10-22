@@ -106,6 +106,8 @@ class UserPrivateSerializer(UserPublicSerializer):
         ]
 
     def get_should_suggest_keyfactors(self, user: User):
+        return True
+
         return (
             KeyFactor.objects.filter(comment__author=user).exists()
             or LeaderboardEntry.objects.filter(

@@ -33,7 +33,7 @@ from comments.services.common import (
     update_comment,
 )
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors import create_key_factors
+from comments.services.key_factors.common import create_key_factors
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission

@@ -17,12 +17,12 @@ from comments.serializers.key_factors import (
     KeyFactorWriteSerializer,
     serialize_key_factor_votes,
 )
-from comments.services.key_factors import (
+from comments.services.key_factors.common import (
     create_key_factors,
-    generate_keyfactors_for_comment,
     key_factor_vote,
     delete_key_factor,
 )
+from comments.services.key_factors.suggestions import generate_key_factors_for_comment
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
@@ -74,24 +74,19 @@ def comment_add_key_factors_view(request: Request, pk: int):
 def comment_suggested_key_factors_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
-    existing_keyfactors = [
-        keyfactor.driver.text
-        for keyfactor in KeyFactor.objects.for_posts([comment.on_post])
+    existing_keyfactors = (
+        KeyFactor.objects.for_posts([comment.on_post])
         .filter_active()
         .filter(driver__isnull=False)
         .select_related("driver")
-    ]
-
-    suggested_key_factors = generate_keyfactors_for_comment(
-        comment.text,
-        existing_keyfactors,
-        comment.on_post,  # type: ignore (on_post is not None)
     )
 
-    return Response(
-        suggested_key_factors,
-        status=status.HTTP_200_OK,
+    suggested_key_factors = generate_key_factors_for_comment(
+        comment.text, existing_keyfactors, comment.on_post
     )
+
+    # TODO: check N+1 query
+    return Response([KeyFactorWriteSerializer(suggested_key_factors, many=True).data])
 
 
 @api_view(["DELETE"])

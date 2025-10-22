@@ -13,13 +13,11 @@ from comments.models import (
     KeyFactorDriver,
     ImpactDirection,
 )
-from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from users.models import User
 from utils.datetime import timedelta_to_days
-from utils.openai import generate_keyfactors
 
 
 @transaction.atomic
@@ -91,30 +89,6 @@ def create_key_factors(comment: Comment, key_factors: list[dict]):
             comment=comment,
             **key_factor_data,
         )
-
-
-def generate_keyfactors_for_comment(
-    comment_text: str, existing_keyfactors: list[str], post: Post
-):
-    if post.question is None and post.group_of_questions is None:
-        raise ValidationError(
-            "Key factors can only be generated for questions and question groups"
-        )
-
-    if post.question:
-        question_data = (
-            f"Title: {post.title}\n Description: {post.question.description}"
-        )
-    elif post.group_of_questions:
-        question_data = (
-            f"Title: {post.title}\n Description: {post.group_of_questions.description}"
-        )
-
-    return generate_keyfactors(
-        question_data,
-        comment_text,
-        existing_keyfactors,
-    )
 
 
 @transaction.atomic
