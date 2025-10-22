@@ -7,7 +7,7 @@ import { QuestionType } from "@/types/question";
 
 type ImpactDirectionControlsProps = {
   questionType: QuestionType;
-  impactMetadata: ImpactMetadata;
+  impact: { impact_direction: 1 | -1 | null; certainty: -1 | null } | null;
   onSelect: (impactMetadata: ImpactMetadata) => void;
   unit?: string;
 };
@@ -28,10 +28,12 @@ type ButtonConfig =
 
 const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
   questionType,
-  impactMetadata: { certainty, impact_direction },
+  impact,
   onSelect,
   unit,
 }) => {
+  const certainty = impact?.certainty ?? null;
+  const impact_direction = impact?.impact_direction ?? null;
   const impactMap: Record<
     "positive" | "negative",
     Partial<Record<QuestionType, ImpactDirectionCategory>> & {

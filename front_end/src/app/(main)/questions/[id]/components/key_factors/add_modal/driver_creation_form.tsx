@@ -78,15 +78,15 @@ const DriverCreationForm: FC<Props> = ({
         </div>
         {questionType && (
           <ImpactDirectionControls
-            impactMetadata={
+            impact={
               draft.driver.certainty === -1
                 ? ({ impact_direction: null, certainty: -1 } as const)
-                : ({
-                    impact_direction: (draft.driver.impact_direction ?? 1) as
-                      | 1
-                      | -1,
-                    certainty: null,
-                  } as const)
+                : draft.driver.impact_direction === null
+                  ? null
+                  : ({
+                      impact_direction: draft.driver.impact_direction as 1 | -1,
+                      certainty: null,
+                    } as const)
             }
             onSelect={(m: ImpactMetadata) =>
               setDraft({ ...draft, driver: { ...draft.driver, ...m } })

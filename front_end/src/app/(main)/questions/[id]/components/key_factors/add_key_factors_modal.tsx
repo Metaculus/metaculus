@@ -138,7 +138,7 @@ export const AddKeyFactorsForm = ({
               ...drafts,
               {
                 kind: "whole",
-                driver: { text: "", impact_direction: 1, certainty: null },
+                driver: { text: "", impact_direction: null, certainty: null },
               },
             ]);
           }}
@@ -182,7 +182,7 @@ const AddKeyFactorsModal: FC<Props> = ({
   const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
     {
       kind: "whole",
-      driver: { text: "", impact_direction: 1, certainty: null },
+      driver: { text: "", impact_direction: null, certainty: null },
     },
   ]);
 
@@ -208,7 +208,7 @@ const AddKeyFactorsModal: FC<Props> = ({
     setDrafts([
       {
         kind: "whole",
-        driver: { text: "", impact_direction: 1, certainty: null },
+        driver: { text: "", impact_direction: null, certainty: null },
       },
     ]);
     setMarkdown("");
@@ -301,7 +301,13 @@ const AddKeyFactorsModal: FC<Props> = ({
                 isPending ||
                 (isNil(commentId) && !markdown) ||
                 drafts.length === 0 ||
-                !!drafts.find((obj) => !obj.driver.text)
+                drafts.some((obj) => obj.driver.text.trim() === "") ||
+                drafts.some(
+                  (d) =>
+                    d.driver.text.trim() !== "" &&
+                    d.driver.impact_direction === null &&
+                    d.driver.certainty !== -1
+                )
               }
             >
               {t("addDriver")}

@@ -140,9 +140,8 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
 
 const KeyFactorImpactDirectionContainer: FC<Props> = ({
   className,
-  impact,
-  option,
   isCompact,
+  ...props
 }) => {
   const t = useTranslations();
 
@@ -152,11 +151,10 @@ const KeyFactorImpactDirectionContainer: FC<Props> = ({
         {t("impact")}
       </div>
       <KeyFactorImpactDirectionLabel
-        impact={impact}
-        option={option}
         className={cn(className, {
           "text-[10px]": isCompact,
         })}
+        {...props}
       />
     </div>
   );
