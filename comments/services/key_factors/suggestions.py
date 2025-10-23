@@ -77,6 +77,7 @@ def _convert_llm_response_to_key_factor(
             post.question
             and post.question.type == Question.QuestionType.MULTIPLE_CHOICE
         ):
+            question_id = post.question_id
             question_option = next(
                 (x for x in post.question.options if x.lower() == option),
                 None,
