@@ -1,9 +1,9 @@
 "use client";
 import {
   faChevronRight,
+  faClose,
   faPen,
   faPlus,
-  faClose,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { FC, memo, useEffect, useState } from "react";
 
 import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
+import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
@@ -84,62 +85,70 @@ export const AddKeyFactorsForm = ({
           <p className="text-base leading-tight">
             {t("suggestedKeyFactorsSection")}
           </p>
-          <div className="flex flex-wrap gap-3.5">
-            {suggestedKeyFactors.map((kf, idx) => {
-              const fake: KeyFactor = {
-                ...kf,
-                id: -1,
-                author: user,
-                comment_id: -1,
-                vote: { score: 0, user_vote: null, count: 0 },
-                question: kf.question_id
-                  ? {
-                      id: kf.question_id,
-                      label:
-                        post.group_of_questions?.questions.find(
-                          (obj) => obj.id === kf.question_id
-                        )?.label || "",
-                    }
-                  : undefined,
-              };
-              return (
-                <div key={idx} className="group relative">
-                  <KeyFactorItem
-                    keyFactor={fake}
-                    post={post}
-                    isCompact
-                    mode="consumer"
-                    linkToComment={false}
-                  />
-                  <div className="absolute -right-3 -top-3 flex gap-2">
-                    <button
-                      className="pointer-events-auto flex h-6 w-6 rounded-full bg-blue-400 p-0 text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
-                      onClick={() => {
-                        setDrafts([...drafts, kf]);
-                        setSuggestedKeyFactors(
-                          suggestedKeyFactors.filter((_, i) => i !== idx)
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faPen} className="m-auto size-3" />
-                    </button>
-                    <button
-                      className="pointer-events-auto flex h-6 w-6 rounded-full bg-salmon-300 p-0 text-salmon-600 dark:bg-salmon-300-dark dark:text-salmon-600-dark"
-                      onClick={() =>
-                        setSuggestedKeyFactors(
-                          suggestedKeyFactors.filter((_, i) => i !== idx)
-                        )
+          <div className="-mt-3">
+            <KeyFactorsCarousel
+              items={suggestedKeyFactors}
+              gapClassName="gap-3.5"
+              renderItem={(kf, idx) => {
+                const fake: KeyFactor = {
+                  ...kf,
+                  id: -1,
+                  author: user,
+                  comment_id: -1,
+                  vote: { score: 0, user_vote: null, count: 0 },
+                  question: kf.question_id
+                    ? {
+                        id: kf.question_id,
+                        label:
+                          post.group_of_questions?.questions.find(
+                            (obj) => obj.id === kf.question_id
+                          )?.label || "",
                       }
-                    >
-                      <FontAwesomeIcon
-                        icon={faClose}
-                        className="m-auto size-4"
-                      />
-                    </button>
+                    : undefined,
+                };
+
+                return (
+                  <div key={idx} className="group relative mt-3">
+                    <KeyFactorItem
+                      keyFactor={fake}
+                      post={post}
+                      isCompact
+                      mode="consumer"
+                      linkToComment={false}
+                    />
+                    <div className="absolute -right-3 -top-3 flex gap-2">
+                      <button
+                        className="pointer-events-auto flex h-6 w-6 rounded-full bg-blue-400 p-0 text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
+                        onClick={() => {
+                          setDrafts([...drafts, kf]);
+                          setSuggestedKeyFactors(
+                            suggestedKeyFactors.filter((_, i) => i !== idx)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon
+                          icon={faPen}
+                          className="m-auto size-3"
+                        />
+                      </button>
+                      <button
+                        className="pointer-events-auto flex h-6 w-6 rounded-full bg-salmon-300 p-0 text-salmon-600 dark:bg-salmon-300-dark dark:text-salmon-600-dark"
+                        onClick={() =>
+                          setSuggestedKeyFactors(
+                            suggestedKeyFactors.filter((_, i) => i !== idx)
+                          )
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faClose}
+                          className="m-auto size-4"
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              }}
+            />
           </div>
         </div>
       )}

@@ -64,8 +64,6 @@ export const useKeyFactors = ({
       setIsLoadingSuggestedKeyFactors(true);
       ClientCommentsApi.getSuggestedKeyFactors(commentId)
         .then((drafts: KeyFactorWritePayload[]) => {
-          console.log("Payload", drafts);
-
           setSuggestedKeyFactors(drafts);
           onKeyFactorsLoadded?.(drafts.length !== 0);
           if (drafts.length > 0) {
