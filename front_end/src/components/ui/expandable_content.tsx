@@ -1,6 +1,7 @@
 "use client";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isNil } from "lodash";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
@@ -15,6 +16,7 @@ type Props = {
   collapseLabel?: string;
   className?: string;
   gradientClassName?: string;
+  forceState?: boolean;
 };
 
 const ExpandableContent: FC<PropsWithChildren<Props>> = ({
@@ -23,6 +25,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   maxCollapsedHeight = 128,
   gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
+  forceState,
   children,
 }) => {
   const t = useTranslations();
@@ -49,6 +52,14 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
       }
     }
   }, [maxCollapsedHeight, height, width, ref]);
+
+  // Apply externally forced state and mark as user interaction so size effects won't override it.
+  useEffect(() => {
+    if (!isNil(forceState)) {
+      userInteractedRef.current = true;
+      setIsExpanded(forceState);
+    }
+  }, [forceState]);
 
   return (
     <div className={cn(gradientClassName, className)}>
