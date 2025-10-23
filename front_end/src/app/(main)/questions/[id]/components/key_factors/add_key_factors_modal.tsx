@@ -66,7 +66,7 @@ export const AddKeyFactorsForm = ({
   const t = useTranslations();
   const { user } = useAuth();
   useEffect(() => {
-    if (suggestedKeyFactors.length >= 0) {
+    if (suggestedKeyFactors.length > 0) {
       setDrafts([]);
     }
   }, []);
