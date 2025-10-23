@@ -769,7 +769,8 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           ))}
           {/* Left/Right borders at bounds if requested */}
-          {!false && (
+          {(question.scaling.range_min ?? 1) <=
+            (globalScaling?.range_min ?? 0) && (
             <VictoryLine
               data={[
                 { x: 0, y: yDomain[0] },
@@ -783,7 +784,8 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
-          {!false && (
+          {(question.scaling.range_max ?? 0) >=
+            (globalScaling?.range_max ?? 1) && (
             <VictoryLine
               data={[
                 { x: 1, y: yDomain[0] },

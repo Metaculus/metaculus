@@ -435,7 +435,6 @@ type GenerateScaleParams = {
   adjustLabels?: boolean;
   inboundOutcomeCount?: number | null;
   question?: Question | GraphingQuestionProps;
-  globalScaling?: Scaling;
   forceTickCount?: number;
   alwaysShowTicks?: boolean;
 };
@@ -471,7 +470,6 @@ export function generateScale({
   adjustLabels = false,
   inboundOutcomeCount,
   question,
-  globalScaling,
   forceTickCount,
   alwaysShowTicks,
 }: GenerateScaleParams): Scale {
@@ -772,7 +770,7 @@ export function generateScale({
     );
   }
 
-  // if (direction === "horizontal") {
+  // if (!true && displayType === "numeric" && direction === "horizontal") {
   //   // Debugging - do not remove
   //   console.log(
   //     "\n displayType",

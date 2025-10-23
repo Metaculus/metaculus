@@ -263,7 +263,7 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
 }
 
 /**
- * evaluates the height of the cdf at the given nominal location, given scaling
+ * evaluates the height of the cdf at a nominal location, given scaling
  */
 export function getCdfAt(x: number, cdf: number[], scaling: Scaling) {
   const location = unscaleNominalLocation(x, scaling);

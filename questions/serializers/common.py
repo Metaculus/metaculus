@@ -492,7 +492,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         # max diff for default CDF is derived empirically from slider positions
         # TODO: make this lower and scale with inbound_outcome_count
         max_diff = (
-            0.2 if len(continuous_cdf) == DEFAULT_INBOUND_OUTCOME_COUNT + 1 else 1
+            0.59 if len(continuous_cdf) == DEFAULT_INBOUND_OUTCOME_COUNT + 1 else 1
         )
         if not all(inbound_pmf <= max_diff):
             errors += (
