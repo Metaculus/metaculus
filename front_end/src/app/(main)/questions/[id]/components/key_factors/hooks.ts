@@ -51,14 +51,16 @@ export const useKeyFactors = ({
     draft: KeyFactorDraft,
     payload: KeyFactorWritePayload
   ): KeyFactorWritePayload => {
-    if (draft.kind === "question")
-      return { ...payload, question_id: draft.question_id };
-    if (draft.kind === "option")
+    if (draft.question_option) {
       return {
         ...payload,
         question_id: draft.question_id,
         question_option: draft.question_option,
       };
+    }
+    if (draft.question_id) {
+      return { ...payload, question_id: draft.question_id };
+    }
     return payload;
   };
 
