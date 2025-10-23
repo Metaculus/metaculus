@@ -70,6 +70,7 @@ export const AddKeyFactorsForm = ({
     if (suggestedKeyFactors.length > 0) {
       setDrafts([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!user) return null;
