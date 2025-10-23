@@ -136,33 +136,25 @@ const ContinuousAreaChart: FC<Props> = ({
     const chartData: NumericPredictionGraph[] = [];
     for (const datum of parsedData) {
       const { pmf, cdf, componentCdfs } = datum;
-      if (globalScaling && !isNil(question.scaling.zero_point)) {
-        // rescale wrt global scaling zero_point
-        const rescaledCdf = rescaleCdf(cdf, question.scaling, {
-          ...question.scaling,
-          zero_point: globalScaling.zero_point,
-        });
-        const rescaledPmf = cdfToPmf(rescaledCdf);
-        chartData.push(
-          generateNumericAreaGraph({
-            pmf: rescaledPmf,
-            cdf: rescaledCdf,
-            graphType,
-            type: datum.type,
-            question,
-          })
-        );
-      } else {
-        chartData.push(
-          generateNumericAreaGraph({
-            pmf,
-            cdf,
-            graphType,
-            type: datum.type,
-            question,
-          })
-        );
-      }
+      const useRescaled = globalScaling && !isNil(question.scaling.zero_point);
+      const scaled = useRescaled
+        ? (() => {
+            const cdfRescaled = rescaleCdf(cdf, question.scaling, {
+              ...question.scaling,
+              zero_point: globalScaling.zero_point,
+            });
+            return { cdf: cdfRescaled, pmf: cdfToPmf(cdfRescaled) };
+          })()
+        : { cdf, pmf };
+
+      chartData.push(
+        generateNumericAreaGraph({
+          ...scaled,
+          graphType,
+          type: datum.type,
+          question,
+        })
+      );
       if (componentCdfs && componentCdfs.length > 1) {
         for (const componentCdf of componentCdfs) {
           chartData.push(
