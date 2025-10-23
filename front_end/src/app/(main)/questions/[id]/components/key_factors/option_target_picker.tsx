@@ -12,10 +12,10 @@ import {
   isMultipleChoicePost,
 } from "@/utils/questions/helpers";
 
-export type Target =
-  | { kind: "whole" }
-  | { kind: "question"; question_id: number }
-  | { kind: "option"; question_id: number; question_option: string };
+export type Target = {
+  question_id?: number;
+  question_option?: string;
+};
 
 type Props = {
   post: PostWithForecasts;
@@ -38,7 +38,7 @@ const OptionTargetPicker: FC<Props> = ({
   const isGroup = isGroupOfQuestionsPost(post);
 
   const optionClassName =
-    "h-8 text-[13px] text-gray-800 dark:text-gray-800 text-left justify-start";
+    "h-8 text-[13px] text-gray-800 dark:text-gray-800-dark text-left justify-start";
   const placeholder = isMC ? t("allOptions") : t("allSubquestions");
   const options: SelectOption<string>[] = useMemo(() => {
     if (isMC) {
@@ -70,20 +70,22 @@ const OptionTargetPicker: FC<Props> = ({
 
   if (!isMC && !isGroup) return null;
 
-  const selectedLabel =
-    value.kind === "option"
-      ? value.question_option
-      : value.kind === "question"
+  const selectedLabel = isMC
+    ? value.question_option || placeholder
+    : isGroup
+      ? value.question_id
         ? options.find((o) => o.value === String(value.question_id))?.label ??
           ""
-        : placeholder;
+        : placeholder
+      : placeholder;
 
-  const currentValue =
-    value.kind === "option"
-      ? value.question_option
-      : value.kind === "question"
+  const currentValue = isMC
+    ? value.question_option ?? ""
+    : isGroup
+      ? value.question_id
         ? String(value.question_id)
-        : "";
+        : ""
+      : "";
 
   return (
     <div className={cn("mt-3 flex flex-col gap-1.5", className)}>
@@ -97,14 +99,13 @@ const OptionTargetPicker: FC<Props> = ({
         options={options}
         value={currentValue as string}
         onChange={(v) => {
-          if (!v) return onChange({ kind: "whole" });
+          if (!v) return onChange({});
           if (isMC)
             return onChange({
-              kind: "option",
               question_id: post.question.id,
               question_option: v,
             });
-          return onChange({ kind: "question", question_id: Number(v) });
+          return onChange({ question_id: Number(v) });
         }}
         label={selectedLabel || placeholder}
         buttonVariant="tertiary"

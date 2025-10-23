@@ -37,7 +37,7 @@ const DriverCreationForm: FC<Props> = ({
   let questionType = questionTypeBase;
   let effectiveUnit = isQuestionPost(post) ? post.question.unit : undefined;
 
-  if (isGroupOfQuestionsPost(post) && draft.kind === "question") {
+  if (isGroupOfQuestionsPost(post) && draft.question_id) {
     const sq = post.group_of_questions.questions.find(
       (q) => q.id === draft.question_id
     );
@@ -97,37 +97,16 @@ const DriverCreationForm: FC<Props> = ({
         )}
         <OptionTargetPicker
           post={post}
-          value={
-            {
-              kind: draft.kind,
-              ...(draft.kind === "question"
-                ? { question_id: draft.question_id }
-                : {}),
-              ...(draft.kind === "option"
-                ? {
-                    question_id: draft.question_id,
-                    question_option: draft.question_option,
-                  }
-                : {}),
-            } as Target
-          }
+          value={{
+            question_id: draft.question_id,
+            question_option: draft.question_option,
+          }}
           onChange={(t) =>
-            setDraft(
-              t.kind === "whole"
-                ? ({ kind: "whole", driver: draft.driver } as KeyFactorDraft)
-                : t.kind === "question"
-                  ? ({
-                      kind: "question",
-                      question_id: t.question_id,
-                      driver: draft.driver,
-                    } as KeyFactorDraft)
-                  : ({
-                      kind: "option",
-                      question_id: t.question_id,
-                      question_option: t.question_option,
-                      driver: draft.driver,
-                    } as KeyFactorDraft)
-            )
+            setDraft({
+              driver: draft.driver,
+              question_id: t.question_id,
+              question_option: t.question_option,
+            })
           }
         />
       </div>

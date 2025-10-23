@@ -236,7 +236,6 @@ const Comment: FC<CommentProps> = ({
   const [isReplying, setIsReplying] = useState(false);
   const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
     {
-      kind: "whole",
       driver: { text: "", impact_direction: null, certainty: null },
     },
   ]);
@@ -354,7 +353,6 @@ const Comment: FC<CommentProps> = ({
     clearState();
     setDrafts([
       {
-        kind: "whole",
         driver: { text: "", impact_direction: null, certainty: null },
       },
     ]);
@@ -414,7 +412,6 @@ const Comment: FC<CommentProps> = ({
     clearState();
     setDrafts([
       {
-        kind: "whole",
         driver: { text: "", impact_direction: null, certainty: null },
       },
     ]);

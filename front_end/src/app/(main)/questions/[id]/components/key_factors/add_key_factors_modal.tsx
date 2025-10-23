@@ -137,7 +137,6 @@ export const AddKeyFactorsForm = ({
             setDrafts([
               ...drafts,
               {
-                kind: "whole",
                 driver: { text: "", impact_direction: null, certainty: null },
               },
             ]);
@@ -181,7 +180,6 @@ const AddKeyFactorsModal: FC<Props> = ({
   const [markdown, setMarkdown] = useState<string>("");
   const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
     {
-      kind: "whole",
       driver: { text: "", impact_direction: null, certainty: null },
     },
   ]);
@@ -207,7 +205,6 @@ const AddKeyFactorsModal: FC<Props> = ({
   const resetAll = () => {
     setDrafts([
       {
-        kind: "whole",
         driver: { text: "", impact_direction: null, certainty: null },
       },
     ]);
