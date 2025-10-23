@@ -120,7 +120,7 @@ class KeyFactorDriverSerializer(serializers.ModelSerializer):
 
 class KeyFactorWriteSerializer(serializers.ModelSerializer):
     driver = KeyFactorDriverSerializer(required=False)
-    question_id = serializers.IntegerField(required=False)
+    question_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = KeyFactor
