@@ -986,6 +986,7 @@ const Comment: FC<CommentProps> = ({
             setSuggestedKeyFactors={setSuggestedKeyFactors}
             post={postData}
           />
+          <p className="m-0">{t("addDriverCommentDisclaimer")}</p>
           <FormError errors={keyFactorsErrors} />
         </CommentForm>
       )}

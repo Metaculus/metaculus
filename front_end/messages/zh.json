@@ -1549,11 +1549,12 @@
   "medium": "中",
   "topKeyFactors": "主要关键因素",
   "addDriver": "添加驱动因素",
-  "addDriverModalDescription": "在下面输入您的驱动因素 - 尽量保持简短明了。",
-  "addDriverModalCommentDescription": "驱动因素应有评论支持 - 在下面输入评论并解释您的理由。",
   "allOptions": "所有选项",
   "allSubquestions": "所有子问题",
   "chooseOptionImpactedMost": "选择一个受此驱动因素影响最大的选项：",
   "chooseSubquestionImpactedMost": "选择一个受此驱动因素影响最大的子问题：",
+  "addDriverModalDescription": "驱动因素是重要的事实、原则或假设。例如：“MMLU 基准测试在 2024 年末开始饱和”，“中国可能入侵台湾”，“赢家通吃的动态”。",
+  "addDriverModalCommentDescription": "驱动因素应有来源和论据支持。在下面写下评论并解释您的推理。",
+  "addDriverCommentDisclaimer": "确保您的驱动因素在评论中有来源和推理的支持。",
   "othersCount": "其他（{count}）"
 }
