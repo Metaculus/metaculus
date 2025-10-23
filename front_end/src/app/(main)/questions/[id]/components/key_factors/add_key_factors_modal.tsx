@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, memo, useState } from "react";
+import { FC, memo, useEffect, useState } from "react";
 
 import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
 import BaseModal from "@/components/base_modal";
@@ -65,6 +65,12 @@ export const AddKeyFactorsForm = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  useEffect(() => {
+    if (suggestedKeyFactors.length >= 0) {
+      setDrafts([]);
+    }
+  }, []);
+
   if (!user) return null;
 
   const totalKeyFactorsLimitReached =
@@ -78,7 +84,7 @@ export const AddKeyFactorsForm = ({
           <p className="text-base leading-tight">
             {t("suggestedKeyFactorsSection")}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3.5">
             {suggestedKeyFactors.map((kf, idx) => {
               const fake: KeyFactor = {
                 ...kf,
@@ -105,7 +111,7 @@ export const AddKeyFactorsForm = ({
                     mode="consumer"
                     linkToComment={false}
                   />
-                  <div className="absolute -right-3 -top-3 flex gap-1">
+                  <div className="absolute -right-3 -top-3 flex gap-2">
                     <button
                       className="pointer-events-auto flex h-6 w-6 rounded-full bg-blue-400 p-0 text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
                       onClick={() => {
@@ -152,7 +158,7 @@ export const AddKeyFactorsForm = ({
             setDraft={(d) =>
               setDrafts(drafts.map((k, i) => (i === idx ? d : k)))
             }
-            showXButton={idx > 0}
+            showXButton={idx > 0 || !!suggestedKeyFactors.length}
             onXButtonClick={() => {
               setDrafts(drafts.filter((_, i) => i !== idx));
             }}
