@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
@@ -9,12 +9,11 @@ import {
 } from "@/app/(main)/questions/actions";
 import { useServerAction } from "@/hooks/use_server_action";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
-import { BECommentType, KeyFactor } from "@/types/comment";
+import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
+import { BECommentType, Driver, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-
-const FACTORS_PER_QUESTION = 6;
-const FACTORS_PER_COMMENT = 4;
 
 export type SuggestedKeyFactor = {
   text: string;
@@ -40,13 +39,28 @@ export const useKeyFactors = ({
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
 
-  const [keyFactors, setKeyFactors] = useState<string[]>([""]);
+  // The drafts are managed by the caller now
   const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
     SuggestedKeyFactor[]
   >([]);
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
+
+  const applyTargetForDraft = (
+    draft: KeyFactorDraft,
+    payload: KeyFactorWritePayload
+  ): KeyFactorWritePayload => {
+    if (draft.kind === "question")
+      return { ...payload, question_id: draft.question_id };
+    if (draft.kind === "option")
+      return {
+        ...payload,
+        question_id: draft.question_id,
+        question_option: draft.question_option,
+      };
+    return payload;
+  };
 
   useEffect(() => {
     if (shouldLoadKeyFactors && commentId) {
@@ -57,6 +71,14 @@ export const useKeyFactors = ({
             suggested.map((text) => ({ text, selected: false }))
           );
           onKeyFactorsLoadded?.(suggested.length !== 0);
+          if (suggested.length > 0) {
+            setTimeout(() => {
+              const el = document.getElementById("suggested-key-factors");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 50);
+          }
         })
         .catch(() => {
           onKeyFactorsLoadded?.(false);
@@ -82,7 +104,7 @@ export const useKeyFactors = ({
       : undefined;
 
   const onSubmit = async (
-    keyFactors: string[],
+    submittedDrafts: KeyFactorDraft[],
     suggestedKeyFactors: SuggestedKeyFactor[],
     markdown?: string
   ): Promise<
@@ -95,28 +117,42 @@ export const useKeyFactors = ({
         comment: BECommentType;
       }
   > => {
-    for (const keyFactor of keyFactors) {
-      if (keyFactor.trim().length > 150) {
+    for (const draft of submittedDrafts) {
+      if (draft.driver.text.trim().length > 150) {
         return { errors: new Error(t("maxKeyFactorLength")) };
       }
     }
 
-    const filteredKeyFactors = keyFactors.filter((f) => f.trim() !== "");
+    const filteredDrafts = submittedDrafts.filter(
+      (d) => d.driver.text.trim() !== ""
+    );
     const filteredSuggestedKeyFactors = suggestedKeyFactors
       .filter((kf) => kf.selected)
       .map((kf) => kf.text);
 
+    const writePayloads: KeyFactorWritePayload[] = [
+      ...filteredDrafts.map((d) =>
+        applyTargetForDraft(d, {
+          driver: toDriverUnion({
+            text: d.driver.text,
+            impact_direction: d.driver.impact_direction ?? null,
+            certainty: d.driver.certainty ?? null,
+          }),
+        })
+      ),
+      ...filteredSuggestedKeyFactors.map((text) => ({
+        driver: toDriverUnion({ text, impact_direction: 1, certainty: null }),
+      })),
+    ];
+
     let comment;
     if (commentId) {
-      comment = await addKeyFactorsToComment(commentId, [
-        ...filteredKeyFactors,
-        ...filteredSuggestedKeyFactors,
-      ]);
+      comment = await addKeyFactorsToComment(commentId, writePayloads);
     } else {
       comment = await createComment({
         on_post: postId,
         text: markdown || "",
-        key_factors: [...filteredKeyFactors, ...filteredSuggestedKeyFactors],
+        key_factors: writePayloads,
         is_private: false,
       });
     }
@@ -148,14 +184,11 @@ export const useKeyFactors = ({
   const [submit, isPending] = useServerAction(onSubmit);
 
   const clearState = () => {
-    setKeyFactors([""]);
     setErrors(undefined);
     setSuggestedKeyFactors([]);
   };
 
   return {
-    keyFactors,
-    setKeyFactors,
     errors,
     setErrors,
     suggestedKeyFactors,
@@ -176,6 +209,9 @@ export const getKeyFactorsLimits = (
   user_id: number | undefined,
   commentId?: number
 ) => {
+  const FACTORS_PER_QUESTION = 6;
+  const FACTORS_PER_COMMENT = 4;
+
   if (isNil(user_id)) {
     return {
       userPostFactors: [],
@@ -204,3 +240,20 @@ export const getKeyFactorsLimits = (
     factorsLimit,
   };
 };
+
+type DriverDraft = {
+  text: string;
+  impact_direction: 1 | -1 | null;
+  certainty: -1 | null;
+};
+
+function toDriverUnion(d: DriverDraft): Driver {
+  if (d.certainty === -1) {
+    return { text: d.text, impact_direction: null, certainty: -1 };
+  }
+  const dir = d.impact_direction;
+  if (dir === 1 || dir === -1) {
+    return { text: d.text, impact_direction: dir, certainty: null };
+  }
+  return { text: d.text, impact_direction: 1, certainty: null };
+}

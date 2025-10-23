@@ -7,15 +7,18 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import cn from "@/utils/core/cn";
 
 type SlideBy = { mode: "page" } | { mode: "items"; count: number };
+type CarouselNavState = { canPrev: boolean; canNext: boolean };
+type GradientVisibility = boolean | { left: boolean; right: boolean };
+type Resolver<T> = boolean | ((state: CarouselNavState) => T);
 type Props<T> = {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
   itemClassName?: string;
   gapClassName?: string;
   slideBy?: SlideBy;
-  showGradients?: boolean;
+  showGradients?: Resolver<GradientVisibility>;
   gradientFromClass?: string;
-  showArrows?: boolean;
+  showArrows?: Resolver<boolean>;
   arrowClassName?: string;
   prevLabel?: string;
   nextLabel?: string;
@@ -127,6 +130,27 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
     [loop, slideBy]
   );
 
+  const arrowsActive =
+    typeof showArrows === "function"
+      ? showArrows({ canPrev, canNext })
+      : showArrows;
+  const arrowsEnabled = typeof showArrows === "function" ? true : showArrows;
+
+  const gradients =
+    typeof showGradients === "function"
+      ? showGradients({ canPrev, canNext })
+      : showGradients;
+
+  let leftGradientVisible, rightGradientVisible;
+
+  if (typeof gradients === "boolean") {
+    leftGradientVisible = gradients && canPrev;
+    rightGradientVisible = gradients && canNext;
+  } else {
+    leftGradientVisible = !!gradients?.left && canPrev;
+    rightGradientVisible = !!gradients?.right && canNext;
+  }
+
   return (
     <div className={cn("relative", className)}>
       <div
@@ -156,67 +180,69 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
         </div>
       </div>
 
-      {showGradients && (
+      <>
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 w-[152px]",
+            "bg-gradient-to-r",
+            gradientFromClass,
+            "to-transparent",
+            "transition-opacity duration-200 ease-linear",
+            leftGradientVisible ? "opacity-100" : "opacity-0"
+          )}
+        />
+
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 w-[152px]",
+            "bg-gradient-to-l",
+            gradientFromClass,
+            "to-transparent",
+            "transition-opacity duration-200 ease-linear",
+            rightGradientVisible ? "opacity-100" : "opacity-0"
+          )}
+        />
+      </>
+
+      {arrowsEnabled && (
         <>
-          {canPrev && (
-            <div
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute inset-y-0 left-0 w-[152px]",
-                "bg-gradient-to-r",
-                gradientFromClass,
-                "to-transparent"
-              )}
-            />
-          )}
+          <button
+            aria-label={prevLabel}
+            type="button"
+            onClick={() => scrollByAmount(-1)}
+            disabled={!canPrev && !loop}
+            className={cn(
+              "absolute left-[18px] top-1/2 -translate-y-1/2",
+              arrowClassName,
+              "transition-opacity duration-200 ease-linear",
+              arrowsActive && canPrev
+                ? "opacity-100"
+                : "pointer-events-none opacity-0",
+              !canPrev && !loop ? "cursor-not-allowed" : ""
+            )}
+          >
+            <FontAwesomeIcon className="scale-[125%]" icon={faArrowLeft} />
+          </button>
 
-          {canNext && (
-            <div
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute inset-y-0 right-0 w-[152px]",
-                "bg-gradient-to-l",
-                gradientFromClass,
-                "to-transparent"
-              )}
-            />
-          )}
-        </>
-      )}
-
-      {showArrows && (
-        <>
-          {canPrev && (
-            <button
-              aria-label={prevLabel}
-              type="button"
-              onClick={() => scrollByAmount(-1)}
-              disabled={!canPrev && !loop}
-              className={cn(
-                "absolute left-[18px] top-1/2 -translate-y-1/2",
-                arrowClassName,
-                !canPrev && !loop ? "cursor-not-allowed opacity-40" : ""
-              )}
-            >
-              <FontAwesomeIcon className="scale-[125%]" icon={faArrowLeft} />
-            </button>
-          )}
-
-          {canNext && (
-            <button
-              aria-label={nextLabel}
-              type="button"
-              onClick={() => scrollByAmount(1)}
-              disabled={!canNext && !loop}
-              className={cn(
-                "absolute right-[18px] top-1/2 -translate-y-1/2",
-                arrowClassName,
-                !canNext && !loop ? "cursor-not-allowed opacity-40" : ""
-              )}
-            >
-              <FontAwesomeIcon className="scale-[125%]" icon={faArrowRight} />
-            </button>
-          )}
+          <button
+            aria-label={nextLabel}
+            type="button"
+            onClick={() => scrollByAmount(1)}
+            disabled={!canNext && !loop}
+            className={cn(
+              "absolute right-[18px] top-1/2 -translate-y-1/2",
+              arrowClassName,
+              "transition-opacity duration-200 ease-linear",
+              arrowsActive && canNext
+                ? "opacity-100"
+                : "pointer-events-none opacity-0",
+              !canNext && !loop ? "cursor-not-allowed" : ""
+            )}
+          >
+            <FontAwesomeIcon className="scale-[125%]" icon={faArrowRight} />
+          </button>
         </>
       )}
     </div>

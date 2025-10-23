@@ -25,6 +25,8 @@ const ForecasterQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
         <QuestionInfo
           postData={postData}
           preselectedGroupQuestionId={preselectedGroupQuestionId}
+          showTimeline={false}
+          showKeyFactors={true}
         />
       </QuestionSection>
       <Sidebar
