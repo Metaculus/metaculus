@@ -137,7 +137,7 @@ const ContinuousAreaChart: FC<Props> = ({
     for (const datum of parsedData) {
       const { pmf, cdf, componentCdfs } = datum;
       if (globalScaling && !isNil(question.scaling.zero_point)) {
-        // rescale to global scaling
+        // rescale wrt global scaling zero_point
         const rescaledCdf = rescaleCdf(cdf, question.scaling, {
           ...question.scaling,
           zero_point: globalScaling.zero_point,
