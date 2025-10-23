@@ -177,38 +177,36 @@ const ContinuousAreaChart: FC<Props> = ({
     yDomain: Tuple<number>;
   }>(() => {
     if (question.type !== QuestionType.Discrete) {
-      const hasGlobalRange =
-        globalScaling?.range_min != null && globalScaling?.range_max != null;
-
-      const x0 = hasGlobalRange
-        ? unscaleNominalLocation(globalScaling.range_min ?? 0, {
-            ...question.scaling,
-            zero_point: globalScaling.zero_point,
-          })
-        : 0;
-      const x1 = hasGlobalRange
-        ? unscaleNominalLocation(globalScaling.range_max ?? 1, {
-            ...question.scaling,
-            zero_point: globalScaling.zero_point,
-          })
-        : 1;
-
-      const xDomain: Tuple<number> = [x0, x1];
-
+      const xDomain: Tuple<number> =
+        globalScaling &&
+        !isNil(globalScaling.range_min) &&
+        !isNil(globalScaling.range_max)
+          ? [
+              unscaleNominalLocation(globalScaling.range_min, {
+                ...question.scaling,
+                zero_point: globalScaling.zero_point,
+              }),
+              unscaleNominalLocation(globalScaling.range_max, {
+                ...question.scaling,
+                zero_point: globalScaling.zero_point,
+              }),
+            ]
+          : [0, 1];
       if (graphType === "cdf") {
-        return { xDomain, yDomain: [0, 1] as Tuple<number> };
+        return {
+          xDomain,
+          yDomain: [0, 1],
+        };
       }
 
       const maxValue = Math.max(
-        ...data.flatMap((x) => x.pmf.slice(1, x.pmf.length - 1))
+        ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
       );
-
       return {
         xDomain,
-        yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)] as Tuple<number>,
+        yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
-
     let xMin = Math.min(
       ...charts.map((chart) => 2 * (chart.graphLine.at(0)?.x ?? 0)),
       0
@@ -228,20 +226,13 @@ const ContinuousAreaChart: FC<Props> = ({
       if (question.resolution === "above_upper_bound")
         xMax = Math.max(xMax, 1 + halfBin);
     }
-
     const xDomain: Tuple<number> = [xMin, xMax];
+    if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
-    if (graphType === "cdf") {
-      return { xDomain, yDomain: [0, 1] as Tuple<number> };
-    }
-
-    const maxValue = Math.max(...data.flatMap((x) => x.pmf));
+    const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
       xDomain,
-      yDomain: [
-        0,
-        Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue)),
-      ] as Tuple<number>,
+      yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
     };
   }, [
     data,
