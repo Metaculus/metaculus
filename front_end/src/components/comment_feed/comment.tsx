@@ -968,7 +968,7 @@ const Comment: FC<CommentProps> = ({
           submitDisabled={
             isPending ||
             (!drafts.some((k) => k.driver.text.trim() !== "") &&
-              !suggestedKeyFactors.some((k) => k.selected)) ||
+              suggestedKeyFactors.length === 0) ||
             drafts.some(
               (d) =>
                 d.driver.text.trim() !== "" &&

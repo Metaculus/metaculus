@@ -15,7 +15,7 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
-import OptionTargetPicker, { Target } from "../option_target_picker";
+import OptionTargetPicker from "../option_target_picker";
 
 type Props = {
   draft: KeyFactorDraft;
