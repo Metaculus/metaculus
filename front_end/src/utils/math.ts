@@ -261,3 +261,36 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
   }
   return unscaled_location;
 }
+
+/**
+ * evaluates the height of the cdf at a nominal location, given scaling
+ */
+export function getCdfAt(x: number, cdf: number[], scaling: Scaling) {
+  const location = unscaleNominalLocation(x, scaling);
+  const floatIndex = location * (cdf.length - 1);
+  if (floatIndex <= 0) {
+    return cdf.at(0);
+  }
+  if (floatIndex >= 1) {
+    return cdf.at(-1);
+  }
+  return cdf.at(Math.round(floatIndex));
+}
+
+/**
+ * Takes a cdf and rescales it to new scaling
+ * NOTE: this will not behave well outside of original bounds
+ */
+export function rescaleCdf(
+  cdf: number[],
+  originalScaling: Scaling,
+  newScaling: Scaling
+) {
+  const step = 1 / (cdf.length - 1);
+  const xArr = Array.from({ length: cdf.length }, (_, i) => i * step);
+  const evalLocations = xArr.map((x) => scaleInternalLocation(x, newScaling));
+  const newCdf = [
+    ...evalLocations.map((x) => getCdfAt(x, cdf, originalScaling) ?? 0),
+  ];
+  return newCdf;
+}

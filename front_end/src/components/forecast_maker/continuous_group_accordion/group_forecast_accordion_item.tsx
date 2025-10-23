@@ -6,7 +6,6 @@ import { useLocale } from "next-intl";
 import { FC, memo, PropsWithChildren, useEffect, useState } from "react";
 
 import ContinuousAreaChart, {
-  generateXDomainOverride,
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
@@ -131,7 +130,6 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
       : undefined;
 
     // Build a cross-question shared domain in internal coordinates and flags for borders
-    const domainOverride = generateXDomainOverride(globalScaling, question);
     if (wasWithdrawn && !isDirty && withdrawnMedian != null) {
       userMedian = getPredictionDisplayValue(withdrawnMedian, {
         questionType: option.question.type,
@@ -213,7 +211,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         question={question}
                         withResolutionChip={false}
                         withTodayLine={false}
-                        domainOverride={domainOverride}
+                        globalScaling={globalScaling}
                         outlineUser={wasWithdrawn && !isDirty}
                       />
                     </div>

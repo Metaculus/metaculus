@@ -1,4 +1,3 @@
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
@@ -18,6 +17,7 @@ import {
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
+import { getContinuousGroupScaling } from "@/utils/questions/helpers";
 import { isUnitCompact } from "@/utils/questions/units";
 
 import { AccordionItem } from "./group_forecast_accordion_item";
@@ -133,21 +133,8 @@ const GroupForecastAccordion: FC<Props> = ({
   const [expandAll, setExpandAll] = useState(false);
   const toggleExpandAll = () => setExpandAll((prev) => !prev);
 
-  // Compute global nominal bounds across all questions in the group
   const globalScaling = useMemo<Scaling>(
-    () => ({
-      range_min: Math.min(
-        ...options
-          .map((obj) => obj.question.scaling.range_min)
-          .filter((obj) => !isNil(obj))
-      ),
-      range_max: Math.max(
-        ...options
-          .map((obj) => obj.question.scaling.range_max)
-          .filter((obj) => !isNil(obj))
-      ),
-      zero_point: null,
-    }),
+    () => getContinuousGroupScaling(options.map((option) => option.question)),
     [options]
   );
 
