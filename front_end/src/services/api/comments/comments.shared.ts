@@ -90,8 +90,10 @@ class CommentsApi extends ApiService {
     );
   }
 
-  async getSuggestedKeyFactors(commentId: number): Promise<string[]> {
-    return await this.get<string[]>(
+  async getSuggestedKeyFactors(
+    commentId: number
+  ): Promise<KeyFactorWritePayload[]> {
+    return await this.get<KeyFactorWritePayload[]>(
       `/comments/${commentId}/suggested-key-factors/`
     );
   }
