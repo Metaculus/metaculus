@@ -15,6 +15,101 @@ import {
   nominalLocationToCdfLocation,
 } from "@/utils/math";
 
+function standardizeCdf(
+  cdf: number[],
+  lowerOpen: boolean,
+  upperOpen: boolean
+): number[] {
+  if (cdf.length === 0) {
+    return [];
+  }
+
+  const pmf: number[] = [];
+  pmf.push(cdf[0] ?? 0);
+  for (let i = 1; i < cdf.length; i++) {
+    pmf.push((cdf[i] ?? 0) - (cdf[i - 1] ?? 0));
+  }
+  pmf.push(1 - (cdf[cdf.length - 1] ?? 1));
+  // cap depends on cdf_size (0.2 if size is the default 201)
+  const cap =
+    ((0.2 - 1e-7) * (DefaultInboundOutcomeCount + 1)) / Math.max(cdf.length, 1);
+  const capPmf = (scale: number) => {
+    return pmf.map((value, i) => {
+      if (i == 0 || i == pmf.length - 1) {
+        return value;
+      }
+      return Math.min(cap, scale * value);
+    });
+  };
+  const cappedSum = (scale: number) => {
+    return capPmf(scale).reduce((acc, value) => acc + value, 0);
+  };
+
+  // find the appropriate scale search space
+  const inboundMass = (cdf[cdf.length - 1] ?? 1) - (cdf[0] ?? 0);
+  let lo = 1;
+  let hi = 1;
+  while (cappedSum(hi) < inboundMass) {
+    hi *= 1.1;
+  }
+  // home in on scale value that makes capped sum approx inboundMass
+  for (let i = 0; i < 100; i++) {
+    const scale = 0.5 * (lo + hi);
+    const s = cappedSum(scale);
+    if (s < inboundMass) {
+      lo = scale;
+    } else {
+      hi = scale;
+    }
+    if (hi - lo < 1e-12) {
+      break;
+    }
+  }
+  // apply scale and renormalize
+  const scaledPmf = capPmf(0.5 * (lo + hi));
+  console.log(Math.max(...scaledPmf.slice(1, pmf.length - 1)));
+  const totalMass = scaledPmf.reduce((acc, value) => acc + value, 0);
+  const normalizedPmf = scaledPmf.map((value) => value / (totalMass ?? 1));
+  // back to CDF space
+  const standardizedCdf: number[] = [];
+  let cumulative = 0;
+  for (let i = 0; i < normalizedPmf.length - 1; i++) {
+    cumulative += normalizedPmf[i] ?? 0;
+    standardizedCdf.push(cumulative);
+  }
+
+  const scaleLowerTo = lowerOpen ? 0 : standardizedCdf[0] ?? 0;
+  const lastStandardizedIndex = standardizedCdf.length - 1;
+  const lastStandardizedCdf =
+    lastStandardizedIndex >= 0 ? standardizedCdf[lastStandardizedIndex] : 1;
+  const scaleUpperTo = upperOpen ? 1 : lastStandardizedCdf ?? 1;
+  const rescaledInboundMass = scaleUpperTo - scaleLowerTo;
+
+  const applyMinimum = (F: number, location: number) => {
+    const rescaledInboundMassSafe =
+      rescaledInboundMass === 0 ? 1 : rescaledInboundMass;
+    const rescaledF = (F - scaleLowerTo) / rescaledInboundMassSafe;
+    if (lowerOpen && upperOpen) {
+      return 0.988 * rescaledF + 0.01 * location + 0.001;
+    }
+    if (lowerOpen) {
+      return 0.989 * rescaledF + 0.01 * location + 0.001;
+    }
+    if (upperOpen) {
+      return 0.989 * rescaledF + 0.01 * location;
+    }
+    return 0.99 * rescaledF + 0.01 * location;
+  };
+
+  const denominator =
+    standardizedCdf.length > 1 ? standardizedCdf.length - 1 : 1;
+  return standardizedCdf.map((F, index) => {
+    const location = denominator === 0 ? 0 : index / denominator;
+    const standardizedValue = applyMinimum(F, location);
+    return Math.round(standardizedValue * 1e10) / 1e10;
+  });
+}
+
 /**
  * Get chart data from slider input
  */
@@ -51,19 +146,7 @@ export function getSliderNumericForecastDataset(
   }, Array(componentCdfs[0]!.length).fill(0));
   cdf = cdf.map((F) => Number(F));
 
-  // standardize cdf
-  const cdfOffset =
-    lowerOpen && upperOpen
-      ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
-      : lowerOpen
-        ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
-        : upperOpen
-          ? (F: number, x: number) => 0.989 * F + 0.01 * x
-          : (F: number, x: number) => 0.99 * F + 0.01 * x;
-  cdf = cdf.map(
-    (F, index) =>
-      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e10) / 1e10
-  );
+  cdf = standardizeCdf(cdf, lowerOpen, upperOpen, inboundOutcomeCount);
 
   return {
     cdf: cdf,
