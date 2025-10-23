@@ -3,12 +3,15 @@ import textwrap
 from typing import List, Optional
 
 from django.conf import settings
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from comments.models import KeyFactor, KeyFactorDriver
 from posts.models import Post
 from questions.models import Question
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
+
+# Central constraints
+MAX_LENGTH = 50
 
 
 # TODO: unit tests!
@@ -16,31 +19,46 @@ class KeyFactorResponse(BaseModel):
     text: str = Field(
         ..., description="Concise single-sentence key factor (<= 50 chars)"
     )
-    impact: str = Field(..., description="Impact direction depending on question type")
+    impact_direction: Optional[int] = Field(
+        None,
+        description="Set to 1 or -1 to indicate direction; omit if certainty is set",
+    )
+    certainty: Optional[int] = Field(
+        None,
+        description="Set to -1 only if the factor increases uncertainty; else omit",
+    )
     option: Optional[str] = Field(
         None,
         description="For multiple choice or group questions, which option/subquestion this factor relates to",
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_fields(cls, data):
+        if not isinstance(data, dict):
+            return data
+
+        def coerce(value, allowed):
+            try:
+                v = int(value)
+                return v if v in allowed else None
+            except (TypeError, ValueError):
+                return None
+
+        impact_direction = coerce(data.get("impact_direction"), {1, -1})
+        certainty = coerce(data.get("certainty"), {-1})
+
+        # Enforce XOR preference: certainty (-1) overrides impact_direction
+        if certainty == -1:
+            impact_direction = None
+
+        data.update(impact_direction=impact_direction, certainty=certainty)
+
+        return data
+
 
 class KeyFactorsResponse(BaseModel):
     key_factors: List[KeyFactorResponse]
-
-
-def _convert_impact_to_properties(impact: str) -> dict:
-    if impact == "INCREASES_UNCERTAINTY":
-        return {"certainty": -1, "impact_direction": None}
-
-    impact_map = {
-        "INCREASE": 1,
-        "DECREASE": -1,
-        "EARLIER": -1,
-        "LATER": 1,
-        "MORE": 1,
-        "LESS": -1,
-    }
-
-    return {"certainty": None, "impact_direction": impact_map.get(impact)}
 
 
 def _convert_llm_response_to_key_factor(
@@ -69,62 +87,72 @@ def _convert_llm_response_to_key_factor(
                 (q.id for q in post.get_questions() if q.label.lower() == option), None
             )
 
-    impact_props = _convert_impact_to_properties(response.impact)
-
     return KeyFactor(
         question_id=question_id,
         question_option=question_option,
-        driver=KeyFactorDriver(text=response.text, **impact_props),
+        driver=KeyFactorDriver(
+            text=response.text,
+            certainty=response.certainty,
+            impact_direction=response.impact_direction,
+        ),
     )
 
 
-def _convert_properties_to_impact_label(
-    question_type: Question.QuestionType, certainty: int, impact_direction: int
-):
-    if certainty == -1:
-        return "INCREASES_UNCERTAINTY"
+def build_post_question_summary(post: Post) -> tuple[str, Question.QuestionType]:
+    """
+    Build a compact text summary for a `Post` to provide to the LLM and
+    determine the effective question type for impact rules.
+    """
+    questions = post.get_questions()
+    post_type = questions[0].type if questions else Question.QuestionType.BINARY
 
-    if question_type == Question.QuestionType.NUMERIC:
-        return {
-            1: "MORE",
-            -1: "LESS",
-        }.get(impact_direction)
+    summary_lines = [
+        f"Title: {post.title}",
+        f"Type: {post_type}",
+    ]
 
-    if question_type == Question.QuestionType.DATE:
-        return {
-            1: "LATER",
-            -1: "EARLIER",
-        }.get(impact_direction)
+    if post.question:
+        summary_lines.append(f"Description: {post.question.description}")
+        if post_type == Question.QuestionType.MULTIPLE_CHOICE:
+            summary_lines.append(f"Options: {post.question.options}")
+    elif post.group_of_questions_id:
+        summary_lines += [
+            f"Description: {post.group_of_questions.description}",
+            f"Options: {[q.label for q in questions]}",
+        ]
 
-    return {
-        1: "INCREASE",
-        -1: "DECREASE",
-    }.get(impact_direction)
+    return "\n".join(summary_lines), post_type
 
 
 def get_impact_type_instructions(
     question_type: Question.QuestionType, is_group: bool
 ) -> str:
     instructions = f"""
-    - Impact must be one of: ["INCREASE", "DECREASE"].
-    - "INCREASE" means this factor makes the event more likely.
-    - "DECREASE" means it makes the event less likely.
+    - Set impact_direction (required): 1 or -1.
+        - 1 means this factor makes the event more likely.
+        - -1 means it makes the event less likely.
     """
 
     if question_type == Question.QuestionType.NUMERIC:
         instructions = f"""
-        - Impact must be one of: ["MORE", "LESS", "INCREASES_UNCERTAINTY"].
-        - "MORE" means this factor pushes the predicted value higher.
-        - "LESS" means it pushes the predicted value lower.
-        - "INCREASES_UNCERTAINTY" means it makes the forecast less certain.
+        - For each key factor, set exactly one of these fields:
+          - impact_direction: 1 or -1
+          - certainty: -1
+        - Use certainty = -1 only if the factor increases uncertainty about the forecast.
+        - If using impact_direction:
+          - 1 pushes the predicted value higher.
+          - -1 pushes the predicted value lower.
         """
 
     if question_type == Question.QuestionType.DATE:
         instructions = f"""
-        - Impact must be one of: ["EARLIER", "LATER", "INCREASES_UNCERTAINTY"].
-        - "EARLIER" means this factor makes the event expected sooner.
-        - "LATER" means it makes the event expected later.
-        - "INCREASES_UNCERTAINTY" means it makes the timing more uncertain.
+        - For each key factor, set exactly one of these fields:
+          - impact_direction: 1 or -1
+          - certainty: -1
+        - Use certainty = -1 only if the factor increases uncertainty about the timing.
+        - If using impact_direction:
+          - 1 means the event is expected later.
+          - -1 means the event is expected earlier.
         """
 
     if is_group or question_type == Question.QuestionType.MULTIPLE_CHOICE:
@@ -146,7 +174,6 @@ def generate_keyfactors(
     """
     Generate key factors based on question type and comment.
     """
-    MAX_LENGTH = 50
 
     system_prompt = textwrap.dedent(
         """
@@ -203,14 +230,21 @@ def generate_keyfactors(
 
     response_format = pydantic_to_openai_json_schema(KeyFactorsResponse)
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        response_format=response_format,
-    )
+    try:
+        response = client.chat.completions.create(
+            # TODO: update to 5
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format=response_format,
+        )
+    except Exception:
+        return []
+
+    if not response.choices:
+        return []
 
     content = response.choices[0].message.content
 
@@ -232,7 +266,8 @@ def _serialize_key_factor(kf: KeyFactor):
     if kf.driver_id:
         return {
             "text": kf.driver.text,
-            "impact": kf.driver.impact_direction,
+            "impact_direction": kf.driver.impact_direction,
+            "certainty": kf.driver.certainty,
             "option": option or None,
         }
 
@@ -245,31 +280,8 @@ def generate_key_factors_for_comment(
             "Key factors can only be generated for questions and question groups"
         )
 
-    questions = post.get_questions()
-    post_type = questions[0].type if questions else Question.QuestionType.BINARY
-
-    question_summary = [
-        f"Title: {post.title}",
-        f"Type: {post_type}",
-    ]
-
-    if post.question:
-        question_summary += [
-            f"Description: {post.question.description}",
-        ]
-
-        if post_type == Question.QuestionType.MULTIPLE_CHOICE:
-            question_summary.append(f"Options: {post.question.options}")
-
-    elif post.group_of_questions_id:
-        question_summary += [
-            f"Description: {post.group_of_questions.description}",
-            # TODO: should we do open questions only?
-            f"Options: {[q.label for q in questions]}",
-        ]
-
+    serialized_question_summary, post_type = build_post_question_summary(post)
     serialized_key_factors = [_serialize_key_factor(kf) for kf in existing_key_factors]
-    serialized_question_summary = "\n".join(question_summary)
 
     response = generate_keyfactors(
         question_summary=serialized_question_summary,
