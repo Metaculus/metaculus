@@ -47,9 +47,9 @@ import { formatResolution } from "@/utils/formatters/resolution";
 import {
   cdfToPmf,
   computeQuartilesFromCDF,
+  rescaleCdf,
   unscaleNominalLocation,
 } from "@/utils/math";
-import { isValidScaling } from "@/utils/questions/helpers";
 
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -62,12 +62,6 @@ const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   user: "orange",
   user_previous: "orange",
   user_components: "orange",
-};
-
-export type DomainOverride = {
-  xDomain: [number, number];
-  isGlobalMin: boolean;
-  isGlobalMax: boolean;
 };
 
 export type ContinuousAreaGraphInput = Array<{
@@ -98,7 +92,7 @@ type Props = {
   forceTickCount?: number; // is used on feed page
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
-  domainOverride?: DomainOverride;
+  globalScaling?: Scaling;
   outlineUser?: boolean;
 };
 
@@ -117,11 +111,7 @@ const ContinuousAreaChart: FC<Props> = ({
   forceTickCount,
   withResolutionChip = true,
   withTodayLine = true,
-  domainOverride = {
-    xDomain: [0, 1],
-    isGlobalMin: true,
-    isGlobalMax: true,
-  },
+  globalScaling,
   outlineUser = false,
 }) => {
   const locale = useLocale();
@@ -146,15 +136,33 @@ const ContinuousAreaChart: FC<Props> = ({
     const chartData: NumericPredictionGraph[] = [];
     for (const datum of parsedData) {
       const { pmf, cdf, componentCdfs } = datum;
-      chartData.push(
-        generateNumericAreaGraph({
-          pmf,
-          cdf,
-          graphType,
-          type: datum.type,
-          question,
-        })
-      );
+      if (globalScaling && !isNil(question.scaling.zero_point)) {
+        // rescale to global scaling
+        const rescaledCdf = rescaleCdf(cdf, question.scaling, {
+          ...question.scaling,
+          zero_point: globalScaling.zero_point,
+        });
+        const rescaledPmf = cdfToPmf(rescaledCdf);
+        chartData.push(
+          generateNumericAreaGraph({
+            pmf: rescaledPmf,
+            cdf: rescaledCdf,
+            graphType,
+            type: datum.type,
+            question,
+          })
+        );
+      } else {
+        chartData.push(
+          generateNumericAreaGraph({
+            pmf,
+            cdf,
+            graphType,
+            type: datum.type,
+            question,
+          })
+        );
+      }
       if (componentCdfs && componentCdfs.length > 1) {
         for (const componentCdf of componentCdfs) {
           chartData.push(
@@ -177,9 +185,24 @@ const ContinuousAreaChart: FC<Props> = ({
     yDomain: Tuple<number>;
   }>(() => {
     if (question.type !== QuestionType.Discrete) {
+      const xDomain =
+        globalScaling &&
+        !isNil(globalScaling.range_min) &&
+        !isNil(globalScaling.range_max)
+          ? [
+              unscaleNominalLocation(globalScaling.range_min, {
+                ...question.scaling,
+                zero_point: globalScaling.zero_point,
+              }),
+              unscaleNominalLocation(globalScaling.range_max, {
+                ...question.scaling,
+                zero_point: globalScaling.zero_point,
+              }),
+            ]
+          : [0, 1];
       if (graphType === "cdf") {
         return {
-          xDomain: domainOverride?.xDomain ?? [0, 1],
+          xDomain,
           yDomain: [0, 1],
         };
       }
@@ -188,7 +211,7 @@ const ContinuousAreaChart: FC<Props> = ({
         ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
       );
       return {
-        xDomain: domainOverride?.xDomain ?? [0, 1],
+        xDomain,
         yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
       };
     }
@@ -225,8 +248,9 @@ const ContinuousAreaChart: FC<Props> = ({
     graphType,
     question.type,
     question.resolution,
-    domainOverride?.xDomain,
+    globalScaling,
     question.inbound_outcome_count,
+    question.scaling,
   ]);
 
   const xScale = useMemo(
@@ -753,7 +777,7 @@ const ContinuousAreaChart: FC<Props> = ({
             />
           ))}
           {/* Left/Right borders at bounds if requested */}
-          {!domainOverride.isGlobalMin && (
+          {!false && (
             <VictoryLine
               data={[
                 { x: 0, y: yDomain[0] },
@@ -767,7 +791,7 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           )}
-          {!domainOverride.isGlobalMax && (
+          {!false && (
             <VictoryLine
               data={[
                 { x: 1, y: yDomain[0] },
@@ -1129,28 +1153,6 @@ export function getContinuousAreaChartData({
   }
 
   return chartData;
-}
-
-export function generateXDomainOverride(
-  globalScaling: Scaling | undefined | null,
-  question: Question
-): DomainOverride {
-  if (!isValidScaling(question.scaling) || !isValidScaling(globalScaling)) {
-    return {
-      xDomain: [0, 1],
-      isGlobalMin: true,
-      isGlobalMax: true,
-    };
-  }
-
-  return {
-    xDomain: [
-      unscaleNominalLocation(globalScaling.range_min, question.scaling),
-      unscaleNominalLocation(globalScaling.range_max, question.scaling),
-    ],
-    isGlobalMin: question.scaling.range_min <= globalScaling.range_min,
-    isGlobalMax: question.scaling.range_max >= globalScaling.range_max,
-  };
 }
 
 export default React.memo(ContinuousAreaChart);
