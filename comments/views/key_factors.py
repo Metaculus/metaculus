@@ -86,7 +86,7 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     )
 
     # TODO: check N+1 query
-    return Response([KeyFactorWriteSerializer(suggested_key_factors, many=True).data])
+    return Response(KeyFactorWriteSerializer(suggested_key_factors, many=True).data)
 
 
 @api_view(["DELETE"])
