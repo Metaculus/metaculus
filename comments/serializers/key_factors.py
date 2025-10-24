@@ -116,7 +116,7 @@ def serialize_key_factors_many(
         question_type = questions[0].type if questions else None
         question_units = list({q.type for q in questions})
         # Use unit if it's same across all questions
-        unit = question_units[0] if len(question_units) == 0 else None
+        unit = question_units[0] if len(question_units) == 1 else None
 
         serialized_data.append(
             serialize_key_factor(
