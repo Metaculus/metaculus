@@ -865,3 +865,46 @@ export function generateScale({
     cursorFormat: cursorFormat,
   };
 }
+
+type YMetaOptions = {
+  gridlines?: number;
+  padMin?: number;
+  padRatio?: number;
+  clamp?: [number, number] | null;
+  axisPx?: number;
+  direction?: ScaleDirection;
+};
+
+export function getYMeta(values: number[], opts: YMetaOptions = {}) {
+  const {
+    gridlines = 5,
+    padMin = 0,
+    padRatio = 0.1,
+    clamp = null,
+    axisPx = 300,
+    direction = ScaleDirection.Vertical,
+  } = opts;
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const pad = Math.max(padMin, range * padRatio);
+
+  const rawLo = Math.floor(min - pad);
+  const rawHi = Math.ceil(max + pad);
+
+  const lo = clamp ? Math.max(clamp[0], rawLo) : rawLo;
+  const hi = clamp ? Math.min(clamp[1], rawHi) : rawHi;
+
+  const { ticks } = generateScale({
+    displayType: QuestionType.Numeric,
+    axisLength: axisPx,
+    direction,
+    domain: [lo, hi],
+    zoomedDomain: [lo, hi],
+    forceTickCount: gridlines,
+    alwaysShowTicks: true,
+  });
+
+  return { lo, hi, ticks };
+}
