@@ -118,11 +118,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
         >
           <div className="flex flex-col gap-2.5">
             {combinedKeyFactors.map((kf) => (
-              <KeyFactorItem
-                key={`post-key-factor-${kf.id}`}
-                keyFactor={kf}
-                post={post}
-              />
+              <KeyFactorItem key={`post-key-factor-${kf.id}`} keyFactor={kf} />
             ))}
           </div>
         </ExpandableContent>

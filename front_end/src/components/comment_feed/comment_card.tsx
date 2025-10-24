@@ -9,8 +9,10 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, PropsWithChildren, useState, useRef, useEffect } from "react";
+import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
+import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { BECommentType, KeyFactor } from "@/types/comment";
@@ -54,16 +56,12 @@ const KeyFactors = ({ keyFactors }: { keyFactors: KeyFactor[] }) => {
         {t("keyFactors")}
       </div>
 
-      {keyFactors.map((factor) => (
-        <div
-          key={factor.id}
-          className="rounded border border-white bg-blue-200 px-3 py-2 dark:border-gray-0-dark dark:bg-blue-200-dark"
-        >
-          <div className="text-sm font-medium leading-5 text-gray-700 dark:text-gray-700-dark">
-            {factor.driver.text}
-          </div>
-        </div>
-      ))}
+      <KeyFactorsCarousel
+        items={keyFactors}
+        renderItem={(kf) => (
+          <KeyFactorItem keyFactor={kf} isCompact={true} mode={"consumer"} />
+        )}
+      />
     </div>
   );
 };

@@ -5,9 +5,7 @@ import { FC } from "react";
 
 import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/key_factor_header";
 import { KeyFactor } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
-import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import KeyFactorImpactDirectionContainer, {
   convertNumericImpactToDirectionCategory,
@@ -19,18 +17,16 @@ type Props = {
   keyFactor: KeyFactor;
   isCompact?: boolean;
   mode?: "forecaster" | "consumer";
-  post: PostWithForecasts;
 };
 
 const KeyFactorDriver: FC<Props> = ({
   keyFactor,
   isCompact,
   mode = "forecaster",
-  post,
 }) => {
   const { driver } = keyFactor;
   const t = useTranslations();
-  const questionType = inferEffectiveQuestionTypeFromPost(post);
+  const { question_type: questionType, unit } = keyFactor.post;
   const directionCategory =
     questionType &&
     convertNumericImpactToDirectionCategory(
@@ -69,7 +65,7 @@ const KeyFactorDriver: FC<Props> = ({
             undefined
           }
           isCompact={isCompactConsumer}
-          unit={post.question?.unit || keyFactor.question?.unit || undefined}
+          unit={unit || keyFactor.question?.unit || undefined}
         />
       )}
 

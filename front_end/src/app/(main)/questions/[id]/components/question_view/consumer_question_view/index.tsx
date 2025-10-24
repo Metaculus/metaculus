@@ -85,10 +85,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
         </div>
 
         {postData.key_factors && postData.key_factors.length > 0 && (
-          <KeyFactorsConsumerSection
-            post={postData}
-            keyFactors={postData.key_factors}
-          />
+          <KeyFactorsConsumerSection keyFactors={postData.key_factors} />
         )}
       </div>
     </div>
