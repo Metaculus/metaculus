@@ -10,6 +10,7 @@ import {
   CreateCommentParams,
   EditCommentParams,
   KeyFactorVoteParams,
+  KeyFactorWritePayload,
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/api/comments/comments.shared";
@@ -241,7 +242,7 @@ export async function createComment(commentData: CreateCommentParams) {
 
 export async function addKeyFactorsToComment(
   commentId: number,
-  keyFactors: string[]
+  keyFactors: KeyFactorWritePayload[]
 ) {
   try {
     return await ServerCommentsApi.addKeyFactorsToComment(

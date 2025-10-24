@@ -75,6 +75,20 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
+    def can_delete_key_factor(cls, permission: Self, raise_exception=False):
+        can = permission in (
+            cls.ADMIN,
+            cls.CREATOR,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission to delete this Key Factor"
+            )
+
+        return can
+
+    @classmethod
     def can_pin_comment(cls, permission: Self, raise_exception=False):
         can = permission in (cls.ADMIN,)
 

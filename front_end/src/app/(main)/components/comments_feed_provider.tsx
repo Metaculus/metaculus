@@ -15,8 +15,7 @@ import {
   BECommentType,
   CommentType,
   KeyFactor,
-  KeyFactorVote,
-  KeyFactorVoteTypes,
+  KeyFactorVoteAggregate,
 } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { parseComment } from "@/utils/comments";
@@ -44,8 +43,7 @@ export type CommentsFeedContextType = {
   setCombinedKeyFactors: (combinedKeyFactors: KeyFactor[]) => void;
   setKeyFactorVote: (
     keyFactorId: number,
-    keyFactorVote: KeyFactorVote,
-    votesScore: number
+    aggregate: KeyFactorVoteAggregate
   ) => void;
 };
 
@@ -113,72 +111,52 @@ const CommentsFeedProvider: FC<
   const [offset, setOffset] = useState<number>(0);
 
   const initialKeyFactors = [...(postData?.key_factors ?? [])].sort((a, b) =>
-    b.votes_score === a.votes_score
+    b.vote?.score === a.vote?.score
       ? Math.random() - 0.5
-      : b.votes_score - a.votes_score
+      : (b.vote?.score || 0) - (a.vote?.score || 0)
   );
   const [combinedKeyFactors, setCombinedKeyFactors] =
     useState<KeyFactor[]>(initialKeyFactors);
 
   const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
     const sortedKeyFactors = [...keyFactors].sort(
-      (a, b) => b.votes_score - a.votes_score
+      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0)
     );
     setCombinedKeyFactors(sortedKeyFactors);
   };
 
   const setKeyFactorVote = (
     keyFactorId: number,
-    keyFactorVote: KeyFactorVote,
-    votes_score: number
+    aggregate: KeyFactorVoteAggregate
   ) => {
     // Update the list of combined key factors with the new vote
     const newKeyFactors = combinedKeyFactors.map((kf) =>
       kf.id === keyFactorId
         ? {
             ...kf,
-            votes_score,
-            user_votes: [
-              ...kf.user_votes.filter(
-                (vote) => vote.vote_type !== keyFactorVote.vote_type
-              ),
-              keyFactorVote,
-            ],
+            vote: aggregate,
           }
         : { ...kf }
     );
 
-    if (keyFactorVote.vote_type === KeyFactorVoteTypes.UP_DOWN) {
-      setAndSortCombinedKeyFactors(newKeyFactors);
-    } else {
-      setCombinedKeyFactors(newKeyFactors);
-    }
+    setCombinedKeyFactors(newKeyFactors);
 
     //Update the comments state with the new vote for the key factor
     setComments((prevComments) => {
       return prevComments.map((comment) => {
-        // Check if this comment has the key factor we're updating
         if (comment.key_factors?.some((kf) => kf.id === keyFactorId)) {
-          // Create a new comment object with updated key factors
           return {
             ...comment,
             key_factors: comment.key_factors?.map((kf) =>
               kf.id === keyFactorId
                 ? {
                     ...kf,
-                    votes_score,
-                    user_votes: [
-                      ...kf.user_votes.filter(
-                        (vote) => vote.vote_type !== keyFactorVote.vote_type
-                      ),
-                      keyFactorVote,
-                    ],
+                    vote: aggregate,
                   }
                 : kf
             ),
           };
         }
-        // Return unchanged comment if it doesn't have the key factor
         return { ...comment };
       });
     });

@@ -193,62 +193,12 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
     return user
 
 
-def generate_keyfactors(
-    question_data: str,
-    comment: str,
-    existing_keyfactors: list[str],
-) -> list[str]:
-    MAX_LENGTH = 50
-
-    system_prompt = textwrap.dedent(
-        """
-        You are a helpful assistant that creates tools for forecasters to better forecast on Metaculus, where users can predict on all sorts of questions about real world events.
-        """
-    )
-
-    user_prompt = textwrap.dedent(
-        f"""
-        You are a helpful assistant that generates a list of maximum 3 key factors for a comment that a user makes on a Metaculus question.
-        The comment is intended to describe what might influence the predictions on the question so the key factors should only be relate to that.
-        The key factors should be the most important things that the user is trying to say in the comment and how it might influence the predictions on the question.
-        The key factors should be single sentences, not longer than {MAX_LENGTH} characters and they should only contain the key factor, no other text (e.g.: do not reference the user).
-
-        The user comment is: \n\n{comment}\n\n
-        The Metaculus question is: \n\n{question_data}\n\n
-        The existing key factors are: \n\n{existing_keyfactors}\n\n
-
-        Do not include any key factors that are already in the existing key factors list. Read that carefully and make sure you don't have any duplicates.
-
-        If we are not sure the comment has meaningful key factors information, return the literal string "None". Better be conservative than creating meaningless key factors.
-
-        Each key factor should be a single sentence, not longer than {MAX_LENGTH} characters, and they should follow this format:
-        - separate each key factor with a new line
-        - do not include any other text
-        - do not include any formatting like quotes, numbering or other punctuation
-        - do not include any other formatting like bold or italic
-        - do not include anything else than the key factors
-        """
-    )
-
-    client = get_openai_client(settings.OPENAI_API_KEY_FACTORS)
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
-    )
-    keyfactors = response.choices[0].message.content
-
-    if keyfactors is None or keyfactors.lower() == "none":
-        return []
-
-    keyfactors = keyfactors.split("\n")
-    return [keyfactor.strip().strip('"').strip("'") for keyfactor in keyfactors]
+def pydantic_to_openai_json_schema(model: BaseModel) -> dict:
+    """Convert a Pydantic model into an OpenAI-compatible JSON schema."""
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "key_factors_response",
+            "schema": model.model_json_schema(),
+        },
+    }

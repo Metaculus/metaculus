@@ -335,10 +335,6 @@ const CommentFeed: FC<Props> = ({
   );
 
   const onNewComment = (newComment: CommentType) => {
-    const isSimpleQuestion =
-      postData?.question?.type &&
-      postData?.question?.type !== QuestionType.MultipleChoice;
-
     setComments([newComment, ...comments]);
 
     fetchTotalCount({
@@ -351,12 +347,7 @@ const CommentFeed: FC<Props> = ({
       PostStatus.PENDING_RESOLUTION,
     ].includes(postData?.status ?? PostStatus.CLOSED);
 
-    if (
-      postId &&
-      isSimpleQuestion &&
-      user?.should_suggest_keyfactors &&
-      isPostOpen
-    ) {
+    if (postId && user?.should_suggest_keyfactors && isPostOpen) {
       setUserKeyFactorsComment(newComment);
     }
   };

@@ -26,6 +26,12 @@ const colorAccent = {
   border-orange-400 dark:border-orange-400-dark`,
 } as const;
 
+const strengthI18nKey: Record<Strengths, keyof IntlMessages> = {
+  [Strengths.Low]: "lowStrength",
+  [Strengths.Medium]: "mediumStrength",
+  [Strengths.High]: "highStrength",
+};
+
 const LinkStrengthComponent: FC<Props> = ({
   strength,
   disabled,
@@ -35,7 +41,7 @@ const LinkStrengthComponent: FC<Props> = ({
   const t = useTranslations();
   const strengthLabel = convertStrengthNumberToLabel(strength);
   if (!strengthLabel) return null;
-  const label = t(strengthLabel);
+  const label = t(strengthI18nKey[strengthLabel]);
   const additionalStyling = colorAccent[strengthLabel];
   return (
     <Button

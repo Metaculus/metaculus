@@ -240,6 +240,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
             withUserMentions
             initialMention={!initialMarkdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
             withCodeBlocks
+            contentEditableClassName="text-base sm:text-inherit"
           />
         )}
       </div>

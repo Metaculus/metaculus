@@ -21,6 +21,7 @@ import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
+import { KeyFactorsProvider } from "../components/key_factors/key_factors_provider";
 
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
@@ -78,22 +79,26 @@ const IndividualQuestionPage: FC<{
                         />
                       </div>
                     )}
-                    <QuestionLayout
-                      postData={postData}
-                      preselectedGroupQuestionId={preselectedGroupQuestionId}
-                    >
-                      {isCommunityQuestion && (
-                        <CommunityDisclaimer
-                          project={postData.projects.default_project}
-                          variant="standalone"
-                          className="block sm:hidden"
-                        />
-                      )}
-                      <QuestionView
+                    <KeyFactorsProvider>
+                      <QuestionLayout
                         postData={postData}
                         preselectedGroupQuestionId={preselectedGroupQuestionId}
-                      />
-                    </QuestionLayout>
+                      >
+                        {isCommunityQuestion && (
+                          <CommunityDisclaimer
+                            project={postData.projects.default_project}
+                            variant="standalone"
+                            className="block sm:hidden"
+                          />
+                        )}
+                        <QuestionView
+                          postData={postData}
+                          preselectedGroupQuestionId={
+                            preselectedGroupQuestionId
+                          }
+                        />
+                      </QuestionLayout>
+                    </KeyFactorsProvider>
                   </div>
                   <Sidebar postData={postData} questionTitle={questionTitle} />
                 </div>
