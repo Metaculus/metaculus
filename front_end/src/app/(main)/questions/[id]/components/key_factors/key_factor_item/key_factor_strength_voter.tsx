@@ -1,11 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, {
-  ButtonHTMLAttributes,
-  FC,
-  PropsWithChildren,
-  useState,
-} from "react";
+import React, { FC, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
@@ -26,7 +21,6 @@ type Props = {
   keyFactorId: number;
   vote: KeyFactorVoteAggregate;
   className?: string;
-  onVoteSuccess?: (newScore: number, newUserVote: number | null) => void;
   allowVotes?: boolean;
   mode?: "forecaster" | "consumer";
 };
@@ -61,19 +55,15 @@ const StrengthScale: FC<{
   );
 };
 
-const KeyFactorStrengthVoter: FC<Props> = ({
-  keyFactorId,
-  vote,
-  className,
-  onVoteSuccess,
-  allowVotes,
-  mode = "forecaster",
-}) => {
+const VoterControls: FC<{
+  keyFactorId: number;
+  aggregate: KeyFactorVoteAggregate;
+  setAggregate: (newAggregation: KeyFactorVoteAggregate) => void;
+}> = ({ keyFactorId, setAggregate, aggregate }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setKeyFactorVote } = useCommentsFeed();
 
-  const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const submitVote = async (newValue: StrengthVoteOption | null) => {
@@ -100,7 +90,6 @@ const KeyFactorStrengthVoter: FC<Props> = ({
         const returned = response as unknown as KeyFactorVoteAggregate;
         setAggregate(returned);
         setKeyFactorVote(keyFactorId, returned);
-        onVoteSuccess?.(returned.score, returned.user_vote);
       }
     } catch (e) {
       logError(e);
@@ -122,6 +111,43 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   ];
 
   return (
+    <div className="flex flex-col gap-1.5">
+      <div className="w-full text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+        {t("vote")}
+      </div>
+      <div className="flex w-full flex-wrap items-center gap-2">
+        {voteOptions.map(({ value, label }) => (
+          <button
+            type="button"
+            key={value}
+            className={cn(
+              "rounded-[4px] px-2 py-1.5 text-xs font-medium leading-none outline-none transition-colors",
+              aggregate.user_vote === value
+                ? "border border-transparent bg-olive-800 text-gray-0 dark:bg-olive-800-dark dark:text-gray-0-dark"
+                : "border border-blue-400 text-blue-800 hover:bg-blue-100/50 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark/20"
+            )}
+            onClick={() => handleSelect(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const KeyFactorStrengthVoter: FC<Props> = ({
+  keyFactorId,
+  vote,
+  className,
+  allowVotes,
+  mode = "forecaster",
+}) => {
+  const { user } = useAuth();
+
+  const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
+
+  return (
     <div className={cn("flex flex-col gap-3", className)}>
       <StrengthScale
         score={aggregate?.score ?? 0}
@@ -129,52 +155,14 @@ const KeyFactorStrengthVoter: FC<Props> = ({
         mode={mode}
       />
       {user && allowVotes && (
-        <div className="flex flex-col gap-1.5">
-          <div className="w-full text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-            {t("vote")}
-          </div>
-          <div className="flex w-full flex-wrap items-center gap-2">
-            {voteOptions.map(({ value, label }) => (
-              <KFButton
-                key={value}
-                selected={aggregate.user_vote === value}
-                onClick={() => handleSelect(value)}
-              >
-                {label}
-              </KFButton>
-            ))}
-          </div>
-        </div>
+        <VoterControls
+          keyFactorId={keyFactorId}
+          aggregate={aggregate}
+          setAggregate={setAggregate}
+        />
       )}
     </div>
   );
 };
 
 export default KeyFactorStrengthVoter;
-
-type KFButtonProps = PropsWithChildren<
-  ButtonHTMLAttributes<HTMLButtonElement> & { selected?: boolean }
->;
-
-const KFButton: FC<KFButtonProps> = ({
-  selected,
-  className,
-  children,
-  ...rest
-}) => {
-  return (
-    <button
-      type="button"
-      {...rest}
-      className={cn(
-        "rounded-[4px] px-2 py-1.5 text-xs font-medium leading-none outline-none transition-colors",
-        selected
-          ? "border border-transparent bg-olive-800 text-gray-0 dark:bg-olive-800-dark dark:text-gray-0-dark"
-          : "border border-blue-400 text-blue-800 hover:bg-blue-100/50 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark/20",
-        className
-      )}
-    >
-      {children}
-    </button>
-  );
-};

@@ -6,7 +6,6 @@ import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factor
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType, KeyFactor } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import { useKeyFactorsContext } from "./key_factors_provider";
@@ -14,10 +13,9 @@ import { useKeyFactorsContext } from "./key_factors_provider";
 type Props = {
   keyFactors: KeyFactor[];
   comment: CommentType;
-  post: PostWithForecasts;
 };
 
-const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
+const KeyFactorsCommentSection: FC<Props> = ({ keyFactors }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
   const { requestExpand } = useKeyFactorsContext();
@@ -47,12 +45,7 @@ const KeyFactorsCommentSection: FC<Props> = ({ post, keyFactors }) => {
               });
             }}
           >
-            <KeyFactorItem
-              keyFactor={kf}
-              post={post}
-              isCompact={true}
-              mode={"consumer"}
-            />
+            <KeyFactorItem keyFactor={kf} isCompact={true} mode={"consumer"} />
           </Link>
         )}
       />
