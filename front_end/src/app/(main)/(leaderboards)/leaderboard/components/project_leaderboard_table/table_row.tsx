@@ -91,7 +91,9 @@ const TableRow: FC<Props> = ({
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>
-            {contribution_count ? formatLeaderboardNumber(contribution_count) : "-"}
+            {contribution_count
+              ? formatLeaderboardNumber(contribution_count)
+              : "-"}
           </Td>
           <Td className="text-right tabular-nums" highlight={highlight}>
             {coveragePercent}

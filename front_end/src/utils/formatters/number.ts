@@ -141,7 +141,10 @@ export function formatLeaderboardNumber(
 
   // Add thin space separators every 3 digits from the right
   // U+2009 is the thin space character per BIPM standards
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009");
+  const formattedInteger = integerPart.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    "\u2009"
+  );
 
   // Combine with decimal part if it exists and has non-zero digits
   if (decimalPart && parseInt(decimalPart) !== 0) {
