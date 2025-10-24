@@ -22,6 +22,7 @@ import { BECommentType, KeyFactor } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
+import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import { useKeyFactors } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
@@ -91,6 +92,9 @@ export const AddKeyFactorsForm = ({
               items={suggestedKeyFactors}
               gapClassName="gap-3.5"
               renderItem={(kf, idx) => {
+                const question = post.group_of_questions?.questions.find(
+                  (obj) => obj.id === kf.question_id
+                );
                 const fake: KeyFactor = {
                   ...kf,
                   id: -1,
@@ -100,19 +104,21 @@ export const AddKeyFactorsForm = ({
                   question: kf.question_id
                     ? {
                         id: kf.question_id,
-                        label:
-                          post.group_of_questions?.questions.find(
-                            (obj) => obj.id === kf.question_id
-                          )?.label || "",
+                        label: question?.label || "",
                       }
                     : undefined,
+                  post: {
+                    id: post.id,
+                    unit: post.question?.unit || question?.unit,
+                    question_type:
+                      inferEffectiveQuestionTypeFromPost(post) || undefined,
+                  },
                 };
 
                 return (
                   <div key={idx} className="group relative mt-3">
                     <KeyFactorItem
                       keyFactor={fake}
-                      post={post}
                       isCompact
                       mode="consumer"
                       linkToComment={false}
