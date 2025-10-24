@@ -91,6 +91,4 @@ def notify_weekly_top_comments_subscribers(
             },
             use_async=False,
         )
-        return
-
         start += batch_size
