@@ -184,7 +184,7 @@ def generate_keyfactors(
     )
 
     user_prompt = textwrap.dedent(
-        """
+        f"""
         You are a helpful assistant that generates a list of up to 3 key factors for a comment
         that a user makes on a Metaculus question.
 
