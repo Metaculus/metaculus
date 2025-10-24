@@ -523,8 +523,8 @@ export default function QuestionChecklist() {
         </h2>
         <p>
           Metaculus Community Moderators are committed members of the community
-          who volunteer to help the platform run smoothly. We greatly appreciate
-          their time and talents, and we hope you&apos;ll do the same!
+          who help the platform run smoothly. We greatly appreciate their time
+          and talents, and we hope you&apos;ll do the same!
         </p>
         <p>The main responsibilities of Community Moderators include:</p>
         <ul className="ml-6 list-disc space-y-4">
@@ -543,13 +543,16 @@ export default function QuestionChecklist() {
           </li>
         </ul>
         <p>
-          Additionally, Community Moderators can help draw extra attention to
-          bugs, feature requests, or other issues that affect the platform.
-          Community Moderators are appointed democratically, by way of election.
-          If you&apos;d like to register interest in becoming a Community
-          Moderator, please do so by commenting to this effect in the comment
-          section of this discussion thread, and we&apos;ll reach out to you
-          before the next election takes place.
+          Sometimes, we invite outstanding community members who give
+          thoughtful, constructive feedback on questions to become paid
+          moderators. Fill out our{" "}
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdebfiVQVoYj4WakqvwY-08k0x9Sfy8HMAUsKPE707YEChGlQ/viewform"
+            target="_blank"
+          >
+            expression of interest form
+          </a>{" "}
+          if you would like to be considered as a moderator.
         </p>
       </div>
     </PageWrapper>
