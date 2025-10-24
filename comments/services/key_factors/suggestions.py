@@ -128,14 +128,14 @@ def build_post_question_summary(post: Post) -> tuple[str, Question.QuestionType]
 def get_impact_type_instructions(
     question_type: Question.QuestionType, is_group: bool
 ) -> str:
-    instructions = f"""
+    instructions = """
     - Set impact_direction (required): 1 or -1.
         - 1 means this factor makes the event more likely.
         - -1 means it makes the event less likely.
     """
 
     if question_type == Question.QuestionType.NUMERIC:
-        instructions = f"""
+        instructions = """
         - For each key factor, set exactly one of these fields:
           - impact_direction: 1 or -1
           - certainty: -1
@@ -146,7 +146,7 @@ def get_impact_type_instructions(
         """
 
     if question_type == Question.QuestionType.DATE:
-        instructions = f"""
+        instructions = """
         - For each key factor, set exactly one of these fields:
           - impact_direction: 1 or -1
           - certainty: -1
@@ -157,7 +157,7 @@ def get_impact_type_instructions(
         """
 
     if is_group or question_type == Question.QuestionType.MULTIPLE_CHOICE:
-        instructions += f"""
+        instructions += """
         - Add an optional "option" field if the key factor specifically supports one answer option over others.
         - If it affects all options, omit the "option" field.
         """
@@ -178,23 +178,23 @@ def generate_keyfactors(
 
     system_prompt = textwrap.dedent(
         """
-        You are a helpful assistant that creates tools for forecasters to better forecast on Metaculus, 
+        You are a helpful assistant that creates tools for forecasters to better forecast on Metaculus,
         where users can predict on all sorts of questions about real-world events.
         """
     )
 
     user_prompt = textwrap.dedent(
-        f"""
-        You are a helpful assistant that generates a list of up to 3 key factors for a comment 
+        """
+        You are a helpful assistant that generates a list of up to 3 key factors for a comment
         that a user makes on a Metaculus question.
-        
-        The comment is intended to describe what might influence the predictions on the question so the 
+
+        The comment is intended to describe what might influence the predictions on the question so the
         key factors should only be relate to that.
-        The key factors should be the most important things that the user is trying to say 
+        The key factors should be the most important things that the user is trying to say
         in the comment and how it might influence the predictions on the question.
-        The key factors text should be single sentences, not longer than {MAX_LENGTH} characters 
+        The key factors text should be single sentences, not longer than {MAX_LENGTH} characters
         and they should only contain the key factor, no other text (e.g.: do not reference the user).
-        
+
         Each key factor should describe something that could influence the forecast for the question.
         Also specify the direction of impact as described below.
 
