@@ -86,7 +86,9 @@ def votes_migration(apps, schema_editor):
             update_votes.append(vote)
 
         # Calculate strength
-        kf.votes_score = calculate_votes_strength([v.score for v in votes])
+        kf.votes_score = (
+            calculate_votes_strength([v.score for v in votes]) if votes else 0
+        )
 
     logger.info(f"Updating {len(update_votes)} votes")
     KeyFactorVote.objects.bulk_update(update_votes, ["score", "vote_type"])
