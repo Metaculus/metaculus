@@ -135,7 +135,9 @@ export function formatLeaderboardNumber(
   const fixed = num.toFixed(decimals);
 
   // Split into integer and decimal parts
-  const [integerPart, decimalPart] = fixed.split(".");
+  const parts = fixed.split(".");
+  const integerPart = parts[0] || "0";
+  const decimalPart = parts[1];
 
   // Add thin space separators every 3 digits from the right
   // U+2009 is the thin space character per BIPM standards
