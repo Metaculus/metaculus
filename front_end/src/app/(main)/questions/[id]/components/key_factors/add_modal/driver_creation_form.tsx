@@ -1,7 +1,7 @@
 import { faCog, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 
 import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/add_modal/impact_direction_controls";
 import Button from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 } from "@/utils/questions/helpers";
 
 import OptionTargetPicker from "../option_target_picker";
+import { driverTextSchema } from "../schemas";
 
 type Props = {
   draft: KeyFactorDraft;
@@ -45,6 +46,12 @@ const DriverCreationForm: FC<Props> = ({
     effectiveUnit = sq?.unit ?? effectiveUnit;
   }
 
+  const validationError = useMemo(() => {
+    const result = driverTextSchema.safeParse(draft.driver.text);
+    if (result.success) return null;
+    return result.error.issues[0]?.message ?? null;
+  }, [draft.driver.text]);
+
   return (
     <div className="flex flex-col gap-3 rounded border border-blue-500 bg-blue-100 px-5 py-4 dark:border-blue-500-dark dark:bg-blue-100-dark">
       <div className="flex justify-between">
@@ -72,6 +79,11 @@ const DriverCreationForm: FC<Props> = ({
         }
         className="grow rounded-none border-0 border-b border-blue-400 bg-transparent px-0 py-1 text-base text-blue-700 outline-0 placeholder:text-blue-700 placeholder:text-opacity-50 dark:border-blue-400-dark dark:text-blue-700-dark dark:placeholder:text-blue-700-dark"
       />
+      {validationError && (
+        <div className="-mt-1 text-xs text-salmon-600 dark:text-salmon-600-dark">
+          {validationError}
+        </div>
+      )}
       <div className="mt-1">
         <div className="mb-2.5 text-xs font-medium text-blue-700 dark:text-blue-700-dark">
           {t("chooseDirectionOfImpact")}

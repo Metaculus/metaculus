@@ -26,6 +26,7 @@ import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import { useKeyFactors } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
+import { driverTextSchema } from "./schemas";
 
 const FACTORS_PER_COMMENT = 4;
 
@@ -353,6 +354,9 @@ const AddKeyFactorsModal: FC<Props> = ({
                 (isNil(commentId) && !markdown) ||
                 drafts.length === 0 ||
                 drafts.some((obj) => obj.driver.text.trim() === "") ||
+                drafts.some(
+                  (obj) => !driverTextSchema.safeParse(obj.driver.text).success
+                ) ||
                 drafts.some(
                   (d) =>
                     d.driver.text.trim() !== "" &&

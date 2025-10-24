@@ -18,6 +18,7 @@ import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form
 import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
+import { driverTextSchema } from "@/app/(main)/questions/[id]/components/key_factors/schemas";
 import {
   createForecasts,
   editComment,
@@ -968,6 +969,9 @@ const Comment: FC<CommentProps> = ({
             isPending ||
             (!drafts.some((k) => k.driver.text.trim() !== "") &&
               suggestedKeyFactors.length === 0) ||
+            drafts.some(
+              (obj) => !driverTextSchema.safeParse(obj.driver.text).success
+            ) ||
             drafts.some(
               (d) =>
                 d.driver.text.trim() !== "" &&
