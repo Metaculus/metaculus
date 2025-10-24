@@ -45,11 +45,11 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const toggleExpandAll = () => {
     setExpandAllMode((prev) =>
-      prev === "collapsed" ? "expanded" : "collapsed"
+      prev === "expanded" ? "collapsed" : "expanded"
     );
   };
 
-  const isVisuallyExpanded = expandAllMode !== "collapsed";
+  const isVisuallyExpanded = expandAllMode === "expanded";
   const buttonLabel = isVisuallyExpanded ? t("collapseAll") : t("expandAll");
   const buttonIcon = isVisuallyExpanded ? faChevronUp : faChevronDown;
 
