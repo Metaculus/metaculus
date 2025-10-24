@@ -16,10 +16,11 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence
 
 
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 from django.utils import timezone
 import numpy as np
 
+from projects.permissions import ObjectPermission
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -27,8 +28,9 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score
+from scoring.models import Score, LeaderboardEntry
 from scoring.constants import ScoreTypes
+from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
@@ -50,7 +52,7 @@ RangeValuesType = tuple[list[float], list[float], list[float]]
 class ForecastSet:
     forecasts_values: ForecastsValues
     timestep: datetime
-    user_ids: list[int] = list
+    forecaster_ids: list[int] = list
     timesteps: list[datetime] = list
 
 
@@ -140,8 +142,8 @@ def compute_weighted_semi_standard_deviations(
 
 class Weighted:
 
-    def __init__(self, question: Question, **kwargs):
-        self.question = question
+    def __init__(self, **kwargs):
+        pass
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         raise NotImplementedError("Implement in Child Class")
@@ -168,6 +170,56 @@ class RecencyWeighted(Weighted):
         )
 
 
+# FilterWeightings ##########################################
+
+
+class Filtered(Weighted):
+    """Filter by user (yes, no)"""
+
+    def __init__(self, all_forecaster_ids: list[int] | set[int] | None, **kwargs):
+        if all_forecaster_ids is None:
+            raise ValueError("all_forecaster_ids must be provided")
+        self.filter: set[int] = self.get_filter(all_forecaster_ids)
+
+    def get_filter(self, all_forecaster_ids: list[int] | set[int]) -> set[int]:
+        raise NotImplementedError("Implement in Child Class")
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        return np.array(
+            [user_id in self.filter for user_id in forecast_set.forecaster_ids]
+        )
+
+
+class JoinedBeforeFiltered(Filtered):
+    """Filters for only forecasts by users who joined before a given date"""
+
+    def __init__(self, joined_before: datetime | None, **kwargs):
+        if joined_before is None:
+            raise ValueError("joined_before must be provided")
+        self.joined_before = joined_before
+        super().__init__(joined_before=joined_before, **kwargs)
+
+    def get_filter(self, all_forecaster_ids: list[int] | set[int]) -> set[int]:
+        return set(
+            User.objects.filter(
+                id__in=all_forecaster_ids,
+                date_joined__lte=self.joined_before,
+            ).values_list("id", flat=True)
+        )
+
+
+class ProsFiltered(Filtered):
+    """Filters for only forecasts by Pro users"""
+
+    def get_filter(self, all_forecaster_ids: list[int] | set[int]) -> set[int]:
+        return set(
+            User.objects.filter(
+                id__in=all_forecaster_ids,
+                metadata__pro_details__isnull=False,
+            ).values_list("id", flat=True)
+        )
+
+
 # ReputationWeightings ##########################################
 
 
@@ -175,22 +227,27 @@ class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
     Requires `get_reputation_history`"""
 
-    def __init__(self, question: Question, user_ids: list[int] | set[int] | None):
-        if question is None or user_ids is None:
-            raise ValueError("question and user_ids must be provided")
+    def __init__(
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None,
+        **kwargs,
+    ):
+        if question is None or all_forecaster_ids is None:
+            raise ValueError("question and all_forecaster_ids must be provided")
         self.question = question
         self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
-            user_ids
+            all_forecaster_ids
         )
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
     def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
         reps = []
-        for user_id in forecast_set.user_ids:
+        for user_id in forecast_set.forecaster_ids:
             found = False
             for reputation in self.reputations[user_id][::-1]:
                 if reputation.time <= forecast_set.timestep:
@@ -207,7 +264,7 @@ class ReputationWeighted(Weighted):
         return np.array([reputation.value for reputation in reps])
 
 
-class PeerScoreWeighted(ReputationWeighted):
+class PeerScoreReputationWeighted(ReputationWeighted):
 
     @staticmethod
     def reputation_value(scores: Sequence[Score]) -> float:
@@ -218,7 +275,7 @@ class PeerScoreWeighted(ReputationWeighted):
         )
 
     def get_reputation_history(
-        self, user_ids: list[int] | set[int]
+        self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
 
         start = self.question.open_time
@@ -226,7 +283,7 @@ class PeerScoreWeighted(ReputationWeighted):
         if end is None:
             end = timezone.now()
         peer_scores = Score.objects.filter(
-            user_id__in=user_ids,
+            user_id__in=all_forecaster_ids,
             score_type=ScoreTypes.PEER,
             question__in=Question.objects.filter_public(),
             edited_at__lte=end,
@@ -242,7 +299,7 @@ class PeerScoreWeighted(ReputationWeighted):
         )
         for score in old_peer_scores:
             scores_by_user[score.user_id][score.question_id] = score
-        for user_id in user_ids:
+        for user_id in all_forecaster_ids:
             value = self.reputation_value(list(scores_by_user[user_id].values()))
             reputations[user_id].append(Reputation(user_id, value, start))
 
@@ -283,6 +340,68 @@ class PeerScoreWeighted(ReputationWeighted):
         return weights if weights.size else None
 
 
+class MedalistsReputationWeighted(ReputationWeighted):
+    """Filters out forecasts by users with no medals"""
+
+    medal_filter = Q(medal__isnull=False)
+
+    def get_reputation_history(
+        self, all_forecaster_ids: list[int] | set[int]
+    ) -> dict[int, list[Reputation]]:
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        medals = (
+            LeaderboardEntry.objects.filter(
+                self.medal_filter,
+                user_id__in=all_forecaster_ids,
+                leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+            )
+            .annotate(set_time=F("leaderboard__finalize_time"))
+            .filter(set_time__lte=end)
+            .order_by("set_time")
+        )
+
+        # setup
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish initial reputations at the start of the interval.
+        old_medals = list(medals.filter(set_time__lte=start).order_by("set_time"))
+        for medal in old_medals:
+            user_id = medal.user_id
+            reputations[user_id] = [Reputation(user_id, 1, start)]
+        for user_id in all_forecaster_ids:
+            if user_id not in reputations:
+                reputations[user_id] = [Reputation(user_id, 0, start)]
+        # Then, for each new medal, add a new reputation record
+        new_medals = list(medals.filter(set_time__gt=start).order_by("set_time"))
+        for medal in new_medals:
+            user_id = medal.user_id
+            if reputations[user_id][-1].value == 0:
+                reputations[user_id].append(
+                    Reputation(user_id, 1, medal.edited_at or medal.created_at)
+                )
+        return reputations
+
+
+class SilverMedalistsReputationWeighted(MedalistsReputationWeighted):
+    """Filters for only forecasts by users with silver or better medals"""
+
+    medal_filter = Q(
+        medal__in=[
+            LeaderboardEntry.Medals.GOLD,
+            LeaderboardEntry.Medals.SILVER,
+        ]
+    )
+
+
+class GoldMedalistsReputationWeighted(MedalistsReputationWeighted):
+    """Filters for only forecasts by users with gold medals"""
+
+    medal_filter = Q(medal=LeaderboardEntry.Medals.GOLD)
+
+
 # Aggregators ##########################################
 
 
@@ -297,7 +416,7 @@ class AggregatorMixin:
     def calculate_forecast_values(
         self, forecast_set: ForecastSet, weights: np.ndarray | None = None
     ) -> np.ndarray:
-        raise NotImplementedError("Implement in subclass")
+        raise NotImplementedError("Implementation required in Mixin")
 
     def get_range_values(
         self,
@@ -305,7 +424,7 @@ class AggregatorMixin:
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
     ) -> RangeValuesType:
-        raise NotImplementedError("Implement in subclass")
+        raise NotImplementedError("Implementation required in Mixin")
 
 
 class MedianAggregatorMixin:
@@ -412,19 +531,27 @@ class Aggregation(AggregatorMixin):
         `weighting_classes` property. They will be applied multiplicatively in order.
     """
 
-    method = "N/A"
+    method: str = "N/A"
     weighting_classes: list[type[Weighted]] = []  # defined in subclasses
 
     def __init__(
-        self, question: Question, user_ids: list[int] | set[int] | None = None
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None = None,
+        joined_before: datetime | None = None,
     ):
         self.question = question
         self.weightings: list[Weighted] = [
-            Klass(question=question, user_ids=user_ids)
+            Klass(
+                question=question,
+                all_forecaster_ids=all_forecaster_ids,
+                joined_before=joined_before,
+            )
             for Klass in self.weighting_classes
         ]
 
-    def get_weights(self, forecast_set: ForecastSet) -> Weights:
+    def get_weights(self, forecast_set: ForecastSet) -> Weights | int:
+        """returns 0 as a sentinal for uniform 0 weights"""
         weights = None
         for weighting in self.weightings:
             new_weights = weighting.calculate_weights(forecast_set)
@@ -432,8 +559,10 @@ class Aggregation(AggregatorMixin):
                 weights = new_weights
             elif new_weights is not None:
                 weights = weights * new_weights
-        if weights is None or np.all(weights == 0):
+        if weights is None:
             return None
+        if np.all(weights == 0):
+            return 0
         if len(forecast_set.forecasts_values) != weights.shape[0]:
             weights = weights[0]
         return weights
@@ -443,15 +572,21 @@ class Aggregation(AggregatorMixin):
         forecast_set: ForecastSet,
         include_stats: bool = False,
         histogram: bool = False,
-    ) -> AggregateForecast:
+    ) -> AggregateForecast | None:
         weights = self.get_weights(forecast_set)
+        if isinstance(weights, int):
+            assert weights == 0, "0 is only supported int return of get_weights"
+            return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
         aggregation.forecast_values = self.calculate_forecast_values(
             forecast_set, weights
         ).tolist()
 
         aggregation.start_time = forecast_set.timestep
-        aggregation.forecaster_count = len(forecast_set.forecasts_values)
+        if weights is not None:
+            aggregation.forecaster_count = sum(weights > 0)
+        else:
+            aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
             lowers, centers, uppers = self.get_range_values(
                 forecast_set, aggregation.forecast_values, weights
@@ -480,6 +615,9 @@ class Aggregation(AggregatorMixin):
         return aggregation
 
 
+# Aggregations that may be stored in database
+
+
 class UnweightedAggregation(MedianAggregatorMixin, Aggregation):
     method = AggregationMethod.UNWEIGHTED
     weighting_classes = [Unweighted]
@@ -492,17 +630,50 @@ class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
 
 class SingleAggregation(MeanAggregatorMixin, Aggregation):
     method = AggregationMethod.SINGLE_AGGREGATION
-    weighting_classes = [PeerScoreWeighted]
+    weighting_classes = [PeerScoreReputationWeighted]
+
+
+# Aggregations that can be calculated, but not stored in database
+
+
+class MedalistsAggregation(MedianAggregatorMixin, Aggregation):
+    method = "medalists"
+    weighting_classes = [RecencyWeighted, MedalistsReputationWeighted]
+
+
+class SilverMedalistsAggregation(MedianAggregatorMixin, Aggregation):
+    method = "silver_medalists"
+    weighting_classes = [RecencyWeighted, SilverMedalistsReputationWeighted]
+
+
+class GoldMedalistsAggregation(MedianAggregatorMixin, Aggregation):
+    method = "gold_medalists"
+    weighting_classes = [RecencyWeighted, GoldMedalistsReputationWeighted]
+
+
+class ProAggregation(MedianAggregatorMixin, Aggregation):
+    method = "metaculus_pros"
+    weighting_classes = [RecencyWeighted, ProsFiltered]
+
+
+class JoinedBeforeDateAggregation(MedianAggregatorMixin, Aggregation):
+    method = "joined_before_date"
+    weighting_classes = [RecencyWeighted, JoinedBeforeFiltered]
 
 
 AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
     SingleAggregation,
+    MedalistsAggregation,
+    SilverMedalistsAggregation,
+    GoldMedalistsAggregation,
+    ProAggregation,
+    JoinedBeforeDateAggregation,
 ]
 
 
-def get_aggregation_by_name(method: AggregationMethod) -> type[Aggregation]:
+def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
 
 
@@ -510,10 +681,11 @@ def get_aggregations_at_time(
     question: Question,
     time: datetime,
     aggregation_methods: list[AggregationMethod],
-    user_ids: list[int] | set[int] | None = None,
+    only_include_user_ids: list[int] | set[int] | None = None,
     include_stats: bool = False,
     histogram: bool = False,
     include_bots: bool = False,
+    joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
@@ -524,8 +696,8 @@ def get_aggregations_at_time(
         .order_by("start_time")
         .select_related("author")
     )
-    if user_ids:
-        forecasts = forecasts.filter(author_id__in=user_ids)
+    if only_include_user_ids:
+        forecasts = forecasts.filter(author_id__in=only_include_user_ids)
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
@@ -533,7 +705,7 @@ def get_aggregations_at_time(
     forecast_set = ForecastSet(
         forecasts_values=[forecast.get_prediction_values() for forecast in forecasts],
         timestep=time,
-        user_ids=[forecast.author_id for forecast in forecasts],
+        forecaster_ids=[forecast.author_id for forecast in forecasts],
         timesteps=[forecast.start_time for forecast in forecasts],
     )
 
@@ -541,14 +713,16 @@ def get_aggregations_at_time(
     for method in aggregation_methods:
         aggregation_generator = get_aggregation_by_name(method)(
             question=question,
-            user_ids=set(forecast_set.user_ids),
+            all_forecaster_ids=set(forecast_set.forecaster_ids),
+            joined_before=joined_before,
         )
         new_entry = aggregation_generator.calculate_aggregation_entry(
             forecast_set,
             include_stats=include_stats,
             histogram=histogram,
         )
-        aggregations[method] = new_entry
+        if new_entry is not None:
+            aggregations[method] = new_entry
     return aggregations
 
 
@@ -700,7 +874,7 @@ def get_user_forecast_history(
         timestep: ForecastSet(
             forecasts_values=[],
             timestep=timestep,
-            user_ids=[],
+            forecaster_ids=[],
             timesteps=[],
         )
         for timestep in timesteps
@@ -716,7 +890,7 @@ def get_user_forecast_history(
         forecast_values = forecast.get_prediction_values()
         for timestep in timesteps[start_index:end_index]:
             forecast_sets[timestep].forecasts_values.append(forecast_values)
-            forecast_sets[timestep].user_ids.append(forecast.author_id)
+            forecast_sets[timestep].forecaster_ids.append(forecast.author_id)
             forecast_sets[timestep].timesteps.append(forecast.start_time)
 
     return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
@@ -726,12 +900,13 @@ def get_aggregation_history(
     question: Question,
     aggregation_methods: list[AggregationMethod],
     forecasts: QuerySet[Forecast] | None = None,
-    user_ids: list[int] | set[int] | None = None,
+    only_include_user_ids: list[int] | set[int] | None = None,
     minimize: bool = True,
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,
     include_future: bool = True,
+    joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
@@ -745,8 +920,8 @@ def get_aggregation_history(
         if question.actual_close_time:
             forecasts = forecasts.filter(start_time__lte=question.actual_close_time)
 
-        if user_ids:
-            forecasts = forecasts.filter(author_id__in=user_ids)
+        if only_include_user_ids:
+            forecasts = forecasts.filter(author_id__in=only_include_user_ids)
         if not include_bots:
             forecasts = forecasts.exclude(author__is_bot=True)
 
@@ -774,7 +949,8 @@ def get_aggregation_history(
         aggregation_history: list[AggregateForecast] = []
         AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
             question=question,
-            user_ids=forecaster_ids,
+            all_forecaster_ids=forecaster_ids,
+            joined_before=joined_before,
         )
 
         last_historical_entry_index = -1
@@ -782,8 +958,8 @@ def get_aggregation_history(
         for entry in forecast_history:
             if entry.timestep < now:
                 last_historical_entry_index += 1
-
-            break
+            else:
+                break
         for i, forecast_set in enumerate(forecast_history):
             if histogram is not None:
                 include_histogram = histogram and (
@@ -794,9 +970,8 @@ def get_aggregation_history(
                     ]
                 )
             else:
-                include_histogram = (
-                    question.type == Question.QuestionType.BINARY
-                    and i == (len(forecast_history) - 1)
+                include_histogram = question.type == Question.QuestionType.BINARY and (
+                    i >= last_historical_entry_index
                 )
 
             if forecast_set.forecasts_values:
@@ -805,6 +980,8 @@ def get_aggregation_history(
                     include_stats=include_stats,
                     histogram=include_histogram,
                 )
+                if new_entry is None:
+                    continue
                 if aggregation_history and aggregation_history[-1].end_time is None:
                     aggregation_history[-1].end_time = new_entry.start_time
                 aggregation_history.append(new_entry)
