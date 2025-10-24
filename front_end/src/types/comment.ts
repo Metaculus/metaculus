@@ -115,7 +115,6 @@ export type KeyFactor = {
   author: AuthorType; // used to set limit per question
   comment_id: number;
   vote: KeyFactorVoteAggregate;
-  post_id?: number;
   question_id?: number | null;
   question?: {
     id: number;
@@ -124,6 +123,11 @@ export type KeyFactor = {
   } | null;
   question_option?: string;
   freshness?: number;
+  post: {
+    id: number;
+    unit?: string;
+    question_type?: QuestionType;
+  };
 };
 
 export type KeyFactorVoteAggregate = {

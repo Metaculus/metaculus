@@ -5,17 +5,15 @@ import { FC } from "react";
 
 import { useBreakpoint } from "@/hooks/tailwind";
 import { KeyFactor } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
 
 import { KeyFactorItem } from "./key_factor_item";
 import KeyFactorsCarousel from "./key_factors_carousel";
 
 type Props = {
   keyFactors: KeyFactor[];
-  post: PostWithForecasts;
 };
 
-const KeyFactorsConsumerSection: FC<Props> = ({ post, keyFactors }) => {
+const KeyFactorsConsumerSection: FC<Props> = ({ keyFactors }) => {
   const t = useTranslations();
   const isDesktop = useBreakpoint("sm");
 
@@ -34,7 +32,6 @@ const KeyFactorsConsumerSection: FC<Props> = ({ post, keyFactors }) => {
         renderItem={(kf) => (
           <KeyFactorItem
             keyFactor={kf}
-            post={post}
             mode={"consumer"}
             isCompact={!isDesktop}
             className="sm:max-w-[200px]"

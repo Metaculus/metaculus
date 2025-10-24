@@ -846,7 +846,6 @@ const Comment: FC<CommentProps> = ({
             {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
               <KeyFactorsCommentSection
                 keyFactors={commentKeyFactors}
-                post={postData}
                 comment={comment}
               />
             )}
