@@ -100,9 +100,10 @@ export enum ImpactDirectionCategory {
   IncreaseUncertainty,
 }
 
-export type ImpactMetadata =
-  | { impact_direction: 1 | -1; certainty: null }
-  | { impact_direction: null; certainty: -1 };
+export type ImpactMetadata = {
+  impact_direction: 1 | -1 | null;
+  certainty: -1 | null;
+};
 
 export type Driver = ImpactMetadata & {
   text: string;

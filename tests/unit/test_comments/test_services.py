@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote, KeyFactorDriver
 from comments.services.common import create_comment, soft_delete_comment
-from comments.services.key_factors import (
+from comments.services.key_factors.common import (
     key_factor_vote,
     create_key_factors,
     calculate_freshness_driver,

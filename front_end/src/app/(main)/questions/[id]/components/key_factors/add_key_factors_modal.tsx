@@ -1,26 +1,30 @@
 "use client";
 import {
   faChevronRight,
-  faMinus,
+  faClose,
+  faPen,
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, memo, useState } from "react";
+import { FC, memo, useEffect, useState } from "react";
 
 import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
+import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import BaseModal from "@/components/base_modal";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { BECommentType } from "@/types/comment";
+import { useAuth } from "@/contexts/auth_context";
+import { BECommentType, KeyFactor } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 
 import { useKeyFactors } from "./hooks";
+import KeyFactorItem from "./key_factor_item";
 
 const FACTORS_PER_COMMENT = 4;
 
@@ -54,16 +58,25 @@ export const AddKeyFactorsForm = ({
   setDrafts: React.Dispatch<React.SetStateAction<KeyFactorDraft[]>>;
   limitError?: string;
   factorsLimit: number;
-  suggestedKeyFactors: { text: string; selected: boolean }[];
-  setSuggestedKeyFactors: (
-    factors: { text: string; selected: boolean }[]
-  ) => void;
+  suggestedKeyFactors: KeyFactorDraft[];
+  setSuggestedKeyFactors: React.Dispatch<
+    React.SetStateAction<KeyFactorDraft[]>
+  >;
   post: PostWithForecasts;
 }) => {
   const t = useTranslations();
+  const { user } = useAuth();
+  useEffect(() => {
+    if (suggestedKeyFactors.length > 0) {
+      setDrafts([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!user) return null;
 
   const totalKeyFactorsLimitReached =
-    drafts.length + suggestedKeyFactors.filter((kf) => kf.selected).length >=
+    drafts.length + suggestedKeyFactors.length >=
     Math.min(factorsLimit, FACTORS_PER_COMMENT);
 
   return (
@@ -73,37 +86,71 @@ export const AddKeyFactorsForm = ({
           <p className="text-base leading-tight">
             {t("suggestedKeyFactorsSection")}
           </p>
-          {suggestedKeyFactors.map((keyFactor) => (
-            <div
-              key={keyFactor.text}
-              className="flex grow items-center justify-between rounded border px-3 py-2 text-base"
-            >
-              <span>{keyFactor.text}</span>
-              <Button
-                variant={keyFactor.selected ? "primary" : "tertiary"}
-                size="xs"
-                className="h-fit w-fit"
-                disabled={totalKeyFactorsLimitReached && !keyFactor.selected}
-                onClick={() => {
-                  setSuggestedKeyFactors(
-                    suggestedKeyFactors.map((kf) =>
-                      kf.text === keyFactor.text
-                        ? { ...kf, selected: !kf.selected }
-                        : kf
-                    )
-                  );
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={keyFactor.selected ? faMinus : faPlus}
-                  className="size-4 p-1"
-                />
-                <span className="capitalize">
-                  {keyFactor.selected ? t("remove") : t("add")}
-                </span>
-              </Button>
-            </div>
-          ))}
+          <div className="-mt-3">
+            <KeyFactorsCarousel
+              items={suggestedKeyFactors}
+              gapClassName="gap-3.5"
+              renderItem={(kf, idx) => {
+                const fake: KeyFactor = {
+                  ...kf,
+                  id: -1,
+                  author: user,
+                  comment_id: -1,
+                  vote: { score: 0, user_vote: null, count: 0 },
+                  question: kf.question_id
+                    ? {
+                        id: kf.question_id,
+                        label:
+                          post.group_of_questions?.questions.find(
+                            (obj) => obj.id === kf.question_id
+                          )?.label || "",
+                      }
+                    : undefined,
+                };
+
+                return (
+                  <div key={idx} className="group relative mt-3">
+                    <KeyFactorItem
+                      keyFactor={fake}
+                      post={post}
+                      isCompact
+                      mode="consumer"
+                      linkToComment={false}
+                    />
+                    <div className="absolute -right-3 -top-3 flex gap-2">
+                      <button
+                        className="pointer-events-auto flex h-6 w-6 rounded-full bg-blue-400 p-0 text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
+                        onClick={() => {
+                          setDrafts([...drafts, kf]);
+                          setSuggestedKeyFactors(
+                            suggestedKeyFactors.filter((_, i) => i !== idx)
+                          );
+                        }}
+                      >
+                        <FontAwesomeIcon
+                          icon={faPen}
+                          className="m-auto size-3"
+                        />
+                      </button>
+                      <button
+                        className="pointer-events-auto flex h-6 w-6 rounded-full bg-salmon-300 p-0 text-salmon-600 dark:bg-salmon-300-dark dark:text-salmon-600-dark"
+                        onClick={() =>
+                          setSuggestedKeyFactors(
+                            suggestedKeyFactors.filter((_, i) => i !== idx)
+                          )
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faClose}
+                          className="m-auto size-4"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                );
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -121,7 +168,7 @@ export const AddKeyFactorsForm = ({
             setDraft={(d) =>
               setDrafts(drafts.map((k, i) => (i === idx ? d : k)))
             }
-            showXButton={idx > 0}
+            showXButton={idx > 0 || !!suggestedKeyFactors.length}
             onXButtonClick={() => {
               setDrafts(drafts.filter((_, i) => i !== idx));
             }}

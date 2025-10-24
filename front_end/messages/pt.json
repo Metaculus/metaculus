@@ -1545,11 +1545,12 @@
   "medium": "médio",
   "topKeyFactors": "Principais Fatores Chave",
   "addDriver": "Adicionar Driver",
-  "addDriverModalDescription": "Digite seus drivers abaixo - tente mantê-los curtos e claros.",
-  "addDriverModalCommentDescription": "Os drivers devem ser apoiados por comentários - insira um comentário abaixo e explique seu raciocínio.",
   "allOptions": "Todas as opções",
   "allSubquestions": "Todas as subquestões",
   "chooseOptionImpactedMost": "Escolha uma opção que este driver impacta mais:",
   "chooseSubquestionImpactedMost": "Escolha uma subquestão que este driver impacta mais:",
+  "addDriverModalDescription": "Drivers são fatos impactantes, princípios ou hipotéticos. Por exemplo: “O benchmark MMLU começou a saturar no final de 2024”, “A China poderia invadir Taiwan”, “Dinâmicas de vencedor-leva-tudo”.",
+  "addDriverModalCommentDescription": "Drivers devem ser apoiados por fontes e argumentos. Escreva um comentário abaixo e explique seu raciocínio.",
+  "addDriverCommentDisclaimer": "Certifique-se de que seus drivers são respaldados por fontes e raciocínios no seu comentário.",
   "othersCount": "Outros ({count})"
 }

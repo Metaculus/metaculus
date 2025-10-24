@@ -8,12 +8,13 @@ import cn from "@/utils/core/cn";
 
 type Props<T> = {
   items: T[];
-  renderItem: (item: T) => React.ReactNode;
+  renderItem: (item: T, index: number) => React.ReactNode;
   listClassName?: string;
+  gapClassName?: string;
 };
 
 function KeyFactorsCarousel<T>(props: Props<T>) {
-  const { items, renderItem, listClassName } = props;
+  const { items, renderItem, listClassName, gapClassName } = props;
 
   const isDesktop = useBreakpoint("sm");
 
@@ -40,11 +41,11 @@ function KeyFactorsCarousel<T>(props: Props<T>) {
           : true
       }
       itemClassName=""
-      gapClassName="gap-2.5"
+      gapClassName={cn("gap-2.5", gapClassName)}
       listClassName={cn("px-0", listClassName)}
       gradientFromClass="from-gray-0 dark:from-gray-0-dark w-[55px]"
       arrowClassName="right-1.5 w-10 h-10 md:w-[44px] md:h-[44px] text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark mt-3 md:text-gray-200 md:dark:text-gray-200-dark rounded-full md:bg-blue-900 md:dark:bg-blue-900-dark"
-      renderItem={(item) => renderItem(item)}
+      renderItem={(item, i) => renderItem(item, i)}
     />
   );
 }

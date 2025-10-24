@@ -1547,11 +1547,12 @@
   "medium": "medio",
   "topKeyFactors": "Factores Clave Principales",
   "addDriver": "Agregar conductor",
-  "addDriverModalDescription": "Introduce tus conductores a continuación - trata de mantenerlos breves y claros.",
-  "addDriverModalCommentDescription": "Los conductores deben estar respaldados por comentarios - introduce un comentario a continuación y explica tu razonamiento.",
   "allOptions": "Todas las opciones",
   "allSubquestions": "Todas las subpreguntas",
   "chooseOptionImpactedMost": "Elige una opción que este conductor impacte más:",
   "chooseSubquestionImpactedMost": "Elige una subpregunta que este conductor impacte más:",
+  "addDriverModalDescription": "Los impulsores son hechos, principios o hipótesis impactantes. Por ejemplo: “El benchmark MMLU comenzó a saturarse a finales de 2024”, “China podría invadir Taiwán”, “Dinámicas de ganador se lleva todo”.",
+  "addDriverModalCommentDescription": "Los impulsores deben estar respaldados por fuentes y argumentos. Escribe un comentario a continuación y explica tu razonamiento.",
+  "addDriverCommentDisclaimer": "Asegúrate de que tus impulsores estén respaldados por fuentes y razonamiento en tu comentario.",
   "othersCount": "Otros ({count})"
 }
