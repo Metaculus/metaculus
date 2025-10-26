@@ -220,6 +220,7 @@ def project_create_api_view(request: Request):
             "leaderboard_score_type", LeaderboardScoreTypes.PEER_TOURNAMENT
         )
         leaderboard.save()
+    project.update_and_maybe_translate()
 
     return Response(serializer.data)
 
@@ -255,7 +256,8 @@ def project_update_api_view(request: Request, project_id: int):
         partial=True,
     )
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    project: Project = serializer.save()
+    project.update_and_maybe_translate()
 
     return Response(serializer.data)
 
