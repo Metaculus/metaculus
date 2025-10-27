@@ -184,6 +184,7 @@ type MarkdownEditorFieldProps<T extends FieldValues = FieldValues> = {
   defaultValue?: PathValue<T, Path<T>>;
   errors?: ErrorResponse;
   className?: string;
+  withCodeBlocks?: boolean;
 };
 
 export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
@@ -192,6 +193,7 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
   errors,
   defaultValue,
   className,
+  withCodeBlocks,
 }: MarkdownEditorFieldProps<T>) => {
   const { field } = useController({ control, name, defaultValue });
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -236,6 +238,7 @@ export const MarkdownEditorField = <T extends FieldValues = FieldValues>({
           }}
           onBlur={field.onBlur}
           className="markdown-editor-form w-full"
+          withCodeBlocks={withCodeBlocks}
         />
       </div>
       {errors && (

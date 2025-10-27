@@ -716,6 +716,7 @@ const QuestionForm: FC<Props> = ({
             name={"resolution_criteria"}
             defaultValue={post?.question?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
+            withCodeBlocks
           />
         </InputContainer>
         <InputContainer
@@ -728,6 +729,7 @@ const QuestionForm: FC<Props> = ({
             name={"fine_print"}
             defaultValue={post?.question?.fine_print}
             errors={form.formState.errors.fine_print}
+            withCodeBlocks
           />
         </InputContainer>
 
