@@ -9,9 +9,10 @@ from comments.services.key_factors.common import (
     get_votes_for_key_factors,
     calculate_key_factors_freshness,
 )
-from questions.models import Question
+from questions.models import Question, QuestionPost
 from users.models import User
 from users.serializers import BaseUserSerializer
+from utils.dtypes import generate_map_from_list
 
 
 def serialize_key_factor_votes(
@@ -34,12 +35,13 @@ def serialize_key_factor(
     vote_scores: list[KeyFactorVote] = None,
     freshness: float = None,
     question: Question = None,
+    question_type: Question.QuestionType = None,
+    unit: str = None,
 ) -> dict:
     return {
         "id": key_factor.id,
         "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
-        "post_id": key_factor.comment.on_post_id,
         "vote": serialize_key_factor_votes(
             key_factor, vote_scores or [], user_vote=key_factor.user_vote
         ),
@@ -61,6 +63,11 @@ def serialize_key_factor(
             if key_factor.driver
             else None
         ),
+        "post": {
+            "id": key_factor.comment.on_post_id,
+            "question_type": question_type,
+            "unit": unit,
+        },
     }
 
 
@@ -88,15 +95,41 @@ def serialize_key_factors_many(
     # Generate freshness
     freshness_map = calculate_key_factors_freshness(key_factors, votes_map)
 
-    return [
-        serialize_key_factor(
-            key_factor,
-            vote_scores=votes_map.get(key_factor.id),
-            freshness=freshness_map.get(key_factor),
-            question=key_factor.question,
+    # Fetch post questions
+    post_questions_rel = generate_map_from_list(
+        list(
+            QuestionPost.objects.filter(
+                post_id__in=[x.comment.on_post_id for x in objects]
+            )
+            .select_related("question")
+            .only("post_id", "question__type", "question__unit")
+        ),
+        key=lambda x: x.post_id,
+    )
+
+    serialized_data = []
+
+    for key_factor in objects:
+        post = key_factor.comment.on_post
+        questions = [x.question for x in post_questions_rel.get(post.id) or []]
+
+        question_type = questions[0].type if questions else None
+        question_units = list({q.unit for q in questions})
+        # Use unit if it's same across all questions
+        unit = question_units[0] if len(question_units) == 1 else None
+
+        serialized_data.append(
+            serialize_key_factor(
+                key_factor,
+                vote_scores=votes_map.get(key_factor.id),
+                freshness=freshness_map.get(key_factor),
+                question=key_factor.question,
+                question_type=question_type,
+                unit=unit,
+            )
         )
-        for key_factor in objects
-    ]
+
+    return serialized_data
 
 
 class KeyFactorDriverSerializer(serializers.ModelSerializer):

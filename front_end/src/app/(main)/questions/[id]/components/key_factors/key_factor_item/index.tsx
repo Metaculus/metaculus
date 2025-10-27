@@ -4,14 +4,12 @@ import dynamic from "next/dynamic";
 import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import KeyFactorDriver from "./key_factor_driver";
 
 type Props = {
   keyFactor: KeyFactor;
-  post: PostWithForecasts;
   linkToComment?: boolean;
   isCompact?: boolean;
   mode?: "forecaster" | "consumer";
@@ -21,7 +19,6 @@ type Props = {
 
 export const KeyFactorItem: FC<Props> = ({
   keyFactor,
-  post,
   linkToComment = true,
   isCompact,
   mode,
@@ -53,7 +50,6 @@ export const KeyFactorItem: FC<Props> = ({
           keyFactor={keyFactor}
           mode={mode}
           isCompact={isCompact}
-          post={post}
         />
       )}
     </div>

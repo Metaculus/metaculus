@@ -112,12 +112,6 @@ export const useKeyFactors = ({
         comment: BECommentType;
       }
   > => {
-    for (const draft of submittedDrafts) {
-      if (draft.driver.text.trim().length > 150) {
-        return { errors: new Error(t("maxKeyFactorLength")) };
-      }
-    }
-
     const filteredDrafts = submittedDrafts.filter(
       (d) => d.driver.text.trim() !== ""
     );
