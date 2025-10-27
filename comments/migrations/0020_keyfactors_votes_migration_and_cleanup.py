@@ -46,7 +46,9 @@ def votes_migration(apps, schema_editor):
     to_delete.delete()
 
     # Migrate other votes
-    key_factors = list(KeyFactor.objects.prefetch_related("votes").all())
+    key_factors = list(
+        KeyFactor.objects.select_related("comment").prefetch_related("votes").all()
+    )
     update_votes = []
     update_drivers = []
 
@@ -57,7 +59,13 @@ def votes_migration(apps, schema_editor):
             logger.info(f"KeyFactor {kf.id} has no votes")
             continue
 
-        direction = sum([v.score for v in votes])
+        votes_sum = sum([v.score for v in votes])
+        author_vote_score = next(
+            (v.score for v in votes if v.user_id == kf.comment.author_id), None
+        )
+
+        # Author's vote has more weight
+        direction = author_vote_score or votes_sum
 
         if direction == 0:
             logger.info(f"KeyFactor {kf.id} has direction = 0")
