@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { FC, ReactElement } from "react";
 
 import { KeyFactor } from "@/types/comment";
+import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import KeyFactorDriver from "./key_factor_driver";
@@ -15,7 +16,7 @@ type Props = {
   mode?: "forecaster" | "consumer";
   onClick?: () => void;
   className?: string;
-  footerControls?: ReactElement;
+  projectPermission?: ProjectPermissions;
 };
 
 export const KeyFactorItem: FC<Props> = ({
@@ -25,7 +26,7 @@ export const KeyFactorItem: FC<Props> = ({
   mode,
   onClick,
   className,
-  footerControls,
+  projectPermission,
 }) => {
   const isCompactConsumer = mode === "consumer" && isCompact;
 
@@ -52,7 +53,7 @@ export const KeyFactorItem: FC<Props> = ({
           keyFactor={keyFactor}
           mode={mode}
           isCompact={isCompact}
-          footerControls={footerControls}
+          projectPermission={projectPermission}
         />
       )}
     </div>

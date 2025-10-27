@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 
-import { KeyFactorsProvider } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_provider";
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
 import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
 import PredictionFlowProvider, {
