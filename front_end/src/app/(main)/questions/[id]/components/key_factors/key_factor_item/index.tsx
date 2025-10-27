@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { FC, ReactElement } from "react";
+import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";

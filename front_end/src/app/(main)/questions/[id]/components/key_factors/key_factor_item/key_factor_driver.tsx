@@ -1,7 +1,7 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, ReactElement } from "react";
+import { FC } from "react";
 
 import KeyFactorDropdownMenuItems from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/dropdown_menu_items";
 import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/key_factor_header";
