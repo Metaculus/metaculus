@@ -2,7 +2,7 @@ import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo } from "react";
+import { FC, useCallback } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
@@ -11,22 +11,26 @@ import { deleteKeyFactor as deleteKeyFactorAction } from "@/app/(main)/questions
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { CommentType } from "@/types/comment";
-import { ProjectPermissions } from "@/types/post";
 import { KeyFactor } from "@/types/comment";
-import { Post } from "@/types/post";
+import { Post, ProjectPermissions } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getPostLink } from "@/utils/navigation";
 
 import { useKeyFactorsContext } from "./key_factors_provider";
 
 type Props = {
-  comment: CommentType;
+  keyFactors: KeyFactor[];
   permission?: ProjectPermissions;
   post: Post;
+  authorId: number;
 };
 
-const KeyFactorsCommentSection: FC<Props> = ({ post, comment, permission }) => {
+const KeyFactorsCommentSection: FC<Props> = ({
+  post,
+  keyFactors,
+  permission,
+  authorId,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const scrollTo = useScrollTo();
@@ -34,14 +38,8 @@ const KeyFactorsCommentSection: FC<Props> = ({ post, comment, permission }) => {
   const { setCurrentModal } = useModal();
   const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
 
-  // Derive keyFactors from combinedKeyFactors instead of receiving as prop
-  const keyFactors = useMemo(
-    () => combinedKeyFactors.filter((kf) => kf.comment_id === comment.id),
-    [combinedKeyFactors, comment.id]
-  );
-
   const canEdit =
-    user?.id === comment.author.id || permission === ProjectPermissions.ADMIN;
+    user?.id === authorId || permission === ProjectPermissions.ADMIN;
 
   const kfPostUrl = `${getPostLink(post)}#key-factors`;
 
