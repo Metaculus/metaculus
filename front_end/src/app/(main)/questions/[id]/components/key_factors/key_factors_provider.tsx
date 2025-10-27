@@ -31,7 +31,8 @@ export const KeyFactorsProvider = ({ children }: PropsWithChildren) => {
   const t = useTranslations();
   const [forceExpandedState, setForceExpandedState] = useState<boolean>();
   const { setCurrentModal } = useModal();
-  // TODO: refactor hooks and structure
+  // TODO: refactor hooks and structure.
+  //    Move all KeyFactor related hooks out of useCommentsFeed
   const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
 
   // Expand immediately if URL hash points to key factors
