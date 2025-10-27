@@ -46,7 +46,7 @@ const AIBInfoIdeaDescription: React.FC = () => {
       title: t("aibIdeaCard3Title"),
       content: (
         <>
-          <p>{t("aibIdeaCard2P1")}</p>
+          <p>{t("aibIdeaCard3P1")}</p>
           <p>
             {t.rich("aibIdeaCard2P2", {
               link: (chunks) => (
