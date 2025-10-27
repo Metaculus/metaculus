@@ -151,7 +151,7 @@ const ScoreDisplay: FC<Props> = ({ question, className, variant }) => {
           {primaryScoreBoxes}
         </div>
       )}
-      {secondaryScoreBoxes.length > 0 && (
+      {secondaryScoreBoxes.length > 0 && question.resolution && (
         <SectionToggle
           title="Additional Scores"
           defaultOpen={false}
