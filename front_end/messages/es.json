@@ -1556,5 +1556,6 @@
   "addDriverCommentDisclaimer": "Asegúrate de que tus impulsores estén respaldados por fuentes y razonamiento en tu comentario.",
   "confirmDeletion": "Confirmar eliminación",
   "confirmDeletionKeyFactorDescription": "¿Está seguro de que desea eliminar su factor clave?",
+  "deleteKeyFactor": "Eliminar factor clave",
   "othersCount": "Otros ({count})"
 }

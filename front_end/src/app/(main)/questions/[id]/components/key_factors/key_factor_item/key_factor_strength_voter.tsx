@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useState } from "react";
+import React, { FC, ReactElement, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
@@ -23,6 +23,7 @@ type Props = {
   className?: string;
   allowVotes?: boolean;
   mode?: "forecaster" | "consumer";
+  footerControls?: ReactElement;
 };
 
 const StrengthScale: FC<{
@@ -59,7 +60,8 @@ const VoterControls: FC<{
   keyFactorId: number;
   aggregate: KeyFactorVoteAggregate;
   setAggregate: (newAggregation: KeyFactorVoteAggregate) => void;
-}> = ({ keyFactorId, setAggregate, aggregate }) => {
+  footerControls?: ReactElement;
+}> = ({ keyFactorId, setAggregate, aggregate, footerControls }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setKeyFactorVote } = useCommentsFeed();
@@ -115,22 +117,25 @@ const VoterControls: FC<{
       <div className="w-full text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
         {t("vote")}
       </div>
-      <div className="flex w-full flex-wrap items-center gap-2">
-        {voteOptions.map(({ value, label }) => (
-          <button
-            type="button"
-            key={value}
-            className={cn(
-              "rounded-[4px] px-2 py-1.5 text-xs font-medium leading-none outline-none transition-colors",
-              aggregate.user_vote === value
-                ? "border border-transparent bg-olive-800 text-gray-0 dark:bg-olive-800-dark dark:text-gray-0-dark"
-                : "border border-blue-400 text-blue-800 hover:bg-blue-100/50 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark/20"
-            )}
-            onClick={() => handleSelect(value)}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex justify-between">
+        <div className="flex w-full flex-wrap items-center gap-2">
+          {voteOptions.map(({ value, label }) => (
+            <button
+              type="button"
+              key={value}
+              className={cn(
+                "rounded-[4px] px-2 py-1.5 text-xs font-medium leading-none outline-none transition-colors",
+                aggregate.user_vote === value
+                  ? "border border-transparent bg-olive-800 text-gray-0 dark:bg-olive-800-dark dark:text-gray-0-dark"
+                  : "border border-blue-400 text-blue-800 hover:bg-blue-100/50 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark/20"
+              )}
+              onClick={() => handleSelect(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {footerControls}
       </div>
     </div>
   );
@@ -142,6 +147,7 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   className,
   allowVotes,
   mode = "forecaster",
+  footerControls,
 }) => {
   const { user } = useAuth();
 
@@ -159,6 +165,7 @@ const KeyFactorStrengthVoter: FC<Props> = ({
           keyFactorId={keyFactorId}
           aggregate={aggregate}
           setAggregate={setAggregate}
+          footerControls={footerControls}
         />
       )}
     </div>

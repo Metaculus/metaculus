@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { FC } from "react";
+import { FC, ReactElement } from "react";
 
 import { KeyFactor } from "@/types/comment";
 import cn from "@/utils/core/cn";
@@ -15,6 +15,7 @@ type Props = {
   mode?: "forecaster" | "consumer";
   onClick?: () => void;
   className?: string;
+  footerControls?: ReactElement;
 };
 
 export const KeyFactorItem: FC<Props> = ({
@@ -24,6 +25,7 @@ export const KeyFactorItem: FC<Props> = ({
   mode,
   onClick,
   className,
+  footerControls,
 }) => {
   const isCompactConsumer = mode === "consumer" && isCompact;
 
@@ -50,6 +52,7 @@ export const KeyFactorItem: FC<Props> = ({
           keyFactor={keyFactor}
           mode={mode}
           isCompact={isCompact}
+          footerControls={footerControls}
         />
       )}
     </div>

@@ -1556,5 +1556,6 @@
   "addDriverCommentDisclaimer": "Ujistěte se, že vaše drivery jsou podepřeny zdroji a zdůvodněním ve vašem komentáři.",
   "confirmDeletion": "Potvrdit smazání",
   "confirmDeletionKeyFactorDescription": "Opravdu chcete smazat svůj klíčový faktor?",
+  "deleteKeyFactor": "Smazat klíčový faktor",
   "othersCount": "Ostatní ({count})"
 }

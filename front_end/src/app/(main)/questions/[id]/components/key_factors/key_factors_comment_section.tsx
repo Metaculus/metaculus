@@ -2,14 +2,11 @@ import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useCallback } from "react";
+import { FC } from "react";
 
-import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
-import { deleteKeyFactor as deleteKeyFactorAction } from "@/app/(main)/questions/actions";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
 import { Post, ProjectPermissions } from "@/types/post";
@@ -34,36 +31,12 @@ const KeyFactorsCommentSection: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const scrollTo = useScrollTo();
-  const { requestExpand } = useKeyFactorsContext();
-  const { setCurrentModal } = useModal();
-  const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
+  const { requestExpand, openDeleteModal } = useKeyFactorsContext();
 
   const canEdit =
     user?.id === authorId || permission === ProjectPermissions.ADMIN;
 
   const kfPostUrl = `${getPostLink(post)}#key-factors`;
-
-  const handleDelete = useCallback(
-    async (keyFactorId: number) => {
-      setCurrentModal({
-        type: "confirm",
-        data: {
-          title: t("confirmDeletion"),
-          description: t("confirmDeletionKeyFactorDescription"),
-          onConfirm: async () => {
-            const result = await deleteKeyFactorAction(keyFactorId);
-
-            if (!result || !("errors" in result)) {
-              setCombinedKeyFactors(
-                combinedKeyFactors.filter((kf) => kf.id !== keyFactorId)
-              );
-            }
-          },
-        },
-      });
-    },
-    [setCurrentModal, t, combinedKeyFactors, setCombinedKeyFactors]
-  );
 
   // Don't render if there are no key factors for this comment
   if (keyFactors.length === 0) {
@@ -109,7 +82,7 @@ const KeyFactorsCommentSection: FC<Props> = ({
                   className="pointer-events-auto flex h-6 w-6 rounded-full bg-salmon-300 p-0 text-salmon-600 dark:bg-salmon-300-dark dark:text-salmon-600-dark"
                   onClick={(e) => {
                     e.preventDefault();
-                    handleDelete(kf.id);
+                    openDeleteModal(kf.id);
                   }}
                 >
                   <FontAwesomeIcon icon={faClose} className="m-auto size-4" />

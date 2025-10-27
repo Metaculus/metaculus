@@ -1553,5 +1553,6 @@
   "addDriverCommentDisclaimer": "確保你的驅動因素在評論中有來源和推理的支持。",
   "confirmDeletion": "確認刪除",
   "confirmDeletionKeyFactorDescription": "您確定要刪除您的關鍵因素嗎？",
+  "deleteKeyFactor": "刪除關鍵因素",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

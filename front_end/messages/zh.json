@@ -1558,5 +1558,6 @@
   "addDriverCommentDisclaimer": "确保您的驱动因素在评论中有来源和推理的支持。",
   "confirmDeletion": "确认删除",
   "confirmDeletionKeyFactorDescription": "您确定要删除您的关键因素吗？",
+  "deleteKeyFactor": "删除关键因素",
   "othersCount": "其他（{count}）"
 }

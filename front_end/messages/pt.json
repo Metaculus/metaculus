@@ -1554,5 +1554,6 @@
   "addDriverCommentDisclaimer": "Certifique-se de que seus drivers são respaldados por fontes e raciocínios no seu comentário.",
   "confirmDeletion": "Confirmar Exclusão",
   "confirmDeletionKeyFactorDescription": "Tem certeza de que deseja excluir seu Fator Chave?",
+  "deleteKeyFactor": "Excluir Fator Chave",
   "othersCount": "Outros ({count})"
 }
