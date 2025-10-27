@@ -1530,5 +1530,6 @@
   "3years": "3 年",
   "resetToDefault": "重設為預設值",
   "useAccountSettingDescription": "根據您帳戶的預設設置，即問題總時長的 { userForecastExpirationPercent }%（最短為 1 個月）。您可以在您的<settingsLink>設置</settingsLink>中更改此設置",
+  "points": "點數",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

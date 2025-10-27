@@ -7,7 +7,7 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   direction: MovementDirection;
-  message: string | ReactNode;
+  message?: string | ReactNode;
   className?: string;
   iconClassName?: string;
   highIsGood?: boolean;
@@ -148,5 +148,4 @@ const PeriodMovement: FC<Props> = ({
     </div>
   );
 };
-
 export default PeriodMovement;

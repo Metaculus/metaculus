@@ -1531,5 +1531,6 @@
   "3years": "3 anos",
   "resetToDefault": "Redefinir para o padrão",
   "useAccountSettingDescription": "com base no padrão da sua conta de { userForecastExpirationPercent }% da duração total da pergunta (com um mínimo de 1 mês). Você pode alterar isso em suas <settingsLink>configurações</settingsLink>",
+  "points": "pontos",
   "othersCount": "Outros ({count})"
 }

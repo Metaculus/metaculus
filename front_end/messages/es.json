@@ -1533,5 +1533,6 @@
   "3years": "3 años",
   "resetToDefault": "Restablecer a valores predeterminados",
   "useAccountSettingDescription": "basado en el valor predeterminado de tu cuenta del { userForecastExpirationPercent }% de la duración total de la pregunta (con un mínimo de 1 mes). Puedes cambiar esto en tus <settingsLink>configuración</settingsLink>",
+  "points": "puntos",
   "othersCount": "Otros ({count})"
 }
