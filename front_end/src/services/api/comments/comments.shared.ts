@@ -3,6 +3,7 @@ import {
   CommentType,
   KeyFactorVoteType,
   CommentOfWeekEntry,
+  Driver,
 } from "@/types/comment";
 import { encodeQueryParams } from "@/utils/navigation";
 
@@ -18,13 +19,19 @@ export type getCommentsParams = {
   is_private?: boolean;
 };
 
+export type KeyFactorWritePayload = {
+  question_id?: number;
+  question_option?: string;
+  driver: Driver;
+};
+
 export type CreateCommentParams = {
   parent?: number;
   text: string;
   on_post?: number;
   included_forecast?: boolean;
   is_private: boolean;
-  key_factors?: string[];
+  key_factors?: KeyFactorWritePayload[];
 };
 
 export type EditCommentParams = {
@@ -83,8 +90,10 @@ class CommentsApi extends ApiService {
     );
   }
 
-  async getSuggestedKeyFactors(commentId: number): Promise<string[]> {
-    return await this.get<string[]>(
+  async getSuggestedKeyFactors(
+    commentId: number
+  ): Promise<KeyFactorWritePayload[]> {
+    return await this.get<KeyFactorWritePayload[]>(
       `/comments/${commentId}/suggested-key-factors/`
     );
   }

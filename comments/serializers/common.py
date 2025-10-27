@@ -158,6 +158,10 @@ def serialize_comment_many(
     current_user: User | None = None,
     with_key_factors: bool = False,
 ) -> list[dict]:
+    current_user = (
+        current_user if current_user and current_user.is_authenticated else None
+    )
+
     # Get original ordering of the comments
     ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
@@ -167,7 +171,7 @@ def serialize_comment_many(
     ).prefetch_related("key_factors")
     qs = qs.annotate_vote_score()
 
-    if current_user and not current_user.is_anonymous:
+    if current_user:
         qs = qs.annotate_user_vote(current_user)
 
     qs = qs.annotate_cmm_info(current_user)

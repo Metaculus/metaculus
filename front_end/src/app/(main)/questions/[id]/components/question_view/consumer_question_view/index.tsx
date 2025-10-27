@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 
+import KeyFactorsConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_consumer_section";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {
@@ -19,8 +20,6 @@ import {
 
 import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
-import QuestionTimeline from "./timeline";
-import KeyFactorsSection from "../../key_factors/key_factors_section";
 import QuestionTitle from "../shared/question_title";
 
 type Props = {
@@ -63,9 +62,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           compact={false}
         />
       </div>
-
       <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
-
       <div className="mt-6 sm:mt-8">
         {showClosedMessageMultipleChoice && (
           <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
@@ -87,18 +84,9 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           <QuestionActionButton postData={postData} />
         </div>
 
-        {postData.question &&
-          [
-            QuestionType.Numeric,
-            QuestionType.Discrete,
-            QuestionType.Date,
-          ].includes(postData.question.type) && (
-            <div className="sm:hidden">
-              <KeyFactorsSection post={postData} variant="compact" />
-            </div>
-          )}
-
-        {!isFanGraph && <QuestionTimeline postData={postData} />}
+        {postData.key_factors && postData.key_factors.length > 0 && (
+          <KeyFactorsConsumerSection keyFactors={postData.key_factors} />
+        )}
       </div>
     </div>
   );

@@ -63,24 +63,22 @@ export type ForecastType = {
 };
 
 export enum KeyFactorVoteTypes {
-  UP_DOWN = "a_updown",
-  TWO_STEP = "b_2step",
-  LIKERT = "c_likert",
+  STRENGTH = "strength",
 }
 
-export enum ImpactValues {
-  LOW = 2,
-  MEDIUM = 3,
+export enum StrengthValues {
+  LOW = 1,
+  MEDIUM = 2,
   HIGH = 5,
-  LOW_NEGATIVE = -2,
-  MEDIUM_NEGATIVE = -3,
-  HIGH_NEGATIVE = -5,
   NO_IMPACT = 0,
 }
 
 export type KeyFactorVoteType =
   (typeof KeyFactorVoteTypes)[keyof typeof KeyFactorVoteTypes];
 
+export type StrengthVoteOption = 0 | 1 | 2 | 5;
+
+// TODO: drop Legacy AB-test scores
 type KeyFactorVoteA = -1 | 1 | null;
 type KeyFactorVoteBAndC = -5 | -3 | -2 | 0 | 2 | 3 | 5;
 export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
@@ -92,14 +90,23 @@ export type KeyFactorVote = {
   second_step_completed?: boolean; // used only for two step survey
 };
 
-export enum ImpactDirection {
-  Increase = "increase",
-  Decrease = "decrease",
+export enum ImpactDirectionCategory {
+  Increase,
+  Decrease,
+  More,
+  Less,
+  Earlier,
+  Later,
+  IncreaseUncertainty,
 }
 
-export type Driver = {
+export type ImpactMetadata = {
+  impact_direction: 1 | -1 | null;
+  certainty: -1 | null;
+};
+
+export type Driver = ImpactMetadata & {
   text: string;
-  impact_direction: ImpactDirection;
 };
 
 export type KeyFactor = {
@@ -107,13 +114,30 @@ export type KeyFactor = {
   driver: Driver;
   author: AuthorType; // used to set limit per question
   comment_id: number;
-  user_votes: KeyFactorVote[]; // empty array if the user has not voted
-  vote_type: KeyFactorVoteType | null; // null if the user has not voted
-  votes_score: number;
-  votes_count: number;
+  vote: KeyFactorVoteAggregate;
+  question_id?: number | null;
+  question?: {
+    id: number;
+    label: string;
+    unit?: string | null;
+  } | null;
+  question_option?: string;
+  freshness?: number;
+  post: {
+    id: number;
+    unit?: string;
+    question_type?: QuestionType;
+  };
 };
 
-export type DraftKind = "create" | "edit";
+export type KeyFactorVoteAggregate = {
+  // Aggregated strength score
+  score: number;
+  // Current user's vote
+  user_vote: StrengthVoteOption | null;
+  // Total number of votes
+  count: number;
+};
 
 type DraftBase = {
   markdown: string;

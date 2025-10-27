@@ -497,7 +497,7 @@ def serialize_post_many(
                 .order_by("-votes_score"),
                 current_user=current_user,
             ),
-            key=lambda x: x["post_id"],
+            key=lambda x: x["post"]["id"],
         )
 
     question_movements = {}

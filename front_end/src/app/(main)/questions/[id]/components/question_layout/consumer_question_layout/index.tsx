@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 import { PropsWithChildren, Suspense } from "react";
 
-import CommentFeed from "@/components/comment_feed";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import {
   Tabs,
@@ -19,6 +18,7 @@ import NewsMatch from "../../sidebar/news_match";
 import NewsPresence from "../../sidebar/news_match/news_presence";
 import QuestionInfo from "../question_info";
 import QuestionSection from "../question_section";
+import ResponsiveCommentFeed from "./responsive_comment_feed";
 
 type Props = {
   postData: PostWithForecasts;
@@ -31,6 +31,10 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
 }) => {
   const t = useTranslations();
   const hasTimeline = hasTimelineFn(postData);
+
+  const isFanGraph =
+    postData.group_of_questions?.graph_type ===
+    GroupOfQuestionsGraphType.FanGraph;
 
   return (
     <div className="relative z-10 flex w-full flex-col gap-4">
@@ -50,7 +54,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
             </TabsList>
 
             <TabsSection value="comments">
-              <CommentFeed compactVersion postData={postData} />
+              <ResponsiveCommentFeed compactVersion postData={postData} />
             </TabsSection>
             {hasTimeline && (
               <TabsSection className="space-y-4" value="timeline">
@@ -83,6 +87,8 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <QuestionInfo
                 postData={postData}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
+                showKeyFactors={false}
+                showTimeline={false}
               />
             </TabsSection>
           </Tabs>
@@ -91,11 +97,13 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
           <QuestionInfo
             postData={postData}
             preselectedGroupQuestionId={preselectedGroupQuestionId}
+            showKeyFactors={false}
+            showTimeline={!isFanGraph}
           />
         </div>
       </QuestionSection>
       <div className="hidden lg:block">
-        <CommentFeed postData={postData} />
+        <ResponsiveCommentFeed postData={postData} />
       </div>
     </div>
   );

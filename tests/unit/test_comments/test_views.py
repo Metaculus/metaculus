@@ -7,8 +7,8 @@ from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import factory_group_of_questions
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_questions.factories import factory_group_of_questions
 
 
 class TestPagination:
@@ -291,3 +291,31 @@ class TestCommentCreation:
             {"on_post": post.pk, "text": "Test comment", "included_forecast": True},
         )
         assert response.status_code == 201
+
+    def test_create_with_key_factor(self, user1_client, post, question_binary):
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with Key Factors",
+                "key_factors": [
+                    {
+                        "question_id": question_binary.pk,
+                        "driver": {
+                            "text": "Key Factor Driver",
+                            "impact_direction": -1,
+                        },
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+
+        assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Comment with Key Factors"
+        kf1 = response.data["key_factors"][0]
+        assert kf1["question_id"] == question_binary.pk
+        assert kf1["driver"]["text"] == "Key Factor Driver"
+        assert kf1["driver"]["impact_direction"] == -1
