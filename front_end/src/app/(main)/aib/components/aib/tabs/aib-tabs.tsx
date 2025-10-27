@@ -13,21 +13,21 @@ const AIBTabs: React.FC = async () => {
   const sections = [
     {
       value: "benchmark" as const,
-      href: "/aib",
+      href: "/futureeval",
       icon: BenchmarkIcon,
       labelKey: "aibTabsBenchmark",
       content: <AIBBenchmarkTab />,
     },
     {
       value: "info" as const,
-      href: "/aib/info",
+      href: "/futureeval/info",
       icon: InfoIcon,
       labelKey: "aibTabsInfo",
       content: <AIBInfoTab />,
     },
     {
       value: "news" as const,
-      href: "/aib/news",
+      href: "/futureeval/news",
       icon: NewsIcon,
       labelKey: "aibTabsNews",
       content: <AIBNewsTab />,

@@ -1,15 +1,15 @@
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 
-import AIBContainer from "../components/aib/aib-container";
-import AIBLeaderboardHero from "../components/aib/leaderboard/aib-leaderboard-hero";
-import AIBLeaderboardTable from "../components/aib/leaderboard/aib-leaderboard-table";
+import AIBContainer from "../../aib/components/aib/aib-container";
+import AIBLeaderboardHero from "../../aib/components/aib/leaderboard/aib-leaderboard-hero";
+import AIBLeaderboardTable from "../../aib/components/aib/leaderboard/aib-leaderboard-table";
 
 export const metadata = {
   title: "Top Model Leaderboards | Metaculus",
   description: "Full AI model leaderboard for Metaculus FutureEval",
 };
 
-export default async function AIBLeaderboardsPage() {
+export default async function FutureEvalLeaderboardsPage() {
   const data = await ServerLeaderboardApi.getGlobalLeaderboard(
     null,
     null,
