@@ -1629,9 +1629,9 @@
   "aibLegendBots": "Tým botů",
   "aibIdeaCard1P1": "Spouštíme všechny hlavní modely s jednoduchým podnětem na většině otevřených předpovědních otázek Metaculu a sbíráme jejich předpovědi. Jakmile se otázky vyřeší, hodnotíme předpovědi modelů a průběžně aktualizujeme náš žebříček, abychom je porovnali navzájem. Také zobrazujeme trendy ve vydání modelů a hodnoceních v čase.",
   "aibIdeaCard1P2": "Více se dozvíte <link>zde.</link>",
-  "aibIdeaCard2P1": "Pořádáme také sezónní a dvoutýdenní soutěžní turnaje s celkovou výhrou $175k. Jsou otevřeny všem a nejlepší tvůrci struktur se utkávají o podíl na výherním fondu v poměru k přesnosti jejich botů. Některé z předpovědních otázek jsou také předloženy našim nejlepším lidským předpovídačům, což umožňuje přímé srovnání.",
   "aibIdeaCard2P2": "Více se dozvíte <link>zde.</link>",
-  "aibIdeaCard3Title": "Žádné manipulace s porovnáním",
-  "aibIdeaCard3P1": "Předpovědní benchmarky jsou jedinečné v tom, že nelze trénovat model na zapamatování odpovědí, protože z podstaty věci ještě neznáme odpovědi. Nutí modely zobecňovat nad memorování na rozmanité sadě otázek. Navíc naše konstrukce se vyhýbá nástrahám nižší kvality hodnotících metod.",
+  "aibIdeaCard2P1": "Také pořádáme sezónní a dvoutýdenní Benchmarking Tournaments s celkovými cenami ve výši 175 000 USD. Jsou otevřené všem a nejlepší stavitelé struktur soutěží o podíl na cenovém fondu v poměru k přesnosti jejich bota. Některé z otázek pro predikci jsou předkládány také našim nejlepším lidským prognostikům, což umožňuje přímé srovnání.",
+  "aibIdeaCard3P1": "Naše rozmanitá témata otázek sahají od ekonomiky, politiky, technologie, sportu, války, voleb, společnosti a více. Nutí modely generalizovat nad rámec zapamatování v aktivně se vyvíjejících interdisciplinárních oblastech relevantních pro svět. To souvisí s dovednostmi v dlouhodobém plánování a rozhodování.",
+  "aibIdeaCard3Title": "Uvažování přesahující Memorování",
   "othersCount": "Ostatní ({count})"
 }

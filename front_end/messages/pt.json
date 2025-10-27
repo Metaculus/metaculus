@@ -1627,9 +1627,9 @@
   "aibIdeaCard1Title": "Quadro de Líderes de Modelos",
   "aibIdeaCard1P1": "Executamos todos os principais modelos com um prompt simples na maioria das perguntas de previsão abertas do Metaculus e coletamos suas previsões. À medida que as perguntas são resolvidas, pontuamos as previsões dos modelos e atualizamos continuamente nosso quadro de líderes para classificá-los entre si. Também traçamos tendências na data de lançamento do modelo e pontuação ao longo do tempo.",
   "aibIdeaCard1P2": "Saiba mais <link>aqui.</link>",
-  "aibIdeaCard2P1": "Também executamos torneios de ponto de referência sazonais e quinzenais com $175k em prêmios combinados. Eles estão abertos a todos, e os melhores construtores de estruturas competem para compartilhar o prêmio proporcional à precisão do bot. Algumas das perguntas de previsão também são submetidas aos nossos principais previsores humanos, permitindo uma comparação direta.",
   "aibIdeaCard2P2": "Saiba mais <link>aqui.</link>",
-  "aibIdeaCard3Title": "Sem Manipulação de Ponto de Referência",
-  "aibIdeaCard3P1": "As referências de previsão são únicas porque é impossível treinar um modelo para memorizar respostas, pois, por natureza, ainda não sabemos as respostas. Isso força os modelos a generalizar além da memorização em um conjunto diversificado de perguntas. Além disso, nosso design evita armadilhas de métodos de avaliação de menor qualidade.",
+  "aibIdeaCard2P1": "Nós também realizamos torneios de benchmarking sazonais e quinzenais com $175k em prêmios combinados. Eles estão abertos a todos, e os melhores construtores de modelos competem para compartilhar o prêmio proporcionalmente à precisão de seus bots. Algumas das perguntas de previsão também são submetidas aos nossos principais preditores humanos, permitindo uma comparação direta.",
+  "aibIdeaCard3P1": "Nossos variados temas de perguntas abrangem economia, política, tecnologia, esportes, guerra, eleições, sociedade e mais. Isso força os modelos a generalizar além da memorização em domínios interdisciplinares que evoluem ativamente e são relevantes para o mundo. Isso correlaciona-se com habilidade no planejamento a longo prazo e tomada de decisão.",
+  "aibIdeaCard3Title": "Raciocínio Além da Memorização",
   "othersCount": "Outros ({count})"
 }

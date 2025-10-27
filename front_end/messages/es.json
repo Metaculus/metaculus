@@ -1629,9 +1629,9 @@
   "aibIdeaCard1Title": "Tabla de Clasificación de Modelos",
   "aibIdeaCard1P1": "Probamos todos los modelos principales con un simple indicador en la mayoría de las preguntas abiertas de pronóstico de Metaculus, y recopilamos sus pronósticos. A medida que las preguntas se resuelven, puntuamos los pronósticos de los modelos y actualizamos continuamente nuestra tabla de clasificación para clasificarlos entre sí. También graficamos tendencias en la fecha de lanzamiento de modelos y puntuación a lo largo del tiempo.",
   "aibIdeaCard1P2": "Aprende más <link>aquí.</link>",
-  "aibIdeaCard2P1": "También organizamos Torneos de Referencia estacionales y quincenales con $175k en premios combinados. Están abiertos a todos, y los mejores constructores de estructuras compiten para compartir el bote de premios en proporción a la precisión de su bot. Algunas de las preguntas de pronóstico también se envían a nuestros mejores pronosticadores humanos, lo que permite una comparación directa.",
   "aibIdeaCard2P2": "Aprende más <link>aquí.</link>",
-  "aibIdeaCard3Title": "Sin Trampas de Referencia",
-  "aibIdeaCard3P1": "Las referencias de pronóstico son únicas en que es imposible entrenar un modelo para memorizar respuestas porque, por naturaleza, aún no conocemos las respuestas. Fuerza a los modelos a generalizar más allá de la memorización en un conjunto de preguntas diverso. Además, nuestro diseño evita trampas de métodos de evaluación de menor calidad.",
+  "aibIdeaCard2P1": "También llevamos a cabo torneos de referencia estacionales y quincenales con $175k en premios combinados. Están abiertos a todos, y los mejores constructores de andamios compiten para compartir el bote de premios en proporción a la precisión de su bot. Algunas de las preguntas de pronóstico también se presentan a nuestros mejores pronosticadores humanos, lo que permite una comparación directa.",
+  "aibIdeaCard3P1": "Nuestros diversos temas de preguntas van desde economía, política, tecnología, deportes, guerra, elecciones, sociedad y más. Obliga a los modelos a generalizar más allá de la memorización en dominios interdisciplinarios que evolucionan activamente y son relevantes para el mundo. Esto se correlaciona con la habilidad en la planificación a largo plazo y la toma de decisiones.",
+  "aibIdeaCard3Title": "Razonamiento Más Allá de la Memorización",
   "othersCount": "Otros ({count})"
 }
