@@ -13,16 +13,20 @@ import { useModal } from "@/contexts/modal_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
+import { KeyFactor } from "@/types/comment";
+import { Post } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { getPostLink } from "@/utils/navigation";
 
 import { useKeyFactorsContext } from "./key_factors_provider";
 
 type Props = {
   comment: CommentType;
   permission?: ProjectPermissions;
+  post: Post;
 };
 
-const KeyFactorsCommentSection: FC<Props> = ({ comment, permission }) => {
+const KeyFactorsCommentSection: FC<Props> = ({ post, comment, permission }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const scrollTo = useScrollTo();
@@ -38,6 +42,8 @@ const KeyFactorsCommentSection: FC<Props> = ({ comment, permission }) => {
 
   const canEdit =
     user?.id === comment.author.id || permission === ProjectPermissions.ADMIN;
+
+  const kfPostUrl = `${getPostLink(post)}#key-factors`;
 
   const handleDelete = useCallback(
     async (keyFactorId: number) => {
@@ -78,16 +84,16 @@ const KeyFactorsCommentSection: FC<Props> = ({ comment, permission }) => {
         renderItem={(kf) => (
           <div className="group relative mt-3">
             <Link
-              href="#key-factors"
+              href={kfPostUrl}
               className="no-underline"
               onClick={(e) => {
+                const target = document.getElementById("key-factors");
+                if (!target) return;
+
                 e.preventDefault();
                 // Expand immediately to avoid post-scroll delay
                 requestExpand();
-                const target = document.getElementById("key-factors");
-                if (target) {
-                  scrollTo(target.getBoundingClientRect().top);
-                }
+                scrollTo(target.getBoundingClientRect().top);
                 sendAnalyticsEvent("KeyFactorClick", {
                   event_label: "fromComment",
                 });

@@ -838,7 +838,7 @@ const Comment: FC<CommentProps> = ({
               </>
             )}
             <KeyFactorsCommentSection
-              comment={comment}
+              post={postData}
               permission={postData.user_permission}
             />
             <div className="mb-2 mt-1 h-7 overflow-visible">
