@@ -23,8 +23,8 @@ export default function AIBTabsShell({ sections }: { sections: Section[] }) {
   const router = useRouter();
 
   const current: Section["value"] = useMemo(() => {
-    if (pathname.includes("/aib/news")) return "news";
-    if (pathname.includes("/aib/info")) return "info";
+    if (pathname.includes("/futureeval/news")) return "news";
+    if (pathname.includes("/futureeval/info")) return "info";
     return "benchmark";
   }, [pathname]);
 
