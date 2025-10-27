@@ -63,19 +63,14 @@ def votes_migration(apps, schema_editor):
             logger.info(f"KeyFactor {kf.id} has direction = 0")
         else:
             # Update driver direction
-            kf.driver.impact_direction = 1 if direction > 0 else 0
+            kf.driver.impact_direction = 1 if direction > 0 else -1
             update_drivers.append(kf.driver)
 
         for vote in votes:
             # Update vote type
             vote.vote_type = "strength"
 
-            if (
-                # TODO: double-check 0 case
-                direction == 0
-                or (direction > 0 and vote.score < 0)
-                or (direction < 0 and vote.score > 0)
-            ):
+            if (direction > 0 and vote.score < 0) or (direction < 0 and vote.score > 0):
                 # votes that disagree with the new direction get strength 0
                 vote.score = 0
             else:
