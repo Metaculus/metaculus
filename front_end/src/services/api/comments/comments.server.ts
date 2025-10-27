@@ -43,6 +43,10 @@ class ServerCommentsApiClass extends CommentsApi {
     );
   }
 
+  async deleteKeyFactor(keyFactorId: number): Promise<BECommentType> {
+    return await this.delete(`/key-factors/${keyFactorId}/delete/`);
+  }
+
   async togglePin(commentId: number, pin: boolean): Promise<BECommentType> {
     return await this.post(`/comments/${commentId}/toggle-pin/`, {
       pin,

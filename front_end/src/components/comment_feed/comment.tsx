@@ -285,13 +285,6 @@ const Comment: FC<CommentProps> = ({
     comment.changed_my_mind.for_this_user
   );
 
-  const [commentKeyFactors, setCommentKeyFactors] = useState<KeyFactor[]>(
-    comment.key_factors ?? []
-  );
-  useEffect(() => {
-    setCommentKeyFactors(comment.key_factors ?? []);
-  }, [comment.key_factors]);
-
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
   const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
     useState(isCommentJustCreated);
@@ -844,12 +837,10 @@ const Comment: FC<CommentProps> = ({
                 </Button>
               </>
             )}
-            {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
-              <KeyFactorsCommentSection
-                keyFactors={commentKeyFactors}
-                comment={comment}
-              />
-            )}
+            <KeyFactorsCommentSection
+              comment={comment}
+              permission={postData.user_permission}
+            />
             <div className="mb-2 mt-1 h-7 overflow-visible">
               <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
                 <div className="inline-flex items-center gap-2.5">
