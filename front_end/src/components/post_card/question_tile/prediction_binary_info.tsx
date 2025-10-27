@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
@@ -33,6 +34,7 @@ const PredictionBinaryInfo: FC<Props> = ({
   size = "sm",
   cpMovementClassName,
 }) => {
+  const t = useTranslations();
   const { hideCP } = useHideCP();
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
@@ -58,6 +60,8 @@ const PredictionBinaryInfo: FC<Props> = ({
             size={size === "sm" ? "xs" : "sm"}
             boldValueUnit
             variant={cpMovementVariant}
+            suffixHidden
+            unit={t("points")}
           />
         )}
       </div>

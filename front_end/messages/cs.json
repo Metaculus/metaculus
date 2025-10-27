@@ -1533,5 +1533,6 @@
   "3years": "3 roky",
   "resetToDefault": "Obnovit výchozí nastavení",
   "useAccountSettingDescription": "podle vašeho výchozího nastavení účtu { userForecastExpirationPercent }% z celkové doby trvání otázky (s minimem 1 měsíc). Můžete to změnit ve svých <settingsLink>nastaveních</settingsLink>",
+  "points": "body",
   "othersCount": "Ostatní ({count})"
 }

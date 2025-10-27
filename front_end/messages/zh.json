@@ -1535,5 +1535,6 @@
   "3years": "3 年",
   "resetToDefault": "重置为默认",
   "useAccountSettingDescription": "基于您的账户默认设置，占问题总时长的 { userForecastExpirationPercent }%（最低 1 个月）。您可以在 <settingsLink>设置</settingsLink> 中更改此项",
+  "points": "积分",
   "othersCount": "其他（{count}）"
 }
