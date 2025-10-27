@@ -41,7 +41,7 @@ const KeyFactorDriver: FC<Props> = ({
 
   const isConsumer = mode === "consumer";
   const isCompactConsumer = isConsumer && isCompact;
-  const footerControls = !!isCompact ? (
+  const footerControls = !isCompact ? (
     <KeyFactorDropdownMenuItems
       keyFactor={keyFactor}
       projectPermission={projectPermission}
