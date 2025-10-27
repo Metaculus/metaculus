@@ -847,7 +847,7 @@ const Comment: FC<CommentProps> = ({
             {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
               <KeyFactorsCommentSection
                 keyFactors={commentKeyFactors}
-                comment={comment}
+                post={postData}
               />
             )}
             <div className="mb-2 mt-1 h-7 overflow-visible">

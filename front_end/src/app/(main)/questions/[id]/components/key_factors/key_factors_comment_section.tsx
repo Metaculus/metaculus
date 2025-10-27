@@ -5,20 +5,23 @@ import { FC } from "react";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { CommentType, KeyFactor } from "@/types/comment";
+import { KeyFactor } from "@/types/comment";
+import { Post } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { getPostLink } from "@/utils/navigation";
 
 import { useKeyFactorsContext } from "./key_factors_provider";
 
 type Props = {
   keyFactors: KeyFactor[];
-  comment: CommentType;
+  post: Post;
 };
 
-const KeyFactorsCommentSection: FC<Props> = ({ keyFactors }) => {
+const KeyFactorsCommentSection: FC<Props> = ({ keyFactors, post }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
   const { requestExpand } = useKeyFactorsContext();
+  const kfPostUrl = `${getPostLink(post)}#key-factors`;
 
   return (
     <div className="flex flex-col">
@@ -30,16 +33,16 @@ const KeyFactorsCommentSection: FC<Props> = ({ keyFactors }) => {
         items={keyFactors}
         renderItem={(kf) => (
           <Link
-            href="#key-factors"
+            href={kfPostUrl}
             className="no-underline"
             onClick={(e) => {
+              const target = document.getElementById("key-factors");
+              if (!target) return;
+
               e.preventDefault();
               // Expand immediately to avoid post-scroll delay
               requestExpand();
-              const target = document.getElementById("key-factors");
-              if (target) {
-                scrollTo(target.getBoundingClientRect().top);
-              }
+              scrollTo(target.getBoundingClientRect().top);
               sendAnalyticsEvent("KeyFactorClick", {
                 event_label: "fromComment",
               });

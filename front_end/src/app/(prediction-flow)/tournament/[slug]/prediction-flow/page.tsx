@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
+import { KeyFactorsProvider } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_provider";
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
 import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
 import PredictionFlowProvider, {
@@ -47,14 +48,16 @@ export default async function PredictionFlow(props: Props) {
       flowType={flowType}
       initialPosts={forecastFlowPosts}
     >
-      <PredictionFlowHeader
-        tournamentName={tournament.name}
-        tournamentSlug={tournamentSlug}
-      />
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
-        <ProgressSection />
-        <PredictionFlowPost tournamentSlug={tournamentSlug} />
-      </main>
+      <KeyFactorsProvider>
+        <PredictionFlowHeader
+          tournamentName={tournament.name}
+          tournamentSlug={tournamentSlug}
+        />
+        <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
+          <ProgressSection />
+          <PredictionFlowPost tournamentSlug={tournamentSlug} />
+        </main>
+      </KeyFactorsProvider>
     </PredictionFlowProvider>
   );
 }
