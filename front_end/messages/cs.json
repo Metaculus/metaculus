@@ -1554,5 +1554,8 @@
   "addDriverModalDescription": "Drivery jsou významná fakta, principy nebo hypotetické situace. Například: „MMLU benchmark se začal nasycovat koncem roku 2024“, „Čína by mohla napadnout Tchaj-wan“, „Dynamika vítěz bere vše“.",
   "addDriverModalCommentDescription": "Drivery by měly být podepřeny zdroji a argumenty. Napište komentář níže a vysvětlete své zdůvodnění.",
   "addDriverCommentDisclaimer": "Ujistěte se, že vaše drivery jsou podepřeny zdroji a zdůvodněním ve vašem komentáři.",
+  "confirmDeletion": "Potvrdit smazání",
+  "confirmDeletionKeyFactorDescription": "Opravdu chcete smazat svůj klíčový faktor?",
+  "deleteKeyFactor": "Smazat klíčový faktor",
   "othersCount": "Ostatní ({count})"
 }

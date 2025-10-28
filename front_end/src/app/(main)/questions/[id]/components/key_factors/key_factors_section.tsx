@@ -8,7 +8,7 @@ import { FC, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
 import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
@@ -118,7 +118,11 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
         >
           <div className="flex flex-col gap-2.5">
             {combinedKeyFactors.map((kf) => (
-              <KeyFactorItem key={`post-key-factor-${kf.id}`} keyFactor={kf} />
+              <KeyFactorItem
+                key={`post-key-factor-${kf.id}`}
+                keyFactor={kf}
+                projectPermission={post.user_permission}
+              />
             ))}
           </div>
         </ExpandableContent>

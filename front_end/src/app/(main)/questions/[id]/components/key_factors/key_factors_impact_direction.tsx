@@ -119,7 +119,9 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
       {icon}
       <span>
         {t(textKey)}
-        {unit && <>&nbsp;{unit}</>}
+        {impact !== ImpactDirectionCategory.IncreaseUncertainty && unit && (
+          <>&nbsp;{unit}</>
+        )}
         {option && (
           <>
             &nbsp;

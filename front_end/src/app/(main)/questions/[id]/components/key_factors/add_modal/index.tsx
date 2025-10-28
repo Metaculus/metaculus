@@ -24,9 +24,9 @@ import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
-import { useKeyFactors } from "./hooks";
-import KeyFactorItem from "./key_factor_item";
-import { driverTextSchema } from "./schemas";
+import { useKeyFactors } from "../hooks";
+import KeyFactorItem from "../key_factor_item";
+import { driverTextSchema } from "../schemas";
 
 const FACTORS_PER_COMMENT = 4;
 

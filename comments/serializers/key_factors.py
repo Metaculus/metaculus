@@ -90,10 +90,10 @@ def serialize_key_factors_many(
     objects.sort(key=lambda obj: ids.index(obj.id))
 
     # Extract user votes
-    votes_map = get_votes_for_key_factors(key_factors)
+    votes_map = get_votes_for_key_factors(objects)
 
     # Generate freshness
-    freshness_map = calculate_key_factors_freshness(key_factors, votes_map)
+    freshness_map = calculate_key_factors_freshness(objects, votes_map)
 
     # Fetch post questions
     post_questions_rel = generate_map_from_list(
@@ -110,8 +110,8 @@ def serialize_key_factors_many(
     serialized_data = []
 
     for key_factor in objects:
-        post = key_factor.comment.on_post
-        questions = [x.question for x in post_questions_rel.get(post.id) or []]
+        post_id = key_factor.comment.on_post_id
+        questions = [x.question for x in post_questions_rel.get(post_id) or []]
 
         question_type = questions[0].type if questions else None
         question_units = list({q.unit for q in questions})

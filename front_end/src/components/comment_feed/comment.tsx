@@ -15,7 +15,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
-import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
 import { driverTextSchema } from "@/app/(main)/questions/[id]/components/key_factors/schemas";
@@ -285,13 +285,6 @@ const Comment: FC<CommentProps> = ({
     comment.changed_my_mind.for_this_user
   );
 
-  const [commentKeyFactors, setCommentKeyFactors] = useState<KeyFactor[]>(
-    comment.key_factors ?? []
-  );
-  useEffect(() => {
-    setCommentKeyFactors(comment.key_factors ?? []);
-  }, [comment.key_factors]);
-
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
   const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
     useState(isCommentJustCreated);
@@ -313,7 +306,7 @@ const Comment: FC<CommentProps> = ({
     }
   };
 
-  const { comments, setComments } = useCommentsFeed();
+  const { comments, setComments, combinedKeyFactors } = useCommentsFeed();
   const {
     errors: keyFactorsErrors,
     setErrors: setKeyFactorsErrors,
@@ -332,6 +325,11 @@ const Comment: FC<CommentProps> = ({
     postId: comment.on_post_data?.id,
     onKeyFactorsLoadded,
   });
+
+  const commentKeyFactors = useMemo(
+    () => combinedKeyFactors.filter((kf) => kf.comment_id === comment.id),
+    [combinedKeyFactors, comment.id]
+  );
 
   const canListKeyFactors = !postData?.notebook;
   const questionNotClosed = ![
@@ -844,12 +842,16 @@ const Comment: FC<CommentProps> = ({
                 </Button>
               </>
             )}
+
             {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
               <KeyFactorsCommentSection
-                keyFactors={commentKeyFactors}
                 post={postData}
+                keyFactors={commentKeyFactors}
+                permission={postData.user_permission}
+                authorId={comment.author.id}
               />
             )}
+
             <div className="mb-2 mt-1 h-7 overflow-visible">
               <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
                 <div className="inline-flex items-center gap-2.5">

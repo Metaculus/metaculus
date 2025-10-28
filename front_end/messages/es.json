@@ -1554,5 +1554,8 @@
   "addDriverModalDescription": "Los impulsores son hechos, principios o hipótesis impactantes. Por ejemplo: “El benchmark MMLU comenzó a saturarse a finales de 2024”, “China podría invadir Taiwán”, “Dinámicas de ganador se lleva todo”.",
   "addDriverModalCommentDescription": "Los impulsores deben estar respaldados por fuentes y argumentos. Escribe un comentario a continuación y explica tu razonamiento.",
   "addDriverCommentDisclaimer": "Asegúrate de que tus impulsores estén respaldados por fuentes y razonamiento en tu comentario.",
+  "confirmDeletion": "Confirmar eliminación",
+  "confirmDeletionKeyFactorDescription": "¿Está seguro de que desea eliminar su factor clave?",
+  "deleteKeyFactor": "Eliminar factor clave",
   "othersCount": "Otros ({count})"
 }

@@ -3,8 +3,10 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import KeyFactorDropdownMenuItems from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/dropdown_menu_items";
 import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/key_factor_header";
 import { KeyFactor } from "@/types/comment";
+import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import KeyFactorImpactDirectionContainer, {
@@ -17,12 +19,14 @@ type Props = {
   keyFactor: KeyFactor;
   isCompact?: boolean;
   mode?: "forecaster" | "consumer";
+  projectPermission?: ProjectPermissions;
 };
 
 const KeyFactorDriver: FC<Props> = ({
   keyFactor,
   isCompact,
   mode = "forecaster",
+  projectPermission,
 }) => {
   const { driver } = keyFactor;
   const t = useTranslations();
@@ -37,6 +41,12 @@ const KeyFactorDriver: FC<Props> = ({
 
   const isConsumer = mode === "consumer";
   const isCompactConsumer = isConsumer && isCompact;
+  const footerControls = !isCompact ? (
+    <KeyFactorDropdownMenuItems
+      keyFactor={keyFactor}
+      projectPermission={projectPermission}
+    />
+  ) : undefined;
 
   return (
     <>
@@ -76,6 +86,7 @@ const KeyFactorDriver: FC<Props> = ({
         vote={keyFactor.vote}
         allowVotes={mode === "forecaster"}
         mode={mode}
+        footerControls={footerControls}
       />
     </>
   );

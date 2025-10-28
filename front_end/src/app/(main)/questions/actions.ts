@@ -258,6 +258,16 @@ export async function addKeyFactorsToComment(
   }
 }
 
+export async function deleteKeyFactor(keyFactorId: number) {
+  try {
+    return await ServerCommentsApi.deleteKeyFactor(keyFactorId);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}
+
 export async function commentTogglePin(commentId: number, pin: boolean) {
   return await ServerCommentsApi.togglePin(commentId, pin);
 }

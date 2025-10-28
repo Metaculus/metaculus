@@ -1552,5 +1552,8 @@
   "addDriverModalDescription": "Drivers são fatos impactantes, princípios ou hipotéticos. Por exemplo: “O benchmark MMLU começou a saturar no final de 2024”, “A China poderia invadir Taiwan”, “Dinâmicas de vencedor-leva-tudo”.",
   "addDriverModalCommentDescription": "Drivers devem ser apoiados por fontes e argumentos. Escreva um comentário abaixo e explique seu raciocínio.",
   "addDriverCommentDisclaimer": "Certifique-se de que seus drivers são respaldados por fontes e raciocínios no seu comentário.",
+  "confirmDeletion": "Confirmar Exclusão",
+  "confirmDeletionKeyFactorDescription": "Tem certeza de que deseja excluir seu Fator Chave?",
+  "deleteKeyFactor": "Excluir Fator Chave",
   "othersCount": "Outros ({count})"
 }
