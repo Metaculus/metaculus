@@ -1573,8 +1573,6 @@
   "aibTabsInfo": "資訊",
   "aibTabsNews": "新聞",
   "aibBenchModelsSubtitle": "由嶺回歸同行得分 <icon></icon>",
-  "aibBotsVsHumansTitle": "預測機器人對比人類基準",
-  "aibBotsVsHumansSubtitle": "根據我們第一年季度分析<link>AI 基準比賽</link>的表現。",
   "aibPerfOverTimeTitle": "隨時間變化的預測表現",
   "aibModelsHeaderName": "模型名稱",
   "aibModelsHeaderScore": "得分",
@@ -1630,5 +1628,7 @@
   "aibIdeaCard2P1": "我們還舉辦季節性和雙週基準錦標賽，總獎金為175,000美元。這些比賽對所有人開放，最佳的腳手架構建者競逐，並根據機器人的準確性分配獎池。有些預測問題也提交給我們的頂尖人類預測者，允許直接比較。",
   "aibIdeaCard3P1": "我們的多樣化問題主題涵蓋經濟、政治、科技、體育、戰爭、選舉、社會等。這迫使模型在積極演化的跨學科領域中進行超越記憶的概括，這些領域與世界相關。這與長期規劃和決策的技能相關。",
   "aibIdeaCard3Title": "超越記憶的推理",
+  "aibProsVsBotsTitle": "專業預測者擊敗機器人的程度",
+  "aibProsVsBotsSubtitle": "Metaculus 專業預測者在我們的 <link>AI 基準測試比賽</link> 中，每季度都擊敗了機器人。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

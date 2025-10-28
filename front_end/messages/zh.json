@@ -1578,8 +1578,6 @@
   "aibTabsInfo": "信息",
   "aibTabsNews": "新闻",
   "aibBenchModelsSubtitle": "通过岭回归同行评分 <icon></icon>",
-  "aibBotsVsHumansTitle": "预测机器人 vs. 人类基准测试",
-  "aibBotsVsHumansSubtitle": "基于我们第<brSm></brSm>一年季度<brXs></brXs> <link>AI基准测试锦标赛</link>的表现。",
   "aibPerfOverTimeTitle": "预测性能随时间变化",
   "aibModelsHeaderName": "模型名称",
   "aibModelsHeaderScore": "评分",
@@ -1635,5 +1633,7 @@
   "aibIdeaCard2P1": "我们还举办季节性和双周基准测试锦标赛，总奖金额为17.5万美元。比赛对所有人开放，最好的脚手架建设者根据其机器人准确性分享奖金池。一些预测问题也提交给我们顶尖的人类预测者，允许进行直接比较。",
   "aibIdeaCard3P1": "我们的问题主题多样化，从经济、政治、科技、体育、战争、选举、社会等。它迫使模型在世界相关的跨学科领域中实现超出记忆化的泛化。这与长期规划和决策技能相关。",
   "aibIdeaCard3Title": "超越记忆化的推理",
+  "aibProsVsBotsTitle": "专业人士击败机器人的程度",
+  "aibProsVsBotsSubtitle": "Metaculus 的专业预测员在我们现有的每一季度的<link>AI 基准测试竞赛</link>中都击败了机器人。",
   "othersCount": "其他（{count}）"
 }

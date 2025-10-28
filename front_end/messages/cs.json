@@ -1576,8 +1576,6 @@
   "aibTabsInfo": "Informace",
   "aibTabsNews": "Novinky",
   "aibBenchModelsSubtitle": "podle Peer Score Ridge Regression <icon></icon>",
-  "aibBotsVsHumansTitle": "Srovnávací test předpovídajících botů vs. lidí",
-  "aibBotsVsHumansSubtitle": "Na základě výkonu v našem <brSm></brSm> prvním roce čtvrtletních <brXs></brXs> <link>srovnávacích turnajů AI.</link>",
   "aibPerfOverTimeTitle": "Výkon předpovědi v průběhu času",
   "aibModelsHeaderName": "Název modelu",
   "aibModelsHeaderScore": "Skóre",
@@ -1633,5 +1631,7 @@
   "aibIdeaCard2P1": "Také pořádáme sezónní a dvoutýdenní Benchmarking Tournaments s celkovými cenami ve výši 175 000 USD. Jsou otevřené všem a nejlepší stavitelé struktur soutěží o podíl na cenovém fondu v poměru k přesnosti jejich bota. Některé z otázek pro predikci jsou předkládány také našim nejlepším lidským prognostikům, což umožňuje přímé srovnání.",
   "aibIdeaCard3P1": "Naše rozmanitá témata otázek sahají od ekonomiky, politiky, technologie, sportu, války, voleb, společnosti a více. Nutí modely generalizovat nad rámec zapamatování v aktivně se vyvíjejících interdisciplinárních oblastech relevantních pro svět. To souvisí s dovednostmi v dlouhodobém plánování a rozhodování.",
   "aibIdeaCard3Title": "Uvažování přesahující Memorování",
+  "aibProsVsBotsTitle": "Kolik profíci poráží roboty",
+  "aibProsVsBotsSubtitle": "Profesionální prognostikové z Metaculus porazili roboty v každém čtvrtletí našich <link>Turnajů benchmarkingu AI</link> až dosud.",
   "othersCount": "Ostatní ({count})"
 }

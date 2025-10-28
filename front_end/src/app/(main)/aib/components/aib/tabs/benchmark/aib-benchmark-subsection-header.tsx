@@ -46,13 +46,13 @@ export const AIBBenchmarkModelsSubsectionHeader: React.FC = () => {
   );
 };
 
-export const AIBBenchmarkBotsVsHumansSubsectionHeader: React.FC = () => {
+export const AIBBenchmarkProsVsBotsSectionHeader: React.FC = () => {
   const t = useTranslations();
 
   return (
     <AIBBenchmarkSubsectionHeader
-      title={t("aibBotsVsHumansTitle")}
-      subtitle={t.rich("aibBotsVsHumansSubtitle", {
+      title={t("aibProsVsBotsTitle")}
+      subtitle={t.rich("aibProsVsBotsSubtitle", {
         link: (chunks) => (
           <Link
             className="text-blue-600 dark:text-blue-600-dark"
