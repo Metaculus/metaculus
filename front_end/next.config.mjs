@@ -73,11 +73,6 @@ const nextConfig = {
         permanent: true,
       },
       { source: "/aib", destination: "/futureeval", permanent: true },
-      {
-        source: "/aib/:path*",
-        destination: "/futureeval/:path*",
-        permanent: true,
-      },
     ];
   },
   async rewrites() {
