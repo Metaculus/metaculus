@@ -293,7 +293,7 @@ const Comment: FC<CommentProps> = ({
     isCommentJustCreated && shouldSuggestKeyFactors
   );
 
-  const onKeyFactorsLoadded = (keyFactorsLoaded: boolean) => {
+  const onKeyFactorsLoaded = (keyFactorsLoaded: boolean) => {
     setIsKeyfactorsFormOpen(keyFactorsLoaded || !suggestKeyFactorsFirstRender);
     setSuggestKeyFactorsFirstRender(false);
     setLoadKeyFactors(false);
@@ -323,7 +323,7 @@ const Comment: FC<CommentProps> = ({
     user_id: user?.id,
     commentId: comment.id,
     postId: comment.on_post_data?.id,
-    onKeyFactorsLoadded,
+    onKeyFactorsLoaded,
   });
 
   const commentKeyFactors = useMemo(
