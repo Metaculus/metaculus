@@ -14,6 +14,7 @@ import { logError } from "@/utils/core/errors";
 
 import { submitToZapierWebhook } from "../actions";
 import { SuccessMessage } from "./success-message";
+import { bwInitAndTrackRegistrationIfConsent } from "../../utils/pixel-apis";
 
 const emailRegistrationSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -44,6 +45,8 @@ export const EmailRegistrationForm: FC = () => {
 
   const onSubmit = async (data: EmailRegistrationSchema) => {
     setSubmissionState({ status: "loading" });
+
+    bwInitAndTrackRegistrationIfConsent();
 
     try {
       const result = await submitToZapierWebhook(
