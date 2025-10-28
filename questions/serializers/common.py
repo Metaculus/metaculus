@@ -688,7 +688,7 @@ def serialize_conditional(
 
     # Generic questions
     parent_question_aggregate_forecasts = (
-        aggregate_forecasts.get(conditional.question_yes) or []
+        aggregate_forecasts.get(conditional.condition) or []
         if aggregate_forecasts
         else None
     )
@@ -700,7 +700,7 @@ def serialize_conditional(
         include_descriptions=include_descriptions,
     )
     child_question_aggregate_forecasts = (
-        aggregate_forecasts.get(conditional.question_yes) or []
+        aggregate_forecasts.get(conditional.condition_child) or []
         if aggregate_forecasts
         else None
     )
