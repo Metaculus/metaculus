@@ -4,13 +4,16 @@ import Script from "next/script";
 import { FC, useEffect } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+import { safeLocalStorage } from "@/utils/core/storage";
 
 import {
+  linkedinPixelInit,
+  redditPixelInit,
   fbPixelTrackPage,
   fbPixelInit,
-  lnkdnInitAndTrack,
-  redditPixelInitAndTrack,
-} from "../utils/pixel-apis";
+  gtagPixelInit,
+} from "../../utils/pixel-apis";
+import { PIXEL_CONSTANTS } from "../../utils/pixel-constants";
 
 export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
   const consent =
@@ -69,7 +72,7 @@ export const LinkedInInsightTag: FC<{ partnerID?: string }> = ({
   useEffect(() => {
     if (consent !== "yes" || !partnerID) return;
 
-    lnkdnInitAndTrack();
+    linkedinPixelInit();
   }, [consent, partnerID]);
 
   return (
@@ -116,7 +119,7 @@ export const RedditPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
   useEffect(() => {
     if (consent !== "yes" || !pixelID) return;
 
-    redditPixelInitAndTrack(pixelID);
+    redditPixelInit(pixelID);
   }, [consent, pixelID]);
 
   return (
@@ -143,6 +146,57 @@ export const RedditPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
           </Script>
         </>
       )}
+    </>
+  );
+};
+
+export const GoogleTag: FC<{ tagID?: string }> = ({ tagID }) => {
+  const consent =
+    typeof window !== "undefined"
+      ? getAnalyticsCookieConsentGiven()
+      : "undecided";
+
+  useEffect(() => {
+    if (consent !== "yes" || !tagID) return;
+
+    gtagPixelInit(tagID);
+  }, [consent, tagID]);
+
+  return (
+    <>
+      {tagID && (
+        <>
+          <Script
+            id="google-gtag-src"
+            src={`https://www.googletagmanager.com/gtag/js?id=${tagID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-gtag-init">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+            `}
+          </Script>
+        </>
+      )}
+    </>
+  );
+};
+
+export const AllBWPixelTagsForRegisteredUsers: FC = () => {
+  // if the user hasb't regisrted to the campaign, don't show the pixels
+  const hasRegistered = safeLocalStorage.getItem("bw_registration_campaign");
+
+  if (!hasRegistered) {
+    return null;
+  }
+
+  return (
+    <>
+      <FacebookPixelTag pixelID={PIXEL_CONSTANTS.FACEBOOK} />
+      <LinkedInInsightTag partnerID={PIXEL_CONSTANTS.LINKEDIN} />
+      <RedditPixelTag pixelID={PIXEL_CONSTANTS.REDDIT} />
+      <GoogleTag tagID={PIXEL_CONSTANTS.GOOGLE} />
     </>
   );
 };
