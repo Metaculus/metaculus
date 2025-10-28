@@ -9,6 +9,7 @@ import { FC, useEffect, useState } from "react";
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
+import { useQuestionLayout } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
@@ -22,7 +23,6 @@ import cn from "@/utils/core/cn";
 
 import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
-import { useKeyFactorsContext } from "./key_factors_provider";
 
 type KeyFactorsSectionProps = {
   post: PostWithForecasts;
@@ -58,8 +58,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
-  const { forceExpandedState } = useKeyFactorsContext();
-
+  const { keyFactorsExpanded } = useQuestionLayout();
   const { combinedKeyFactors } = useCommentsFeed();
 
   const { factorsLimit } = user?.id
@@ -114,7 +113,7 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
           maxCollapsedHeight={340}
           expandLabel={t("showMore")}
           collapseLabel={t("showLess")}
-          forceState={forceExpandedState}
+          forceState={keyFactorsExpanded}
         >
           <div className="flex flex-col gap-2.5">
             {combinedKeyFactors.map((kf) => (

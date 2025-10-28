@@ -6,7 +6,6 @@ import { FC, useCallback, useEffect, useState } from "react";
 
 import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import { KeyFactorsProvider } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_provider";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
@@ -154,9 +153,7 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
                   postData={detailedPost}
                   rootCommentStructure={true}
                 >
-                  <KeyFactorsProvider>
-                    <PredictionFlowCommentsSection postData={detailedPost} />
-                  </KeyFactorsProvider>
+                  <PredictionFlowCommentsSection postData={detailedPost} />
                 </CommentsFeedProvider>
               </div>
             </div>

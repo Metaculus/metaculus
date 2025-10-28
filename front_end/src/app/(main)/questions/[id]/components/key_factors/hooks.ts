@@ -1,12 +1,14 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
   createComment,
+  deleteKeyFactor as deleteKeyFactorAction,
 } from "@/app/(main)/questions/actions";
+import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
@@ -234,4 +236,37 @@ export const getKeyFactorsLimits = (
     userCommentFactors: commentFactors,
     factorsLimit,
   };
+};
+
+/**
+ * Hook for deleting a key factor with confirmation modal.
+ */
+export const useKeyFactorDelete = () => {
+  const t = useTranslations();
+  const { setCurrentModal } = useModal();
+  const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
+
+  const openDeleteModal = useCallback(
+    async (keyFactorId: number) => {
+      setCurrentModal({
+        type: "confirm",
+        data: {
+          title: t("confirmDeletion"),
+          description: t("confirmDeletionKeyFactorDescription"),
+          onConfirm: async () => {
+            const result = await deleteKeyFactorAction(keyFactorId);
+
+            if (!result || !("errors" in result)) {
+              setCombinedKeyFactors(
+                combinedKeyFactors.filter((kf) => kf.id !== keyFactorId)
+              );
+            }
+          },
+        },
+      });
+    },
+    [setCurrentModal, t, combinedKeyFactors, setCombinedKeyFactors]
+  );
+
+  return { openDeleteModal };
 };
