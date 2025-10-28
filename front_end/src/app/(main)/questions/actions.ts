@@ -10,6 +10,7 @@ import {
   CreateCommentParams,
   EditCommentParams,
   KeyFactorVoteParams,
+  KeyFactorWritePayload,
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/api/comments/comments.shared";
@@ -241,7 +242,7 @@ export async function createComment(commentData: CreateCommentParams) {
 
 export async function addKeyFactorsToComment(
   commentId: number,
-  keyFactors: string[]
+  keyFactors: KeyFactorWritePayload[]
 ) {
   try {
     return await ServerCommentsApi.addKeyFactorsToComment(
@@ -253,6 +254,16 @@ export async function addKeyFactorsToComment(
 
     return {
       errors: error.data,
+    };
+  }
+}
+
+export async function deleteKeyFactor(keyFactorId: number) {
+  try {
+    return await ServerCommentsApi.deleteKeyFactor(keyFactorId);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }

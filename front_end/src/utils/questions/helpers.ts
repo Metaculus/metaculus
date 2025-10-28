@@ -206,3 +206,21 @@ export function isValidScaling(
     !isNil(scaling) && !isNil(scaling.range_min) && !isNil(scaling.range_max)
   );
 }
+
+/**
+ * Returns the effective QuestionType for a post:
+ * - Single question: the question's actual type
+ * - Group of questions: an inferred group type (Numeric for fan graph, Date otherwise)
+ * - Conditional: type of condition child
+ * - Notebook: null
+ */
+export function inferEffectiveQuestionTypeFromPost(
+  post: PostWithForecasts
+): QuestionType | null {
+  if (isQuestionPost(post)) return post.question.type;
+  if (isGroupOfQuestionsPost(post))
+    return post.group_of_questions.questions.at(0)?.type || null;
+  if (isConditionalPost(post)) return post.conditional.condition_child.type;
+
+  return null;
+}

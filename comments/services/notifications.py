@@ -9,8 +9,9 @@ from notifications.services import send_comment_mention_notification
 from notifications.utils import generate_email_comment_preview_text
 from users.models import User
 from utils.email import send_email_with_template
-from utils.frontend import build_frontend_url
+from utils.frontend import build_frontend_url, build_post_url
 from ..utils import comment_extract_user_mentions, get_mention_for_user
+from django.conf import settings
 
 
 def notify_mentioned_users(comment: Comment):
@@ -42,6 +43,9 @@ def notify_weekly_top_comments_subscribers(
     top_comments = [
         {
             "created_at": e.comment.created_at,
+            "author": e.comment.author.username,
+            "post_title": e.comment.on_post.title,
+            "post_url": build_post_url(e.comment.on_post),
             "preview_text": generate_email_comment_preview_text(
                 e.comment.text, max_chars=512
             )[0],
@@ -90,7 +94,6 @@ def notify_weekly_top_comments_subscribers(
                 "other_usernames": other_usernames,
             },
             use_async=False,
+            from_email=settings.EMAIL_NOTIFICATIONS_USER,
         )
-        return
-
         start += batch_size
