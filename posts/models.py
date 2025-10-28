@@ -45,6 +45,7 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_yes",
             "conditional__question_no",
             "conditional__condition_child",
+            "conditional__condition",
             "group_of_questions__questions",
         ]
 
