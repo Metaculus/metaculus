@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import Button from "@/components/ui/button";
 
-import GlobalHeader from "../../../(main)/components/headers/global_header";
-import PageWrapper from "../../../(main)/components/pagewrapper";
+import GlobalHeader from "../../../../(main)/components/headers/global_header";
+import PageWrapper from "../../../../(main)/components/pagewrapper";
 
 export const metadata = {
   title: "Notice at Collection - Bridgewater Open Forecasting Tournament",

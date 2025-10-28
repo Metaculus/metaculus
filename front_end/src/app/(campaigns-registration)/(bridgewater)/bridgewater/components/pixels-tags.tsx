@@ -10,7 +10,7 @@ import {
   fbPixelInit,
   lnkdnInitAndTrack,
   redditPixelInitAndTrack,
-} from "./pixel-apis";
+} from "../utils/pixel-apis";
 
 export const FacebookPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
   const consent =
