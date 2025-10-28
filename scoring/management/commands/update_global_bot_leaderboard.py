@@ -188,9 +188,6 @@ def gather_data(
                 include_future=False,
             )[aggregation_method]
             if not aggregate_forecasts:
-                print(f"{human_question.id} doesn't have a human aggregate!")
-                print(f"quivalent question (different if in aib) {question.id}")
-                breakpoint()
                 pass
             elif question in aib_question_map:
                 # set the last aggregate to be the one that gets scored
@@ -199,7 +196,20 @@ def gather_data(
                     seconds=1
                 )
                 forecast.end_time = None
-                forecast_dict["pro_aggregate"] = [forecast]
+                forecast_dict["overall_pro_aggregate"] = [forecast]
+                match question.get_post().default_project_id:
+                    case 3349:  # Q3 2024
+                        forecast_dict["2024_Q3_pro_aggregate"] = [forecast]
+                    case 32506:  # Q4 2024
+                        forecast_dict["2024_Q4_pro_aggregate"] = [forecast]
+                    case 32627:  # Q1 2025
+                        forecast_dict["2025_Q1_pro_aggregate"] = [forecast]
+                    case 32721:  # Q2 2025
+                        forecast_dict["2025_Q2_pro_aggregate"] = [forecast]
+                    case 32813:  # fall 2025
+                        forecast_dict["2025_fall_pro_aggregate"] = [forecast]
+                    case other:
+                        print(question.id, human_question.id, "NOT FOUND...", other)
             else:
                 forecast_dict["community_aggregate"] = aggregate_forecasts
 
@@ -457,9 +467,9 @@ class Command(BaseCommand):
         baseline_player = 236038
         print("Initializing...", end="\r")
         users: QuerySet[User] = User.objects.filter(
+            Q(username__startswith="metac-") | Q(username__startswith="mf-bot-"),
             is_active=True,
             is_bot=True,
-            username__startswith="metac-",
         ).order_by("id")
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
@@ -510,18 +520,7 @@ class Command(BaseCommand):
         skills = rescale_skills_(skills, var_avg_scores)
         print("Computing Skills initial... DONE\n")
 
-        match_ci_lower, match_ci_upper = bootstrap_skills(
-            user1_ids,
-            user2_ids,
-            question_ids,
-            scores,
-            coverages,
-            var_avg_scores,
-            baseline_player=baseline_player,
-            n_bootstrap=30,
-            method="match",
-        )
-        question_ci_lower, question_ci_upper = bootstrap_skills(
+        ci_lower, ci_upper = bootstrap_skills(
             user1_ids,
             user2_ids,
             question_ids,
@@ -536,18 +535,18 @@ class Command(BaseCommand):
         # DISPLAY
         print("Results:")
         print(
-            "|       2.5%      "
+            "|  2.5%  "
             "|  skill "
-            "|      97.5%      "
+            "| 97.5%  "
             "| Match  "
             "| Quest. "
             "|   ID   "
             "| Username "
         )
         print(
-            "|  match (quest.) "
+            "|  match "
             "|        "
-            "|  match (quest.) "
+            "|  match "
             "| Count  "
             "| Count  "
             "|        "
@@ -575,14 +574,12 @@ class Command(BaseCommand):
             else:
                 username = User.objects.get(id=uid).username
             unevaluated.remove(uid)
-            match_lower = match_ci_lower.get(uid, 0)
-            match_upper = match_ci_upper.get(uid, 0)
-            question_lower = question_ci_lower.get(uid, 0)
-            question_upper = question_ci_upper.get(uid, 0)
+            lower = ci_lower.get(uid, 0)
+            upper = ci_upper.get(uid, 0)
             print(
-                f"| {round(match_lower, 2):>6} {'('+str(round(question_lower, 2))+')':>8} "
+                f"| {round(lower, 2):>6} "
                 f"| {round(skill, 2):>6} "
-                f"| {round(match_upper, 2):>6} {'('+str(round(question_upper, 2))+')':>8} "
+                f"| {round(upper, 2):>6} "
                 f"| {player_stats[uid][0]:>6} "
                 f"| {len(player_stats[uid][1]):>6} "
                 f"| {uid if isinstance(uid, int) else '':>6} "
@@ -594,9 +591,9 @@ class Command(BaseCommand):
             else:
                 username = User.objects.get(id=uid).username
             print(
-                "| --------------- "
                 "| ------ "
-                "| --------------- "
+                "| ------ "
+                "| ------ "
                 "| ------ "
                 "| ------ "
                 f"| {uid if isinstance(uid, int) else '':>5} "
@@ -627,8 +624,8 @@ class Command(BaseCommand):
             entry.contribution_count = contribution_count
             entry.coverage = contribution_count / question_count
             entry.calculated_on = timezone.now()
-            entry.ci_lower = match_ci_lower.get(uid, None)  # consider question_ci_lower
-            entry.ci_upper = match_ci_upper.get(uid, None)  # consider question_ci_upper
+            entry.ci_lower = ci_lower.get(uid, None)
+            entry.ci_upper = ci_upper.get(uid, None)
             # TODO: support for more efficient saving once this is implemented
             # for leaderboards with more than 100 entries
             entry.save()

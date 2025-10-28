@@ -154,7 +154,11 @@ export function getContinuousGroupScaling(
   const scaling: Scaling = {
     range_max: rangeMaxPoints.length > 0 ? Math.max(...rangeMaxPoints) : null,
     range_min: rangeMinPoints.length > 0 ? Math.min(...rangeMinPoints) : null,
-    zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
+    // set zero_point to null if any are linearly scaled
+    zero_point:
+      zeroPoints.length > 0 && !zeroPoints.some((p) => p !== null)
+        ? Math.min(...zeroPoints)
+        : null,
   };
   // we can have mixes of log and linear scaled options
   // which leads to a derived zero point inside the range which is invalid
@@ -201,4 +205,22 @@ export function isValidScaling(
   return (
     !isNil(scaling) && !isNil(scaling.range_min) && !isNil(scaling.range_max)
   );
+}
+
+/**
+ * Returns the effective QuestionType for a post:
+ * - Single question: the question's actual type
+ * - Group of questions: an inferred group type (Numeric for fan graph, Date otherwise)
+ * - Conditional: type of condition child
+ * - Notebook: null
+ */
+export function inferEffectiveQuestionTypeFromPost(
+  post: PostWithForecasts
+): QuestionType | null {
+  if (isQuestionPost(post)) return post.question.type;
+  if (isGroupOfQuestionsPost(post))
+    return post.group_of_questions.questions.at(0)?.type || null;
+  if (isConditionalPost(post)) return post.conditional.condition_child.type;
+
+  return null;
 }

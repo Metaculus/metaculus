@@ -609,9 +609,10 @@ def serialize_question(
     )
 
     if question_movement:
-        serialized_data["aggregations"][question.default_aggregation_method][
-            "movement"
-        ] = question_movement
+        if default_agg := serialized_data["aggregations"].get(
+            question.default_aggregation_method
+        ):
+            default_agg["movement"] = question_movement
 
     if (
         current_user
@@ -621,6 +622,14 @@ def serialize_question(
         scores = question.user_scores
         archived_scores = question.user_archived_scores
         user_forecasts = question.request_user_forecasts
+        last_forecast = user_forecasts[-1] if user_forecasts else None
+        if (
+            last_forecast
+            and last_forecast.end_time
+            and question.actual_close_time
+            and (last_forecast.end_time > question.actual_close_time)
+        ):
+            last_forecast.end_time = None
         serialized_data["my_forecasts"] = {
             "history": MyForecastSerializer(
                 user_forecasts,

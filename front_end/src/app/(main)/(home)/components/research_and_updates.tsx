@@ -71,12 +71,13 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
               </span>
               <h3 className="mb-2 mt-3 text-2xl">{title}</h3>
               <p className="m-0 text-base text-blue-700 dark:text-blue-700-dark">
-                {getMarkdownSummary({
-                  markdown: notebook.markdown,
-                  width: 200,
-                  height: 80,
-                  withLinks: false,
-                })}
+                {notebook.markdown_summary ||
+                  getMarkdownSummary({
+                    markdown: notebook.markdown,
+                    width: 200,
+                    height: 80,
+                    withLinks: false,
+                  })}
               </p>
             </div>
           </Link>

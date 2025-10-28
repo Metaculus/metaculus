@@ -4,28 +4,28 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_key_factors_modal";
+import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
 import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
 import Button from "@/components/ui/button";
+import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import useHash from "@/hooks/use_hash";
 import { FetchedAggregateCoherenceLink } from "@/types/coherence";
-import { Post, PostStatus } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
 import { getKeyFactorsLimits } from "./hooks";
 import KeyFactorItem from "./key_factor_item";
+import { useKeyFactorsContext } from "./key_factors_provider";
 
 type KeyFactorsSectionProps = {
-  post: Post;
-  variant?: "default" | "compact";
+  post: PostWithForecasts;
 };
 
 const AddKeyFactorsButton: FC<{
@@ -50,20 +50,15 @@ const AddKeyFactorsButton: FC<{
   );
 };
 
-const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
-  post,
-  variant = "default",
-}) => {
-  const postId = post.id;
+const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
   const postStatus = post.status;
   const t = useTranslations();
-  const hash = useHash();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const [displayLimit, setDisplayLimit] = useState(4);
   const [isAddKeyFactorsModalOpen, setIsAddKeyFactorsModalOpen] =
     useState(false);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
+  const { forceExpandedState } = useKeyFactorsContext();
 
   const { combinedKeyFactors } = useCommentsFeed();
 
@@ -72,20 +67,10 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
     : { factorsLimit: 0 };
 
   useEffect(() => {
-    // Expands the key factor list when you follow the #key-factors link.
-    if (hash === "key-factors") setDisplayLimit(combinedKeyFactors.length);
-  }, [hash, combinedKeyFactors.length]);
-
-  useEffect(() => {
     if (combinedKeyFactors.length > 0) {
       sendAnalyticsEvent("KeyFactorPageview");
     }
   }, [combinedKeyFactors]);
-
-  const visibleKeyFactors = useMemo(
-    () => combinedKeyFactors.slice(0, displayLimit),
-    [combinedKeyFactors, displayLimit]
-  );
 
   if (
     [
@@ -125,24 +110,22 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
   const KeyFactors =
     combinedKeyFactors.length > 0 ? (
       <div id="key-factors-list" className="flex flex-col gap-2.5">
-        {visibleKeyFactors.map((kf) => (
-          <KeyFactorItem
-            variant={variant}
-            key={`post-key-factor-${kf.id}`}
-            keyFactor={kf}
-            linkToComment={variant === "default"}
-          />
-        ))}
-        {combinedKeyFactors.length > displayLimit && (
-          <div className="flex flex-col items-center justify-between hover:text-blue-700 @md:flex-row">
-            <Button
-              variant="tertiary"
-              onClick={() => setDisplayLimit((prev) => prev + 10)}
-            >
-              {t("showMore")}
-            </Button>
+        <ExpandableContent
+          maxCollapsedHeight={340}
+          expandLabel={t("showMore")}
+          collapseLabel={t("showLess")}
+          forceState={forceExpandedState}
+        >
+          <div className="flex flex-col gap-2.5">
+            {combinedKeyFactors.map((kf) => (
+              <KeyFactorItem
+                key={`post-key-factor-${kf.id}`}
+                keyFactor={kf}
+                projectPermission={post.user_permission}
+              />
+            ))}
           </div>
-        )}
+        </ExpandableContent>
       </div>
     ) : (
       <div className="flex flex-col items-center justify-between pb-8 pt-6">
@@ -174,50 +157,41 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({
         <AddKeyFactorsModal
           isOpen={isAddKeyFactorsModalOpen}
           onClose={() => setIsAddKeyFactorsModalOpen(false)}
-          postId={postId}
+          post={post}
           user={user}
         />
       )}
 
-      {variant === "compact" ? (
-        <div className="space-y-2.5">
-          <p className="text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
-            {t("keyFactors")}
-          </p>
-          {KeyFactors}
-        </div>
-      ) : (
-        <SectionToggle
-          detailElement={DetailElement}
-          title={t("keyFactors")}
-          defaultOpen
-          id="key-factors"
-          wrapperClassName="scroll-mt-header"
-        >
-          {KeyFactors}
-          {posthog.getFeatureFlag("aggregate_question_links") &&
-            displayedAggregateLinks?.length > 0 && (
-              <>
-                <div className="mb-2 mt-2 text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
-                  Aggregate Question Links
-                </div>
-                {Array.from(
-                  displayedAggregateLinks,
-                  (link: FetchedAggregateCoherenceLink) => (
-                    <div key={link.id}>
-                      <DisplayCoherenceLink
-                        link={link}
-                        post={post}
-                        compact={false}
-                      ></DisplayCoherenceLink>
-                      <br></br>
-                    </div>
-                  )
-                )}
-              </>
-            )}
-        </SectionToggle>
-      )}
+      <SectionToggle
+        detailElement={DetailElement}
+        title={t("keyFactors")}
+        defaultOpen
+        id="key-factors"
+        wrapperClassName="scroll-mt-header"
+      >
+        {KeyFactors}
+        {posthog.getFeatureFlag("aggregate_question_links") &&
+          displayedAggregateLinks?.length > 0 && (
+            <>
+              <div className="mb-2 mt-2 text-[16px] leading-[24px] text-blue-900 dark:text-blue-900-dark">
+                Aggregate Question Links
+              </div>
+              {Array.from(
+                displayedAggregateLinks,
+                (link: FetchedAggregateCoherenceLink) => (
+                  <div key={link.id}>
+                    <DisplayCoherenceLink
+                      link={link}
+                      post={post}
+                      compact={false}
+                    ></DisplayCoherenceLink>
+                    <br></br>
+                  </div>
+                )
+              )}
+            </>
+          )}
+      </SectionToggle>
     </>
   );
 };

@@ -1,5 +1,5 @@
+import { AggregationExtraQuestion } from "@/app/(main)/aggregation-explorer/types";
 import { ApiService } from "@/services/api/api_service";
-import { AggregationQuestion } from "@/types/question";
 import { encodeQueryParams } from "@/utils/navigation";
 
 type AggregationExplorerParams = {
@@ -8,6 +8,7 @@ type AggregationExplorerParams = {
   includeBots?: boolean;
   aggregationMethods?: string;
   userIds?: number[];
+  joinedBeforeDate?: string;
 };
 
 class AggregationExplorerApi extends ApiService {
@@ -17,10 +18,11 @@ class AggregationExplorerApi extends ApiService {
       question_id: params.questionId?.toString() || "",
       include_bots: params.includeBots?.toString() || "false",
       aggregation_methods: params.aggregationMethods || "",
+      joined_before_date: params.joinedBeforeDate || "",
       ...(params.userIds !== undefined ? { user_ids: params.userIds } : {}),
     });
 
-    return await this.get<AggregationQuestion>(
+    return await this.get<AggregationExtraQuestion>(
       `/aggregation_explorer/${queryParams}`
     );
   }

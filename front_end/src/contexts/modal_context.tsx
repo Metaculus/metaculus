@@ -27,7 +27,12 @@ type ModalDataByType = {
   resetPasswordConfirm: Record<string, never>;
   contactUs: Record<string, never>;
   onboarding: Record<string, never>;
-  confirm: { onConfirm: () => void };
+  confirm: {
+    title: string;
+    description?: string;
+    onConfirm: () => void;
+    onClose?: () => void;
+  };
   accountInactive: { login: string };
 };
 

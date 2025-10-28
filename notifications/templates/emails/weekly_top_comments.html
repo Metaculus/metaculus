@@ -204,15 +204,15 @@
                                             <div style="margin-top: 4px; margin-bottom: 8px;">
                                               <span style="font-size: 18px;"> {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %} </span>
                                               <span style="font-size: 16px; font-weight: 500; color: #161C22;">
-                                                {{ comment.author.username }}
+                                                {{ comment.author }}
                                               </span>
                                               <span style="font-size: 14px; color: #758EA9; margin-left: 4px;"> • {{ comment.created_at|date:"M j" }}
                                               </span>
                                             </div>
                                             <!-- Question Title -->
                                             <div style="font-size: 14px; font-weight: 500; color: #2F4155;">
-                                              <a href="{% post_url comment.on_post.id comment.on_post.title %}" style="font-weight: bold; color: #2F4155; text-decoration: underline;">
-                                                {{ comment.on_post.title }}
+                                              <a href="{{ comment.post_url }}" style="font-weight: bold; color: #2F4155; text-decoration: underline;">
+                                                {{ comment.post_title }}
                                               </a>
                                             </div>
                                           </div>

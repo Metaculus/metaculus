@@ -354,12 +354,13 @@ export default async function FAQ() {
           forecasters — you!
         </p>
         <p>
-          The name &quot;Metaculus&quot; comes from the{" "}
-          <a href="https://en.wikipedia.org/wiki/Eriophyidae">
-            Metaculus genus
-          </a>{" "}
-          in the Eriophyidae family, a genus of herbivorous mites found in many
-          locations around the world.
+          The name &quot;Metaculus&quot; is inspired by the Mentaculus, a
+          fictional probability map of the universe, from the Coen
+          brothers&apos;{" "}
+          <a href="https://en.wikipedia.org/wiki/A_Serious_Man">
+            A Serious Man
+          </a>
+          .
         </p>
 
         <h3

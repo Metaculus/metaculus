@@ -115,8 +115,11 @@ const GlobalModals: FC = () => {
       {isModal(currentModal, "confirm") && (
         <ConfirmModal
           isOpen
-          onClose={onClose}
+          onCloseModal={onClose}
+          title={currentModal.data?.title ?? ""}
+          description={currentModal.data?.description}
           onConfirm={currentModal.data?.onConfirm ?? (() => {})}
+          onClose={currentModal.data?.onClose}
         />
       )}
     </>

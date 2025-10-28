@@ -2,55 +2,49 @@ import { uniq } from "lodash";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
-import { Aggregations, QuestionType } from "@/types/question";
+import { QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 import { formatResolution } from "@/utils/formatters/resolution";
 
 import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
 import {
-  AggregationMethodWithBots,
-  AggregationQuestionWithBots,
+  AggregationExtraMethod,
+  AggregationExtraQuestion,
+  AggregationsExtra,
   AggregationTooltip,
 } from "./types";
 
 export function generateAggregationTooltips(
-  user: CurrentUser | null
+  user: CurrentUser | null,
+  joinedBeforeDate?: string
 ): AggregationTooltip[] {
-  const order: AggregationMethodWithBots[] = user?.is_superuser
-    ? [
-        AggregationMethodWithBots.recency_weighted,
-        AggregationMethodWithBots.unweighted,
-        AggregationMethodWithBots.single_aggregation,
-        AggregationMethodWithBots.recency_weighted_bot,
-        AggregationMethodWithBots.unweighted_bot,
-        AggregationMethodWithBots.single_aggregation_bot,
-        AggregationMethodWithBots.metaculus_prediction,
-      ]
-    : [
-        AggregationMethodWithBots.recency_weighted,
-        AggregationMethodWithBots.unweighted,
-        AggregationMethodWithBots.single_aggregation,
-        AggregationMethodWithBots.metaculus_prediction,
-        AggregationMethodWithBots.recency_weighted_bot,
-        AggregationMethodWithBots.unweighted_bot,
-        AggregationMethodWithBots.single_aggregation_bot,
-      ];
+  return AGGREGATION_EXPLORER_OPTIONS.filter((option) => {
+    if (option.isStaffOnly && (!user || !user.is_staff)) {
+      return false;
+    }
+    if (
+      option.id === AggregationExtraMethod.joined_before_date &&
+      !joinedBeforeDate
+    ) {
+      return false;
+    }
+    return true;
+  }).map((AggregationOption, index) => {
+    const baseLabel = AggregationOption.label;
+    const label =
+      AggregationOption.id === AggregationExtraMethod.joined_before_date &&
+      joinedBeforeDate
+        ? `Only Users who joined before ${joinedBeforeDate}`
+        : baseLabel;
 
-  return [...AGGREGATION_EXPLORER_OPTIONS]
-    .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
-    .map((AggregationOption, index) => {
-      if (AggregationOption.isStaffOnly && (!user || !user.is_staff)) {
-        return null;
-      }
-      return {
-        aggregationMethod: AggregationOption.value,
-        choice: AggregationOption.id,
-        label: AggregationOption.label,
-        includeBots: AggregationOption.includeBots,
-        color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      };
-    })
-    .filter((tooltip) => tooltip !== null) as AggregationTooltip[];
+    return {
+      aggregationMethod: AggregationOption.value,
+      choice: AggregationOption.id,
+      label,
+      includeBots: AggregationOption.includeBots,
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+    };
+  });
 }
 
 export function generateChoiceItemsFromAggregations({
@@ -59,14 +53,13 @@ export function generateChoiceItemsFromAggregations({
   tooltips,
   locale,
 }: {
-  question: AggregationQuestionWithBots;
+  question: AggregationExtraQuestion;
   selectedSubQuestionOption: number | string | null;
   tooltips: AggregationTooltip[];
   locale?: string;
 }): ChoiceItem[] {
   const choiceItems: ChoiceItem[] = [];
   const aggregations = question.aggregations;
-  const botAggregations = question.bot_aggregations;
   parseAggregationData({
     aggregations,
     choiceItems,
@@ -75,16 +68,6 @@ export function generateChoiceItemsFromAggregations({
     tooltips,
     selectedSubQuestionOption,
   });
-  botAggregations &&
-    parseAggregationData({
-      aggregations: botAggregations,
-      choiceItems,
-      question,
-      locale,
-      isBot: true,
-      tooltips,
-      selectedSubQuestionOption,
-    });
   return choiceItems;
 }
 
@@ -93,26 +76,20 @@ function parseAggregationData({
   choiceItems,
   question,
   locale,
-  isBot,
   tooltips,
   selectedSubQuestionOption,
 }: {
-  aggregations: Aggregations;
+  aggregations: AggregationsExtra;
   choiceItems: ChoiceItem[];
-  question: AggregationQuestionWithBots;
+  question: AggregationExtraQuestion;
   locale?: string;
   isBot?: boolean;
   tooltips: AggregationTooltip[];
   selectedSubQuestionOption: number | string | null;
 }) {
-  for (const key in aggregations) {
-    const aggregationKey = key as keyof Aggregations;
-    const aggregation = aggregations[aggregationKey];
-    const tooltip = tooltips.find(
-      (tooltip) =>
-        tooltip.aggregationMethod === aggregationKey &&
-        tooltip.includeBots === !!isBot
-    );
+  for (const [key, aggregation] of Object.entries(aggregations)) {
+    if (!aggregation) continue;
+    const tooltip = tooltips.find((tooltip) => tooltip.choice == key);
 
     if (!aggregation?.history) {
       continue;
