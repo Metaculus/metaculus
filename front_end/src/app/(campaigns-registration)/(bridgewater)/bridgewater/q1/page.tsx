@@ -10,7 +10,7 @@ import Hero from "./components/hero";
 import OpenLeaderboard from "./components/openLeaderboard";
 import Prize from "./components/prize";
 import UndergradLeaderboard from "./components/undergradLeaderboard";
-import GlobalHeader from "../../../(main)/components/headers/global_header";
+import GlobalHeader from "../../../../(main)/components/headers/global_header";
 
 export const metadata = {
   title: "Bridgewater | Metaculus",
