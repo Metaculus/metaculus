@@ -16,11 +16,13 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import { getKeyFactorsLimits } from "./hooks";
 
-type KeyFactorsSectionProps = {
+type KeyFactorsQuestionSectionProps = {
   post: PostWithForecasts;
 };
 
-const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
+const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
+  post,
+}) => {
   const postStatus = post.status;
   const t = useTranslations();
   const { user } = useAuth();
@@ -97,4 +99,4 @@ const KeyFactorsSection: FC<KeyFactorsSectionProps> = ({ post }) => {
   );
 };
 
-export default KeyFactorsSection;
+export default KeyFactorsQuestionSection;
