@@ -490,7 +490,7 @@ def serialize_post_many(
                 for p in posts
                 if p.conditional_id
             ]
-            additional_questions =set(flatten(additional_questions))
+            additional_questions = set(flatten(additional_questions))
             questions.extend(additional_questions)
 
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
