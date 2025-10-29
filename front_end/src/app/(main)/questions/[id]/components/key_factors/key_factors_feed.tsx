@@ -13,6 +13,7 @@ import KeyFactorItem from "./key_factor_item";
 type Props = {
   post: PostWithForecasts;
   keyFactorItemClassName?: string;
+  mobileOnly?: boolean;
 };
 
 const KeyFactorsEmpty: FC<{ post: PostWithForecasts }> = ({ post }) => {
@@ -45,14 +46,13 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
   return (
     <div className="flex flex-col gap-2.5">
       {combinedKeyFactors.map((kf) => (
-        <div key={`post-key-factor-${kf.id}`} id={`key-factor-${kf.id}`}>
-          <KeyFactorItem
-            key={`post-key-factor-${kf.id}`}
-            keyFactor={kf}
-            projectPermission={post.user_permission}
-            className={keyFactorItemClassName}
-          />
-        </div>
+        <KeyFactorItem
+          id={`key-factor-${kf.id}`}
+          key={`post-key-factor-${kf.id}`}
+          keyFactor={kf}
+          projectPermission={post.user_permission}
+          className={keyFactorItemClassName}
+        />
       ))}
     </div>
   );

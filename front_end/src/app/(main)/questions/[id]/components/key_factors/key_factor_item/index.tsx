@@ -10,6 +10,7 @@ import cn from "@/utils/core/cn";
 import KeyFactorDriver from "./key_factor_driver";
 
 type Props = {
+  id: string;
   keyFactor: KeyFactor;
   linkToComment?: boolean;
   isCompact?: boolean;
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export const KeyFactorItem: FC<Props> = ({
+  id,
   keyFactor,
   linkToComment = true,
   isCompact,
@@ -47,6 +49,7 @@ export const KeyFactorItem: FC<Props> = ({
         className
       )}
       onClick={onClick}
+      id={id}
     >
       {keyFactor.driver && (
         <KeyFactorDriver
