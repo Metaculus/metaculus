@@ -91,9 +91,7 @@ const IndividualQuestionPage: FC<{
                       )}
                       <QuestionView
                         postData={postData}
-                        preselectedGroupQuestionId={
-                          preselectedGroupQuestionId
-                        }
+                        preselectedGroupQuestionId={preselectedGroupQuestionId}
                       />
                     </QuestionLayout>
                   </div>
