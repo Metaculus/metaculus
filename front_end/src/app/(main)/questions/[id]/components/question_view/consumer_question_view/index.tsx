@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-import KeyFactorsConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_consumer_section";
+import KeyFactorsConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_consumer_section";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {

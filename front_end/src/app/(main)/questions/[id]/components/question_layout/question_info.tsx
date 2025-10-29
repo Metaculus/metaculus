@@ -13,7 +13,7 @@ import {
 } from "@/utils/questions/helpers";
 
 import HistogramDrawer from "../histogram_drawer";
-import KeyFactorsSection from "../key_factors/key_factors_section";
+import KeyFactorsSection from "../key_factors/key_factors_question_section";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
