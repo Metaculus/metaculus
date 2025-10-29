@@ -7,7 +7,10 @@ export function getGroupForecastAvailability(
 ): ForecastAvailability {
   const cpRevealTimes: Array<{ raw: string; formatted: number }> = [];
   for (const q of groupQuestions) {
-    if (q.cp_reveal_time) {
+    if (
+      !q.resolution && // always show cp when resolved or annulled
+      q.cp_reveal_time
+    ) {
       cpRevealTimes.push({
         raw: q.cp_reveal_time,
         formatted: new Date(q.cp_reveal_time).getTime(),
@@ -39,7 +42,9 @@ export function getQuestionForecastAvailability(
   return {
     isEmpty: getIsQuestionForecastEmpty(question),
     cpRevealsOn:
-      question.cp_reveal_time && new Date(question.cp_reveal_time) >= new Date()
+      !question.resolution && // always show cp when resolved or annulled
+      question.cp_reveal_time &&
+      new Date(question.cp_reveal_time) >= new Date()
         ? question.cp_reveal_time
         : null,
   };
