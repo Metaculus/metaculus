@@ -8,14 +8,7 @@ import {
   shift,
   useFloating,
 } from "@floating-ui/react";
-import {
-  FC,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ErrorBar,
   ErrorBarProps,
@@ -25,8 +18,6 @@ import {
   VictoryErrorBar,
   VictoryLabel,
   VictoryNumberCallback,
-  VictoryScatter,
-  VictoryVoronoiContainer,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -51,6 +42,20 @@ const GROUP_OFFSET = 0.16;
 const ERR_CAP = 21;
 const ERR_CAP_DOUBLE = Math.round(ERR_CAP * 0.53);
 
+type HitDatum = { _x: number; cat: string; y: number };
+type VictoryScale = { x: (v: number) => number; y: (v: number) => number };
+type InjectedByVictory = {
+  datum?: HitDatum;
+  scale?: VictoryScale;
+  style?: React.CSSProperties;
+  events?: React.SVGProps<SVGRectElement>;
+};
+
+const clamp = (v: number, lo: number, hi: number) =>
+  Math.max(lo, Math.min(hi, v));
+
+type VirtualElement = { getBoundingClientRect: () => DOMRect; _rect?: DOMRect };
+
 const AIBProsVsBotsDiffChart: FC<{
   series: ProsVsBotsDiffSeries[];
   className?: string;
@@ -62,8 +67,10 @@ const AIBProsVsBotsDiffChart: FC<{
   const mdUp = useBreakpoint("md");
   const lgUp = useBreakpoint("lg");
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+
   const virtualRef = useRef<VirtualElement | null>(null);
   const { refs, floatingStyles } = useFloating<VirtualElement>({
     placement: "top",
@@ -74,6 +81,7 @@ const AIBProsVsBotsDiffChart: FC<{
     if (!anchor || !chartRef.current) return;
     const svg = chartRef.current.querySelector("svg");
     if (!(svg instanceof SVGSVGElement)) return;
+
     const pt = svg.createSVGPoint();
     pt.x = anchor.x;
     pt.y = anchor.y;
@@ -96,11 +104,13 @@ const AIBProsVsBotsDiffChart: FC<{
       refs.setReference(ve);
     }
   }, [anchor, refs]);
+
   const s1 = series?.[0];
   const s2 = series?.[1];
 
   const factor1 = mdUp ? (lgUp ? 1 : 0.8) : 0.55;
   const factor2 = mdUp ? (lgUp ? 1 : 0.6) : 0.4;
+
   const widthFor =
     (otherHas: Set<string>): VictoryNumberCallback =>
     ({ datum }) => {
@@ -119,6 +129,7 @@ const AIBProsVsBotsDiffChart: FC<{
 
   const s1Data = useMemo(() => safe(s1?.data), [s1?.data]);
   const s2Data = useMemo(() => safe(s2?.data), [s2?.data]);
+
   const categories = useMemo(() => {
     const seen = new Set<string>();
     const out: string[] = [];
@@ -204,10 +215,67 @@ const AIBProsVsBotsDiffChart: FC<{
     [yAbsMax]
   );
   const yTicksNoZero = useMemo(() => yTicks.filter((t) => t !== 0), [yTicks]);
+
   const gridStroke = getThemeColor(METAC_COLORS.gray[400]);
   const axisLabelColor = getThemeColor(METAC_COLORS.gray[700]);
   const tickLabelColor = getThemeColor(METAC_COLORS.gray[500]);
   const show = categories.length > 0 && (hasS1 || hasS2);
+
+  const paddingLeft = smUp ? 64 : 50;
+  const paddingRight = 0;
+  const paddingTop = 16;
+  const paddingBottom = 44;
+  const chartH = 360;
+
+  const plotW = Math.max(0, width - paddingLeft - paddingRight);
+  const domainSpan = xDomain[1] - xDomain[0];
+  const pxPerX = domainSpan > 0 ? plotW / domainSpan : 0;
+
+  const groupOffsetPx =
+    pxPerX * (2 * (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5));
+  const barWidthPxFor = (otherHas: Set<string>) => (cat: string) =>
+    otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
+  const cellWidth = categories.length > 0 ? plotW / categories.length : 0;
+
+  const hitWidthPxFor = (cat: string) => {
+    const w1 = barWidthPxFor(s2X)(cat);
+    const w2 = barWidthPxFor(s1X)(cat);
+    const both = s1X.has(cat) && s2X.has(cat);
+
+    const largestCap = Math.max(
+      ...[...s1Errs, ...s2Errs]
+        .filter((e) => e.cat === cat)
+        .map((e) => e.capW ?? ERR_CAP),
+      ERR_CAP
+    );
+    const capMargin = largestCap + 6;
+
+    const core = both ? Math.max(w1, w2) * 2 + groupOffsetPx : Math.max(w1, w2);
+    return Math.max(core + capMargin, Math.max(0, cellWidth - 2));
+  };
+
+  const catCenterX = (i: number) =>
+    paddingLeft + ((i + 0.5) / Math.max(1, categories.length)) * plotW;
+
+  const getPointerClientY = (evt: React.SyntheticEvent) => {
+    const ne = evt.nativeEvent as unknown;
+    if (
+      typeof ne === "object" &&
+      ne !== null &&
+      "touches" in (ne as TouchEvent) &&
+      (ne as TouchEvent).touches.length > 0
+    ) {
+      return (ne as TouchEvent).touches[0]?.clientY;
+    }
+    if (
+      typeof ne === "object" &&
+      ne !== null &&
+      "clientY" in (ne as MouseEvent)
+    ) {
+      return (ne as MouseEvent).clientY;
+    }
+    return null;
+  };
 
   return (
     <div ref={ref} className={className ?? "relative w-full"}>
@@ -270,57 +338,25 @@ const AIBProsVsBotsDiffChart: FC<{
         </div>
       )}
 
-      {!show && <div style={{ height: 360 }} />}
+      {!show && <div style={{ height: chartH }} />}
 
       {show && (
         <>
-          {width === 0 && <div style={{ height: smUp ? 360 : 240 }} />}
+          {width === 0 && <div style={{ height: smUp ? chartH : 240 }} />}
           <div ref={chartRef}>
             {width > 0 && (
               <VictoryChart
                 theme={chartTheme}
                 width={width}
-                height={360}
+                height={chartH}
                 domain={{ x: xDomain, y: [0, yTop] }}
                 domainPadding={{ x: smUp ? 24 : 0 }}
                 padding={{
-                  top: 16,
-                  bottom: 44,
-                  left: smUp ? 64 : 50,
-                  right: 0,
+                  top: paddingTop,
+                  bottom: paddingBottom,
+                  left: paddingLeft,
+                  right: paddingRight,
                 }}
-                containerComponent={
-                  <VictoryVoronoiContainer
-                    voronoiDimension="x"
-                    voronoiBlacklist={["s1Bars", "s1Errs", "s2Bars", "s2Errs"]}
-                    labels={() => " "}
-                    labelComponent={
-                      <HoverProbe
-                        onMove={({ x, y, datum }) => {
-                          const c = datum?.cat ?? null;
-                          setActiveCat(c);
-                          setAnchor({ x, y });
-                        }}
-                      />
-                    }
-                    style={{ touchAction: "pan-y" }}
-                  />
-                }
-                events={[
-                  {
-                    target: "parent",
-                    eventHandlers: {
-                      onMouseLeave: () => {
-                        setActiveCat(null);
-                        setAnchor(null);
-                      },
-                      onTouchEnd: () => {
-                        setActiveCat(null);
-                        setAnchor(null);
-                      },
-                    },
-                  },
-                ]}
               >
                 <VictoryAxis
                   dependentAxis
@@ -339,14 +375,10 @@ const AIBProsVsBotsDiffChart: FC<{
                     },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
-                    tickLabels: {
-                      fill: tickLabelColor,
-                      fontSize: 16,
-                    },
+                    tickLabels: { fill: tickLabelColor, fontSize: 16 },
                     axisLabel: { fill: axisLabelColor, fontSize: 16 },
                   }}
                 />
-
                 <VictoryAxis
                   dependentAxis
                   orientation="left"
@@ -356,13 +388,9 @@ const AIBProsVsBotsDiffChart: FC<{
                     grid: { stroke: gridStroke, strokeWidth: 1 },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
-                    tickLabels: {
-                      fill: tickLabelColor,
-                      fontSize: 16,
-                    },
+                    tickLabels: { fill: tickLabelColor, fontSize: 16 },
                   }}
                 />
-
                 <VictoryAxis
                   tickValues={categories.map((_, i) => i)}
                   tickFormat={(i: number) => categories[i] ?? ""}
@@ -380,19 +408,6 @@ const AIBProsVsBotsDiffChart: FC<{
                   }}
                 />
 
-                <VictoryScatter
-                  name="hoverCenters"
-                  data={categories.map((c, i) => {
-                    const mean =
-                      s1Data.find((d) => d.x === c)?.mean ??
-                      s2Data.find((d) => d.x === c)?.mean ??
-                      0;
-                    return { x: i, y: mean, cat: c };
-                  })}
-                  size={14}
-                  style={{ data: { opacity: 0 } }}
-                />
-
                 {s1Bars.length > 0 && s1?.colorToken && (
                   <VictoryBar
                     data={s1Bars}
@@ -406,8 +421,9 @@ const AIBProsVsBotsDiffChart: FC<{
                       data: {
                         fill: getThemeColor(s1.colorToken),
                         fillOpacity: ({ datum }) =>
-                          datum.cat === activeCat ? 0.5 : 0.3,
+                          (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
                         stroke: "none",
+                        pointerEvents: "none",
                       },
                     }}
                   />
@@ -421,11 +437,13 @@ const AIBProsVsBotsDiffChart: FC<{
                     name="s1Errs"
                     errorY={(d: { errorY: [number, number] }) => d.errorY}
                     errorX={0}
+                    groupComponent={<g pointerEvents="none" />}
                     dataComponent={
-                      <CapWidthErrorBar
+                      <NonInteractiveErrorBar
                         style={{
                           stroke: getThemeColor(s1.colorToken),
                           strokeWidth: 2,
+                          pointerEvents: "none",
                         }}
                       />
                     }
@@ -451,8 +469,9 @@ const AIBProsVsBotsDiffChart: FC<{
                       data: {
                         fill: getThemeColor(s2.colorToken),
                         fillOpacity: ({ datum }) =>
-                          datum.cat === activeCat ? 0.5 : 0.3,
+                          (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
                         stroke: "none",
+                        pointerEvents: "none",
                       },
                     }}
                   />
@@ -464,24 +483,116 @@ const AIBProsVsBotsDiffChart: FC<{
                     x="_x"
                     y="y"
                     name="s2Errs"
+                    groupComponent={<g pointerEvents="none" />}
                     dataComponent={
-                      <CapWidthErrorBar
+                      <NonInteractiveErrorBar
                         style={{
                           stroke: getThemeColor(s2.colorToken),
                           strokeWidth: 2,
+                          pointerEvents: "none",
                         }}
                       />
                     }
-                    errorY={(d: { errorY: [number, number] }) => d.errorY}
-                    errorX={0}
                     style={{
                       data: {
                         stroke: getThemeColor(s2.colorToken),
                         strokeWidth: 2,
+                        pointerEvents: "none",
                       },
                     }}
+                    errorY={(d: { errorY: [number, number] }) => d.errorY}
+                    errorX={0}
                   />
                 )}
+
+                <VictoryBar
+                  name="hitStrips"
+                  data={categories.map((c, i) => ({ _x: i, cat: c, y: 1 }))}
+                  x="_x"
+                  y="y"
+                  dataComponent={
+                    <FullHeightCell
+                      plotTop={paddingTop}
+                      plotBottom={chartH - paddingBottom}
+                      getWidth={(cat: string) => hitWidthPxFor(cat)}
+                    />
+                  }
+                  style={{ data: { pointerEvents: "all" } }}
+                  events={[
+                    {
+                      target: "data",
+                      eventHandlers: {
+                        onMouseMove: (evt, props) => {
+                          const d = (props as { datum?: HitDatum }).datum;
+                          if (!d) return undefined;
+
+                          const svg = chartRef.current?.querySelector("svg");
+                          if (!svg) return undefined;
+
+                          const rect = svg.getBoundingClientRect();
+                          const clientY = getPointerClientY(evt);
+                          if (clientY == null) return undefined;
+
+                          const y = clamp(
+                            clientY - rect.top,
+                            paddingTop,
+                            chartH - paddingBottom
+                          );
+                          setActiveCat(d.cat);
+                          setAnchor({ x: catCenterX(d._x), y });
+                          return undefined;
+                        },
+                        onMouseLeave: () => {
+                          setActiveCat(null);
+                          setAnchor(null);
+                          return undefined;
+                        },
+                        onTouchStart: (evt, props) => {
+                          const d = (props as { datum?: HitDatum }).datum;
+                          if (!d) return undefined;
+
+                          const svg = chartRef.current?.querySelector("svg");
+                          if (!svg) return undefined;
+
+                          const rect = svg.getBoundingClientRect();
+                          const clientY = getPointerClientY(evt);
+                          const y = clamp(
+                            (clientY ?? rect.top) - rect.top,
+                            paddingTop,
+                            chartH - paddingBottom
+                          );
+                          setActiveCat(d.cat);
+                          setAnchor({ x: catCenterX(d._x), y });
+                          return undefined;
+                        },
+                        onTouchMove: (evt, props) => {
+                          const d = (props as { datum?: HitDatum }).datum;
+                          if (!d) return undefined;
+
+                          const svg = chartRef.current?.querySelector("svg");
+                          if (!svg) return undefined;
+
+                          const rect = svg.getBoundingClientRect();
+                          const clientY = getPointerClientY(evt);
+                          if (clientY == null) return undefined;
+
+                          const y = clamp(
+                            clientY - rect.top,
+                            paddingTop,
+                            chartH - paddingBottom
+                          );
+                          setAnchor({ x: catCenterX(d._x), y });
+                          return undefined;
+                        },
+                        onTouchEnd: () => {
+                          setActiveCat(null);
+                          setAnchor(null);
+                          return undefined;
+                        },
+                      },
+                    },
+                  ]}
+                />
               </VictoryChart>
             )}
           </div>
@@ -490,7 +601,7 @@ const AIBProsVsBotsDiffChart: FC<{
             <FloatingPortal>
               <div
                 ref={refs.setFloating}
-                style={floatingStyles}
+                style={{ ...floatingStyles, pointerEvents: "none" }}
                 className="z-[100]"
               >
                 <AIBDiffTooltip
@@ -532,32 +643,6 @@ const AIBProsVsBotsDiffChart: FC<{
   );
 };
 
-type VirtualElement = { getBoundingClientRect: () => DOMRect; _rect?: DOMRect };
-const hasCat = (d: unknown): d is { cat?: string } =>
-  typeof (d as { cat?: unknown })?.cat === "string";
-const EPS = 0.5;
-type HoverMove = { x: number; y: number; datum: { cat?: string } };
-const HoverProbe: React.FC<
-  import("victory").VictoryLabelProps & { onMove: (p: HoverMove) => void }
-> = ({ x, y, datum, onMove }) => {
-  const last = useRef<{ x: number; y: number; cat?: string } | null>(null);
-  useEffect(() => {
-    if (typeof x !== "number" || typeof y !== "number") return;
-    const cat = hasCat(datum) ? (datum.cat as string) : undefined;
-    const prev = last.current;
-    if (
-      !prev ||
-      Math.abs(prev.x - x) > EPS ||
-      Math.abs(prev.y - y) > EPS ||
-      prev.cat !== cat
-    ) {
-      last.current = { x, y, cat };
-      onMove({ x, y, datum: { cat } });
-    }
-  }, [x, y, datum, onMove]);
-  return null;
-};
-
 const CapWidthErrorBar: React.FC<ErrorBarProps> = (props) => {
   const capW = props.datum?.capW ?? ERR_CAP;
   return <ErrorBar {...props} borderWidth={capW} />;
@@ -571,6 +656,40 @@ const fixedFiveScale = (max: number, step = 5, pad = 2) => {
     (_, i) => i * step
   );
   return { max: top, ticks };
+};
+
+const NonInteractiveErrorBar: React.FC<ErrorBarProps> = (props) => (
+  <g pointerEvents="none">
+    <CapWidthErrorBar {...props} />
+  </g>
+);
+
+type FullCellProps = InjectedByVictory & {
+  plotTop: number;
+  plotBottom: number;
+  getWidth: (cat: string) => number;
+};
+
+const FullHeightCell: React.FC<FullCellProps> = (props) => {
+  const { datum, scale, plotTop, plotBottom, getWidth, style, events } = props;
+  if (!datum || !scale) return null;
+
+  const xCenter = scale.x(datum._x);
+  const w = getWidth(datum.cat);
+  const h = Math.max(0, plotBottom - plotTop);
+
+  return (
+    <rect
+      x={xCenter - w / 2}
+      y={plotTop}
+      width={w}
+      height={h}
+      fill="#000"
+      fillOpacity={0.001}
+      style={{ pointerEvents: "all", ...style }}
+      {...events}
+    />
+  );
 };
 
 export default AIBProsVsBotsDiffChart;
