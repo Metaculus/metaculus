@@ -10,7 +10,7 @@ import cn from "@/utils/core/cn";
 import KeyFactorDriver from "./key_factor_driver";
 
 type Props = {
-  id: string;
+  id?: string;
   keyFactor: KeyFactor;
   linkToComment?: boolean;
   isCompact?: boolean;

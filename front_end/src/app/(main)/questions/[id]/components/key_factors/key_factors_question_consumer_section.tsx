@@ -25,8 +25,6 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
   const scrollTo = useScrollTo();
   const { requestKeyFactorsExpand } = useQuestionLayout();
 
-  console.log(keyFactors);
-
   // Filter and limit top key factors by freshness
   const topKeyFactors = useMemo(() => {
     return keyFactors
