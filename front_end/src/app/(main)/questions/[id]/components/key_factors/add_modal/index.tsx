@@ -100,6 +100,7 @@ export const AddKeyFactorsForm = ({
                   ...kf,
                   id: -1,
                   author: user,
+                  freshness: 0,
                   comment_id: -1,
                   vote: { score: 0, user_vote: null, count: 0 },
                   question: kf.question_id
