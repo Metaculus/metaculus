@@ -38,6 +38,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const smUp = useBreakpoint("sm");
+  const REF_STROKE = getThemeColor(METAC_COLORS.gray[700]);
 
   const points = useMemo(
     () =>
@@ -52,6 +53,23 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
       })),
     [data]
   );
+  const referenceLines = useMemo(
+    () =>
+      data
+        .filter((d) => d.isAggregate)
+        .map(
+          (d) => ({ y: d.score, label: d.name, kind: d.aggregateKind }) as const
+        ),
+    [data]
+  );
+
+  const rightPad = referenceLines.length ? 64 : 40;
+
+  const plotPoints = useMemo(
+    () => points.filter((p, i) => !data[i]?.isAggregate),
+    [points, data]
+  );
+
   const orgOf = (name: string) => String(name).split(" ")[0] ?? name;
   const topIndexByOrg = useMemo(() => {
     const best = new Map<string, { i: number; y: number }>();
@@ -166,7 +184,12 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           scale={{ x: "time" }}
           domain={{ x: xDomainAligned, y: [yMeta.lo - 0.5, yMeta.hi + 0.5] }}
           domainPadding={{ x: 24 }}
-          padding={{ top: 16, bottom: 68, left: smUp ? 50 : 30, right: 40 }}
+          padding={{
+            top: 16,
+            bottom: 68,
+            left: smUp ? 50 : 30,
+            right: rightPad,
+          }}
           containerComponent={
             <VictoryVoronoiContainer
               labels={() => " "}
@@ -232,6 +255,47 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             }}
           />
 
+          {referenceLines.map((rl, i) => (
+            <VictoryLine
+              key={`ref-${i}`}
+              name={`ref-${i}`}
+              data={[
+                { x: xDomainAligned[0], y: rl.y },
+                { x: xDomainAligned[1], y: rl.y },
+              ]}
+              style={{
+                data: {
+                  stroke: REF_STROKE,
+                  strokeWidth: 1.5,
+                  strokeDasharray: "4,8",
+                  opacity: 0.7,
+                },
+              }}
+            />
+          ))}
+
+          {referenceLines.map((rl, i) => (
+            <VictoryScatter
+              key={`ref-label-${i}`}
+              data={[{ x: xDomainAligned[1], y: rl.y }]}
+              size={0}
+              labels={[rl.label]}
+              labelComponent={
+                <VictoryLabel
+                  dx={-65}
+                  textAnchor="start"
+                  style={{
+                    fill: getThemeColor(METAC_COLORS.gray[700]),
+                    fontSize: smUp ? 14 : 12,
+                    fontWeight: 600,
+                    fontFamily:
+                      'interVariable, "interVariable Fallback", inter',
+                  }}
+                />
+              }
+            />
+          ))}
+
           {trend && (
             <VictoryLine
               name="trend"
@@ -248,7 +312,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 
           <VictoryScatter
             name="bgPoints"
-            data={points}
+            data={plotPoints}
             x="x"
             y="y"
             size={14}
@@ -256,7 +320,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           />
 
           <VictoryScatter
-            data={points}
+            data={plotPoints}
             x="x"
             y="y"
             size={5}
@@ -270,7 +334,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 
           <VictoryScatter
             name="labelsLayer"
-            data={points}
+            data={plotPoints}
             labelComponent={
               <EdgeAwareLabel
                 chartWidth={width}

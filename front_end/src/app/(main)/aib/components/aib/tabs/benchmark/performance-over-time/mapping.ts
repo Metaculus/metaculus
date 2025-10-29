@@ -2,11 +2,17 @@ import type { LeaderboardDetails } from "@/types/scoring";
 
 import { getBotMeta } from "../../../leaderboard/bot_meta";
 
+export type AggregateKind = "community" | "pros" | "other";
+
 export type ModelPoint = {
   name: string;
   releaseDate: Date | string;
   score: number;
+  isAggregate?: boolean;
+  aggregateKind?: AggregateKind;
 };
+
+type MaybeAgg = { aggregation_method?: string | null };
 
 export function mapLeaderboardToModelPoints(
   leaderboard: LeaderboardDetails,
@@ -22,19 +28,43 @@ export function mapLeaderboardToModelPoints(
 
   for (const e of leaderboard.entries) {
     const username = e.user?.username;
-
     const meta = username ? getBotMeta(username) : undefined;
+
     const releaseDate =
       meta?.releasedAt ??
       (fallbackToCalculatedOn ? e.calculated_on : undefined);
     if (!releaseDate) continue;
 
-    const name = meta?.label ?? username ?? "Unnamed Model";
+    const isAggregate = !username;
+    const amRaw = (e as MaybeAgg).aggregation_method ?? "";
+    const am = typeof amRaw === "string" ? amRaw.toLowerCase() : "";
+
+    let aggregateKind: AggregateKind | undefined;
+    if (isAggregate) {
+      if (am.includes("recency") || am.includes("community"))
+        aggregateKind = "community";
+      else if (am.includes("pro")) aggregateKind = "pros";
+      else aggregateKind = "other";
+    }
+
+    const defaultAggregateLabel =
+      aggregateKind === "community"
+        ? "Community aggregate"
+        : aggregateKind === "pros"
+          ? "Pros aggregate"
+          : "Aggregate";
+
+    const name =
+      meta?.label ??
+      username ??
+      (isAggregate ? defaultAggregateLabel : "Unnamed Model");
 
     raw.push({
       name,
       releaseDate,
       score: e.score,
+      isAggregate,
+      aggregateKind,
     });
   }
 
