@@ -853,13 +853,19 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
             return []
 
     def get_forecasters(self) -> QuerySet["User"]:
-        return User.objects.filter(
+        users = User.objects.filter(
             Exists(
                 Forecast.objects.filter(
                     post=self, author=OuterRef("id")
                 ).filter_within_question_period()
             )
         )
+        questions = self.get_questions()
+        if (
+            questions and not questions[0].include_bots_in_aggregates
+        ):  # assume all questions have the same "include bots" status
+            users = users.exclude(is_bot=True)
+        return users
 
     def get_votes_score(self) -> int:
         return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0
