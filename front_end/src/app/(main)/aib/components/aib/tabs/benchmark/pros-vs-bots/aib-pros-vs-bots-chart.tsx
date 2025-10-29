@@ -18,6 +18,7 @@ import {
 } from "react";
 import {
   ErrorBar,
+  ErrorBarProps,
   VictoryAxis,
   VictoryBar,
   VictoryChart,
@@ -46,17 +47,20 @@ export type ProsVsBotsDiffSeries = {
 
 const SINGLE_WIDTH = 102;
 const GROUP_WIDTH = 57.5;
-const GROUP_OFFSET = 0.22;
+const GROUP_OFFSET = 0.16;
+const ERR_CAP = 21;
+const ERR_CAP_DOUBLE = Math.round(ERR_CAP * 0.53);
 
 const AIBProsVsBotsDiffChart: FC<{
   series: ProsVsBotsDiffSeries[];
   className?: string;
-  yLabel?: string;
-}> = ({ series, className, yLabel = "Average score difference" }) => {
+}> = ({ series, className }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const chartRef = useRef<HTMLDivElement>(null);
   const { theme, getThemeColor } = useAppTheme();
   const smUp = useBreakpoint("sm");
+  const mdUp = useBreakpoint("md");
+  const lgUp = useBreakpoint("lg");
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
@@ -95,11 +99,13 @@ const AIBProsVsBotsDiffChart: FC<{
   const s1 = series?.[0];
   const s2 = series?.[1];
 
+  const factor1 = mdUp ? (lgUp ? 1 : 0.8) : 0.55;
+  const factor2 = mdUp ? (lgUp ? 1 : 0.6) : 0.4;
   const widthFor =
     (otherHas: Set<string>): VictoryNumberCallback =>
     ({ datum }) => {
       const cat = (datum as { cat?: string } | undefined)?.cat ?? "";
-      return otherHas.has(cat) ? GROUP_WIDTH : SINGLE_WIDTH;
+      return otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
     };
 
   const safe = (d?: DiffDatum[]) =>
@@ -142,37 +148,47 @@ const AIBProsVsBotsDiffChart: FC<{
   const s1X = useMemo(() => new Set(s1Data.map((d) => d.x)), [s1Data]);
   const s2X = useMemo(() => new Set(s2Data.map((d) => d.x)), [s2Data]);
 
-  const s1OffsetFor = (x: string) => (s2X.has(x) ? -GROUP_OFFSET : 0);
-  const s2OffsetFor = (x: string) => (s1X.has(x) ? GROUP_OFFSET : 0);
+  const s1OffsetFor = (x: string) =>
+    s2X.has(x) ? -(smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
+  const s2OffsetFor = (x: string) =>
+    s1X.has(x) ? (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
 
   const s1Bars = s1Data.map((d) => ({
     cat: d.x,
     _x: (posByX.get(d.x) ?? 0) + s1OffsetFor(d.x),
     y: d.mean,
   }));
-  const s1Errs = s1Data.map((d) => ({
-    cat: d.x,
-    _x: (posByX.get(d.x) ?? 0) + s1OffsetFor(d.x),
-    y: d.mean,
-    errorY: [Math.max(0, d.mean - d.lo), Math.max(0, d.hi - d.mean)] as [
-      number,
-      number,
-    ],
-  }));
+  const s1Errs = s1Data.map((d) => {
+    const double = s2X.has(d.x);
+    return {
+      cat: d.x,
+      _x: (posByX.get(d.x) ?? 0) + s1OffsetFor(d.x),
+      y: d.mean,
+      errorY: [Math.max(0, d.mean - d.lo), Math.max(0, d.hi - d.mean)] as [
+        number,
+        number,
+      ],
+      capW: !lgUp && double ? ERR_CAP_DOUBLE : ERR_CAP,
+    };
+  });
   const s2Bars = s2Data.map((d) => ({
     cat: d.x,
     _x: (posByX.get(d.x) ?? 0) + s2OffsetFor(d.x),
     y: d.mean,
   }));
-  const s2Errs = s2Data.map((d) => ({
-    cat: d.x,
-    _x: (posByX.get(d.x) ?? 0) + s2OffsetFor(d.x),
-    y: d.mean,
-    errorY: [Math.max(0, d.mean - d.lo), Math.max(0, d.hi - d.mean)] as [
-      number,
-      number,
-    ],
-  }));
+  const s2Errs = s2Data.map((d) => {
+    const double = s1X.has(d.x);
+    return {
+      cat: d.x,
+      _x: (posByX.get(d.x) ?? 0) + s2OffsetFor(d.x),
+      y: d.mean,
+      errorY: [Math.max(0, d.mean - d.lo), Math.max(0, d.hi - d.mean)] as [
+        number,
+        number,
+      ],
+      capW: !lgUp && double ? ERR_CAP_DOUBLE : ERR_CAP,
+    };
+  });
 
   const yAbsMax = useMemo(() => {
     let m = 0;
@@ -254,7 +270,7 @@ const AIBProsVsBotsDiffChart: FC<{
         </div>
       )}
 
-      {!show && <div style={{ height: smUp ? 360 : 240 }} />}
+      {!show && <div style={{ height: 360 }} />}
 
       {show && (
         <>
@@ -264,10 +280,15 @@ const AIBProsVsBotsDiffChart: FC<{
               <VictoryChart
                 theme={chartTheme}
                 width={width}
-                height={smUp ? 360 : 240}
+                height={360}
                 domain={{ x: xDomain, y: [0, yTop] }}
-                domainPadding={{ x: 24 }}
-                padding={{ top: 16, bottom: 44, left: 60, right: 40 }}
+                domainPadding={{ x: smUp ? 24 : 0 }}
+                padding={{
+                  top: 16,
+                  bottom: 44,
+                  left: smUp ? 64 : 50,
+                  right: 0,
+                }}
                 containerComponent={
                   <VictoryVoronoiContainer
                     voronoiDimension="x"
@@ -304,13 +325,12 @@ const AIBProsVsBotsDiffChart: FC<{
                 <VictoryAxis
                   dependentAxis
                   orientation="left"
-                  offsetX={60}
+                  offsetX={smUp ? 60 : 45}
                   axisLabelComponent={
-                    <VictoryLabel angle={-90} dx={-16} dy={-10} />
+                    <VictoryLabel angle={-90} dx={-16} dy={smUp ? -10 : -5} />
                   }
                   tickValues={yTicksNoZero}
-                  tickFormat={smUp ? (d: number) => Math.round(d) : () => ""}
-                  label={yLabel}
+                  label={smUp ? "Average score difference" : "Score"}
                   style={{
                     grid: {
                       stroke: gridStroke,
@@ -321,7 +341,7 @@ const AIBProsVsBotsDiffChart: FC<{
                     ticks: { stroke: "transparent" },
                     tickLabels: {
                       fill: tickLabelColor,
-                      fontSize: smUp ? 16 : 12,
+                      fontSize: 16,
                     },
                     axisLabel: { fill: axisLabelColor, fontSize: 16 },
                   }}
@@ -330,16 +350,15 @@ const AIBProsVsBotsDiffChart: FC<{
                 <VictoryAxis
                   dependentAxis
                   orientation="left"
-                  offsetX={60}
+                  offsetX={smUp ? 60 : 45}
                   tickValues={[0]}
-                  tickFormat={smUp ? () => "0" : () => ""}
                   style={{
                     grid: { stroke: gridStroke, strokeWidth: 1 },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
                     tickLabels: {
                       fill: tickLabelColor,
-                      fontSize: smUp ? 16 : 12,
+                      fontSize: 16,
                     },
                   }}
                 />
@@ -403,8 +422,7 @@ const AIBProsVsBotsDiffChart: FC<{
                     errorY={(d: { errorY: [number, number] }) => d.errorY}
                     errorX={0}
                     dataComponent={
-                      <ErrorBar
-                        borderWidth={21}
+                      <CapWidthErrorBar
                         style={{
                           stroke: getThemeColor(s1.colorToken),
                           strokeWidth: 2,
@@ -446,7 +464,14 @@ const AIBProsVsBotsDiffChart: FC<{
                     x="_x"
                     y="y"
                     name="s2Errs"
-                    borderWidth={21}
+                    dataComponent={
+                      <CapWidthErrorBar
+                        style={{
+                          stroke: getThemeColor(s2.colorToken),
+                          strokeWidth: 2,
+                        }}
+                      />
+                    }
                     errorY={(d: { errorY: [number, number] }) => d.errorY}
                     errorX={0}
                     style={{
@@ -474,7 +499,7 @@ const AIBProsVsBotsDiffChart: FC<{
                     ...(s1
                       ? [
                           {
-                            label: s1.label,
+                            label: "Binary",
                             color: getThemeColor(s1.colorToken),
                             mean:
                               s1Data.find((d) => d.x === activeCat)?.mean ?? 0,
@@ -486,7 +511,7 @@ const AIBProsVsBotsDiffChart: FC<{
                     ...(s2
                       ? [
                           {
-                            label: s2.label,
+                            label: "All questions",
                             color: getThemeColor(s2.colorToken),
                             mean:
                               s2Data.find((d) => d.x === activeCat)?.mean ?? 0,
@@ -531,6 +556,11 @@ const HoverProbe: React.FC<
     }
   }, [x, y, datum, onMove]);
   return null;
+};
+
+const CapWidthErrorBar: React.FC<ErrorBarProps> = (props) => {
+  const capW = props.datum?.capW ?? ERR_CAP;
+  return <ErrorBar {...props} borderWidth={capW} />;
 };
 
 const fixedFiveScale = (max: number, step = 5, pad = 2) => {

@@ -24,7 +24,7 @@ const AIBDiffTooltip: FC<Props> = ({
   rightTitle = "Avg Scores",
 }) => {
   return (
-    <div className="pointer-events-none w-[200px] rounded-[4px] bg-gray-0 shadow-[0_10px_24px_rgba(16,24,40,0.14),0_2px_8px_rgba(16,24,40,0.06)] dark:bg-gray-0-dark">
+    <div className="pointer-events-none w-[300px] rounded-[4px] bg-gray-0 shadow-[0_10px_24px_rgba(16,24,40,0.14),0_2px_8px_rgba(16,24,40,0.06)] dark:bg-gray-0-dark">
       <div className="flex items-center justify-between px-4 py-3 pb-2.5 text-sm text-gray-700 dark:text-gray-700-dark">
         <span>{quarter}</span>
         <span>{rightTitle}</span>
@@ -32,7 +32,7 @@ const AIBDiffTooltip: FC<Props> = ({
       <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark" />
       <div className="space-y-[20px] p-4 pt-2.5">
         {rows.map(({ label, color, mean, lo, hi }) => (
-          <div key={label} className="flex flex-col items-start gap-1.5">
+          <div key={label} className="flex items-start justify-between gap-1.5">
             <div className="flex items-center gap-2 text-gray-800 dark:text-gray-800-dark">
               <span
                 aria-hidden
