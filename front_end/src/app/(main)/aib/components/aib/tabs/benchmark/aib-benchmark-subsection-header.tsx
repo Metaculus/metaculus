@@ -40,7 +40,13 @@ export const AIBBenchmarkModelsSubsectionHeader: React.FC = () => {
       <p className="m-0 mx-auto mt-2 max-w-[400px] text-center text-[12px] leading-[16px] text-blue-800 opacity-60 dark:text-blue-800-dark sm:text-base sm:leading-normal lg:max-w-none lg:text-left">
         {t.rich("aibBenchModelsBlurb", {
           br: () => <br className="sm:hidden" />,
-        })}
+        })}{" "}
+        <Link
+          href="/futureeval/leaderboard"
+          className="text-blue-700 opacity-100 hover:text-blue-800 dark:text-blue-700-dark hover:dark:text-blue-800-dark"
+        >
+          {t("aibViewFullLeaderboard")}
+        </Link>
       </p>
     </AIBBenchmarkSubsectionHeader>
   );

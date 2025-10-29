@@ -1618,7 +1618,6 @@
   "aibHeroSubtitle": "Medindo a precisão de previsão da IA",
   "aibTabsBenchmark": "Ponto de Referência",
   "aibBenchModelsTitle": "Quadro de Líderes de Modelos",
-  "aibBenchModelsBlurb": "Atualizado regularmente com base em bots no Metaculus.",
   "aibPerfOverTimeSubtitle": "Pontuações do modelo do quadro de líderes por data de lançamento.",
   "aibLegendBaseline": "Equipe de Controle",
   "aibLegendBots": "Equipe de Bots",
@@ -1631,5 +1630,7 @@
   "aibIdeaCard3Title": "Raciocínio Além da Memorização",
   "aibProsVsBotsTitle": "Quanto os Profissionais superam os Bots",
   "aibProsVsBotsSubtitle": "Os Metaculus Pro Forecasters venceram os Bots em todos os trimestres dos nossos <link>Torneios de Benchmarking de IA</link> até agora.",
+  "aibBenchModelsBlurb": "Atualizado todos os dias com base na nossa metodologia padronizada de medição de desempenho de previsões.",
+  "aibViewFullLeaderboard": "Ver classificação completa",
   "othersCount": "Outros ({count})"
 }

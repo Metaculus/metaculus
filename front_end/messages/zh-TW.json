@@ -1617,7 +1617,6 @@
   "aibHeroSubtitle": "測量人工智慧 <br></br> 預測的準確性",
   "aibTabsBenchmark": "基準",
   "aibBenchModelsTitle": "模型排行榜",
-  "aibBenchModelsBlurb": "基於 Metaculus 上的機器人定期更新。",
   "aibPerfOverTimeSubtitle": "模型排行榜上模型的分數依發佈日期顯示。",
   "aibLegendBaseline": "控制組",
   "aibLegendBots": "機器人組",
@@ -1630,5 +1629,7 @@
   "aibIdeaCard3Title": "超越記憶的推理",
   "aibProsVsBotsTitle": "專業預測者擊敗機器人的程度",
   "aibProsVsBotsSubtitle": "Metaculus 專業預測者在我們的 <link>AI 基準測試比賽</link> 中，每季度都擊敗了機器人。",
+  "aibBenchModelsBlurb": "根據我們的標準化預測性能衡量方法，每天更新。",
+  "aibViewFullLeaderboard": "查看完整排行榜",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

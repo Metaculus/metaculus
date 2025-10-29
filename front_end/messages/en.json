@@ -1573,7 +1573,7 @@
   "aibTabsNews": "News",
   "aibBenchModelsTitle": "Model Leaderboard",
   "aibBenchModelsSubtitle": "by Ridge Regression Peer Score <icon></icon>",
-  "aibBenchModelsBlurb": "Regularly updated based on bots on Metaculus.",
+  "aibBenchModelsBlurb": "Updated every day based on our standardized forecasting performance measurement methodology.",
   "aibProsVsBotsTitle": "How much Pros beat Bots",
   "aibProsVsBotsSubtitle": "Metaculus Pro Forecasters have beaten Bots every quarter of our <link>AI Benchmarking Tournaments</link> so far.",
   "aibPerfOverTimeTitle": "Forecasting Performance Over Time",
@@ -1627,5 +1627,6 @@
   "aibLbThModel": "Model",
   "aibLbThForecasts": "Forecasts",
   "aibLbThAvgScore": "Avg Score",
+  "aibViewFullLeaderboard": "View full leaderboard",
   "none": "none"
 }

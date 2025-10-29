@@ -1621,7 +1621,6 @@
   "aibHeroSubtitle": "Měření přesnosti <br></br> AI předpovědí",
   "aibTabsBenchmark": "Porovnání",
   "aibBenchModelsTitle": "Žebříček modelů",
-  "aibBenchModelsBlurb": "Pravidelně aktualizováno na základě botů na Metaculu.",
   "aibPerfOverTimeSubtitle": "Hodnocení modelů z žebříčku podle data vydání.",
   "aibLegendBaseline": "Kontrolní tým",
   "aibLegendBots": "Tým botů",
@@ -1633,5 +1632,7 @@
   "aibIdeaCard3Title": "Uvažování přesahující Memorování",
   "aibProsVsBotsTitle": "Kolik profíci poráží roboty",
   "aibProsVsBotsSubtitle": "Profesionální prognostikové z Metaculus porazili roboty v každém čtvrtletí našich <link>Turnajů benchmarkingu AI</link> až dosud.",
+  "aibBenchModelsBlurb": "Aktualizováno každý den na základě naší standardizované metodiky měření výkonnosti předpovědí.",
+  "aibViewFullLeaderboard": "Zobrazit celou žebříček",
   "othersCount": "Ostatní ({count})"
 }
