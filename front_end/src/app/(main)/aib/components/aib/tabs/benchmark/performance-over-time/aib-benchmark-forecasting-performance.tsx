@@ -13,6 +13,7 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
 
   const firstIdxByGroup = new Map<string, number>();
   models.forEach((m, i) => {
+    if (m.isAggregate) return;
     const group = String(m.name).split(" ")[0] ?? m.name;
     if (!firstIdxByGroup.has(group)) firstIdxByGroup.set(group, i);
   });
