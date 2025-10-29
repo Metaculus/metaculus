@@ -103,13 +103,13 @@ def aggregation_explorer_api_view(request) -> Response:
     )
 
     # Add forecasters count
-    forecasters = question.get_forecasters()
+    forecasters_qs = question.get_forecasters()
     if only_include_user_ids:
-        forecasters = forecasters.filter(id__in=only_include_user_ids)
+        forecasters_qs = forecasters_qs.filter(id__in=only_include_user_ids)
     elif not include_bots:
-        forecasters = forecasters.filter(user__is_bot=False)
+        forecasters_qs = forecasters_qs.filter(user__is_bot=False)
 
-    data["forecasters_count"] = forecasters.count()
+    data["forecasters_count"] = forecasters_qs.count()
 
     return Response(data)
 
