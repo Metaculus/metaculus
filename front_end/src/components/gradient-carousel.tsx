@@ -237,8 +237,8 @@ function ReusableGradientCarousel<T>({
         ref={viewportRef}
         className={cn(
           "overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none]",
-          "[&::-webkit-scrollbar]:hidden",
-          "scroll-snap-type-x mandatory touch-pan-y",
+          "touch-pan-x snap-x snap-mandatory",
+          "[-webkit-overflow-scrolling:touch]",
           dragScroll && (isGrabbing ? "cursor-grabbing" : "cursor-grab"),
           dragScroll && "select-none",
           viewportClassName
@@ -253,7 +253,7 @@ function ReusableGradientCarousel<T>({
               key={i}
               className={cn(
                 itemClassName,
-                "scroll-snap-align-start shrink-0 first:ml-0 last:mr-0"
+                "shrink-0 snap-start first:ml-0 last:mr-0"
               )}
             >
               {renderItem(item, i)}
