@@ -10,6 +10,7 @@ type SlideBy = { mode: "page" } | { mode: "items"; count: number };
 type CarouselNavState = { canPrev: boolean; canNext: boolean };
 type GradientVisibility = boolean | { left: boolean; right: boolean };
 type Resolver<T> = boolean | ((state: CarouselNavState) => T);
+
 type Props<T> = {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
@@ -27,32 +28,44 @@ type Props<T> = {
   listClassName?: string;
   loop?: boolean;
   wheelToHorizontal?: boolean;
+  dragScroll?: boolean;
+  fadeMs?: number;
 };
 
-function ReusableGradientCarousel<T>(props: Props<T>) {
-  const {
-    items,
-    renderItem,
-    itemClassName = "w-[120px] md:w-[210px]",
-    gapClassName = "gap-3 md:gap-6",
-    slideBy = { mode: "items", count: 2 },
-    showGradients = true,
-    gradientFromClass = "from-blue-200 dark:from-blue-200-dark",
-    showArrows = true,
-    arrowClassName = "w-10 h-10 md:w-[44px] md:h-[44px] text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark mt-3 md:text-gray-200 md:dark:text-gray-200-dark rounded-full md:bg-blue-900 md:dark:bg-blue-900-dark",
-    prevLabel = "Previous",
-    nextLabel = "Next",
-    className,
-    viewportClassName,
-    listClassName,
-    loop = false,
-    wheelToHorizontal = true,
-  } = props;
-
+function ReusableGradientCarousel<T>({
+  items,
+  renderItem,
+  itemClassName = "w-[120px] md:w-[210px]",
+  gapClassName = "gap-3 md:gap-6",
+  slideBy = { mode: "items", count: 2 },
+  showGradients = true,
+  gradientFromClass = "from-blue-200 dark:from-blue-200-dark",
+  showArrows = true,
+  arrowClassName = "w-10 h-10 md:w-[44px] md:h-[44px] text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark mt-3 md:text-gray-200 md:dark:text-gray-200-dark rounded-full md:bg-blue-900 md:dark:bg-blue-900-dark",
+  prevLabel = "Previous",
+  nextLabel = "Next",
+  className,
+  viewportClassName,
+  listClassName,
+  loop = false,
+  wheelToHorizontal = true,
+  dragScroll = true,
+  fadeMs = 200,
+}: Props<T>) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+
+  // Dragging state
+  const dragging = useRef(false);
+  const movedPx = useRef(0);
+  const startX = useRef(0);
+  const startScroll = useRef(0);
+  const [isGrabbing, setIsGrabbing] = useState(false);
+
+  const DRAG_THRESHOLD = 8;
+  const fadeCls = `transition-opacity duration-[${fadeMs}ms] ease-linear`;
 
   const recompute = useCallback(() => {
     const el = viewportRef.current;
@@ -94,6 +107,73 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
     return () => el.removeEventListener("wheel", onWheel);
   }, [wheelToHorizontal]);
 
+  // Drag-to-scroll
+  useEffect(() => {
+    if (!dragScroll) return;
+    const vp = viewportRef.current;
+    if (!vp) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      dragging.current = true;
+      movedPx.current = 0;
+      startX.current = e.clientX;
+      startScroll.current = vp.scrollLeft;
+      setIsGrabbing(true);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging.current) return;
+      if ((e.buttons & 1) !== 1) return;
+      const dx = e.clientX - startX.current;
+      movedPx.current = Math.max(movedPx.current, Math.abs(dx));
+      vp.scrollLeft = startScroll.current - dx;
+    };
+
+    const endDrag = () => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      setIsGrabbing(false);
+
+      if (movedPx.current > DRAG_THRESHOLD) {
+        const cancelOnce = (ev: Event) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+        };
+        window.addEventListener("click", cancelOnce, {
+          capture: true,
+          once: true,
+        });
+      }
+    };
+
+    vp.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+    window.addEventListener("blur", endDrag);
+
+    return () => {
+      vp.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
+      window.removeEventListener("blur", endDrag);
+    };
+  }, [dragScroll]);
+
+  // Prevent native drag on images/links
+  useEffect(() => {
+    const root = listRef.current;
+    if (!root) return;
+    const preventNativeDrag = (e: DragEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "IMG" || el.closest("a"))) e.preventDefault();
+    };
+    root.addEventListener("dragstart", preventNativeDrag);
+    return () => root.removeEventListener("dragstart", preventNativeDrag);
+  }, []);
+
   const scrollByAmount = useCallback(
     (dir: 1 | -1) => {
       const el = viewportRef.current;
@@ -130,6 +210,7 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
     [loop, slideBy]
   );
 
+  // Resolver logic
   const arrowsActive =
     typeof showArrows === "function"
       ? showArrows({ canPrev, canNext })
@@ -142,7 +223,6 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
       : showGradients;
 
   let leftGradientVisible, rightGradientVisible;
-
   if (typeof gradients === "boolean") {
     leftGradientVisible = gradients && canPrev;
     rightGradientVisible = gradients && canNext;
@@ -158,7 +238,9 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
         className={cn(
           "overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none]",
           "[&::-webkit-scrollbar]:hidden",
-          "scroll-snap-type-x mandatory",
+          "scroll-snap-type-x mandatory touch-pan-y",
+          dragScroll && (isGrabbing ? "cursor-grabbing" : "cursor-grab"),
+          dragScroll && "select-none",
           viewportClassName
         )}
       >
@@ -188,11 +270,10 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
             "bg-gradient-to-r",
             gradientFromClass,
             "to-transparent",
-            "transition-opacity duration-200 ease-linear",
+            fadeCls,
             leftGradientVisible ? "opacity-100" : "opacity-0"
           )}
         />
-
         <div
           aria-hidden
           className={cn(
@@ -200,7 +281,7 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
             "bg-gradient-to-l",
             gradientFromClass,
             "to-transparent",
-            "transition-opacity duration-200 ease-linear",
+            fadeCls,
             rightGradientVisible ? "opacity-100" : "opacity-0"
           )}
         />
@@ -213,10 +294,11 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
             type="button"
             onClick={() => scrollByAmount(-1)}
             disabled={!canPrev && !loop}
+            tabIndex={canPrev || loop ? 0 : -1}
             className={cn(
               "absolute left-[18px] top-1/2 -translate-y-1/2",
               arrowClassName,
-              "transition-opacity duration-200 ease-linear",
+              fadeCls,
               arrowsActive && canPrev
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
@@ -231,10 +313,11 @@ function ReusableGradientCarousel<T>(props: Props<T>) {
             type="button"
             onClick={() => scrollByAmount(1)}
             disabled={!canNext && !loop}
+            tabIndex={canNext || loop ? 0 : -1}
             className={cn(
               "absolute right-[18px] top-1/2 -translate-y-1/2",
               arrowClassName,
-              "transition-opacity duration-200 ease-linear",
+              fadeCls,
               arrowsActive && canNext
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
