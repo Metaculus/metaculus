@@ -122,7 +122,7 @@ export type KeyFactor = {
     unit?: string | null;
   } | null;
   question_option?: string;
-  freshness?: number;
+  freshness: number;
   post: {
     id: number;
     unit?: string;

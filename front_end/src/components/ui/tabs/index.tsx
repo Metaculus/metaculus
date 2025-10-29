@@ -12,14 +12,29 @@ const TabsContext = createContext<TabsContextValue | null>(null);
 
 export const Tabs = ({
   defaultValue,
+  value: controlledValue,
+  onChange,
   children,
   className,
 }: {
   defaultValue: string;
+  value?: string;
+  onChange?: (value: string) => void;
   children: ReactNode;
   className?: string;
 }) => {
-  const [active, setActive] = useState(defaultValue);
+  const [internalActive, setInternalActive] = useState(defaultValue);
+
+  // Support both controlled and uncontrolled modes
+  const active = controlledValue ?? internalActive;
+  const setActive = (v: string) => {
+    if (onChange) {
+      onChange(v);
+    } else {
+      setInternalActive(v);
+    }
+  };
+
   return (
     <TabsContext.Provider value={{ active, setActive }}>
       <div className={cn("bg-gray-0 dark:bg-gray-0-dark", className)}>
