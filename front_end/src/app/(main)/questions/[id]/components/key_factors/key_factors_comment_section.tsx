@@ -4,16 +4,16 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useKeyFactorDelete } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { useAuth } from "@/contexts/auth_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
 import { Post, ProjectPermissions } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getPostLink } from "@/utils/navigation";
-
-import { useKeyFactorsContext } from "./key_factors_provider";
 
 type Props = {
   keyFactors: KeyFactor[];
@@ -31,7 +31,8 @@ const KeyFactorsCommentSection: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const scrollTo = useScrollTo();
-  const { requestExpand, openDeleteModal } = useKeyFactorsContext();
+  const questionLayout = useQuestionLayoutSafe();
+  const { openDeleteModal } = useKeyFactorDelete();
 
   const canEdit =
     user?.id === authorId || permission === ProjectPermissions.ADMIN;
@@ -63,7 +64,7 @@ const KeyFactorsCommentSection: FC<Props> = ({
 
                 e.preventDefault();
                 // Expand immediately to avoid post-scroll delay
-                requestExpand();
+                questionLayout?.requestKeyFactorsExpand();
                 scrollTo(target.getBoundingClientRect().top);
                 sendAnalyticsEvent("KeyFactorClick", {
                   event_label: "fromComment",

@@ -1,15 +1,13 @@
 "use client";
 
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
+import { AddButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
 import CreateCoherenceLink from "@/app/(main)/questions/components/coherence_links/create_coherence_link";
 import DisplayCoherenceLink from "@/app/(main)/questions/components/coherence_links/display_coherence_link";
-import Button from "@/components/ui/button";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
@@ -101,14 +99,9 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
                 </div>
               )}
 
-            <Button
-              onClick={addLink}
-              variant="tertiary"
-              className="mx-auto self-start"
-            >
-              <FontAwesomeIcon icon={faPlus} className="size-4" />
+            <AddButton onClick={addLink} className="mx-auto self-start">
               {t("linkQuestion")}
-            </Button>
+            </AddButton>
           </div>
         </div>
       </ExpandableContent>
