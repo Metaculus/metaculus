@@ -16,7 +16,7 @@ type Props = {
   keyFactors: KeyFactor[];
 };
 
-const KeyFactorsConsumerSection: FC<Props> = ({ keyFactors }) => {
+const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
   const t = useTranslations();
   const isDesktop = useBreakpoint("sm");
   const scrollTo = useScrollTo();
@@ -63,4 +63,4 @@ const KeyFactorsConsumerSection: FC<Props> = ({ keyFactors }) => {
   );
 };
 
-export default KeyFactorsConsumerSection;
+export default KeyFactorsQuestionConsumerSection;

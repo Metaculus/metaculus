@@ -1,16 +1,18 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
   createComment,
+  deleteKeyFactor as deleteKeyFactorAction,
 } from "@/app/(main)/questions/actions";
+import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
-import { BECommentType, Driver, KeyFactor } from "@/types/comment";
+import { BECommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -20,7 +22,7 @@ type UseKeyFactorsProps = {
   commentId?: number;
   postId?: number;
   suggestKeyFactors?: boolean;
-  onKeyFactorsLoadded?: (success: boolean) => void;
+  onKeyFactorsLoaded?: (success: boolean) => void;
 };
 
 export const useKeyFactors = ({
@@ -28,7 +30,7 @@ export const useKeyFactors = ({
   commentId,
   postId,
   suggestKeyFactors: shouldLoadKeyFactors = false,
-  onKeyFactorsLoadded,
+  onKeyFactorsLoaded,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
@@ -65,7 +67,7 @@ export const useKeyFactors = ({
       ClientCommentsApi.getSuggestedKeyFactors(commentId)
         .then((drafts: KeyFactorWritePayload[]) => {
           setSuggestedKeyFactors(drafts);
-          onKeyFactorsLoadded?.(drafts.length !== 0);
+          onKeyFactorsLoaded?.(drafts.length !== 0);
           if (drafts.length > 0) {
             setTimeout(() => {
               const el = document.getElementById("suggested-key-factors");
@@ -76,7 +78,7 @@ export const useKeyFactors = ({
           }
         })
         .catch(() => {
-          onKeyFactorsLoadded?.(false);
+          onKeyFactorsLoaded?.(false);
         })
         .finally(() => {
           setIsLoadingSuggestedKeyFactors(false);
@@ -122,20 +124,20 @@ export const useKeyFactors = ({
     const writePayloads: KeyFactorWritePayload[] = [
       ...filteredDrafts.map((d) =>
         applyTargetForDraft(d, {
-          driver: toDriverUnion({
+          driver: {
             text: d.driver.text,
             impact_direction: d.driver.impact_direction ?? null,
             certainty: d.driver.certainty ?? null,
-          }),
+          },
         })
       ),
       ...filteredSuggestedKeyFactors.map((d) =>
         applyTargetForDraft(d, {
-          driver: toDriverUnion({
+          driver: {
             text: d.driver.text,
             impact_direction: d.driver.impact_direction ?? null,
             certainty: d.driver.certainty ?? null,
-          }),
+          },
         })
       ),
     ];
@@ -236,19 +238,35 @@ export const getKeyFactorsLimits = (
   };
 };
 
-type DriverDraft = {
-  text: string;
-  impact_direction: 1 | -1 | null;
-  certainty: -1 | null;
-};
+/**
+ * Hook for deleting a key factor with confirmation modal.
+ */
+export const useKeyFactorDelete = () => {
+  const t = useTranslations();
+  const { setCurrentModal } = useModal();
+  const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
 
-function toDriverUnion(d: DriverDraft): Driver {
-  if (d.certainty === -1) {
-    return { text: d.text, impact_direction: null, certainty: -1 };
-  }
-  const dir = d.impact_direction;
-  if (dir === 1 || dir === -1) {
-    return { text: d.text, impact_direction: dir, certainty: null };
-  }
-  return { text: d.text, impact_direction: 1, certainty: null };
-}
+  const openDeleteModal = useCallback(
+    async (keyFactorId: number) => {
+      setCurrentModal({
+        type: "confirm",
+        data: {
+          title: t("confirmDeletion"),
+          description: t("confirmDeletionKeyFactorDescription"),
+          onConfirm: async () => {
+            const result = await deleteKeyFactorAction(keyFactorId);
+
+            if (!result || !("errors" in result)) {
+              setCombinedKeyFactors(
+                combinedKeyFactors.filter((kf) => kf.id !== keyFactorId)
+              );
+            }
+          },
+        },
+      });
+    },
+    [setCurrentModal, t, combinedKeyFactors, setCombinedKeyFactors]
+  );
+
+  return { openDeleteModal };
+};

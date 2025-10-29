@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-import KeyFactorsConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_consumer_section";
+import KeyFactorsQuestionConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_consumer_section";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {
@@ -85,7 +85,9 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
         </div>
 
         {postData.key_factors && postData.key_factors.length > 0 && (
-          <KeyFactorsConsumerSection keyFactors={postData.key_factors} />
+          <KeyFactorsQuestionConsumerSection
+            keyFactors={postData.key_factors}
+          />
         )}
       </div>
     </div>

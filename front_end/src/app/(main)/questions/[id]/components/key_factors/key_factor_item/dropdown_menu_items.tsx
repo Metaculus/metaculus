@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import { useKeyFactorsContext } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_provider";
+import { useKeyFactorDelete } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -24,7 +24,7 @@ const KeyFactorDropdownMenuItems: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { openDeleteModal } = useKeyFactorsContext();
+  const { openDeleteModal } = useKeyFactorDelete();
 
   const canEdit =
     user?.id === keyFactor.author.id ||
