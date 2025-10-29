@@ -107,13 +107,13 @@ const ResolutionCriteria: FC<Props> = ({
         collapseLabel={collapseLabel}
         className="-mt-4"
       >
-        <MarkdownEditor markdown={description} />
+        <MarkdownEditor withCodeBlocks markdown={description} />
         {!!finePrint && (
           <>
             <h3 className="text-base font-normal leading-5 opacity-70">
               {t("finePrint")}
             </h3>
-            <MarkdownEditor markdown={finePrint} />
+            <MarkdownEditor withCodeBlocks markdown={finePrint} />
           </>
         )}
       </ExpandableContent>

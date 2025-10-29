@@ -13,7 +13,7 @@ import {
 } from "@/utils/questions/helpers";
 
 import HistogramDrawer from "../histogram_drawer";
-import KeyFactorsSection from "../key_factors/key_factors_section";
+import KeyFactorsQuestionSection from "../key_factors/key_factors_question_section";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
@@ -46,7 +46,7 @@ const QuestionInfo: React.FC<Props> = ({
       <ResolutionCriteria post={postData} />
       {isConditionalPost(postData) && <ConditionalTimeline post={postData} />}
 
-      {showKeyFactors && <KeyFactorsSection post={postData} />}
+      {showKeyFactors && <KeyFactorsQuestionSection post={postData} />}
 
       <CoherenceLinks post={postData}></CoherenceLinks>
 

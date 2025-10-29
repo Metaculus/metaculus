@@ -16,6 +16,7 @@ type Props = {
   keyFactors: KeyFactor[];
 };
 
+const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
 // TODO: adjust!
 const MAX_TOP_KEY_FACTORS = 3;
 
@@ -116,4 +117,4 @@ const KeyFactorsConsumerSection: FC<Props> = ({ keyFactors }) => {
   );
 };
 
-export default KeyFactorsConsumerSection;
+export default KeyFactorsQuestionConsumerSection;
