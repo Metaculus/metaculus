@@ -16,11 +16,10 @@ type Props = {
   keyFactors: KeyFactor[];
 };
 
-const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
 // TODO: adjust!
 const MAX_TOP_KEY_FACTORS = 3;
 
-const KeyFactorsConsumerSection: FC<Props> = ({ keyFactors }) => {
+const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
   const t = useTranslations();
   const isDesktop = useBreakpoint("sm");
   const scrollTo = useScrollTo();

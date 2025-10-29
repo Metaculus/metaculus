@@ -45,12 +45,14 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
   return (
     <div className="flex flex-col gap-2.5">
       {combinedKeyFactors.map((kf) => (
-        <KeyFactorItem
-          key={`post-key-factor-${kf.id}`}
-          keyFactor={kf}
-          projectPermission={post.user_permission}
-          className={keyFactorItemClassName}
-        />
+        <div key={`post-key-factor-${kf.id}`} id={`key-factor-${kf.id}`}>
+          <KeyFactorItem
+            key={`post-key-factor-${kf.id}`}
+            keyFactor={kf}
+            projectPermission={post.user_permission}
+            className={keyFactorItemClassName}
+          />
+        </div>
       ))}
     </div>
   );
