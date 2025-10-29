@@ -39,8 +39,9 @@ export type ProsVsBotsDiffSeries = {
 const SINGLE_WIDTH = 102;
 const GROUP_WIDTH = 57.5;
 const GROUP_OFFSET = 0.16;
+const MOBILE_BAR_W = 27.6;
 const ERR_CAP = 21;
-const ERR_CAP_DOUBLE = Math.round(ERR_CAP * 0.53);
+const ERR_CAP_DOUBLE = 13.8;
 
 type HitDatum = { _x: number; cat: string; y: number };
 type VictoryScale = { x: (v: number) => number; y: (v: number) => number };
@@ -114,6 +115,7 @@ const AIBProsVsBotsDiffChart: FC<{
   const widthFor =
     (otherHas: Set<string>): VictoryNumberCallback =>
     ({ datum }) => {
+      if (!smUp) return MOBILE_BAR_W;
       const cat = (datum as { cat?: string } | undefined)?.cat ?? "";
       return otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
     };
@@ -170,7 +172,6 @@ const AIBProsVsBotsDiffChart: FC<{
     y: d.mean,
   }));
   const s1Errs = s1Data.map((d) => {
-    const double = s2X.has(d.x);
     return {
       cat: d.x,
       _x: (posByX.get(d.x) ?? 0) + s1OffsetFor(d.x),
@@ -179,7 +180,7 @@ const AIBProsVsBotsDiffChart: FC<{
         number,
         number,
       ],
-      capW: !lgUp && double ? ERR_CAP_DOUBLE : ERR_CAP,
+      capW: !lgUp ? ERR_CAP_DOUBLE : ERR_CAP,
     };
   });
   const s2Bars = s2Data.map((d) => ({
@@ -188,7 +189,6 @@ const AIBProsVsBotsDiffChart: FC<{
     y: d.mean,
   }));
   const s2Errs = s2Data.map((d) => {
-    const double = s1X.has(d.x);
     return {
       cat: d.x,
       _x: (posByX.get(d.x) ?? 0) + s2OffsetFor(d.x),
@@ -197,7 +197,7 @@ const AIBProsVsBotsDiffChart: FC<{
         number,
         number,
       ],
-      capW: !lgUp && double ? ERR_CAP_DOUBLE : ERR_CAP,
+      capW: !lgUp ? ERR_CAP_DOUBLE : ERR_CAP,
     };
   });
 
@@ -233,8 +233,10 @@ const AIBProsVsBotsDiffChart: FC<{
 
   const groupOffsetPx =
     pxPerX * (2 * (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5));
-  const barWidthPxFor = (otherHas: Set<string>) => (cat: string) =>
-    otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
+  const barWidthPxFor = (otherHas: Set<string>) => (cat: string) => {
+    if (!smUp) return MOBILE_BAR_W;
+    return otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
+  };
   const cellWidth = categories.length > 0 ? plotW / categories.length : 0;
 
   const hitWidthPxFor = (cat: string) => {
