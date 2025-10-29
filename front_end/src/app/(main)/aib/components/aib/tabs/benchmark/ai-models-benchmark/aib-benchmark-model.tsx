@@ -30,7 +30,7 @@ const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
     <Link
       className="flex cursor-default items-center justify-between rounded-[4px] border-[1px] border-transparent bg-gray-0 p-[10px] py-2 no-underline antialiased transition-colors duration-150 hover:border-blue-500 dark:bg-gray-0-dark dark:hover:border-blue-500-dark"
       style={{ width: `${widthPct}%` }}
-      href="/aib/leaderboard"
+      href="/futureeval/leaderboard"
     >
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-[10px] text-zinc-900 dark:text-zinc-100">

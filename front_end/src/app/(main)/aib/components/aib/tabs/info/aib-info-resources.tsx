@@ -29,7 +29,7 @@ const AIBInfoResources: React.FC = () => {
       icon: faTrophy,
       title: t("aibResourcesLeaderboardsTitle"),
       description: t("aibResourcesLeaderboardsDesc"),
-      href: "/aib/leaderboard",
+      href: "/futureeval/leaderboard",
     },
   ] as const;
 
