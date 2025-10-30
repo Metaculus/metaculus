@@ -78,7 +78,6 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
         }
         title={t("keyFactors")}
         defaultOpen
-        id="key-factors"
         wrapperClassName="scroll-mt-header"
       >
         {combinedKeyFactors.length > 0 ? (

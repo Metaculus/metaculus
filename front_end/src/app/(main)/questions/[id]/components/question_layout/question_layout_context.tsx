@@ -16,33 +16,40 @@ type QuestionLayoutContextValue = {
   // Key Factors Section UI State
   keyFactorsExpanded?: boolean;
   requestKeyFactorsExpand: () => void;
+
+  // Mobile tab state
+  mobileActiveTab?: string;
+  setMobileActiveTab: (tab: string) => void;
 };
 
-const QuestionLayoutContext = createContext<
-  QuestionLayoutContextValue | undefined
->(undefined);
+const QuestionLayoutContext = createContext({} as QuestionLayoutContextValue);
 
 export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
   const [keyFactorsExpanded, setKeyFactorsExpanded] = useState<boolean>();
+  const [mobileActiveTab, setMobileActiveTab] = useState<string>();
 
   // Expand key factors section if URL hash points to it
   useEffect(() => {
     if (hash === "key-factors") {
       setKeyFactorsExpanded(true);
+      setMobileActiveTab("key-factors");
     }
   }, [hash]);
 
   const requestKeyFactorsExpand = useCallback(() => {
     setKeyFactorsExpanded(true);
+    setMobileActiveTab("key-factors");
   }, []);
 
   const value = useMemo<QuestionLayoutContextValue>(
     () => ({
       keyFactorsExpanded,
       requestKeyFactorsExpand,
+      mobileActiveTab,
+      setMobileActiveTab,
     }),
-    [keyFactorsExpanded, requestKeyFactorsExpand]
+    [keyFactorsExpanded, requestKeyFactorsExpand, mobileActiveTab]
   );
 
   return (

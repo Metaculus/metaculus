@@ -1554,5 +1554,6 @@
   "confirmDeletion": "確認刪除",
   "confirmDeletionKeyFactorDescription": "您確定要刪除您的關鍵因素嗎？",
   "deleteKeyFactor": "刪除關鍵因素",
+  "viewAll": "查看全部（{count}）",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

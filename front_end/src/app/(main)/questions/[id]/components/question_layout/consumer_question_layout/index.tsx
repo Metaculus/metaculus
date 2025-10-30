@@ -1,13 +1,10 @@
 import { useTranslations } from "next-intl";
 import { PropsWithChildren, Suspense } from "react";
 
+import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
+import ConsumerTabs from "@/app/(main)/questions/[id]/components/question_layout/consumer_question_layout/consumer_tabs";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
-import {
-  Tabs,
-  TabsList,
-  TabsSection,
-  TabsTab,
-} from "@/components/ui/tabs/index";
+import { TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
@@ -41,7 +38,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
       <QuestionSection compact>
         {children}
         <div className="sm:hidden">
-          <Tabs defaultValue="comments" className="-mb-5">
+          <ConsumerTabs>
             <TabsList>
               <TabsTab value="comments">{t("comments")}</TabsTab>
               {hasTimeline && (
@@ -50,6 +47,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <NewsPresence questionId={postData.id}>
                 <TabsTab value="news">{t("inNews")}</TabsTab>
               </NewsPresence>
+              <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
             </TabsList>
 
@@ -83,6 +81,14 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 </Suspense>
               </TabsSection>
             </NewsPresence>
+            <TabsSection value="key-factors">
+              <div className="-m-4 bg-blue-200 p-4 pt-0 dark:bg-blue-200-dark">
+                <KeyFactorsFeed
+                  post={postData}
+                  keyFactorItemClassName="border border-blue-400 dark:border-blue-400-dark"
+                />
+              </div>
+            </TabsSection>
             <TabsSection value="info">
               <QuestionInfo
                 postData={postData}
@@ -91,13 +97,13 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 showTimeline={false}
               />
             </TabsSection>
-          </Tabs>
+          </ConsumerTabs>
         </div>
         <div className="hidden sm:block">
           <QuestionInfo
             postData={postData}
             preselectedGroupQuestionId={preselectedGroupQuestionId}
-            showKeyFactors={false}
+            showKeyFactors={true}
             showTimeline={!isFanGraph}
           />
         </div>

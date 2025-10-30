@@ -1557,5 +1557,6 @@
   "confirmDeletion": "Confirmar eliminación",
   "confirmDeletionKeyFactorDescription": "¿Está seguro de que desea eliminar su factor clave?",
   "deleteKeyFactor": "Eliminar factor clave",
+  "viewAll": "Ver todo ({count})",
   "othersCount": "Otros ({count})"
 }

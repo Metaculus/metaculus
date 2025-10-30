@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
@@ -14,6 +15,7 @@ type Props = {
 const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
   const t = useTranslations();
   const scrollTo = useScrollTo();
+  const questionLayout = useQuestionLayoutSafe();
 
   return (
     <div className="flex w-full justify-between">
@@ -27,6 +29,8 @@ const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
               className="text-[10px] font-normal text-blue-700 no-underline dark:text-blue-700-dark"
               href={linkAnchor}
               onClick={(e) => {
+                questionLayout?.setMobileActiveTab("comments");
+
                 const target = document.getElementById(
                   linkAnchor.replace("#", "")
                 );
