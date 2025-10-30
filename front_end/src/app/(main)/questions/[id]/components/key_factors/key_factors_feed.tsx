@@ -44,7 +44,7 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2.5" id="key-factors">
       {combinedKeyFactors.map((kf) => (
         <KeyFactorItem
           id={`key-factor-${kf.id}`}

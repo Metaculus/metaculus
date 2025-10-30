@@ -67,7 +67,7 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
       className="-ml-4 mt-8 flex w-[calc(100%+32px)] flex-col pb-4 sm:ml-0 sm:w-full"
       id="top-key-factors"
     >
-      <div className="mb-4 flex items-center justify-between pl-4 sm:pl-0">
+      <div className="mb-4 flex items-center justify-between px-4 sm:px-0">
         <div className="text-sm text-blue-800 dark:text-blue-800-dark">
           {t("topKeyFactors")}
         </div>
