@@ -1577,7 +1577,6 @@
   "aibHeroTitle": "Metaculus <highlight>未来评估</highlight>",
   "aibTabsInfo": "信息",
   "aibTabsNews": "新闻",
-  "aibBenchModelsSubtitle": "通过岭回归同行评分 <icon></icon>",
   "aibPerfOverTimeTitle": "预测性能随时间变化",
   "aibModelsHeaderName": "模型名称",
   "aibModelsHeaderScore": "评分",
