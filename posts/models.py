@@ -814,7 +814,13 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):
-        self.forecasters_count = self.get_forecasters().count()
+        forecasters = self.get_forecasters()
+        questions = self.get_questions()
+        if (
+            questions and not questions[0].include_bots_in_aggregates
+        ):  # assume all questions have the same "include bots" status
+            forecasters = forecasters.filter(is_bot=False)
+        self.forecasters_count = forecasters.count()
         self.save(update_fields=["forecasters_count"])
 
     def update_vote_score(self):
