@@ -25,7 +25,6 @@ export function mapLeaderboardToModelPoints(
   } = opts;
 
   const raw: ModelPoint[] = [];
-
   for (const e of leaderboard.entries) {
     const username = e.user?.username;
     const meta = username ? getBotMeta(username) : undefined;
