@@ -1,5 +1,3 @@
-import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { PropsWithChildren } from "react";
@@ -31,12 +29,7 @@ export const AIBBenchmarkModelsSubsectionHeader: React.FC = () => {
   const t = useTranslations();
 
   return (
-    <AIBBenchmarkSubsectionHeader
-      title={t("aibBenchModelsTitle")}
-      subtitle={t.rich("aibBenchModelsSubtitle", {
-        icon: () => <FontAwesomeIcon icon={faQuestionCircle} />,
-      })}
-    >
+    <AIBBenchmarkSubsectionHeader title={t("aibBenchModelsTitle")}>
       <p className="m-0 mx-auto mt-2 max-w-[400px] text-center text-[12px] leading-[16px] text-blue-800 opacity-60 dark:text-blue-800-dark sm:text-base sm:leading-normal lg:max-w-none lg:text-left">
         {t.rich("aibBenchModelsBlurb", {
           br: () => <br className="sm:hidden" />,

@@ -1561,7 +1561,6 @@
   "aibHeroTitle": "Metaculus <highlight>FutureEval</highlight>",
   "aibTabsInfo": "Informace",
   "aibTabsNews": "Novinky",
-  "aibBenchModelsSubtitle": "podle Peer Score Ridge Regression <icon></icon>",
   "aibPerfOverTimeTitle": "Výkon předpovědi v průběhu času",
   "aibModelsHeaderName": "Název modelu",
   "aibModelsHeaderScore": "Skóre",
