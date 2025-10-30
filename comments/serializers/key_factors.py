@@ -56,7 +56,7 @@ def serialize_key_factor(
             else None
         ),
         "question_option": key_factor.question_option,
-        "freshness": freshness,
+        "freshness": freshness or 0,
         # Type-specific fields
         "driver": (
             KeyFactorDriverSerializer(key_factor.driver).data
