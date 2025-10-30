@@ -378,6 +378,28 @@ def estimate_variances_from_head_to_head(
     return σ_error, σ_true, alpha
 
 
+def get_var_avg_scores(
+    user1_ids: list[int | str],
+    user2_ids: list[int | str],
+    scores: list[float],
+    coverages: list[float],
+) -> float:
+    # get per-player coverage-weighted average score
+    scores_by_player: dict[int | str, list[float]] = defaultdict(lambda: [0.0, 0.0])
+    for u1id, u2id, score, coverage in zip(user1_ids, user2_ids, scores, coverages):
+        u1 = scores_by_player[u1id]
+        u1[0] += score
+        u1[1] += coverage
+        u2 = scores_by_player[u2id]
+        u2[0] -= score
+        u2[1] += coverage
+    avg_scores = dict()
+    for uid, (score, coverage) in scores_by_player.items():
+        avg_scores[uid] = score / max(30, coverage)
+    var_avg_scores = np.var(np.array(list(avg_scores.values())))
+    return var_avg_scores
+
+
 def compute_skills(
     user1_ids: list[int | str],
     user2_ids: list[int | str],
@@ -415,17 +437,13 @@ def compute_skills(
         verbose=False,
     )
 
-    # Remove baseline player from design matrix
-    # This implicitly sets their skill to 0 (reference point)
-    players = [uid for uid in user_ids if uid != baseline_player]
-    player_to_idx = {p: i for i, p in enumerate(players)}
-
+    player_to_idx = {p: i for i, p in enumerate(user_ids)}
     # Build sparse design matrix X
     # Each row represents one match:
     # - Column for player_a gets +1 (they gain the score)
     # - Column for player_b gets -1 (they lose the score)
     # - If baseline player is involved, their column is omitted (skill=0)
-    X = sparse.lil_matrix((matches, len(players)))
+    X = sparse.lil_matrix((matches, len(user_ids)))
     y = np.zeros(matches)
     # for i, u1id, u2id, score in zip(range(matches), user1_ids, user2_ids, scores):
     #     y[i] = score
@@ -433,10 +451,8 @@ def compute_skills(
         range(matches), user1_ids, user2_ids, scores, coverages
     ):
         y[i] = score / (coverage if coverage != 1 / 3 else 1)
-        if u1id != baseline_player:
-            X[i, player_to_idx[u1id]] = 1
-        if u2id != baseline_player:
-            X[i, player_to_idx[u2id]] = -1
+        X[i, player_to_idx[u1id]] = 1
+        X[i, player_to_idx[u2id]] = -1
     # Convert to CSR format for efficient operations
     X = X.tocsr()
 
@@ -448,32 +464,34 @@ def compute_skills(
     model = Ridge(alpha=alpha, fit_intercept=False, solver="lsqr")
     model.fit(X, y, sample_weight=coverages)
     # Extract estimated skills
-    skills = {p: model.coef_[i] for i, p in enumerate(players)}
-    skills[baseline_player] = 0.0
+    skills = {p: model.coef_[i] for i, p in enumerate(user_ids)}
+
+    ########### NEW SHIFT ###########
+
+    # Shift skills so that baseline_player has skill = 0
+    baseline_shift = skills[baseline_player]
+    for player in skills.keys():
+        skills[player] -= baseline_shift
+
+    # Scale skills to match variance of average scores
+    var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, coverages)
+    skills = rescale_skills_(skills, var_avg_scores)
+
+    # Fit with intercept=True so sklearn centers the solution
+    # This effectively enforces sum-to-zero constraint
+    model = Ridge(alpha=alpha, fit_intercept=True, solver="lsqr")
+    model.fit(X, y, sample_weight=coverages)
+
+    # Extract skills - they should already sum to ~0 due to intercept
+    skills = {p: model.coef_[i] for i, p in enumerate(user_ids)}
+
+    # Explicitly enforce sum-to-zero by removing mean
+    mean_skill = np.mean(list(skills.values()))
+    skills = {p: s - mean_skill for p, s in skills.items()}
+
+    ########### NEW SHIFT ###########
 
     return skills
-
-
-def get_var_avg_scores(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    scores: list[float],
-    coverages: list[float],
-) -> float:
-    # get per-player coverage-weighted average score
-    scores_by_player: dict[int | str, list[float]] = defaultdict(lambda: [0.0, 0.0])
-    for u1id, u2id, score, coverage in zip(user1_ids, user2_ids, scores, coverages):
-        u1 = scores_by_player[u1id]
-        u1[0] += score
-        u1[1] += coverage
-        u2 = scores_by_player[u2id]
-        u2[0] -= score
-        u2[1] += coverage
-    avg_scores = dict()
-    for uid, (score, coverage) in scores_by_player.items():
-        avg_scores[uid] = score / max(30, coverage)
-    var_avg_scores = np.var(np.array(list(avg_scores.values())))
-    return var_avg_scores
 
 
 def rescale_skills_(skills: SkillType, var_avg_scores: float) -> SkillType:
@@ -655,7 +673,6 @@ class Command(BaseCommand):
             user1_ids, user2_ids, scores, coverages, baseline_player
         )
         var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, coverages)
-        skills = rescale_skills_(skills, var_avg_scores)
         print("Computing Skills initial... DONE\n")
 
         ci_lower, ci_upper = bootstrap_skills(
@@ -674,7 +691,7 @@ class Command(BaseCommand):
         print("Results:")
         print(
             "|  2.5%  "
-            "|  skill "
+            "| Skill  "
             "| 97.5%  "
             "| Match  "
             "| Quest. "
@@ -682,9 +699,9 @@ class Command(BaseCommand):
             "| Username "
         )
         print(
-            "|  match "
+            "| Match  "
             "|        "
-            "|  match "
+            "| Match  "
             "| Count  "
             "| Count  "
             "|        "
@@ -747,7 +764,10 @@ class Command(BaseCommand):
             score_type=LeaderboardScoreTypes.MANUAL,
             bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
         )
-        entry_dict = {entry.user_id: entry for entry in list(leaderboard.entries.all())}
+        entry_dict = {
+            entry.user_id or entry.aggregation_method: entry
+            for entry in list(leaderboard.entries.all())
+        }
         question_count = len(set(question_ids))
         for rank, (uid, skill) in enumerate(ordered_skills, 1):
             contribution_count = len(player_stats[uid][1])
