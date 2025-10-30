@@ -53,15 +53,33 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
       })),
     [data]
   );
-  const referenceLines = useMemo(
-    () =>
-      data
-        .filter((d) => d.isAggregate)
-        .map(
-          (d) => ({ y: d.score, label: d.name, kind: d.aggregateKind }) as const
-        ),
-    [data]
-  );
+  const referenceLines = useMemo(() => {
+    const seen = new Set<string>();
+    const out: {
+      y: number;
+      label: string;
+      kind?: ModelPoint["aggregateKind"];
+    }[] = [];
+
+    for (const d of data) {
+      if (!d.isAggregate) continue;
+      const key = `${d.aggregateKind ?? "other"}-${Math.round(d.score * 10)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ y: d.score, label: d.name, kind: d.aggregateKind });
+    }
+    return out;
+  }, [data]);
+
+  const referenceLabels = useMemo(() => {
+    const byLabel = new Map<string, { y: number; label: string }>();
+    for (const rl of referenceLines) {
+      const prev = byLabel.get(rl.label);
+      if (!prev || rl.y < prev.y)
+        byLabel.set(rl.label, { y: rl.y, label: rl.label });
+    }
+    return Array.from(byLabel.values());
+  }, [referenceLines]);
 
   const rightPad = referenceLines.length ? 64 : 40;
 
@@ -274,9 +292,10 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             />
           ))}
 
-          {referenceLines.map((rl, i) => (
+          {referenceLabels.map((rl, i) => (
             <VictoryScatter
               key={`ref-label-${i}`}
+              name={`ref-label-${i}`}
               data={[{ x: xDomainAligned[1], y: rl.y }]}
               size={0}
               labels={[rl.label]}
