@@ -526,6 +526,11 @@ def serialize_post_many(
                 q: v
                 for q, v in aggregate_forecasts.items()
                 if q in post.get_questions()
+                or (
+                    post.conditional_id is not None
+                    and q
+                    in [post.conditional.condition, post.conditional.condition_child]
+                )
             },
             key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
