@@ -688,47 +688,32 @@ def serialize_conditional(
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
-    if include_conditional_cps:
-        parent_question_aggregate_forecasts = (
-            aggregate_forecasts.get(conditional.condition) or []
-            if aggregate_forecasts
-            else None
-        )
-        child_question_aggregate_forecasts = (
-            aggregate_forecasts.get(conditional.condition_child) or []
-            if aggregate_forecasts
-            else None
-        )
+    parent_question_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.condition) or []
+        if aggregate_forecasts
+        else None
+    )
+    child_question_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.condition_child) or []
+        if aggregate_forecasts
+        else None
+    )
 
-        serialized_data["condition"] = serialize_question(
-            conditional.condition,
-            current_user=current_user,
-            post=conditional.condition.get_post(),
-            aggregate_forecasts=parent_question_aggregate_forecasts,
-            include_descriptions=include_descriptions,
-        )
+    serialized_data["condition"] = serialize_question(
+        conditional.condition,
+        current_user=current_user,
+        post=conditional.condition.get_post(),
+        aggregate_forecasts=parent_question_aggregate_forecasts,
+        include_descriptions=include_descriptions,
+    )
 
-        serialized_data["condition_child"] = serialize_question(
-            conditional.condition_child,
-            current_user=current_user,
-            post=conditional.condition_child.get_post(),
-            aggregate_forecasts=child_question_aggregate_forecasts,
-            include_descriptions=include_descriptions,
-        )
-    else:
-        serialized_data["condition"] = serialize_question(
-            conditional.condition,
-            current_user=current_user,
-            post=conditional.condition.get_post(),
-            include_descriptions=include_descriptions,
-        )
-
-        serialized_data["condition_child"] = serialize_question(
-            conditional.condition_child,
-            current_user=current_user,
-            post=conditional.condition_child.get_post(),
-            include_descriptions=include_descriptions,
-        )
+    serialized_data["condition_child"] = serialize_question(
+        conditional.condition_child,
+        current_user=current_user,
+        post=conditional.condition_child.get_post(),
+        aggregate_forecasts=child_question_aggregate_forecasts,
+        include_descriptions=include_descriptions,
+    )
 
     # Autogen questions
     question_yes_aggregate_forecasts = (
