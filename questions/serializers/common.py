@@ -680,7 +680,6 @@ def serialize_conditional(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
-    include_conditional_cps: bool = False,
 ):
     question_movements = question_movements or {}
 
