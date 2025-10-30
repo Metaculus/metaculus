@@ -1,7 +1,7 @@
 import random
 from collections import defaultdict, Counter
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 from django.core.management.base import BaseCommand
 from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
@@ -142,6 +142,7 @@ def gather_data(
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
     user_ids = users.values_list("id", flat=True)
+    user_id_map = {user.id: user for user in users}
     print("Processing Pairwise Scoring:")
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
@@ -166,6 +167,18 @@ def gather_data(
             "start_time"
         )
         for f in bot_forecasts:
+            # don't include forecasts made 1 year or more after model release
+            user = user_id_map[f.author_id]
+            primary_base_model = user.metadata["bot_details"]["base_models"][0]
+            if release_date := primary_base_model.get("model_release_date"):
+                if len(release_date) == 7:
+                    release_date += "-01"
+                release = datetime.fromisoformat(release_date).replace(
+                    tzinfo=dt_timezone.utc
+                )
+                if f.start_time > release + timedelta(days=365):
+                    continue
+
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
@@ -245,6 +258,126 @@ def gather_data(
     return (user1_ids, user2_ids, question_ids, scores, coverages)
 
 
+def estimate_variances_from_head_to_head(
+    user1_ids: list[int | str],
+    user2_ids: list[int | str],
+    scores: list[float],
+    coverages: list[float],
+    min_matches_for_true=100,
+    min_rematches=100,
+    verbose=False,
+):
+    """
+    Helper function: Estimate σ_error and σ_true from head-to-head data.
+
+    Returns:
+        (σ_error, σ_true, alpha): estimated standard deviations and regularization parameter
+    """
+    # Estimate σ_error from rematches
+    matchups: dict[tuple[int | str, int | str], dict[str, list[float]]] = defaultdict(
+        lambda: {"scores": [], "weights": []}
+    )
+    for user1_id, user2_id, score, coverage in zip(
+        user1_ids, user2_ids, scores, coverages
+    ):
+        pair = (user1_id, user2_id)
+        matchups[pair]["scores"].append(score)
+        matchups[pair]["weights"].append(coverage)
+
+    # Calculate weighted variance within each matchup
+    rematch_variances = []
+    for pair, data in matchups.items():
+        pair_scores = np.array(data["scores"])
+        pair_weights = np.array(data["weights"])
+        if len(pair_scores) >= min_rematches:
+            weighted_mean = np.average(pair_scores, weights=pair_weights)
+            weighted_var = np.average(
+                (pair_scores - weighted_mean) ** 2, weights=pair_weights
+            )
+            rematch_variances.append(weighted_var)
+
+    if verbose:
+        print(
+            f"Found {len(rematch_variances)} matchups with >={min_rematches} rematches"
+        )
+
+    if len(rematch_variances) == 0:
+        # Fallback if no rematches found
+        σ_error = np.sqrt(np.var(scores))
+        if verbose:
+            print(f"WARNING: No rematches found, using overall score variance")
+    else:
+        σ_error = np.sqrt(np.mean(rematch_variances))
+
+    if verbose:
+        print(f"σ_error (match noise): {σ_error:.4f}")
+
+    # Estimate σ_true from high-match players
+    match_counts: dict[int | str, float] = defaultdict(float)
+    for user1_id, user2_id, coverage in zip(user1_ids, user2_ids, coverages):
+        match_counts[user1_id] += coverage
+        match_counts[user2_id] += coverage
+
+    # Quick ridge regression to estimate skills
+    players = list(match_counts.keys())
+    player_to_idx = {p: i for i, p in enumerate(players)}
+    n_players = len(players)
+
+    # Use small λ for initial fit
+    λ_init = σ_error**2 / 1.0  # Assume unit variance initially
+
+    # Build normal equations: (X^T W X + λI)β = X^T W y
+    XTX = np.zeros((n_players, n_players))
+    XTy = np.zeros(n_players)
+
+    for user1_id, user2_id, score, coverage in zip(
+        user1_ids, user2_ids, scores, coverages
+    ):
+        i = player_to_idx[user1_id]
+        j = player_to_idx[user2_id]
+
+        XTX[i, i] += coverage
+        XTX[j, j] += coverage
+        XTX[i, j] -= coverage
+        XTX[j, i] -= coverage
+
+        XTy[i] += coverage * score
+        XTy[j] -= coverage * score
+
+    # Add ridge penalty
+    XTX += λ_init * np.eye(n_players)
+
+    # Solve
+    skills = np.linalg.solve(XTX, XTy)
+
+    # Get variance of skills for high-match players
+    high_match_skills = [
+        skills[player_to_idx[p]]
+        for p in players
+        if match_counts[p] >= min_matches_for_true
+    ]
+
+    n_high_match = len(high_match_skills)
+    if verbose:
+        print(f"Found {n_high_match} players with >={min_matches_for_true} matches")
+
+    if n_high_match < 10:
+        if verbose:
+            print(
+                f"WARNING: Only {n_high_match} high-match players for variance estimation!"
+            )
+
+    σ_true = np.std(high_match_skills, ddof=1) if len(high_match_skills) > 1 else 1.0
+    if verbose:
+        print(f"σ_true (skill variance): {σ_true:.4f}")
+
+    alpha = (σ_error / σ_true) ** 2
+    if verbose:
+        print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
+
+    return σ_error, σ_true, alpha
+
+
 def compute_skills(
     user1_ids: list[int | str],
     user2_ids: list[int | str],
@@ -268,13 +401,19 @@ def compute_skills(
     One player is fixed at skill=0 to make the system identifiable (otherwise
     we could add any constant to all skills and get the same predictions).
     """
-
-    # Set alpha using heuristic: variance of scores / average matches per player
     matches = len(scores)
     user_ids = set(user1_ids) | set(user2_ids)
-    score_variance = np.var(scores)
-    average_matches = matches / len(user_ids)
-    alpha = score_variance / average_matches
+
+    # Set alpha using heuristic: variance of scores / average matches per player
+    _, _, alpha = estimate_variances_from_head_to_head(
+        user1_ids=user1_ids,
+        user2_ids=user2_ids,
+        scores=scores,
+        coverages=coverages,
+        min_matches_for_true=100,
+        min_rematches=100,
+        verbose=False,
+    )
 
     # Remove baseline player from design matrix
     # This implicitly sets their skill to 0 (reference point)
@@ -467,9 +606,8 @@ class Command(BaseCommand):
         baseline_player = 236038
         print("Initializing...", end="\r")
         users: QuerySet[User] = User.objects.filter(
-            Q(username__startswith="metac-") | Q(username__startswith="mf-bot-"),
+            metadata__bot_details__metac_bot=True,
             is_active=True,
-            is_bot=True,
         ).order_by("id")
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
