@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo } from "react";
 
@@ -31,6 +32,9 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
       const meta = getBotMeta(username);
       const name = meta ? meta.label : getDisplayName(entry);
 
+      const userId = entry.user?.id;
+      const profileHref = userId ? `/accounts/profile/${userId}/` : null;
+
       return {
         rank: entry.rank ?? i + 1,
         label: name,
@@ -39,6 +43,8 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
         iconDark: meta?.iconDark,
         forecasts: entry.coverage ?? entry.contribution_count ?? 0,
         score: entry.score,
+        profileHref,
+        isAggregate: !entry.user,
       };
     });
   }, [details, getDisplayName]);
@@ -91,7 +97,13 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
                 )}
                 <div className="min-w-0">
                   <div className="truncate text-sm leading-[24px] sm:text-base">
-                    {r.label}
+                    {r.isAggregate || !r.profileHref ? (
+                      r.label
+                    ) : (
+                      <Link className="no-underline" href={r.profileHref}>
+                        {r.label}
+                      </Link>
+                    )}
                   </div>
                   <div className="truncate text-[10px] text-gray-500 dark:text-gray-500-dark sm:text-xs">
                     {r.username}
