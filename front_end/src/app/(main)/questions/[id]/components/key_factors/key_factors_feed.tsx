@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { AddKeyFactorsButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
@@ -32,12 +32,37 @@ const KeyFactorsEmpty: FC<{ post: PostWithForecasts }> = ({ post }) => {
 
 const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
   const { combinedKeyFactors } = useCommentsFeed();
+  // Randomize only on initial load
+  const [randomizedKeyFactors, setRandomizedKeyFactors] = useState<
+    typeof combinedKeyFactors
+  >(() =>
+    [...combinedKeyFactors].sort((a, b) => {
+      const sortKeyA = Math.random() / (a.freshness + 1);
+      const sortKeyB = Math.random() / (b.freshness + 1);
+      return sortKeyA - sortKeyB;
+    })
+  );
 
   useEffect(() => {
     if (combinedKeyFactors.length > 0) {
       sendAnalyticsEvent("KeyFactorPageview");
     }
-  }, [combinedKeyFactors]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const currentIds = new Set(combinedKeyFactors.map((kf) => kf.id));
+    const updated = randomizedKeyFactors.filter((kf) => currentIds.has(kf.id));
+
+    // Append any new key factors not already present
+    const existingIds = new Set(updated.map((kf) => kf.id));
+    const newItems = combinedKeyFactors.filter((kf) => !existingIds.has(kf.id));
+
+    if (newItems.length || updated.length !== randomizedKeyFactors.length) {
+      setRandomizedKeyFactors([...updated, ...newItems]);
+    }
+  }, [combinedKeyFactors, randomizedKeyFactors]);
 
   if (combinedKeyFactors.length === 0) {
     return <KeyFactorsEmpty post={post} />;
@@ -45,7 +70,7 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
 
   return (
     <div className="flex flex-col gap-2.5" id="key-factors">
-      {combinedKeyFactors.map((kf) => (
+      {randomizedKeyFactors.map((kf) => (
         <KeyFactorItem
           id={`key-factor-${kf.id}`}
           key={`post-key-factor-${kf.id}`}
