@@ -1555,5 +1555,6 @@
   "confirmDeletion": "Confirmar Exclusão",
   "confirmDeletionKeyFactorDescription": "Tem certeza de que deseja excluir seu Fator Chave?",
   "deleteKeyFactor": "Excluir Fator Chave",
+  "viewAll": "Ver todos ({count})",
   "othersCount": "Outros ({count})"
 }

@@ -17,8 +17,7 @@ type Props = {
   keyFactors: KeyFactor[];
 };
 
-// TODO: adjust!
-const MAX_TOP_KEY_FACTORS = 3;
+const MAX_TOP_KEY_FACTORS = 8;
 
 const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
   const t = useTranslations();
@@ -33,16 +32,29 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
       .slice(0, MAX_TOP_KEY_FACTORS);
   }, [keyFactors]);
 
-  const handleViewAllClick = () => {
+  const openKeyFactorsElement = (selector: string) => {
+    // Expand key factors section
     requestKeyFactorsExpand();
 
+    // Scroll to the specific key factor in the full list
     setTimeout(() => {
-      // TODO: not working since there are 2 ids
-      const section = document.getElementById("key-factors");
-      if (section) {
-        scrollTo(section.getBoundingClientRect().top);
+      // Small workaround: the page renders two KeyFactor sections:
+      // one for mobile, one for desktop — for responsive purposes.
+      // This causes duplicate key-factor element IDs in the DOM.
+      // As a result, using getElementById might return
+      // the hidden version (not visible on the current device).
+      // To avoid this, we use a small hack that returns
+      // the first visible element instead.
+      const keyFactorElement = firstVisible(selector);
+
+      if (keyFactorElement) {
+        scrollTo(keyFactorElement.getBoundingClientRect().top);
       }
     }, 100);
+
+    sendAnalyticsEvent("KeyFactorClick", {
+      event_label: "fromTopList",
+    });
   };
 
   // Don't render if no top key factors
@@ -59,14 +71,15 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
         <div className="text-sm text-blue-800 dark:text-blue-800-dark">
           {t("topKeyFactors")}
         </div>
-        {keyFactors.length > topKeyFactors.length && (
-          <button
-            onClick={handleViewAllClick}
-            className="text-sm text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-600-dark"
-          >
-            View all ({keyFactors.length})
-          </button>
-        )}
+        <button
+          onClick={() => {
+            openKeyFactorsElement("[id='key-factors']");
+            sendAnalyticsEvent("KeyFactorViewAllClick");
+          }}
+          className="text-sm text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-600-dark"
+        >
+          {t("viewAll", { count: keyFactors.length })}
+        </button>
       </div>
 
       <KeyFactorsCarousel
@@ -77,34 +90,7 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
             className="text-left no-underline"
             onClick={(e) => {
               e.preventDefault();
-
-              // Expand key factors section
-              requestKeyFactorsExpand();
-
-              // Scroll to the specific key factor in the full list
-              setTimeout(() => {
-                // Small workaround: the page renders two KeyFactor sections:
-                // one for mobile, one for desktop — for responsive purposes.
-                // This causes duplicate key-factor element IDs in the DOM.
-                // As a result, using getElementById might return
-                // the hidden version (not visible on the current device).
-                // To avoid this, we use a small hack that returns
-                // the first visible element instead.
-                const keyFactorElement = firstVisible(
-                  `[id="key-factor-${kf.id}"]`
-                );
-
-                if (keyFactorElement) {
-                  scrollTo(keyFactorElement.getBoundingClientRect().top);
-                } else {
-                  // Fallback: scroll to key factors section
-                  const section = document.getElementById("key-factors");
-                  if (section) {
-                    scrollTo(section.getBoundingClientRect().top);
-                  }
-                }
-              }, 100);
-
+              openKeyFactorsElement(`[id="key-factor-${kf.id}"]`);
               sendAnalyticsEvent("KeyFactorClick", {
                 event_label: "fromTopList",
               });

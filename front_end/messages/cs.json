@@ -1557,5 +1557,6 @@
   "confirmDeletion": "Potvrdit smazání",
   "confirmDeletionKeyFactorDescription": "Opravdu chcete smazat svůj klíčový faktor?",
   "deleteKeyFactor": "Smazat klíčový faktor",
+  "viewAll": "Zobrazit vše ({count})",
   "othersCount": "Ostatní ({count})"
 }

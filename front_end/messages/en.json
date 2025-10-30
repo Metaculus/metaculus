@@ -1265,6 +1265,7 @@
   "typeKeyFator": "Type a key factor here",
   "driverInputPlaceholder": "Type your driver here",
   "chooseDirectionOfImpact": "Choose direction of impact:",
+  "viewAll": "View all ({count})",
   "less": "Less",
   "earlier": "Earlier",
   "back": "Back",

@@ -1559,5 +1559,6 @@
   "confirmDeletion": "确认删除",
   "confirmDeletionKeyFactorDescription": "您确定要删除您的关键因素吗？",
   "deleteKeyFactor": "删除关键因素",
+  "viewAll": "查看全部 ({count})",
   "othersCount": "其他（{count}）"
 }
