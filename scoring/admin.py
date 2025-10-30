@@ -20,11 +20,11 @@ class ScoreAdmin(admin.ModelAdmin):
         "user",
         "aggregation_method",
         "score_type",
-        "question",
         "score",
         "coverage",
+        "question",
     ]
-    search_fields = ["user", "for_question"]
+    search_fields = ["user__username", "user__id", "question__title"]
     autocomplete_fields = ["user", "question"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
@@ -40,11 +40,11 @@ class ArchivedScoreAdmin(admin.ModelAdmin):
         "user",
         "aggregation_method",
         "score_type",
-        "question",
         "score",
         "coverage",
+        "question",
     ]
-    search_fields = ["user", "for_question"]
+    search_fields = ["user__username", "user__id", "question__title"]
     autocomplete_fields = ["user", "question"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
