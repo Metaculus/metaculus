@@ -148,7 +148,9 @@ def export_data_for_questions(
         questions_with_revealed_cp = questions
     else:
         questions_with_revealed_cp = questions.filter(
-            Q(cp_reveal_time__isnull=True) | Q(cp_reveal_time__lte=timezone.now())
+            Q(resolution__isnull=False)
+            | Q(cp_reveal_time__isnull=True)
+            | Q(cp_reveal_time__lte=timezone.now())
         )
     if not only_include_user_ids and (
         not aggregation_methods

@@ -26,9 +26,8 @@ const KeyFactorDropdownMenuItems: FC<Props> = ({
   const { user } = useAuth();
   const { openDeleteModal } = useKeyFactorDelete();
 
-  const canEdit =
-    user?.id === keyFactor.author.id ||
-    projectPermission === ProjectPermissions.ADMIN;
+  const isAdmin = projectPermission === ProjectPermissions.ADMIN;
+  const canEdit = user?.id === keyFactor.author.id || isAdmin;
 
   const menuItems: MenuItemProps[] = [
     ...(canEdit
@@ -45,6 +44,19 @@ const KeyFactorDropdownMenuItems: FC<Props> = ({
               >
                 <span>{t("deleteKeyFactor")}</span>
                 <FontAwesomeIcon icon={faTimesCircle} />
+              </div>
+            ),
+          },
+        ]
+      : []),
+    // Admin actions
+    ...(isAdmin
+      ? [
+          {
+            id: "freshness",
+            element: (
+              <div className="inline-flex items-center gap-2.5 whitespace-nowrap px-3 py-2 text-xs">
+                <span>Freshness: {keyFactor.freshness?.toFixed(2)}</span>
               </div>
             ),
           },
