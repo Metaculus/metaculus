@@ -335,39 +335,52 @@ const AddKeyFactorsModal: FC<Props> = ({
             />
           </div>
 
-          <div className="mt-auto flex w-full gap-3 md:mt-6">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleOnClose}
-              className="ml-auto"
-              disabled={isPending}
-            >
-              {t("cancel")}
-            </Button>
+          <div
+            className={[
+              "sticky -bottom-5 z-10",
+              "-mx-5 px-5 py-3 md:-mx-7 md:px-7 md:pb-0 md:pt-6",
+              "border-t border-blue-100/40",
+              "bg-gray-0/80 backdrop-blur supports-[backdrop-filter]:bg-gray-0/60",
+              "dark:bg-gray-0-dark/80 dark:supports-[backdrop-filter]:bg-gray-0-dark/60",
+              "sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-0",
+            ].join(" ")}
+          >
+            <div className="mt-0 flex w-full gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleOnClose}
+                className="ml-auto"
+                disabled={isPending}
+              >
+                {t("cancel")}
+              </Button>
 
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSubmit}
-              disabled={
-                isPending ||
-                (isNil(commentId) && !markdown) ||
-                drafts.length === 0 ||
-                drafts.some((obj) => obj.driver.text.trim() === "") ||
-                drafts.some(
-                  (obj) => !driverTextSchema.safeParse(obj.driver.text).success
-                ) ||
-                drafts.some(
-                  (d) =>
-                    d.driver.text.trim() !== "" &&
-                    d.driver.impact_direction === null &&
-                    d.driver.certainty !== -1
-                )
-              }
-            >
-              {t("addDriver")}
-            </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSubmit}
+                disabled={
+                  isPending ||
+                  (isNil(commentId) && !markdown) ||
+                  drafts.length === 0 ||
+                  drafts.some((obj) => obj.driver.text.trim() === "") ||
+                  drafts.some(
+                    (obj) =>
+                      !driverTextSchema.safeParse(obj.driver.text).success
+                  ) ||
+                  drafts.some(
+                    (d) =>
+                      d.driver.text.trim() !== "" &&
+                      d.driver.impact_direction === null &&
+                      d.driver.certainty !== -1
+                  )
+                }
+              >
+                {t("addDriver")}
+              </Button>
+            </div>
+            <FormError errors={errors} detached={true} />
           </div>
           <FormError errors={errors} detached={true} />
         </div>
