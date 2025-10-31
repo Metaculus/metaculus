@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from comments.constants import CommentReportType
 from comments.models import (
     Comment,
     KeyFactor,
@@ -23,6 +24,7 @@ from comments.services.key_factors.common import (
     delete_key_factor,
 )
 from comments.services.key_factors.suggestions import generate_key_factors_for_comment
+from notifications.services import send_key_factor_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
@@ -102,5 +104,21 @@ def key_factor_delete(request: Request, pk: int):
     ObjectPermission.can_delete_key_factor(permission, raise_exception=True)
 
     delete_key_factor(key_factor)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def key_factor_report_api_view(request, pk=int):
+    class InputSerializer(serializers.Serializer):
+        reason = serializers.ChoiceField(choices=CommentReportType.choices)
+
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    serializer = InputSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    reason = serializer.validated_data["reason"]
+
+    send_key_factor_report_notification_to_staff(key_factor, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)

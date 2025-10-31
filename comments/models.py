@@ -259,6 +259,12 @@ class KeyFactor(TimeStampedModel):
         # about the two Meta classes in the 2 parent classes
         pass
 
+    def get_label(self) -> str:
+        if self.driver_id:
+            return f"Driver {self.driver.text}"
+
+        return "Key Factor"
+
 
 class KeyFactorVote(TimeStampedModel):
     class VoteType(models.TextChoices):
