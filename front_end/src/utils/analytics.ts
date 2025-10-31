@@ -1,6 +1,7 @@
 import { sendGAEvent } from "@next/third-parties/google";
 import posthog from "posthog-js";
 
+import { bwTrackPredictionIfConsent } from "@/app/(campaigns-registration)/(bridgewater)/utils/pixel-apis";
 import { Post, PostWithForecasts } from "@/types/post";
 import {
   QuestionWithMultipleChoiceForecasts,
@@ -22,6 +23,8 @@ export function sendConditionalPredictEvent(
 ) {
   const projectId = projects.default_project.id;
   const tournamentIds = projects.tournament?.map((t) => t.id);
+
+  bwTrackPredictionIfConsent();
 
   if (!alreadyPredicted) {
     posthog.capture("predict", {
@@ -64,6 +67,8 @@ export function sendPredictEvent(
   const alreadyPredicted = question.my_forecasts?.latest;
   const projectId = post.projects.default_project.id;
   const tournamentIds = post.projects.tournament?.map((t) => t.id);
+
+  bwTrackPredictionIfConsent();
 
   if (!alreadyPredicted) {
     posthog.capture("predict", {
