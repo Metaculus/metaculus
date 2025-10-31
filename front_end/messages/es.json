@@ -1558,5 +1558,15 @@
   "confirmDeletionKeyFactorDescription": "¿Está seguro de que desea eliminar su factor clave?",
   "deleteKeyFactor": "Eliminar factor clave",
   "viewAll": "Ver todo ({count})",
+  "reportSpam": "Reportar spam",
+  "reportSpamConfirmDescription": "¿Estás seguro de que quieres marcar este Factor Clave como spam?",
+  "youFlaggedThisAsSpam": "Marcaste este factor clave como spam.",
+  "dispute": "Disputa",
+  "disputeKeyFactor": "Disputar Factor Clave",
+  "disputeKeyFactorHelp": "¿Tienes pensamientos sobre este Factor Clave? Escribe un comentario; se publicará como una respuesta al comentario original.",
+  "writeYourArgument": "Escribe tu argumento…",
+  "posting": "Publicando…",
+  "postComment": "Publicar comentario",
+  "sendReport": "Enviar reporte",
   "othersCount": "Otros ({count})"
 }
