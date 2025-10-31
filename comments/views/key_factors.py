@@ -110,11 +110,14 @@ def key_factor_delete(request: Request, pk: int):
 
 @api_view(["POST"])
 def key_factor_report_api_view(request, pk=int):
-    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    class InputSerializer(serializers.Serializer):
+        reason = serializers.ChoiceField(choices=CommentReportType.choices)
 
-    reason = serializers.ChoiceField(choices=CommentReportType.choices).run_validation(
-        request.data.get("reason")
-    )
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    serializer = InputSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    reason = serializer.validated_data["reason"]
 
     send_key_factor_report_notification_to_staff(key_factor, reason, request.user)
 
