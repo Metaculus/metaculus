@@ -1,13 +1,16 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
+
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
+const GENERATE_SOURCE_MAPS =
+  String(process.env.GENERATE_SOURCE_MAPS ?? true).toLowerCase() === "true";
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   trailingSlash: true,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: GENERATE_SOURCE_MAPS,
   env: {
     // Do not add anything here. Buildtime environment variables are deprecated
   },
@@ -16,7 +19,7 @@ const nextConfig = {
       dynamic: 30,
       static: 180,
     },
-    serverSourceMaps: true,
+    serverSourceMaps: GENERATE_SOURCE_MAPS,
     serverActions: {
       bodySizeLimit: "3mb", // match GIF size limit on the server
     },
