@@ -276,6 +276,7 @@ export const useKeyFactorModeration = () => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
   const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
+  const [doReportKeyFactor] = useServerAction(reportKeyFactor);
 
   const hideForMe = useCallback(
     (id: number) => {
@@ -297,13 +298,13 @@ export const useKeyFactorModeration = () => {
           description: t("reportSpamConfirmDescription"),
           actionText: t("sendReport"),
           onConfirm: async () => {
-            await reportKeyFactor(kf.id, "spam");
             hideForMe(kf.id);
+            await doReportKeyFactor(kf.id, "spam");
           },
         },
       });
     },
-    [setCurrentModal, t, hideForMe]
+    [setCurrentModal, t, hideForMe, doReportKeyFactor]
   );
 
   const {
