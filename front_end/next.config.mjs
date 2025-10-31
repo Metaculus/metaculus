@@ -72,6 +72,7 @@ const nextConfig = {
         destination: "/tournament/:slug",
         permanent: true,
       },
+      { source: "/aib", destination: "/futureeval", permanent: true },
     ];
   },
   async rewrites() {
