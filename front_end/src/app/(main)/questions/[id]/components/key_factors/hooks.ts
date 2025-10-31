@@ -7,7 +7,7 @@ import {
   addKeyFactorsToComment,
   createComment,
   deleteKeyFactor as deleteKeyFactorAction,
-  reportKeyFactorSpam,
+  reportKeyFactor,
 } from "@/app/(main)/questions/actions";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
@@ -297,7 +297,7 @@ export const useKeyFactorModeration = () => {
           description: t("reportSpamConfirmDescription"),
           actionText: t("sendReport"),
           onConfirm: async () => {
-            await reportKeyFactorSpam();
+            await reportKeyFactor(kf.id, "spam");
             hideForMe(kf.id);
           },
         },

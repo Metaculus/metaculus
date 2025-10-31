@@ -373,9 +373,17 @@ export async function setExcludedFromWeekTopComments(
   );
 }
 
-export async function reportKeyFactorSpam() {
-  await new Promise((r) => setTimeout(r, 250));
-  return { ok: true };
+export async function reportKeyFactor(
+  keyFactorId: number,
+  reason: CommentReportReason
+) {
+  try {
+    return await ServerCommentsApi.reportKeyFactor(keyFactorId, reason);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
 }
 
 export async function replyToComment(
