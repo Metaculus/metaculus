@@ -4,7 +4,8 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
-const GENERATE_SOURCE_MAPS = process.env.GENERATE_SOURCE_MAPS ?? true;
+const GENERATE_SOURCE_MAPS =
+  String(process.env.GENERATE_SOURCE_MAPS ?? true).toLowerCase() === "true";
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
