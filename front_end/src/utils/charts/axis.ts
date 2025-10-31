@@ -565,8 +565,9 @@ export function generateScale({
       : inbound_outcome_count + openBoundCount;
 
     const halfBucket = 0.5 / inbound_outcome_count;
-    const tickStart = question?.open_lower_bound ? -halfBucket : halfBucket;
-    const tickEnd = 1 + (question?.open_upper_bound ? halfBucket : -halfBucket);
+    const fullBucket = 1 / inbound_outcome_count;
+    const tickStart = question?.open_lower_bound ? -fullBucket : halfBucket;
+    const tickEnd = 1 + (question?.open_upper_bound ? fullBucket : -halfBucket);
 
     minorTicks = range(
       tickStart,

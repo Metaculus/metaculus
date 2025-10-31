@@ -160,7 +160,7 @@ function checkQuartilesOutOfBorders(
     return quartile <= 0 ? "Less than " : quartile >= 1 ? "More than " : "";
   }
 
-  return quartile <= 0 ? "<" : quartile >= 1 ? ">" : "";
+  return quartile <= 0 ? "≤" : quartile >= 1 ? "≥" : "";
 }
 
 type PredictionDisplayValueParams = {
