@@ -1,12 +1,12 @@
 import random
 from collections import defaultdict, Counter
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 from django.core.management.base import BaseCommand
 from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
 import numpy as np
-from scipy import sparse
+from scipy import sparse, stats
 from sklearn.linear_model import Ridge
 
 from posts.models import Post
@@ -142,6 +142,7 @@ def gather_data(
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
     user_ids = users.values_list("id", flat=True)
+    user_id_map = {user.id: user for user in users}
     print("Processing Pairwise Scoring:")
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
@@ -166,6 +167,18 @@ def gather_data(
             "start_time"
         )
         for f in bot_forecasts:
+            # don't include forecasts made 1 year or more after model release
+            user = user_id_map[f.author_id]
+            primary_base_model = user.metadata["bot_details"]["base_models"][0]
+            if release_date := primary_base_model.get("model_release_date"):
+                if len(release_date) == 7:
+                    release_date += "-01"
+                release = datetime.fromisoformat(release_date).replace(
+                    tzinfo=dt_timezone.utc
+                )
+                if f.start_time > release + timedelta(days=365):
+                    continue
+
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
@@ -196,22 +209,22 @@ def gather_data(
                     seconds=1
                 )
                 forecast.end_time = None
-                forecast_dict["overall_pro_aggregate"] = [forecast]
-                match question.get_post().default_project_id:
-                    case 3349:  # Q3 2024
-                        forecast_dict["2024_Q3_pro_aggregate"] = [forecast]
-                    case 32506:  # Q4 2024
-                        forecast_dict["2024_Q4_pro_aggregate"] = [forecast]
-                    case 32627:  # Q1 2025
-                        forecast_dict["2025_Q1_pro_aggregate"] = [forecast]
-                    case 32721:  # Q2 2025
-                        forecast_dict["2025_Q2_pro_aggregate"] = [forecast]
-                    case 32813:  # fall 2025
-                        forecast_dict["2025_fall_pro_aggregate"] = [forecast]
-                    case other:
-                        print(question.id, human_question.id, "NOT FOUND...", other)
+                forecast_dict["Pro Aggregation"] = [forecast]
+                # match question.get_post().default_project_id:
+                #     case 3349:  # Q3 2024
+                #         forecast_dict["2024 Q3 Pro Aggregate"] = [forecast]
+                #     case 32506:  # Q4 2024
+                #         forecast_dict["2024 Q4 Pro Aggregate"] = [forecast]
+                #     case 32627:  # Q1 2025
+                #         forecast_dict["2025 Q1 Pro Aggregate"] = [forecast]
+                #     case 32721:  # Q2 2025
+                #         forecast_dict["2025 Q2 Pro Aggregate"] = [forecast]
+                #     case 32813:  # fall 2025
+                #         forecast_dict["2025 Fall Pro Aggregate"] = [forecast]
+                #     case other:
+                #         print(question.id, human_question.id, "NOT FOUND...", other)
             else:
-                forecast_dict["community_aggregate"] = aggregate_forecasts
+                forecast_dict["Community Aggregate"] = aggregate_forecasts
 
         forecaster_ids = sorted(list(forecast_dict.keys()), key=str, reverse=True)
         pairing_index = 0
@@ -242,77 +255,129 @@ def gather_data(
                     scores.append(u1s)
                     coverages.append(cov)
     print("\n")
-    return (user1_ids, user2_ids, question_ids, scores, coverages)
+    cov_arr = np.array(coverages)
+    weights = list(cov_arr * len(cov_arr) / sum(cov_arr))
+    return (user1_ids, user2_ids, question_ids, scores, weights)
 
 
-def compute_skills(
+def estimate_variances_from_head_to_head(
     user1_ids: list[int | str],
     user2_ids: list[int | str],
     scores: list[float],
-    coverages: list[float],
-    baseline_player: int = 269196,
-) -> SkillType:
+    weights: list[float],
+    min_matches_for_true=100,
+    min_rematches=100,
+    verbose=False,
+) -> float:
     """
-    Compute player skills using weighted ridge regression with fixed baseline.
+    Helper function: Estimate σ_error and σ_true from head-to-head data.
 
-    The model: For each match i, we model the score as:
-        score_i = skill[player_a_i] - skill[player_b_i] + error_i
-
-    Ridge regression solves:
-        minimize: sum(weight_i * (score_i - predicted_i)^2) + alpha * sum(skill_j^2)
-
-    The regularization term (alpha * sum(skill_j^2)) shrinks skills toward zero,
-    which is especially important for players with few matches. Higher alpha means
-    more shrinkage, preventing overfitting.
-
-    One player is fixed at skill=0 to make the system identifiable (otherwise
-    we could add any constant to all skills and get the same predictions).
+    Returns:
+        (σ_error, σ_true, alpha): estimated standard deviations and regularization parameter
     """
-
-    # Set alpha using heuristic: variance of scores / average matches per player
-    matches = len(scores)
-    user_ids = set(user1_ids) | set(user2_ids)
-    score_variance = np.var(scores)
-    average_matches = matches / len(user_ids)
-    alpha = score_variance / average_matches
-
-    # Remove baseline player from design matrix
-    # This implicitly sets their skill to 0 (reference point)
-    players = [uid for uid in user_ids if uid != baseline_player]
-    player_to_idx = {p: i for i, p in enumerate(players)}
-
-    # Build sparse design matrix X
-    # Each row represents one match:
-    # - Column for player_a gets +1 (they gain the score)
-    # - Column for player_b gets -1 (they lose the score)
-    # - If baseline player is involved, their column is omitted (skill=0)
-    X = sparse.lil_matrix((matches, len(players)))
-    y = np.zeros(matches)
-    # for i, u1id, u2id, score in zip(range(matches), user1_ids, user2_ids, scores):
-    #     y[i] = score
-    for i, u1id, u2id, score, coverage in zip(
-        range(matches), user1_ids, user2_ids, scores, coverages
+    # Estimate σ_error from rematches
+    matchups: dict[tuple[int | str, int | str], dict[str, list[float]]] = defaultdict(
+        lambda: {"scores": [], "weights": []}
+    )
+    for user1_id, user2_id, score, coverage in zip(
+        user1_ids, user2_ids, scores, weights
     ):
-        y[i] = score / (coverage if coverage != 1 / 3 else 1)
-        if u1id != baseline_player:
-            X[i, player_to_idx[u1id]] = 1
-        if u2id != baseline_player:
-            X[i, player_to_idx[u2id]] = -1
-    # Convert to CSR format for efficient operations
-    X = X.tocsr()
+        pair = (user1_id, user2_id)
+        matchups[pair]["scores"].append(score)
+        matchups[pair]["weights"].append(coverage)
 
-    # Solve weighted Ridge regression
-    # The Ridge class minimizes: ||sqrt(W) * (y - X*beta)||^2 + alpha * ||beta||^2
-    # This gives us beta (skills) that balance:
-    # 1. Fitting the observed scores (weighted by importance)
-    # 2. Keeping skills small (regularization to avoid overfitting)
-    model = Ridge(alpha=alpha, fit_intercept=False, solver="lsqr")
-    model.fit(X, y, sample_weight=coverages)
-    # Extract estimated skills
-    skills = {p: model.coef_[i] for i, p in enumerate(players)}
-    skills[baseline_player] = 0.0
+    # Calculate weighted variance within each matchup
+    rematch_variances = []
+    for pair, data in matchups.items():
+        pair_scores = np.array(data["scores"])
+        pair_weights = np.array(data["weights"])
+        if len(pair_scores) >= min_rematches:
+            weighted_mean = np.average(pair_scores, weights=pair_weights)
+            weighted_var = np.average(
+                (pair_scores - weighted_mean) ** 2, weights=pair_weights
+            )
+            rematch_variances.append(weighted_var)
 
-    return skills
+    if verbose:
+        print(
+            f"Found {len(rematch_variances)} matchups with >={min_rematches} rematches"
+        )
+
+    if len(rematch_variances) == 0:
+        # Fallback if no rematches found
+        σ_error = np.sqrt(np.var(scores))
+        if verbose:
+            print(f"WARNING: No rematches found, using overall score variance")
+    else:
+        σ_error = np.sqrt(np.mean(rematch_variances))
+
+    if verbose:
+        print(f"σ_error (match noise): {σ_error:.4f}")
+
+    # Estimate σ_true from high-match players
+    match_counts: dict[int | str, float] = defaultdict(float)
+    for user1_id, user2_id, coverage in zip(user1_ids, user2_ids, weights):
+        match_counts[user1_id] += coverage
+        match_counts[user2_id] += coverage
+
+    # Quick ridge regression to estimate skills
+    players = list(match_counts.keys())
+    player_to_idx = {p: i for i, p in enumerate(players)}
+    n_players = len(players)
+
+    # Use small λ for initial fit
+    λ_init = σ_error**2 / 1.0  # Assume unit variance initially
+
+    # Build normal equations: (X^T W X + λI)β = X^T W y
+    XTX = np.zeros((n_players, n_players))
+    XTy = np.zeros(n_players)
+
+    for user1_id, user2_id, score, coverage in zip(
+        user1_ids, user2_ids, scores, weights
+    ):
+        i = player_to_idx[user1_id]
+        j = player_to_idx[user2_id]
+
+        XTX[i, i] += coverage
+        XTX[j, j] += coverage
+        XTX[i, j] -= coverage
+        XTX[j, i] -= coverage
+
+        XTy[i] += coverage * score
+        XTy[j] -= coverage * score
+
+    # Add ridge penalty
+    XTX += λ_init * np.eye(n_players)
+
+    # Solve
+    skills = np.linalg.solve(XTX, XTy)
+
+    # Get variance of skills for high-match players
+    high_match_skills = [
+        skills[player_to_idx[p]]
+        for p in players
+        if match_counts[p] >= min_matches_for_true
+    ]
+
+    n_high_match = len(high_match_skills)
+    if verbose:
+        print(f"Found {n_high_match} players with >={min_matches_for_true} matches")
+
+    if n_high_match < 10:
+        if verbose:
+            print(
+                f"WARNING: Only {n_high_match} high-match players for variance estimation!"
+            )
+
+    σ_true = np.std(high_match_skills, ddof=1) if len(high_match_skills) > 1 else 1.0
+    if verbose:
+        print(f"σ_true (skill variance): {σ_true:.4f}")
+
+    alpha = (σ_error / σ_true) ** 2
+    if verbose:
+        print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
+
+    return alpha
 
 
 def get_var_avg_scores(
@@ -337,15 +402,102 @@ def get_var_avg_scores(
     return var_avg_scores
 
 
-def rescale_skills_(skills: SkillType, var_avg_scores: float) -> SkillType:
+def compute_skills(
+    user1_ids: list[int | str],
+    user2_ids: list[int | str],
+    scores: list[float],
+    weights: list[float],  # normalized coverages
+    alpha: float,
+) -> SkillType:
+    """
+    Compute player skills using weighted ridge regression with fixed baseline.
+
+    The model: For each match i, we model the score as:
+        score_i = skill[player_a_i] - skill[player_b_i] + error_i
+
+    Ridge regression solves:
+        minimize: sum(weight_i * (score_i - predicted_i)^2) + alpha * sum(skill_j^2)
+
+    The regularization term (alpha * sum(skill_j^2)) shrinks skills toward zero,
+    which is especially important for players with few matches. Higher alpha means
+    more shrinkage, preventing overfitting.
+
+    One player is fixed at skill=0 to make the system identifiable (otherwise
+    we could add any constant to all skills and get the same predictions).
+    """
+    matches = len(scores)
+    user_ids = set(user1_ids) | set(user2_ids)
+    player_to_idx = {p: i for i, p in enumerate(user_ids)}
+
+    X = sparse.lil_matrix((matches, len(user_ids)))
+    y = np.zeros(matches)
+
+    for i, u1id, u2id, score, weight in zip(
+        range(matches), user1_ids, user2_ids, scores, weights
+    ):
+        y[i] = score / (weight if weight != 1 / 3 else 1)
+        X[i, player_to_idx[u1id]] = 1
+        X[i, player_to_idx[u2id]] = -1
+
+    X = X.tocsr()
+
+    # Fit with intercept=True so sklearn centers the solution
+    # This effectively enforces sum-to-zero constraint
+    model = Ridge(alpha=alpha, fit_intercept=False, solver="lsqr")
+    model.fit(X, y, sample_weight=weights)
+    # Extract estimated skills
+    skills = {p: model.coef_[i] for i, p in enumerate(user_ids)}
+
+    # Explicitly enforce sum-to-zero by removing mean
+    mean_skill = np.mean(list(skills.values()))
+    skills = {p: s - mean_skill for p, s in skills.items()}
+
+    return skills
+
+
+def rescale_skills_(
+    skills: SkillType,
+    baseline_player: int | str,
+    var_avg_scores: float,
+) -> SkillType:
     """
     rescaled to have skills in same range as peer scores
     NOTE: changes skills in place
     """
+    # shift so baseline player has skill == 0
+    baseline_shift = skills[baseline_player]
+    for player in skills.keys():
+        skills[player] -= baseline_shift
+    # apply variance scaling
     var_skills = np.var(np.array(list(skills.values())))
     scale_factor = np.sqrt(var_avg_scores / var_skills)
     for uid in skills:
         skills[uid] *= scale_factor
+    return skills
+
+
+def get_skills(
+    user1_ids: list[int | str],
+    user2_ids: list[int | str],
+    scores: list[float],
+    weights: list[float],  # normalized coverages
+    alpha: float,
+    baseline_player: int | str,
+    var_avg_scores: float,
+) -> SkillType:
+    skills = compute_skills(
+        user1_ids=user1_ids,
+        user2_ids=user2_ids,
+        scores=scores,
+        weights=weights,
+        alpha=alpha,
+    )
+    # Apply baseline and variance rescaling
+    skills = rescale_skills_(
+        skills=skills,
+        baseline_player=baseline_player,
+        var_avg_scores=var_avg_scores,
+    )
     return skills
 
 
@@ -354,11 +506,12 @@ def bootstrap_skills(
     user2_ids: list[int | str],
     question_ids: list[int],
     scores: list[float],
-    coverages: list[float],
+    weights: list[float],
     var_avg_scores: float,
-    baseline_player: int = 269196,
-    n_bootstrap: int = 30,
-    method: str = "matches",
+    baseline_player: int | str = 269196,
+    min_matches_for_true: int = 100,
+    min_rematches: int = 100,
+    bootstrap_iterations: int = 30,
 ) -> tuple[SkillType, SkillType]:
     """
     get Confidence Intervals around the skills using Bootstrapping
@@ -380,15 +533,15 @@ def bootstrap_skills(
     """
     bootstrap_results: dict[int | str, list[float]] = defaultdict(list)
 
-    print(f"Bootstrapping (method - {method}):")
+    print(f"Bootstrapping (method - question):")
     print("| Bootstrap |    Duration    | Est. Duration  |")
     t0 = datetime.now()
-    for i in range(n_bootstrap):
+    for i in range(bootstrap_iterations):
         duration = datetime.now() - t0
-        est_duration = duration / (i + 1) * n_bootstrap
+        est_duration = duration / (i + 1) * bootstrap_iterations
         print(
             f"\033[K"
-            f"| {i + 1:>4}/{n_bootstrap:<4} "
+            f"| {i + 1:>4}/{bootstrap_iterations:<4} "
             f"| {duration} "
             f"| {est_duration} "
             "|",
@@ -398,48 +551,47 @@ def bootstrap_skills(
         boot_user1_ids: list[int | str] = []
         boot_user2_ids: list[int | str] = []
         boot_scores: list[float] = []
-        boot_coverages: list[float] = []
-        if method == "matches":
-            # Resample matches with replacement
-            indices = np.random.choice(len(scores), len(scores), replace=True)
-            for index in indices:
+        boot_weights: list[float] = []
+        # resample questions with repalcement
+        question_ids_set = list(set(question_ids))
+        boot_question_ids_counts = Counter(
+            random.choices(question_ids_set, k=len(question_ids_set))
+        )
+        for index, question_id in enumerate(question_ids):
+            for _ in range(boot_question_ids_counts[question_id]):
                 boot_user1_ids.append(user1_ids[index])
                 boot_user2_ids.append(user2_ids[index])
                 boot_scores.append(scores[index])
-                boot_coverages.append(coverages[index])
-        else:  # method == "question"
-            # resample questions with repalcement
-            question_ids_set = list(set(question_ids))
-            boot_question_ids_counts = Counter(
-                random.choices(question_ids_set, k=len(question_ids_set))
-            )
-            for index, question_id in enumerate(question_ids):
-                for _ in range(boot_question_ids_counts[question_id]):
-                    boot_user1_ids.append(user1_ids[index])
-                    boot_user2_ids.append(user2_ids[index])
-                    boot_scores.append(scores[index])
-                    boot_coverages.append(coverages[index])
+                boot_weights.append(weights[index])
 
         # Recompute skills on bootstrap sample with bootstrap-specific alpha
-        boot_skills = compute_skills(
-            boot_user1_ids,
-            boot_user2_ids,
-            boot_scores,
-            boot_coverages,
-            baseline_player,
+        boot_alpha = estimate_variances_from_head_to_head(
+            user1_ids=boot_user1_ids,
+            user2_ids=boot_user2_ids,
+            scores=boot_scores,
+            weights=boot_weights,
+            min_matches_for_true=min_matches_for_true,
+            min_rematches=min_rematches,
         )
 
-        # Apply variance scaling for this bootstrap sample
-        var_boot_skills = np.var(np.array(list(boot_skills.values())))
+        # TODO: maybe move before calculating boot_alpha? & then move alpha calc into
+        # get_skills
+        weights_arr = np.array(boot_weights)
+        boot_weights = list(weights_arr * len(weights_arr) / sum(weights_arr))
 
-        if var_boot_skills > 0:
-            boot_scale_factor = np.sqrt(var_avg_scores / var_boot_skills)
-        else:
-            boot_scale_factor = 1.0
+        # Recompute skills with bootstrap-specific alpha
+        boot_skills = get_skills(
+            user1_ids=boot_user1_ids,
+            user2_ids=boot_user2_ids,
+            scores=boot_scores,
+            weights=boot_weights,
+            alpha=boot_alpha,
+            baseline_player=baseline_player,
+            var_avg_scores=var_avg_scores,
+        )
 
-        # Store scaled skills
-        for player in boot_skills.keys():
-            bootstrap_results[player].append(boot_skills[player] * boot_scale_factor)
+        for player, boot_skill in boot_skills.items():
+            bootstrap_results[player].append(boot_skill)
 
     # Compute 95% confidence intervals using percentiles
     ci_lower: SkillType = {}
@@ -463,13 +615,18 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options) -> None:
-        # SETUP: we need to choose the baseline player, users to evaluate, and questions
-        baseline_player = 236038
+        # SETTINGS - TODO: allow these as args
+        baseline_player: int | str = 236038
+        min_matches_for_true = 100
+        min_rematches = 100
+        bootstrap_iterations = 30
+
+        # SETUP: users to evaluate & questions
         print("Initializing...", end="\r")
         users: QuerySet[User] = User.objects.filter(
-            Q(username__startswith="metac-") | Q(username__startswith="mf-bot-"),
+            metadata__bot_details__metac_bot=True,
+            metadata__bot_details__include_in_calculations=True,
             is_active=True,
-            is_bot=True,
         ).order_by("id")
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
@@ -507,36 +664,128 @@ class Command(BaseCommand):
         )
         print("Initializing... DONE")
 
-        # PROCESS DATA
-        user1_ids, user2_ids, question_ids, scores, coverages = gather_data(
+        # Gather head to head scores
+        user1_ids, user2_ids, question_ids, scores, weights = gather_data(
             users, questions
         )
 
+        # choose baseline player if not already chosen
+        if not baseline_player:
+            baseline_player = max(
+                set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
+            )
+        # get variance of average scores (used in rescaling)
+        var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, weights)
+
+        # compute skills initially
         print("Computing Skills initial...", end="\r")
-        skills = compute_skills(
-            user1_ids, user2_ids, scores, coverages, baseline_player
+        alpha = estimate_variances_from_head_to_head(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            scores=scores,
+            weights=weights,
+            min_matches_for_true=min_matches_for_true,
+            min_rematches=min_rematches,
+            verbose=False,
         )
-        var_avg_scores = get_var_avg_scores(user1_ids, user2_ids, scores, coverages)
-        skills = rescale_skills_(skills, var_avg_scores)
+        skills = get_skills(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            scores=scores,
+            weights=weights,
+            alpha=alpha,
+            baseline_player=baseline_player,
+            var_avg_scores=var_avg_scores,
+        )
         print("Computing Skills initial... DONE\n")
 
+        # Compute bootstrap confidence intervals
         ci_lower, ci_upper = bootstrap_skills(
             user1_ids,
             user2_ids,
             question_ids,
             scores,
-            coverages,
+            weights,
             var_avg_scores,
             baseline_player=baseline_player,
-            n_bootstrap=30,
-            method="question",
+            min_matches_for_true=min_matches_for_true,
+            min_rematches=min_rematches,
+            bootstrap_iterations=bootstrap_iterations,
         )
+        print()
 
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        # UPDATE Leaderboard
+        ordered_skills = sorted(
+            [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
+        )
+        player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
+        for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
+            player_stats[u1id][0] += 1
+            player_stats[u1id][1].add(qid)
+            player_stats[u2id][0] += 1
+            player_stats[u2id][1].add(qid)
+        print("Updating leaderboard...", end="\r")
+        leaderboard, _ = Leaderboard.objects.get_or_create(
+            name="Global Bot Leaderboard",
+            project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
+            score_type=LeaderboardScoreTypes.MANUAL,
+            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+        )
+        entry_dict = {
+            entry.user_id or entry.aggregation_method: entry
+            for entry in list(leaderboard.entries.all())
+        }
+        rank = 1
+        question_count = len(set(question_ids))
+        seen = set()
+        for uid, skill in ordered_skills:
+            contribution_count = len(player_stats[uid][1])
+
+            excluded = False
+            if isinstance(uid, int):
+                user = User.objects.get(id=uid)
+                bot_details = user.metadata["bot_details"]
+                if not bot_details.get("display_in_leaderboard"):
+                    excluded = True
+
+            entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
+            entry.user_id = uid if isinstance(uid, int) else None
+            entry.aggregation_method = uid if isinstance(uid, str) else None
+            entry.leaderboard = leaderboard
+            entry.score = skill
+            entry.rank = rank
+            entry.excluded = excluded
+            entry.show_when_excluded = False
+            entry.contribution_count = contribution_count
+            entry.coverage = contribution_count / question_count
+            entry.calculated_on = timezone.now()
+            entry.ci_lower = ci_lower.get(uid, None)
+            entry.ci_upper = ci_upper.get(uid, None)
+            # TODO: support for more efficient saving once this is implemented
+            # for leaderboards with more than 100 entries
+            entry.save()
+            seen.add(entry.id)
+
+            if not excluded:
+                rank += 1
+        print("Updating leaderboard... DONE")
+        # delete unseen entries
+        leaderboard.entries.exclude(id__in=seen).delete()
+        print()
+
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
         # DISPLAY
         print("Results:")
         print(
             "|  2.5%  "
-            "|  skill "
+            "| Skill  "
             "| 97.5%  "
             "| Match  "
             "| Quest. "
@@ -544,9 +793,9 @@ class Command(BaseCommand):
             "| Username "
         )
         print(
-            "|  match "
+            "| Match  "
             "|        "
-            "|  match "
+            "| Match  "
             "| Count  "
             "| Count  "
             "|        "
@@ -555,15 +804,6 @@ class Command(BaseCommand):
         print(
             "=========================================="
             "=========================================="
-        )
-        player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
-        for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
-            player_stats[u1id][0] += 1
-            player_stats[u1id][1].add(qid)
-            player_stats[u2id][0] += 1
-            player_stats[u2id][1].add(qid)
-        ordered_skills = sorted(
-            [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
         )
         unevaluated = (
             set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
@@ -601,35 +841,52 @@ class Command(BaseCommand):
             )
         print()
 
-        # UPDATE Leaderboard
-        print("Updating leaderboard...", end="\r")
-        leaderboard, _ = Leaderboard.objects.get_or_create(
-            name="Global Bot Leaderboard",
-            project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
-            score_type=LeaderboardScoreTypes.MANUAL,
-            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-        )
-        entry_dict = {entry.user_id: entry for entry in list(leaderboard.entries.all())}
-        question_count = len(set(question_ids))
-        for rank, (uid, skill) in enumerate(ordered_skills, 1):
-            contribution_count = len(player_stats[uid][1])
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        # TESTS
+        skills_array = np.array(list(skills.values()))
 
-            entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
-            entry.user_id = uid if isinstance(uid, int) else None
-            entry.aggregation_method = uid if isinstance(uid, str) else None
-            entry.leaderboard = leaderboard
-            entry.score = skill
-            entry.rank = rank
-            entry.excluded = False
-            entry.contribution_count = contribution_count
-            entry.coverage = contribution_count / question_count
-            entry.calculated_on = timezone.now()
-            entry.ci_lower = ci_lower.get(uid, None)
-            entry.ci_upper = ci_upper.get(uid, None)
-            # TODO: support for more efficient saving once this is implemented
-            # for leaderboards with more than 100 entries
-            entry.save()
-        print("Updating leaderboard... DONE")
-        # delete unseen entries
-        for entry in entry_dict.values():
-            entry.delete()
+        # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
+        ...
+
+        # 2. Shapiro-Wilk test (good for small to medium samples)
+        if len(skills_array) >= 3:
+            shapiro_stat, shapiro_p = stats.shapiro(skills_array)
+            print(
+                f"  Shapiro-Wilk test: statistic={shapiro_stat:.4f}, p-value={shapiro_p:.4f}"
+            )
+            if shapiro_p > 0.05:
+                print(f"    → Skills appear normally distributed (p > 0.05)")
+            else:
+                print(f"    → Skills may not be normally distributed (p ≤ 0.05)")
+
+        # 3. Anderson-Darling test (more sensitive to tails)
+        anderson_result = stats.anderson(skills_array, dist="norm")
+        print(f"  Anderson-Darling test: statistic={anderson_result.statistic:.4f}")
+        # Check at 5% significance level
+        critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
+        print(f"    Critical value at 5%: {critical_5pct:.4f}")
+        if anderson_result.statistic < critical_5pct:
+            print(f"    → Skills appear normally distributed (stat < critical)")
+        else:
+            print(f"    → Skills may not be normally distributed (stat ≥ critical)")
+
+        # 4. Kolmogorov-Smirnov test (compare to normal distribution)
+        ks_stat, ks_p = stats.kstest(
+            skills_array, "norm", args=(skills_array.mean(), skills_array.std())
+        )
+        print(f"  Kolmogorov-Smirnov test: statistic={ks_stat:.4f}, p-value={ks_p:.4f}")
+        if ks_p > 0.05:
+            print(f"    → Skills appear normally distributed (p > 0.05)")
+        else:
+            print(f"    → Skills may not be normally distributed (p ≤ 0.05)")
+
+        # 5. Summary statistics
+        print(f"\nSkill distribution summary:")
+        print(f"  Mean: {skills_array.mean():.2f}")
+        print(f"  Std: {skills_array.std():.2f}")
+        print(f"  Skewness: {stats.skew(skills_array):.4f}")
+        print(f"  Kurtosis: {stats.kurtosis(skills_array):.4f}")
+        print()
