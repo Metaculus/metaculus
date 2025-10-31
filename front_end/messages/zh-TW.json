@@ -1555,5 +1555,15 @@
   "confirmDeletionKeyFactorDescription": "您確定要刪除您的關鍵因素嗎？",
   "deleteKeyFactor": "刪除關鍵因素",
   "viewAll": "查看全部（{count}）",
+  "reportSpam": "舉報垃圾訊息",
+  "reportSpamConfirmDescription": "您確定要將此關鍵因素標記為垃圾訊息嗎？",
+  "youFlaggedThisAsSpam": "您已將此關鍵因素標記為垃圾訊息。",
+  "dispute": "爭議",
+  "disputeKeyFactor": "爭議關鍵因素",
+  "disputeKeyFactorHelp": "對此關鍵因素有何想法？撰寫評論；它將作為回覆原始評論發表。",
+  "writeYourArgument": "撰寫您的論點……",
+  "posting": "正在發佈……",
+  "postComment": "發佈評論",
+  "sendReport": "發送報告",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
