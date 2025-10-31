@@ -1,0 +1,43 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    Reported Key Factor:
+                </mj-text>
+
+                <mj-text>
+                    <div>
+                        <b>Author:</b>
+                        <a href="{% build_user_profile_url params.comment.author.id %}">@{{
+                            params.key_factor.comment.author.username }}
+                        </a>
+                    </div>
+                    <div>
+                        <b>Key Factor:</b>
+                        <span>“{{ params.key_factor.get_label }}”</span>
+                        <a href="{{ params.comment_url }}">(link)</a>
+                    </div>
+                    <div>
+                        <b>Post:</b>
+                        <a href="{{ params.comment_url }}">{{ params.post_title }}</a>
+                    </div>
+                    <div>
+                        <b>Reason:</b>
+                        <span>{{ params.reason }}</span>
+                    </div>
+                    <div>
+                        <b>Reported by:</b>
+                        <a href="{% build_user_profile_url params.reporter.id %}">@{{ params.reporter.username }}</a>
+                    </div>
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>
