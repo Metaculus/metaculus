@@ -118,7 +118,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && npm ci
       - name: Build the frontend
-        run: cd front_end && npm run build
+        run: cd front_end && GENERATE_SOURCE_MAPS=false npm run build
       - name: Run the integration tests
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
