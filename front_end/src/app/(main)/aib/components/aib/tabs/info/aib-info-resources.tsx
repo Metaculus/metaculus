@@ -17,13 +17,13 @@ const AIBInfoResources: React.FC = () => {
       icon: faBook,
       title: t("aibResourcesFullInfoTitle"),
       description: t("aibResourcesFullInfoDesc"),
-      href: "/notebooks/38928/aib-resource-page/",
+      href: "/notebooks/38928/futureeval-resources-page/",
     },
     {
       icon: faBookOpen,
       title: t("aibResourcesHighlightsTitle"),
       description: t("aibResourcesHighlightsDesc"),
-      href: "/notebooks/38928/aib-resource-page/",
+      href: "/notebooks/38928/futureeval-resources-page/#research-reports-and-overview-of-the-field",
     },
     {
       icon: faTrophy,
