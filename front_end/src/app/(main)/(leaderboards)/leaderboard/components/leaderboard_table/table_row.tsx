@@ -9,7 +9,7 @@ import {
   LeaderboardType,
 } from "@/types/scoring";
 import cn from "@/utils/core/cn";
-import { abbreviatedNumber } from "@/utils/formatters/number";
+import { formatLeaderboardNumber } from "@/utils/formatters/number";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
@@ -110,7 +110,7 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {abbreviatedNumber(contribution_count, 3, false)}
+          {formatLeaderboardNumber(contribution_count)}
         </Link>
       </td>
       {scoreType == "peer_global" && (
@@ -120,7 +120,7 @@ const LeaderboardRow: FC<Props> = ({
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
             prefetch={false}
           >
-            {abbreviatedNumber(coverage, 3, false)}
+            {formatLeaderboardNumber(coverage)}
           </Link>
         </td>
       )}
@@ -135,7 +135,7 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {abbreviatedNumber(score, 3, false)}
+          {formatLeaderboardNumber(score)}
         </Link>
       </td>
     </tr>
