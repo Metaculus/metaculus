@@ -1,5 +1,5 @@
-import CookiesBanner from "../../(main)/components/cookies_banner";
-import Footer from "../../(main)/components/footer";
+import CookiesBanner from "../../../(main)/components/cookies_banner";
+import Footer from "../../../(main)/components/footer";
 
 export default async function RootLayout({
   children,
