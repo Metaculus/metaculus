@@ -1,13 +1,15 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
+
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
+const GENERATE_SOURCE_MAPS = process.env.GENERATE_SOURCE_MAPS ?? true;
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   trailingSlash: true,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: GENERATE_SOURCE_MAPS,
   env: {
     // Do not add anything here. Buildtime environment variables are deprecated
   },
