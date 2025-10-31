@@ -18,7 +18,9 @@ const AIBInfoIdeaDescription: React.FC = () => {
           <p>
             {t.rich("aibIdeaCard1P2", {
               link: (chunks) => (
-                <Link href="/notebooks/38928/aib-resource-page/">{chunks}</Link>
+                <Link href="/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard">
+                  {chunks}
+                </Link>
               ),
             })}
           </p>
@@ -34,7 +36,9 @@ const AIBInfoIdeaDescription: React.FC = () => {
           <p>
             {t.rich("aibIdeaCard2P2", {
               link: (chunks) => (
-                <Link href="/notebooks/38928/aib-resource-page/">{chunks}</Link>
+                <Link href="/notebooks/38928/futureeval-resources-page/#what-do-the-tournaments-look-like">
+                  {chunks}
+                </Link>
               ),
             })}
           </p>
@@ -50,7 +54,9 @@ const AIBInfoIdeaDescription: React.FC = () => {
           <p>
             {t.rich("aibIdeaCard2P2", {
               link: (chunks) => (
-                <Link href="/notebooks/38928/aib-resource-page/">{chunks}</Link>
+                <Link href="/notebooks/38928/futureeval-resources-page/#what-is-unique-about-futureeval">
+                  {chunks}
+                </Link>
               ),
             })}
           </p>

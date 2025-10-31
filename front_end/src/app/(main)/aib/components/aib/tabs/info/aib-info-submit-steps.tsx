@@ -14,7 +14,7 @@ const AIBInfoSubmitSteps: React.FC = () => {
       link: (chunks) => (
         <Link
           className="text-blue-700 dark:text-blue-700-dark"
-          href="/aib/2025/fall"
+          href="/notebooks/38928/futureeval-resources-page/#want-to-join-the-ai-forecasting-benchmark"
         >
           {chunks}
         </Link>
