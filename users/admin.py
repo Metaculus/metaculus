@@ -136,6 +136,33 @@ class ProFilter(admin.SimpleListFilter):
         return queryset
 
 
+class BotFilter(admin.SimpleListFilter):
+    title = "Bot Users"
+    parameter_name = "bot_users"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("No", "Not Bot"),
+            ("Bot", "Is Bot"),
+            ("Metac Bot", "Is Metac Bot"),
+            ("Benchmark Metac Bot", "Is Benchmark Metac Bot"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "No":
+            return queryset.filter(is_bot=False)
+        if self.value() == "Bot":
+            return queryset.filter(is_bot=True)
+        if self.value() == "Metac Bot":
+            return queryset.filter(metadata__bot_details__metac_bot=True)
+        if self.value() == "Benchmark Metac Bot":
+            return queryset.filter(
+                metadata__bot_details__metac_bot=True,
+                metadata__bot_details__display_in_leaderboard=True,
+            )
+        return queryset
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = [
@@ -164,7 +191,6 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = [
         "is_active",
         "is_spam",
-        "is_bot",
         "date_joined",
         LastLoginFilter,
         AuthoredPostsFilter,
@@ -172,6 +198,7 @@ class UserAdmin(admin.ModelAdmin):
         ForecastedFilter,
         BioLengthFilter,
         ProFilter,
+        BotFilter,
     ]
 
     def get_actions(self, request):
