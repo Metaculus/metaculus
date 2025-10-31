@@ -283,7 +283,7 @@ class UserAdmin(admin.ModelAdmin):
                     json.dumps(
                         json.loads(
                             '{"pro_details":{"is_current_pro":true,"pro_start_date":"2024-12-01","pro_end_date":null},'
-                            '"bot_details":{"metac_bot":true,"base_models":[{"name":"OpenAI 4o","model_release_date":"2024-05","estimated_cost_per_question":1.3}],"research_models":[{"name":"AskNews Research v1","model_release_date":"2024-05","estimated_cost_per_question":null}],"scaffolding":{"pipeline":"metac-bot-latest","notes":"Runs base model, then research follow-up if confidence < 0.7."}}}'
+                            '"bot_details":{"metac_bot":true,"include_in_calculations":true,"display_in_leaderboard":true,"display_name":"OpenAI 4o","base_models":[{"name":"OpenAI 4o","model_release_date":"2024-05","estimated_cost_per_question":1.3}],"research_models":[{"name":"AskNews Research v1","model_release_date":"2024-05","estimated_cost_per_question":null}],"scaffolding":{"pipeline":"metac-bot-latest","notes":"Runs base model, then research follow-up if confidence < 0.7."}}}'
                         ),
                         indent=2,
                     ),
