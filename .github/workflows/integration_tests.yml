@@ -25,6 +25,7 @@ jobs:
       AWS_S3_REGION_NAME: ${{ vars.AWS_S3_REGION_NAME }}
       PUBLIC_APP_URL: http://localhost:3000/
       NODE_ENV: "production"
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright
     services:
       db:
         image: pgvector/pgvector:pg16
@@ -49,7 +50,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - id: setup-python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12.3"
       - name: Install poetry
@@ -58,6 +60,14 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
+      - name: Cache Python virtualenv
+        id: cache-poetry-venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-
       # - name: Load cached venv
       #   id: cached-poetry-dependencies
       #   uses: actions/cache@v4
@@ -65,11 +75,19 @@ jobs:
       #     path: .venv
       #     key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install dependencies
-        # if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        if: steps.cache-poetry-venv.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+      - name: Cache Playwright browsers
+        id: cache-playwright
+        uses: actions/cache@v4
+        with:
+          path: .playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       - name: Install Playwright deps
         # if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: PLAYWRIGHT_BROWSERS_PATH=.venv poetry run python -m playwright install chromium --with-deps
+        run: poetry run python -m playwright install chromium --with-deps
       - name: Restore the min DB for testing
         run: |
           wget https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
@@ -99,7 +117,7 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           poetry run ./manage.py migrate
-          PLAYWRIGHT_BROWSERS_PATH=.venv scripts/tests/run_integration_tests.sh
+          PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
         if: ${{ !cancelled() }}
         run: |
