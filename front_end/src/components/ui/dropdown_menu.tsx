@@ -1,6 +1,14 @@
+"use client";
+
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Menu, MenuItem, MenuItems, MenuButton } from "@headlessui/react";
+import {
+  Menu,
+  MenuItem,
+  MenuItems,
+  MenuButton,
+  Portal,
+} from "@headlessui/react";
 import { isNil } from "lodash";
 import {
   Fragment,
@@ -74,62 +82,66 @@ function InnerMenuContent({
   return (
     <>
       <MenuButton as={Fragment}>{children}</MenuButton>
-      <MenuItems
-        as="div"
-        className={cn(
-          "absolute right-0 z-100 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark",
-          className
-        )}
-      >
-        {activeItems
-          .filter((x) => x.hidden !== true)
-          .map((item) => (
-            <MenuItem as={Fragment} key={item.id}>
-              {({}) =>
-                item.link ? (
-                  <a
-                    target={item.openNewTab ? "_blank" : undefined}
-                    rel="noreferrer"
-                    href={item.link}
-                    className={cn(
-                      "w-full whitespace-nowrap p-2 no-underline hover:bg-gray-200 hover:dark:bg-gray-200-dark",
-                      { "text-right": textAlign === "right" },
-                      { "text-left": textAlign === "left" },
-                      itemClassName,
-                      item.className
-                    )}
-                    onClick={item.onClick}
-                  >
-                    {item.name}
-                  </a>
-                ) : item.element ? (
-                  item.element
-                ) : (
-                  <button
-                    className={cn(
-                      "w-full self-stretch whitespace-nowrap p-2 hover:bg-gray-200 hover:dark:bg-gray-200-dark",
-                      { "text-right": textAlign === "right" },
-                      { "text-left": textAlign === "left" },
-                      itemClassName,
-                      item.className
-                    )}
-                    onClick={(e: React.MouseEvent<HTMLElement>) => {
-                      // Handle nested click
-                      if (!isNil(item.items) && item.items.length > 0) {
-                        e.preventDefault();
-                        setActiveItems(item.items);
-                      }
 
-                      if (!isNil(item.onClick)) item.onClick(e);
-                    }}
-                  >
-                    {item.name}
-                  </button>
-                )
-              }
-            </MenuItem>
-          ))}
-      </MenuItems>
+      <Portal>
+        <MenuItems
+          as="div"
+          anchor={textAlign === "right" ? "bottom end" : "bottom start"}
+          className={cn(
+            "z-[100] mt-1 flex origin-top flex-col overflow-y-auto rounded border",
+            "border-gray-500 bg-gray-0 text-sm shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark",
+            className
+          )}
+        >
+          {activeItems
+            .filter((x) => x.hidden !== true)
+            .map((item) => (
+              <MenuItem as={Fragment} key={item.id}>
+                {() =>
+                  item.link ? (
+                    <a
+                      target={item.openNewTab ? "_blank" : undefined}
+                      rel="noreferrer"
+                      href={item.link}
+                      className={cn(
+                        "w-full whitespace-nowrap p-2 no-underline hover:bg-gray-200 hover:dark:bg-gray-200-dark",
+                        { "text-right": textAlign === "right" },
+                        { "text-left": textAlign === "left" },
+                        itemClassName,
+                        item.className
+                      )}
+                      onClick={item.onClick}
+                    >
+                      {item.name}
+                    </a>
+                  ) : item.element ? (
+                    item.element
+                  ) : (
+                    <button
+                      className={cn(
+                        "w-full self-stretch whitespace-nowrap p-2 hover:bg-gray-200 hover:dark:bg-gray-200-dark",
+                        { "text-right": textAlign === "right" },
+                        { "text-left": textAlign === "left" },
+                        itemClassName,
+                        item.className
+                      )}
+                      onClick={(e: React.MouseEvent<HTMLElement>) => {
+                        // Handle nested click
+                        if (!isNil(item.items) && item.items.length > 0) {
+                          e.preventDefault();
+                          setActiveItems(item.items);
+                        }
+                        if (!isNil(item.onClick)) item.onClick(e);
+                      }}
+                    >
+                      {item.name}
+                    </button>
+                  )
+                }
+              </MenuItem>
+            ))}
+        </MenuItems>
+      </Portal>
     </>
   );
 }
