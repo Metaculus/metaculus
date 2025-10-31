@@ -54,32 +54,19 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     [data]
   );
   const referenceLines = useMemo(() => {
-    const seen = new Set<string>();
-    const out: {
-      y: number;
-      label: string;
-      kind?: ModelPoint["aggregateKind"];
-    }[] = [];
+    const byKey = new Map<string, { y: number; label: string }>();
 
     for (const d of data) {
       if (!d.isAggregate) continue;
-      const key = `${d.aggregateKind ?? "other"}-${Math.round(d.score * 10)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ y: d.score, label: d.name, kind: d.aggregateKind });
+      const key = d.aggregateKind ?? d.name;
+      const prev = byKey.get(key);
+      const y = d.score;
+      if (!prev || y < prev.y) byKey.set(key, { y, label: d.name });
     }
-    return out;
+    return Array.from(byKey.values());
   }, [data]);
 
-  const referenceLabels = useMemo(() => {
-    const byLabel = new Map<string, { y: number; label: string }>();
-    for (const rl of referenceLines) {
-      const prev = byLabel.get(rl.label);
-      if (!prev || rl.y < prev.y)
-        byLabel.set(rl.label, { y: rl.y, label: rl.label });
-    }
-    return Array.from(byLabel.values());
-  }, [referenceLines]);
+  const referenceLabels = referenceLines;
 
   const rightPad = referenceLines.length ? 64 : 40;
 
