@@ -1,8 +1,9 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import QuerySet
+from django.shortcuts import redirect
 from django.http import HttpResponse
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -44,7 +45,12 @@ class PostAdmin(CustomTranslationAdmin):
         "coauthors",
     ]
     search_fields = ["id", "title_original"]
-    readonly_fields = ["notebook", "hotness_explanation", "view_questions"]
+    readonly_fields = [
+        "notebook",
+        "hotness_explanation",
+        "view_questions",
+        "update_pseudo_materialized_fields_button",
+    ]
     actions = [
         "export_selected_posts_data",
         "export_selected_posts_data_anonymized",
@@ -95,6 +101,22 @@ class PostAdmin(CustomTranslationAdmin):
             + f"?related_posts__post={obj.id}"
         )
         return format_html('<a href="{}">View Questions</a>', url)
+
+    def update_pseudo_materialized_fields_button(self, obj):
+        if not obj:
+            return ""
+        url = reverse(
+            "admin:posts_post_update_pseudo_materialized_fields", args=[obj.pk]
+        )
+        return format_html(
+            '<a class="button" href="{}">{}</a>',
+            url,
+            "Update Materialized Fields (e.g. open time)",
+        )
+
+    update_pseudo_materialized_fields_button.short_description = (
+        "Update Marterialized Fields"
+    )
 
     def other_project_count(self, obj):
         return obj.projects.count()
@@ -161,12 +183,36 @@ class PostAdmin(CustomTranslationAdmin):
 
     mark_as_deleted.short_description = "Mark as DELETED"
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:post_id>/update-pseudo-materialized-fields/",
+                self.admin_site.admin_view(
+                    self.process_update_pseudo_materialized_fields_request
+                ),
+                name="posts_post_update_pseudo_materialized_fields",
+            ),
+        ]
+        return custom_urls + urls
+
+    def process_update_pseudo_materialized_fields_request(
+        self, request, post_id, *args, **kwargs
+    ):
+        post = self.get_object(request, post_id)
+        if not post:
+            messages.error(request, "Post not found.")
+            return redirect("admin:posts_post_changelist")
+        post.update_pseudo_materialized_fields()
+        messages.success(request, "Updated Materialized Fields")
+        return redirect(reverse("admin:posts_post_change", args=[post.pk]))
+
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
-        for field in ["view_questions"]:
+        for field in ["view_questions", "update_pseudo_materialized_fields_button"]:
             if field in fields:
                 fields.remove(field)
-            fields.insert(0, field)
+        fields = ["view_questions", "update_pseudo_materialized_fields_button"] + fields
         return fields
 
 
