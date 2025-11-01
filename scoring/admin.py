@@ -61,7 +61,7 @@ class LeaderboardEntryInline(admin.TabularInline):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         leaderboard_id = request.resolver_match.kwargs.get("object_id")
-        if not leaderboard_id:
+        if leaderboard_id is None:
             return qs.none()
         qs = qs.filter(leaderboard_id=leaderboard_id, rank__lte=50)
         if qs.count() > 100:
