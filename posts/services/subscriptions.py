@@ -172,10 +172,17 @@ def notify_post_cp_change(post: Post):
         max_sorting_diff = None
         question_data: list[CPChangeData] = []
         for question, forecast_summary in forecast_history.items():
+            user_pred = question_author_forecasts_map.get(question.pk, {}).get(
+                subscription.user_id
+            )
+            if user_pred:
+                comparison_time = max(last_sent, user_pred.start_time)
+            else:
+                comparison_time = last_sent
             entry: AggregateForecast | None = None
             for forecast in forecast_summary:
-                if forecast.start_time <= last_sent and (
-                    forecast.end_time is None or forecast.end_time > last_sent
+                if forecast.start_time <= comparison_time and (
+                    forecast.end_time is None or forecast.end_time > comparison_time
                 ):
                     entry = forecast
                     break
@@ -199,10 +206,6 @@ def notify_post_cp_change(post: Post):
                 entry,
                 current_entry,
                 question,
-            )
-
-            user_pred = question_author_forecasts_map.get(question.pk, {}).get(
-                subscription.user_id
             )
 
             question_data += _get_question_data_for_cp_change_notification(
