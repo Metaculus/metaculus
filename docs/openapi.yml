@@ -183,12 +183,13 @@ info:
     that the Metaculus api will accept. But wait! Just because we have a cdf that represents out beliefs, it doesn't 
     mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
     
-    1. The cdf must be strictly increasing by at least 0.00005 per step. This is because Metaculus evaluates continuous forecasts
-        by their PDF (technically a PMF) dervied as the set of differences between consecutive CDF points, and 0.00005 is the 
-        minimum value allowed to avoid scores getting too arbitrarily negative.
+    1. The cdf must be strictly increasing by at least 0.00005 per step (1% / inbound_outcome_count). This is because Metaculus 
+        evaluates continuous forecasts by their PDF (technically a PMF) dervied as the set of differences between consecutive 
+        CDF points, and 0.00005 is the minimum value allowed to avoid scores getting too arbitrarily negative. Note that if the 
+        inbound_outcome_count is less than the normal 200, this threshold will be larger.
     
-    2. The cdf must not increase by more than 0.59 at any step, as this is the maximum value attainable via the sliders in the UI.
-        This threshold may be lowered in the future.
+    2. The cdf must not increase by more than 0.2 at any step if the question has the normal inbound_outcome_count of 200. Otherwise,
+        that threshold is scaled as such: 0.2 * (200 / inbound_outcome_count). This prevents too extreme spikes in the distribution.
     
     3. The cdf must obey bounds. If a boundary is open, at least 0.1% of probability mass must be assigned outside of it; if it
         is closed, no probability mass may be outside of it.
@@ -197,19 +198,27 @@ info:
     so those with an abundance of precision in their forecasts way want to skip it. The cdfs (and thus their derived pdfs)
     you see on the website have been standardized in this way.
     ```python
-    def standardize_cdf(cdf: list[float], question_data: dict) -> list[float]:
+    def standardize_cdf(cdf, question_data: dict):
         """
         Takes a cdf and returns a standardized version of it
 
         - assigns no mass outside of closed bounds (scales accordingly)
         - assigns at least a minimum amount of mass outside of open bounds
         - increasing by at least the minimum amount (0.01 / 200 = 0.0005)
+        - caps the maximum growth to 0.2
 
-        TODO: add smoothing over cdfs that spike too heavily (exceed a change of 0.59)
+        Note, thresholds change with different `inbound_outcome_count`s
         """
         lower_open = question_data["open_lower_bound"]
         upper_open = question_data["open_upper_bound"]
+        inbound_outcome_count = question_data["inbound_outcome_count"]
+        default_inbound_outcome_count = 200
 
+        cdf = np.asarray(cdf, dtype=float)
+        if not cdf.size:
+            return []
+
+        # apply lower bound & enforce boundary values
         scale_lower_to = 0 if lower_open else cdf[0]
         scale_upper_to = 1.0 if upper_open else cdf[-1]
         rescaled_inbound_mass = scale_upper_to - scale_lower_to
@@ -227,13 +236,44 @@ info:
                 return 0.989 * rescaled_F + 0.01 * location
             return 0.99 * rescaled_F + 0.01 * location
 
-        standardized_cdf = []
-        for i, F in enumerate(cdf):
-            standardized_F = standardize(F, i / (len(cdf) - 1))
-            # round to avoid floating point errors
-            standardized_cdf.append(round(standardized_F, 10))
+        for i, value in enumerate(cdf):
+            cdf[i] = standardize(value, i / (len(cdf) - 1))
 
-        return standardized_cdf
+        # apply upper bound
+        # operate in PMF space
+        pmf = np.diff(cdf, prepend=0, append=1)
+        # cap depends on inboundOutcomeCount (0.2 if it is the default 200)
+        cap = 0.2 * (default_inbound_outcome_count / inbound_outcome_count)
+
+        def cap_pmf(scale: float) -> np.ndarray:
+            return np.concatenate([pmf[:1], np.minimum(cap, scale * pmf[1:-1]), pmf[-1:]])
+
+        def capped_sum(scale: float) -> float:
+            return float(cap_pmf(scale).sum())
+
+        # find the appropriate scale search space
+        lo = hi = scale = 1.0
+        while capped_sum(hi) < 1.0:
+            hi *= 1.2
+        # hone in on scale value that makes capped sum 1
+        for _ in range(100):
+            scale = 0.5 * (lo + hi)
+            s = capped_sum(scale)
+            if s < 1.0:
+                lo = scale
+            else:
+                hi = scale
+            if s == 1.0 or (hi - lo) < 2e-5:
+                break
+        # apply scale and renormalize
+        pmf = cap_pmf(scale)
+        pmf[1:-1] *= (cdf[-1] - cdf[0]) / pmf[1:-1].sum()
+        # back to CDF space
+        cdf = np.cumsum(pmf)[:-1]
+
+        # round to minimize floating point errors
+        cdf = np.round(cdf, 10)
+        return cdf.tolist()
     ```
 
     With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.

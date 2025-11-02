@@ -43,7 +43,7 @@ function standardizeCdf(
     pmf.push((cdf[i] ?? 0) - (cdf[i - 1] ?? 0));
   }
   pmf.push(1 - (cdf[cdf.length - 1] ?? 1));
-  // cap depends on cdf_size (0.2 if size is the default 201)
+  // cap depends on inboundOutcomeCount (0.2 if it is the default 200)
   const cap = 0.2 * (DefaultInboundOutcomeCount / inboundOutcomeCount);
   const capPmf = (scale: number) =>
     pmf.map((value, i) =>
@@ -61,14 +61,12 @@ function standardizeCdf(
   for (let i = 0; i < 100; i++) {
     scale = 0.5 * (lo + hi);
     const s = cappedSum(scale);
-    if (s == 1) {
-      break;
-    } else if (cappedSum(scale) < 1) {
+    if (s < 1) {
       lo = scale;
     } else {
       hi = scale;
     }
-    if (hi - lo < 2e-5) {
+    if (s === 1 || hi - lo < 2e-5) {
       break;
     }
   }
