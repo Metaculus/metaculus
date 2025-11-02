@@ -18,77 +18,19 @@ import {
 function standardizeCdf(
   cdf: number[],
   lowerOpen: boolean,
-  upperOpen: boolean
+  upperOpen: boolean,
+  inboundOutcomeCount: number
 ): number[] {
   if (cdf.length === 0) {
     return [];
   }
 
-  const pmf: number[] = [];
-  pmf.push(cdf[0] ?? 0);
-  for (let i = 1; i < cdf.length; i++) {
-    pmf.push((cdf[i] ?? 0) - (cdf[i - 1] ?? 0));
-  }
-  pmf.push(1 - (cdf[cdf.length - 1] ?? 1));
-  // cap depends on cdf_size (0.2 if size is the default 201)
-  const cap =
-    ((0.2 - 1e-7) * (DefaultInboundOutcomeCount + 1)) / Math.max(cdf.length, 1);
-  const capPmf = (scale: number) => {
-    return pmf.map((value, i) => {
-      if (i == 0 || i == pmf.length - 1) {
-        return value;
-      }
-      return Math.min(cap, scale * value);
-    });
-  };
-  const cappedSum = (scale: number) => {
-    return capPmf(scale).reduce((acc, value) => acc + value, 0);
-  };
-
-  // find the appropriate scale search space
-  const inboundMass = (cdf[cdf.length - 1] ?? 1) - (cdf[0] ?? 0);
-  let lo = 1;
-  let hi = 1;
-  while (cappedSum(hi) < inboundMass) {
-    hi *= 1.1;
-  }
-  // home in on scale value that makes capped sum approx inboundMass
-  for (let i = 0; i < 100; i++) {
-    const scale = 0.5 * (lo + hi);
-    const s = cappedSum(scale);
-    if (s < inboundMass) {
-      lo = scale;
-    } else {
-      hi = scale;
-    }
-    if (hi - lo < 1e-12) {
-      break;
-    }
-  }
-  // apply scale and renormalize
-  const scaledPmf = capPmf(0.5 * (lo + hi));
-  console.log(Math.max(...scaledPmf.slice(1, pmf.length - 1)));
-  const totalMass = scaledPmf.reduce((acc, value) => acc + value, 0);
-  const normalizedPmf = scaledPmf.map((value) => value / (totalMass ?? 1));
-  // back to CDF space
-  const standardizedCdf: number[] = [];
-  let cumulative = 0;
-  for (let i = 0; i < normalizedPmf.length - 1; i++) {
-    cumulative += normalizedPmf[i] ?? 0;
-    standardizedCdf.push(cumulative);
-  }
-
-  const scaleLowerTo = lowerOpen ? 0 : standardizedCdf[0] ?? 0;
-  const lastStandardizedIndex = standardizedCdf.length - 1;
-  const lastStandardizedCdf =
-    lastStandardizedIndex >= 0 ? standardizedCdf[lastStandardizedIndex] : 1;
-  const scaleUpperTo = upperOpen ? 1 : lastStandardizedCdf ?? 1;
-  const rescaledInboundMass = scaleUpperTo - scaleLowerTo;
-
+  // apply lower bound
+  const scaleLowerTo = lowerOpen ? 0 : cdf[0] ?? 0;
+  const scaleUpperTo = upperOpen ? 1 : cdf[cdf.length - 1] ?? 1;
+  const rescaledInboundMass = scaleUpperTo - scaleLowerTo || 1;
   const applyMinimum = (F: number, location: number) => {
-    const rescaledInboundMassSafe =
-      rescaledInboundMass === 0 ? 1 : rescaledInboundMass;
-    const rescaledF = (F - scaleLowerTo) / rescaledInboundMassSafe;
+    const rescaledF = (F - scaleLowerTo) / rescaledInboundMass;
     if (lowerOpen && upperOpen) {
       return 0.988 * rescaledF + 0.01 * location + 0.001;
     }
@@ -100,14 +42,62 @@ function standardizeCdf(
     }
     return 0.99 * rescaledF + 0.01 * location;
   };
+  cdf = cdf.map((F, index) => applyMinimum(F, index / cdf.length));
 
-  const denominator =
-    standardizedCdf.length > 1 ? standardizedCdf.length - 1 : 1;
-  return standardizedCdf.map((F, index) => {
-    const location = denominator === 0 ? 0 : index / denominator;
-    const standardizedValue = applyMinimum(F, location);
-    return Math.round(standardizedValue * 1e10) / 1e10;
-  });
+  // apply upper bound
+  let pmf: number[] = [];
+  pmf.push(cdf[0] ?? 0);
+  for (let i = 1; i < cdf.length; i++) {
+    pmf.push((cdf[i] ?? 0) - (cdf[i - 1] ?? 0));
+  }
+  pmf.push(1 - (cdf[cdf.length - 1] ?? 1));
+  // cap depends on cdf_size (0.2 if size is the default 201)
+  const cap = 0.2 * (DefaultInboundOutcomeCount / inboundOutcomeCount);
+  const capPmf = (scale: number) =>
+    pmf.map((value, i) =>
+      i == 0 || i == pmf.length - 1 ? value : Math.min(cap, scale * value)
+    );
+  const cappedSum = (scale: number) =>
+    capPmf(scale).reduce((acc, value) => acc + value, 0);
+
+  // find the appropriate scale search space
+  let lo = 1;
+  let hi = 1;
+  let scale = 1;
+  while (cappedSum(hi) < 1) hi *= 1.2;
+  // hone in on scale value that makes capped sum 1
+  for (let i = 0; i < 100; i++) {
+    scale = 0.5 * (lo + hi);
+    const s = cappedSum(scale);
+    if (s == 1) {
+      hi = scale;
+      break;
+    } else if (cappedSum(scale) < 1) {
+      lo = scale;
+    } else {
+      hi = scale;
+    }
+    if (hi - lo < 2e-5) {
+      break;
+    }
+  }
+  // apply scale and renormalize
+  pmf = capPmf(hi);
+  const inboundScaleFactor =
+    ((cdf[cdf.length - 1] ?? 1) - (cdf[0] ?? 0)) /
+    pmf.slice(1, pmf.length - 1).reduce((acc, value) => acc + value, 0);
+  pmf = pmf.map((value, i) =>
+    i == 0 || i == pmf.length - 1 ? value : value * inboundScaleFactor
+  );
+  // back to CDF space
+  cdf = [];
+  let cumulative = 0;
+  for (let i = 0; i < pmf.length - 1; i++) {
+    cumulative += pmf[i] ?? 0;
+    cdf.push(cumulative);
+  }
+
+  return cdf;
 }
 
 /**

@@ -489,11 +489,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 "continuous_cdf must be increasing by at least "
                 f"{min_diff} at every step.\n"
             )
-        # max diff for default CDF is derived empirically from slider positions
-        # TODO: make this lower and scale with inbound_outcome_count
-        max_diff = (
-            0.59 if len(continuous_cdf) == DEFAULT_INBOUND_OUTCOME_COUNT + 1 else 1
-        )
+        # Check if maximum difference between cdf points is acceptable
+        # (0.2 if inbound outcome count is the default 200)
+        max_diff = 0.2 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "
