@@ -79,6 +79,9 @@ def posts_list_api_view(request):
     include_movements = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("include_movements")
     )
+    include_conditional_cps = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_conditional_cps")
+    )
     group_cutoff = (
         serializers.IntegerField(
             allow_null=True, default=3, max_value=3, min_value=0
@@ -103,6 +106,7 @@ def posts_list_api_view(request):
         include_descriptions=include_descriptions,
         include_cp_history=include_cp_history,
         include_movements=include_movements,
+        include_conditional_cps=include_conditional_cps,
     )
 
     return paginator.get_paginated_response(data)

@@ -1,32 +1,28 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
   createComment,
+  deleteKeyFactor as deleteKeyFactorAction,
 } from "@/app/(main)/questions/actions";
+import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
+import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-
-const FACTORS_PER_QUESTION = 6;
-const FACTORS_PER_COMMENT = 4;
-
-export type SuggestedKeyFactor = {
-  text: string;
-  selected: boolean;
-};
 
 type UseKeyFactorsProps = {
   user_id: number | undefined;
   commentId?: number;
   postId?: number;
   suggestKeyFactors?: boolean;
-  onKeyFactorsLoadded?: (success: boolean) => void;
+  onKeyFactorsLoaded?: (success: boolean) => void;
 };
 
 export const useKeyFactors = ({
@@ -34,32 +30,55 @@ export const useKeyFactors = ({
   commentId,
   postId,
   suggestKeyFactors: shouldLoadKeyFactors = false,
-  onKeyFactorsLoadded,
+  onKeyFactorsLoaded,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
 
-  const [keyFactors, setKeyFactors] = useState<string[]>([""]);
+  // The drafts are managed by the caller now
   const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
-    SuggestedKeyFactor[]
+    KeyFactorDraft[]
   >([]);
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
+
+  const applyTargetForDraft = (
+    draft: KeyFactorDraft,
+    payload: KeyFactorWritePayload
+  ): KeyFactorWritePayload => {
+    if (draft.question_option) {
+      return {
+        ...payload,
+        question_id: draft.question_id,
+        question_option: draft.question_option,
+      };
+    }
+    if (draft.question_id) {
+      return { ...payload, question_id: draft.question_id };
+    }
+    return payload;
+  };
 
   useEffect(() => {
     if (shouldLoadKeyFactors && commentId) {
       setIsLoadingSuggestedKeyFactors(true);
       ClientCommentsApi.getSuggestedKeyFactors(commentId)
-        .then((suggested) => {
-          setSuggestedKeyFactors(
-            suggested.map((text) => ({ text, selected: false }))
-          );
-          onKeyFactorsLoadded?.(suggested.length !== 0);
+        .then((drafts: KeyFactorWritePayload[]) => {
+          setSuggestedKeyFactors(drafts);
+          onKeyFactorsLoaded?.(drafts.length !== 0);
+          if (drafts.length > 0) {
+            setTimeout(() => {
+              const el = document.getElementById("suggested-key-factors");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 50);
+          }
         })
         .catch(() => {
-          onKeyFactorsLoadded?.(false);
+          onKeyFactorsLoaded?.(false);
         })
         .finally(() => {
           setIsLoadingSuggestedKeyFactors(false);
@@ -82,8 +101,8 @@ export const useKeyFactors = ({
       : undefined;
 
   const onSubmit = async (
-    keyFactors: string[],
-    suggestedKeyFactors: SuggestedKeyFactor[],
+    submittedDrafts: KeyFactorDraft[],
+    suggestedKeyFactors: KeyFactorDraft[],
     markdown?: string
   ): Promise<
     | {
@@ -95,28 +114,42 @@ export const useKeyFactors = ({
         comment: BECommentType;
       }
   > => {
-    for (const keyFactor of keyFactors) {
-      if (keyFactor.trim().length > 150) {
-        return { errors: new Error(t("maxKeyFactorLength")) };
-      }
-    }
+    const filteredDrafts = submittedDrafts.filter(
+      (d) => d.driver.text.trim() !== ""
+    );
+    const filteredSuggestedKeyFactors = suggestedKeyFactors.filter(
+      (d) => d.driver.text.trim() !== ""
+    );
 
-    const filteredKeyFactors = keyFactors.filter((f) => f.trim() !== "");
-    const filteredSuggestedKeyFactors = suggestedKeyFactors
-      .filter((kf) => kf.selected)
-      .map((kf) => kf.text);
+    const writePayloads: KeyFactorWritePayload[] = [
+      ...filteredDrafts.map((d) =>
+        applyTargetForDraft(d, {
+          driver: {
+            text: d.driver.text,
+            impact_direction: d.driver.impact_direction ?? null,
+            certainty: d.driver.certainty ?? null,
+          },
+        })
+      ),
+      ...filteredSuggestedKeyFactors.map((d) =>
+        applyTargetForDraft(d, {
+          driver: {
+            text: d.driver.text,
+            impact_direction: d.driver.impact_direction ?? null,
+            certainty: d.driver.certainty ?? null,
+          },
+        })
+      ),
+    ];
 
     let comment;
     if (commentId) {
-      comment = await addKeyFactorsToComment(commentId, [
-        ...filteredKeyFactors,
-        ...filteredSuggestedKeyFactors,
-      ]);
+      comment = await addKeyFactorsToComment(commentId, writePayloads);
     } else {
       comment = await createComment({
         on_post: postId,
         text: markdown || "",
-        key_factors: [...filteredKeyFactors, ...filteredSuggestedKeyFactors],
+        key_factors: writePayloads,
         is_private: false,
       });
     }
@@ -148,14 +181,11 @@ export const useKeyFactors = ({
   const [submit, isPending] = useServerAction(onSubmit);
 
   const clearState = () => {
-    setKeyFactors([""]);
     setErrors(undefined);
     setSuggestedKeyFactors([]);
   };
 
   return {
-    keyFactors,
-    setKeyFactors,
     errors,
     setErrors,
     suggestedKeyFactors,
@@ -176,6 +206,9 @@ export const getKeyFactorsLimits = (
   user_id: number | undefined,
   commentId?: number
 ) => {
+  const FACTORS_PER_QUESTION = 6;
+  const FACTORS_PER_COMMENT = 4;
+
   if (isNil(user_id)) {
     return {
       userPostFactors: [],
@@ -203,4 +236,37 @@ export const getKeyFactorsLimits = (
     userCommentFactors: commentFactors,
     factorsLimit,
   };
+};
+
+/**
+ * Hook for deleting a key factor with confirmation modal.
+ */
+export const useKeyFactorDelete = () => {
+  const t = useTranslations();
+  const { setCurrentModal } = useModal();
+  const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
+
+  const openDeleteModal = useCallback(
+    async (keyFactorId: number) => {
+      setCurrentModal({
+        type: "confirm",
+        data: {
+          title: t("confirmDeletion"),
+          description: t("confirmDeletionKeyFactorDescription"),
+          onConfirm: async () => {
+            const result = await deleteKeyFactorAction(keyFactorId);
+
+            if (!result || !("errors" in result)) {
+              setCombinedKeyFactors(
+                combinedKeyFactors.filter((kf) => kf.id !== keyFactorId)
+              );
+            }
+          },
+        },
+      });
+    },
+    [setCurrentModal, t, combinedKeyFactors, setCombinedKeyFactors]
+  );
+
+  return { openDeleteModal };
 };

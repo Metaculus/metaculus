@@ -1,64 +1,66 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
+import { ProjectPermissions } from "@/types/post";
+import cn from "@/utils/core/cn";
 
-import LikertKeyFactorItem from "./likert_item";
-import TwoStepKeyFactorItem from "./two_step_item";
-import UpdownKeyFactorItem from "./updown_item";
+import KeyFactorDriver from "./key_factor_driver";
+
 type Props = {
+  id?: string;
   keyFactor: KeyFactor;
   linkToComment?: boolean;
-  variant?: "default" | "compact";
+  isCompact?: boolean;
+  mode?: "forecaster" | "consumer";
+  onClick?: () => void;
+  className?: string;
+  projectPermission?: ProjectPermissions;
 };
 
-const FEATURE_FLAG_KEY = "key-factors-p2";
-const LAYOUT_VARIANTS = {
-  UP_DOWN: "default",
-  TWO_STEP: "2-step-survey",
-  LIKERT: "likert-scale",
-} as const;
-
 export const KeyFactorItem: FC<Props> = ({
+  id,
   keyFactor,
   linkToComment = true,
-  variant = "default",
+  isCompact,
+  mode,
+  onClick,
+  className,
+  projectPermission,
 }) => {
-  const layoutVariant = useFeatureFlagVariantKey(FEATURE_FLAG_KEY);
-  const linkAnchor = linkToComment
-    ? `#comment-${keyFactor.comment_id}`
-    : "#key-factors";
+  const isCompactConsumer = mode === "consumer" && isCompact;
 
-  switch (layoutVariant) {
-    case LAYOUT_VARIANTS.TWO_STEP:
-      return (
-        <TwoStepKeyFactorItem
+  return (
+    <div
+      className={cn(
+        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 dark:bg-blue-200-dark [&:hover_.target]:visible",
+        {
+          "bg-gray-0 dark:bg-gray-0-dark": linkToComment,
+          "max-w-[280px]": isCompact || mode === "consumer",
+          "max-w-[164px]": isCompactConsumer,
+          "rounded-xl bg-blue-200 p-5 dark:bg-blue-200-dark":
+            mode === "consumer",
+          "p-4": isCompactConsumer,
+          "cursor-pointer hover:border-blue-500 dark:hover:border-blue-500-dark":
+            !!onClick,
+        },
+        className
+      )}
+      onClick={onClick}
+      id={id}
+    >
+      {keyFactor.driver && (
+        <KeyFactorDriver
           keyFactor={keyFactor}
-          linkAnchor={linkAnchor}
-          linkToComment={linkToComment}
+          mode={mode}
+          isCompact={isCompact}
+          projectPermission={projectPermission}
         />
-      );
-    case LAYOUT_VARIANTS.LIKERT:
-      return (
-        <LikertKeyFactorItem
-          keyFactor={keyFactor}
-          linkToComment={linkToComment}
-          linkAnchor={linkAnchor}
-        />
-      );
-    default:
-      return (
-        <UpdownKeyFactorItem
-          keyFactor={keyFactor}
-          linkAnchor={linkAnchor}
-          linkToComment={linkToComment}
-          variant={variant}
-        />
-      );
-  }
+      )}
+    </div>
+  );
 };
 
 export default dynamic(() => Promise.resolve(KeyFactorItem), {

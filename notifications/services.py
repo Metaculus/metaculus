@@ -8,7 +8,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
-from comments.models import Comment
+from comments.models import Comment, KeyFactor
 from notifications.constants import MailingTags
 from notifications.models import Notification
 from notifications.utils import (
@@ -779,6 +779,37 @@ def send_comment_report_notification_to_staff(
                 "preview_text": generate_email_comment_preview_text(
                     comment.text, max_chars=300
                 )[0],
+                "comment_url": build_post_comment_url(
+                    comment.on_post_id, comment.on_post.title, comment.id
+                ),
+                "reporter": reporter,
+                "reason": reason,
+            },
+        },
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
+
+
+def send_key_factor_report_notification_to_staff(
+    key_factor: KeyFactor, reason: CommentReportType, reporter: User
+):
+    comment = key_factor.comment
+    post = comment.on_post
+
+    recipients = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
+
+    return send_email_with_template(
+        [x.email for x in recipients],
+        _(
+            f"Key Factor report: {comment.author.username} - "
+            f"{generate_email_comment_preview_text(key_factor.get_label(), max_chars=40)[0]}"
+        ),
+        "emails/key_factor_report.html",
+        context={
+            "email_subject_display": _("Key Factor report"),
+            "params": {
+                "post_title": comment.on_post.title,
+                "key_factor": key_factor,
                 "comment_url": build_post_comment_url(
                     comment.on_post_id, comment.on_post.title, comment.id
                 ),

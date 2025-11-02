@@ -68,9 +68,7 @@ def get_question_scores(
         ]
     if not spot_scoring_time:
         spot_scoring_time = question.get_spot_scoring_time()
-    score_types = score_types or [
-        c[0] for c in ScoreTypes.choices if c[0] != ScoreTypes.MANUAL
-    ]
+    score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
 
     new_scores = evaluate_question(
         question=question,
@@ -92,6 +90,7 @@ def score_question(
     only_include_user_ids: list[int] | None = None,
     protect_uncalculated_scores: bool = False,
 ):
+    score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
     new_scores = get_question_scores(
         question=question,
         resolution=resolution,

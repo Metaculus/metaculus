@@ -344,8 +344,9 @@ def evaluate_question(
     user_forecasts = question.user_forecasts.all()
     if only_include_user_ids:
         user_forecasts = user_forecasts.filter(author__id__in=only_include_user_ids)
-    elif not question.include_bots_in_aggregates:
-        user_forecasts = user_forecasts.exclude(author__is_bot=True)
+    base_forecasts = user_forecasts
+    if not only_include_user_ids and not question.include_bots_in_aggregates:
+        base_forecasts = base_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(
         question,
         minimize=False,
@@ -358,7 +359,7 @@ def evaluate_question(
 
     geometric_means: list[AggregationEntry] = []
     if ScoreTypes.PEER in score_types:
-        geometric_means = get_geometric_means(user_forecasts)
+        geometric_means = get_geometric_means(base_forecasts)
 
     scores: list[Score] = []
     for score_type in score_types:
@@ -412,7 +413,7 @@ def evaluate_question(
         elif score_type == ScoreTypes.PEER:
             user_scores = evaluate_forecasts_peer_accuracy(
                 user_forecasts,
-                user_forecasts,
+                base_forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
                 actual_close_time,
@@ -424,7 +425,7 @@ def evaluate_question(
                 aggregation_forecasts = aggregations[method]
                 aggregation_scores[method] = evaluate_forecasts_peer_accuracy(
                     aggregation_forecasts,
-                    user_forecasts,
+                    base_forecasts,
                     resolution_bucket,
                     forecast_horizon_start,
                     actual_close_time,
@@ -435,7 +436,7 @@ def evaluate_question(
         elif score_type == ScoreTypes.SPOT_PEER:
             user_scores = evaluate_forecasts_peer_spot_forecast(
                 user_forecasts,
-                user_forecasts,
+                base_forecasts,
                 resolution_bucket,
                 spot_forecast_timestamp,
                 question.type,
@@ -445,7 +446,7 @@ def evaluate_question(
                 aggregation_forecasts = aggregations[method]
                 aggregation_scores[method] = evaluate_forecasts_peer_spot_forecast(
                     aggregation_forecasts,
-                    user_forecasts,
+                    base_forecasts,
                     resolution_bucket,
                     spot_forecast_timestamp,
                     question.type,

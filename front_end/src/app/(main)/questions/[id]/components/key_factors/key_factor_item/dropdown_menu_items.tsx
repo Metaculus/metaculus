@@ -1,0 +1,88 @@
+"use client";
+
+import { faTimesCircle } from "@fortawesome/free-regular-svg-icons";
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
+import React, { FC } from "react";
+
+import { useKeyFactorDelete } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
+import Button from "@/components/ui/button";
+import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
+import { useAuth } from "@/contexts/auth_context";
+import { KeyFactor } from "@/types/comment";
+import { ProjectPermissions } from "@/types/post";
+
+type Props = {
+  keyFactor: KeyFactor;
+  projectPermission?: ProjectPermissions;
+};
+
+const KeyFactorDropdownMenuItems: FC<Props> = ({
+  keyFactor,
+  projectPermission,
+}) => {
+  const t = useTranslations();
+  const { user } = useAuth();
+  const { openDeleteModal } = useKeyFactorDelete();
+
+  const isAdmin = projectPermission === ProjectPermissions.ADMIN;
+  const canEdit = user?.id === keyFactor.author.id || isAdmin;
+
+  const menuItems: MenuItemProps[] = [
+    ...(canEdit
+      ? [
+          {
+            id: "delete-key-factor",
+            element: (
+              <div
+                className="inline-flex cursor-pointer items-center gap-2.5 whitespace-nowrap px-3 py-2 text-xs text-salmon-700 dark:text-salmon-700-dark"
+                onClick={() => {
+                  console.log("clicked");
+                  openDeleteModal(keyFactor.id);
+                }}
+              >
+                <span>{t("deleteKeyFactor")}</span>
+                <FontAwesomeIcon icon={faTimesCircle} />
+              </div>
+            ),
+          },
+        ]
+      : []),
+    // Admin actions
+    ...(isAdmin
+      ? [
+          {
+            id: "freshness",
+            element: (
+              <div className="inline-flex items-center gap-2.5 whitespace-nowrap px-3 py-2 text-xs">
+                <span>Freshness: {keyFactor.freshness?.toFixed(2)}</span>
+              </div>
+            ),
+          },
+        ]
+      : []),
+  ];
+
+  if (!menuItems.length) {
+    return null;
+  }
+
+  return (
+    <DropdownMenu
+      items={menuItems}
+      className="border-gray-300 dark:border-gray-300-dark"
+    >
+      <Button
+        aria-label="menu"
+        variant="tertiary"
+        size="sm"
+        presentationType="icon"
+      >
+        <FontAwesomeIcon icon={faEllipsis} />
+      </Button>
+    </DropdownMenu>
+  );
+};
+
+export default KeyFactorDropdownMenuItems;

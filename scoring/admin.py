@@ -20,11 +20,11 @@ class ScoreAdmin(admin.ModelAdmin):
         "user",
         "aggregation_method",
         "score_type",
-        "question",
         "score",
         "coverage",
+        "question",
     ]
-    search_fields = ["user", "for_question"]
+    search_fields = ["user__username", "user__id", "question__title"]
     autocomplete_fields = ["user", "question"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
@@ -40,11 +40,11 @@ class ArchivedScoreAdmin(admin.ModelAdmin):
         "user",
         "aggregation_method",
         "score_type",
-        "question",
         "score",
         "coverage",
+        "question",
     ]
-    search_fields = ["user", "for_question"]
+    search_fields = ["user__username", "user__id", "question__title"]
     autocomplete_fields = ["user", "question"]
     list_filter = [
         AutocompleteFilterFactory("User", "user"),
@@ -59,8 +59,10 @@ class LeaderboardEntryInline(admin.TabularInline):
     autocomplete_fields = ("user",)
 
     def get_queryset(self, request):
-        leaderboard_id = request.resolver_match.kwargs["object_id"]
         qs = super().get_queryset(request)
+        leaderboard_id = request.resolver_match.kwargs.get("object_id")
+        if leaderboard_id is None:
+            return qs.none()
         qs = qs.filter(leaderboard_id=leaderboard_id, rank__lte=50)
         if qs.count() > 100:
             # can happen if large number of high ranking excluded users

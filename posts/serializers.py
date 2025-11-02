@@ -445,6 +445,7 @@ def serialize_post_many(
     include_descriptions: bool = False,
     include_cp_history: bool = False,
     include_movements: bool = False,
+    include_conditional_cps: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -481,6 +482,15 @@ def serialize_post_many(
     questions = flatten([p.get_questions() for p in posts])
 
     if with_cp:
+        if include_conditional_cps:
+            additional_questions = [
+                [p.conditional.condition, p.conditional.condition_child]
+                for p in posts
+                if p.conditional_id
+            ]
+            additional_questions = set(flatten(additional_questions))
+            questions.extend(additional_questions)
+
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
             questions,
             group_cutoff=group_cutoff,
@@ -497,7 +507,7 @@ def serialize_post_many(
                 .order_by("-votes_score"),
                 current_user=current_user,
             ),
-            key=lambda x: x["post_id"],
+            key=lambda x: x["post"]["id"],
         )
 
     question_movements = {}
@@ -516,6 +526,11 @@ def serialize_post_many(
                 q: v
                 for q, v in aggregate_forecasts.items()
                 if q in post.get_questions()
+                or (
+                    post.conditional_id is not None
+                    and q
+                    in [post.conditional.condition, post.conditional.condition_child]
+                )
             },
             key_factors=comment_key_factors_map.get(post.id),
             projects=projects_map.get(post.id),
