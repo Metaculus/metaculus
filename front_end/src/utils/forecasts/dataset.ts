@@ -97,6 +97,8 @@ function standardizeCdf(
     cdf.push(cumulative);
   }
 
+  // finally round to 10 decimal places
+  cdf = cdf.map((value) => Math.round(value * 1e10) / 1e10);
   return cdf;
 }
 
