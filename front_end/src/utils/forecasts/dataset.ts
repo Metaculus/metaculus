@@ -62,7 +62,6 @@ function standardizeCdf(
     scale = 0.5 * (lo + hi);
     const s = cappedSum(scale);
     if (s == 1) {
-      hi = scale;
       break;
     } else if (cappedSum(scale) < 1) {
       lo = scale;
@@ -74,7 +73,7 @@ function standardizeCdf(
     }
   }
   // apply scale and renormalize
-  pmf = capPmf(hi);
+  pmf = capPmf(scale);
   const inboundScaleFactor =
     ((cdf[cdf.length - 1] ?? 1) - (cdf[0] ?? 0)) /
     pmf.slice(1, pmf.length - 1).reduce((acc, value) => acc + value, 0);
