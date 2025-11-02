@@ -26,23 +26,15 @@ function standardizeCdf(
   }
 
   // apply lower bound
-  const scaleLowerTo = lowerOpen ? 0 : cdf[0] ?? 0;
-  const scaleUpperTo = upperOpen ? 1 : cdf[cdf.length - 1] ?? 1;
-  const rescaledInboundMass = scaleUpperTo - scaleLowerTo || 1;
-  const applyMinimum = (F: number, location: number) => {
-    const rescaledF = (F - scaleLowerTo) / rescaledInboundMass;
-    if (lowerOpen && upperOpen) {
-      return 0.988 * rescaledF + 0.01 * location + 0.001;
-    }
-    if (lowerOpen) {
-      return 0.989 * rescaledF + 0.01 * location + 0.001;
-    }
-    if (upperOpen) {
-      return 0.989 * rescaledF + 0.01 * location;
-    }
-    return 0.99 * rescaledF + 0.01 * location;
-  };
-  cdf = cdf.map((F, index) => applyMinimum(F, index / cdf.length));
+  const cdfOffset =
+    lowerOpen && upperOpen
+      ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
+      : lowerOpen
+        ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
+        : upperOpen
+          ? (F: number, x: number) => 0.989 * F + 0.01 * x
+          : (F: number, x: number) => 0.99 * F + 0.01 * x;
+  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
 
   // apply upper bound
   let pmf: number[] = [];
