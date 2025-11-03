@@ -19,6 +19,7 @@ import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { getYMeta } from "@/utils/charts/axis";
+import { fitTrend } from "@/utils/charts/helpers";
 
 import { ModelPoint } from "./mapping";
 
@@ -72,29 +73,38 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   const rightPad = referenceLines.length ? 64 : 40;
 
   const pointsAll = useMemo(() => {
-    return (
-      data
-        .map((d, i) => {
-          const x = toDate(d.releaseDate);
-          const y = Number(d.score);
-          return {
-            i,
-            x,
-            y,
-            name: d.name,
-            isAggregate: !!d.isAggregate,
-          };
-        })
-        // keep only valid points (this avoids NaN label/position calculations)
-        .filter((p) => isValidDate(p.x) && Number.isFinite(p.y))
-    );
+    return data
+      .map((d, i) => {
+        const x = toDate(d.releaseDate);
+        const y = Number(d.score);
+        return {
+          i,
+          x,
+          y,
+          name: d.name,
+          isAggregate: !!d.isAggregate,
+        };
+      })
+      .filter((p) => isValidDate(p.x) && Number.isFinite(p.y));
   }, [data]);
 
-  // only real model points go to the scatter layers
   const plotPoints = useMemo(
     () => pointsAll.filter((p) => !data[p.i]?.isAggregate),
     [pointsAll, data]
   );
+
+  const sotaPoints = useMemo(() => {
+    const pts = [...plotPoints].sort((a, b) => +a.x - +b.x);
+    const result: typeof plotPoints = [];
+    let best = -Infinity;
+    for (const p of pts) {
+      if (p.y > best) {
+        result.push(p);
+        best = p.y;
+      }
+    }
+    return result;
+  }, [plotPoints]);
 
   const orgOf = (name: string) => String(name).split(" ")[0] ?? name;
   const topIndexByOrg = useMemo(() => {
@@ -143,34 +153,12 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   }, [timeTicks, xDomain]);
 
   const trend = useMemo(() => {
-    if (plotPoints.length < 2) return null;
-    const xs = plotPoints.map((p) => +p.x);
-    const ys = plotPoints.map((p) => p.y);
-
-    const n = xs.length;
-    const meanX = xs.reduce((a, b) => a + b, 0) / n;
-    const meanY = ys.reduce((a, b) => a + b, 0) / n;
-
-    const num = xs.reduce(
-      (s, x, i) => s + (x - meanX) * ((ys[i] ?? 0) - meanY),
-      0
+    const base = sotaPoints.length >= 2 ? sotaPoints : plotPoints;
+    return fitTrend(
+      base.map((p) => ({ x: p.x as Date, y: p.y as number })),
+      yMeta
     );
-    const den = xs.reduce((s, x) => s + (x - meanX) ** 2, 0) || 1;
-
-    const m = num / den;
-    const b = meanY - m * meanX;
-
-    const clampY = (v: number) =>
-      Math.max(yMeta.lo - 0.5, Math.min(yMeta.hi + 0.5, v));
-
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-
-    return [
-      { x: new Date(minX), y: clampY(m * minX + b) },
-      { x: new Date(maxX), y: clampY(m * maxX + b) },
-    ];
-  }, [plotPoints, yMeta]);
+  }, [sotaPoints, plotPoints, yMeta]);
 
   const groupIndexByLabel = useMemo(() => {
     const m = new Map<string, number>();
