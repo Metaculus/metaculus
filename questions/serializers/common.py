@@ -21,6 +21,7 @@ from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
 from questions.types import QuestionMovement
+from questions.utils import has_question_enough_data_for_movement
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
@@ -869,7 +870,7 @@ def serialize_question_movement(
         question.type,
     )
 
-    if divergence >= threshold:
+    if divergence >= threshold and has_question_enough_data_for_movement(question):
         display_diff = get_difference_display(
             f1,
             f2,

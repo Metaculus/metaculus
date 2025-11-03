@@ -36,6 +36,7 @@ from questions.types import AggregationMethod, QuestionMovement
 from questions.utils import (
     get_question_movement_period,
     get_last_forecast_in_the_past,
+    has_question_enough_data_for_movement,
 )
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import Leaderboard
@@ -174,7 +175,7 @@ def compute_question_movement(question: Question) -> float | None:
         [question.default_aggregation_method],
     ).get(question.default_aggregation_method)
 
-    if not cp_previous:
+    if not cp_previous or not has_question_enough_data_for_movement(question):
         return
 
     return prediction_difference_for_sorting(

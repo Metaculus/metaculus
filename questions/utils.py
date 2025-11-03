@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 from questions.models import Question, AggregateForecast, Forecast
+from questions.constants import QuestionStatus
 
 
 def get_question_group_title(title: str) -> str:
@@ -73,3 +74,19 @@ def get_last_forecast_in_the_past(
         ),
         None,
     )
+
+
+def has_question_enough_data_for_movement(question: Question):
+    if not question.open_time:
+        return False
+
+    now = timezone.now()
+    question_age = now - question.open_time
+
+    is_above_2_weeks = question_age >= timedelta(days=14)
+
+    is_open = question.status == QuestionStatus.OPEN
+    forecasters_count = question.get_forecasters().count()
+    has_above_20_forecasters = forecasters_count > 20
+
+    return is_above_2_weeks or (is_open and has_above_20_forecasters)
