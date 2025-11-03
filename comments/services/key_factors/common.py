@@ -1,21 +1,21 @@
 from collections import defaultdict
 from typing import Iterable
 
-from django.db import transaction
-from django.utils import timezone
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
-
 from comments.models import (
     KeyFactor,
     KeyFactorVote,
     Comment,
     KeyFactorDriver,
     ImpactDirection,
+    KeyFactorBaseRate,
 )
+from django.db import transaction
+from django.utils import timezone
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from users.models import User
 from utils.datetime import timedelta_to_days
 
@@ -99,6 +99,7 @@ def create_key_factor(
     question_id: int = None,
     question_option: str = None,
     driver: dict = None,
+    base_rate: dict = None,
     **kwargs,
 ) -> KeyFactor:
     question = None
@@ -139,6 +140,8 @@ def create_key_factor(
     # Adding types
     if driver:
         obj.driver = create_key_factor_driver(**driver)
+    elif base_rate:
+        obj.base_rate = create_key_factor_base_rate(**base_rate)
     else:
         raise ValidationError("Wrong Key Factor Type")
 
@@ -158,6 +161,28 @@ def create_key_factor_driver(
 ) -> KeyFactorDriver:
     obj = KeyFactorDriver(
         text=text, impact_direction=impact_direction, certainty=certainty, **kwargs
+    )
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_key_factor_base_rate(*, type: str = None, **kwargs) -> KeyFactorBaseRate:
+    """
+    Creates a KeyFactorBaseRate object based on type.
+
+    For FREQUENCY type:
+        - reference_class, rate_numerator, rate_denominator, unit, source are required
+
+    For TREND type:
+        - reference_class, projected_value, projected_by_year, unit, extrapolation, source are required
+        - based_on is optional
+    """
+
+    obj = KeyFactorBaseRate(
+        type=type,
+        **kwargs,
     )
     obj.full_clean()
     obj.save()
