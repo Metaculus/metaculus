@@ -24,6 +24,7 @@ type Props = {
   size?: "xs" | "sm";
   variant?: "message" | "chip";
   boldValueUnit?: boolean;
+  suffixHidden?: boolean;
 };
 
 export const QuestionCPMovement: FC<Props> = ({
@@ -33,6 +34,7 @@ export const QuestionCPMovement: FC<Props> = ({
   size = "sm",
   variant = "message",
   boldValueUnit = false,
+  suffixHidden = false,
   unit: unitOverride,
 }) => {
   const t = useTranslations();
@@ -44,7 +46,6 @@ export const QuestionCPMovement: FC<Props> = ({
   }
 
   const mc = getMovementComponents(question, movement, t);
-
   if (!mc) return null;
 
   const unit = unitOverride ?? mc.unit;
@@ -59,19 +60,20 @@ export const QuestionCPMovement: FC<Props> = ({
       n
     );
 
+  const formattedValue = formatValueUnit(amount, unit);
   const valueNode =
-    variant === "message" ? maybeBold(formatValueUnit(amount, unit)) : <></>;
-
-  const chip =
-    variant === "chip" ? maybeBold(formatValueUnit(amount, unit)) : undefined;
+    variant === "message" ? maybeBold(formattedValue) : undefined;
+  const chip = variant === "chip" ? maybeBold(formattedValue) : undefined;
+  const periodKey = getMovementPeriodMessage(Number(movement.period));
+  const messageOriginal = t.rich(periodKey, {
+    value: () => valueNode ?? "",
+  });
 
   return (
     <PeriodMovement
       direction={movement.direction}
       chip={chip}
-      message={t.rich(getMovementPeriodMessage(Number(movement.period)), {
-        value: () => valueNode,
-      })}
+      message={suffixHidden ? valueNode : messageOriginal}
       className={cn("", className)}
       iconClassName=""
       size={size}
