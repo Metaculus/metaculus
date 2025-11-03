@@ -1,6 +1,11 @@
 from collections import defaultdict
 from typing import Iterable
 
+from django.db import transaction
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
+
 from comments.models import (
     KeyFactor,
     KeyFactorVote,
@@ -9,13 +14,9 @@ from comments.models import (
     ImpactDirection,
     KeyFactorBaseRate,
 )
-from django.db import transaction
-from django.utils import timezone
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
 from users.models import User
 from utils.datetime import timedelta_to_days
 
