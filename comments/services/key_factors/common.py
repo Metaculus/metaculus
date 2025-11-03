@@ -274,3 +274,19 @@ def calculate_key_factors_freshness(
     return {
         kf: calculate_freshness(kf, votes_map.get(kf.id) or []) for kf in key_factors
     }
+
+
+def get_key_factor_vote_type_and_choices(key_factor: KeyFactor) -> tuple[str, list]:
+    """
+    Determines vote type and available choices based on KeyFactor type.
+    Returns (vote_type, vote_choices) tuple.
+
+    - Driver: vote_type=STRENGTH, choices=VoteStrength
+    - BaseRate: vote_type=DIRECTION, choices=VoteDirection
+    """
+    if key_factor.driver_id:
+        return KeyFactorVote.VoteType.STRENGTH, KeyFactorVote.VoteStrength.choices
+    elif key_factor.base_rate_id:
+        return KeyFactorVote.VoteType.DIRECTION, KeyFactorVote.VoteDirection.choices
+    else:
+        raise ValidationError("KeyFactor has no valid type (driver or base_rate)")
