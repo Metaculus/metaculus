@@ -241,7 +241,7 @@ class KeyFactorBaseRate(TimeStampedModel, TranslatedModel):
 
     unit = models.CharField(max_length=25)
     extrapolation = models.CharField(
-        choices=ExtrapolationType.choices, max_length=32, default=""
+        choices=ExtrapolationType.choices, max_length=32, default="", blank=True
     )
 
     based_on = models.CharField(max_length=256, blank=True, default="")
@@ -275,6 +275,7 @@ class KeyFactor(TimeStampedModel):
         related_name="key_factor",
         null=True,
         unique=True,
+        blank=True,
     )
     base_rate = models.OneToOneField(
         KeyFactorBaseRate,
@@ -282,6 +283,7 @@ class KeyFactor(TimeStampedModel):
         related_name="base_rate",
         null=True,
         unique=True,
+        blank=True,
     )
 
     def get_votes_count(self) -> int:
