@@ -18,10 +18,10 @@ export function mapLeaderboardToModelPoints(
   leaderboard: LeaderboardDetails
 ): ModelPoint[] {
   const entries: ModelPoint[] = [];
+
   for (const e of leaderboard.entries) {
-    const username = e.user?.username;
+    const username = e.user?.username ?? null;
     const meta = username ? getBotMeta(username) : undefined;
-    if (!meta?.releasedAt) continue;
 
     const isAggregate = !username;
     const amRaw = (e as MaybeAgg).aggregation_method ?? "";
@@ -37,7 +37,7 @@ export function mapLeaderboardToModelPoints(
 
     const defaultAggregateLabel =
       aggregateKind === "community"
-        ? "Community aggregate"
+        ? "Community Prediction"
         : aggregateKind === "pros"
           ? "Pros aggregate"
           : "Aggregate";
@@ -47,9 +47,13 @@ export function mapLeaderboardToModelPoints(
       username ??
       (isAggregate ? defaultAggregateLabel : "Unnamed Model");
 
+    const releaseDate = isAggregate ? new Date() : meta?.releasedAt;
+
+    if (!releaseDate) continue;
+
     entries.push({
       name,
-      releaseDate: meta.releasedAt,
+      releaseDate,
       score: e.score,
       isAggregate,
       aggregateKind,

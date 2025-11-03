@@ -28,6 +28,9 @@ type LegendItem =
 
 type Props = { data: ModelPoint[]; className?: string; legend?: LegendItem[] };
 
+const isValidDate = (d: Date) => !Number.isNaN(+d);
+const toDate = (v: Date | string) => (v instanceof Date ? v : new Date(v));
+
 const AIBBenchmarkPerformanceChart: FC<Props> = ({
   data,
   legend,
@@ -55,24 +58,42 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   );
   const referenceLines = useMemo(() => {
     const byKey = new Map<string, { y: number; label: string }>();
-
     for (const d of data) {
       if (!d.isAggregate) continue;
+      const y = Number(d.score);
+      if (!Number.isFinite(y)) continue;
       const key = d.aggregateKind ?? d.name;
       const prev = byKey.get(key);
-      const y = d.score;
       if (!prev || y < prev.y) byKey.set(key, { y, label: d.name });
     }
     return Array.from(byKey.values());
   }, [data]);
 
-  const referenceLabels = referenceLines;
-
   const rightPad = referenceLines.length ? 64 : 40;
 
+  const pointsAll = useMemo(() => {
+    return (
+      data
+        .map((d, i) => {
+          const x = toDate(d.releaseDate);
+          const y = Number(d.score);
+          return {
+            i,
+            x,
+            y,
+            name: d.name,
+            isAggregate: !!d.isAggregate,
+          };
+        })
+        // keep only valid points (this avoids NaN label/position calculations)
+        .filter((p) => isValidDate(p.x) && Number.isFinite(p.y))
+    );
+  }, [data]);
+
+  // only real model points go to the scatter layers
   const plotPoints = useMemo(
-    () => points.filter((p, i) => !data[i]?.isAggregate),
-    [points, data]
+    () => pointsAll.filter((p) => !data[p.i]?.isAggregate),
+    [pointsAll, data]
   );
 
   const orgOf = (name: string) => String(name).split(" ")[0] ?? name;
@@ -87,24 +108,23 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   }, [points]);
 
   const yMeta = useMemo(() => {
-    const vals = points.map((p) => p.y);
-    return getYMeta(vals, {
-      gridlines: GRIDLINES,
-      padMin: 2,
-      padRatio: 0.1,
-      clamp: [0, 100],
-    });
-  }, [points]);
+    const vals = [
+      ...plotPoints.map((p) => p.y),
+      ...referenceLines.map((r) => r.y),
+    ];
+    return getYMeta(vals, { gridlines: GRIDLINES, padMin: 2, padRatio: 0.1 });
+  }, [plotPoints, referenceLines]);
 
   const xDomain = useMemo<[Date, Date]>(() => {
-    if (points.length === 0) return [new Date(), new Date()];
-    const xs = points.map((p) =>
-      (p.x instanceof Date ? p.x : new Date(p.x)).getTime()
-    );
+    if (plotPoints.length === 0) {
+      const now = new Date();
+      return [now, now];
+    }
+    const xs = plotPoints.map((p) => +p.x);
     const min = new Date(Math.min(...xs));
     const max = new Date(Math.max(...xs));
     return [min, max];
-  }, [points]);
+  }, [plotPoints]);
 
   const targetTicks = smUp ? 5 : 3;
 
@@ -115,18 +135,17 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 
   const xDomainAligned = useMemo<[Date, Date]>(() => {
     const [dataMin, dataMax] = xDomain;
-    const first = timeTicks[0] ?? dataMin;
+    const firstTick = timeTicks[0] ?? dataMin;
+    const first = firstTick < dataMin ? dataMin : firstTick;
     const lastTick = timeTicks[timeTicks.length - 1] ?? dataMax;
     const last = lastTick < dataMax ? dataMax : lastTick;
     return [first, last];
   }, [timeTicks, xDomain]);
 
   const trend = useMemo(() => {
-    if (points.length < 2) return null;
-    const xs = points.map((p) =>
-      (p.x instanceof Date ? p.x : new Date(p.x)).getTime()
-    );
-    const ys = points.map((p) => p.y);
+    if (plotPoints.length < 2) return null;
+    const xs = plotPoints.map((p) => +p.x);
+    const ys = plotPoints.map((p) => p.y);
 
     const n = xs.length;
     const meanX = xs.reduce((a, b) => a + b, 0) / n;
@@ -140,17 +159,18 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 
     const m = num / den;
     const b = meanY - m * meanX;
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
 
     const clampY = (v: number) =>
       Math.max(yMeta.lo - 0.5, Math.min(yMeta.hi + 0.5, v));
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
 
     return [
       { x: new Date(minX), y: clampY(m * minX + b) },
       { x: new Date(maxX), y: clampY(m * maxX + b) },
     ];
-  }, [points, yMeta]);
+  }, [plotPoints, yMeta]);
 
   const groupIndexByLabel = useMemo(() => {
     const m = new Map<string, number>();
@@ -235,6 +255,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           />
 
           <VictoryAxis
+            orientation="bottom"
+            crossAxis={false}
             label={t("aibModelReleaseDate")}
             axisLabelComponent={<VictoryLabel dy={28} />}
             tickFormat={(d: Date) =>
@@ -243,6 +265,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 year: "numeric",
               })
             }
+            offsetY={68}
             tickValues={timeTicks}
             tickLabelComponent={<VictoryLabel dy={16} textAnchor="middle" />}
             style={{
@@ -263,7 +286,6 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           {referenceLines.map((rl, i) => (
             <VictoryLine
               key={`ref-${i}`}
-              name={`ref-${i}`}
               data={[
                 { x: xDomainAligned[0], y: rl.y },
                 { x: xDomainAligned[1], y: rl.y },
@@ -278,11 +300,9 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               }}
             />
           ))}
-
-          {referenceLabels.map((rl, i) => (
+          {referenceLines.map((rl, i) => (
             <VictoryScatter
               key={`ref-label-${i}`}
-              name={`ref-label-${i}`}
               data={[{ x: xDomainAligned[1], y: rl.y }]}
               size={0}
               labels={[rl.label]}
@@ -290,13 +310,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 <VictoryLabel
                   dx={-65}
                   textAnchor="start"
-                  style={{
-                    fill: getThemeColor(METAC_COLORS.gray[700]),
-                    fontSize: smUp ? 14 : 12,
-                    fontWeight: 600,
-                    fontFamily:
-                      'interVariable, "interVariable Fallback", inter',
-                  }}
+                  style={{ fontWeight: 600 }}
                 />
               }
             />
