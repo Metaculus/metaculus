@@ -35,17 +35,28 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
   const [order, setOrder] = useState<number[] | null>(null);
 
   useEffect(() => {
-    if (!order && combinedKeyFactors.length) {
-      const randomizedIds = [...combinedKeyFactors]
-        .sort(
-          (a, b) =>
-            Math.random() / (a.freshness + 1) -
-            Math.random() / (b.freshness + 1)
-        )
-        .map((kf) => kf.id);
-      setOrder(randomizedIds);
-    }
-  }, [order, combinedKeyFactors]);
+    if (!combinedKeyFactors.length) return;
+
+    setOrder((prev) => {
+      if (!prev || prev.length === 0) {
+        const randomizedIds = [...combinedKeyFactors]
+          .sort(
+            (a, b) =>
+              Math.random() / (a.freshness + 1) -
+              Math.random() / (b.freshness + 1)
+          )
+          .map((kf) => kf.id);
+        return randomizedIds;
+      }
+
+      const existing = new Set(prev);
+      const newIds = combinedKeyFactors
+        .map((kf) => kf.id)
+        .filter((id) => !existing.has(id));
+
+      return newIds.length ? [...prev, ...newIds] : prev;
+    });
+  }, [combinedKeyFactors]);
 
   useEffect(() => {
     if (combinedKeyFactors.length > 0) {
@@ -54,15 +65,6 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (!order) return;
-    const existing = new Set(order);
-    const newIds = combinedKeyFactors
-      .map((kf) => kf.id)
-      .filter((id) => !existing.has(id));
-    if (newIds.length) setOrder([...order, ...newIds]);
-  }, [order, combinedKeyFactors]);
 
   const items = (order ?? combinedKeyFactors.map((kf) => kf.id))
     .map((id) => combinedKeyFactors.find((kf) => kf.id === id))
