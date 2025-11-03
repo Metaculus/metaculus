@@ -15,10 +15,11 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
+from sql_util.aggregates import SubqueryAggregate
+
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
-from sql_util.aggregates import SubqueryAggregate
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
