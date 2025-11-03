@@ -10,7 +10,6 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
   const t = useTranslations();
   const { leaderboard } = useAIBLeaderboard();
   const models = mapLeaderboardToModelPoints(leaderboard);
-
   const firstIdxByGroup = new Map<string, number>();
   models.forEach((m, i) => {
     if (m.isAggregate) return;

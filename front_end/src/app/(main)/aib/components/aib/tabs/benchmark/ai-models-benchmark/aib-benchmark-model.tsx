@@ -3,10 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React from "react";
 
-import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
-import openAiIconDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
-
-import { IconDisplay } from "../../../aib-icon-display";
+import { LightDarkIcon } from "../../../light-dark-icon";
 
 type Props = {
   widthPct: number;
@@ -21,8 +18,6 @@ type Props = {
 };
 const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
   const t = useTranslations();
-  const lightSrc = model.iconLight ?? openAiIcon;
-  const darkSrc = model.iconDark ?? model.iconLight ?? openAiIconDark;
   const score = Math.round(model.score * 100) / 100;
   const forecasts = Math.round(model.forecasts * 1000) / 1000;
 
@@ -34,20 +29,13 @@ const AIBBenchmarkModel: React.FC<Props> = ({ widthPct, model }) => {
     >
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-[10px] text-zinc-900 dark:text-zinc-100">
-          <span className="relative inline-block h-4 w-4 sm:h-6 sm:w-6">
-            <IconDisplay
-              icon={lightSrc}
-              alt={model.name}
-              className="block dark:hidden"
-              sizes="24px"
-            />
-            <IconDisplay
-              icon={darkSrc}
-              alt={model.name}
-              className="hidden dark:block"
-              sizes="24px"
-            />
-          </span>
+          <LightDarkIcon
+            className="sm:h-6 sm:w-6"
+            alt={model.name}
+            light={model.iconLight}
+            dark={model.iconDark}
+            sizePx="24px"
+          />
           <p className="m-0 text-base font-[500] leading-[100%] text-gray-800 dark:text-gray-800-dark">
             {model.name}
           </p>

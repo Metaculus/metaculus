@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 
 import AIBBenchmarkModel from "./aib-benchmark-model";
 import { useAIBLeaderboard } from "../../../leaderboard/aib-leaderboard-provider";
-import { getBotMeta } from "../../../leaderboard/bot_meta";
+import { entryIconPair, entryLabel } from "../../../leaderboard/utils";
 
 const MAX_VISIBLE_MODELS = 7;
 
@@ -35,13 +35,6 @@ const AIBBenchmarkModels: React.FC = () => {
     return (s: number) => (minPct + ((s - min) / span) * (1 - minPct)) * 100;
   }, [entries]);
 
-  const getDisplayName = (entry: (typeof entries)[number]) => {
-    if (entry.user) return entry.user.username;
-    if (entry.aggregation_method === "recency_weighted")
-      return t("communityPrediction");
-    return entry.aggregation_method ?? "Aggregate";
-  };
-
   return (
     <div className="mt-[20px] space-y-2 md:mt-[43px]">
       <p className="m-0 flex justify-between font-normal text-gray-700 antialiased dark:text-gray-700-dark">
@@ -50,10 +43,9 @@ const AIBBenchmarkModels: React.FC = () => {
       </p>
 
       {visible.map((entry) => {
-        const meta = getBotMeta(entry.user?.username ?? "");
-        const name = meta ? meta.label : getDisplayName(entry);
+        const name = entryLabel(entry, t);
+        const { light, dark } = entryIconPair(entry);
         const widthPct = scalePct(entry.score);
-
         const forecasts = entry.contribution_count ?? 0;
 
         return (
@@ -65,8 +57,8 @@ const AIBBenchmarkModels: React.FC = () => {
               name,
               forecasts,
               score: entry.score,
-              iconLight: meta?.iconLight,
-              iconDark: meta?.iconDark,
+              iconLight: light,
+              iconDark: dark,
             }}
           />
         );

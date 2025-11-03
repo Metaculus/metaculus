@@ -2,52 +2,35 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
-import openAiIcon from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
-import openAiDarkIcon from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
-import type { LeaderboardDetails, LeaderboardEntry } from "@/types/scoring";
+import type { LeaderboardDetails } from "@/types/scoring";
 
-import { IconDisplay } from "../aib-icon-display";
-import { getBotMeta } from "./bot_meta";
+import { LightDarkIcon } from "../light-dark-icon";
+import { entryIconPair, entryLabel, isAggregate } from "./utils";
 
 type Props = { details: LeaderboardDetails };
 
 const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
   const t = useTranslations();
 
-  const getDisplayName = useCallback(
-    (entry: LeaderboardEntry) => {
-      if (entry.user) return entry.user.username;
-      if (entry.aggregation_method === "recency_weighted")
-        return t("communityPrediction");
-      return entry.aggregation_method ?? "Aggregate";
-    },
-    [t]
-  );
-
   const rows = useMemo(() => {
-    return (details.entries || []).map((entry, i) => {
-      const username = entry.user?.username ?? "";
-      const meta = getBotMeta(username);
-      const name = meta ? meta.label : getDisplayName(entry);
-
+    return (details.entries ?? []).map((entry, i) => {
+      const label = entryLabel(entry, t);
+      const icons = entryIconPair(entry);
       const userId = entry.user?.id;
-      const profileHref = userId ? `/accounts/profile/${userId}/` : null;
-
       return {
         rank: entry.rank ?? i + 1,
-        label: name,
-        username,
-        iconLight: meta?.iconLight,
-        iconDark: meta?.iconDark,
-        forecasts: entry.coverage ?? entry.contribution_count ?? 0,
+        label,
+        username: entry.user?.username ?? "",
+        icons,
+        forecasts: Math.round(entry.contribution_count * 1000) / 1000,
         score: entry.score,
-        profileHref,
-        isAggregate: !entry.user,
+        profileHref: userId ? `/accounts/profile/${userId}/` : null,
+        isAggregate: isAggregate(entry),
       };
     });
-  }, [details, getDisplayName]);
+  }, [details.entries, t]);
 
   return (
     <table className="mx-auto w-full max-w-[854px] table-fixed border-collapse border-spacing-0 border-[1px] border-gray-300 dark:border-gray-300-dark">
@@ -73,27 +56,20 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
         {rows.map((r) => (
           <tr
             key={`${r.username}-${r.rank}`}
-            className="border-b border-gray-300 last:border-0 dark:border-gray-300-dark"
+            className="h-[61px] border-b border-gray-300 last:border-0 dark:border-gray-300-dark"
           >
             <Td className="text-center">{r.rank}</Td>
 
             <Td>
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                {(r.iconLight || r.iconDark) && (
-                  <span className="relative inline-block h-4 w-4 shrink-0 sm:h-5 sm:w-5">
-                    <IconDisplay
-                      icon={r.iconLight ?? r.iconDark ?? openAiIcon}
-                      alt={r.label}
-                      className="block dark:hidden"
-                      sizes="20px"
-                    />
-                    <IconDisplay
-                      icon={r.iconDark ?? r.iconLight ?? openAiDarkIcon}
-                      alt={r.label}
-                      className="hidden dark:block"
-                      sizes="20px"
-                    />
-                  </span>
+                {(r.icons.light || r.icons.dark) && (
+                  <LightDarkIcon
+                    className="shrink-0"
+                    alt={r.label}
+                    light={r.icons.light}
+                    dark={r.icons.dark}
+                    sizePx="20px"
+                  />
                 )}
                 <div className="min-w-0">
                   <div className="truncate text-sm leading-[24px] sm:text-base">
@@ -112,9 +88,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
               </div>
             </Td>
 
-            <Td className="hidden text-center sm:table-cell">
-              {fmt(r.forecasts, 3)}
-            </Td>
+            <Td className="hidden text-center sm:table-cell">{r.forecasts}</Td>
             <Td className="w-[100px] text-center">{fmt(r.score, 2)}</Td>
           </tr>
         ))}
