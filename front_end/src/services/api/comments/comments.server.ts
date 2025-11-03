@@ -80,6 +80,13 @@ class ServerCommentsApiClass extends CommentsApi {
     );
   }
 
+  async reportKeyFactor(
+    keyFactorId: number,
+    reason: CommentReportReason
+  ): Promise<Response | null> {
+    return await this.post(`/key-factors/${keyFactorId}/report/`, { reason });
+  }
+
   async setCommentExcludedFromWeekTop(
     commentId: number,
     excluded: boolean

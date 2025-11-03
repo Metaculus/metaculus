@@ -1556,5 +1556,15 @@
   "confirmDeletionKeyFactorDescription": "Tem certeza de que deseja excluir seu Fator Chave?",
   "deleteKeyFactor": "Excluir Fator Chave",
   "viewAll": "Ver todos ({count})",
+  "reportSpam": "Denunciar spam",
+  "reportSpamConfirmDescription": "Tem certeza de que deseja marcar este Fator Chave como spam?",
+  "youFlaggedThisAsSpam": "Você marcou este fator chave como spam.",
+  "dispute": "Contestar",
+  "disputeKeyFactor": "Contestar Fator Chave",
+  "disputeKeyFactorHelp": "Tem opiniões sobre este Fator Chave? Escreva um comentário; ele será postado como resposta ao comentário original.",
+  "writeYourArgument": "Escreva seu argumento…",
+  "posting": "Publicando…",
+  "postComment": "Publicar Comentário",
+  "sendReport": "Enviar Relatório",
   "othersCount": "Outros ({count})"
 }
