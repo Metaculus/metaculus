@@ -240,9 +240,26 @@ def calculate_freshness_driver(
     return (strengths_sum + 2 * max(3 - weights_sum, 0)) / max(weights_sum, 3)
 
 
+def calculate_freshness_base_rate(
+    key_factor: KeyFactor, votes: list[KeyFactorVote]
+) -> float:
+    """
+    Calculates freshness for BaseRate KeyFactors.
+    BaseRate freshness doesn't decay over time, it's just the average of votes.
+    """
+    if not votes:
+        return 0.0
+
+    avg = sum(v.score for v in votes) / len(votes)
+
+    return max(0.0, avg)
+
+
 def calculate_freshness(key_factor: KeyFactor, votes: list[KeyFactorVote]) -> float:
     if key_factor.driver_id:
         return calculate_freshness_driver(key_factor, votes)
+    elif key_factor.base_rate_id:
+        return calculate_freshness_base_rate(key_factor, votes)
 
     raise ValidationError("Key Factor does not support freshness calculation")
 

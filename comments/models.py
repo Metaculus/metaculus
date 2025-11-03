@@ -330,8 +330,8 @@ class KeyFactorVote(TimeStampedModel):
         DIRECTION = "direction"
 
     class VoteDirection(models.IntegerChoices):
-        UP = 1
-        DOWN = -1
+        UP = 5
+        DOWN = -5
 
     class VoteStrength(models.IntegerChoices):
         NO_IMPACT = 0
