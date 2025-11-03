@@ -77,6 +77,12 @@ const DriverCreationForm: FC<Props> = ({
             driver: { ...draft.driver, text: e.target.value },
           })
         }
+        onKeyDown={(e) => {
+          if (e.key === " ") e.stopPropagation();
+        }}
+        onKeyUp={(e) => {
+          if (e.key === " ") e.stopPropagation();
+        }}
         className="grow rounded-none border-0 border-b border-blue-400 bg-transparent px-0 py-1 text-base text-blue-700 outline-0 placeholder:text-blue-700 placeholder:text-opacity-50 dark:border-blue-400-dark dark:text-blue-700-dark dark:placeholder:text-blue-700-dark"
       />
       {validationError && (
