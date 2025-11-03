@@ -1,6 +1,9 @@
 from collections import Counter
 from typing import Iterable
 
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from comments.models import (
     KeyFactor,
     KeyFactorDriver,
@@ -13,8 +16,6 @@ from comments.services.key_factors.common import (
     calculate_key_factors_freshness,
 )
 from questions.models import Question, QuestionPost
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import generate_map_from_list
