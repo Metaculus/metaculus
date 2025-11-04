@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: playwright-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('front_end/package-lock.json') }}
           restore-keys: |
             playwright-${{ runner.os }}
       - name: Install Playwright deps
