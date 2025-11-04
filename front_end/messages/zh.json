@@ -1667,7 +1667,6 @@
   "whatIsSpotPeerScore": "什么是即时报同行得分？",
   "whatIsSpotBaselineScore": "什么是即时报基准得分？",
   "chanceBaseline": "机会<secondary>基准</secondary>",
-  "baseRate": "基准费率",
   "addBaseRate": "添加基础费率",
   "pleaseAddAtLeastOneBaseRate": "请添加至少一个有效的基础费率。",
   "trend": "趋势",
@@ -1715,5 +1714,15 @@
   "askAnLLMDescription": "我们会将问题信息和您的评论发送给一个LLM，以代表您生成关键因素。",
   "generatedKeyFactors": "生成的关键因素",
   "noGeneratedKeyFactors": "我们无法从此评论中自动生成关键因素。您可以手动添加。",
+  "baseRate": "基准费率",
+  "addAsKeyFactor": "添加为关键因素",
+  "showNMore": "显示更多 {count}",
+  "pasteUrl": "粘贴网址",
+  "newsMatchCount": "新闻匹配（{count}）",
+  "chooseUrl": "从现有文章中选择，或粘贴一个新网址。",
+  "pasteUrlPlaceholder": "粘贴新闻文章的网址",
+  "sourceMissing": "缺少来源",
+  "invalidNewsUrl": "这看起来不像是一篇新闻文章，请尝试其他 URL。",
+  "duplicateNewsUrl": "这篇文章已被添加为一个关键因素。",
   "othersCount": "其他（{count}）"
 }

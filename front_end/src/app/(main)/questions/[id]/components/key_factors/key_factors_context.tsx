@@ -50,8 +50,9 @@ type Ctx = State & {
   setErrors: (e?: ErrorResponse) => void;
   resetAll: () => void;
   submit: (
-    submitType: "driver" | "base_rate",
-    markdownOverride?: string
+    submitType: "driver" | "base_rate" | "news",
+    markdownOverride?: string,
+    draftsOverride?: KeyFactorDraft[]
   ) => Promise<SubmitResult>;
   loadSuggestions: (force?: boolean) => void;
   addSingleSuggestedKeyFactor: (draft: KeyFactorDraft) => Promise<SubmitResult>;
@@ -59,8 +60,9 @@ type Ctx = State & {
 
 const NOOP = () => {};
 const NOOP_SUBMIT = async (
-  _submitType: "driver" | "base_rate",
-  _markdownOverride?: string
+  _submitType: "driver" | "base_rate" | "news",
+  _markdownOverride?: string,
+  _draftsOverride?: KeyFactorDraft[]
 ): Promise<SubmitResult> => undefined;
 
 const NOOP_ADD_SINGLE = async (_draft: KeyFactorDraft): Promise<SubmitResult> =>
@@ -203,11 +205,12 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       setErrors,
       resetAll,
       submit: async (
-        submitType: "driver" | "base_rate",
-        markdownOverride?: string
+        submitType: "driver" | "base_rate" | "news",
+        markdownOverride?: string,
+        draftsOverride?: KeyFactorDraft[]
       ) =>
         submitImpl(
-          state.drafts,
+          draftsOverride ?? state.drafts,
           suggestedKeyFactors,
           submitType,
           markdownOverride ?? state.markdown

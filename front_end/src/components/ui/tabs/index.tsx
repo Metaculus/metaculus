@@ -90,7 +90,7 @@ export const TabsList = ({
     <div
       className={cn(
         "scrollbar-none z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
-        ctx.variant === "separated" && "sticky top-12 gap-2",
+        ctx.variant === "separated" ? "sticky top-12 gap-2" : "gap-2", // non-sticky for "group" to keep both behaviours valid
         className
       )}
     >
@@ -129,12 +129,14 @@ export const TabsTab = ({
     "whitespace-nowrap px-3 py-1 text-sm transition-colors sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
     ctx.variant === "separated"
       ? [
+          // pill-style tabs
           "rounded-full",
           isActive
             ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
             : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark",
         ]
       : [
+          // grouped / segmented control style
           "border font-[500] items-center flex no-underline leading-[16px] first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
           isActive
             ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark border-transparent"

@@ -12,6 +12,7 @@ import cn from "@/utils/core/cn";
 
 import KeyFactorBaseRate from "./base_rate/key_factor_base_rate";
 import KeyFactorDriver from "./driver/key_factor_driver";
+import KeyFactorNews from "./news/key_factor_news";
 
 type Props = {
   id?: string;
@@ -87,6 +88,14 @@ export const KeyFactorItem: FC<Props> = ({
           mode={mode}
           projectPermission={projectPermission}
           isSuggested={isSuggested}
+        />
+      )}
+      {keyFactor.news && (
+        <KeyFactorNews
+          keyFactor={keyFactor}
+          mode={mode}
+          isCompact={isCompact}
+          projectPermission={projectPermission}
         />
       )}
     </div>

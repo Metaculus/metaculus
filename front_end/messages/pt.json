@@ -1663,7 +1663,6 @@
   "whatIsSpotPeerScore": "O que é a Pontuação Pontual de Pares?",
   "whatIsSpotBaselineScore": "O que é a Pontuação Pontual Básica?",
   "chanceBaseline": "Chance <secondary>base</secondary>",
-  "baseRate": "Taxa Base",
   "addBaseRate": "Adicionar Taxa Base",
   "pleaseAddAtLeastOneBaseRate": "Por favor, adicione pelo menos uma taxa base válida.",
   "trend": "Tendência",
@@ -1711,5 +1710,15 @@
   "askAnLLMDescription": "Enviaremos informações sobre a pergunta e seu comentário para um LLM a fim de gerar fatores chave em seu nome.",
   "generatedKeyFactors": "Fatores-Chave Gerados",
   "noGeneratedKeyFactors": "Não conseguimos gerar automaticamente fatores-chave a partir deste comentário. Você pode adicioná-los manualmente.",
+  "baseRate": "Taxa Base",
+  "addAsKeyFactor": "Adicionar como Fator Chave",
+  "showNMore": "Mostrar mais {count}",
+  "pasteUrl": "Colar URL",
+  "newsMatchCount": "Correspondência de Notícias ({count})",
+  "chooseUrl": "Escolha um artigo existente ou cole uma nova URL.",
+  "pasteUrlPlaceholder": "Cole o URL de um artigo de notícias",
+  "sourceMissing": "fonte ausente",
+  "invalidNewsUrl": "Este não parece ser um artigo de notícias, por favor tente outro URL.",
+  "duplicateNewsUrl": "Este artigo já foi adicionado como um Fator Chave.",
   "othersCount": "Outros ({count})"
 }

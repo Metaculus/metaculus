@@ -3,7 +3,7 @@ import { faCheck, faClose, faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
-import { KeyFactor, KeyFactorVoteAggregate } from "@/types/comment";
+import { KeyFactor, KeyFactorVoteAggregate, News } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
@@ -90,26 +90,48 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
             aggregated_data: [],
           };
 
+          let news: News | null = null;
+          if (kf.news && kf.news.url && kf.news.title && kf.news.source) {
+            news = {
+              url: kf.news.url,
+              title: kf.news.title,
+              source: kf.news.source,
+              img_url: kf.news.img_url ?? undefined,
+              published_at: kf.news.published_at ?? undefined,
+              impact_direction: kf.news.impact_direction ?? null,
+              certainty: kf.news.certainty ?? null,
+            };
+          }
+
           const fake: KeyFactor = {
-            ...kf,
             id: -1,
+            driver: kf.driver ?? null,
+            base_rate: kf.base_rate ?? null,
+            news,
             author: user,
-            freshness: 0,
             comment_id: -1,
             vote: emptyAggregate,
+            question_id: kf.question_id ?? null,
             question: kf.question_id
               ? {
                   id: kf.question_id,
                   label: question?.label || "",
+                  unit: question?.unit ?? null,
                 }
-              : undefined,
+              : null,
+            question_option: kf.question_option,
+            freshness: 0,
             post: {
               id: post.id,
               unit: post.question?.unit || question?.unit,
               question_type:
                 inferEffectiveQuestionTypeFromPost(post) || undefined,
             },
+            flagged_by_me: false,
           };
+
+          const isBaseRateWithMissingSource =
+            !!kf.base_rate && !kf.base_rate.source;
 
           return (
             <div key={idx} className="group relative mt-3">
@@ -122,17 +144,19 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
                 className="bg-gray-0 dark:bg-gray-0-dark"
               />
               <div className="absolute -right-3 -top-3 flex gap-2">
-                <KeyFactorActionButton
-                  kind="accept"
-                  onClick={async () => {
-                    const res = await addSingleSuggestedKeyFactor(kf);
-                    if (!res || ("errors" in res && res.errors)) {
-                      onEdit(kf, idx, { showErrors: true });
-                      return;
-                    }
-                    removeAt(idx);
-                  }}
-                />
+                {!isBaseRateWithMissingSource && (
+                  <KeyFactorActionButton
+                    kind="accept"
+                    onClick={async () => {
+                      const res = await addSingleSuggestedKeyFactor(kf);
+                      if (!res || ("errors" in res && res.errors)) {
+                        onEdit(kf, idx, { showErrors: true });
+                        return;
+                      }
+                      removeAt(idx);
+                    }}
+                  />
+                )}
                 <KeyFactorActionButton
                   kind="edit"
                   onClick={() => onEdit(kf, idx)}

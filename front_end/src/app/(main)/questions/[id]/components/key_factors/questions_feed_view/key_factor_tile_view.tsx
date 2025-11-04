@@ -10,26 +10,53 @@ export type Props = {
   kf: KeyFactor;
   className?: string;
   expanded?: boolean;
+  onToggle?: () => void;
 };
 
 export const KeyFactorTileDriverView: FC<Props> = ({
   kf,
   className,
   expanded,
+  onToggle,
 }) => {
   return (
-    <KeyFactorTileContainer expanded={expanded} className={className}>
+    <KeyFactorTileContainer
+      expanded={expanded}
+      className={className}
+      onClick={onToggle}
+    >
       {kf.driver?.text}
     </KeyFactorTileContainer>
   );
 };
 
-export const KeyFactorTileNewsView: FC<Props> = () => null;
+export const KeyFactorTileNewsView: FC<Props> = ({
+  kf,
+  className,
+  expanded,
+  onToggle,
+}) => {
+  return (
+    <KeyFactorTileContainer
+      expanded={expanded}
+      startAdornment={
+        <span className="shrink-0 font-medium text-salmon-800 dark:text-salmon-800-dark">
+          {kf.news?.source}:
+        </span>
+      }
+      className={className}
+      onClick={onToggle}
+    >
+      {kf.news?.title}
+    </KeyFactorTileContainer>
+  );
+};
 
 export const KeyFactorTileBaseRateTrendView: FC<Props> = ({
   kf,
   className,
   expanded,
+  onToggle,
 }) => {
   const t = useTranslations();
   const br = kf.base_rate;
@@ -58,6 +85,7 @@ export const KeyFactorTileBaseRateTrendView: FC<Props> = ({
         </>
       }
       className={className}
+      onClick={onToggle}
     >
       {ref}
     </KeyFactorTileContainer>
@@ -68,6 +96,7 @@ export const KeyFactorTileBaseRateFreqView: FC<Props> = ({
   kf,
   className,
   expanded,
+  onToggle,
 }) => {
   const br = kf.base_rate;
   if (!br || br.type !== "frequency") return null;
@@ -92,6 +121,7 @@ export const KeyFactorTileBaseRateFreqView: FC<Props> = ({
         </>
       }
       className={className}
+      onClick={onToggle}
     >
       {ref}
     </KeyFactorTileContainer>
@@ -104,6 +134,7 @@ type KeyFactorTileContainerProps = PropsWithChildren<{
   className?: string;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
+  onClick?: () => void;
 }>;
 
 export const KeyFactorTileContainer: FC<KeyFactorTileContainerProps> = ({
@@ -112,16 +143,18 @@ export const KeyFactorTileContainer: FC<KeyFactorTileContainerProps> = ({
   className,
   startAdornment,
   endAdornment,
+  onClick,
 }) => {
   return (
     <div
       className={cn(
-        "w-full max-w-full rounded-[12px] px-2.5 py-1.5 text-sm leading-[16px] antialiased",
+        "w-full max-w-full rounded-[12px] px-2.5 py-1.5 text-xs leading-[16px] antialiased",
         "bg-gray-200 text-gray-800 dark:bg-gray-200-dark dark:text-gray-800-dark",
         "flex min-w-0",
         expanded ? "items-start" : "items-center",
         className
       )}
+      onClick={onClick}
     >
       {startAdornment && (
         <div className="mr-2 shrink-0 whitespace-nowrap">{startAdornment}</div>

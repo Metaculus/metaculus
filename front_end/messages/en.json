@@ -1707,5 +1707,14 @@
   "askAnLLMDescription": "We’ll send question info and your comment to an LLM to generate key factors on your behalf.",
   "generatedKeyFactors": "Generated Key Factors",
   "noGeneratedKeyFactors": "We couldn’t automatically generate key factors from this comment. You can add them manually.",
+  "addAsKeyFactor": "Add as Key Factor",
+  "showNMore": "Show {count} more",
+  "pasteUrl": "Paste URL",
+  "newsMatchCount": "News Match ({count})",
+  "chooseUrl": "Choose from an existing article, or paste a new URL.",
+  "pasteUrlPlaceholder": "Paste URL for a news article",
+  "sourceMissing": "source missing",
+  "invalidNewsUrl": "This doesn’t look like a news article, please try another URL.",
+  "duplicateNewsUrl": "This article has already been added as a Key Factor.",
   "none": "none"
 }
