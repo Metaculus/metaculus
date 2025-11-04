@@ -1638,5 +1638,6 @@
   "aibShowMore": "显示更多 ({count})",
   "aibShowMoreAria": "显示更多模型 ({count})",
   "aibSOTALinearTrend": "SOTA线性趋势",
+  "baseRate": "基准费率",
   "othersCount": "其他（{count}）"
 }

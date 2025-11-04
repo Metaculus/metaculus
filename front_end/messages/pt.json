@@ -1634,5 +1634,6 @@
   "aibShowMore": "Mostrar mais ({count})",
   "aibShowMoreAria": "Mostrar mais modelos ({count})",
   "aibSOTALinearTrend": "Tendência Linear SOTA",
+  "baseRate": "Taxa Base",
   "othersCount": "Outros ({count})"
 }

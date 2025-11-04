@@ -1,24 +1,18 @@
 "use client";
 
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isNil } from "lodash";
-import { useTranslations } from "next-intl";
-import { FC, memo } from "react";
+import { FC, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
-import MarkdownEditor from "@/components/markdown_editor";
-import Button from "@/components/ui/button";
-import { FormError } from "@/components/ui/form_field";
 import { BECommentType } from "@/types/comment";
-import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 
-import KeyFactorsAddFormWithCtx from "./key_factors_add_form_with_ctx";
-import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
 import { KeyFactorsProvider, useKeyFactorsCtx } from "../key_factors_context";
-import { driverTextSchema } from "../schemas";
+import KeyFactorsBreadcrumbs from "./blocks/key_factors_breadcrumbs";
+import KeyFactorsDriverCreation from "./blocks/key_factors_driver_creation";
+import KeyFactorsModalPicker from "./blocks/key_factors_modal_picker";
+import Stub from "./blocks/stub";
+import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
 
 type Props = {
   isOpen: boolean;
@@ -32,148 +26,6 @@ type Props = {
   // if true, loads a set of suggested key factors
   showSuggestedKeyFactors?: boolean;
   onSuccess?: (comment: BECommentType) => void;
-};
-
-const Footer: React.FC<{
-  isPending: boolean;
-  onCancel: () => void;
-  onSubmit: () => void;
-  submitLabel: string;
-  disabled: boolean;
-  errors?: ErrorResponse;
-}> = ({ isPending, onCancel, onSubmit, submitLabel, disabled, errors }) => (
-  <div
-    className={[
-      "sticky -bottom-5 z-10",
-      "-mx-5 px-5 py-3 md:-mx-7 md:px-7 md:pb-0 md:pt-6",
-      "border-t border-blue-100/40",
-      "bg-gray-0/80 backdrop-blur supports-[backdrop-filter]:bg-gray-0/60",
-      "dark:bg-gray-0-dark/80 dark:supports-[backdrop-filter]:bg-gray-0-dark/60",
-      "sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-0",
-    ].join(" ")}
-  >
-    <div className="mt-0 flex w-full gap-3">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={onCancel}
-        className="ml-auto"
-        disabled={isPending}
-      >
-        Cancel
-      </Button>
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={onSubmit}
-        disabled={isPending || disabled}
-      >
-        {submitLabel}
-      </Button>
-    </div>
-    <FormError errors={errors} detached />
-  </div>
-);
-
-const ModalBody: React.FC<{
-  post: PostWithForecasts;
-  commentId?: number;
-  onClose: () => void;
-  onSuccess?: (c: BECommentType) => void;
-}> = ({ post, commentId, onClose, onSuccess }) => {
-  const t = useTranslations();
-  const {
-    isPending,
-    submit,
-    resetAll,
-    errors,
-    setErrors,
-    markdown,
-    setMarkdown,
-    isLoadingSuggestedKeyFactors,
-    drafts,
-  } = useKeyFactorsCtx();
-
-  const handleSubmitDriver = async () => {
-    if (isNil(commentId) && !markdown) {
-      setErrors(new Error(t("emptyCommentField")));
-      return;
-    }
-    const result = await submit();
-    if (result && "errors" in result) {
-      setErrors(result.errors);
-      return;
-    }
-    if (result?.comment) {
-      onSuccess?.(result.comment);
-    }
-    resetAll();
-    onClose();
-  };
-
-  const disableDriverSubmit =
-    isPending ||
-    (isNil(commentId) && !markdown) ||
-    drafts.length === 0 ||
-    drafts.some((d) => d.driver?.text.trim() === "") ||
-    drafts.some((d) =>
-      !d.driver || d.driver.text.trim() !== ""
-        ? !driverTextSchema.safeParse(d.driver.text).success
-        : false
-    ) ||
-    drafts.some(
-      (d) =>
-        d.driver &&
-        d.driver.text.trim() !== "" &&
-        d.driver.impact_direction === null &&
-        d.driver.certainty !== -1
-    );
-
-  return (
-    <>
-      <h2 className="mb-6 mt-0 flex items-center gap-3 text-xl text-blue-500 dark:text-blue-500-dark">
-        <span className="hidden sm:block">{t("addKeyFactors")}</span>
-        <span className="sm:hidden">{t("add")}</span>
-        <FontAwesomeIcon icon={faChevronRight} size="lg" className="text-lg" />
-        <span className="text-gray-900 dark:text-gray-900-dark">
-          {t("driver")}
-        </span>
-      </h2>
-
-      {isLoadingSuggestedKeyFactors && <KeyFactorsLoadingSuggested />}
-
-      {!isLoadingSuggestedKeyFactors && (
-        <div className="flex max-w-xl grow flex-col gap-2">
-          <KeyFactorsAddFormWithCtx post={post} />
-          {/* Comment section */}
-          <div className="flex w-full flex-col gap-2">
-            <p className="my-2 text-base leading-tight sm:mt-6">
-              {t("addDriverModalCommentDescription")}
-            </p>
-            <MemoMarkdownEditor
-              mode="write"
-              markdown={markdown}
-              onChange={setMarkdown}
-              className="border"
-              contentEditableClassName="text-base sm:text-inherit"
-            />
-          </div>
-
-          <Footer
-            isPending={isPending}
-            onCancel={() => {
-              resetAll();
-              onClose();
-            }}
-            onSubmit={handleSubmitDriver}
-            submitLabel={t("addDriver")}
-            disabled={disableDriverSubmit}
-            errors={errors}
-          />
-        </div>
-      )}
-    </>
-  );
 };
 
 const KeyFactorsAddModal: FC<Props> = ({
@@ -194,7 +46,9 @@ const KeyFactorsAddModal: FC<Props> = ({
         onClose(true);
       }}
       isImmersive
-      className="m-0 flex h-full w-full max-w-none flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
+      withCloseButton
+      closeButtonClassName="top-5 right-5 sm:top-[28px] sm:right-[28px] p-0 text-base [&>_svg]:size-6"
+      className="m-0 flex h-full w-full max-w-[560px] flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
     >
       <KeyFactorsProvider
         user={user}
@@ -202,7 +56,7 @@ const KeyFactorsAddModal: FC<Props> = ({
         commentId={commentId}
         suggest={showSuggestedKeyFactors && isOpen}
       >
-        <ModalBody
+        <KeyFactorsAddModalBody
           post={post}
           commentId={commentId}
           onClose={() => onClose(true)}
@@ -213,7 +67,44 @@ const KeyFactorsAddModal: FC<Props> = ({
   );
 };
 
-// Prevent heavy MDXEditor re-renders when unrelated state (like driver input) changes
-const MemoMarkdownEditor = memo(MarkdownEditor);
+export type KFType = "driver" | "base_rate" | "news" | null;
+
+const KeyFactorsAddModalBody: React.FC<{
+  post: PostWithForecasts;
+  commentId?: number;
+  onClose: () => void;
+  onSuccess?: (c: BECommentType) => void;
+}> = ({ post, commentId, onClose, onSuccess }) => {
+  const { isLoadingSuggestedKeyFactors } = useKeyFactorsCtx();
+  const [selectedType, setSelectedType] = useState<KFType>(null);
+
+  return (
+    <>
+      <KeyFactorsBreadcrumbs
+        selectedType={selectedType}
+        onRootClick={() => setSelectedType(null)}
+      />
+
+      {isLoadingSuggestedKeyFactors && <KeyFactorsLoadingSuggested />}
+
+      {!isLoadingSuggestedKeyFactors && (
+        <div className="flex grow flex-col gap-2">
+          {!selectedType ? (
+            <KeyFactorsModalPicker onPick={setSelectedType} />
+          ) : selectedType === "driver" ? (
+            <KeyFactorsDriverCreation
+              post={post}
+              commentId={commentId}
+              onClose={onClose}
+              onSuccess={onSuccess}
+            />
+          ) : (
+            <Stub selectedType={selectedType} />
+          )}
+        </div>
+      )}
+    </>
+  );
+};
 
 export default KeyFactorsAddModal;
