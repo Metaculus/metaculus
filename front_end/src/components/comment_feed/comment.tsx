@@ -15,7 +15,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
-import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
+import KeyFactorsAddForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/key_factors_add_form";
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
 import { driverTextSchema } from "@/app/(main)/questions/[id]/components/key_factors/schemas";
@@ -982,7 +982,7 @@ const Comment: FC<CommentProps> = ({
             )
           }
         >
-          <AddKeyFactorsForm
+          <KeyFactorsAddForm
             drafts={drafts}
             setDrafts={setDrafts}
             factorsLimit={factorsLimit}
