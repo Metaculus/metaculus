@@ -89,7 +89,6 @@ const KeyFactorsTileDisplay: React.FC<Props> = ({
   );
 };
 
-const score = (kf: KeyFactor) =>
-  (kf.freshness ?? 0) * 10 + (kf.vote?.score ?? 0);
+const score = (kf: KeyFactor) => (kf.freshness ?? 0) * 10;
 
 export default KeyFactorsTileDisplay;
