@@ -68,21 +68,13 @@ def serialize_question_aggregations(
     Please note: aggregate_forecasts need to be in "start_time" ascending order!
     """
 
-    aggregations = [
-        AggregationMethod.RECENCY_WEIGHTED,
-        AggregationMethod.UNWEIGHTED,
-        AggregationMethod.SINGLE_AGGREGATION,
-        AggregationMethod.METACULUS_PREDICTION,
-    ]
-
-    serialized_data = {
-        aggregation_type: {
+    serialized_data: dict[str, dict] = {
+        question.default_aggregation_method: {
             "history": [],
             "latest": None,
             "score_data": {},
             "movement": None,
         }
-        for aggregation_type in aggregations
     }
 
     if aggregate_forecasts is not None:
@@ -92,6 +84,13 @@ def serialize_question_aggregations(
 
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+            if aggregate.method not in serialized_data:
+                serialized_data[aggregate.method] = {
+                    "history": [],
+                    "latest": None,
+                    "score_data": {},
+                    "movement": None,
+                }
 
         # Debug method for building aggregation history from scratch
         # Will be replaced in favour of aggregation explorer

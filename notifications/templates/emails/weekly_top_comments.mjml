@@ -4,61 +4,78 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-section>
+        <mj-section background-color="#ffffff" padding-bottom="16px">
             <mj-column>
-
-                <mj-text>
-                    {% blocktrans %}
+                <mj-text font-size="16px" color="#161C22" padding-bottom="8px">
                     Hello,
-                    {% endblocktrans %}
                 </mj-text>
 
-                <mj-text>
+                <mj-text font-size="15px" color="#6B7280" padding-bottom="4px">
                     {% blocktrans %}
                     Here are last week's top 3 comments:
                     {% endblocktrans %}
                 </mj-text>
-
-                <mj-raw>
-                {% for comment in top_comments %}
-                </mj-raw>
-
-                <mj-text font-weight="700">
-                    {% blocktrans with rank=forloop.counter username=comment.author.username date=comment.created_at|date:"M j" %}
-                    #{{ rank }} {{ username }} - {{ date }}:
-                    {% endblocktrans %}
-                </mj-text>
-
-                <mj-text>
-                    {% blocktrans with comment_text=comment.preview_text %}
-                    {{ comment_text }}
-                    {% endblocktrans %}
-                    <a href="{{ top_comments_url }}">(see more)</a>
-                </mj-text>
-
-                <mj-raw>
-                {% endfor %}
-                </mj-raw>
-
-                <mj-text>
-                    {% blocktrans with top_comments_url=top_comments_url other_usernames=other_usernames %}
-                    Read all of last week's top comments, including other winning entries from <span style="font-weight: 700">{{ other_usernames }}</span> <a href="{{ top_comments_url }}">here</a>.
-                    {% endblocktrans %}
-                </mj-text>
-
-                <mj-text>
-                    Happy predicting,<br/>
-                    The Metaculus Team
-                </mj-text>
-
-                <mj-text font-size="12px" color="#666666">
-                    {% blocktrans with account_settings_url=account_settings_url %}
-                    You can manage your notification settings on your Metaculus
-                    {% endblocktrans %}
-                     <a href="{% tag_notification_settings_url %}">{% trans "settings page" %}</a>.
-                </mj-text>
-
             </mj-column>
         </mj-section>
+
+        <!-- Top Comments Cards -->
+        <!-- {% for comment in top_comments %} -->
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-compact" padding-bottom="16px">
+            
+            <mj-section mj-class="content-block-top" padding="16px 16px 4px 16px">
+                <mj-column padding="0px">
+                    <mj-text padding="0px">
+                        <!-- Medal + Username + Date -->
+                        <div style="margin-top: 4px; margin-bottom: 8px;">
+                            <span style="font-size: 18px;">
+                                {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
+                            </span>
+                            <span style="font-size: 16px; font-weight: 500; color: #161C22;">
+                                {{ comment.author }}
+                            </span>
+                            <span style="font-size: 14px; color: #758EA9; margin-left: 4px;">
+                                • {{ comment.created_at|date:"M j" }}
+                            </span>
+                        </div>
+                        
+                        <!-- Question Title -->
+                        <div style="font-size: 14px; font-weight: 500; color: #2F4155;">
+                            <a href="{{ comment.post_url }}" style="color: #2F4155; text-decoration: underline;">
+                                {{ comment.post_title }}
+                            </a>
+                        </div>
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+
+            <mj-section mj-class="content-block-bottom" padding="8px 16px 16px 16px">
+                <mj-column>
+                    <mj-text padding="0px">
+                        <div style="font-size: 14px; color: #2F4155; line-height: 1.5; margin-bottom: 8px;">
+                            "{{ comment.preview_text | safe }}"
+                        </div>
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+            
+        </mj-wrapper>
+        <!-- {% endfor %} -->
+
+        <!-- CTA Section -->
+        <mj-section background-color="#ffffff" padding="0px 24px 16px 24px">
+            <mj-column>
+                <mj-text font-size="14px" color="#6B7280" align="center" padding-bottom="4px">
+                    {% blocktrans with other_usernames=other_usernames %}
+                    See all winning entries from <b>{{ other_usernames }}</b>
+                    {% endblocktrans %}
+                </mj-text>
+                
+                <mj-button mj-class="cta-button" href="{{ top_comments_url }}">
+                    View All Top Comments
+                </mj-button>
+            </mj-column>
+        </mj-section>
+
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
     </mj-body>
 </mjml>

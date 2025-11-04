@@ -93,34 +93,49 @@
         font-size: 14px !important;
         line-height: 20px !important;
       }
+
+      .email-subject div {
+        font-size: 16px !important;
+        line-height: 22px !important;
+      }
+
+      /* Hide non-essential columns on mobile */
+      .hide-mobile {
+        display: none !important;
+      }
     }
 
   </style>
 </head>
 
-<body style="word-spacing:normal;background-color:rgb(239, 244, 244);">
-  <div style="background-color:rgb(239, 244, 244);" lang="und" dir="auto">
-    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
+<body style="word-spacing:normal;background-color:rgb(238, 242, 242);">
+  <div style="background-color:rgb(238, 242, 242);" lang="und" dir="auto">
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#283441" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#283441;background-color:#283441;margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#283441;background-color:#283441;width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:10px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:10px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                      <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                           <tbody>
                             <tr>
-                              <td style="width:60px;">
-                                <img alt="Metaculus Logo" src="{% build_frontend_url 'images/metaculus_logo.png' %}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="60" height="auto">
+                              <td style="width:50px;">
+                                <img alt="Metaculus Logo" src="{% build_frontend_url 'images/metaculus_logo_outlined.png' %}" srcset="{% build_frontend_url 'images/metaculus_logo_outlined@2x.png' %} 2x" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="50" height="auto">
                               </td>
                             </tr>
                           </tbody>
                         </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" class="email-subject" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:center;color:#ffffff;">{{ email_subject_display|default:email_subject }}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -137,7 +152,7 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:10px;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:10px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
@@ -149,12 +164,7 @@
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} {{ invited_by }} has invited to join {{ app_name }}. {% endblocktrans %} <p> {% blocktrans %} To complete your registration, please follow the link below: {% endblocktrans %} </p>
-                          <p> {% blocktrans %} Please <a href="{{ signup_link }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">click here</a> to create your account and start forecasting. {% endblocktrans %} </p>
-                          <p style="font-size: 80%;"> {% blocktrans %} Alternatively, you can copy and paste the following link into a browser: {% endblocktrans %} <br>
-                            {{ signup_link }}
-                          </p>
-                        </div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} {{ invited_by }} has invited you to join {{ app_name }}. {% endblocktrans %}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -166,19 +176,80 @@
         </tbody>
       </table>
     </div>
-    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+    <!-- Signup Invitation CTA section -->
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="content-block-wrapper-loose-outlook" role="presentation" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div class="content-block-wrapper-loose" style="background: #FFFFFF; background-color: #FFFFFF; margin: 0px auto; max-width: 600px; padding: 0px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: #FFFFFF; background-color: #FFFFFF; width: 100%;" width="100%" bgcolor="#FFFFFF">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;">
+            <td style="direction: ltr; font-size: 0px; padding: 0px 24px; text-align: center; padding-top: 8px; padding-bottom: 8px;" align="center">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:552px;" width="552" bgcolor="#EFF4F4" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="background:#EFF4F4;background-color:#EFF4F4;margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: #EFF4F4; background-color: #EFF4F4; width: 100%;" width="100%" bgcolor="#EFF4F4">
+                  <tbody>
+                    <tr>
+                      <td style="border: 1px solid #D7E4F2; direction: ltr; font-size: 0px; padding: 8px 24px; text-align: center; padding-top: 8px; padding-bottom: 8px;" align="center">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:502px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                            <tbody>
+                              <tr>
+                                <td style="vertical-align: top; padding: 0px; padding-top: 8px; padding-bottom: 8px;" valign="top">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                                    <tbody>
+                                      <tr>
+                                        <td align="center" class="general-text" style="font-size: 0px; padding: 10px 25px; word-break: break-word; padding-top: 8px; padding-bottom: 8px;">
+                                          <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;font-weight:500;line-height:1.5;text-align:center;color:#161C22;">{% blocktrans %} Click the button to create your account and start forecasting. {% endblocktrans %}</div>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word; padding-top: 8px; padding-bottom: 8px;">
+                                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: separate; line-height: 100%;">
+                                            <tbody>
+                                              <tr>
+                                                <td align="center" bgcolor="#758EA9" role="presentation" style="border: none; border-radius: 6px; cursor: auto; mso-padding-alt: 8px 24px; background: #758EA9; padding-top: 8px; padding-bottom: 8px;" valign="middle">
+                                                  <a href="{{ signup_link }}" style="display: inline-block; background: #758EA9; color: #ffffff; font-family: Inter Variable, Inter, Arial, sans-serif; font-size: 16px; font-weight: 600; line-height: 120%; margin: 0; text-decoration: none; text-transform: none; padding: 8px 24px; mso-padding-alt: 0px; border-radius: 6px;" target="_blank"> Accept Invitation </a>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="rgb(255, 255, 255)" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);width:100%;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:10px;text-align:center;">
               <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tbody>
                     <tr>
-                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
+                      <td align="center" class="general-text" style="font-size:0px;padding:10px 25px;padding-top:8px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:13px;line-height:24px;text-align:center;color:#6B7280;">{% blocktrans %} Or, copy and paste this link into your browser: {% endblocktrans %} <br>
+                          <a href="{{ signup_link }}" style="font-weight: bold; text-decoration: underline; color: #0A66C2; word-break: break-all;">{{ signup_link }}</a>
+                        </div>
                       </td>
                     </tr>
                   </tbody>

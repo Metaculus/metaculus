@@ -26,13 +26,16 @@ class CommentAdmin(CustomTranslationAdmin):
     list_display = [
         "__str__",
         "author",
-        "on_post",
+        "created_at",
+        "is_soft_deleted",
+        "is_private",
     ]
     list_filter = [
-        AutocompleteFilterFactory("Post", "on_post"),
-        AutocompleteFilterFactory("Project", "on_project"),
         AutocompleteFilterFactory("Author", "author"),
+        AutocompleteFilterFactory("Post", "on_post"),
         "is_soft_deleted",
+        "is_private",
+        AutocompleteFilterFactory("Project", "on_project"),
     ]
     autocomplete_fields = [
         "author",

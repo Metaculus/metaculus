@@ -39,7 +39,10 @@ const QuestionUnresolveButton: FC<Props> = ({
       onClick={() =>
         setCurrentModal({
           type: "confirm",
-          data: { onConfirm: () => unresolveQuestion(question.id) },
+          data: {
+            title: t("confirmUnresolveQuestion"),
+            onConfirm: () => unresolveQuestion(question.id),
+          },
         })
       }
       className={cn("w-[95px]", className)}

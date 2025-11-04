@@ -91,7 +91,7 @@ def email_data_task(
     include_scores: bool,
     include_user_data: bool,
     include_comments: bool,
-    user_ids: list[int] | None,
+    only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
     include_future: bool,
@@ -100,19 +100,19 @@ def email_data_task(
         from utils.csv_utils import export_data_for_questions
 
         data = export_data_for_questions(
-            user_id,
-            is_staff,
-            is_whitelisted,
-            question_ids,
-            aggregation_methods,
-            minimize,
-            include_scores,
-            include_user_data,
-            include_comments,
-            user_ids,
-            include_bots,
-            anonymized,
-            include_future,
+            user_id=user_id,
+            is_staff=is_staff,
+            is_whitelisted=is_whitelisted,
+            question_ids=question_ids,
+            aggregation_methods=aggregation_methods,
+            minimize=minimize,
+            include_scores=include_scores,
+            include_user_data=include_user_data,
+            include_comments=include_comments,
+            only_include_user_ids=only_include_user_ids,
+            include_bots=include_bots,
+            anonymized=anonymized,
+            include_future=include_future,
         )
 
         assert data is not None, "No data generated"

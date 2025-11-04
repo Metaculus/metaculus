@@ -1,0 +1,207 @@
+<!-- FILE: undefined -->
+{% load i18n %} {% load static %} {% load urls %} {% load utils %}
+<!doctype html>
+<html lang="und" dir="auto" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+  <title></title>
+  <!--[if !mso]><!-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!--<![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style type="text/css">
+    #outlook a {
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+
+    table,
+    td {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+
+    p {
+      display: block;
+      margin: 13px 0;
+    }
+
+  </style>
+  <!--[if mso]>
+    <noscript>
+    <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+    </xml>
+    </noscript>
+    <![endif]-->
+  <!--[if lte mso 11]>
+    <style type="text/css">
+      .mj-outlook-group-fix { width:100% !important; }
+    </style>
+    <![endif]-->
+  <style type="text/css">
+    @media only screen and (min-width:440px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    }
+
+  </style>
+  <style media="screen and (min-width:440px)">
+    .moz-text-html .mj-column-per-100 {
+      width: 100% !important;
+      max-width: 100%;
+    }
+
+  </style>
+  <style type="text/css">
+    @media only screen and (max-width:439px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+
+  </style>
+  <style type="text/css">
+    @media only screen and (max-width: 420px) {
+      .general-text div {
+        font-size: 14px !important;
+        line-height: 20px !important;
+      }
+
+      .email-subject div {
+        font-size: 16px !important;
+        line-height: 22px !important;
+      }
+
+      /* Hide non-essential columns on mobile */
+      .hide-mobile {
+        display: none !important;
+      }
+    }
+
+  </style>
+</head>
+
+<body style="word-spacing:normal;background-color:rgb(238, 242, 242);">
+  <div style="background-color:rgb(238, 242, 242);" lang="und" dir="auto">
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="#283441" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#283441;background-color:#283441;margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#283441;background-color:#283441;width:100%;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:10px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                  <tbody>
+                    <tr>
+                      <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                          <tbody>
+                            <tr>
+                              <td style="width:50px;">
+                                <img alt="Metaculus Logo" src="{% build_frontend_url 'images/metaculus_logo_outlined.png' %}" srcset="{% build_frontend_url 'images/metaculus_logo_outlined@2x.png' %} 2x" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="50" height="auto">
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" class="email-subject" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:18px;font-weight:600;line-height:24px;text-align:center;color:#ffffff;">{{ email_subject_display|default:email_subject }}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" bgcolor="rgb(255, 255, 255)" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);width:100%;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:10px;padding-top:10px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                  <tbody>
+                    <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Reported Key Factor:</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                          <div>
+                            <b>Author:</b>
+                            <a href="{% build_user_profile_url params.comment.author.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">@{{ params.key_factor.comment.author.username }}
+                            </a>
+                          </div>
+                          <div>
+                            <b>Key Factor:</b>
+                            <span>“{{ params.key_factor.get_label }}”</span>
+                            <a href="{{ params.comment_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">(link)</a>
+                          </div>
+                          <div>
+                            <b>Post:</b>
+                            <a href="{{ params.comment_url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">{{ params.post_title }}</a>
+                          </div>
+                          <div>
+                            <b>Reason:</b>
+                            <span>{{ params.reason }}</span>
+                          </div>
+                          <div>
+                            <b>Reported by:</b>
+                            <a href="{% build_user_profile_url params.reporter.id %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">@{{ params.reporter.username }}</a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+  </div>
+</body>
+
+</html>
+

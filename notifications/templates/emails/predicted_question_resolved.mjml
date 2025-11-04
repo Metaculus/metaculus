@@ -4,79 +4,128 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-section>
+        <mj-section background-color="#ffffff" padding-bottom="16px">
             <mj-column>
-
-                <mj-text>
+                <mj-text font-size="16px" color="#161C22" padding-bottom="0px">
                     Hello {{recipient.username}},
                 </mj-text>
+            </mj-column>
+        </mj-section>
 
-                <mj-text>
+        <mj-section background-color="#ffffff" padding="0px">
+            <mj-column>
+                <mj-text font-size="15px" color="#161C22" padding="0px 24px 8px 24px">
                     {% blocktrans with count=params|length %}
                     These {{count}} questions you predicted just resolved:
                     {% endblocktrans %}
                 </mj-text>
-
-                <mj-raw>
-                    {% for notification in params %}
-                </mj-raw>
-
-                <mj-text>
-                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">{{ notification.question.title}}</a>
-
-                    {% if IS_SCREENSHOT_SERVICE_ENABLED %}
-                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                        <img class="question_graph_img"
-                             src='{% build_question_graph_image_url notification.post.post_id %}'/>
-                    </a>
-                    {% endif %}
-
-                    {% blocktrans with resolution=notification.resolution coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score forecasts_count=notification.forecasts_count %}
-                    Just resolved to <b>{{resolution}}</b>.
-                    You made {{forecasts_count}} predictions,
-                    covering {{coverage}}% of the question lifetime.
-                    You received a Peer score of {{peer_score}} and a baseline score of {{baseline_score}}.
-                    {% endblocktrans %}
-                </mj-text>
-
-                <!-- Linked questions for this notification -->
-                <mj-raw>
-                    {% if notification.linked_questions %}
-                </mj-raw>
-                <mj-text>
-                    {% blocktrans %}
-                    <h4>🔗 Remember to update these linked questions:</h4>
-                    {% endblocktrans %}
-                </mj-text>
-                <mj-raw>
-                    {% for question in notification.linked_questions %}
-                </mj-raw>
-                <mj-text>
-                    <div style="margin-bottom: 8px">
-                        <a href="{% post_url question.post_id question.post_title %}">
-                            {{ question.title }}
-                        </a>
-                        {% if IS_SCREENSHOT_SERVICE_ENABLED %}
-                        <a href="{% post_url question.post_id question.post_title %}">
-                            <img class="question_graph_img" src='{% build_question_graph_image_url question.post_id %}'/>
-                        </a>
-                        {% endif %}
-                    </div>
-                </mj-text>
-                <mj-raw>
-                    {% endfor %}
-                    {% endif %}
-                </mj-raw>
-
-                <mj-raw>
-                    {% endfor %}
-                </mj-raw>
-
-
             </mj-column>
         </mj-section>
+
+        <!-- All dynamic content in ONE section -->
+        <mj-section background-color="#ffffff" padding="0px">
+            <mj-column>
+                <mj-text padding="0px">
+                    {% for notification in params %}
+                    
+                    <div style="margin: 0px 24px {% if not forloop.last %}16px{% else %}24px{% endif %} 24px;">
+                        <!-- Question Title Card -->
+                        <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
+                           style="display: block; text-decoration: none; color: inherit;">
+                            <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px 8px 0px 0px; padding: 12px; border-bottom: none;">
+                                <div style="font-size: 16px; font-weight: 500; color: #2F4155; line-height: 1.4; text-decoration: underline;">
+                                    {{ notification.question.title }}
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Resolution Content -->
+                        <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 0px 0px 8px 8px; padding: 16px; border-top: 1px solid #D7E4F2;">
+                            
+                            <!-- Resolution Value -->
+                            <div style="font-size: 14px; color: #6B7280; margin-bottom: 4px;">
+                                Resolved to:
+                            </div>
+                            <div style="font-size: 20px; font-weight: 600; color: #161C22; margin-bottom: 16px;">
+                                {{ notification.format_resolution }}
+                            </div>
+                            
+                            <!-- Performance Table -->
+                            <div style="background-color: #ffffff; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                                <div style="font-size: 13px; font-weight: 600; color: #6B7280; margin-bottom: 8px;">
+                                    Your Performance
+                                </div>
+                                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout: fixed;">
+                                    <tr>
+                                        <td style="width: 25%; vertical-align: top; padding-right: 8px;">
+                                            <div style="font-size: 12px; color: #758EA9; margin-bottom: 2px;">
+                                                Peer Score
+                                            </div>
+                                            <div style="font-size: 16px; font-weight: 600; color: #161C22;">
+                                                {{ notification.format_peer_score }}
+                                            </div>
+                                        </td>
+                                        <td style="width: 25%; vertical-align: top; padding-right: 8px;">
+                                            <div style="font-size: 12px; color: #758EA9; margin-bottom: 2px;">
+                                                Baseline Score
+                                            </div>
+                                            <div style="font-size: 16px; font-weight: 600; color: #161C22;">
+                                                {{ notification.format_baseline_score }}
+                                            </div>
+                                        </td>
+                                        <td class="hide-mobile" style="width: 25%; vertical-align: top; padding-right: 8px;">
+                                            <div style="font-size: 12px; color: #758EA9; margin-bottom: 2px;">
+                                                Predictions
+                                            </div>
+                                            <div style="font-size: 16px; font-weight: 600; color: #161C22;">
+                                                {{ notification.forecasts_count }}
+                                            </div>
+                                        </td>
+                                        <td class="hide-mobile" style="width: 25%; vertical-align: top;">
+                                            <div style="font-size: 12px; color: #758EA9; margin-bottom: 2px;">
+                                                Coverage
+                                            </div>
+                                            <div style="font-size: 16px; font-weight: 600; color: #161C22;">
+                                                {{ notification.format_coverage }}%
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <!-- CTA Button -->
+                            <a href="{% post_url notification.post.post_id notification.post.post_title %}" 
+                               style="display: block; text-decoration: none; margin-bottom: 0px;">
+                                <div style="background-color: #758EA9; color: #ffffff; text-align: center; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+                                    Click to see how you did compared to the community
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <!-- Linked Questions (if any) -->
+                        {% if notification.linked_questions %}
+                        <div style="margin-top: 12px; padding: 12px; background-color: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px;">
+                            <div style="font-size: 14px; font-weight: 600; color: #9A3412; margin-bottom: 8px;">
+                                🔗 Remember to update these linked questions:
+                            </div>
+                            {% for question in notification.linked_questions %}
+                            <div style="{% if not forloop.last %}margin-bottom: 6px;{% endif %}">
+                                <a href="{% post_url question.post_id question.post_title %}" 
+                                   style="color: #C2410C; text-decoration: underline; font-size: 14px;">
+                                    {{ question.title }}
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% endfor %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
         <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
         <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
     </mj-body>
 </mjml>

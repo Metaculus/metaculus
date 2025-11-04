@@ -1,9 +1,14 @@
 import pytest  # noqa
+from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote, KeyFactorDriver
 from comments.services.common import create_comment, soft_delete_comment
-from comments.services.key_factors import key_factor_vote, create_key_factors
+from comments.services.key_factors.common import (
+    key_factor_vote,
+    create_key_factors,
+    calculate_freshness_driver,
+)
 from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
@@ -13,6 +18,7 @@ from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import factory_forecast
 from tests.unit.test_users.factories import factory_user
+from tests.unit.utils import datetime_aware
 
 
 @pytest.fixture()
@@ -34,6 +40,34 @@ def test_create_comment__happy_path(post, user1):
     # Check counter
     snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
     assert snapshot.comments_count == 1
+
+    # Make a reply
+    child = create_comment(user=user1, on_post=post, text="Reply", parent=comment)
+    assert child.is_private is False
+    assert child.parent == child.root == comment
+
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 2
+
+
+def test_create_comment__private_happy_path(post, user1):
+    comment = create_comment(
+        user=user1, on_post=post, text="Private Comment", is_private=True
+    )
+    assert comment.text == "Private Comment"
+
+    # Check counter, should not be affected
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 0
+
+    # Make a reply
+    child = create_comment(user=user1, on_post=post, text="Reply", parent=comment)
+    assert child.is_private
+    assert child.parent == child.root == comment
+
+    # Still nothing
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 0
 
 
 @pytest.mark.parametrize(
@@ -109,30 +143,30 @@ def test_notify_mentioned_users(
 
 
 def test_key_factor_vote(user1, user2):
+    user3 = factory_user()
+    user4 = factory_user()
     comment = factory_comment(author=user1, on_post=factory_post(author=user1))
     kf = factory_key_factor(
         comment=comment,
         driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
-        votes={user2: -1},
-        vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE,
+        votes={user1: 1},
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
     )
 
-    assert (
-        key_factor_vote(
-            kf, user1, vote=-1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE
+    def assert_vote(u, vt, expected):
+        assert (
+            key_factor_vote(kf, u, vote=vt, vote_type=KeyFactorVote.VoteType.STRENGTH)
+            == expected
         )
-        == -2
-    )
-    assert (
-        key_factor_vote(kf, user1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
-        == -1
-    )
-    assert (
-        key_factor_vote(
-            kf, user1, vote=1, vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE
-        )
-        == 0
-    )
+
+    assert_vote(user3, 5, pytest.approx(2.66, abs=0.01))
+    assert_vote(user2, 2, pytest.approx(2.66, abs=0.01))
+    # Remove vote
+    assert_vote(user2, None, pytest.approx(2.66, abs=0.01))
+    # Add neutral vote
+    assert_vote(user2, 0, 2)
+    # Add 4th vote
+    assert_vote(user4, 5, 2.75)
 
 
 def test_soft_delete_comment(user1, user2, post):
@@ -183,21 +217,92 @@ def test_soft_delete_comment(user1, user2, post):
 def test_create_key_factors__limit_validation(user1, user2, post):
     c1 = factory_comment(author=user1, on_post=post)
     c2 = factory_comment(author=user1, on_post=post)
-    create_key_factors(c1, ["1", "2", "3"])
+    create_key_factors(
+        c1,
+        [
+            {"driver": {"text": "1", "impact_direction": -1}},
+            {"driver": {"text": "2", "impact_direction": 1}},
+            {"driver": {"text": "3", "impact_direction": -1}},
+        ],
+    )
 
     assert c1.key_factors.count() == 3
 
     # Create too many key-factors for one comment
     with pytest.raises(ValidationError):
-        create_key_factors(c1, ["4", "5"])
+        create_key_factors(
+            c1,
+            [
+                {"driver": {"text": "4", "impact_direction": 1}},
+                {"driver": {"text": "5", "impact_direction": -1}},
+            ],
+        )
 
-    create_key_factors(c2, ["2.1", "2.2", "2.3"])
+    create_key_factors(
+        c2,
+        [
+            {"driver": {"text": "2.1", "impact_direction": 1}},
+            {"driver": {"text": "2.2", "impact_direction": -1}},
+            {"driver": {"text": "2.3", "impact_direction": 1}},
+        ],
+    )
     assert c2.key_factors.count() == 3
 
     # Create too many key-factors for one post
     with pytest.raises(ValidationError):
-        create_key_factors(c2, ["2.4"])
+        create_key_factors(c2, [{"driver": {"text": "2.4", "impact_direction": -1}}])
 
     # Check limit does not affect other users
     c3 = factory_comment(author=user2, on_post=post)
-    create_key_factors(c3, ["3.1"])
+    create_key_factors(c3, [{"driver": {"text": "3.1", "impact_direction": 1}}])
+
+
+@freeze_time("2025-09-30")
+def test_calculate_freshness_driver(user1, post):
+    # Lifetime: 100 days
+    post.open_time = datetime_aware(2025, 6, 22)
+    post.save()
+
+    kf = factory_key_factor(
+        comment=factory_comment(author=user1, on_post=post),
+        driver=KeyFactorDriver.objects.create(text="Driver"),
+    )
+
+    # 2**(- (now - vote.created_at) / max(question_lifetime / 5, two_weeks))
+
+    # 1d ago
+    # 2 ** (-1 / max(100 / 5, 14)) == 0.967
+    with freeze_time("2025-09-29"):
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=KeyFactorVote.VoteStrength.LOW_STRENGTH,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.STRENGTH,
+        )
+
+    # 1w ago
+    # 2 ** (-7 / max(100 / 5, 14)) == 0.785
+    with freeze_time("2025-09-23"):
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=KeyFactorVote.VoteStrength.HIGH_STRENGTH,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.STRENGTH,
+        )
+
+    # 2w ago
+    # 2 ** (-14 / max(100 / 5, 14)) == 0.616
+    with freeze_time("2025-09-16"):
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=KeyFactorVote.VoteStrength.MEDIUM_STRENGTH,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.STRENGTH,
+        )
+
+    # ((0.967 * 1 + 0.785 * 5 + 0.616 * 2) + 2 * max(0, 3 - (0.967 + 0.785 + 0.616)))
+    # / max((0.967 + 0.785 + 0.616), 3)
+
+    assert calculate_freshness_driver(kf, list(kf.votes.all())) == pytest.approx(
+        2.463, abs=0.001
+    )

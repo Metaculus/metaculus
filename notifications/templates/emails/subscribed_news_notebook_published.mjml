@@ -13,10 +13,10 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    We’re excited to share the latest update from Metaculus:
+                    We're excited to share the latest update from Metaculus:
                     {% endblocktrans %}
 
-                    <p style="white-space: pre;">{{ params.preview_text }}</p>
+                    <p>{{ params.preview_text }}</p>
 
                     <a href="{{ params.post_url }}">{% trans "👉 Read the full article." %}</a>
 

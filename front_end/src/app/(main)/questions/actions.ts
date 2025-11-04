@@ -10,6 +10,7 @@ import {
   CreateCommentParams,
   EditCommentParams,
   KeyFactorVoteParams,
+  KeyFactorWritePayload,
   ToggleCMMCommentParams,
   VoteParams,
 } from "@/services/api/comments/comments.shared";
@@ -241,7 +242,7 @@ export async function createComment(commentData: CreateCommentParams) {
 
 export async function addKeyFactorsToComment(
   commentId: number,
-  keyFactors: string[]
+  keyFactors: KeyFactorWritePayload[]
 ) {
   try {
     return await ServerCommentsApi.addKeyFactorsToComment(
@@ -253,6 +254,16 @@ export async function addKeyFactorsToComment(
 
     return {
       errors: error.data,
+    };
+  }
+}
+
+export async function deleteKeyFactor(keyFactorId: number) {
+  try {
+    return await ServerCommentsApi.deleteKeyFactor(keyFactorId);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
 }
@@ -324,8 +335,8 @@ export async function emailData(params: DataParams) {
 export async function createCoherenceLink(
   question1: Question,
   question2: Question,
-  direction: string,
-  strength: string,
+  direction: number,
+  strength: number,
   type: string
 ): Promise<null | ErrorResponse> {
   try {
@@ -360,4 +371,30 @@ export async function setExcludedFromWeekTopComments(
     commentId,
     excluded
   );
+}
+
+export async function reportKeyFactor(
+  keyFactorId: number,
+  reason: CommentReportReason
+) {
+  try {
+    return await ServerCommentsApi.reportKeyFactor(keyFactorId, reason);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}
+
+export async function replyToComment(
+  parentId: number,
+  onPostId: number,
+  text: string
+) {
+  return await ServerCommentsApi.createComment({
+    parent: parentId,
+    on_post: onPostId,
+    text,
+    is_private: false,
+  });
 }

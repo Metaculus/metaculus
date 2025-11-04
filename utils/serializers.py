@@ -3,6 +3,7 @@ from typing import Self, Union
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from utils.the_math.aggregations import AGGREGATIONS
 from questions.types import AggregationMethod
 from users.models import User
 
@@ -81,23 +82,20 @@ class DataGetRequestSerializer(serializers.Serializer):
     )
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     anonymized = serializers.BooleanField(required=False)
+    joined_before_date = serializers.DateTimeField(required=False)
 
     def validate_aggregation_methods(self, value: str | None):
+        valid_aggregation_methods = [
+            aggregation.method for aggregation in AGGREGATIONS
+        ] + [AggregationMethod.METACULUS_PREDICTION]
         if value is None:
             return
         user: User = self.context.get("user")
         if value == "all":
-            aggregation_methods = [
-                AggregationMethod.RECENCY_WEIGHTED,
-                AggregationMethod.UNWEIGHTED,
-                AggregationMethod.METACULUS_PREDICTION,
-            ]
-            if user and user.is_staff:
-                aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
-            return aggregation_methods
+            return valid_aggregation_methods
         methods: list[str] = [v.strip() for v in value.split(",")]
         invalid_methods = [
-            method for method in methods if method not in AggregationMethod.values
+            method for method in methods if method not in valid_aggregation_methods
         ]
         if invalid_methods:
             raise serializers.ValidationError(
@@ -137,6 +135,7 @@ class DataGetRequestSerializer(serializers.Serializer):
             "user_ids",
             "include_bots",
             "anonymized",
+            "joined_before_date",
         }
         input_fields = set(self.initial_data.keys())
         unexpected_fields = input_fields - allowed_fields

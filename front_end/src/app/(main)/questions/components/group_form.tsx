@@ -669,6 +669,7 @@ const GroupForm: React.FC<Props> = ({
             name={"resolution_criteria"}
             defaultValue={post?.group_of_questions?.resolution_criteria}
             errors={form.formState.errors.resolution_criteria}
+            withCodeBlocks
           />
         </InputContainer>
         <InputContainer
@@ -681,6 +682,7 @@ const GroupForm: React.FC<Props> = ({
             name={"fine_print"}
             defaultValue={post?.group_of_questions?.fine_print}
             errors={form.formState.errors.fine_print}
+            withCodeBlocks
           />
         </InputContainer>
         <InputContainer

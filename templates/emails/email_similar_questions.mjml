@@ -1,27 +1,36 @@
-<mj-section background-color="#ffffff" padding-top="0px">
+<mj-section background-color="#ffffff" padding-top="24px" padding-bottom="8px">
     <mj-column>
-        <mj-text>
+        <mj-text font-size="18px" font-weight="600" color="#161C22" padding-bottom="8px">
             {% blocktrans %}
-            <h4>👀 Here are some other questions you may be interested in:</h4>
+            Related questions you might find interesting
             {% endblocktrans %}
         </mj-text>
     </mj-column>
 </mj-section>
+
 <!-- {% for chunk in similar_posts|chunks:2 %} -->
-<mj-section background-color="#ffffff" padding-top="0px">
+<mj-section background-color="#ffffff" padding-top="0px" padding-bottom="0px" padding-left="16px" padding-right="16px">
     <!-- {% for post in chunk %} -->
-    <mj-column width="50%">
-        <mj-text>
-            <div style="margin-bottom: 8px">
-                <a href="{% post_url post.id post.title %}">
+    <mj-column width="50%" padding="8px">
+        <mj-text padding="0px">
+            <a href="{% post_url post.id post.title %}" style="display: block; border: 1px solid #D7E4F2; border-radius: 8px; padding: 16px; background-color: #F9FBFB; min-height: 100px; text-decoration: none; color: #161C22;">
+                <div style="font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 12px; color: #161C22;">
                     {{ post.title }}
-                </a>
-                {% if IS_SCREENSHOT_SERVICE_ENABLED %}
-                 <a href="{% post_url post.id post.title %}">
-                    <img class="question_graph_img" src='{% build_question_graph_image_url post.id %}'/>
-                </a>
-                {% endif %}
-            </div>
+                </div>
+                <div style="font-size: 13px; font-weight:500; color: #2F4155;">
+                    <!-- {% if post.nr_forecasters %} -->
+                    <span style="display: inline-flex; align-items: center;">
+                        <span style="margin-right: 5px;">👥</span>
+                        {{ post.nr_forecasters }} predictor{{ post.nr_forecasters|pluralize }}
+                    </span>
+                    <!-- {% elif post.probability %} -->
+                    <span style="display: inline-flex; align-items: center;">
+                        <span style="margin-right: 5px;">📊</span>
+                        {{ post.probability }}% chance
+                    </span>
+                    <!-- {% endif %} -->
+                </div>
+            </a>
         </mj-text>
     </mj-column>
     <!-- {% endfor %} -->

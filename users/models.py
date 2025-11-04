@@ -5,9 +5,11 @@ import dateutil.parser
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
+from social_django.models import UserSocialAuth
 
 from utils.models import TimeStampedModel
 
@@ -99,6 +101,16 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
+    # Metadata - to update the intended use of this field, update description in Admin
+    metadata = models.JSONField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional. This is a field for storing any extra data unique to this user. "
+            "Structure of this field is not enforced, but should be a dictionary with specific keys. See description in admin panel for an example."
+        ),
+    )
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:
@@ -139,15 +151,82 @@ class User(TimeStampedModel, AbstractUser):
         # set to inactive
         self.is_active = False
 
-        # set soft delete comments
-        self.comment_set.update(is_soft_deleted=True)
-
-        # soft delete posts
         from posts.models import Post
 
+        # set soft delete comments
+        comments = self.comment_set.all()
+        posts: QuerySet[Post] = Post.objects.filter(comments__in=comments).distinct()
+        comments.update(is_soft_deleted=True)
+        # update comment counts on said questions
+        for post in posts:
+            post.update_comment_count()
+
+        # soft delete user's authored posts
         self.posts.update(curation_status=Post.CurationStatus.DELETED)
 
         self.save()
+
+    @transaction.atomic
+    def clean_user_data_delete(self: "User") -> None:
+        # Update User object
+        self.is_active = False
+        self.bio = ""
+        self.old_usernames = []
+        self.website = None
+        self.twitter = None
+        self.linkedin = None
+        self.facebook = None
+        self.github = None
+        self.good_judgement_open = None
+        self.kalshi = None
+        self.manifold = None
+        self.infer = None
+        self.hypermind = None
+        self.occupation = None
+        self.location = None
+        self.profile_picture = None
+        self.unsubscribed_mailing_tags = []
+        self.language = None
+        self.username = "deleted_user-" + str(self.id)
+        self.first_name = ""
+        self.last_name = ""
+        self.email = ""
+        self.set_password(None)
+        self.save()
+
+        # Comments
+        self.comment_set.filter(is_private=True).delete()
+        # don't touch public comments
+
+        # Token
+        Token.objects.filter(user=self).delete()
+
+        # Social Auth login credentials
+        UserSocialAuth.objects.filter(user=self).delete()
+
+        # Posts (Notebooks/Questions)
+        from posts.models import Post
+
+        def hard_delete_post(post: Post):
+            if question := post.question:
+                question.delete()
+            if group_of_questions := post.group_of_questions:
+                group_of_questions.delete()
+            if conditional := post.conditional:
+                conditional.delete()
+            if notebook := post.notebook:
+                notebook.delete()
+            post.delete()
+
+        posts = self.posts.all()
+        for post in posts:
+            # keep if there is at least one non-author comment
+            if post.comments.exclude(author=self).exists():
+                continue
+            # keep if there is at least one non-author forecast
+            if post.forecasts.exclude(author=self).exists():
+                continue
+            hard_delete_post(post)
 
 
 class UserCampaignRegistration(TimeStampedModel):

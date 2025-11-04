@@ -3,10 +3,11 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { Strengths } from "@/types/coherence";
+import { convertStrengthNumberToLabel } from "@/utils/coherence";
 import cn from "@/utils/core/cn";
 
 type Props = {
-  strength: Strengths;
+  strength: number;
   disabled?: boolean;
   selected?: boolean;
   onClick?: () => void;
@@ -25,6 +26,12 @@ const colorAccent = {
   border-orange-400 dark:border-orange-400-dark`,
 } as const;
 
+const strengthI18nKey: Record<Strengths, keyof IntlMessages> = {
+  [Strengths.Low]: "lowStrength",
+  [Strengths.Medium]: "mediumStrength",
+  [Strengths.High]: "highStrength",
+};
+
 const LinkStrengthComponent: FC<Props> = ({
   strength,
   disabled,
@@ -32,8 +39,10 @@ const LinkStrengthComponent: FC<Props> = ({
   selected,
 }) => {
   const t = useTranslations();
-  const label = t(strength);
-  const additionalStyling = colorAccent[strength];
+  const strengthLabel = convertStrengthNumberToLabel(strength);
+  if (!strengthLabel) return null;
+  const label = t(strengthI18nKey[strengthLabel]);
+  const additionalStyling = colorAccent[strengthLabel];
   return (
     <Button
       className={cn(

@@ -60,7 +60,7 @@ const TableRow: FC<Props> = ({
             <span className="flex-1 text-center">
               {excluded ? (
                 <>
-                  <ExcludedEntryTooltip rank={rank} />
+                  <ExcludedEntryTooltip />
                 </>
               ) : (
                 rank

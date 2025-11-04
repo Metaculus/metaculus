@@ -54,11 +54,14 @@ const NewsCard: FC<Props> = ({ post }) => {
             {!!width && (
               <MarkdownEditor
                 mode="read"
-                markdown={getMarkdownSummary({
-                  markdown: post.notebook.markdown,
-                  width,
-                  height: 48,
-                })}
+                markdown={
+                  post.notebook.markdown_summary ||
+                  getMarkdownSummary({
+                    markdown: post.notebook.markdown,
+                    width,
+                    height: 48,
+                  })
+                }
                 contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
                 withUgcLinks
               />

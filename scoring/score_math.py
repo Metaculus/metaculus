@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from datetime import datetime
 import numpy as np
 from scipy.stats.mstats import gmean
 
@@ -13,6 +14,7 @@ from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes
 from scoring.models import Score
 from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.formulas import string_location_to_bucket_index
 
 
 @dataclass
@@ -310,49 +312,54 @@ def evaluate_forecasts_legacy_relative(
 
 def evaluate_question(
     question: Question,
-    resolution_bucket: int | None,
+    resolution: str | None,
     score_types: list[ScoreTypes],
-    spot_forecast_timestamp: float | None = None,
+    spot_forecast_time: datetime | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    score_users: bool | list[int] = True,
+    only_include_user_ids: list[int] | None = None,
 ) -> list[Score]:
+    """
+    user_ids: optional - list of user IDs. If given, this question will be evaluated
+        as if those users are the only ones who participated on the question
+        NOTE: overrides "include_bots_in_aggregates"
+    """
+    resolution_bucket = string_location_to_bucket_index(resolution, question)
+    if resolution_bucket is None:
+        return []
     aggregation_methods = aggregation_methods or []
     aggregations_to_calculate = aggregation_methods.copy()
     if ScoreTypes.RELATIVE_LEGACY in score_types and (
         AggregationMethod.RECENCY_WEIGHTED not in aggregations_to_calculate
     ):
         aggregations_to_calculate.append(AggregationMethod.RECENCY_WEIGHTED)
-    if resolution_bucket is None:
-        return []
     forecast_horizon_start = question.open_time.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
-    if spot_forecast_timestamp:
-        spot_forecast_timestamp = min(spot_forecast_timestamp, actual_close_time)
+    spot_forecast_timestamp: float | None = None
+    if spot_forecast_time:
+        spot_forecast_timestamp = min(spot_forecast_time.timestamp(), actual_close_time)
 
     # We need all user forecasts to calculated GeoMean even
     # if we're only scoring some or none of the users
     user_forecasts = question.user_forecasts.all()
-    if score_users is True:
-        scoring_user_forecasts = user_forecasts
-    elif not score_users:
-        scoring_user_forecasts = Forecast.objects.none()
-    else:  # we have a list of user ids to score
-        scoring_user_forecasts = user_forecasts.filter(author_id__in=score_users)
-    if not question.include_bots_in_aggregates:
-        user_forecasts = user_forecasts.exclude(author__is_bot=True)
+    if only_include_user_ids:
+        user_forecasts = user_forecasts.filter(author__id__in=only_include_user_ids)
+    base_forecasts = user_forecasts
+    if not only_include_user_ids and not question.include_bots_in_aggregates:
+        base_forecasts = base_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(
         question,
         minimize=False,
         aggregation_methods=aggregations_to_calculate,
-        include_bots=question.include_bots_in_aggregates,
+        include_bots=bool(only_include_user_ids) or question.include_bots_in_aggregates,
         include_stats=False,
+        only_include_user_ids=only_include_user_ids,
     )
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
-    geometric_means: list[AggregationEntry] = []
 
+    geometric_means: list[AggregationEntry] = []
     if ScoreTypes.PEER in score_types:
-        geometric_means = get_geometric_means(user_forecasts)
+        geometric_means = get_geometric_means(base_forecasts)
 
     scores: list[Score] = []
     for score_type in score_types:
@@ -364,7 +371,7 @@ def evaluate_question(
                 question.open_lower_bound
             )
             user_scores = evaluate_forecasts_baseline_accuracy(
-                scoring_user_forecasts,
+                user_forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
                 actual_close_time,
@@ -388,7 +395,7 @@ def evaluate_question(
                 question.open_lower_bound
             )
             user_scores = evaluate_forecasts_baseline_spot_forecast(
-                scoring_user_forecasts,
+                user_forecasts,
                 resolution_bucket,
                 spot_forecast_timestamp,
                 question.type,
@@ -405,8 +412,8 @@ def evaluate_question(
                 )
         elif score_type == ScoreTypes.PEER:
             user_scores = evaluate_forecasts_peer_accuracy(
-                scoring_user_forecasts,
                 user_forecasts,
+                base_forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
                 actual_close_time,
@@ -418,7 +425,7 @@ def evaluate_question(
                 aggregation_forecasts = aggregations[method]
                 aggregation_scores[method] = evaluate_forecasts_peer_accuracy(
                     aggregation_forecasts,
-                    user_forecasts,
+                    base_forecasts,
                     resolution_bucket,
                     forecast_horizon_start,
                     actual_close_time,
@@ -428,8 +435,8 @@ def evaluate_question(
                 )
         elif score_type == ScoreTypes.SPOT_PEER:
             user_scores = evaluate_forecasts_peer_spot_forecast(
-                scoring_user_forecasts,
                 user_forecasts,
+                base_forecasts,
                 resolution_bucket,
                 spot_forecast_timestamp,
                 question.type,
@@ -439,7 +446,7 @@ def evaluate_question(
                 aggregation_forecasts = aggregations[method]
                 aggregation_scores[method] = evaluate_forecasts_peer_spot_forecast(
                     aggregation_forecasts,
-                    user_forecasts,
+                    base_forecasts,
                     resolution_bucket,
                     spot_forecast_timestamp,
                     question.type,
@@ -447,7 +454,7 @@ def evaluate_question(
                 )
         elif score_type == ScoreTypes.RELATIVE_LEGACY:
             user_scores = evaluate_forecasts_legacy_relative(
-                scoring_user_forecasts,
+                user_forecasts,
                 recency_weighted_aggregation,
                 resolution_bucket,
                 forecast_horizon_start,
@@ -465,11 +472,11 @@ def evaluate_question(
         else:
             raise NotImplementedError(f"Score type {score_type} not implemented")
 
-        user_ids = {forecast.author_id for forecast in scoring_user_forecasts}
-        for user_id in user_ids:
+        forecaster_ids = {forecast.author_id for forecast in user_forecasts}
+        for user_id in forecaster_ids:
             user_score: float = 0.0
             user_coverage: float = 0.0
-            for forecast, score in zip(scoring_user_forecasts, user_scores):
+            for forecast, score in zip(user_forecasts, user_scores):
                 if forecast.author_id == user_id:
                     user_score += score.score
                     user_coverage += score.coverage

@@ -24,13 +24,13 @@ from utils.the_math.aggregations import get_aggregation_history
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def aggregation_explorer_api_view(request):
+def aggregation_explorer_api_view(request) -> Response:
     user: User = request.user
     post: Post
-
+    question: Question
     question_id = request.GET.get("question_id")
     if question_id:
-        question: Question | None = Question.objects.filter(id=question_id).first()
+        question = Question.objects.filter(id=question_id).first()
         if question is None:
             raise ValidationError(f"Question with id {question_id} not found")
         post = question.get_post()
@@ -71,14 +71,15 @@ def aggregation_explorer_api_view(request):
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
     aggregation_methods = params.get("aggregation_methods")
-    user_ids = params.get("user_ids")
+    only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)
+    joined_before = params.get("joined_before_date")
 
     aggregations = get_aggregation_history(
         question,
         aggregation_methods=aggregation_methods,
-        user_ids=user_ids,
+        only_include_user_ids=only_include_user_ids,
         minimize=minimize,
         include_stats=True,
         include_bots=(
@@ -88,6 +89,7 @@ def aggregation_explorer_api_view(request):
         ),
         histogram=True,
         include_future=False,
+        joined_before=joined_before,
     )
     aggregate_forecasts = []
     for aggregation in aggregations.values():
@@ -102,8 +104,10 @@ def aggregation_explorer_api_view(request):
 
     # Add forecasters count
     forecasters_qs = question.get_forecasters()
-    if user_ids:
-        forecasters_qs = forecasters_qs.filter(id__in=user_ids)
+    if only_include_user_ids:
+        forecasters_qs = forecasters_qs.filter(id__in=only_include_user_ids)
+    elif not include_bots:
+        forecasters_qs = forecasters_qs.filter(is_bot=False)
 
     data["forecasters_count"] = forecasters_qs.count()
 
@@ -176,8 +180,8 @@ def validate_data_request(request: Request, **kwargs):
     include_scores = params.get("include_scores", True)
     include_user_data = params.get("include_user_data", False)
     include_future = params.get("include_future", False)
-
-    user_ids = params.get("user_ids")
+    # TODO: change url param name to only_include_user_ids (requires front end changes)
+    only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     if is_staff:
         anonymized = params.get("anonymized", False)
@@ -210,6 +214,7 @@ def validate_data_request(request: Request, **kwargs):
         filename = post.short_title or post.title
     elif project:
         filename = project.slug or project.name
+    filename = filename.replace("\n", "").replace("\r", "")
     for char in [" ", "-", "/", ":", ",", "."]:
         filename = filename.replace(char, "_")
     filename = filename.replace("?", "")
@@ -227,7 +232,7 @@ def validate_data_request(request: Request, **kwargs):
         "include_scores": include_scores,
         "include_user_data": include_user_data,
         "include_comments": include_comments,
-        "user_ids": user_ids,
+        "only_include_user_ids": only_include_user_ids,
         "include_bots": include_bots,
         "anonymized": anonymized,
         "include_future": include_future,

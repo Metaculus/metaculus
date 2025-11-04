@@ -3,10 +3,10 @@ import { FC, memo } from "react";
 import Histogram from "@/components/charts/histogram";
 import { AggregateForecastHistory, QuestionType } from "@/types/question";
 
-import { AggregationQuestionWithBots } from "../types";
+import { AggregationExtraQuestion } from "../types";
 
 type Props = {
-  questionData: AggregationQuestionWithBots;
+  questionData: AggregationExtraQuestion;
   activeAggregation: AggregateForecastHistory;
   selectedTimestamp: number | null;
   aggregationIndex?: number;

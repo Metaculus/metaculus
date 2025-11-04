@@ -27,18 +27,14 @@ import {
   generateAggregationTooltips,
   generateChoiceItemsFromAggregations,
 } from "../helpers";
-import {
-  AggregationMethodWithBots,
-  AggregationQuestionWithBots,
-} from "../types";
+import { AggregationExtraMethod, AggregationExtraQuestion } from "../types";
 
 type Props = {
-  onTabChange: (activeTab: AggregationMethodWithBots) => void;
-  onFetchData: (
-    aggregationOptionId: AggregationMethodWithBots
-  ) => Promise<void>;
-  aggregationData: AggregationQuestionWithBots | null;
+  onTabChange: (activeTab: AggregationExtraMethod) => void;
+  onFetchData: (aggregationOptionId: AggregationExtraMethod) => Promise<void>;
+  aggregationData: AggregationExtraQuestion | null;
   selectedSubQuestionOption: number | string | null;
+  joinedBeforeDate?: string;
 };
 
 const AggregationsDrawer: FC<Props> = ({
@@ -46,6 +42,7 @@ const AggregationsDrawer: FC<Props> = ({
   onFetchData,
   aggregationData,
   selectedSubQuestionOption,
+  joinedBeforeDate,
 }) => {
   const { user } = useAuth();
   const { actual_close_time, scaling, type, actual_resolve_time } =
@@ -54,7 +51,10 @@ const AggregationsDrawer: FC<Props> = ({
     () => getPostDrivenTime(actual_close_time),
     [actual_close_time]
   );
-  const tooltips = useMemo(() => generateAggregationTooltips(user), [user]);
+  const tooltips = useMemo(
+    () => generateAggregationTooltips(user, joinedBeforeDate),
+    [joinedBeforeDate, user]
+  );
   const [choiceItems, setChoiceItems] = useState(
     aggregationData
       ? generateChoiceItemsFromAggregations({

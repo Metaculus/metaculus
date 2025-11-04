@@ -7,6 +7,7 @@ import CommentsApi, {
   CreateCommentParams,
   EditCommentParams,
   KeyFactorVoteParams,
+  KeyFactorWritePayload,
   ToggleCMMCommentParams,
   VoteParams,
 } from "./comments.shared";
@@ -34,14 +35,16 @@ class ServerCommentsApiClass extends CommentsApi {
 
   async addKeyFactorsToComment(
     commentId: number,
-    keyFactors: string[]
+    keyFactors: KeyFactorWritePayload[]
   ): Promise<BECommentType> {
-    return await this.post<BECommentType>(
+    return await this.post<BECommentType, KeyFactorWritePayload[]>(
       `/comments/${commentId}/add-key-factors/`,
-      {
-        key_factors: keyFactors,
-      }
+      keyFactors
     );
+  }
+
+  async deleteKeyFactor(keyFactorId: number): Promise<BECommentType> {
+    return await this.delete(`/key-factors/${keyFactorId}/delete/`);
   }
 
   async togglePin(commentId: number, pin: boolean): Promise<BECommentType> {
@@ -75,6 +78,13 @@ class ServerCommentsApiClass extends CommentsApi {
       `/key-factors/${voteData.id}/vote/`,
       voteData
     );
+  }
+
+  async reportKeyFactor(
+    keyFactorId: number,
+    reason: CommentReportReason
+  ): Promise<Response | null> {
+    return await this.post(`/key-factors/${keyFactorId}/report/`, { reason });
   }
 
   async setCommentExcludedFromWeekTop(

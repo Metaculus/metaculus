@@ -76,8 +76,10 @@ export default function ContestRules() {
                 update forecasts at any time while questions are open.
               </li>
               <li>
-                Prize eligibility requires completing the intake form with an
-                institutional email (.edu, .ac.uk, .ac.kr, .int, or .mil).
+                Prize eligibility requires completing the intake form and
+                registering with your <b>school email address</b>. Institutional
+                domains are <b>not</b> required; Metaculus will verify
+                eligibility manually.
               </li>
               <li>
                 One account per person. If you have a prior Metaculus account

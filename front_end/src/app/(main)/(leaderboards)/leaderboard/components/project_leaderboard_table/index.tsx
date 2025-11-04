@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import TableHeader from "./table_header";
@@ -25,7 +24,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
   isAdvanced,
 }) => {
   const t = useTranslations();
-  const { user: currentUser } = useAuth();
 
   const [step, setStep] = useState(paginationStep);
   const leaderboardEntries = useMemo(() => {
@@ -106,25 +104,22 @@ const ProjectLeaderboardTable: FC<Props> = ({
             />
           )}
           {leaderboardEntries.map((entry) => {
-            // only show entries that are not excluded or if advanced mode is on
-            // or if the current user is staff
-            if (
-              entry.excluded &&
-              (!isAdvanced ||
-                !(currentUser?.is_staff || entry.show_when_excluded))
-            ) {
-              return null;
+            // show non-excluded entries
+            // or if they should show even when excluded
+            // or if we are in the advanced view
+            if (!entry.excluded || entry.show_when_excluded || isAdvanced) {
+              return (
+                <TableRow
+                  key={entry.user?.id ?? entry.aggregation_method}
+                  rowEntry={entry}
+                  userId={userId}
+                  maxCoverage={maxCoverage}
+                  withPrizePool={!!leaderboardDetails.prize_pool}
+                  isAdvanced={isAdvanced}
+                />
+              );
             }
-            return (
-              <TableRow
-                key={entry.user?.id ?? entry.aggregation_method}
-                rowEntry={entry}
-                userId={userId}
-                maxCoverage={maxCoverage}
-                withPrizePool={!!leaderboardDetails.prize_pool}
-                isAdvanced={isAdvanced}
-              />
-            );
+            return null;
           })}
         </tbody>
       </table>

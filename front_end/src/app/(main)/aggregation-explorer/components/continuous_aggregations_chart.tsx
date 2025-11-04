@@ -21,10 +21,10 @@ import {
 import { cdfToPmf } from "@/utils/math";
 import { formatValueUnit } from "@/utils/questions/units";
 
-import { AggregationQuestionWithBots } from "../types";
+import { AggregationExtraQuestion } from "../types";
 
 type Props = {
-  questionData: AggregationQuestionWithBots;
+  questionData: AggregationExtraQuestion;
   activeAggregation: AggregateForecastHistory;
   selectedTimestamp: number | null;
 };

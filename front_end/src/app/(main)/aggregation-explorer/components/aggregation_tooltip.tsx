@@ -8,28 +8,25 @@ import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { ChoiceItem } from "@/types/choices";
-import { AggregationMethod } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { logError } from "@/utils/core/errors";
 
-import { AggregationMethodWithBots } from "../types";
+import { AggregationExtraMethod } from "../types";
 
 type Props = {
   valueLabel: string;
   tooltips: {
-    aggregationMethod: AggregationMethod;
-    choice: AggregationMethodWithBots;
+    aggregationMethod: string;
+    choice: AggregationExtraMethod;
     label: string;
     includeBots: boolean;
     color: ThemeColor;
   };
-  onFetchData: (
-    aggregationOptionId: AggregationMethodWithBots
-  ) => Promise<void>;
+  onFetchData: (aggregationOptionId: AggregationExtraMethod) => Promise<void>;
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
   choiceItems: ChoiceItem[];
-  onTabChange: (activeTab: AggregationMethodWithBots) => void;
+  onTabChange: (activeTab: AggregationExtraMethod) => void;
 };
 
 const AggregationTooltip: FC<Props> = ({

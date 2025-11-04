@@ -52,6 +52,7 @@ class Score(TimeStampedModel):
                 condition=Q(aggregation_method__isnull=False),
             ),
             models.Index(fields=["user", "question"]),
+            models.Index(fields=["edited_at"], name="score_edited_at_idx"),
         ]
 
 
@@ -311,6 +312,12 @@ class LeaderboardEntry(TimeStampedModel):
         Leaderboard, on_delete=models.CASCADE, related_name="entries", null=True
     )
     score = models.FloatField()
+    ci_lower = models.FloatField(
+        null=True, blank=True, help_text="Confidence Interval lower bound"
+    )
+    ci_upper = models.FloatField(
+        null=True, blank=True, help_text="Confidence Interval lower bound"
+    )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
     excluded = models.BooleanField(default=False, db_index=True)

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef, QuerySet
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -13,6 +13,7 @@ from posts.services.search import (
     posts_full_text_search,
 )
 from projects.models import Project
+from questions.models import Question
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -25,6 +26,7 @@ def get_posts_feed(
     user: User = None,
     search: str = None,
     default_project_id: int = None,
+    for_consumer_view: bool = False,
     topic: Project = None,
     community: Project = None,
     leaderboard_tags: list[Project] = None,
@@ -65,6 +67,10 @@ def get_posts_feed(
     # If ids provided
     if ids:
         qs = qs.filter(id__in=ids)
+
+    # Apply consumer views filter
+    if for_consumer_view:
+        qs = filter_for_consumer_view(qs)
 
     # Exclude Deleted posts
     qs = qs.exclude(curation_status=Post.CurationStatus.DELETED)
@@ -306,6 +312,55 @@ def get_posts_feed(
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
     return qs.distinct("id", order_type).only("pk")
+
+
+def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
+    """
+    A special filter applied to default Consumer View feed representation
+    https://github.com/Metaculus/metaculus/issues/3377
+    """
+
+    now = timezone.now()
+
+    allowed_projects = list(
+        Project.objects.filter(
+            type=Project.ProjectTypes.NEWS_CATEGORY,
+            slug__in=["programs", "research"],
+        )
+    )
+
+    # Display only programs/research notebooks
+    qs = qs.filter(
+        Q(notebook__isnull=True)
+        | Exists(
+            Post.projects.through.objects.filter(
+                post_id=OuterRef("pk"),
+                project__in=allowed_projects,
+            )
+        )
+        | Q(default_project__in=allowed_projects)
+    )
+
+    # Exclude posts that have a single question with a reveal time in the future.
+    qs = qs.exclude(question__cp_reveal_time__gte=now)
+
+    # We should keep groups where at least one subquestion is open and has its CP revealed.
+    qs = qs.filter(
+        Q(group_of_questions__isnull=True)
+        | Exists(
+            Question.objects.filter(
+                Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
+                Q(actual_close_time__isnull=True)
+                | Q(actual_close_time__gte=timezone.now()),
+                Q(cp_reveal_time__lt=now),
+            ).filter(group_id=OuterRef("group_of_questions__id"))
+        )
+    )
+
+    # Exclude resolved questions
+    qs = qs.exclude(resolved=True)
+
+    return qs
 
 
 def get_similar_posts(post: Post):

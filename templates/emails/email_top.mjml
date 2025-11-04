@@ -1,6 +1,14 @@
-<mj-section background-color="#ffffff">
+<mj-section background-color="#283441">
     <mj-column>
-        <mj-image title="Metaculus Logo" alt="Metaculus Logo" align="left" width="60px"
-                  src="{% build_frontend_url 'images/metaculus_logo.png' %}"/>
+        <mj-image 
+            title="Metaculus Logo" 
+            alt="Metaculus Logo" 
+            align="center" 
+            width="50px"
+            src="{% build_frontend_url 'images/metaculus_logo_outlined.png' %}"
+            srcset="{% build_frontend_url 'images/metaculus_logo_outlined@2x.png' %} 2x"/>
+        <mj-text align="center" color="#ffffff" font-size="18px" font-weight="600" css-class="email-subject">
+            {{ email_subject_display|default:email_subject }}
+        </mj-text>
     </mj-column>
 </mj-section>

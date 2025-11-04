@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 from django.contrib import admin
@@ -114,6 +115,54 @@ class BioLengthFilter(admin.SimpleListFilter):
         return queryset
 
 
+class ProFilter(admin.SimpleListFilter):
+    title = "Pro Users"
+    parameter_name = "pro_users"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("No", "Not Pro"),
+            ("Current", "Is Current Pro"),
+            ("AllTime", "Has Ever Been Pro"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "No":
+            return queryset.filter(metadata__pro_details__isnull=True)
+        if self.value() == "Current":
+            return queryset.filter(metadata__pro_details__is_current_pro=True)
+        if self.value() == "AllTime":
+            return queryset.filter(metadata__pro_details__isnull=False)
+        return queryset
+
+
+class BotFilter(admin.SimpleListFilter):
+    title = "Bot Users"
+    parameter_name = "bot_users"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("No", "Not Bot"),
+            ("Bot", "Is Bot"),
+            ("Metac Bot", "Is Metac Bot"),
+            ("Benchmark Metac Bot", "Is Benchmark Metac Bot"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "No":
+            return queryset.filter(is_bot=False)
+        if self.value() == "Bot":
+            return queryset.filter(is_bot=True)
+        if self.value() == "Metac Bot":
+            return queryset.filter(metadata__bot_details__metac_bot=True)
+        if self.value() == "Benchmark Metac Bot":
+            return queryset.filter(
+                metadata__bot_details__metac_bot=True,
+                metadata__bot_details__display_in_leaderboard=True,
+            )
+        return queryset
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = [
@@ -135,20 +184,21 @@ class UserAdmin(admin.ModelAdmin):
     actions = [
         "mark_selected_as_spam",
         "soft_delete_selected",
-        "hard_delete_selected",
+        "clean_user_data_deletion",
         "run_profile_spam_detection_on_selected",
     ]
     search_fields = ["username", "email", "pk"]
     list_filter = [
         "is_active",
         "is_spam",
-        "is_bot",
         "date_joined",
         LastLoginFilter,
         AuthoredPostsFilter,
         AuthoredCommentsFilter,
         ForecastedFilter,
         BioLengthFilter,
+        ProFilter,
+        BotFilter,
     ]
 
     def get_actions(self, request):
@@ -220,8 +270,13 @@ class UserAdmin(admin.ModelAdmin):
         for user in queryset:
             user.soft_delete()
 
-    def hard_delete_selected(self, request, queryset: QuerySet[User]):
-        queryset.delete()
+    def clean_user_data_deletion(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            user.clean_user_data_delete()
+
+    clean_user_data_deletion.short_description = (
+        "One click Personal Data deletion (GDPR compliant)"
+    )
 
     def run_profile_spam_detection_on_selected(self, request, queryset: QuerySet[User]):
         for user in queryset:
@@ -234,6 +289,34 @@ class UserAdmin(admin.ModelAdmin):
             if is_spam:
                 user.mark_as_spam()
                 send_deactivation_email(user.email)
+
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+        for field in ["metadata"]:
+            if field in fields:
+                fields.remove(field)
+            fields.append(field)
+        return fields
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if db_field.name == "metadata" and formfield:
+            formfield.help_text = format_html(
+                "{}{}",
+                formfield.help_text or "",
+                format_html(
+                    '<details style="margin-top:0;"><summary>Show metadata example</summary>'
+                    '<pre style="margin-top:0;">{}</pre></details>',
+                    json.dumps(
+                        json.loads(
+                            '{"pro_details":{"is_current_pro":true,"pro_start_date":"2024-12-01","pro_end_date":null},'
+                            '"bot_details":{"metac_bot":true,"include_in_calculations":true,"display_in_leaderboard":true,"display_name":"OpenAI 4o","base_models":[{"name":"OpenAI 4o","model_release_date":"2024-05","estimated_cost_per_question":1.3}],"research_models":[{"name":"AskNews Research v1","model_release_date":"2024-05","estimated_cost_per_question":null}],"scaffolding":{"pipeline":"metac-bot-latest","notes":"Runs base model, then research follow-up if confidence < 0.7."}}}'
+                        ),
+                        indent=2,
+                    ),
+                ),
+            )
+        return formfield
 
 
 @admin.register(UserCampaignRegistration)

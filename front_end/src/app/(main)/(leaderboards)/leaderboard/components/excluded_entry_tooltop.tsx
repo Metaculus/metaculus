@@ -1,14 +1,12 @@
-import { isNull } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Tooltip from "@/components/ui/tooltip";
 
-const ExcludedEntryTooltip: FC<{ rank: number | null }> = ({ rank }) => {
+const ExcludedEntryTooltip: FC = () => {
   const t = useTranslations();
   return (
     <div className="justify-left flex flex-1 items-center">
-      {!isNull(rank) && <span className="mr-1">( {rank} )</span>}
       <div className="relative text-blue-700 dark:text-blue-700-dark">
         <Tooltip
           showDelayMs={200}
