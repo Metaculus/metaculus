@@ -226,8 +226,9 @@ class KeyFactorBaseRate(TimeStampedModel, TranslatedModel):
         TREND = "trend"
 
     class ExtrapolationType(models.TextChoices):
-        FREQUENCY = "frequency"
-        TREND = "trend"
+        LINEAR = "linear"
+        EXPONENTIAL = "exponential"
+        OTHER = "other"
 
     reference_class = models.CharField(max_length=256)
     type = models.CharField(choices=BaseRateType.choices, max_length=20)
