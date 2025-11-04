@@ -1572,5 +1572,6 @@
   "unweightedAggregate": "Agregado sin peso",
   "submitAQuestion": "Enviar una pregunta",
   "leaderboardUnweightedInfo": "Esta es la predicción sin ponderar agregada de todos los pronosticadores en cada pregunta.<br></br>Aprenda cómo se calcula <link>aquí</link>.",
+  "baseRate": "Tarifa base",
   "othersCount": "Otros ({count})"
 }
