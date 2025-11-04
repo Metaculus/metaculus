@@ -8,11 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.constants import CommentReportType
-from comments.models import (
-    Comment,
-    KeyFactor,
-    KeyFactorVote,
-)
+from comments.models import Comment, KeyFactor
 from comments.serializers.common import serialize_comment_many
 from comments.serializers.key_factors import (
     KeyFactorWriteSerializer,
