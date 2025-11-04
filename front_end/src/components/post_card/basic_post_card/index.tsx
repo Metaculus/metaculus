@@ -5,12 +5,14 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
+import KeyFactorsTileDisplay from "@/app/(main)/questions/[id]/components/key_factors/key_factors_tile_display";
 import BasicPostControls from "@/components/post_card/basic_post_card/post_controls";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import { Post } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
+import { isQuestionPost } from "@/utils/questions/helpers";
 
 type BorderVariant = "regular" | "highlighted";
 type BorderColor = "blue" | "purple";
@@ -73,6 +75,9 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           {children}
         </Link>
         <BasicPostControls post={post} />
+        {isQuestionPost(post) && (post.key_factors?.length ?? 0) > 0 && (
+          <KeyFactorsTileDisplay post={post} />
+        )}
       </div>
     </div>
   );
