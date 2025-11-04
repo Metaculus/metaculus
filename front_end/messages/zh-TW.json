@@ -1608,8 +1608,6 @@
   "aibSubmitStep2": "使用提供的指示建構您的機器人。",
   "aibSubmitStep3": "觀看您的機器人進行預測並競爭獎金！",
   "aibLbBrandLink": "Metaculus FutureEval",
-  "aibLbTitle": "頂尖模型 <br></br> 排行榜",
-  "aibLbSubtitle": "依據平均基準分數",
   "aibLbThModel": "模型",
   "aibLbThForecasts": "預測數",
   "aibLbThAvgScore": "平均得分",
@@ -1630,5 +1628,7 @@
   "aibProsVsBotsSubtitle": "Metaculus 專業預測者在我們的 <link>AI 基準測試比賽</link> 中，每季度都擊敗了機器人。",
   "aibBenchModelsBlurb": "根據我們的標準化預測性能衡量方法，每天更新。",
   "aibViewFullLeaderboard": "查看完整排行榜",
+  "aibLbTitle": "模型排行榜",
+  "aibLbSubtitle": "根據我們標準化的預測性能測量方法，每天更新一次。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

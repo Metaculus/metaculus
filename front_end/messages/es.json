@@ -1611,8 +1611,6 @@
   "aibSubmitStep2": "Construye tu bot usando las instrucciones proporcionadas.",
   "aibSubmitStep3": "¡Mira cómo tu bot pronostica y compite por premios!",
   "aibLbBrandLink": "Metaculus FutureEval",
-  "aibLbTitle": "Tabla de clasificación del <br></br> Mejor Modelo",
-  "aibLbSubtitle": "por Puntuación Promedio Base",
   "aibLbThModel": "Modelo",
   "aibLbThForecasts": "Pronósticos",
   "aibLbThAvgScore": "Puntuación Prom.",
@@ -1633,5 +1631,7 @@
   "aibProsVsBotsSubtitle": "Los pronosticadores profesionales de Metaculus han vencido a los bots en cada trimestre de nuestros <link>torneos de evaluación de inteligencia artificial</link> hasta ahora.",
   "aibBenchModelsBlurb": "Actualizado todos los días basándose en nuestra metodología estándar de medición de rendimiento de pronóstico.",
   "aibViewFullLeaderboard": "Ver la clasificación completa",
+  "aibLbTitle": "Tabla de Líderes de Modelos",
+  "aibLbSubtitle": "Actualizado todos los días según nuestra metodología estandarizada de medición del rendimiento de pronósticos.",
   "othersCount": "Otros ({count})"
 }

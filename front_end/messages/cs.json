@@ -1612,8 +1612,6 @@
   "aibSubmitStep2": "Postavte svého bota podle poskytnutých instrukcí.",
   "aibSubmitStep3": "Sledujte, jak váš bot předpovídá a soutěží o ceny!",
   "aibLbBrandLink": "Metaculus FutureEval",
-  "aibLbTitle": "Žebříčky <br></br> nejlepších modelů",
-  "aibLbSubtitle": "podle průměrného základního skóre",
   "aibLbThModel": "Model",
   "aibLbThForecasts": "Prognózy",
   "aibLbThAvgScore": "Průměrné skóre",
@@ -1633,5 +1631,7 @@
   "aibProsVsBotsSubtitle": "Profesionální prognostikové z Metaculus porazili roboty v každém čtvrtletí našich <link>Turnajů benchmarkingu AI</link> až dosud.",
   "aibBenchModelsBlurb": "Aktualizováno každý den na základě naší standardizované metodiky měření výkonnosti předpovědí.",
   "aibViewFullLeaderboard": "Zobrazit celou žebříček",
+  "aibLbTitle": "Žebříček modelů",
+  "aibLbSubtitle": "Aktualizováno každý den na základě naší standardizované metodiky měření výkonu předpovědí.",
   "othersCount": "Ostatní ({count})"
 }

@@ -1614,8 +1614,6 @@
   "aibSubmitStep2": "根据提供的说明构建您的机器人。",
   "aibSubmitStep3": "观看您的机器人预测并竞争奖金！",
   "aibLbBrandLink": "Metaculus 未来估值",
-  "aibLbTitle": "顶级模型 <br></br> 排行榜",
-  "aibLbSubtitle": "按平均基线评分",
   "aibLbThModel": "模型",
   "aibLbThForecasts": "预测",
   "aibLbThAvgScore": "平均评分",
@@ -1635,5 +1633,7 @@
   "aibProsVsBotsSubtitle": "Metaculus 的专业预测员在我们现有的每一季度的<link>AI 基准测试竞赛</link>中都击败了机器人。",
   "aibBenchModelsBlurb": "根据我们标准化的预测性能测量方法，每天更新。",
   "aibViewFullLeaderboard": "查看完整排行榜",
+  "aibLbTitle": "模型排行榜",
+  "aibLbSubtitle": "根据我们的标准化预测性能测量方法，每天更新。",
   "othersCount": "其他（{count}）"
 }
