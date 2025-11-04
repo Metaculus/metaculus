@@ -41,6 +41,32 @@ def test_create_comment__happy_path(post, user1):
     snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
     assert snapshot.comments_count == 1
 
+    # Make a reply
+    child = create_comment(user=user1, on_post=post, text="Reply", parent=comment)
+    assert child.is_private is False
+    assert child.parent == child.root == comment
+
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 2
+
+
+def test_create_comment__private_happy_path(post, user1):
+    comment = create_comment(user=user1, on_post=post, text="Private Comment", is_private=True)
+    assert comment.text == "Private Comment"
+
+    # Check counter, should not be affected
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 0
+
+    # Make a reply
+    child = create_comment(user=user1, on_post=post, text="Reply", parent=comment)
+    assert child.is_private
+    assert child.parent == child.root == comment
+
+    # Still nothing
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 0
+
 
 @pytest.mark.parametrize(
     "target_username,comment_author_perms,mention,mention_label",

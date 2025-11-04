@@ -1,6 +1,16 @@
 import datetime
 import difflib
 
+from comments.models import (
+    ChangedMyMindEntry,
+    Comment,
+    CommentDiff,
+    CommentsOfTheWeekEntry,
+    CommentVote,
+    KeyFactor,
+    KeyFactorVote,
+)
+from comments.services.spam_detection import check_and_handle_comment_spam
 from django.db import transaction
 from django.db.models import (
     F,
@@ -15,23 +25,13 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
-
-from comments.models import (
-    ChangedMyMindEntry,
-    Comment,
-    CommentDiff,
-    CommentsOfTheWeekEntry,
-    CommentVote,
-    KeyFactor,
-    KeyFactorVote,
-)
-from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
+from rest_framework.exceptions import ValidationError
 from users.models import User
+
 from ..tasks import run_on_post_comment_create
 
 spam_error = ValidationError(
@@ -84,6 +84,11 @@ def create_comment(
     text: str = None,
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
+    root = parent.root or parent if parent else None
+
+    # Inherit root comment privacy
+    if root:
+        is_private = root.is_private
 
     with transaction.atomic():
         obj = Comment(
