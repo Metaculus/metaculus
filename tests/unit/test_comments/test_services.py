@@ -1,7 +1,4 @@
 import pytest  # noqa
-from freezegun import freeze_time
-from rest_framework.exceptions import ValidationError
-
 from comments.models import KeyFactorVote, KeyFactorDriver
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors.common import (
@@ -10,8 +7,10 @@ from comments.services.key_factors.common import (
     calculate_freshness_driver,
 )
 from comments.services.notifications import notify_mentioned_users
+from freezegun import freeze_time
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
+from rest_framework.exceptions import ValidationError
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
@@ -51,7 +50,9 @@ def test_create_comment__happy_path(post, user1):
 
 
 def test_create_comment__private_happy_path(post, user1):
-    comment = create_comment(user=user1, on_post=post, text="Private Comment", is_private=True)
+    comment = create_comment(
+        user=user1, on_post=post, text="Private Comment", is_private=True
+    )
     assert comment.text == "Private Comment"
 
     # Check counter, should not be affected
