@@ -15,9 +15,9 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
-import KeyFactorsAddForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/key_factors_add_form";
-import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
+import KeyFactorsAddFormWithCtx from "@/app/(main)/questions/[id]/components/key_factors/add_modal/key_factors_add_form_with_ctx";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
+import { useKeyFactorsCtx } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
 import { driverTextSchema } from "@/app/(main)/questions/[id]/components/key_factors/schemas";
 import {
   createForecasts,
@@ -42,7 +42,6 @@ import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
 import { CommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
-import type { KeyFactorDraft } from "@/types/key_factors";
 import {
   PostStatus,
   PostWithForecasts,
@@ -228,18 +227,13 @@ const Comment: FC<CommentProps> = ({
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
-  const keyFactorFormRef = useRef<HTMLDivElement>(null);
+  const requestedSuggestionsRef = useRef(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editorKey, setEditorKey] = useState<number>(0);
   const originalTextRef = useRef<string>(comment.text);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
-  const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
-    {
-      driver: { text: "", impact_direction: null, certainty: null },
-    },
-  ]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
@@ -289,42 +283,56 @@ const Comment: FC<CommentProps> = ({
   const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
     useState(isCommentJustCreated);
 
-  const [loadKeyFactors, setLoadKeyFactors] = useState(
-    isCommentJustCreated && shouldSuggestKeyFactors
-  );
-
-  const onKeyFactorsLoaded = (keyFactorsLoaded: boolean) => {
-    setIsKeyfactorsFormOpen(keyFactorsLoaded || !suggestKeyFactorsFirstRender);
-    setSuggestKeyFactorsFirstRender(false);
-    setLoadKeyFactors(false);
-    if (keyFactorsLoaded) {
-      setTimeout(() => {
-        if (keyFactorFormRef.current) {
-          scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
-        }
-      }, 200);
-    }
-  };
-
   const { comments, setComments, combinedKeyFactors } = useCommentsFeed();
   const {
     errors: keyFactorsErrors,
     setErrors: setKeyFactorsErrors,
     suggestedKeyFactors,
-    setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
-    limitError,
     factorsLimit,
     submit,
     isPending,
-    clearState,
-  } = useKeyFactors({
-    suggestKeyFactors: loadKeyFactors,
-    user_id: user?.id,
-    commentId: comment.id,
-    postId: comment.on_post_data?.id,
-    onKeyFactorsLoaded,
-  });
+    drafts,
+    resetAll,
+    setDrafts,
+    loadSuggestions,
+  } = useKeyFactorsCtx();
+
+  useEffect(() => {
+    if (!shouldSuggestKeyFactors) return;
+
+    if (suggestKeyFactorsFirstRender) {
+      if (!isLoadingSuggestedKeyFactors) {
+        setIsKeyfactorsFormOpen(true);
+        if (
+          suggestedKeyFactors.length === 0 &&
+          !requestedSuggestionsRef.current
+        ) {
+          requestedSuggestionsRef.current = true;
+          loadSuggestions();
+        }
+        setSuggestKeyFactorsFirstRender(false);
+      }
+      return;
+    }
+
+    if (
+      isKeyfactorsFormOpen &&
+      !isLoadingSuggestedKeyFactors &&
+      suggestedKeyFactors.length === 0 &&
+      !requestedSuggestionsRef.current
+    ) {
+      loadSuggestions();
+    }
+  }, [
+    shouldSuggestKeyFactors,
+    suggestKeyFactorsFirstRender,
+    isKeyfactorsFormOpen,
+    isLoadingSuggestedKeyFactors,
+    suggestedKeyFactors.length,
+    loadSuggestions,
+    setIsKeyfactorsFormOpen,
+  ]);
 
   const commentKeyFactors = useMemo(
     () => combinedKeyFactors.filter((kf) => kf.comment_id === comment.id),
@@ -349,21 +357,12 @@ const Comment: FC<CommentProps> = ({
 
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
-    clearState();
+    resetAll();
     setDrafts([
-      {
-        driver: { text: "", impact_direction: null, certainty: null },
-      },
+      { driver: { text: "", impact_direction: null, certainty: null } },
     ]);
-    if (isKeyfactorsFormOpen) {
-      setIsKeyfactorsFormOpen(false);
-    } else if (shouldSuggestKeyFactors) {
-      setLoadKeyFactors(true);
-    } else {
-      setIsKeyfactorsFormOpen(true);
-    }
+    setIsKeyfactorsFormOpen((open) => !open);
   };
-
   const openEdit = useCallback(() => {
     setTempCommentMarkdown(originalTextRef.current);
     setIsEditing(true);
@@ -374,7 +373,7 @@ const Comment: FC<CommentProps> = ({
   }, [editDraftReady, editInitialMarkdown]);
 
   const handleSubmit = async () => {
-    const result = await submit(drafts, suggestedKeyFactors);
+    const result = await submit();
     if (result && "errors" in result) {
       setKeyFactorsErrors(result.errors);
       return;
@@ -395,7 +394,7 @@ const Comment: FC<CommentProps> = ({
         )
       );
 
-      clearState();
+      resetAll();
       setComments(updatedComments);
       setTimeout(() => {
         if (commentRef.current) {
@@ -408,11 +407,9 @@ const Comment: FC<CommentProps> = ({
 
   const onCancel = () => {
     setIsKeyfactorsFormOpen(false);
-    clearState();
+    resetAll();
     setDrafts([
-      {
-        driver: { text: "", impact_direction: null, certainty: null },
-      },
+      { driver: { text: "", impact_direction: null, certainty: null } },
     ]);
   };
 
@@ -982,15 +979,7 @@ const Comment: FC<CommentProps> = ({
             )
           }
         >
-          <KeyFactorsAddForm
-            drafts={drafts}
-            setDrafts={setDrafts}
-            factorsLimit={factorsLimit}
-            limitError={limitError}
-            suggestedKeyFactors={suggestedKeyFactors}
-            setSuggestedKeyFactors={setSuggestedKeyFactors}
-            post={postData}
-          />
+          <KeyFactorsAddFormWithCtx post={postData} />
           <p className="m-0">{t("addDriverCommentDisclaimer")}</p>
           <FormError errors={keyFactorsErrors} />
         </CommentForm>
