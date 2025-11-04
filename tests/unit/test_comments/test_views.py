@@ -368,7 +368,7 @@ class TestCommentCreation:
                             "projected_value": 250.5,
                             "projected_by_year": 2025,
                             "unit": "billion USD",
-                            "extrapolation": "trend",
+                            "extrapolation": "other",
                             "based_on": "Moore's Law extrapolation",
                             "source": "Semiconductor Industry Association",
                         }
@@ -388,7 +388,7 @@ class TestCommentCreation:
         assert kf["base_rate"]["projected_value"] == 250.5
         assert kf["base_rate"]["projected_by_year"] == 2025
         assert kf["base_rate"]["unit"] == "billion USD"
-        assert kf["base_rate"]["extrapolation"] == "trend"
+        assert kf["base_rate"]["extrapolation"] == "other"
         assert kf["base_rate"]["based_on"] == "Moore's Law extrapolation"
         assert kf["base_rate"]["source"] == "Semiconductor Industry Association"
         assert kf["driver"] is None
