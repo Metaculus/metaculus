@@ -3,12 +3,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { ElementType, FC, PropsWithChildren, useState } from "react";
 
-import AddKeyFactorsModal from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
+
+import KeyFactorsAddModal from "./add_modal/key_factors_add_modal";
 
 type Props = {
   onClick: (event: React.MouseEvent) => void;
@@ -60,7 +61,7 @@ export const AddKeyFactorsButton: FC<AddKeyFactorsButtonProps> = ({
   return (
     <>
       {user && (
-        <AddKeyFactorsModal
+        <KeyFactorsAddModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           post={post}
