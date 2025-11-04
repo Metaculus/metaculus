@@ -19,7 +19,7 @@ const nextConfig = {
       dynamic: 30,
       static: 180,
     },
-    serverSourceMaps: GENERATE_SOURCE_MAPS,
+    serverSourceMaps: true,
     serverActions: {
       bodySizeLimit: "3mb", // match GIF size limit on the server
     },
