@@ -1,4 +1,7 @@
 import pytest  # noqa
+from freezegun import freeze_time
+from rest_framework.exceptions import ValidationError
+
 from comments.models import KeyFactorVote, KeyFactorDriver
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors.common import (
@@ -7,10 +10,8 @@ from comments.services.key_factors.common import (
     calculate_freshness_driver,
 )
 from comments.services.notifications import notify_mentioned_users
-from freezegun import freeze_time
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
-from rest_framework.exceptions import ValidationError
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
