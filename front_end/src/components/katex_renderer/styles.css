@@ -1,3 +1,12 @@
 span.katex {
   @apply !whitespace-normal;
 }
+
+/* Dark mode styles for KaTeX */
+.dark span.katex {
+  color: white;
+}
+
+.dark span.katex .katex-html {
+  color: white;
+}
