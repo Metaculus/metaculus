@@ -1663,5 +1663,6 @@
   "whatIsSpotPeerScore": "什麼是Spot同行分數？",
   "whatIsSpotBaselineScore": "什麼是Spot基線分數？",
   "chanceBaseline": "機會<secondary>基線</secondary>",
+  "baseRate": "基本費率",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

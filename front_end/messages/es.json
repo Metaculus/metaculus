@@ -1666,5 +1666,6 @@
   "whatIsSpotPeerScore": "¿Qué es la Puntuación de Pares Puntual?",
   "whatIsSpotBaselineScore": "¿Qué es la Puntuación Base Puntual?",
   "chanceBaseline": "Línea base <secondary>de azar</secondary>",
+  "baseRate": "Tarifa base",
   "othersCount": "Otros ({count})"
 }

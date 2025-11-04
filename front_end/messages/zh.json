@@ -1668,5 +1668,6 @@
   "whatIsSpotPeerScore": "什么是即时报同行得分？",
   "whatIsSpotBaselineScore": "什么是即时报基准得分？",
   "chanceBaseline": "机会<secondary>基准</secondary>",
+  "baseRate": "基准费率",
   "othersCount": "其他（{count}）"
 }

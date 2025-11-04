@@ -1666,5 +1666,6 @@
   "whatIsSpotPeerScore": "Co je Spot Peer skóre?",
   "whatIsSpotBaselineScore": "Co je Spot základní skóre?",
   "chanceBaseline": "Náhodná <secondary>základní hodnota</secondary>",
+  "baseRate": "Základní sazba",
   "othersCount": "Ostatní ({count})"
 }
