@@ -1665,7 +1665,6 @@
   "whatIsSpotPeerScore": "Co je Spot Peer skóre?",
   "whatIsSpotBaselineScore": "Co je Spot základní skóre?",
   "chanceBaseline": "Náhodná <secondary>základní hodnota</secondary>",
-  "baseRate": "Základní sazba",
   "addBaseRate": "Přidat základní sazbu",
   "pleaseAddAtLeastOneBaseRate": "Prosím přidejte alespoň jednu platnou základní sazbu.",
   "trend": "Trend",
@@ -1713,5 +1712,6 @@
   "askAnLLMDescription": "Pošleme informace o otázce a váš komentář LLM, aby za vás vygeneroval klíčové faktory.",
   "generatedKeyFactors": "Vygenerované klíčové faktory",
   "noGeneratedKeyFactors": "Nepodařilo se nám automaticky vygenerovat klíčové faktory z tohoto komentáře. Můžete je přidat ručně.",
+  "baseRate": "Základní sazba",
   "othersCount": "Ostatní ({count})"
 }
