@@ -9,6 +9,8 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     user = BaseUserSerializer(required=False)
     aggregation_method = serializers.CharField()
     score = serializers.FloatField()
+    ci_lower = serializers.FloatField()
+    ci_upper = serializers.FloatField()
     rank = serializers.IntegerField()
     excluded = serializers.BooleanField()
     show_when_excluded = serializers.BooleanField()
@@ -26,6 +28,8 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "user",
             "aggregation_method",
             "score",
+            "ci_lower",
+            "ci_upper",
             "rank",
             "excluded",
             "show_when_excluded",

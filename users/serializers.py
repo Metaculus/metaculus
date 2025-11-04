@@ -27,11 +27,20 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "username",
             "is_bot",
             "is_staff",
+            "metadata",
         )
+
+    def get_metadata(self, obj: User):
+        data = obj.metadata
+        if data is None or not isinstance(data, dict):
+            return data
+        # only bot_details is public, other public fields may be added
+        return {key: value for key, value in data.items() if key == "bot_details"}
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
     formerly_known_as = serializers.SerializerMethodField()
+    metadata = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -57,13 +66,22 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "occupation",
             "location",
             "profile_picture",
+            "metadata",
         )
 
     def get_formerly_known_as(self, obj: User):
         return obj.get_formerly_known_as()
 
+    def get_metadata(self, obj: User):
+        data = obj.metadata
+        if data is None or not isinstance(data, dict):
+            return data
+        # only bot_details is public, other public fields may be added
+        return {key: value for key, value in data.items() if key == "bot_details"}
+
 
 class UserPrivateSerializer(UserPublicSerializer):
+    metadata = serializers.JSONField(read_only=True)
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
 

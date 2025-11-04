@@ -8,6 +8,8 @@ import {
   useState,
 } from "react";
 
+import { CommentType } from "@/types/comment";
+
 export type ModalType =
   | "signin"
   | "signup"
@@ -17,7 +19,8 @@ export type ModalType =
   | "contactUs"
   | "onboarding"
   | "confirm"
-  | "accountInactive";
+  | "accountInactive"
+  | "disputeKeyFactor";
 
 type ModalDataByType = {
   signin: Record<string, never>;
@@ -27,8 +30,22 @@ type ModalDataByType = {
   resetPasswordConfirm: Record<string, never>;
   contactUs: Record<string, never>;
   onboarding: Record<string, never>;
-  confirm: { onConfirm: () => void };
+  confirm: {
+    title: string;
+    description?: string;
+    actionText?: string;
+    onConfirm: () => void;
+    onClose?: () => void;
+  };
   accountInactive: { login: string };
+  disputeKeyFactor: {
+    keyFactorId: number;
+    parentCommentId: number;
+    postId: number;
+    onOptimisticAdd: (text: string) => number | Promise<number>;
+    onFinalize: (tempId: number, real: CommentType) => void;
+    onRemove: (tempId: number) => void;
+  };
 };
 
 export type CurrentModal<T extends ModalType = ModalType> = {

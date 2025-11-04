@@ -23,4 +23,9 @@ urlpatterns = [
         views.delete_link_api_view,
         name="delete-link",
     ),
+    path(
+        "coherence/links/<int:pk>/needs-update",
+        views.get_questions_requiring_update,
+        name="needs-update",
+    ),
 ]

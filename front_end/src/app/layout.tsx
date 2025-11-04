@@ -29,6 +29,8 @@ import { logError } from "@/utils/core/errors";
 import { getFontsString } from "@/utils/fonts";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+import { AllBWPixelTagsForRegisteredUsers } from "./(campaigns-registration)/(bridgewater)/bridgewater/components/pixels-tags";
+
 config.autoAddCss = false;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -130,6 +132,8 @@ export default async function RootLayout({
                 </NextIntlClientProvider>
               </AppThemeProvider>
             </AuthProvider>
+            {/* TODO: remove this after the campaign is over */}
+            <AllBWPixelTagsForRegisteredUsers />
           </CSPostHogProvider>
         </PolyfillProvider>
       </body>

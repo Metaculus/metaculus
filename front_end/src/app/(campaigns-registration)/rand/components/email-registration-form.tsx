@@ -119,20 +119,7 @@ const PROGRAM_TYPE_OPTIONS = [
 ];
 
 const emailRegistrationSchema = z.object({
-  email: z
-    .string()
-    .email("Please enter a valid email address")
-    .refine((email) => {
-      const lowerEmail = email.toLowerCase();
-      return (
-        lowerEmail.endsWith(".edu") ||
-        lowerEmail.endsWith(".ac.uk") ||
-        lowerEmail.endsWith(".ac.kr") ||
-        lowerEmail.endsWith(".int") ||
-        lowerEmail.endsWith(".mil") ||
-        lowerEmail.endsWith("@metaculus.com")
-      );
-    }, "Please use an eligible email address (.edu, .ac.uk, .ac.kr, .int, or .mil)"),
+  email: z.string().email("Please enter a valid email address"),
   university: z.string().min(1, "University is required"),
   fieldOfStudy: z.string().min(1, "Field of study is required"),
   programType: z.string().min(1, "Program type is required"),
@@ -237,8 +224,7 @@ export const EmailRegistrationForm: FC<EmailRegistrationFormProps> = ({
         <p className="my-0 text-balance text-sm text-white/90 dark:text-gray-200 md:text-base">
           Complete the form below to be eligible for prizes.{" "}
           <strong>Undergraduate students only</strong> are eligible for prizes.
-          Please register with your school email address (.edu, .ac.uk, .ac.kr,
-          .int, or .mil).
+          Please register with your school email address.
         </p>
       </div>
 
@@ -253,7 +239,7 @@ export const EmailRegistrationForm: FC<EmailRegistrationFormProps> = ({
             >
               <Input
                 type="email"
-                placeholder="Enter your email address (.edu, .ac.uk, .ac.kr, .int or .mil)"
+                placeholder="Enter your school email address"
                 className="block w-full rounded border border-white/20 bg-white/10 px-3 py-2 font-normal text-white placeholder:text-white/60 focus:border-white/40 focus:bg-white/15 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400 dark:focus:border-gray-500 dark:focus:bg-gray-600"
                 disabled={submissionState.status === "loading"}
                 {...register("email")}
@@ -499,8 +485,8 @@ export const EmailRegistrationForm: FC<EmailRegistrationFormProps> = ({
             )}
           </p>
           <p className="text-xs">
-            Sign up with your .edu, .ac.uk, .ac.kr, .int, or .mil email to
-            participate. You can still use this account for the tournament.
+            Please use your school email to register for prize eligibility. You
+            can still use this account for the tournament.
           </p>
         </div>
       )}

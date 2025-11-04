@@ -25,7 +25,7 @@
 
             </mj-column>
         </mj-section>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        
         <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
     </mj-body>
 </mjml>

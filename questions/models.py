@@ -147,6 +147,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""Time when the community prediction is revealed.""",
+        db_index=True,
     )
     spot_scoring_time = models.DateTimeField(
         null=True,
@@ -294,7 +295,11 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     @property
     def is_cp_hidden(self):
-        return self.cp_reveal_time and self.cp_reveal_time > timezone.now()
+        return (
+            not self.resolution  # always show cp when resolved or annulled
+            and self.cp_reveal_time
+            and self.cp_reveal_time > timezone.now()
+        )
 
     def get_global_leaderboard_dates(
         self, gl_dates: list[tuple[datetime, datetime]] | None = None

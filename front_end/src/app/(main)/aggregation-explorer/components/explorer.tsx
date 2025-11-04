@@ -26,7 +26,7 @@ import { logError } from "@/utils/core/errors";
 import { parseQuestionId } from "@/utils/questions/helpers";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
-import { AggregationMethodWithBots } from "../types";
+import { AggregationExtraMethod } from "../types";
 
 function sanitizeUserIds(input: string): number[] {
   if (!input) return [];
@@ -59,7 +59,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     string | number | null
   >(parseSubQuestionOption(question_id, option));
 
-  const [activeTab, setActiveTab] = useState<AggregationMethodWithBots | null>(
+  const [activeTab, setActiveTab] = useState<AggregationExtraMethod | null>(
     null
   );
   const [postInputText, setPostInputText] = useState<string>(
@@ -74,6 +74,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       ? searchParams.user_ids[0]
       : searchParams.user_ids
     )?.toString() || ""
+  );
+  const [joinedBeforeDate, setJoinedBeforeDate] = useState<string>(
+    (Array.isArray(searchParams.joined_before_date)
+      ? searchParams.joined_before_date[0]
+      : searchParams.joined_before_date) || ""
   );
 
   // clear subquestion options when post id input changes
@@ -170,6 +175,10 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       params.set("user_ids", cleanedIds.join(","));
     }
 
+    if (joinedBeforeDate.trim()) {
+      params.set("joined_before_date", joinedBeforeDate);
+    }
+
     router.push(`/aggregation-explorer?${params.toString()}`);
   };
 
@@ -213,6 +222,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             onTabChange={setActiveTab}
             data={data}
             selectedSubQuestionOption={selectedSubQuestionOption}
+            joinedBeforeDate={joinedBeforeDate || undefined}
             additionalParams={{ userIds: sanitizeUserIds(userIdsText) }}
           />
         </>
@@ -291,7 +301,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             value={selectedSubQuestionOption}
             onChange={handleSubQuestionSelectChange}
           />
-          {user?.is_staff && (
+          {
             // TODO: move "include bots" to here instead of in each tab
             // user ids should only be avilable to staff or whitelisted users
             // copy logic and parameters from the download data modal
@@ -299,26 +309,42 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               <SectionToggle
                 title="Advanced options"
                 variant="light"
-                defaultOpen={!!userIdsText}
+                defaultOpen={!!userIdsText || !!joinedBeforeDate}
               >
                 <div className="space-y-3">
+                  {user?.is_staff && (
+                    <div>
+                      <label className="mb-1 block text-sm">
+                        User Ids (comma-separated integers). Will act as if
+                        these are the only participants.
+                      </label>
+                      <Input
+                        name="user_ids"
+                        type="text"
+                        value={userIdsText}
+                        onChange={(e) => setUserIdsText(e.target.value)}
+                        className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-2 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <label className="mb-1 block text-sm">
-                      User Ids (comma-separated integers). Will act as if these
-                      are the only participants.
+                      Filter for users who joined before date. Only effects
+                      Joined Before aggregation.
                     </label>
                     <Input
-                      name="user_ids"
-                      type="text"
-                      value={userIdsText}
-                      onChange={(e) => setUserIdsText(e.target.value)}
+                      name="joined_before_date"
+                      type="date"
+                      value={joinedBeforeDate}
+                      onChange={(e) => setJoinedBeforeDate(e.target.value)}
                       className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-2 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
                     />
                   </div>
                 </div>
               </SectionToggle>
             </div>
-          )}
+          }
           <Button
             variant="primary"
             type="submit"

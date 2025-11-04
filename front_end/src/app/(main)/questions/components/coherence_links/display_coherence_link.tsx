@@ -11,7 +11,6 @@ import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   CoherenceLink,
-  Directions,
   Certainty,
   FetchedAggregateCoherenceLink,
 } from "@/types/coherence";
@@ -27,32 +26,22 @@ type Props = {
 };
 
 const DirectionComponent: FC<{
-  direction: Directions;
+  direction: number;
   typeOfSecondQuestion: QuestionType | null;
 }> = ({ direction, typeOfSecondQuestion }) => {
   const t = useTranslations();
   if (!typeOfSecondQuestion) return null;
   switch (direction) {
-    case Directions.Positive:
+    case +1:
       return (
         <span className={"font-bold text-olive-700 dark:text-olive-700-dark"}>
-          {t(
-            getTermByDirectionAndQuestionType(
-              Directions.Positive,
-              typeOfSecondQuestion
-            )
-          )}
+          {t(getTermByDirectionAndQuestionType(+1, typeOfSecondQuestion))}
         </span>
       );
-    case Directions.Negative:
+    case -1:
       return (
         <span className={"font-bold text-salmon-600 dark:text-salmon-600-dark"}>
-          {t(
-            getTermByDirectionAndQuestionType(
-              Directions.Negative,
-              typeOfSecondQuestion
-            )
-          )}
+          {t(getTermByDirectionAndQuestionType(-1, typeOfSecondQuestion))}
         </span>
       );
   }

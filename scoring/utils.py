@@ -48,34 +48,57 @@ from scoring.models import (
 from scoring.score_math import evaluate_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
-from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
 
 logger = logging.getLogger(__name__)
 
 
-def score_question(
+def get_question_scores(
     question: Question,
-    resolution: str,
-    spot_scoring_time: float | None = None,
+    resolution: str | None,
+    spot_scoring_time: datetime | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
-    protect_uncalculated_scores: bool = False,
-    score_users: bool | list[int] = True,
-):
+    only_include_user_ids: list[int] | None = None,
+) -> list[Score]:
     if aggregation_methods is None:
         aggregation_methods = [
             AggregationMethod.RECENCY_WEIGHTED,
             AggregationMethod.UNWEIGHTED,
         ]
-    resolution_bucket = string_location_to_bucket_index(resolution, question)
     if not spot_scoring_time:
-        sst = question.get_spot_scoring_time()
-        spot_scoring_time = sst.timestamp() if sst else None
-    score_types = score_types or [
-        c[0] for c in ScoreTypes.choices if c[0] != ScoreTypes.MANUAL
-    ]
+        spot_scoring_time = question.get_spot_scoring_time()
+    score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
 
+    new_scores = evaluate_question(
+        question=question,
+        resolution=resolution,
+        score_types=score_types,
+        spot_forecast_time=spot_scoring_time,
+        aggregation_methods=aggregation_methods,
+        only_include_user_ids=only_include_user_ids,
+    )
+    return new_scores
+
+
+def score_question(
+    question: Question,
+    resolution: str,
+    spot_scoring_time: datetime | None = None,
+    score_types: list[str] | None = None,
+    aggregation_methods: list[AggregationMethod] | None = None,
+    only_include_user_ids: list[int] | None = None,
+    protect_uncalculated_scores: bool = False,
+):
+    score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
+    new_scores = get_question_scores(
+        question=question,
+        resolution=resolution,
+        spot_scoring_time=spot_scoring_time,
+        score_types=score_types,
+        aggregation_methods=aggregation_methods,
+        only_include_user_ids=only_include_user_ids,
+    )
     previous_scores = Score.objects.filter(
         question=question, score_type__in=score_types
     )
@@ -83,15 +106,6 @@ def score_question(
         (score.user_id, score.aggregation_method, score.score_type): score.id
         for score in previous_scores
     }
-    new_scores = evaluate_question(
-        question=question,
-        resolution_bucket=resolution_bucket,
-        score_types=score_types,
-        spot_forecast_timestamp=spot_scoring_time,
-        aggregation_methods=aggregation_methods,
-        score_users=score_users,
-    )
-
     seen = set()
     for new_score in new_scores:
         previous_score_id = previous_scores_map.get(

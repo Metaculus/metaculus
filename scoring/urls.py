@@ -5,12 +5,12 @@ from . import views
 urlpatterns = [
     path(
         "leaderboards/global/",
-        views.global_leaderboard,
+        views.global_leaderboard_view,
         name="global-leaderboard",
     ),
     path(
         "leaderboards/project/<int:project_id>/",
-        views.project_leaderboard,
+        views.project_leaderboard_view,
         name="project-leaderboard",
     ),
     path(

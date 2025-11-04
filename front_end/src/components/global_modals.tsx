@@ -64,6 +64,11 @@ const ConfirmModal = dynamic(() => import("@/components/confirm_modal"), {
   ssr: false,
 });
 
+const DisputeKeyFactorModal = dynamic(
+  () => import("@/components/dispute_key_factor_modal"),
+  { ssr: false }
+);
+
 function isModal<T extends ModalType>(
   m: CurrentModal | null,
   type: T
@@ -115,8 +120,23 @@ const GlobalModals: FC = () => {
       {isModal(currentModal, "confirm") && (
         <ConfirmModal
           isOpen
-          onClose={onClose}
+          onCloseModal={onClose}
+          title={currentModal.data?.title ?? ""}
+          description={currentModal.data?.description}
           onConfirm={currentModal.data?.onConfirm ?? (() => {})}
+          onClose={currentModal.data?.onClose}
+          actionText={currentModal.data?.actionText}
+        />
+      )}
+      {isModal(currentModal, "disputeKeyFactor") && currentModal.data && (
+        <DisputeKeyFactorModal
+          isOpen
+          onClose={onClose}
+          parentCommentId={currentModal.data.parentCommentId}
+          postId={currentModal.data.postId}
+          onOptimisticAdd={currentModal.data.onOptimisticAdd}
+          onFinalize={currentModal.data.onFinalize}
+          onRemove={currentModal.data.onRemove}
         />
       )}
     </>

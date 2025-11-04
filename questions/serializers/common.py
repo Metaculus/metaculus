@@ -609,9 +609,10 @@ def serialize_question(
     )
 
     if question_movement:
-        serialized_data["aggregations"][question.default_aggregation_method][
-            "movement"
-        ] = question_movement
+        if default_agg := serialized_data["aggregations"].get(
+            question.default_aggregation_method
+        ):
+            default_agg["movement"] = question_movement
 
     if (
         current_user
@@ -621,6 +622,14 @@ def serialize_question(
         scores = question.user_scores
         archived_scores = question.user_archived_scores
         user_forecasts = question.request_user_forecasts
+        last_forecast = user_forecasts[-1] if user_forecasts else None
+        if (
+            last_forecast
+            and last_forecast.end_time
+            and question.actual_close_time
+            and (last_forecast.end_time > question.actual_close_time)
+        ):
+            last_forecast.end_time = None
         serialized_data["my_forecasts"] = {
             "history": MyForecastSerializer(
                 user_forecasts,
@@ -678,15 +687,30 @@ def serialize_conditional(
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
+    parent_question_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.condition) or []
+        if aggregate_forecasts
+        else None
+    )
+    child_question_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.condition_child) or []
+        if aggregate_forecasts
+        else None
+    )
+
     serialized_data["condition"] = serialize_question(
         conditional.condition,
+        current_user=current_user,
         post=conditional.condition.get_post(),
+        aggregate_forecasts=parent_question_aggregate_forecasts,
         include_descriptions=include_descriptions,
     )
+
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         current_user=current_user,
         post=conditional.condition_child.get_post(),
+        aggregate_forecasts=child_question_aggregate_forecasts,
         include_descriptions=include_descriptions,
     )
 
@@ -842,7 +866,7 @@ def serialize_question_movement(
     divergence = prediction_difference_for_sorting(
         f1.forecast_values,
         f2.forecast_values,
-        question,
+        question.type,
     )
 
     if divergence >= threshold:
@@ -852,14 +876,19 @@ def serialize_question_movement(
             question,
         )
 
+        options_count = len(display_diff)
+
         # Finds max difference for multiple choice cases
-        direction, change = max(display_diff, key=lambda x: x[1])
+        option_index, (direction, change) = max(
+            enumerate(display_diff), key=lambda x: x[1][1]
+        )
 
         return {
             "divergence": divergence,
             "direction": direction,
             "movement": change,
             "period": period,
+            "option_index": option_index if options_count > 1 else None,
         }
 
     return

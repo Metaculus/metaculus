@@ -69,13 +69,19 @@ type FiltersFromSearchParamsOptions = {
   defaultOrderBy?: string;
   defaultForMainFeed?: boolean;
   withoutPageParam?: boolean;
+  filterForConsumerView?: boolean;
 };
 
 export function generateFiltersFromSearchParams(
   searchParams: SearchParams,
   options: FiltersFromSearchParamsOptions = {}
 ): PostsParams {
-  const { defaultOrderBy, defaultForMainFeed, withoutPageParam } = options;
+  const {
+    defaultOrderBy,
+    defaultForMainFeed,
+    withoutPageParam,
+    filterForConsumerView,
+  } = options;
   const filters: PostsParams = {};
 
   if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
@@ -146,6 +152,14 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_ACCESS_FILTER] === "string") {
     filters.access = searchParams[POST_ACCESS_FILTER];
+  }
+
+  if (
+    typeof filterForConsumerView !== "undefined" &&
+    !filters.search &&
+    !filters.statuses
+  ) {
+    filters.for_consumer_view = filterForConsumerView.toString();
   }
 
   if (typeof searchParams[POST_ORDER_BY_FILTER] === "string") {

@@ -13,6 +13,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
@@ -105,7 +106,8 @@ def get_bulletins(request):
     return Response(bulletins_ser)
 
 
-@cache_page(60 * 60 * 24)
+# TODO: return to 24 hr cache after crossing 3M predictions
+@cache_page(60 * 60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_site_stats(request):
@@ -114,9 +116,9 @@ def get_site_stats(request):
     stats = {
         "predictions": Forecast.objects.filter(question__in=public_questions).count(),
         "questions": public_questions.count(),
-        "resolved_questions": public_questions.filter(
-            actual_resolve_time__isnull=False
-        ).count(),
+        "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
+        .exclude(resolution__in=UnsuccessfulResolutionType)
+        .count(),
         "years_of_predictions": now_year - 2015 + 1,
     }
     return JsonResponse(stats)

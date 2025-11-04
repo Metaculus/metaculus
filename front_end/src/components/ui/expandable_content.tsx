@@ -1,11 +1,13 @@
 "use client";
-import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isNil } from "lodash";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
+import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -14,6 +16,7 @@ type Props = {
   collapseLabel?: string;
   className?: string;
   gradientClassName?: string;
+  forceState?: boolean;
 };
 
 const ExpandableContent: FC<PropsWithChildren<Props>> = ({
@@ -22,22 +25,41 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   maxCollapsedHeight = 128,
   gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
+  forceState,
   children,
 }) => {
   const t = useTranslations();
   const expandLabel = _expandLabel ?? t("expand");
   const collapseLabel = _collapseLabel ?? t("collapse");
 
-  const ref = useRef<HTMLDivElement>(null);
+  const { ref, height, width } = useContainerSize<HTMLDivElement>();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isExpandable, setIsExpandable] = useState(true);
+  const [isExpandable, setIsExpandable] = useState(false);
+  const userInteractedRef = useRef(false);
 
   useEffect(() => {
-    if (ref.current && ref.current.scrollHeight <= maxCollapsedHeight) {
+    const element = ref.current;
+    if (!element) return;
+
+    const contentHeight = element.scrollHeight;
+    if (contentHeight <= maxCollapsedHeight) {
       setIsExpandable(false);
       setIsExpanded(true);
+    } else {
+      setIsExpandable(true);
+      if (!userInteractedRef.current) {
+        setIsExpanded(false);
+      }
     }
-  }, [maxCollapsedHeight]);
+  }, [maxCollapsedHeight, height, width, ref]);
+
+  // Apply externally forced state and mark as user interaction so size effects won't override it.
+  useEffect(() => {
+    if (!isNil(forceState)) {
+      userInteractedRef.current = true;
+      setIsExpanded(forceState);
+    }
+  }, [forceState]);
 
   return (
     <div className={cn(gradientClassName, className)}>
@@ -63,7 +85,10 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
           >
             <Button
               variant="tertiary"
-              onClick={() => setIsExpanded((prev) => !prev)}
+              onClick={() => {
+                userInteractedRef.current = true;
+                setIsExpanded((prev) => !prev);
+              }}
               className="pointer-events-auto"
             >
               <FontAwesomeIcon

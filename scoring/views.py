@@ -30,11 +30,12 @@ from users.views import serialize_profile
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def global_leaderboard(
+def global_leaderboard_view(
     request: Request,
 ):
     serializer = GetLeaderboardSerializer(data=request.GET)
     serializer.is_valid(raise_exception=True)
+    name = serializer.validated_data.get("name")
     score_type = serializer.validated_data.get("score_type")
     start_time = serializer.validated_data.get("start_time")
     end_time = serializer.validated_data.get("end_time")
@@ -43,6 +44,8 @@ def global_leaderboard(
     leaderboards = Leaderboard.objects.filter(
         project__type=Project.ProjectTypes.SITE_MAIN
     )
+    if name:
+        leaderboards = leaderboards.filter(name=name)
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
@@ -58,11 +61,14 @@ def global_leaderboard(
 
     user = request.user
     entries = leaderboard.entries.select_related("user").order_by("rank", "-score")
-    entries = entries.filter(
-        Q(medal__isnull=False)
-        | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
-        | Q(user_id=user.id)
-    )
+    if leaderboard.score_type != LeaderboardScoreTypes.MANUAL:
+        entries = entries.filter(
+            Q(medal__isnull=False)
+            | Q(
+                rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05))
+            )
+            | Q(user_id=user.id)
+        )
 
     if not user.is_staff:
         bot_status: Project.BotLeaderboardStatus = leaderboard.bot_status or (
@@ -92,7 +98,7 @@ def global_leaderboard(
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def project_leaderboard(
+def project_leaderboard_view(
     request: Request,
     project_id: int,
 ):

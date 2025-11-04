@@ -52,6 +52,7 @@ django-select2 = "^8.4.1"
 instructor = "^1.7.7"
 pytz = "^2025.2"
 psycopg2 = "^2.9.10"
+scikit-learn = "^1.7.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

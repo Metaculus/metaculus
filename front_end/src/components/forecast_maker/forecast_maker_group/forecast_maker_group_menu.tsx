@@ -136,7 +136,10 @@ const ForecastMakerGroupControls: FC<Props> = ({
                   onClick: () =>
                     setCurrentModal({
                       type: "confirm",
-                      data: { onConfirm: () => unresolveQuestion(question.id) },
+                      data: {
+                        title: t("confirmUnresolveQuestion"),
+                        onConfirm: () => unresolveQuestion(question.id),
+                      },
                     }),
                 },
               ]

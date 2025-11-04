@@ -188,17 +188,31 @@ class KeyFactorQuerySet(models.QuerySet):
     def filter_active(self):
         return self.filter(is_active=True)
 
+    def annotate_user_vote(self, user: User):
+        """
+        Annotates queryset with the user's vote option
+        """
 
-class ImpactDirection(models.TextChoices):
-    INCREASE = "increase"
-    DECREASE = "decrease"
+        return self.annotate(
+            user_vote=Subquery(
+                KeyFactorVote.objects.filter(
+                    user=user, key_factor=OuterRef("pk")
+                ).values("score")[:1]
+            ),
+        )
+
+
+class ImpactDirection(models.IntegerChoices):
+    INCREASE = 1
+    DECREASE = -1
 
 
 class KeyFactorDriver(TimeStampedModel, TranslatedModel):
     text = models.TextField(blank=True)
-    impact_direction = models.CharField(
+    impact_direction = models.SmallIntegerField(
         choices=ImpactDirection.choices, null=True, blank=True
     )
+    certainty = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"Driver {self.text}"
@@ -206,7 +220,7 @@ class KeyFactorDriver(TimeStampedModel, TranslatedModel):
 
 class KeyFactor(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
-    votes_score = models.IntegerField(default=0, db_index=True, editable=False)
+    votes_score = models.FloatField(default=0, db_index=True, editable=False)
     is_active = models.BooleanField(default=True, db_index=True)
 
     # If KeyFactor is specifically linked to the subquestion
@@ -226,81 +240,60 @@ class KeyFactor(TimeStampedModel):
         KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
     )
 
-    def get_votes_score(self) -> int:
-        """
-        Aggregate function applies only to A-type Votes.
-        B and C types can't be aggregated this way, so we exclude them for now.
-        TODO: This may need to be revisited in the future for broader vote type support.
-        """
-
-        return (
-            self.votes.filter(vote_type=KeyFactorVote.VoteType.A_UPVOTE_DOWNVOTE)
-            .aggregate(Sum("score"))
-            .get("score__sum")
-            or 0
-        )
-
     def get_votes_count(self) -> int:
         """
         Counts the number of votes for the key factor
         """
         return self.votes.aggregate(Count("id")).get("id__count") or 0
 
-    def update_vote_score(self):
-        self.votes_score = self.get_votes_score()
-        self.save(update_fields=["votes_score"])
-
-        return self.votes_score
-
     objects = models.Manager.from_queryset(KeyFactorQuerySet)()
-
-    # Annotated placeholders
-    vote_type: str = None
 
     def __str__(self):
         return f"KeyFactor {getattr(self.comment.on_post, 'title', None)}"
+
+    # Annotated fields
+    user_vote: int = None
 
     class Meta:
         # Used to get rid of the type error which complains
         # about the two Meta classes in the 2 parent classes
         pass
 
+    def get_label(self) -> str:
+        if self.driver_id:
+            return f"Driver {self.driver.text}"
+
+        return "Key Factor"
+
 
 class KeyFactorVote(TimeStampedModel):
     class VoteType(models.TextChoices):
-        A_UPVOTE_DOWNVOTE = "a_updown"
-        B_TWO_STEP_SURVEY = "b_2step"
-        C_LIKERT_SCALE = "c_likert"
+        STRENGTH = "strength"
+        DIRECTION = "direction"
 
-    class VoteScore(models.IntegerChoices):
+    class VoteDirection(models.IntegerChoices):
         UP = 1
         DOWN = -1
-        # Using a simple integer value to encode scores for both B and C options
-        # B and C are conceptually on different scales than A, because they should
-        # capture the change in probability caused by the key factor, and not whether
-        # the key factor is relevant or not (as the UP/DOWN vote type does)
-        # But we do use the same field to store these given this is temporary and simpler.
-        DECREASE_HIGH = -5
-        DECREASE_MEDIUM = -3
-        DECREASE_LOW = -2
+
+    class VoteStrength(models.IntegerChoices):
         NO_IMPACT = 0
-        INCREASE_LOW = 2
-        INCREASE_MEDIUM = 3
-        INCREASE_HIGH = 5
+        LOW_STRENGTH = 1
+        MEDIUM_STRENGTH = 2
+        HIGH_STRENGTH = 5
 
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
     key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
-    score = models.SmallIntegerField(choices=VoteScore.choices, db_index=True)
+    score = models.SmallIntegerField(db_index=True)
     # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
-        choices=VoteType.choices, max_length=20, default=VoteType.A_UPVOTE_DOWNVOTE
+        choices=VoteType.choices, max_length=20, default=VoteType.DIRECTION
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 name="votes_unique_user_key_factor",
-                fields=["user_id", "key_factor_id", "vote_type"],
+                fields=["user_id", "key_factor_id"],
             )
         ]
         indexes = [

@@ -8,12 +8,17 @@ from rest_framework import serializers
 from questions.models import Question
 from questions.serializers.common import serialize_question
 from .models import CoherenceLink, AggregateCoherenceLink
-from .utils import get_aggregation_results, link_to_question_id_pair
+from .utils import (
+    get_aggregation_results,
+    link_to_question_id_pair,
+)
 
 
 class CoherenceLinkSerializer(serializers.ModelSerializer):
     question1_id = serializers.IntegerField(required=True)
     question2_id = serializers.IntegerField(required=True)
+    direction = serializers.IntegerField(required=True)
+    strength = serializers.IntegerField(required=True)
 
     class Meta:
         model = CoherenceLink
@@ -37,6 +42,10 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
             "question2_id",
             "type",
         ]
+
+
+class NeedsUpdateQuerySerializer(serializers.Serializer):
+    datetime = serializers.DateTimeField()
 
 
 def serialize_coherence_link(
@@ -82,8 +91,8 @@ def serialize_aggregate_coherence_link(
         serialized_data["question2"] = serialize_question(question2)
     serialized_data["links_nr"] = len(matching_links)
     direction, strength, rsem = get_aggregation_results(list(matching_links))
-    serialized_data["direction"] = direction.title().lower() if direction else None
-    serialized_data["strength"] = strength.title().lower() if strength else None
+    serialized_data["direction"] = direction
+    serialized_data["strength"] = strength
     serialized_data["rsem"] = rsem if rsem else None
     return serialized_data
 
@@ -94,10 +103,12 @@ def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLi
         pk__in=[c.pk for c in links]
     ).select_related("question1", "question2")
 
-    objects = list(qs.all())
-    objects.sort(key=lambda obj: ids.index(obj.id))
+    aggregate_links = list(qs.all())
+    aggregate_links.sort(key=lambda obj: ids.index(obj.id))
 
-    question_pairs = {(link.question1_id, link.question2_id) for link in objects}
+    question_pairs = {
+        (link.question1_id, link.question2_id) for link in aggregate_links
+    }
 
     # Prefetching can't work because AggregateCoherenceLink share no relation with CoherenceLink
     all_matching_links = CoherenceLink.objects.filter(
@@ -122,8 +133,8 @@ def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLi
             question1=link.question1,
             question2=link.question2,
             matching_links=matching_links_by_pair.getall(
-                link_to_question_id_pair(link)
+                link_to_question_id_pair(link), default=[]
             ),
         )
-        for link in objects
+        for link in aggregate_links
     ]

@@ -27,6 +27,7 @@ export type PostsParams = PaginationParams & {
   usernames?: string | string[];
   leaderboard_tags?: string | string[];
   forecaster_id?: string;
+  for_consumer_view?: string;
   withdrawn?: string;
   not_forecaster_id?: string;
   author?: string;
