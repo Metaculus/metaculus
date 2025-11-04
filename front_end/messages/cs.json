@@ -1558,5 +1558,16 @@
   "confirmDeletionKeyFactorDescription": "Opravdu chcete smazat svůj klíčový faktor?",
   "deleteKeyFactor": "Smazat klíčový faktor",
   "viewAll": "Zobrazit vše ({count})",
+  "reportSpam": "Nahlásit spam",
+  "reportSpamConfirmDescription": "Opravdu chcete označit tento Klíčový Faktor jako spam?",
+  "youFlaggedThisAsSpam": "Označili jste tento klíčový faktor jako spam.",
+  "dispute": "Námitka",
+  "disputeKeyFactor": "Napadnout Klíčový Faktor",
+  "disputeKeyFactorHelp": "Máte názor na tento Klíčový Faktor? Napište komentář; bude zveřejněn jako odpověď na původní komentář.",
+  "writeYourArgument": "Napište svůj argument…",
+  "posting": "Zveřejňování…",
+  "postComment": "Zveřejnit komentář",
+  "sendReport": "Odeslat hlášení",
+  "points": "body",
   "othersCount": "Ostatní ({count})"
 }

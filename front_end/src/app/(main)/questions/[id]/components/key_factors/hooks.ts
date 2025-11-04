@@ -7,6 +7,7 @@ import {
   addKeyFactorsToComment,
   createComment,
   deleteKeyFactor as deleteKeyFactorAction,
+  reportKeyFactor,
 } from "@/app/(main)/questions/actions";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
@@ -269,4 +270,71 @@ export const useKeyFactorDelete = () => {
   );
 
   return { openDeleteModal };
+};
+
+export const useKeyFactorModeration = () => {
+  const t = useTranslations();
+  const { setCurrentModal } = useModal();
+  const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
+  const [doReportKeyFactor] = useServerAction(reportKeyFactor);
+
+  const hideForMe = useCallback(
+    (id: number) => {
+      setCombinedKeyFactors(
+        combinedKeyFactors.map((kf) =>
+          kf.id === id ? ({ ...kf, flagged_by_me: true } as KeyFactor) : kf
+        )
+      );
+    },
+    [combinedKeyFactors, setCombinedKeyFactors]
+  );
+
+  const reportSpam = useCallback(
+    (kf: KeyFactor) => {
+      setCurrentModal({
+        type: "confirm",
+        data: {
+          title: t("reportSpam"),
+          description: t("reportSpamConfirmDescription"),
+          actionText: t("sendReport"),
+          onConfirm: async () => {
+            hideForMe(kf.id);
+            await doReportKeyFactor(kf.id, "spam");
+          },
+        },
+      });
+    },
+    [setCurrentModal, t, hideForMe, doReportKeyFactor]
+  );
+
+  const {
+    optimisticallyAddReplyEnsuringParent,
+    finalizeReply,
+    removeTempReply,
+  } = useCommentsFeed();
+
+  const openDispute = useCallback(
+    (kf: KeyFactor) => {
+      setCurrentModal({
+        type: "disputeKeyFactor",
+        data: {
+          keyFactorId: kf.id,
+          parentCommentId: kf.comment_id,
+          postId: kf.post.id,
+          onOptimisticAdd: (text: string) =>
+            optimisticallyAddReplyEnsuringParent(kf.comment_id, text),
+          onFinalize: finalizeReply,
+          onRemove: removeTempReply,
+        },
+      });
+    },
+    [
+      setCurrentModal,
+      optimisticallyAddReplyEnsuringParent,
+      finalizeReply,
+      removeTempReply,
+    ]
+  );
+
+  return { reportSpam, openDispute };
 };

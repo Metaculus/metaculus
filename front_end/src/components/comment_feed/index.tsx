@@ -302,7 +302,7 @@ const CommentFeed: FC<Props> = ({
           unreadCount++;
         }
         // Count unread replies too
-        comment.children.forEach(countUnread);
+        (comment.children ?? []).forEach(countUnread);
       };
 
       comments.forEach(countUnread);
@@ -519,10 +519,8 @@ function extractUniqueAuthors({
       if (!authorMap.has(comment.author.id)) {
         authorMap.set(comment.author.id, comment.author.username);
       }
-
-      if (comment.children.length) {
-        traverseComments(comment.children);
-      }
+      const kids = comment.children ?? [];
+      if (kids.length) traverseComments(kids);
     }
   };
 

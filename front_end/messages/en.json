@@ -1552,5 +1552,16 @@
   "allSubquestions": "All subquestions",
   "chooseOptionImpactedMost": "Choose an option this driver impacts most:",
   "chooseSubquestionImpactedMost": "Choose a subquestion this driver impacts most:",
+  "reportSpam": "Report spam",
+  "reportSpamConfirmDescription": "Are you sure you want to flag this Key Factor as spam?",
+  "youFlaggedThisAsSpam": "You flagged this key factor as spam.",
+  "dispute": "Dispute",
+  "disputeKeyFactor": "Dispute Key Factor",
+  "disputeKeyFactorHelp": "Have thoughts on this Key Factor? Write a comment; it will be posted as a reply to the original comment.",
+  "writeYourArgument": "Write your argument…",
+  "posting": "Posting…",
+  "postComment": "Post Comment",
+  "sendReport": "Send Report",
+  "points": "points",
   "none": "none"
 }
