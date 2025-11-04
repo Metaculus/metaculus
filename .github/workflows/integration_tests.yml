@@ -81,10 +81,10 @@ jobs:
         id: cache-playwright
         uses: actions/cache@v4
         with:
-          path: .playwright
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
           key: playwright-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            playwright-${{ runner.os }}-
+            playwright-${{ runner.os }}
       - name: Install Playwright deps
         if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: poetry run python -m playwright install chromium --with-deps
@@ -112,8 +112,6 @@ jobs:
         with:
           path: front_end/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('front_end/package-lock.json') }}
-          restore-keys: |
-            node-modules-${{ runner.os }}-
       - name: Install node_modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && npm ci
