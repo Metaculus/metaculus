@@ -23,7 +23,6 @@ type UseKeyFactorsProps = {
   commentId?: number;
   postId?: number;
   suggestKeyFactors?: boolean;
-  onKeyFactorsLoaded?: (success: boolean) => void;
 };
 
 export const useKeyFactors = ({
@@ -31,7 +30,6 @@ export const useKeyFactors = ({
   commentId,
   postId,
   suggestKeyFactors: shouldLoadKeyFactors = false,
-  onKeyFactorsLoaded,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
@@ -68,7 +66,6 @@ export const useKeyFactors = ({
       ClientCommentsApi.getSuggestedKeyFactors(commentId)
         .then((drafts: KeyFactorWritePayload[]) => {
           setSuggestedKeyFactors(drafts);
-          onKeyFactorsLoaded?.(drafts.length !== 0);
           if (drafts.length > 0) {
             setTimeout(() => {
               const el = document.getElementById("suggested-key-factors");
@@ -77,9 +74,6 @@ export const useKeyFactors = ({
               }
             }, 50);
           }
-        })
-        .catch(() => {
-          onKeyFactorsLoaded?.(false);
         })
         .finally(() => {
           setIsLoadingSuggestedKeyFactors(false);
