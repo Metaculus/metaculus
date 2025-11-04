@@ -36,42 +36,6 @@ def serialize_key_factor_votes(
     }
 
 
-def serialize_base_rate_frequency(base_rate: KeyFactorBaseRate) -> dict:
-    """Serializes a BaseRate with frequency type"""
-    return {
-        "type": base_rate.type,
-        "reference_class": base_rate.reference_class,
-        "rate_numerator": base_rate.rate_numerator,
-        "rate_denominator": base_rate.rate_denominator,
-        "unit": base_rate.unit,
-        "source": base_rate.source,
-    }
-
-
-def serialize_base_rate_trend(base_rate: KeyFactorBaseRate) -> dict:
-    """Serializes a BaseRate with trend type"""
-    return {
-        "type": base_rate.type,
-        "reference_class": base_rate.reference_class,
-        "projected_value": base_rate.projected_value,
-        "projected_by_year": base_rate.projected_by_year,
-        "unit": base_rate.unit,
-        "extrapolation": base_rate.extrapolation,
-        "based_on": base_rate.based_on if base_rate.based_on else None,
-        "source": base_rate.source,
-    }
-
-
-def serialize_base_rate(base_rate: KeyFactorBaseRate) -> dict:
-    """Serializes a BaseRate based on its type"""
-    if base_rate.type == KeyFactorBaseRate.BaseRateType.FREQUENCY:
-        return serialize_base_rate_frequency(base_rate)
-    elif base_rate.type == KeyFactorBaseRate.BaseRateType.TREND:
-        return serialize_base_rate_trend(base_rate)
-    else:
-        raise ValidationError(f"Unknown BaseRate type: {base_rate.type}")
-
-
 def serialize_key_factor(
     key_factor: KeyFactor,
     vote_scores: list[KeyFactorVote] = None,
@@ -106,7 +70,9 @@ def serialize_key_factor(
             else None
         ),
         "base_rate": (
-            serialize_base_rate(key_factor.base_rate) if key_factor.base_rate else None
+            BaseRateSerializer(key_factor.base_rate).data
+            if key_factor.base_rate
+            else None
         ),
         "post": {
             "id": key_factor.comment.on_post_id,
