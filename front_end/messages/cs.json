@@ -1636,5 +1636,6 @@
   "aibShowMore": "Zobrazit více ({count})",
   "aibShowMoreAria": "Zobrazit více modelů ({count})",
   "aibSOTALinearTrend": "SOTA lineární trend",
+  "baseRate": "Základní sazba",
   "othersCount": "Ostatní ({count})"
 }

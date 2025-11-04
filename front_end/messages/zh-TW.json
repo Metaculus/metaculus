@@ -1633,5 +1633,6 @@
   "aibShowMore": "顯示更多（{count}）",
   "aibShowMoreAria": "顯示更多型號（{count}）",
   "aibSOTALinearTrend": "SOTA 線性趨勢",
+  "baseRate": "基本費率",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
