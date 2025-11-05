@@ -18,6 +18,7 @@ type CanPredictParams = Pick<
   | "question"
   | "group_of_questions"
   | "conditional"
+  | "projects"
 >;
 
 export function canPredictQuestion({
@@ -26,11 +27,18 @@ export function canPredictQuestion({
   question,
   group_of_questions,
   conditional,
+  projects,
 }: CanPredictParams) {
   // post level checks
   if (
     user_permission === ProjectPermissions.VIEWER ||
     status !== PostStatus.OPEN
+  ) {
+    return false;
+  }
+  if (
+    !projects.default_project.allow_forecast_resubmission &&
+    !!question?.my_forecasts?.latest
   ) {
     return false;
   }
