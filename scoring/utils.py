@@ -7,7 +7,6 @@ from decimal import Decimal
 from io import StringIO
 
 import numpy as np
-from comments.models import Comment
 from django.db import transaction
 from django.db.models import (
     QuerySet,
@@ -28,6 +27,9 @@ from django.db.models import (
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from sql_util.aggregates import SubqueryAggregate
+
+from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -44,7 +46,6 @@ from scoring.models import (
     LeaderboardsRanksEntry,
 )
 from scoring.score_math import evaluate_question
-from sql_util.aggregates import SubqueryAggregate
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.measures import decimal_h_index
