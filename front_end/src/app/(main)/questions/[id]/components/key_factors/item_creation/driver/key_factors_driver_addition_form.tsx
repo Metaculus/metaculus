@@ -1,42 +1,37 @@
 "use client";
+
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
-import DriverCreationForm from "@/app/(main)/questions/[id]/components/key_factors/add_modal/driver_creation_form";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
-import { KeyFactorDraft } from "@/types/key_factors";
+import { DriverDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
+import { isDriverDraft } from "@/utils/key_factors";
 
+import KeyFactorsNewDriverFields from "./key_factors_new_driver_fields";
 import KeyFactorsSuggestedItems from "./key_factors_suggested_items";
+import { useKeyFactorsCtx } from "../../key_factors_context";
 
 const FACTORS_PER_COMMENT = 4;
 
 type Props = {
-  drafts: KeyFactorDraft[];
-  setDrafts: React.Dispatch<React.SetStateAction<KeyFactorDraft[]>>;
-  limitError?: string;
-  factorsLimit: number;
-  suggestedKeyFactors: KeyFactorDraft[];
-  setSuggestedKeyFactors: React.Dispatch<
-    React.SetStateAction<KeyFactorDraft[]>
-  >;
   post: PostWithForecasts;
 };
 
-const KeyFactorsAddForm: React.FC<Props> = ({
-  drafts,
-  setDrafts,
-  factorsLimit,
-  limitError,
-  suggestedKeyFactors,
-  setSuggestedKeyFactors,
-  post,
-}) => {
+const KeyFactorsDriverAdditionForm: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
+  const {
+    drafts,
+    setDrafts,
+    factorsLimit,
+    limitError,
+    suggestedKeyFactors,
+    setSuggestedKeyFactors,
+  } = useKeyFactorsCtx();
   const { user } = useAuth();
   useEffect(() => {
     if (suggestedKeyFactors.length > 0) {
@@ -50,6 +45,10 @@ const KeyFactorsAddForm: React.FC<Props> = ({
   const totalKeyFactorsLimitReached =
     drafts.length + suggestedKeyFactors.length >=
     Math.min(factorsLimit, FACTORS_PER_COMMENT);
+
+  const last = drafts.at(-1);
+  const lastDriverEmpty =
+    !!last && isDriverDraft(last) && last.driver.text === "";
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -71,20 +70,22 @@ const KeyFactorsAddForm: React.FC<Props> = ({
           </p>
         )}
 
-        {drafts.map((draft, idx) => (
-          <DriverCreationForm
-            key={idx}
-            draft={draft}
-            setDraft={(d) =>
-              setDrafts(drafts.map((k, i) => (i === idx ? d : k)))
-            }
-            showXButton={idx > 0 || !!suggestedKeyFactors.length}
-            onXButtonClick={() => {
-              setDrafts(drafts.filter((_, i) => i !== idx));
-            }}
-            post={post}
-          />
-        ))}
+        {drafts.map((draft, idx) =>
+          isDriverDraft(draft) ? (
+            <KeyFactorsNewDriverFields
+              key={idx}
+              draft={draft}
+              setDraft={(next: DriverDraft) =>
+                setDrafts((prev) => prev.map((k, i) => (i === idx ? next : k)))
+              }
+              showXButton={idx > 0 || !!suggestedKeyFactors.length}
+              onXButtonClick={() =>
+                setDrafts((prev) => prev.filter((_, i) => i !== idx))
+              }
+              post={post}
+            />
+          ) : null
+        )}
 
         <Button
           variant="tertiary"
@@ -99,9 +100,7 @@ const KeyFactorsAddForm: React.FC<Props> = ({
             ]);
           }}
           disabled={
-            totalKeyFactorsLimitReached ||
-            drafts.at(-1)?.driver.text === "" ||
-            !isNil(limitError)
+            totalKeyFactorsLimitReached || lastDriverEmpty || !isNil(limitError)
           }
         >
           <FontAwesomeIcon icon={faPlus} className="size-4" />
@@ -112,4 +111,4 @@ const KeyFactorsAddForm: React.FC<Props> = ({
   );
 };
 
-export default KeyFactorsAddForm;
+export default KeyFactorsDriverAdditionForm;

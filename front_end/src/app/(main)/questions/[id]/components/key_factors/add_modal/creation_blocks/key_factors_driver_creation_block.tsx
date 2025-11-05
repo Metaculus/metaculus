@@ -7,11 +7,12 @@ import { memo } from "react";
 import MarkdownEditor from "@/components/markdown_editor";
 import { BECommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
+import { isDriverDraft } from "@/utils/key_factors";
 
+import KeyFactorsDriverAdditionForm from "../../item_creation/driver/key_factors_driver_addition_form";
 import { useKeyFactorsCtx } from "../../key_factors_context";
-import KeyFactorsAddFormWithCtx from "../key_factors_add_form_with_ctx";
-import KeyFactorsModalFooter from "./key_factors_modal_footer";
 import { driverTextSchema } from "../../schemas";
+import KeyFactorsModalFooter from "../key_factors_modal_footer";
 
 type Props = {
   post: PostWithForecasts;
@@ -20,7 +21,7 @@ type Props = {
   onSuccess?: (c: BECommentType) => void;
 };
 
-const KeyFactorsDriverCreation: React.FC<Props> = ({
+const KeyFactorsDriverCreationBlock: React.FC<Props> = ({
   post,
   commentId,
   onClose,
@@ -55,19 +56,17 @@ const KeyFactorsDriverCreation: React.FC<Props> = ({
     onClose();
   };
 
+  const driverDrafts = drafts.filter(isDriverDraft);
   const disableDriverSubmit =
     isPending ||
     (isNil(commentId) && !markdown) ||
-    drafts.length === 0 ||
-    drafts.some((d) => d.driver?.text.trim() === "") ||
-    drafts.some((d) =>
-      !d.driver || d.driver.text.trim() !== ""
-        ? !driverTextSchema.safeParse(d.driver.text).success
-        : false
+    driverDrafts.length === 0 ||
+    driverDrafts.some((d) => d.driver.text.trim() === "") ||
+    driverDrafts.some(
+      (d) => !driverTextSchema.safeParse(d.driver.text).success
     ) ||
-    drafts.some(
+    driverDrafts.some(
       (d) =>
-        d.driver &&
         d.driver.text.trim() !== "" &&
         d.driver.impact_direction === null &&
         d.driver.certainty !== -1
@@ -75,7 +74,7 @@ const KeyFactorsDriverCreation: React.FC<Props> = ({
 
   return (
     <>
-      <KeyFactorsAddFormWithCtx post={post} />
+      <KeyFactorsDriverAdditionForm post={post} />
       <div className="flex w-full flex-col gap-2">
         <p className="my-2 text-base leading-tight sm:mt-6">
           {t("addDriverModalCommentDescription")}
@@ -106,4 +105,4 @@ const KeyFactorsDriverCreation: React.FC<Props> = ({
 // Prevent heavy MDXEditor re-renders when unrelated state (like driver input) changes
 const MemoMarkdownEditor = memo(MarkdownEditor);
 
-export default KeyFactorsDriverCreation;
+export default KeyFactorsDriverCreationBlock;
