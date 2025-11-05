@@ -5,6 +5,7 @@ import { FC, PropsWithChildren } from "react";
 
 import KeyFactorDropdownMenuItems from "@/app/(main)/questions/[id]/components/key_factors/item_view/dropdown_menu_items";
 import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/item_view/key_factor_header";
+<<<<<<<< HEAD:front_end/src/app/(main)/questions/[id]/components/key_factors/item_view/key_factor_strength_item.tsx
 import { ImpactMetadata, KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
@@ -12,6 +13,16 @@ import cn from "@/utils/core/cn";
 import { KeyFactorImpactDirectionLabel } from "../item_creation/driver/impact_direction_label";
 import { convertNumericImpactToDirectionCategory } from "../utils";
 import KeyFactorStrengthVoter from "./key_factor_strength_voter";
+========
+import { KeyFactor } from "@/types/comment";
+import { ProjectPermissions } from "@/types/post";
+import cn from "@/utils/core/cn";
+
+import KeyFactorStrengthVoter from "./key_factor_strength_voter";
+import KeyFactorText from "./key_factor_text";
+import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
+import { convertNumericImpactToDirectionCategory } from "../../utils";
+>>>>>>>> 977ba7dbd (feat: key factor updates):front_end/src/app/(main)/questions/[id]/components/key_factors/item_view/driver/key_factor_driver.tsx
 
 type Props = PropsWithChildren<{
   keyFactor: KeyFactor;
@@ -32,6 +43,8 @@ const KeyFactorStrengthItem: FC<Props> = ({
   impactMetadata,
 }) => {
   const t = useTranslations();
+  if (!keyFactor.driver) return null;
+  const { driver } = keyFactor;
   const { question_type: questionType, unit } = keyFactor.post;
   const directionCategory =
     questionType &&
