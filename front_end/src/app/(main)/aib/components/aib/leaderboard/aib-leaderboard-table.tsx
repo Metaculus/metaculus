@@ -20,6 +20,9 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
     const entries = (details.entries ?? [])
       .filter((entry) => {
         if (isAggregate(entry)) return true;
+        if (!entry.user?.metadata?.bot_details?.display_in_leaderboard) {
+          return false;
+        }
         const resolved = entry.contribution_count ?? 0;
         return resolved >= MIN_RESOLVED_FORECASTS;
       })

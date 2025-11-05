@@ -17,6 +17,8 @@ export default async function FutureEvalLeaderboardsPage() {
     "Global Bot Leaderboard"
   );
 
+  console.log("LEADERBOARD DATA", data);
+
   return (
     <AIBContainer className="pb-[148px] min-[376px]:pb-[58px]">
       <AIBLeaderboardHero />

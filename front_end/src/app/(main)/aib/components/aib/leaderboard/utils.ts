@@ -31,6 +31,9 @@ export function entryLabel(
   entry: LeaderboardEntry,
   t: ReturnType<typeof useTranslations>
 ): string {
+  if (entry.user?.metadata?.bot_details?.base_models?.[0]?.name) {
+    return entry.user.metadata.bot_details.base_models[0].name;
+  }
   if (entry.user) {
     const meta = getBotMeta(entry.user.username);
     return meta?.label ?? entry.user.username;
