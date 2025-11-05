@@ -3,17 +3,16 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import KeyFactorDropdownMenuItems from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/dropdown_menu_items";
-import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item/key_factor_header";
+import KeyFactorDropdownMenuItems from "@/app/(main)/questions/[id]/components/key_factors/item_view/dropdown_menu_items";
+import KeyFactorHeader from "@/app/(main)/questions/[id]/components/key_factors/item_view/key_factor_header";
 import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import KeyFactorImpactDirectionContainer, {
-  convertNumericImpactToDirectionCategory,
-} from "../key_factors_impact_direction";
 import KeyFactorStrengthVoter from "./key_factor_strength_voter";
 import KeyFactorText from "./key_factor_text";
+import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
+import { convertNumericImpactToDirectionCategory } from "../../utils";
 
 type Props = {
   keyFactor: KeyFactor;
@@ -28,8 +27,9 @@ const KeyFactorDriver: FC<Props> = ({
   mode = "forecaster",
   projectPermission,
 }) => {
-  const { driver } = keyFactor;
   const t = useTranslations();
+  if (!keyFactor.driver) return null;
+  const { driver } = keyFactor;
   const { question_type: questionType, unit } = keyFactor.post;
   const directionCategory =
     questionType &&
@@ -67,16 +67,23 @@ const KeyFactorDriver: FC<Props> = ({
       />
 
       {!isNil(directionCategory) && (
-        <KeyFactorImpactDirectionContainer
-          impact={directionCategory}
-          option={
-            keyFactor.question_option?.trim() ||
-            keyFactor.question?.label ||
-            undefined
-          }
-          isCompact={isCompactConsumer}
-          unit={unit || keyFactor.question?.unit || undefined}
-        />
+        <div className="flex flex-col gap-1.5 leading-tight">
+          <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+            {t("impact")}
+          </div>
+          <KeyFactorImpactDirectionLabel
+            className={cn({
+              "text-[10px]": isCompactConsumer,
+            })}
+            unit={unit || keyFactor.question?.unit || undefined}
+            option={
+              keyFactor.question_option?.trim() ||
+              keyFactor.question?.label ||
+              undefined
+            }
+            impact={directionCategory}
+          />
+        </div>
       )}
 
       {mode === "forecaster" && <hr className="my-0 opacity-20" />}

@@ -1,12 +1,11 @@
 "use client";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useMemo,
   useReducer,
-  useCallback,
   useState,
-  useEffect,
 } from "react";
 
 import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
@@ -152,12 +151,6 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
     postId: post.id,
     suggestKeyFactors: shouldLoadSuggestions,
   });
-
-  useEffect(() => {
-    if (!isLoadingSuggestedKeyFactors && shouldLoadSuggestions) {
-      setShouldLoadSuggestions(false);
-    }
-  }, [isLoadingSuggestedKeyFactors, shouldLoadSuggestions]);
 
   const resetAll = useCallback(() => {
     dispatch({

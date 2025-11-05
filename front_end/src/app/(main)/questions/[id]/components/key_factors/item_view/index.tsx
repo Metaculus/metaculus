@@ -10,7 +10,7 @@ import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import KeyFactorDriver from "./key_factor_driver";
+import KeyFactorDriver from "./driver/key_factor_driver";
 
 type Props = {
   id?: string;

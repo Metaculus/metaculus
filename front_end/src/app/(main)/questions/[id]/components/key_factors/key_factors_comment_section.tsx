@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { useKeyFactorDelete } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
-import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { useAuth } from "@/contexts/auth_context";
