@@ -11,25 +11,35 @@ import { entryIconPair, entryLabel, isAggregate } from "./utils";
 
 type Props = { details: LeaderboardDetails };
 
+const MIN_RESOLVED_FORECASTS = 100;
+
 const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
   const t = useTranslations();
 
   const rows = useMemo(() => {
-    return (details.entries ?? []).map((entry, i) => {
-      const label = entryLabel(entry, t);
-      const icons = entryIconPair(entry);
-      const userId = entry.user?.id;
-      return {
-        rank: entry.rank ?? i + 1,
-        label,
-        username: entry.user?.username ?? "",
-        icons,
-        forecasts: Math.round(entry.contribution_count * 1000) / 1000,
-        score: entry.score,
-        profileHref: userId ? `/accounts/profile/${userId}/` : null,
-        isAggregate: isAggregate(entry),
-      };
-    });
+    const entries = (details.entries ?? [])
+      .filter((entry) => {
+        if (isAggregate(entry)) return true;
+        const resolved = entry.contribution_count ?? 0;
+        return resolved >= MIN_RESOLVED_FORECASTS;
+      })
+      .map((entry, i) => {
+        const label = entryLabel(entry, t);
+        const icons = entryIconPair(entry);
+        const userId = entry.user?.id;
+        return {
+          rank: i + 1,
+          label,
+          username: entry.user?.username ?? "",
+          icons,
+          forecasts: Math.round((entry.contribution_count ?? 0) * 1000) / 1000,
+          score: entry.score,
+          profileHref: userId ? `/accounts/profile/${userId}/` : null,
+          isAggregate: isAggregate(entry),
+        };
+      });
+
+    return entries;
   }, [details.entries, t]);
 
   return (
@@ -53,12 +63,12 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
       </thead>
 
       <tbody className="bg-gray-0 dark:bg-gray-0-dark">
-        {rows.map((r) => (
+        {rows.map((r, i) => (
           <tr
             key={`${r.username}-${r.rank}`}
             className="h-[61px] border-b border-gray-300 last:border-0 dark:border-gray-300-dark"
           >
-            <Td className="text-center">{r.rank}</Td>
+            <Td className="text-center">{i + 1}</Td>
 
             <Td>
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
