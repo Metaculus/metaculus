@@ -7,25 +7,16 @@ import { useMemo } from "react";
 import type { LeaderboardDetails } from "@/types/scoring";
 
 import { LightDarkIcon } from "../light-dark-icon";
-import { entryIconPair, entryLabel, isAggregate } from "./utils";
+import { entryIconPair, entryLabel, shouldDisplayEntry } from "./utils";
 
 type Props = { details: LeaderboardDetails };
-
-const MIN_RESOLVED_FORECASTS = 100;
 
 const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
   const t = useTranslations();
 
   const rows = useMemo(() => {
     const entries = (details.entries ?? [])
-      .filter((entry) => {
-        if (isAggregate(entry)) return true;
-        if (!entry.user?.metadata?.bot_details?.display_in_leaderboard) {
-          return false;
-        }
-        const resolved = entry.contribution_count ?? 0;
-        return resolved >= MIN_RESOLVED_FORECASTS;
-      })
+      .filter((e) => shouldDisplayEntry(e))
       .map((entry, i) => {
         const label = entryLabel(entry, t);
         const icons = entryIconPair(entry);
@@ -38,7 +29,7 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
           forecasts: Math.round((entry.contribution_count ?? 0) * 1000) / 1000,
           score: entry.score,
           profileHref: userId ? `/accounts/profile/${userId}/` : null,
-          isAggregate: isAggregate(entry),
+          isAggregate: !entry.user?.username,
         };
       });
 

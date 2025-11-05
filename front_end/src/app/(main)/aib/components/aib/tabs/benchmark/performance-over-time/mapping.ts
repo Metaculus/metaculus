@@ -1,6 +1,7 @@
 import type { LeaderboardDetails } from "@/types/scoring";
 
 import { getBotMeta } from "../../../leaderboard/bot_meta";
+import { shouldDisplayEntry } from "../../../leaderboard/utils";
 
 export type AggregateKind = "community" | "pros" | "other";
 
@@ -48,8 +49,8 @@ export function mapLeaderboardToModelPoints(
       (isAggregate ? defaultAggregateLabel : "Unnamed Model");
 
     const releaseDate = isAggregate ? new Date() : meta?.releasedAt;
-
     if (!releaseDate) continue;
+    if (!shouldDisplayEntry(e)) continue;
 
     entries.push({
       name,

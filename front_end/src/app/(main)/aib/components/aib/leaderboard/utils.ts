@@ -58,3 +58,24 @@ export function entryIconPair(entry: LeaderboardEntry): IconPair {
 export function entryForecasts(entry: LeaderboardEntry) {
   return entry.coverage ?? entry.contribution_count ?? 0;
 }
+
+export const MIN_RESOLVED_FORECASTS = 100;
+
+export function getResolvedCount(entry: Partial<LeaderboardEntry>): number {
+  return entry?.contribution_count ?? 0;
+}
+
+export function isAggregateEntry(entry: Partial<LeaderboardEntry>): boolean {
+  return !entry?.user?.username;
+}
+
+export function shouldDisplayEntry(
+  entry: Partial<LeaderboardEntry>,
+  minResolved = MIN_RESOLVED_FORECASTS
+): boolean {
+  if (isAggregateEntry(entry)) return true;
+  const showFlag = entry?.user?.metadata?.bot_details?.display_in_leaderboard;
+  if (!showFlag) return false;
+  const resolved = getResolvedCount(entry);
+  return resolved >= minResolved;
+}

@@ -5,7 +5,11 @@ import React, { useMemo, useState } from "react";
 
 import AIBBenchmarkModel from "./aib-benchmark-model";
 import { useAIBLeaderboard } from "../../../leaderboard/aib-leaderboard-provider";
-import { entryIconPair, entryLabel } from "../../../leaderboard/utils";
+import {
+  entryIconPair,
+  entryLabel,
+  shouldDisplayEntry,
+} from "../../../leaderboard/utils";
 
 const MAX_VISIBLE_MODELS = 7;
 
@@ -14,7 +18,9 @@ const AIBBenchmarkModels: React.FC = () => {
   const { leaderboard } = useAIBLeaderboard();
 
   const entries = useMemo(() => {
-    const e = [...(leaderboard.entries ?? [])];
+    const e = [...(leaderboard.entries ?? [])].filter((e) =>
+      shouldDisplayEntry(e)
+    );
     e.sort((a, b) => {
       if (a.rank != null && b.rank != null) return a.rank - b.rank;
       return b.score - a.score;
