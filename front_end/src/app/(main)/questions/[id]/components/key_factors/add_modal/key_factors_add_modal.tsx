@@ -8,11 +8,12 @@ import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 
 import { KeyFactorsProvider, useKeyFactorsCtx } from "../key_factors_context";
-import KeyFactorsBreadcrumbs from "./blocks/key_factors_breadcrumbs";
-import KeyFactorsDriverCreation from "./blocks/key_factors_driver_creation";
-import KeyFactorsModalPicker from "./blocks/key_factors_modal_picker";
-import Stub from "./blocks/stub";
+import KeyFactorsTypePicker from "../key_factors_type_picker";
+import KeyFactorsDriverCreationBlock from "./creation_blocks/key_factors_driver_creation_block";
+import KeyFactorsBreadcrumbs from "./key_factors_breadcrumbs";
 import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
+import Stub from "./stub";
+import { KFType } from "../types";
 
 type Props = {
   isOpen: boolean;
@@ -67,8 +68,6 @@ const KeyFactorsAddModal: FC<Props> = ({
   );
 };
 
-export type KFType = "driver" | "base_rate" | "news" | null;
-
 const KeyFactorsAddModalBody: React.FC<{
   post: PostWithForecasts;
   commentId?: number;
@@ -86,13 +85,12 @@ const KeyFactorsAddModalBody: React.FC<{
       />
 
       {isLoadingSuggestedKeyFactors && <KeyFactorsLoadingSuggested />}
-
       {!isLoadingSuggestedKeyFactors && (
         <div className="flex grow flex-col gap-2">
           {!selectedType ? (
-            <KeyFactorsModalPicker onPick={setSelectedType} />
+            <KeyFactorsTypePicker onPick={setSelectedType} />
           ) : selectedType === "driver" ? (
-            <KeyFactorsDriverCreation
+            <KeyFactorsDriverCreationBlock
               post={post}
               commentId={commentId}
               onClose={onClose}

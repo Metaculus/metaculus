@@ -12,7 +12,6 @@ import { FC } from "react";
 
 import RichText from "@/components/rich_text";
 import { ImpactDirectionCategory } from "@/types/comment";
-import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -21,38 +20,6 @@ type Props = {
   option?: string;
   unit?: string;
   isCompact?: boolean;
-};
-
-export const convertNumericImpactToDirectionCategory = (
-  impactDirection: -1 | 1 | null,
-  certainty: -1 | null,
-  questionType: QuestionType
-): ImpactDirectionCategory | null => {
-  if (certainty === -1) {
-    return ImpactDirectionCategory.IncreaseUncertainty;
-  }
-
-  switch (questionType) {
-    case QuestionType.Binary:
-    case QuestionType.MultipleChoice:
-      return impactDirection === -1
-        ? ImpactDirectionCategory.Decrease
-        : ImpactDirectionCategory.Increase;
-
-    case QuestionType.Numeric:
-    case QuestionType.Discrete:
-      return impactDirection === -1
-        ? ImpactDirectionCategory.Less
-        : ImpactDirectionCategory.More;
-
-    case QuestionType.Date:
-      return impactDirection === -1
-        ? ImpactDirectionCategory.Earlier
-        : ImpactDirectionCategory.Later;
-
-    default:
-      return null;
-  }
 };
 
 export const KeyFactorImpactDirectionLabel: FC<Props> = ({
@@ -139,27 +106,3 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
     </div>
   );
 };
-
-const KeyFactorImpactDirectionContainer: FC<Props> = ({
-  className,
-  isCompact,
-  ...props
-}) => {
-  const t = useTranslations();
-
-  return (
-    <div className="flex flex-col gap-1.5 leading-tight">
-      <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-        {t("impact")}
-      </div>
-      <KeyFactorImpactDirectionLabel
-        className={cn(className, {
-          "text-[10px]": isCompact,
-        })}
-        {...props}
-      />
-    </div>
-  );
-};
-
-export default KeyFactorImpactDirectionContainer;

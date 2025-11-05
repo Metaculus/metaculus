@@ -109,9 +109,26 @@ export type Driver = ImpactMetadata & {
   text: string;
 };
 
+export type BaseRate = {
+  type: "frequency" | "trend";
+  reference_class: string;
+
+  rate_numerator?: number | null;
+  rate_denominator?: number | null;
+
+  projected_value?: number | null;
+  projected_by_year?: number | null;
+
+  unit: string;
+  extrapolation?: "" | "linear" | "exponential" | "other";
+  based_on?: string;
+  source: string;
+};
+
 export type KeyFactor = {
   id: number;
-  driver: Driver;
+  driver?: Driver | null;
+  base_rate?: BaseRate | null;
   author: AuthorType; // used to set limit per question
   comment_id: number;
   vote: KeyFactorVoteAggregate;

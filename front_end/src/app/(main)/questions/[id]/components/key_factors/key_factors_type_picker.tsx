@@ -7,15 +7,18 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { HTMLAttributes } from "react";
 
-import { KFType } from "../key_factors_add_modal";
+import cn from "@/utils/core/cn";
 
-const KeyFactorsModalPicker: React.FC<{
+import { KFType } from "./types";
+
+const KeyFactorsTypePicker: React.FC<{
   onPick: (t: KFType) => void;
-}> = ({ onPick }) => {
+  className?: string;
+}> = ({ onPick, className }) => {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+    <div className={cn("grid grid-cols-1 gap-2 sm:grid-cols-3", className)}>
       {ITEMS.map((item) => (
-        <KeyFactorsModalPickerItem
+        <KeyFactorsTypePickerItem
           key={item.value}
           onClick={() => onPick(item.value)}
           title={item.label}
@@ -27,7 +30,7 @@ const KeyFactorsModalPicker: React.FC<{
   );
 };
 
-const KeyFactorsModalPickerItem: React.FC<
+const KeyFactorsTypePickerItem: React.FC<
   {
     title?: string;
     description?: string;
@@ -81,4 +84,4 @@ const ITEMS: {
   },
 ];
 
-export default KeyFactorsModalPicker;
+export default KeyFactorsTypePicker;
