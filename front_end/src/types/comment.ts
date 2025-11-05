@@ -128,6 +128,7 @@ export type KeyFactor = {
     unit?: string;
     question_type?: QuestionType;
   };
+  flagged_by_me?: boolean;
 };
 
 export type KeyFactorVoteAggregate = {
