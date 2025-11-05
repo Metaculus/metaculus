@@ -290,6 +290,7 @@ def generate_question_writing_leaderboard_entries(
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
+    questions = list(questions)
 
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
@@ -918,17 +919,24 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
 
 
 def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
-    questions = leaderboard.get_questions().prefetch_related("related_posts__post")
-    questions = (
-        # Fetch only authored posts
-        questions.filter(
+    question_ids = list(
+        leaderboard.get_questions()
+        .filter(
             Q(related_posts__post__author_id=user.id)
             | Q(related_posts__post__coauthors=user)
-        ).distinct("id")
+        )
+        .distinct("id")
+        .values_list("id", flat=True)
     )
+
+    # Now fetch full questions for later iteration
+    questions = Question.objects.filter(id__in=question_ids).prefetch_related(
+        "related_posts__post"
+    )
+
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
-            question__in=questions,
+            question_id__in=question_ids,
             start_time__gte=leaderboard.start_time or make_aware(datetime.min),
             start_time__lte=leaderboard.end_time or make_aware(datetime.max),
         ).only("question_id", "author_id"),
@@ -936,7 +944,7 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     )
     question_post_map = {
         obj.question_id: obj.post
-        for obj in QuestionPost.objects.filter(question__in=questions)
+        for obj in QuestionPost.objects.filter(question_id__in=question_ids)
         .select_related("post__author")
         .prefetch_related("post__coauthors", "post__projects")
     }
