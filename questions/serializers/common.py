@@ -490,8 +490,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 f"{min_diff} at every step.\n"
             )
         # Check if maximum difference between cdf points is acceptable
-        # (0.2 if inbound outcome count is the default 200)
-        max_diff = 0.2 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
+        # (0.59 if inbound outcome count is the default 200)
+        # TODO: switch this value to 0.2 after coordinating
+        max_diff = 0.59 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "
