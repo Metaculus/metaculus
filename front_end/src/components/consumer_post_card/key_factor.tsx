@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 
 import { KeyFactor } from "@/types/comment";
 import cn from "@/utils/core/cn";
+import { isDriverKF } from "@/utils/key_factors";
 
 type Props = {
   keyFactor: KeyFactor[];
@@ -12,10 +13,9 @@ type Props = {
 const ConsumerKeyFactor: FC<Props> = ({ keyFactor, className }) => {
   const t = useTranslations();
   // TODO: Adjust to render only the top key factor with min amount of upvotes
-  const keyFactoreData = keyFactor[0];
-  if (!keyFactoreData) {
-    return null;
-  }
+  const driverKF = useMemo(() => keyFactor.find(isDriverKF), [keyFactor]);
+  if (!driverKF || !driverKF.driver) return null;
+
   return (
     <div
       className={cn(
@@ -27,7 +27,7 @@ const ConsumerKeyFactor: FC<Props> = ({ keyFactor, className }) => {
         {t("keyFactor")}
       </h4>
       <p className="m-0 text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
-        {keyFactoreData.driver.text}
+        {driverKF.driver.text}
       </p>
     </div>
   );

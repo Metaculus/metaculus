@@ -14,11 +14,9 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
-import KeyFactorsAddFormWithCtx from "@/app/(main)/questions/[id]/components/key_factors/add_modal/key_factors_add_form_with_ctx";
+import KeyFactorsAddInComment from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
 import { useKeyFactorsCtx } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
-import { driverTextSchema } from "@/app/(main)/questions/[id]/components/key_factors/schemas";
 import {
   createForecasts,
   editComment,
@@ -40,7 +38,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { CommentType, KeyFactor } from "@/types/comment";
+import { CommentType } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import {
   PostStatus,
@@ -59,7 +57,7 @@ import { canPredictQuestion } from "@/utils/questions/predictions";
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 import { validateComment } from "./validate_comment";
-import { FormError, FormErrorMessage } from "../ui/form_field";
+import { FormErrorMessage } from "../ui/form_field";
 import LoadingSpinner from "../ui/loading_spiner";
 
 import { SortOption, sortComments } from ".";
@@ -240,7 +238,7 @@ const Comment: FC<CommentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
@@ -283,16 +281,11 @@ const Comment: FC<CommentProps> = ({
   const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
     useState(isCommentJustCreated);
 
-  const { comments, setComments, combinedKeyFactors } = useCommentsFeed();
+  const { combinedKeyFactors } = useCommentsFeed();
   const {
-    errors: keyFactorsErrors,
-    setErrors: setKeyFactorsErrors,
     suggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
     factorsLimit,
-    submit,
-    isPending,
-    drafts,
     resetAll,
     setDrafts,
     loadSuggestions,
@@ -371,47 +364,6 @@ const Comment: FC<CommentProps> = ({
       editDraftReady ? editInitialMarkdown : originalTextRef.current
     );
   }, [editDraftReady, editInitialMarkdown]);
-
-  const handleSubmit = async () => {
-    const result = await submit();
-    if (result && "errors" in result) {
-      setKeyFactorsErrors(result.errors);
-      return;
-    }
-    if (result?.comment) {
-      const newComment = result.comment;
-
-      if (user && !user.should_suggest_keyfactors) {
-        // Update the user state so now the user can get suggested key factors
-        setUser({ ...user, should_suggest_keyfactors: true });
-      }
-
-      const updatedComments = comments.map((comment) =>
-        updateCommentKeyFactors(
-          comment,
-          newComment.id,
-          newComment.key_factors ?? []
-        )
-      );
-
-      resetAll();
-      setComments(updatedComments);
-      setTimeout(() => {
-        if (commentRef.current) {
-          scrollTo(commentRef.current.getBoundingClientRect().top);
-        }
-      }, 500);
-    }
-    setIsKeyfactorsFormOpen(false);
-  };
-
-  const onCancel = () => {
-    setIsKeyfactorsFormOpen(false);
-    resetAll();
-    setDrafts([
-      { driver: { text: "", impact_direction: null, certainty: null } },
-    ]);
-  };
 
   const updateForecast = async (value: number) => {
     const response = await createForecasts(comment.on_post, [
@@ -960,29 +912,17 @@ const Comment: FC<CommentProps> = ({
         />
       )}
       {isKeyfactorsFormOpen && postData && (
-        <CommentForm
-          onSubmit={handleSubmit}
-          onCancel={onCancel}
-          cancelDisabled={isPending}
-          submitDisabled={
-            isPending ||
-            (!drafts.some((k) => k.driver.text.trim() !== "") &&
-              suggestedKeyFactors.length === 0) ||
-            drafts.some(
-              (obj) => !driverTextSchema.safeParse(obj.driver.text).success
-            ) ||
-            drafts.some(
-              (d) =>
-                d.driver.text.trim() !== "" &&
-                d.driver.impact_direction === null &&
-                d.driver.certainty !== -1
-            )
-          }
-        >
-          <KeyFactorsAddFormWithCtx post={postData} />
-          <p className="m-0">{t("addDriverCommentDisclaimer")}</p>
-          <FormError errors={keyFactorsErrors} />
-        </CommentForm>
+        <KeyFactorsAddInComment
+          postData={postData}
+          onAfterCommentSubmit={() => {
+            setTimeout(() => {
+              if (commentRef.current) {
+                scrollTo(commentRef.current.getBoundingClientRect().top);
+              }
+            }, 500);
+          }}
+          closeKeyFactorsForm={() => setIsKeyfactorsFormOpen(false)}
+        />
       )}
       {isCommentJustCreated && postData && (
         <CoherenceLinksForm
@@ -1020,30 +960,6 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
-}
-
-function updateCommentKeyFactors(
-  comment: CommentType,
-  targetId: number,
-  newKeyFactors: KeyFactor[]
-): CommentType {
-  if (comment.id === targetId) {
-    return {
-      ...comment,
-      key_factors: newKeyFactors,
-    };
-  }
-
-  if (comment.children && comment.children.length > 0) {
-    return {
-      ...comment,
-      children: comment.children.map((child) =>
-        updateCommentKeyFactors(child, targetId, newKeyFactors)
-      ),
-    };
-  }
-
-  return comment;
 }
 
 export default Comment;

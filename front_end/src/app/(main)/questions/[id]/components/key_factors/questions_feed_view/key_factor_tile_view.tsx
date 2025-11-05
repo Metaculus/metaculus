@@ -10,7 +10,7 @@ export type Props = {
   expanded?: boolean;
 };
 
-export const KeyFactorTileDriverDisplay: FC<Props> = ({
+export const KeyFactorTileDriverView: FC<Props> = ({
   kf,
   className,
   expanded,
@@ -22,10 +22,10 @@ export const KeyFactorTileDriverDisplay: FC<Props> = ({
   );
 };
 
-export const KeyFactorTileNewsDisplay: FC<Props> = () => null;
-export const KeyFactorTileBaseRateTrendDisplay: FC<Props> = () => null;
-export const KeyFactorTileBaseRateFreqDisplay: FC<Props> = () => null;
-export const KeyFactorTileQuestionLinkDisplay: FC<Props> = () => null;
+export const KeyFactorTileNewsView: FC<Props> = () => null;
+export const KeyFactorTileBaseRateTrendView: FC<Props> = () => null;
+export const KeyFactorTileBaseRateFreqView: FC<Props> = () => null;
+export const KeyFactorTileQuestionLinkView: FC<Props> = () => null;
 
 type KeyFactorTileContainerProps = PropsWithChildren<{
   expanded?: boolean;
