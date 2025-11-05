@@ -53,6 +53,7 @@ const AIBInfoTournaments: React.FC = () => {
       <ReusableGradientCarousel<(typeof CARDS_DATA)[number]>
         items={CARDS_DATA}
         renderItem={(card) => <AIBInfoTournamentCard {...card} />}
+        listClassName="-ml-2"
       />
 
       <div
