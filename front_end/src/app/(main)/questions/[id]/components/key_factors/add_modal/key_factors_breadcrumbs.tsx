@@ -7,7 +7,7 @@ import React from "react";
 
 import cn from "@/utils/core/cn";
 
-export type KFType = "driver" | "base_rate" | "news" | null;
+import { KFType } from "../types";
 
 type Props = {
   selectedType: KFType;

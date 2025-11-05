@@ -10,7 +10,7 @@ import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
-import KeyFactorItem from "../key_factor_item";
+import KeyFactorItem from "../../item_view";
 
 type Props = {
   suggestedKeyFactors: KeyFactorDraft[];
