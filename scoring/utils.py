@@ -7,6 +7,7 @@ from decimal import Decimal
 from io import StringIO
 
 import numpy as np
+from comments.models import Comment
 from django.db import transaction
 from django.db.models import (
     QuerySet,
@@ -27,9 +28,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce, ExtractYear, Power
 from django.utils import timezone
 from django.utils.timezone import make_aware
-from sql_util.aggregates import SubqueryAggregate
-
-from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -46,6 +44,7 @@ from scoring.models import (
     LeaderboardsRanksEntry,
 )
 from scoring.score_math import evaluate_question
+from sql_util.aggregates import SubqueryAggregate
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.measures import decimal_h_index
@@ -1009,8 +1008,13 @@ def get_contributions(
         .filter(Q(related_posts__post__published_at__lt=timezone.now()))
     )
 
+    # Extract question IDs first to avoid complex subqueries in Score filters
+    # This is much faster than using question__in=queryset which creates a subquery
+    # Because PSQL recalculates it for every row
+    question_ids = list(questions.values_list("id", flat=True))
+
     user_question_forecasts_map = generate_map_from_list(
-        Forecast.objects.filter(question__in=questions, author_id=user.id),
+        Forecast.objects.filter(question_id__in=question_ids, author_id=user.id),
         key=lambda f: f.question_id,
     )
 
@@ -1019,12 +1023,12 @@ def get_contributions(
     )
 
     calculated_scores = Score.objects.filter(
-        question__in=questions,
+        question_id__in=question_ids,
         user=user,
         score_type=score_type,
     ).prefetch_related("question__related_posts__post")
     archived_scores = ArchivedScore.objects.filter(
-        question__in=questions,
+        question_id__in=question_ids,
         user=user,
         score_type=score_type,
     ).prefetch_related("question__related_posts__post")

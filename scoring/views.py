@@ -257,7 +257,8 @@ def user_medals(
     return Response(entries)
 
 
-@cache_page(60 * 30)
+# TODO: uncomment below
+# @cache_page(60 * 30)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def medal_contributions(
