@@ -1587,9 +1587,7 @@
   "aibModelReleaseDate": "Fecha de lanzamiento del modelo",
   "aibAvgScore": "Puntuación Promedio",
   "aibIdeaTitle": "Predecir es una de las pocas maneras de evaluar <highlight>el razonamiento frente a la realidad.</highlight>",
-  "aibIdeaDesktopP1": "FutureEval mide la capacidad de la IA para predecir resultados futuros, lo cual es esencial para la utilidad en el mundo real. Altas puntuaciones indican que los modelos serán mejores en planificación, evaluación de riesgos y toma de decisiones. FutureEval es a prueba de filtraciones, ya que las respuestas aún no se conocen en el momento de la prueba.",
   "aibIdeaMobileP1": "Este estándar nos ayuda a medir qué tan bien razonan humanos y sistemas de IA bajo incertidumbre.",
-  "aibIdeaDesktopP2": "FutureEval tiene dos ramas: un estándar de aviso fijo para comparar directamente el rendimiento de los modelos, y un torneo de bots contra humanos para explorar la vanguardia del andamiaje.",
   "aibIdeaMobileP2": "Los resultados informan el progreso en seguridad, alineación y toma de decisiones en el mundo real.",
   "aibIdeaCard2Title": "Bots contra Humanos",
   "aibTournamentsHeading": "Torneos de Evaluación",
@@ -1633,5 +1631,7 @@
   "aibViewFullLeaderboard": "Ver la clasificación completa",
   "aibLbTitle": "Tabla de Líderes de Modelos",
   "aibLbSubtitle": "Actualizado todos los días según nuestra metodología estandarizada de medición del rendimiento de pronósticos.",
+  "aibIdeaDesktopP1": "FutureEval mide la capacidad de la IA para predecir resultados futuros, lo cual es esencial en muchas tareas del mundo real. Los modelos que obtienen una alta puntuación en nuestro benchmark serán mejores en planificación, evaluación de riesgos y toma de decisiones. FutureEval garantiza ser a prueba de fugas, ya que las respuestas aún no se conocen en el momento de la prueba.",
+  "aibIdeaDesktopP2": "FutureEval tiene dos brazos: un benchmark de prompts fijos para comparar directamente el rendimiento de los modelos y un torneo de bots contra humanos para explorar la frontera de las estructuras de soporte.",
   "othersCount": "Otros ({count})"
 }

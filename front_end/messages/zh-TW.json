@@ -1584,9 +1584,7 @@
   "aibModelReleaseDate": "模型發布日期",
   "aibAvgScore": "平均得分",
   "aibIdeaTitle": "預測是少數能夠評估<highlight>推理與現實</highlight>的方式之一。",
-  "aibIdeaDesktopP1": "FutureEval 評估 AI 預測未來結果的能力，這對於現實世界的應用至關重要。高分表示模型在規劃、風險評估和決策制定方面表現更優。FutureEval 保證無洩漏，因為在測試時答案尚未得知。",
   "aibIdeaMobileP1": "這項基準測試幫助我們衡量人類和 AI 系統在不確定性下的推理能力。",
-  "aibIdeaDesktopP2": "FutureEval 有兩個部分：一個固定提示基準以直接比較模型性能，以及一個機器人對抗人類的比賽以探索支架的前沿。",
   "aibIdeaMobileP2": "結果為安全性、對齊性和現實決策提供進展資訊。",
   "aibIdeaCard2Title": "機器人對抗人類",
   "aibTournamentsHeading": "基準賽事",
@@ -1630,5 +1628,7 @@
   "aibViewFullLeaderboard": "查看完整排行榜",
   "aibLbTitle": "模型排行榜",
   "aibLbSubtitle": "根據我們標準化的預測性能測量方法，每天更新一次。",
+  "aibIdeaDesktopP1": "FutureEval 評估 AI 預測未來結果的能力，這在許多現實世界的任務中至關重要。 在我們的基準測試中獲得高分的模型將在計劃、風險評估和決策制定方面表現更好。 由於在測試時還不知道答案，FutureEval 保證不會洩漏。",
+  "aibIdeaDesktopP2": "FutureEval 有兩個部分：一個是用於直接比較模型性能的固定提示基準，另一個是用於探索支架前沿的人機對抗錦標賽。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

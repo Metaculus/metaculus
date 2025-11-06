@@ -1590,7 +1590,7 @@
   "aibModelReleaseDate": "Model release date",
   "aibAvgScore": "Avg. Score",
   "aibIdeaTitle": "Forecasting is one of the few ways to evaluate <highlight>reasoning against reality.</highlight>",
-  "aibIdeaDesktopP1": "FutureEval measures AI’s ability to predict future outcomes, which is essential for real-world utility. High scores indicate that models will be better in planning, risk assessment, and decision-making. FutureEval is guaranteed leak-proof, since answers are not known yet at test time.",
+  "aibIdeaDesktopP1": "FutureEval measures AI’s ability to predict future outcomes, which is essential in many real-world tasks. Models that score high in our benchmark will be better at planning, risk assessment, and decision-making. FutureEval is guaranteed leak-proof, since answers are not known yet at test time.",
   "aibIdeaMobileP1": "This benchmark helps us measure how well both humans and AI systems reason under uncertainty.",
   "aibIdeaDesktopP2": "FutureEval has two arms: a fixed-prompt benchmark to compare model performance directly, and a bots vs. humans tournament to probe the frontier of scaffolding.",
   "aibIdeaMobileP2": "The results inform progress in safety, alignment, and real-world decision-making.",
