@@ -44,9 +44,20 @@ export const Tabs = ({
   );
 };
 
-export const TabsList = ({ children }: { children: ReactNode }) => {
+export const TabsList = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
   return (
-    <div className="scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
+    <div
+      className={cn(
+        "scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -55,9 +66,13 @@ export const TabsList = ({ children }: { children: ReactNode }) => {
 export const TabsTab = ({
   value,
   children,
+  dynamicClassName,
+  scrollOnSelect = true,
 }: {
   value: string;
   children: ReactNode;
+  scrollOnSelect?: boolean;
+  dynamicClassName?: (isActive: boolean) => string;
 }) => {
   const ctx = useContext(TabsContext);
 
@@ -70,6 +85,7 @@ export const TabsTab = ({
     ctx.setActive(value);
     const elementTop = target.getBoundingClientRect().top + window.scrollY;
 
+    if (!scrollOnSelect) return;
     window.scrollTo({
       top: elementTop - HEADER_OFFSET,
       behavior: "smooth",
@@ -82,7 +98,8 @@ export const TabsTab = ({
         "whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors",
         isActive
           ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark"
+          : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark",
+        dynamicClassName ? dynamicClassName(isActive) : undefined
       )}
       onClick={(e) => {
         ctx.setActive(value);

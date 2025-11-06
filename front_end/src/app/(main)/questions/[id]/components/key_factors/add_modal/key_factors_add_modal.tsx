@@ -14,6 +14,7 @@ import KeyFactorsBreadcrumbs from "./key_factors_breadcrumbs";
 import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
 import Stub from "./stub";
 import { KFType } from "../types";
+import KeyFactorsBaseRateCreationBlock from "./creation_blocks/key_factors_base_rate_creation_block";
 
 type Props = {
   isOpen: boolean;
@@ -49,7 +50,7 @@ const KeyFactorsAddModal: FC<Props> = ({
       isImmersive
       withCloseButton
       closeButtonClassName="top-5 right-5 sm:top-[28px] sm:right-[28px] p-0 text-base [&>_svg]:size-6"
-      className="m-0 flex h-full w-full max-w-[560px] flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
+      className="m-0 flex h-full max-w-[560px] flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto lg:w-full"
     >
       <KeyFactorsProvider
         user={user}
@@ -91,6 +92,13 @@ const KeyFactorsAddModalBody: React.FC<{
             <KeyFactorsTypePicker onPick={setSelectedType} />
           ) : selectedType === "driver" ? (
             <KeyFactorsDriverCreationBlock
+              post={post}
+              commentId={commentId}
+              onClose={onClose}
+              onSuccess={onSuccess}
+            />
+          ) : selectedType === "base_rate" ? (
+            <KeyFactorsBaseRateCreationBlock
               post={post}
               commentId={commentId}
               onClose={onClose}
