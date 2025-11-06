@@ -4,7 +4,13 @@ from typing import Iterable
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactor, KeyFactorDriver, ImpactDirection, KeyFactorVote
+from comments.models import (
+    KeyFactor,
+    KeyFactorDriver,
+    ImpactDirection,
+    KeyFactorVote,
+    KeyFactorBaseRate,
+)
 from comments.services.key_factors.common import (
     get_votes_for_key_factors,
     calculate_key_factors_freshness,
@@ -56,11 +62,16 @@ def serialize_key_factor(
             else None
         ),
         "question_option": key_factor.question_option,
-        "freshness": freshness,
+        "freshness": freshness or 0,
         # Type-specific fields
         "driver": (
             KeyFactorDriverSerializer(key_factor.driver).data
             if key_factor.driver
+            else None
+        ),
+        "base_rate": (
+            BaseRateSerializer(key_factor.base_rate).data
+            if key_factor.base_rate
             else None
         ),
         "post": {
@@ -79,7 +90,9 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
-        .select_related("comment__author", "comment__on_post", "question", "driver")
+        .select_related(
+            "comment__author", "comment__on_post", "question", "driver", "base_rate"
+        )
     )
 
     if current_user:
@@ -151,8 +164,76 @@ class KeyFactorDriverSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class BaseRateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for KeyFactorBaseRate with type-specific validation
+    for 'frequency' and 'trend' base rate types.
+    """
+
+    class Meta:
+        model = KeyFactorBaseRate
+        fields = (
+            "type",
+            "reference_class",
+            "rate_numerator",
+            "rate_denominator",
+            "projected_value",
+            "projected_by_year",
+            "unit",
+            "extrapolation",
+            "based_on",
+            "source",
+        )
+
+    def validate(self, attrs):
+        base_rate_type = attrs.get("type")
+
+        if base_rate_type == KeyFactorBaseRate.BaseRateType.FREQUENCY:
+            self._validate_frequency(attrs)
+        elif base_rate_type == KeyFactorBaseRate.BaseRateType.TREND:
+            self._validate_trend(attrs)
+
+        return attrs
+
+    def _validate_frequency(self, attrs):
+        numerator = attrs.get("rate_numerator")
+        denominator = attrs.get("rate_denominator")
+
+        if numerator is None:
+            raise ValidationError(
+                {"rate_numerator": "Rate numerator is required for frequency type"}
+            )
+        if denominator is None:
+            raise ValidationError(
+                {"rate_denominator": "Rate denominator is required for frequency type"}
+            )
+
+        if numerator < 0:
+            raise ValidationError(
+                {"rate_numerator": "Rate numerator must be non-negative"}
+            )
+        if denominator <= 0:
+            raise ValidationError(
+                {"rate_denominator": "Rate denominator must be positive"}
+            )
+        if numerator > denominator:
+            raise ValidationError(
+                {
+                    "rate_numerator": "Numerator must be less than or equal to denominator"
+                }
+            )
+
+    def _validate_trend(self, attrs):
+        required_fields = ["projected_value", "projected_by_year", "extrapolation"]
+
+        for field in required_fields:
+            if not attrs.get(field):
+                raise ValidationError({field: f"{field} is required"})
+
+
 class KeyFactorWriteSerializer(serializers.ModelSerializer):
     driver = KeyFactorDriverSerializer(required=False)
+    base_rate = BaseRateSerializer(required=False)
     question_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
@@ -161,10 +242,11 @@ class KeyFactorWriteSerializer(serializers.ModelSerializer):
             "question_id",
             "question_option",
             "driver",
+            "base_rate",
         )
 
     def validate(self, attrs: dict):
-        key_factor_types = ["driver"]
+        key_factor_types = ["driver", "base_rate"]
 
         if len([True for kf_type in key_factor_types if attrs.get(kf_type)]) != 1:
             raise ValidationError(

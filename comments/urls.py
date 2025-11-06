@@ -49,6 +49,11 @@ urlpatterns = [
         name="key-factor-delete",
     ),
     path(
+        "key-factors/<int:pk>/report/",
+        key_factors.key_factor_report_api_view,
+        name="key-factor-report",
+    ),
+    path(
         "comments/<int:pk>/add-key-factors/",
         key_factors.comment_add_key_factors_view,
         name="comment-add-key-factors",

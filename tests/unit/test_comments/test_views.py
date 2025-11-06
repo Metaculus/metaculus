@@ -1,10 +1,10 @@
 import pytest  # noqa
 from django.urls import reverse
 
-from comments.models import Comment
+from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver
 from comments.services.feed import get_comments_feed
 from questions.services import create_forecast
-from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
@@ -319,3 +319,170 @@ class TestCommentCreation:
         assert kf1["question_id"] == question_binary.pk
         assert kf1["driver"]["text"] == "Key Factor Driver"
         assert kf1["driver"]["impact_direction"] == -1
+
+    def test_create_with_base_rate_frequency(self, user1_client, post):
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with Frequency BaseRate",
+                "key_factors": [
+                    {
+                        "base_rate": {
+                            "type": "frequency",
+                            "reference_class": "Tech startups in Silicon Valley",
+                            "rate_numerator": 45,
+                            "rate_denominator": 100,
+                            "unit": "%",
+                            "source": "SV Chamber of Commerce",
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.data["on_post"] == post.pk
+
+        kf = response.data["key_factors"][0]
+        assert kf["base_rate"]["type"] == "frequency"
+        assert kf["base_rate"]["reference_class"] == "Tech startups in Silicon Valley"
+        assert kf["base_rate"]["rate_numerator"] == 45
+        assert kf["base_rate"]["rate_denominator"] == 100
+        assert kf["base_rate"]["unit"] == "%"
+        assert kf["base_rate"]["source"] == "SV Chamber of Commerce"
+        assert kf["driver"] is None
+
+    def test_create_with_base_rate_trend(self, user1_client, post):
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with Trend BaseRate",
+                "key_factors": [
+                    {
+                        "base_rate": {
+                            "type": "trend",
+                            "reference_class": "Global AI chip demand",
+                            "projected_value": 250.5,
+                            "projected_by_year": 2025,
+                            "unit": "billion USD",
+                            "extrapolation": "other",
+                            "based_on": "Moore's Law extrapolation",
+                            "source": "Semiconductor Industry Association",
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Comment with Trend BaseRate"
+
+        kf = response.data["key_factors"][0]
+        assert kf["base_rate"]["type"] == "trend"
+        assert kf["base_rate"]["reference_class"] == "Global AI chip demand"
+        assert kf["base_rate"]["projected_value"] == 250.5
+        assert kf["base_rate"]["projected_by_year"] == 2025
+        assert kf["base_rate"]["unit"] == "billion USD"
+        assert kf["base_rate"]["extrapolation"] == "other"
+        assert kf["base_rate"]["based_on"] == "Moore's Law extrapolation"
+        assert kf["base_rate"]["source"] == "Semiconductor Industry Association"
+        assert kf["driver"] is None
+
+    def test_create_with_mixed_key_factors(self, user1_client, post, question_binary):
+        """Test creating a comment with both Driver and BaseRate key factors"""
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with mixed Key Factors",
+                "key_factors": [
+                    {
+                        "question_id": question_binary.pk,
+                        "driver": {
+                            "text": "Key Factor Driver",
+                            "impact_direction": 1,
+                        },
+                    },
+                    {
+                        "base_rate": {
+                            "type": "frequency",
+                            "reference_class": "Historical baseline",
+                            "rate_numerator": 30,
+                            "rate_denominator": 100,
+                            "unit": "%",
+                            "source": "Historical data",
+                        }
+                    },
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert len(response.data["key_factors"]) == 2
+
+        # Check driver key factor
+        driver_kf = next(kf for kf in response.data["key_factors"] if kf["driver"])
+        assert driver_kf["driver"]["text"] == "Key Factor Driver"
+        assert driver_kf["driver"]["impact_direction"] == 1
+        assert driver_kf["base_rate"] is None
+
+        # Check base rate key factor
+        br_kf = next(kf for kf in response.data["key_factors"] if kf["base_rate"])
+        assert br_kf["base_rate"]["type"] == "frequency"
+        assert br_kf["base_rate"]["reference_class"] == "Historical baseline"
+        assert br_kf["driver"] is None
+
+
+class TestKeyFactorVoting:
+    @pytest.fixture()
+    def post(self, user1):
+        return factory_post(author=user1)
+
+    def test_vote_base_rate(self, user1, post, user2_client, user1_client):
+        """Test voting on a BaseRate KeyFactor"""
+
+        comment = factory_comment(author=user1, on_post=post)
+        base_rate = KeyFactorBaseRate.objects.create(
+            type=KeyFactorBaseRate.BaseRateType.FREQUENCY,
+            reference_class="Test",
+            rate_numerator=10,
+            rate_denominator=20,
+            unit="%",
+            source="Test Source",
+        )
+        kf = factory_key_factor(comment=comment, base_rate=base_rate)
+
+        url = reverse("key-factor-vote", kwargs={"pk": kf.pk})
+
+        # User2 votes with 1
+        response = user2_client.post(url, data={"vote": 5}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+
+        # User1 votes with 5
+        response = user1_client.post(url, data={"vote": 5}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 2
+
+    def test_vote_driver(self, user1, post, user2_client, user1_client):
+        comment = factory_comment(author=user1, on_post=post)
+        driver = KeyFactorDriver.objects.create(text="Test Driver")
+        kf = factory_key_factor(comment=comment, driver=driver)
+
+        url = reverse("key-factor-vote", kwargs={"pk": kf.pk})
+
+        # User2 votes with 1
+        response = user2_client.post(url, data={"vote": 1}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+
+        # User3 votes with 5
+        response = user1_client.post(url, data={"vote": 5}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 2

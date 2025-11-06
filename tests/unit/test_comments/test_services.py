@@ -2,12 +2,13 @@ import pytest  # noqa
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactorVote, KeyFactorDriver
+from comments.models import KeyFactorVote, KeyFactorDriver, KeyFactorBaseRate
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors.common import (
     key_factor_vote,
     create_key_factors,
     calculate_freshness_driver,
+    calculate_freshness_base_rate,
 )
 from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
@@ -40,6 +41,34 @@ def test_create_comment__happy_path(post, user1):
     # Check counter
     snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
     assert snapshot.comments_count == 1
+
+    # Make a reply
+    child = create_comment(user=user1, on_post=post, text="Reply", parent=comment)
+    assert child.is_private is False
+    assert child.parent == child.root == comment
+
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 2
+
+
+def test_create_comment__private_happy_path(post, user1):
+    comment = create_comment(
+        user=user1, on_post=post, text="Private Comment", is_private=True
+    )
+    assert comment.text == "Private Comment"
+
+    # Check counter, should not be affected
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 0
+
+    # Make a reply
+    child = create_comment(user=user1, on_post=post, text="Reply", parent=comment)
+    assert child.is_private
+    assert child.parent == child.root == comment
+
+    # Still nothing
+    snapshot = PostUserSnapshot.objects.get(user_id=user1.id, post_id=post.id)
+    assert snapshot.comments_count == 0
 
 
 @pytest.mark.parametrize(
@@ -278,3 +307,53 @@ def test_calculate_freshness_driver(user1, post):
     assert calculate_freshness_driver(kf, list(kf.votes.all())) == pytest.approx(
         2.463, abs=0.001
     )
+
+
+@freeze_time("2025-09-30")
+def test_base_rate_freshness_ignores_time_decay(user1, post):
+    post.open_time = datetime_aware(2025, 6, 22)
+    post.save()
+
+    comment = factory_comment(author=user1, on_post=post)
+
+    kf = factory_key_factor(
+        comment=comment,
+        base_rate=KeyFactorBaseRate.objects.create(
+            type=KeyFactorBaseRate.BaseRateType.FREQUENCY,
+            reference_class="Test",
+            rate_numerator=10,
+            rate_denominator=20,
+            unit="%",
+            source="Test Source",
+        ),
+    )
+
+    with freeze_time("2025-09-29"):  # 1 day ago
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=5,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.DIRECTION,
+        )
+
+    with freeze_time("2025-09-23"):  # 1 week ago
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=-5,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.DIRECTION,
+        )
+
+    with freeze_time("2025-09-16"):  # 2 weeks ago
+        KeyFactorVote.objects.create(
+            key_factor=kf,
+            score=5,
+            user=factory_user(),
+            vote_type=KeyFactorVote.VoteType.DIRECTION,
+        )
+
+    votes = list(kf.votes.all())
+    assert len(votes) == 3
+
+    freshness = calculate_freshness_base_rate(kf, votes)
+    assert freshness == pytest.approx(1.666, abs=0.001)

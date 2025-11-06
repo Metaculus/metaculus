@@ -16,6 +16,7 @@ type Props = {
   description?: string;
   onConfirm: () => void;
   onClose?: () => void;
+  actionText?: string;
 };
 
 const ConfirmModal: FC<Props> = ({
@@ -25,8 +26,12 @@ const ConfirmModal: FC<Props> = ({
   description,
   onConfirm,
   onClose,
+  actionText,
 }) => {
   const t = useTranslations();
+  if (!actionText) {
+    actionText = t("confirm");
+  }
 
   const handleClose = () => {
     if (onClose) {
@@ -79,7 +84,7 @@ const ConfirmModal: FC<Props> = ({
             className="capitalize"
             onClick={handleConfirm}
           >
-            {t("confirm")}
+            {actionText}
           </Button>
         </div>
       </div>

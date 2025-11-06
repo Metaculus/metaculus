@@ -5,6 +5,7 @@ import React, { FC, ReactElement, useState } from "react";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import {
   KeyFactorVoteAggregate,
   KeyFactorVoteTypes,
@@ -67,8 +68,15 @@ const VoterControls: FC<{
   const { setKeyFactorVote } = useCommentsFeed();
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { setCurrentModal } = useModal();
 
   const submitVote = async (newValue: StrengthVoteOption | null) => {
+    // Trigger login if not logged in
+    if (!user) {
+      setCurrentModal({ type: "signin" });
+      return;
+    }
+
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
@@ -149,8 +157,6 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   mode = "forecaster",
   footerControls,
 }) => {
-  const { user } = useAuth();
-
   const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
 
   return (
@@ -160,7 +166,7 @@ const KeyFactorStrengthVoter: FC<Props> = ({
         count={aggregate?.count ?? 0}
         mode={mode}
       />
-      {user && allowVotes && (
+      {allowVotes && (
         <VoterControls
           keyFactorId={keyFactorId}
           aggregate={aggregate}

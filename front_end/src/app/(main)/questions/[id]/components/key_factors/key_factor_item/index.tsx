@@ -1,6 +1,9 @@
 "use client";
 
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { KeyFactor } from "@/types/comment";
@@ -10,6 +13,7 @@ import cn from "@/utils/core/cn";
 import KeyFactorDriver from "./key_factor_driver";
 
 type Props = {
+  id?: string;
   keyFactor: KeyFactor;
   linkToComment?: boolean;
   isCompact?: boolean;
@@ -20,6 +24,7 @@ type Props = {
 };
 
 export const KeyFactorItem: FC<Props> = ({
+  id,
   keyFactor,
   linkToComment = true,
   isCompact,
@@ -28,7 +33,22 @@ export const KeyFactorItem: FC<Props> = ({
   className,
   projectPermission,
 }) => {
+  const t = useTranslations();
   const isCompactConsumer = mode === "consumer" && isCompact;
+
+  if (keyFactor.flagged_by_me) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded border border-gray-0 bg-salmon-100 p-3 text-sm  text-salmon-800 dark:border-gray-0-dark dark:bg-salmon-100-dark dark:text-salmon-800-dark",
+          className
+        )}
+      >
+        <FontAwesomeIcon icon={faExclamationTriangle} />
+        {t("youFlaggedThisAsSpam")}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -47,6 +67,7 @@ export const KeyFactorItem: FC<Props> = ({
         className
       )}
       onClick={onClick}
+      id={id}
     >
       {keyFactor.driver && (
         <KeyFactorDriver

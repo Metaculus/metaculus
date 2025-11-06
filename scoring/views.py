@@ -61,11 +61,14 @@ def global_leaderboard_view(
 
     user = request.user
     entries = leaderboard.entries.select_related("user").order_by("rank", "-score")
-    entries = entries.filter(
-        Q(medal__isnull=False)
-        | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
-        | Q(user_id=user.id)
-    )
+    if leaderboard.score_type != LeaderboardScoreTypes.MANUAL:
+        entries = entries.filter(
+            Q(medal__isnull=False)
+            | Q(
+                rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05))
+            )
+            | Q(user_id=user.id)
+        )
 
     if not user.is_staff:
         bot_status: Project.BotLeaderboardStatus = leaderboard.bot_status or (

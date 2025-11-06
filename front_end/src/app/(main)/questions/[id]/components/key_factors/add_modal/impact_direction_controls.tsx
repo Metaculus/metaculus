@@ -26,6 +26,71 @@ type ButtonConfig =
       certainty: -1;
     };
 
+const generateButtons = (questionType: QuestionType): ButtonConfig[] => {
+  switch (questionType) {
+    case QuestionType.Date:
+      return [
+        // Please note: earlier is green, but direction is negative
+        {
+          direction: -1,
+          impact: ImpactDirectionCategory.Earlier,
+          variant: "green",
+          certainty: null,
+        },
+        // Please note: later is red, but direction is positive
+        {
+          direction: 1,
+          impact: ImpactDirectionCategory.Later,
+          variant: "red",
+          certainty: null,
+        },
+        {
+          direction: null,
+          impact: ImpactDirectionCategory.IncreaseUncertainty,
+          variant: "neutral",
+          certainty: -1,
+        },
+      ];
+    case QuestionType.Numeric:
+    case QuestionType.Discrete:
+      return [
+        {
+          direction: 1,
+          impact: ImpactDirectionCategory.More,
+          variant: "green",
+          certainty: null,
+        },
+        {
+          direction: -1,
+          impact: ImpactDirectionCategory.Less,
+          variant: "red",
+          certainty: null,
+        },
+        {
+          direction: null,
+          impact: ImpactDirectionCategory.IncreaseUncertainty,
+          variant: "neutral",
+          certainty: -1,
+        },
+      ];
+    default:
+      return [
+        {
+          direction: 1,
+          impact: ImpactDirectionCategory.Increase,
+          variant: "green",
+          certainty: null,
+        },
+        {
+          direction: -1,
+          impact: ImpactDirectionCategory.Decrease,
+          variant: "red",
+          certainty: null,
+        },
+      ];
+  }
+};
+
 const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
   questionType,
   impact,
@@ -34,64 +99,11 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
 }) => {
   const certainty = impact?.certainty ?? null;
   const impact_direction = impact?.impact_direction ?? null;
-  const impactMap: Record<
-    "positive" | "negative",
-    Partial<Record<QuestionType, ImpactDirectionCategory>> & {
-      default: ImpactDirectionCategory;
-    }
-  > = {
-    positive: {
-      [QuestionType.Date]: ImpactDirectionCategory.Earlier,
-      [QuestionType.Numeric]: ImpactDirectionCategory.More,
-      [QuestionType.Discrete]: ImpactDirectionCategory.More,
-      default: ImpactDirectionCategory.Increase,
-    },
-    negative: {
-      [QuestionType.Date]: ImpactDirectionCategory.Later,
-      [QuestionType.Numeric]: ImpactDirectionCategory.Less,
-      [QuestionType.Discrete]: ImpactDirectionCategory.Less,
-      default: ImpactDirectionCategory.Decrease,
-    },
-  };
 
-  const includeUncertainty =
-    questionType === QuestionType.Numeric ||
-    questionType === QuestionType.Discrete ||
-    questionType === QuestionType.Date;
-
-  const buttons: ButtonConfig[] = useMemo(() => {
-    const baseButtons: ButtonConfig[] = [
-      {
-        direction: 1,
-        impact: impactMap.positive[questionType] ?? impactMap.positive.default,
-        variant: "green",
-        certainty: null,
-      },
-      {
-        direction: -1,
-        impact: impactMap.negative[questionType] ?? impactMap.negative.default,
-        variant: "red",
-        certainty: null,
-      },
-    ];
-
-    return includeUncertainty
-      ? [
-          ...baseButtons,
-          {
-            direction: null,
-            impact: ImpactDirectionCategory.IncreaseUncertainty,
-            variant: "neutral",
-            certainty: -1,
-          },
-        ]
-      : baseButtons;
-  }, [
-    impactMap.positive,
-    impactMap.negative,
-    questionType,
-    includeUncertainty,
-  ]);
+  const buttons: ButtonConfig[] = useMemo(
+    () => generateButtons(questionType),
+    [questionType]
+  );
 
   return (
     <div className="flex flex-col items-start gap-1.5 sm:flex-row">

@@ -7,11 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from comments.models import (
-    Comment,
-    KeyFactor,
-    KeyFactorVote,
-)
+from comments.constants import CommentReportType
+from comments.models import Comment, KeyFactor
 from comments.serializers.common import serialize_comment_many
 from comments.serializers.key_factors import (
     KeyFactorWriteSerializer,
@@ -21,8 +18,10 @@ from comments.services.key_factors.common import (
     create_key_factors,
     key_factor_vote,
     delete_key_factor,
+    get_key_factor_vote_type_and_choices,
 )
 from comments.services.key_factors.suggestions import generate_key_factors_for_comment
+from notifications.services import send_key_factor_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
@@ -30,14 +29,12 @@ from projects.permissions import ObjectPermission
 @api_view(["POST"])
 def key_factor_vote_view(request: Request, pk: int):
     key_factor = get_object_or_404(KeyFactor, pk=pk)
+
+    vote_type, vote_choices = get_key_factor_vote_type_and_choices(key_factor)
+
     vote = serializers.ChoiceField(
-        required=False, allow_null=True, choices=KeyFactorVote.VoteStrength.choices
+        required=False, allow_null=True, choices=vote_choices
     ).run_validation(request.data.get("vote"))
-    # vote_type is always required, and when vote is None, the type is being used to
-    # decide which vote to delete based on the type
-    vote_type = serializers.ChoiceField(
-        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
-    ).run_validation(request.data.get("vote_type"))
 
     key_factor_vote(key_factor, user=request.user, vote=vote, vote_type=vote_type)
 
@@ -102,5 +99,21 @@ def key_factor_delete(request: Request, pk: int):
     ObjectPermission.can_delete_key_factor(permission, raise_exception=True)
 
     delete_key_factor(key_factor)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def key_factor_report_api_view(request, pk=int):
+    class InputSerializer(serializers.Serializer):
+        reason = serializers.ChoiceField(choices=CommentReportType.choices)
+
+    key_factor = get_object_or_404(KeyFactor, pk=pk)
+    serializer = InputSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    reason = serializer.validated_data["reason"]
+
+    send_key_factor_report_notification_to_staff(key_factor, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)

@@ -11,8 +11,10 @@ from django.db.models import (
     Count,
     Exists,
     Value,
+    Func,
 )
 from django.db.models.functions import Coalesce
+from django.db.models.lookups import Exact
 from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
@@ -218,6 +220,39 @@ class KeyFactorDriver(TimeStampedModel, TranslatedModel):
         return f"Driver {self.text}"
 
 
+class KeyFactorBaseRate(TimeStampedModel, TranslatedModel):
+    class BaseRateType(models.TextChoices):
+        FREQUENCY = "frequency"
+        TREND = "trend"
+
+    class ExtrapolationType(models.TextChoices):
+        LINEAR = "linear"
+        EXPONENTIAL = "exponential"
+        OTHER = "other"
+
+    reference_class = models.CharField(max_length=256)
+    type = models.CharField(choices=BaseRateType.choices, max_length=20)
+
+    # Trend-specific fields
+    rate_numerator = models.PositiveIntegerField(blank=True, null=True)
+    rate_denominator = models.PositiveIntegerField(blank=True, null=True)
+
+    # Frequency-specific fields
+    projected_value = models.FloatField(blank=True, null=True)
+    projected_by_year = models.IntegerField(blank=True, null=True)
+
+    unit = models.CharField(max_length=25)
+    extrapolation = models.CharField(
+        choices=ExtrapolationType.choices, max_length=32, default="", blank=True
+    )
+
+    based_on = models.CharField(max_length=256, blank=True, default="")
+    source = models.CharField()
+
+    def __str__(self):
+        return f"Base Rate {self.type} {self.reference_class}"
+
+
 class KeyFactor(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.FloatField(default=0, db_index=True, editable=False)
@@ -237,7 +272,20 @@ class KeyFactor(TimeStampedModel):
     )
 
     driver = models.OneToOneField(
-        KeyFactorDriver, models.PROTECT, related_name="key_factor", null=True
+        KeyFactorDriver,
+        models.PROTECT,
+        related_name="key_factor",
+        null=True,
+        unique=True,
+        blank=True,
+    )
+    base_rate = models.OneToOneField(
+        KeyFactorBaseRate,
+        models.PROTECT,
+        related_name="base_rate",
+        null=True,
+        unique=True,
+        blank=True,
     )
 
     def get_votes_count(self) -> int:
@@ -255,9 +303,29 @@ class KeyFactor(TimeStampedModel):
     user_vote: int = None
 
     class Meta:
-        # Used to get rid of the type error which complains
-        # about the two Meta classes in the 2 parent classes
-        pass
+        constraints = [
+            # Ensure KeyFactor contains only Driver | BaseRate | News column
+            models.CheckConstraint(
+                name="num_nonnulls_check",
+                check=Exact(
+                    lhs=Func(
+                        "driver",
+                        "base_rate",
+                        function="num_nonnulls",
+                        output_field=IntegerField(),
+                    ),
+                    rhs=Value(1),
+                ),
+            )
+        ]
+
+    def get_label(self) -> str:
+        if self.driver_id:
+            return f"Key Factor {self.driver}"
+        if self.base_rate_id:
+            return f"Key Factor {self.base_rate}"
+
+        return "Key Factor"
 
 
 class KeyFactorVote(TimeStampedModel):
@@ -266,8 +334,8 @@ class KeyFactorVote(TimeStampedModel):
         DIRECTION = "direction"
 
     class VoteDirection(models.IntegerChoices):
-        UP = 1
-        DOWN = -1
+        UP = 5
+        DOWN = -5
 
     class VoteStrength(models.IntegerChoices):
         NO_IMPACT = 0

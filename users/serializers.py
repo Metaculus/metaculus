@@ -27,7 +27,15 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "username",
             "is_bot",
             "is_staff",
+            "metadata",
         )
+
+    def get_metadata(self, obj: User):
+        data = obj.metadata
+        if data is None or not isinstance(data, dict):
+            return data
+        # only bot_details is public, other public fields may be added
+        return {key: value for key, value in data.items() if key == "bot_details"}
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
@@ -68,8 +76,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
         data = obj.metadata
         if data is None or not isinstance(data, dict):
             return data
-        # pro_details is private
-        return {key: value for key, value in data.items() if key != "pro_details"}
+        # only bot_details is public, other public fields may be added
+        return {key: value for key, value in data.items() if key == "bot_details"}
 
 
 class UserPrivateSerializer(UserPublicSerializer):
