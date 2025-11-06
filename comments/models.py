@@ -267,10 +267,10 @@ class KeyFactorNews(TimeStampedModel):
 
     # Even if article has an ITN reference,
     # We still duplicate its fields here
-    url = models.CharField(default="", max_length=2000)
-    title = models.CharField(default="", max_length=500)
-    img_url = models.CharField(default="", max_length=2000, blank=True)
-    source = models.CharField(default="", max_length=255)
+    url = models.CharField(default="", max_length=1000)
+    title = models.CharField(default="", max_length=256)
+    img_url = models.CharField(default="", max_length=1000, blank=True)
+    source = models.CharField(default="", max_length=50)
     published_at = models.DateTimeField(default=timezone.now, blank=True)
 
     impact_direction = models.SmallIntegerField(

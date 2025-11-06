@@ -4,7 +4,6 @@ from django_dynamic_fixture import G
 
 from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver, KeyFactorNews
 from comments.services.feed import get_comments_feed
-from misc.models import ITNArticle
 from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_misc.factories import factory_itn_article

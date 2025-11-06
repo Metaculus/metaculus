@@ -37,18 +37,6 @@ def serialize_key_factor_votes(
     }
 
 
-def serialize_news(news: KeyFactorNews) -> dict:
-    """Serializes a KeyFactorNews object"""
-    return {
-        "url": news.url,
-        "title": news.title,
-        "img_url": news.img_url,
-        "source": news.source,
-        "published_at": news.published_at,
-        "itn_article_id": news.itn_article_id,
-    }
-
-
 def serialize_key_factor(
     key_factor: KeyFactor,
     vote_scores: list[KeyFactorVote] = None,
@@ -87,7 +75,9 @@ def serialize_key_factor(
             if key_factor.base_rate
             else None
         ),
-        "news": (serialize_news(key_factor.news) if key_factor.news else None),
+        "news": (
+            KeyFactorNewsSerializer(key_factor.news).data if key_factor.news else None
+        ),
         "post": {
             "id": key_factor.comment.on_post_id,
             "question_type": question_type,
@@ -254,6 +244,14 @@ class KeyFactorNewsSerializer(serializers.ModelSerializer):
     """
     Serializer for creating/updating KeyFactorNews
     """
+
+    # Override requirement
+    # We still want models to have this mandatory fields
+    # But for ITN they will be populated automatically, so no need to pass them
+    url = serializers.CharField(max_length=1000, allow_null=True, required=False)
+    title = serializers.CharField(max_length=256, allow_null=True, required=False)
+    source = serializers.CharField(max_length=50, allow_null=True, required=False)
+    itn_article_id = serializers.IntegerField(allow_null=True, required=False)
 
     class Meta:
         model = KeyFactorNews
