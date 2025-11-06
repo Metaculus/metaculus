@@ -1,3 +1,4 @@
+import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -54,6 +55,8 @@ const KeyFactorsNewDriverFields: FC<Props> = ({
     <KeyFactorsNewItemContainer
       showDeleteButton={showXButton}
       onDeleteButtonClick={onXButtonClick}
+      icon={faCog}
+      label={t("driver")}
     >
       <Input
         value={draft.driver.text}
