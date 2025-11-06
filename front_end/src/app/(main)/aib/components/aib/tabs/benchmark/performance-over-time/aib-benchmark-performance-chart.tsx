@@ -298,7 +298,10 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 <VictoryLabel
                   dx={-65}
                   textAnchor="start"
-                  style={{ fontWeight: 600 }}
+                  style={{
+                    fontWeight: 600,
+                    fill: getThemeColor(METAC_COLORS.gray[900]),
+                  }}
                 />
               }
             />
