@@ -617,18 +617,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # SETTINGS - TODO: allow these as args
-        # baseline_player: int | str = 236038
-        baseline_player: int | str = 269788
+        baseline_player: int | str = 236038
         bootstrap_iterations = 30
 
         # SETUP: users to evaluate & questions
         print("Initializing...", end="\r")
-        # users: QuerySet[User] = User.objects.filter(
-        #     metadata__bot_details__metac_bot=True,
-        #     metadata__bot_details__include_in_calculations=True,
-        #     is_active=True,
-        # ).order_by("id")
-        users = User.objects.filter(id=269788)
+        users: QuerySet[User] = User.objects.filter(
+            metadata__bot_details__metac_bot=True,
+            metadata__bot_details__include_in_calculations=True,
+            is_active=True,
+        ).order_by("id")
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
         )
