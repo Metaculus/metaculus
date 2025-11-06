@@ -44,19 +44,6 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   const smUp = useBreakpoint("sm");
   const REF_STROKE = getThemeColor(METAC_COLORS.gray[700]);
 
-  const points = useMemo(
-    () =>
-      data.map((d, i) => ({
-        i,
-        x:
-          d.releaseDate instanceof Date
-            ? d.releaseDate
-            : new Date(d.releaseDate),
-        y: d.score,
-        name: d.name,
-      })),
-    [data]
-  );
   const referenceLines = useMemo(() => {
     const byKey = new Map<string, { y: number; label: string }>();
     for (const d of data) {
@@ -105,17 +92,6 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     }
     return result;
   }, [plotPoints]);
-
-  const orgOf = (name: string) => String(name).split(" ")[0] ?? name;
-  const topIndexByOrg = useMemo(() => {
-    const best = new Map<string, { i: number; y: number }>();
-    for (const p of points) {
-      const org = orgOf(p.name);
-      const prev = best.get(org);
-      if (!prev || p.y > prev.y) best.set(org, { i: p.i, y: p.y });
-    }
-    return new Map(Array.from(best.entries()).map(([org, v]) => [org, v.i]));
-  }, [points]);
 
   const yMeta = useMemo(() => {
     const vals = [
@@ -186,6 +162,31 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     return getThemeColor(chosen);
   };
 
+  const labelText = (d: { name?: string }) => d?.name ?? " ";
+  const labelStyle = {
+    fontSize: smUp ? 16 : 12,
+    fontFamily: 'interVariable, "interVariable Fallback", inter',
+    fontWeight: 400,
+    fill: (args: CallbackArgs) =>
+      colorForName((args.datum as { name?: string })?.name || ""),
+  };
+  const edgePadLeft = smUp ? 50 : 30;
+  const edgePadRight = rightPad;
+  const pointKey = (p: { x: Date; y: number; name: string }) =>
+    `${+p.x}|${p.y}|${p.name}`;
+  const labeledKeySet = useMemo(
+    () => new Set(sotaPoints.map(pointKey)),
+    [sotaPoints]
+  );
+  const hoverPoints = useMemo(
+    () =>
+      plotPoints.map((p) => ({
+        ...p,
+        suppressHover: labeledKeySet.has(pointKey(p)),
+      })),
+    [plotPoints, labeledKeySet]
+  );
+
   return (
     <div ref={wrapRef} className={className ?? "relative w-full"}>
       {width === 0 && <div style={{ height: smUp ? 360 : 220 }} />}
@@ -205,11 +206,32 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           }}
           containerComponent={
             <VictoryVoronoiContainer
-              labels={() => " "}
-              voronoiBlacklist={["bgPoints", "labelsLayer"]}
+              voronoiBlacklist={[
+                "bgPoints",
+                "labelsLayer",
+                "points",
+                "trend",
+                "refLine",
+                "refLabel",
+              ]}
               activateData
               style={{ touchAction: "pan-y" }}
-              labelComponent={<NullLabel />}
+              labels={({
+                datum,
+              }: {
+                datum: { name?: string; suppressHover?: boolean };
+              }) => (datum?.suppressHover ? undefined : datum?.name ?? " ")}
+              labelComponent={
+                <EdgeAwareLabel
+                  chartWidth={width}
+                  padLeft={edgePadLeft}
+                  padRight={edgePadRight}
+                  minGap={10}
+                  fontSizePx={smUp ? 16 : 12}
+                  dy={8}
+                  style={labelStyle}
+                />
+              }
             />
           }
         >
@@ -307,6 +329,15 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             />
           ))}
 
+          <VictoryScatter
+            name="hoverPoints"
+            data={hoverPoints}
+            x="x"
+            y="y"
+            size={14}
+            style={{ data: { opacity: 0 } }}
+          />
+
           {trend && (
             <VictoryLine
               name="trend"
@@ -331,6 +362,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           />
 
           <VictoryScatter
+            name="points"
             data={plotPoints}
             x="x"
             y="y"
@@ -345,35 +377,23 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 
           <VictoryScatter
             name="labelsLayer"
-            data={plotPoints}
-            labelComponent={
-              <EdgeAwareLabel
-                chartWidth={width}
-                padLeft={50}
-                padRight={0}
-                minGap={10}
-                fontSizePx={16}
-                dy={8}
-              />
-            }
+            data={sotaPoints}
             x="x"
             y="y"
             size={6}
-            labels={({ datum }) => {
-              const { name, i } = datum as { name: string; i: number };
-              if (smUp) return name;
-              const topIndex = topIndexByOrg.get(orgOf(name));
-              return topIndex === i ? name : "";
-            }}
-            style={{
-              labels: {
-                fill: (args: CallbackArgs) =>
-                  colorForName((args.datum as { name: string })?.name || ""),
-                fontSize: smUp ? 16 : 12,
-                fontFamily: 'interVariable, "interVariable Fallback", inter',
-              },
-              data: { opacity: 0 },
-            }}
+            labels={({ datum }) => labelText(datum as { name?: string })}
+            labelComponent={
+              <EdgeAwareLabel
+                chartWidth={width}
+                padLeft={edgePadLeft}
+                padRight={edgePadRight}
+                minGap={10}
+                fontSizePx={smUp ? 16 : 12}
+                dy={8}
+                style={labelStyle}
+              />
+            }
+            style={{ data: { opacity: 0 } }}
           />
         </VictoryChart>
       )}
@@ -437,7 +457,6 @@ const LegendTrend: FC<{ color: string; label: string }> = ({
 );
 
 const GRIDLINES = 5;
-const NullLabel: React.FC<Record<string, unknown>> = () => null;
 const safeIndex = (i: CallbackArgs["index"]) => (typeof i === "number" ? i : 0);
 function buildTimeTicks(min: Date, max: Date, target: number): Date[] {
   const monthDiff =
