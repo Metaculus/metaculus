@@ -49,7 +49,7 @@ const KeyFactorsAddModal: FC<Props> = ({
       isImmersive
       withCloseButton
       closeButtonClassName="top-5 right-5 sm:top-[28px] sm:right-[28px] p-0 text-base [&>_svg]:size-6"
-      className="m-0 flex h-full w-full max-w-[560px] flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto"
+      className="m-0 flex h-full max-w-[560px] flex-col overscroll-contain rounded-none md:w-auto md:rounded lg:m-auto lg:h-auto lg:w-full"
     >
       <KeyFactorsProvider
         user={user}
