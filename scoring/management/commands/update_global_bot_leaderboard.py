@@ -287,8 +287,6 @@ def gather_data(
                     question_ids.append(q)
                     scores.append(u1s)
                     coverages.append(cov)
-        if question.id == 38213:
-            breakpoint()
     print("\n")
     weights = coverages
     # cov_arr = np.array(coverages)
@@ -649,6 +647,7 @@ class Command(BaseCommand):
                 ),
                 related_posts__post__curation_status=Post.CurationStatus.APPROVED,
                 resolution__isnull=False,
+                scheduled_close_time__lte=timezone.now(),
             )
             .exclude(related_posts__post__default_project__slug__startswith="minibench")
             .exclude(resolution__in=UnsuccessfulResolutionType)
