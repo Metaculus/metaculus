@@ -1,5 +1,6 @@
 import random
 from collections import defaultdict, Counter
+from pathlib import Path
 
 from datetime import datetime, timedelta, timezone as dt_timezone
 from django.core.management.base import BaseCommand
@@ -44,11 +45,13 @@ def get_score_pair(
     if question.default_score_type == ScoreTypes.PEER:
         # Coverage
         coverage = 0.0
+        cvs = []
         total_duration = forecast_horizon_end - forecast_horizon_start
         current_timestamp = actual_close_time
         for gm in geometric_means[::-1]:
             if gm.num_forecasters == 2:  # converage only when both have a forecast
                 coverage += max(0, (current_timestamp - gm.timestamp)) / total_duration
+                cvs.append(max(0, (current_timestamp - gm.timestamp)) / total_duration)
             current_timestamp = gm.timestamp
         if coverage == 0:
             return None
@@ -100,6 +103,34 @@ def gather_data(
     users: QuerySet[User],
     questions: QuerySet[Question],
 ) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
+    csv_path = Path("HtH_score_data.csv")
+    if csv_path.exists():
+        import csv
+
+        def _deserialize_user(value: str) -> int | str:
+            value = value.strip()
+            if not value:
+                return value
+            try:
+                return int(value)
+            except ValueError:
+                return value
+
+        user1_ids: list[int | str] = []
+        user2_ids: list[int | str] = []
+        question_ids: list[int] = []
+        scores: list[float] = []
+        coverages: list[float] = []
+        with csv_path.open() as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                user1_ids.append(_deserialize_user(row["user1"]))
+                user2_ids.append(_deserialize_user(row["user2"]))
+                question_ids.append(int(row["questionid"]))
+                scores.append(float(row["score"]))
+                coverages.append(float(row["coverage"]))
+        return (user1_ids, user2_ids, question_ids, scores, coverages)
+
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
     aib_projects = Project.objects.filter(
@@ -256,10 +287,21 @@ def gather_data(
                     question_ids.append(q)
                     scores.append(u1s)
                     coverages.append(cov)
+        if question.id == 38213:
+            breakpoint()
     print("\n")
     weights = coverages
     # cov_arr = np.array(coverages)
     # weights = list(cov_arr * len(cov_arr) / sum(cov_arr))
+
+    import csv
+
+    with open("HtH_score_data.csv", "w") as output_file:
+        writer = csv.writer(output_file)
+        writer.writerow(["user1", "user2", "questionid", "score", "coverage"])
+        for row in zip(user1_ids, user2_ids, question_ids, scores, weights):
+            writer.writerow(row)
+
     return (user1_ids, user2_ids, question_ids, scores, weights)
 
 
@@ -292,6 +334,7 @@ def estimate_variances_from_head_to_head(
     weights: list[float],
     min_questions_for_true=100,
     min_paired_matches=100,
+    verbose: bool | None = None,
 ) -> float:
     """
     Helper function: Estimate σ_error and σ_true from head-to-head data.
@@ -299,6 +342,7 @@ def estimate_variances_from_head_to_head(
     Returns:
         alpha: estimated standard deviations and regularization parameter
     """
+    verbose = False if verbose is None else verbose
     # Estimate σ_error from paired matches
     matchups: dict[tuple[int | str, int | str], dict[str, list[float]]] = defaultdict(
         lambda: {"scores": [], "weights": []}
@@ -354,11 +398,22 @@ def estimate_variances_from_head_to_head(
     for player in players:
         if len(questions_participated[player]) >= min_questions_for_true:
             high_match_skills.append([skills[player_to_idx[player]]])
-    σ_true = np.std(high_match_skills, ddof=1) or 1
+    σ_true = np.var(high_match_skills, ddof=1) or 1
+    # σ_true = np.std(high_match_skills, ddof=1) or 1
     σ_true = 1 if np.isnan(σ_true) else σ_true
 
     alpha = (σ_error / σ_true) ** 2
-    return alpha
+    if verbose:
+        print(
+            f"Found {len(rematch_variances)} matchups with >={min_paired_matches} rematches"
+        )
+        print(f"σ_error (match noise): {σ_error:.4f}")
+        print(
+            f"Found {len(high_match_skills)} players with >={min_questions_for_true} questions"
+        )
+        print(f"σ_true (skill variance): {σ_true:.4f}")
+        print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
+    return 2
 
 
 def compute_skills(
@@ -432,6 +487,7 @@ def get_skills(
     weights: list[float],
     baseline_player: int | str,
     var_avg_scores: float,
+    verbose: bool | None = None,
 ) -> SkillType:
     alpha = estimate_variances_from_head_to_head(
         user1_ids=user1_ids,
@@ -439,6 +495,7 @@ def get_skills(
         question_ids=question_ids,
         scores=scores,
         weights=weights,
+        verbose=verbose,
     )
     skills = compute_skills(
         user1_ids=user1_ids,
@@ -537,6 +594,7 @@ def bootstrap_skills(
             weights=boot_weights,
             baseline_player=baseline_player,
             var_avg_scores=var_avg_scores,
+            verbose=False,
         )
 
         for player, boot_skill in boot_skills.items():
@@ -559,16 +617,18 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # SETTINGS - TODO: allow these as args
-        baseline_player: int | str = 236038
+        # baseline_player: int | str = 236038
+        baseline_player: int | str = 269788
         bootstrap_iterations = 30
 
         # SETUP: users to evaluate & questions
         print("Initializing...", end="\r")
-        users: QuerySet[User] = User.objects.filter(
-            metadata__bot_details__metac_bot=True,
-            metadata__bot_details__include_in_calculations=True,
-            is_active=True,
-        ).order_by("id")
+        # users: QuerySet[User] = User.objects.filter(
+        #     metadata__bot_details__metac_bot=True,
+        #     metadata__bot_details__include_in_calculations=True,
+        #     is_active=True,
+        # ).order_by("id")
+        users = User.objects.filter(id=269788)
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
         )
@@ -620,7 +680,7 @@ class Command(BaseCommand):
         var_avg_scores = np.var(np.array(list(avg_scores.values())))
 
         # compute skills initially
-        print("Computing Skills initial...", end="\r")
+        print("Computing Skills initial...")
         skills = get_skills(
             user1_ids=user1_ids,
             user2_ids=user2_ids,
@@ -629,6 +689,7 @@ class Command(BaseCommand):
             weights=weights,
             baseline_player=baseline_player,
             var_avg_scores=var_avg_scores,
+            verbose=True,
         )
         print("Computing Skills initial... DONE\n")
 
