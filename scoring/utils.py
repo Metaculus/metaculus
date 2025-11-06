@@ -768,12 +768,17 @@ def update_project_leaderboard(
         project.close_date if project else None
     )
     if force_finalize or (finalize_time and (timezone.now() >= finalize_time)):
-        if project and project.type in [
-            Project.ProjectTypes.SITE_MAIN,
-            Project.ProjectTypes.TOURNAMENT,
-        ]:
-            if project.default_permission is not None:
-                new_entries = assign_medals(new_entries)
+        if (
+            project
+            and project.type
+            in [
+                Project.ProjectTypes.SITE_MAIN,
+                Project.ProjectTypes.TOURNAMENT,
+            ]
+            and project.default_permission == ObjectPermission.FORECASTER
+            and project.visibility == Project.Visibility.NORMAL
+        ):
+            new_entries = assign_medals(new_entries)
         # always set finalize
         Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
