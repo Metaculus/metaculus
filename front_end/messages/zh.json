@@ -1560,5 +1560,16 @@
   "confirmDeletionKeyFactorDescription": "您确定要删除您的关键因素吗？",
   "deleteKeyFactor": "删除关键因素",
   "viewAll": "查看全部 ({count})",
+  "reportSpam": "举报垃圾信息",
+  "reportSpamConfirmDescription": "您确定要将此关键因素标记为垃圾信息吗？",
+  "youFlaggedThisAsSpam": "您已将此关键因素标记为垃圾信息。",
+  "dispute": "争议",
+  "disputeKeyFactor": "争议关键因素",
+  "disputeKeyFactorHelp": "对这个关键因素有想法吗？写下评论，它会作为对原评论的回复发布。",
+  "writeYourArgument": "写下你的论点…",
+  "posting": "正在发布…",
+  "postComment": "发表评论",
+  "sendReport": "发送报告",
+  "points": "积分",
   "othersCount": "其他（{count}）"
 }

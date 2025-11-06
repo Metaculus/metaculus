@@ -372,3 +372,29 @@ export async function setExcludedFromWeekTopComments(
     excluded
   );
 }
+
+export async function reportKeyFactor(
+  keyFactorId: number,
+  reason: CommentReportReason
+) {
+  try {
+    return await ServerCommentsApi.reportKeyFactor(keyFactorId, reason);
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : undefined,
+    };
+  }
+}
+
+export async function replyToComment(
+  parentId: number,
+  onPostId: number,
+  text: string
+) {
+  return await ServerCommentsApi.createComment({
+    parent: parentId,
+    on_post: onPostId,
+    text,
+    is_private: false,
+  });
+}

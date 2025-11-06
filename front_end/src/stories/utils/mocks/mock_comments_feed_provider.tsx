@@ -24,6 +24,9 @@ export const MockCommentsFeedProvider: React.FC<PropsWithChildren> = ({
         combinedKeyFactors: [],
         setCombinedKeyFactors: () => {},
         setKeyFactorVote: () => {},
+        finalizeReply: () => {},
+        optimisticallyAddReplyEnsuringParent: async () => 0,
+        removeTempReply: () => {},
       }}
     >
       {children}

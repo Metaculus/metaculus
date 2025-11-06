@@ -84,6 +84,11 @@ def create_comment(
     text: str = None,
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
+    root = parent.root or parent if parent else None
+
+    # Inherit root comment privacy
+    if root:
+        is_private = root.is_private
 
     with transaction.atomic():
         obj = Comment(

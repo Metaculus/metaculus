@@ -12,6 +12,7 @@ from comments.models import (
     Comment,
     KeyFactorDriver,
     ImpactDirection,
+    KeyFactorBaseRate,
 )
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -99,6 +100,7 @@ def create_key_factor(
     question_id: int = None,
     question_option: str = None,
     driver: dict = None,
+    base_rate: dict = None,
     **kwargs,
 ) -> KeyFactor:
     question = None
@@ -139,6 +141,8 @@ def create_key_factor(
     # Adding types
     if driver:
         obj.driver = create_key_factor_driver(**driver)
+    elif base_rate:
+        obj.base_rate = create_key_factor_base_rate(**base_rate)
     else:
         raise ValidationError("Wrong Key Factor Type")
 
@@ -158,6 +162,28 @@ def create_key_factor_driver(
 ) -> KeyFactorDriver:
     obj = KeyFactorDriver(
         text=text, impact_direction=impact_direction, certainty=certainty, **kwargs
+    )
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_key_factor_base_rate(*, type: str = None, **kwargs) -> KeyFactorBaseRate:
+    """
+    Creates a KeyFactorBaseRate object based on type.
+
+    For FREQUENCY type:
+        - reference_class, rate_numerator, rate_denominator, unit, source are required
+
+    For TREND type:
+        - reference_class, projected_value, projected_by_year, unit, extrapolation, source are required
+        - based_on is optional
+    """
+
+    obj = KeyFactorBaseRate(
+        type=type,
+        **kwargs,
     )
     obj.full_clean()
     obj.save()
@@ -215,9 +241,26 @@ def calculate_freshness_driver(
     return (strengths_sum + 2 * max(3 - weights_sum, 0)) / max(weights_sum, 3)
 
 
+def calculate_freshness_base_rate(
+    key_factor: KeyFactor, votes: list[KeyFactorVote]
+) -> float:
+    """
+    Calculates freshness for BaseRate KeyFactors.
+    BaseRate freshness doesn't decay over time, it's just the average of votes.
+    """
+    if not votes:
+        return 0.0
+
+    avg = sum(v.score for v in votes) / len(votes)
+
+    return max(0.0, avg)
+
+
 def calculate_freshness(key_factor: KeyFactor, votes: list[KeyFactorVote]) -> float:
     if key_factor.driver_id:
         return calculate_freshness_driver(key_factor, votes)
+    elif key_factor.base_rate_id:
+        return calculate_freshness_base_rate(key_factor, votes)
 
     raise ValidationError("Key Factor does not support freshness calculation")
 
@@ -232,3 +275,19 @@ def calculate_key_factors_freshness(
     return {
         kf: calculate_freshness(kf, votes_map.get(kf.id) or []) for kf in key_factors
     }
+
+
+def get_key_factor_vote_type_and_choices(key_factor: KeyFactor) -> tuple[str, list]:
+    """
+    Determines vote type and available choices based on KeyFactor type.
+    Returns (vote_type, vote_choices) tuple.
+
+    - Driver: vote_type=STRENGTH, choices=VoteStrength
+    - BaseRate: vote_type=DIRECTION, choices=VoteDirection
+    """
+    if key_factor.driver_id:
+        return KeyFactorVote.VoteType.STRENGTH, KeyFactorVote.VoteStrength.choices
+    elif key_factor.base_rate_id:
+        return KeyFactorVote.VoteType.DIRECTION, KeyFactorVote.VoteDirection.choices
+    else:
+        raise ValidationError("KeyFactor has no valid type (driver or base_rate)")
