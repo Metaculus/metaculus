@@ -255,7 +255,7 @@ class KeyFactorBaseRate(TimeStampedModel, TranslatedModel):
 
 
 class KeyFactorNews(TimeStampedModel):
-    itn_news = models.ForeignKey(
+    itn_article = models.ForeignKey(
         "misc.ITNArticle",
         # We perform a periodic cleanup of ITN articles
         # So we want to set null when this happens
@@ -272,6 +272,11 @@ class KeyFactorNews(TimeStampedModel):
     img_url = models.CharField(default="", max_length=2000, blank=True)
     source = models.CharField(default="", max_length=255)
     published_at = models.DateTimeField(default=timezone.now, blank=True)
+
+    impact_direction = models.SmallIntegerField(
+        choices=ImpactDirection.choices, null=True, blank=True
+    )
+    certainty = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"News {self.title[:20]}"

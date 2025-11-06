@@ -264,9 +264,16 @@ class KeyFactorNewsSerializer(serializers.ModelSerializer):
             "img_url",
             "source",
             "published_at",
+            "impact_direction",
+            "certainty",
         )
 
     def validate(self, attrs):
+        if bool(attrs.get("impact_direction")) == bool(attrs.get("certainty")):
+            raise serializers.ValidationError(
+                "Impact Direction or Certainty is required"
+            )
+
         itn_article_id = attrs.get("itn_article_id")
 
         if not itn_article_id:
