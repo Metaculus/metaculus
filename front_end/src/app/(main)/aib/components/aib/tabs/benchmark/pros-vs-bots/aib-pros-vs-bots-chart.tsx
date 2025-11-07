@@ -279,6 +279,46 @@ const AIBProsVsBotsDiffChart: FC<{
     return null;
   };
 
+  const tooltipRows = useMemo(() => {
+    if (!activeCat) return [];
+
+    const rows: {
+      label: string;
+      color: string;
+      mean: number;
+      lo: number;
+      hi: number;
+    }[] = [];
+
+    if (s1) {
+      const v = s1Data.find((d) => d.x === activeCat);
+      if (v) {
+        rows.push({
+          label: "Binary",
+          color: getThemeColor(s1.colorToken),
+          mean: v.mean,
+          lo: v.lo,
+          hi: v.hi,
+        });
+      }
+    }
+
+    if (s2) {
+      const v = s2Data.find((d) => d.x === activeCat);
+      if (v && !(v.mean === 0 && v.lo === 0 && v.hi === 0)) {
+        rows.push({
+          label: "All questions",
+          color: getThemeColor(s2.colorToken),
+          mean: v.mean,
+          lo: v.lo,
+          hi: v.hi,
+        });
+      }
+    }
+
+    return rows;
+  }, [activeCat, s1, s2, s1Data, s2Data, getThemeColor]);
+
   return (
     <div ref={ref} className={className ?? "relative w-full"}>
       {show && (
@@ -599,7 +639,7 @@ const AIBProsVsBotsDiffChart: FC<{
             )}
           </div>
 
-          {activeCat && anchor && (
+          {activeCat && anchor && tooltipRows.length > 0 && (
             <FloatingPortal>
               <div
                 ref={refs.setFloating}
@@ -608,32 +648,7 @@ const AIBProsVsBotsDiffChart: FC<{
               >
                 <AIBDiffTooltip
                   quarter={activeCat}
-                  rows={[
-                    ...(s1
-                      ? [
-                          {
-                            label: "Binary",
-                            color: getThemeColor(s1.colorToken),
-                            mean:
-                              s1Data.find((d) => d.x === activeCat)?.mean ?? 0,
-                            lo: s1Data.find((d) => d.x === activeCat)?.lo ?? 0,
-                            hi: s1Data.find((d) => d.x === activeCat)?.hi ?? 0,
-                          },
-                        ]
-                      : []),
-                    ...(s2
-                      ? [
-                          {
-                            label: "All questions",
-                            color: getThemeColor(s2.colorToken),
-                            mean:
-                              s2Data.find((d) => d.x === activeCat)?.mean ?? 0,
-                            lo: s2Data.find((d) => d.x === activeCat)?.lo ?? 0,
-                            hi: s2Data.find((d) => d.x === activeCat)?.hi ?? 0,
-                          },
-                        ]
-                      : []),
-                  ]}
+                  rows={tooltipRows}
                   rightTitle="Avg Scores"
                 />
               </div>
