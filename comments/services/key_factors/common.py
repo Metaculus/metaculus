@@ -199,10 +199,18 @@ def calculate_votes_strength(scores: list[int]):
     return (sum(scores) + 2 * max(0, 3 - len(scores))) / max(3, len(scores))
 
 
+@transaction.atomic
 def delete_key_factor(key_factor: KeyFactor):
-    # TODO: should it delete a comment if that comment was automatically created?
-
+    comment = key_factor.comment
     key_factor.delete()
+
+    # Delete comment without text if it was the last key factor
+    if (
+        not comment.text
+        and not comment.text_original
+        and not comment.key_factors.exists()
+    ):
+        comment.delete()
 
 
 def get_key_factor_question_lifetime(key_factor: KeyFactor) -> float:

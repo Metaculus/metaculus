@@ -103,7 +103,8 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(default=False, db_index=True)
-    text = models.TextField(max_length=150_000)
+    # Some comments with KeyFactors can have empty text
+    text = models.TextField(max_length=150_000, blank=True)
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )
