@@ -1657,5 +1657,7 @@
   "sourceRequired": "Source is required",
   "projectedValueRequired": "Projected value is required",
   "yearRequired": "Year is required",
+  "helpful": "helpful",
+  "notHelpful": "not helpful",
   "none": "none"
 }
