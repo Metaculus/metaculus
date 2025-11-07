@@ -1599,5 +1599,7 @@
   "sourceRequired": "Zdroj je povinný",
   "projectedValueRequired": "Odhadovaná hodnota je povinná",
   "yearRequired": "Rok je povinný",
+  "helpful": "užitečné",
+  "notHelpful": "neužitečné",
   "othersCount": "Ostatní ({count})"
 }

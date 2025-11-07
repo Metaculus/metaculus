@@ -1599,5 +1599,7 @@
   "sourceRequired": "Se requiere fuente",
   "projectedValueRequired": "Se requiere valor proyectado",
   "yearRequired": "Se requiere año",
+  "helpful": "útil",
+  "notHelpful": "no útil",
   "othersCount": "Otros ({count})"
 }
