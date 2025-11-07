@@ -1665,5 +1665,7 @@
   "sourceRequired": "来源是必需的",
   "projectedValueRequired": "预测值是必需的",
   "yearRequired": "年份是必需的",
+  "helpful": "有帮助的",
+  "notHelpful": "无帮助的",
   "othersCount": "其他（{count}）"
 }
