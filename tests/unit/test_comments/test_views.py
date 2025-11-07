@@ -2,7 +2,13 @@ import pytest  # noqa
 from django.urls import reverse
 from django_dynamic_fixture import G
 
-from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver, KeyFactor, KeyFactorNews
+from comments.models import (
+    Comment,
+    KeyFactorBaseRate,
+    KeyFactorDriver,
+    KeyFactor,
+    KeyFactorNews,
+)
 from comments.services.feed import get_comments_feed
 from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
