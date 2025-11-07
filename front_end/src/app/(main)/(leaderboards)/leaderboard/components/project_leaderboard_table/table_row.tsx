@@ -49,7 +49,7 @@ const TableRow: FC<Props> = ({
     ? formatUsername(user)
     : aggregation_method == "recency_weighted"
       ? t("communityPrediction")
-      : aggregation_method;
+      : aggregation_method ?? undefined;
   const forecasterLink = user
     ? `/accounts/profile/${user.id}/`
     : `/faq/#community-prediction`;
@@ -83,7 +83,7 @@ const TableRow: FC<Props> = ({
       >
         <Link
           href={forecasterLink}
-          title={forecasterLabel ?? undefined}
+          title={forecasterLabel}
           className="block truncate"
         >
           {forecasterLabel}
