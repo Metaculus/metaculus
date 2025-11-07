@@ -113,4 +113,45 @@ class Migration(migrations.Migration):
                 name="num_nonnulls_check",
             ),
         ),
+        # Not affected real db
+        migrations.AlterField(
+            model_name="comment",
+            name="text",
+            field=models.TextField(blank=True, max_length=150000),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_cs",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_en",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_es",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_original",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_pt",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_zh",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
+        migrations.AlterField(
+            model_name="comment",
+            name="text_zh_TW",
+            field=models.TextField(blank=True, max_length=150000, null=True),
+        ),
     ]

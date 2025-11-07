@@ -2,7 +2,7 @@ import pytest  # noqa
 from django.urls import reverse
 from django_dynamic_fixture import G
 
-from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver, KeyFactorNews
+from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver, KeyFactor, KeyFactorNews
 from comments.services.feed import get_comments_feed
 from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
@@ -227,6 +227,11 @@ class TestCommentCreation:
     def post(self, user1, question_binary):
         return factory_post(author=user1, question=question_binary)
 
+    def test_no_text_failure(self, post, user1_client, user1, user2):
+        response = user1_client.post(self.url, {"on_post": post.pk})
+
+        assert response.status_code == 400
+
     def test_private(self, post, user1_client, user1, user2):
         response = user1_client.post(
             self.url,
@@ -395,6 +400,59 @@ class TestCommentCreation:
         assert kf["base_rate"]["based_on"] == "Moore's Law extrapolation"
         assert kf["base_rate"]["source"] == "Semiconductor Industry Association"
         assert kf["driver"] is None
+
+    def test_create_with_base_rate_trend__no_comment_text(self, user1_client, post):
+        """
+        We should allow comment without text if it contains a BaseRate/News key factor
+        """
+
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "key_factors": [
+                    {
+                        "base_rate": {
+                            "type": "trend",
+                            "reference_class": "Global AI chip demand",
+                            "projected_value": 250.5,
+                            "projected_by_year": 2025,
+                            "unit": "billion USD",
+                            "extrapolation": "other",
+                            "based_on": "Moore's Law extrapolation",
+                            "source": "Semiconductor Industry Association",
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.data["on_post"] == post.pk
+        assert not response.data["text"]
+
+        kf = response.data["key_factors"][0]
+        assert kf["base_rate"]["type"] == "trend"
+        assert kf["base_rate"]["reference_class"] == "Global AI chip demand"
+
+    def test_create_with_driver__no_comment_text__failure(self, user1_client, post):
+        """
+        Other Key Factor types should not allow empty text
+        """
+
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "key_factors": [
+                    {"driver": {"text": "Key Factor Driver", "impact_direction": -1}}
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 400
 
     def test_create_with_mixed_key_factors(self, user1_client, post, question_binary):
         """Test creating a comment with both Driver and BaseRate key factors"""
@@ -567,3 +625,46 @@ class TestKeyFactorVoting:
         response = user1_client.post(url, data={"vote": 5}, format="json")
         assert response.status_code == 200
         assert response.data["count"] == 2
+
+
+class TestKeyFactorDeletion:
+    @pytest.fixture()
+    def post(self, user1):
+        return factory_post(author=user1)
+
+    def test_regular_comment(self, user1, post, user1_client):
+        comment = factory_comment(
+            author=user1, on_post=post, text_original="Regular Comment"
+        )
+        kf = factory_key_factor(comment=comment, driver=G(KeyFactorDriver))
+
+        response = user1_client.delete(
+            reverse("key-factor-delete", kwargs={"pk": kf.pk})
+        )
+        assert response.status_code == 204
+
+        assert not KeyFactor.objects.filter(pk=kf.pk).exists()
+        assert Comment.objects.filter(pk=comment.pk).exists()
+
+    def test_empty_comment(self, user1, post, user1_client):
+        comment = factory_comment(author=user1, on_post=post)
+        kf1 = factory_key_factor(comment=comment, driver=G(KeyFactorDriver))
+        kf2 = factory_key_factor(comment=comment, driver=G(KeyFactorDriver))
+
+        response = user1_client.delete(
+            reverse("key-factor-delete", kwargs={"pk": kf1.pk})
+        )
+        assert response.status_code == 204
+
+        assert not KeyFactor.objects.filter(pk=kf1.pk).exists()
+        # Comment exists
+        assert Comment.objects.filter(pk=comment.pk).exists()
+
+        response = user1_client.delete(
+            reverse("key-factor-delete", kwargs={"pk": kf2.pk})
+        )
+        assert response.status_code == 204
+
+        assert not KeyFactor.objects.filter(pk=kf2.pk).exists()
+        # Last KF deleted - drop comment
+        assert not Comment.objects.filter(pk=comment.pk).exists()
