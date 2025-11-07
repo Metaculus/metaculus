@@ -86,7 +86,13 @@ def has_question_enough_data_for_movement(question: Question):
     is_above_2_weeks = question_age >= timedelta(days=14)
 
     is_open = question.status == QuestionStatus.OPEN
-    forecasters_count = question.get_forecasters().count()
+
+    # Use annotated field if available to avoid N+1 queries
+    if hasattr(question, "forecasters_count"):
+        forecasters_count = question.forecasters_count or 0
+    else:
+        forecasters_count = question.get_forecasters().count()
+
     has_above_20_forecasters = forecasters_count > 20
 
     return is_above_2_weeks or (is_open and has_above_20_forecasters)

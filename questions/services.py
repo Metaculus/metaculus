@@ -1064,6 +1064,19 @@ def calculate_period_movement_for_questions(
     between the user last forecasting date and the latest aggregate forecasts.
     """
 
+    questions = list(questions)
+
+    # Annotate questions with forecasters_count to avoid N+1 queries
+    if questions:
+        question_ids = [q.id for q in questions]
+        annotated_questions = Question.objects.filter(
+            id__in=question_ids
+        ).annotate_forecasters_count()
+        annotated_map = {q.id: q for q in annotated_questions}
+        for q in questions:
+            if q.id in annotated_map:
+                q.forecasters_count = annotated_map[q.id].forecasters_count
+
     question_movement_map: dict[Question, QuestionMovement | None] = {
         q: None for q in questions
     }
