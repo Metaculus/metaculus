@@ -9,7 +9,7 @@ import { useAIBLeaderboard } from "../../../leaderboard/aib-leaderboard-provider
 const AIBBenchmarkForecastingPerformance: React.FC = () => {
   const t = useTranslations();
   const { leaderboard } = useAIBLeaderboard();
-  const models = mapLeaderboardToModelPoints(leaderboard);
+  const models = mapLeaderboardToModelPoints(leaderboard, t);
   const firstIdxByGroup = new Map<string, number>();
   models.forEach((m, i) => {
     if (m.isAggregate) return;

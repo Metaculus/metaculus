@@ -1,7 +1,9 @@
+import { useTranslations } from "next-intl";
+
 import type { LeaderboardDetails } from "@/types/scoring";
 
 import { getBotMeta } from "../../../leaderboard/bot_meta";
-import { shouldDisplayEntry } from "../../../leaderboard/utils";
+import { entryLabel, shouldDisplayEntry } from "../../../leaderboard/utils";
 
 export type AggregateKind = "community" | "pros" | "other";
 
@@ -16,15 +18,17 @@ export type ModelPoint = {
 type MaybeAgg = { aggregation_method?: string | null };
 
 export function mapLeaderboardToModelPoints(
-  leaderboard: LeaderboardDetails
+  leaderboard: LeaderboardDetails,
+  t: ReturnType<typeof useTranslations>
 ): ModelPoint[] {
   const entries: ModelPoint[] = [];
 
   for (const e of leaderboard.entries) {
     const username = e.user?.username ?? null;
     const meta = username ? getBotMeta(username) : undefined;
+    const name = entryLabel(e, t);
+    const isAggregate = !e.user;
 
-    const isAggregate = !username;
     const amRaw = (e as MaybeAgg).aggregation_method ?? "";
     const am = typeof amRaw === "string" ? amRaw.toLowerCase() : "";
 
@@ -35,18 +39,6 @@ export function mapLeaderboardToModelPoints(
       else if (am.includes("pro")) aggregateKind = "pros";
       else aggregateKind = "other";
     }
-
-    const defaultAggregateLabel =
-      aggregateKind === "community"
-        ? "Community Prediction"
-        : aggregateKind === "pros"
-          ? "Pros aggregate"
-          : "Aggregate";
-
-    const name =
-      meta?.label ??
-      username ??
-      (isAggregate ? defaultAggregateLabel : "Unnamed Model");
 
     const releaseDate = isAggregate ? new Date() : meta?.releasedAt;
     if (!releaseDate) continue;
