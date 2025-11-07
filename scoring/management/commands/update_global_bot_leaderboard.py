@@ -448,7 +448,7 @@ def compute_skills(
 
     # Fit with intercept=True so sklearn centers the solution
     # This effectively enforces sum-to-zero constraint
-    model = Ridge(alpha=alpha, fit_intercept=True, solver="lsqr")
+    model = Ridge(alpha=alpha, fit_intercept=False, solver="lsqr")
     model.fit(X, y, sample_weight=weights)
     # Extract estimated skills
     skills = {p: model.coef_[i] for i, p in enumerate(user_ids)}
@@ -616,6 +616,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options) -> None:
         # SETTINGS - TODO: allow these as args
         baseline_player: int | str = 236038
+        # baseline_player: int | str = 269788
+
         bootstrap_iterations = 30
 
         # SETUP: users to evaluate & questions
@@ -625,6 +627,7 @@ class Command(BaseCommand):
             metadata__bot_details__include_in_calculations=True,
             is_active=True,
         ).order_by("id")
+        # users = User.objects.filter(id=269788)
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
         )
