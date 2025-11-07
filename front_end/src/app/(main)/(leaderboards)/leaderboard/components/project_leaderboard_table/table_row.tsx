@@ -83,7 +83,7 @@ const TableRow: FC<Props> = ({
       >
         <Link
           href={forecasterLink}
-          title={forecasterLabel}
+          title={forecasterLabel ?? undefined}
           className="block truncate"
         >
           {forecasterLabel}
