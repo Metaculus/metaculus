@@ -1569,5 +1569,8 @@
   "postComment": "Zveřejnit komentář",
   "sendReport": "Odeslat hlášení",
   "points": "body",
+  "unweightedAggregate": "Nevážený agregát",
+  "submitAQuestion": "Odeslat otázku",
+  "leaderboardUnweightedInfo": "Jedná se o neváženou predikci agregovanou od všech předpovědí na každou otázku.<br></br>Zjistěte, jak se vypočítává <link>zde</link>.",
   "othersCount": "Ostatní ({count})"
 }
