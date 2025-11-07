@@ -7,8 +7,8 @@ import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
+import AggregationRankTooltip from "../aggregation_rank_tooltip";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
-import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -49,8 +49,10 @@ const TableRow: FC<Props> = ({
   return (
     <tr>
       <Td className="sticky left-0 text-left" highlight={highlight}>
-        {!user && aggregation_method === "recency_weighted" ? (
-          <RecencyWeightedAggregationRankTooltip />
+        {!user &&
+        (aggregation_method === "recency_weighted" ||
+          aggregation_method === "unweighted") ? (
+          <AggregationRankTooltip aggregationMethod={aggregation_method} />
         ) : (
           <>
             {!!medal && (
@@ -81,7 +83,9 @@ const TableRow: FC<Props> = ({
             ? formatUsername(user)
             : aggregation_method == "recency_weighted"
               ? t("communityPrediction")
-              : aggregation_method}
+              : aggregation_method == "unweighted"
+                ? t("unweightedAggregate")
+                : aggregation_method}
         </Link>
       </Td>
       <Td className="text-right tabular-nums" highlight={highlight}>

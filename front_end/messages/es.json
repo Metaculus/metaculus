@@ -1569,5 +1569,8 @@
   "postComment": "Publicar comentario",
   "sendReport": "Enviar reporte",
   "points": "puntos",
+  "unweightedAggregate": "Agregado sin peso",
+  "submitAQuestion": "Enviar una pregunta",
+  "leaderboardUnweightedInfo": "Esta es la predicción sin ponderar agregada de todos los pronosticadores en cada pregunta.<br></br>Aprenda cómo se calcula <link>aquí</link>.",
   "othersCount": "Otros ({count})"
 }

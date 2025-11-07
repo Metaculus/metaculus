@@ -1567,5 +1567,8 @@
   "postComment": "Publicar Comentário",
   "sendReport": "Enviar Relatório",
   "points": "pontos",
+  "unweightedAggregate": "Agregado Não Ponderado",
+  "submitAQuestion": "Enviar uma Pergunta",
+  "leaderboardUnweightedInfo": "Esta é a previsão não ponderada agregada de todos os previsores em cada pergunta.<br></br>Saiba como é calculada <link>aqui</link>.",
   "othersCount": "Outros ({count})"
 }
