@@ -64,6 +64,7 @@ export type ForecastType = {
 
 export enum KeyFactorVoteTypes {
   STRENGTH = "strength",
+  DIRECTION = "direction",
 }
 
 export enum StrengthValues {
@@ -78,10 +79,7 @@ export type KeyFactorVoteType =
 
 export type StrengthVoteOption = 0 | 1 | 2 | 5;
 
-// TODO: drop Legacy AB-test scores
-type KeyFactorVoteA = -1 | 1 | null;
-type KeyFactorVoteBAndC = -5 | -3 | -2 | 0 | 2 | 3 | 5;
-export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
+export type KeyFactorVoteScore = -5 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 5 | null;
 
 export type KeyFactorVote = {
   vote_type: KeyFactorVoteType;
@@ -152,9 +150,10 @@ export type KeyFactorVoteAggregate = {
   // Aggregated strength score
   score: number;
   // Current user's vote
-  user_vote: StrengthVoteOption | null;
+  user_vote: KeyFactorVoteScore;
   // Total number of votes
   count: number;
+  aggregated_data: { score: number; count: number }[];
 };
 
 type DraftBase = {
