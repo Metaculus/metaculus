@@ -25,7 +25,8 @@ import { ModelPoint } from "./mapping";
 
 type LegendItem =
   | { label: string; pointIndex: number }
-  | { label: string; trend: true };
+  | { label: string; trend: true }
+  | { label: string; sota: true };
 
 type Props = { data: ModelPoint[]; className?: string; legend?: LegendItem[] };
 
@@ -213,6 +214,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 "trend",
                 "refLine",
                 "refLabel",
+                "sotaStars",
               ]}
               activateData
               style={{ touchAction: "pan-y" }}
@@ -395,6 +397,23 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             }
             style={{ data: { opacity: 0 } }}
           />
+
+          <VictoryScatter
+            name="sotaStars"
+            data={sotaPoints}
+            x="x"
+            y="y"
+            size={7}
+            symbol="star"
+            style={{
+              data: {
+                fill: ({ datum }) =>
+                  colorForName((datum as { name: string }).name),
+                stroke: getThemeColor(METAC_COLORS.gray[0]),
+                strokeWidth: 0.5,
+              },
+            }}
+          />
         </VictoryChart>
       )}
 
@@ -411,12 +430,14 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 }
                 label={item.label}
               />
-            ) : (
+            ) : "trend" in item ? (
               <LegendTrend
                 key={`legend-trend-${i}`}
                 color={getThemeColor(METAC_COLORS.blue[800])}
                 label={item.label}
               />
+            ) : (
+              <LegendStar key={`legend-sota-${i}`} label={item.label} />
             )
           )}
         </div>
@@ -449,6 +470,21 @@ const LegendTrend: FC<{ color: string; label: string }> = ({
         className="absolute left-0 top-1/2 w-full -translate-y-1/2"
         style={{ borderTop: `2px dashed ${color}` }}
       />
+    </span>
+    <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+      {label}
+    </span>
+  </span>
+);
+
+const LegendStar: FC<{ label: string }> = ({ label }) => (
+  <span className="inline-flex items-center gap-1.5">
+    <span
+      aria-hidden
+      className="inline-flex h-[14px] w-[14px] items-center justify-center"
+      title="SOTA"
+    >
+      <span className="text-base leading-none">★</span>
     </span>
     <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
       {label}

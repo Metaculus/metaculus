@@ -23,6 +23,10 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
       pointIndex,
     })),
     { label: t("aibLinearTrend"), trend: true as const },
+    {
+      label: t("aibSotaModels"),
+      sota: true as const,
+    },
   ];
 
   return (

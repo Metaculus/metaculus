@@ -1631,5 +1631,6 @@
   "aibLbSubtitle": "Atualizado diariamente com base na nossa metodologia padronizada de medição de desempenho de previsão.",
   "aibIdeaDesktopP1": "FutureEval mede a capacidade da IA de prever resultados futuros, o que é essencial em muitas tarefas do mundo real. Modelos que obtêm alta pontuação em nosso benchmark serão melhores em planejamento, avaliação de risco e tomada de decisão. FutureEval é garantidamente à prova de vazamentos, já que as respostas ainda não são conhecidas no momento do teste.",
   "aibIdeaDesktopP2": "FutureEval tem dois braços: um benchmark de prompt fixo para comparar diretamente o desempenho do modelo e um torneio de bots contra humanos para sondar a fronteira do suporte estrutural.",
+  "aibSotaModels": "Modelos SOTA",
   "othersCount": "Outros ({count})"
 }

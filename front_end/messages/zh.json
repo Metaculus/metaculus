@@ -1635,5 +1635,6 @@
   "aibLbSubtitle": "根据我们的标准化预测性能测量方法，每天更新。",
   "aibIdeaDesktopP1": "FutureEval 评估 AI 预测未来结果的能力，这在许多现实任务中至关重要。 在我们的基准测试中得分较高的模型将在规划、风险评估和决策方面表现更好。 FutureEval 保证无泄漏，因为在测试时答案尚未确定。",
   "aibIdeaDesktopP2": "FutureEval 由两部分组成：一个固定提示基准，用于直接比较模型性能，以及一个机器人对人类锦标赛，用于探测支架的前沿。",
+  "aibSotaModels": "最先进的模型",
   "othersCount": "其他（{count}）"
 }
