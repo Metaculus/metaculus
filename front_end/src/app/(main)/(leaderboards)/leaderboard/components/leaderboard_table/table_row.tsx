@@ -19,6 +19,7 @@ import {
 } from "../../../search_params";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
 import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
+import UnweightedAggregationRankTooltip from "../unweighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -68,6 +69,8 @@ const LeaderboardRow: FC<Props> = ({
         >
           {!user && aggregation_method === "recency_weighted" ? (
             <RecencyWeightedAggregationRankTooltip />
+          ) : !user && aggregation_method === "unweighted" ? (
+            <UnweightedAggregationRankTooltip />
           ) : (
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
@@ -100,7 +103,9 @@ const LeaderboardRow: FC<Props> = ({
               ? formatUsername(user)
               : aggregation_method == "recency_weighted"
                 ? t("communityPrediction")
-                : aggregation_method}
+                : aggregation_method == "unweighted"
+                  ? t("unweightedAggregate")
+                  : aggregation_method}
           </span>
         </Link>
       </td>
