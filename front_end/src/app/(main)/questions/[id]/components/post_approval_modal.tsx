@@ -141,16 +141,6 @@ const PostApprovalModal: FC<{
       ) {
         setSubmitErrors(new Error("Open Time must be before Resolving Time."));
       }
-      if (
-        isAfter(
-          approvalData.scheduled_close_time,
-          approvalData.scheduled_resolve_time
-        )
-      ) {
-        setSubmitErrors(
-          new Error("Closing Time cannot be after Resolving Time.")
-        );
-      }
     }
   }, [post.notebook, approvalData, t]);
 
