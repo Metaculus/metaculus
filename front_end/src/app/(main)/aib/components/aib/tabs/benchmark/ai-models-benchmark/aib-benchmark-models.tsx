@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 
+import { useBreakpoint } from "@/hooks/tailwind";
+
 import AIBBenchmarkModel from "./aib-benchmark-model";
 import { useAIBLeaderboard } from "../../../leaderboard/aib-leaderboard-provider";
 import {
@@ -16,6 +18,7 @@ const MAX_VISIBLE_MODELS = 7;
 const AIBBenchmarkModels: React.FC = () => {
   const t = useTranslations();
   const { leaderboard } = useAIBLeaderboard();
+  const smUp = useBreakpoint("sm");
 
   const entries = useMemo(() => {
     const e = [...(leaderboard.entries ?? [])].filter((e) =>
@@ -31,15 +34,16 @@ const AIBBenchmarkModels: React.FC = () => {
   const [isAllShown, setIsAllShown] = useState(false);
   const visible = isAllShown ? entries : entries.slice(0, MAX_VISIBLE_MODELS);
 
+  const BASE = smUp ? 50 : 70;
   const scalePct = useMemo(() => {
     if (entries.length === 0) return () => 0;
     const scores = entries.map((e) => e.score);
-    const max = Math.max(...scores);
-    const min = Math.min(...scores);
-    const span = Math.max(0.0001, max - min);
-    const minPct = 0.9;
-    return (s: number) => (minPct + ((s - min) / span) * (1 - minPct)) * 100;
-  }, [entries]);
+    const best = Math.max(...scores);
+    const worst = Math.min(...scores);
+    const range = best - worst;
+    if (range <= 0) return () => 75;
+    return (s: number) => BASE + (100 - BASE) * ((s - worst) / range);
+  }, [entries, BASE]);
 
   return (
     <div className="mt-[20px] space-y-2 md:mt-[43px]">
