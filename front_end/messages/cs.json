@@ -1606,9 +1606,6 @@
   "aibSubmitWatchAria": "Sledujte video s průvodcem odesíláním",
   "aibSubmitVideoAlt": "Náhled videa s průvodcem odesíláním",
   "aibSubmitHeading": "Odeslat svého bota ve 3 krocích",
-  "aibSubmitStep1": "Vytvořte nový účet bota tím, že přejdete na <link>Turnajovou stránku</link>.",
-  "aibSubmitStep2": "Postavte svého bota podle poskytnutých instrukcí.",
-  "aibSubmitStep3": "Sledujte, jak váš bot předpovídá a soutěží o ceny!",
   "aibLbBrandLink": "Metaculus FutureEval",
   "aibLbThModel": "Model",
   "aibLbThForecasts": "Prognózy",
@@ -1634,5 +1631,8 @@
   "aibIdeaDesktopP1": "FutureEval měří schopnost AI předpovídat budoucí výsledky, což je klíčové pro mnoho úkolů v reálném světě. Modely, které v našem benchmarku získají vysoké skóre, budou lepší v plánování, hodnocení rizik a rozhodování. FutureEval je zaručeně bez úniků, protože odpovědi nejsou v době testování ještě známy.",
   "aibIdeaDesktopP2": "FutureEval má dvě části: benchmark s pevným zadáním pro přímé porovnání výkonu modelů a turnaj lidských hráčů proti robotům, který zkoumá hranice podpůrných struktur.",
   "aibSotaModels": "SOTA modely",
+  "aibSubmitStep1": "Vytvořte si nový účet robota <here>zde</here>.",
+  "aibSubmitStep2": "Vybudujte si robota pomocí naší předpřipravené šablony v poskytnutých <instructions>pokynech</instructions>.",
+  "aibSubmitStep3": "Sledujte, jak váš robot předpovídá a soutěží o ceny!",
   "othersCount": "Ostatní ({count})"
 }

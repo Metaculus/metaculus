@@ -1603,9 +1603,6 @@
   "aibSubmitWatchAria": "Assistir ao vídeo de instruções para envio",
   "aibSubmitVideoAlt": "Miniatura do vídeo de instruções para envio",
   "aibSubmitHeading": "Envie Seu Bot em 3 Etapas",
-  "aibSubmitStep1": "Crie uma nova conta de bot indo para a <link>Página do Torneio</link>.",
-  "aibSubmitStep2": "Construa seu bot usando as instruções fornecidas.",
-  "aibSubmitStep3": "Veja seu bot prever e competir por prêmios!",
   "aibLbBrandLink": "Metaculus FutureEval",
   "aibLbThModel": "Modelo",
   "aibLbThForecasts": "Previsões",
@@ -1632,5 +1629,8 @@
   "aibIdeaDesktopP1": "FutureEval mede a capacidade da IA de prever resultados futuros, o que é essencial em muitas tarefas do mundo real. Modelos que obtêm alta pontuação em nosso benchmark serão melhores em planejamento, avaliação de risco e tomada de decisão. FutureEval é garantidamente à prova de vazamentos, já que as respostas ainda não são conhecidas no momento do teste.",
   "aibIdeaDesktopP2": "FutureEval tem dois braços: um benchmark de prompt fixo para comparar diretamente o desempenho do modelo e um torneio de bots contra humanos para sondar a fronteira do suporte estrutural.",
   "aibSotaModels": "Modelos SOTA",
+  "aibSubmitStep1": "Crie uma nova conta de bot <here>aqui</here>.",
+  "aibSubmitStep2": "Construa seu bot usando nosso modelo pré-feito nas <instructions>instruções</instructions> fornecidas.",
+  "aibSubmitStep3": "Veja seu bot fazer previsões e competir por prêmios!",
   "othersCount": "Outros ({count})"
 }

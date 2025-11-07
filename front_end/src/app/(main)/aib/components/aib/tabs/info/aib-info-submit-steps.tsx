@@ -5,22 +5,38 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import videoThumbnail from "@/app/(main)/aib/assets/video-thumbnail.png";
+import { useModal } from "@/contexts/modal_context";
 
 const AIBInfoSubmitSteps: React.FC = () => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   const submitSteps = [
     t.rich("aibSubmitStep1", {
-      link: (chunks) => (
+      here: (chunks) => (
+        <button
+          type="button"
+          className="text-blue-700 underline dark:text-blue-700-dark"
+          onClick={() =>
+            setCurrentModal({ type: "signup", data: { forceIsBot: true } })
+          }
+        >
+          {chunks}
+        </button>
+      ),
+    }),
+    t.rich("aibSubmitStep2", {
+      instructions: (chunks) => (
         <Link
-          className="text-blue-700 dark:text-blue-700-dark"
           href="/notebooks/38928/futureeval-resources-page/#want-to-join-the-ai-forecasting-benchmark"
+          className="text-blue-700 underline dark:text-blue-700-dark"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           {chunks}
         </Link>
       ),
     }),
-    t("aibSubmitStep2"),
     t("aibSubmitStep3"),
   ] as const;
 

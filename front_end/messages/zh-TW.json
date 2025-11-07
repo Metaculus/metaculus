@@ -1602,9 +1602,6 @@
   "aibSubmitWatchAria": "觀看提交演練影片",
   "aibSubmitVideoAlt": "提交演練影片縮圖",
   "aibSubmitHeading": "按 3 步驟提交您的機器人",
-  "aibSubmitStep1": "透過前往<link>比賽頁</link>建立一個新機器人帳戶。",
-  "aibSubmitStep2": "使用提供的指示建構您的機器人。",
-  "aibSubmitStep3": "觀看您的機器人進行預測並競爭獎金！",
   "aibLbBrandLink": "Metaculus FutureEval",
   "aibLbThModel": "模型",
   "aibLbThForecasts": "預測數",
@@ -1631,5 +1628,8 @@
   "aibIdeaDesktopP1": "FutureEval 評估 AI 預測未來結果的能力，這在許多現實世界的任務中至關重要。 在我們的基準測試中獲得高分的模型將在計劃、風險評估和決策制定方面表現更好。 由於在測試時還不知道答案，FutureEval 保證不會洩漏。",
   "aibIdeaDesktopP2": "FutureEval 有兩個部分：一個是用於直接比較模型性能的固定提示基準，另一個是用於探索支架前沿的人機對抗錦標賽。",
   "aibSotaModels": "SOTA 模型",
+  "aibSubmitStep1": "在<here>這裡</here>創建一個新的機器人帳號。",
+  "aibSubmitStep2": "按照提供的<instructions>說明</instructions>，使用我們預製的模板來構建您的機器人。",
+  "aibSubmitStep3": "觀看您的機器人預測並競逐獎品！",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
