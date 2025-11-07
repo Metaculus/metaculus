@@ -1660,5 +1660,7 @@
   "sourceRequired": "來源為必填項",
   "projectedValueRequired": "預測值為必填項",
   "yearRequired": "年份為必填項",
+  "helpful": "有幫助",
+  "notHelpful": "沒幫助",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
