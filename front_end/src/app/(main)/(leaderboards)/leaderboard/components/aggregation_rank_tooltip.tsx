@@ -5,8 +5,21 @@ import { FC } from "react";
 import RichText from "@/components/rich_text";
 import Tooltip from "@/components/ui/tooltip";
 
-const UnweightedAggregationRankTooltip: FC = () => {
+type Props = {
+  aggregationMethod: string;
+};
+
+const AggregationRankTooltip: FC<Props> = ({ aggregationMethod }) => {
   const t = useTranslations();
+
+  // Map aggregation method to translation key
+  const translationKey =
+    aggregationMethod === "recency_weighted"
+      ? "leaderboardCpInfo"
+      : aggregationMethod === "unweighted"
+        ? "leaderboardUnweightedInfo"
+        : "leaderboardCpInfo"; // Default fallback
+
   return (
     <div className="flex flex-1 items-center justify-center">
       <div className="relative text-blue-700 dark:text-blue-700-dark">
@@ -17,7 +30,7 @@ const UnweightedAggregationRankTooltip: FC = () => {
           tooltipContent={
             <RichText>
               {(tags) =>
-                t.rich("leaderboardUnweightedInfo", {
+                t.rich(translationKey, {
                   ...tags,
                   link: (chunks) => (
                     <Link href={"/faq/#community-prediction"}>{chunks}</Link>
@@ -36,4 +49,4 @@ const UnweightedAggregationRankTooltip: FC = () => {
   );
 };
 
-export default UnweightedAggregationRankTooltip;
+export default AggregationRankTooltip;
