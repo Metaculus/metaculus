@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
-import { KeyFactor } from "@/types/comment";
+import { KeyFactor, KeyFactorVoteAggregate } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
@@ -46,13 +46,21 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
             const question = post.group_of_questions?.questions.find(
               (obj) => obj.id === kf.question_id
             );
+
+            const emptyAggregate: KeyFactorVoteAggregate = {
+              score: 0,
+              user_vote: null,
+              count: 0,
+              aggregated_data: [],
+            };
+
             const fake: KeyFactor = {
               ...kf,
               id: -1,
               author: user,
               freshness: 0,
               comment_id: -1,
-              vote: { score: 0, user_vote: null, count: 0 },
+              vote: emptyAggregate,
               question: kf.question_id
                 ? {
                     id: kf.question_id,
