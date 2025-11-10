@@ -38,18 +38,20 @@ from users.services.common import (
     change_email_from_token,
     register_user_to_campaign,
 )
-from users.services.spam_detection import (
+from utils.paginator import LimitOffsetPagination
+from utils.tasks import email_user_their_data_task
+
+from .services.profile_stats import generate_question_scores, QuestionScore
+from .services.spam_detection import (
     check_profile_update_for_spam,
     send_deactivation_email,
 )
-from utils.paginator import LimitOffsetPagination
-from utils.tasks import email_user_their_data_task
 
 logger = logging.getLogger(__name__)
 
 
 def get_score_scatter_plot_data(
-    scores: list[Score] | None = None,
+    scores: list[QuestionScore] | None = None,
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
     score_type: ScoreTypes | None = None,
@@ -87,9 +89,9 @@ def get_score_scatter_plot_data(
             {
                 "score": score.score,
                 "score_timestamp": score.edited_at.timestamp(),
-                "question_title": score.question.title,
-                "post_id": score.question.get_post_id(),
-                "question_resolution": score.question.resolution,
+                "question_title": score.question_title,
+                "post_id": score.post_id,
+                "question_resolution": score.question_resolution,
             }
         )
 
@@ -99,7 +101,7 @@ def get_score_scatter_plot_data(
 
 
 def get_score_histogram_data(
-    scores: list[Score] | None = None,
+    scores: list[QuestionScore] | None = None,
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
     score_type: ScoreTypes | None = None,
@@ -172,13 +174,15 @@ def get_calibration_curve_data(
 
     if user is not None:
         forecasts = Forecast.objects.filter(
-            question__in=public_questions_in_past,
+            post__default_project__default_permission__isnull=False,
+            question__actual_resolve_time__gte=five_years_ago,
             question__type="binary",
             question__resolution__in=["no", "yes"],
             question__scheduled_resolve_time__lt=timezone.now(),
             author=user,
-        ).prefetch_related("question")
+        )
     else:
+        # TODO: index as well
         forecasts = AggregateForecast.objects.filter(
             question__in=public_questions_in_past,
             question__type="binary",
@@ -187,16 +191,22 @@ def get_calibration_curve_data(
             question__scheduled_resolve_time__lt=timezone.now(),
             question__include_bots_in_aggregates=False,
             method=aggregation_method,
-        ).prefetch_related("question")
+        )
+
+    # Annotate questions instead of separate fetch
+    forecasts = forecasts.annotate(
+        question_open_time=F("question__open_time"),
+        question_actual_close_time=F("question__actual_close_time"),
+        question_resolution=F("question__resolution"),
+    )
 
     values = []
     weights = []
     resolutions = []
 
     for forecast in forecasts:
-        question = forecast.question
-        forecast_horizon_start = question.open_time.timestamp()
-        actual_close_time = question.actual_close_time.timestamp()
+        forecast_horizon_start = forecast.question_open_time.timestamp()
+        actual_close_time = forecast.question_actual_close_time.timestamp()
         # The following is a hack to more closely replicate the old site's behavior
         # forecast_horizon_end = question.scheduled_close_time.timestamp()
         forecast_horizon_end = actual_close_time
@@ -219,7 +229,7 @@ def get_calibration_curve_data(
             values.append(forecast.forecast_values[1])
 
         weights.append(weight)
-        resolutions.append(int(question.resolution == "yes"))
+        resolutions.append(int(forecast.question_resolution == "yes"))
 
     calibration_curve = []
     small_bin_size = 0.125 / 3
@@ -280,7 +290,7 @@ def get_calibration_curve_data(
 
 
 def get_forecasting_stats_data(
-    scores: list[Score] | None = None,
+    scores: list[QuestionScore] | None = None,
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
     score_type: ScoreTypes | None = None,
@@ -310,7 +320,9 @@ def get_forecasting_stats_data(
     average_score = (
         None if not scores else np.average([score.score for score in scores])
     )
-    forecasts = Forecast.objects.filter(question__in=public_questions)
+    forecasts = Forecast.objects.filter(
+        post__default_project__default_permission__isnull=False
+    )
     if user is not None:
         forecasts = forecasts.filter(author=user)
     forecasts_count = forecasts.count()
@@ -384,19 +396,17 @@ def serialize_profile(
         score_type = ScoreTypes.PEER
     if aggregation_method is not None and score_type is None:
         score_type = ScoreTypes.BASELINE
-    public_questions = Question.objects.filter_public()
     # TODO: support archived scores
     score_qs = Score.objects.filter(
-        question__in=public_questions,
+        question__related_posts__post__default_project__default_permission__isnull=False,
         score_type=score_type,
     )
     if user is not None:
         score_qs = score_qs.filter(user=user)
     else:
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
-    scores = list(
-        score_qs.select_related("question").prefetch_related("question__related_posts")
-    )
+
+    scores = generate_question_scores(score_qs)
     data = {}
     data.update(
         get_score_scatter_plot_data(

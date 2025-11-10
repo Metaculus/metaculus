@@ -565,6 +565,7 @@ class Forecast(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
+            models.Index(fields=["author", "post", "question"]),
         ]
         constraints = [
             # end_time > start_time
