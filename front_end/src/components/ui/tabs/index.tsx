@@ -51,7 +51,6 @@ export const Tabs = ({
 }) => {
   const [internalActive, setInternalActive] = useState(defaultValue);
 
-  // Support both controlled and uncontrolled modes
   const active = controlledValue ?? internalActive;
   const setActive = useCallback(
     (v: string) => {
