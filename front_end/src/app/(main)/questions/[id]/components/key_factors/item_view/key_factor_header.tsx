@@ -27,7 +27,7 @@ const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
     sendAnalyticsEvent("KeyFactorClick", { event_label: "fromList" });
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleActivate();
@@ -43,15 +43,14 @@ const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
       <div className="text-[10px] text-gray-600 dark:text-gray-600-dark">
         {t.rich("byUsername", {
           link: (chunk) => (
-            <button
-              type="button"
-              className="bg-transparent p-0 text-[10px] font-normal text-blue-700 no-underline underline-offset-2 hover:underline focus:underline focus:outline-none dark:text-blue-700-dark"
+            <div
+              className="inline-block bg-transparent p-0 text-[10px] font-normal text-blue-700 no-underline underline-offset-2 hover:underline focus:underline focus:outline-none dark:text-blue-700-dark"
               onClick={handleActivate}
               onKeyDown={handleKeyDown}
               role="link"
             >
               {chunk}
-            </button>
+            </div>
           ),
           username: `@${username}`,
         })}

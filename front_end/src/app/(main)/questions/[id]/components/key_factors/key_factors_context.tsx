@@ -15,6 +15,8 @@ import type { KeyFactorDraft } from "@/types/key_factors";
 import type { PostWithForecasts } from "@/types/post";
 import type { User } from "@/types/users";
 
+import { createEmptyBaseRateDraft } from "./item_creation/base_rate/utils";
+
 type State = {
   drafts: KeyFactorDraft[];
   markdown: string;
@@ -79,9 +81,12 @@ const DISABLED_CTX: Ctx = {
 
 const KeyFactorsContext = createContext<Ctx | null>(null);
 
-const INITIAL_DRIVER_DRAFT: KeyFactorDraft = {
-  driver: { text: "", impact_direction: null, certainty: null },
-};
+export const INITIAL_DRAFTS: KeyFactorDraft[] = [
+  {
+    driver: { text: "", impact_direction: null, certainty: null },
+  },
+  createEmptyBaseRateDraft(""),
+];
 
 function reducer(state: State, action: Partial<State>): State {
   return { ...state, ...action };
@@ -127,7 +132,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
   suggest = false,
 }) => {
   const [state, dispatch] = useReducer(reducer, {
-    drafts: [INITIAL_DRIVER_DRAFT],
+    drafts: INITIAL_DRAFTS,
     markdown: "",
   });
 
@@ -154,7 +159,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
 
   const resetAll = useCallback(() => {
     dispatch({
-      drafts: [INITIAL_DRIVER_DRAFT],
+      drafts: INITIAL_DRAFTS,
       markdown: "",
     });
     setErrors(undefined);
