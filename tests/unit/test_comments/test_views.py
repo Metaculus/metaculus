@@ -2,10 +2,17 @@ import pytest  # noqa
 from django.urls import reverse
 from django_dynamic_fixture import G
 
-from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver, KeyFactor
+from comments.models import (
+    Comment,
+    KeyFactorBaseRate,
+    KeyFactorDriver,
+    KeyFactor,
+    KeyFactorNews,
+)
 from comments.services.feed import get_comments_feed
 from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
+from tests.unit.test_misc.factories import factory_itn_article
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
@@ -350,6 +357,7 @@ class TestCommentCreation:
 
         assert response.status_code == 201
         assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Comment with Frequency BaseRate"
 
         kf = response.data["key_factors"][0]
         assert kf["base_rate"]["type"] == "frequency"
@@ -497,6 +505,68 @@ class TestCommentCreation:
         assert br_kf["base_rate"]["reference_class"] == "Historical baseline"
         assert br_kf["driver"] is None
 
+    def test_create_with_news_manual_fields(self, user1_client, post):
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with News",
+                "key_factors": [
+                    {
+                        "news": {
+                            "url": "https://example.com/article",
+                            "title": "Breaking News",
+                            "img_url": "https://example.com/img.jpg",
+                            "source": "News Agency",
+                            "impact_direction": 1,
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Comment with News"
+
+        kf = response.data["key_factors"][0]
+        assert kf["news"]["url"] == "https://example.com/article"
+        assert kf["news"]["title"] == "Breaking News"
+        assert kf["news"]["img_url"] == "https://example.com/img.jpg"
+        assert kf["news"]["source"] == "News Agency"
+        assert kf["driver"] is None
+        assert kf["base_rate"] is None
+
+    def test_create_with_news_from_itn_article(self, user1_client, post):
+        itn_article = factory_itn_article(
+            title="ITN News",
+            url="https://itn.example.com/article",
+            media_label="Reuters",
+        )
+
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with ITN Article",
+                "key_factors": [
+                    {
+                        "news": {
+                            "itn_article_id": itn_article.id,
+                            "impact_direction": 1,
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        kf = response.data["key_factors"][0]
+        assert kf["news"]["url"] == itn_article.url
+        assert kf["news"]["title"] == itn_article.title
+
 
 class TestKeyFactorVoting:
     @pytest.fixture()
@@ -519,7 +589,7 @@ class TestKeyFactorVoting:
 
         url = reverse("key-factor-vote", kwargs={"pk": kf.pk})
 
-        # User2 votes with 1
+        # User2 votes with 5
         response = user2_client.post(url, data={"vote": 5}, format="json")
         assert response.status_code == 200
         assert response.data["count"] == 1
@@ -541,7 +611,23 @@ class TestKeyFactorVoting:
         assert response.status_code == 200
         assert response.data["count"] == 1
 
-        # User3 votes with 5
+        # User1 votes with 5
+        response = user1_client.post(url, data={"vote": 5}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 2
+
+    def test_vote_news(self, user1, post, user2_client, user1_client):
+        comment = factory_comment(author=user1, on_post=post)
+        kf = factory_key_factor(comment=comment, news=G(KeyFactorNews))
+
+        url = reverse("key-factor-vote", kwargs={"pk": kf.pk})
+
+        # User2 votes with 1
+        response = user2_client.post(url, data={"vote": 1}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+
+        # User1 votes with 5
         response = user1_client.post(url, data={"vote": 5}, format="json")
         assert response.status_code == 200
         assert response.data["count"] == 2
