@@ -83,7 +83,7 @@ const Box: React.FC<{
       <span
         className={cn(
           classBase,
-          "bg-gradient-to-r from-purple-600 to-transparent"
+          "bg-gradient-to-r from-purple-600 to-transparent dark:from-purple-600-dark"
         )}
         style={{ width: base, height: base }}
       />
@@ -92,7 +92,12 @@ const Box: React.FC<{
   return (
     <span
       style={{ width: base, height: base }}
-      className={cn(classBase, light ? "bg-gray-0" : "bg-gray-200")}
+      className={cn(
+        classBase,
+        light
+          ? "bg-gray-0 dark:bg-gray-0-dark"
+          : "bg-gray-200 dark:bg-blue-200-dark"
+      )}
     />
   );
 };
