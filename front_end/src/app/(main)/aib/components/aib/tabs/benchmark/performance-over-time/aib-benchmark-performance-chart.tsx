@@ -146,7 +146,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   }, [legend]);
 
   const colorForName = (name: string) => {
-    const group = String(name).split(" ")[0] ?? name;
+    const first = String(name).split(" ")[0] ?? name;
+    const group = /^gpt/i.test(first) ? "OpenAI" : first;
     const idx = groupIndexByLabel.get(group);
     return colorFor(
       typeof idx === "number" ? { index: idx } : { index: 0 }

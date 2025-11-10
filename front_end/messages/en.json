@@ -1585,7 +1585,7 @@
   "aibLegendBaseline": "Control Team",
   "aibLegendPros": "Pro Forecasters",
   "aibLegendBots": "Bot Team",
-  "aibLinearTrend": "Linear Trend",
+  "aibSOTALinearTrend": "SOTA Linear Trend",
   "aibScore": "Score",
   "aibModelReleaseDate": "Model release date",
   "aibAvgScore": "Avg. Score",

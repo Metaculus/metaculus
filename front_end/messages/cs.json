@@ -1580,7 +1580,6 @@
   "aibModelsHeaderScore": "Skóre",
   "aibForecasts": "{count, plural, one {{count} předpověď} other {{count} předpovědí}}",
   "aibLegendPros": "Profesionální předpovídači",
-  "aibLinearTrend": "Lineární trend",
   "aibScore": "Skóre",
   "aibModelReleaseDate": "Datum vydání modelu",
   "aibAvgScore": "Prům. skóre",
@@ -1636,5 +1635,6 @@
   "aibLbThCIHigher": "95% CI horní",
   "aibShowMore": "Zobrazit více ({count})",
   "aibShowMoreAria": "Zobrazit více modelů ({count})",
+  "aibSOTALinearTrend": "SOTA lineární trend",
   "othersCount": "Ostatní ({count})"
 }

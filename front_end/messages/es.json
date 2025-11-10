@@ -1580,7 +1580,6 @@
   "aibModelsHeaderScore": "Puntuación",
   "aibForecasts": "{count, plural, one {{count} predicción} other {{count} predicciones}}",
   "aibLegendPros": "Forecasts Profesionales",
-  "aibLinearTrend": "Tendencia Lineal",
   "aibScore": "Puntuación",
   "aibModelReleaseDate": "Fecha de lanzamiento del modelo",
   "aibAvgScore": "Puntuación Promedio",
@@ -1636,5 +1635,6 @@
   "aibLbThCIHigher": "Límite superior del IC del 95%",
   "aibShowMore": "Mostrar más ({count})",
   "aibShowMoreAria": "Mostrar más modelos ({count})",
+  "aibSOTALinearTrend": "Tendencia Lineal SOTA",
   "othersCount": "Otros ({count})"
 }

@@ -1582,7 +1582,6 @@
   "aibModelsHeaderScore": "评分",
   "aibForecasts": "{count, plural, one {{count} 个预测} other {{count} 个预测}}",
   "aibLegendPros": "专业预测者",
-  "aibLinearTrend": "线性趋势",
   "aibScore": "评分",
   "aibModelReleaseDate": "模型发布日期",
   "aibAvgScore": "平均评分",
@@ -1638,5 +1637,6 @@
   "aibLbThCIHigher": "95% 置信区间上限",
   "aibShowMore": "显示更多 ({count})",
   "aibShowMoreAria": "显示更多模型 ({count})",
+  "aibSOTALinearTrend": "SOTA线性趋势",
   "othersCount": "其他（{count}）"
 }

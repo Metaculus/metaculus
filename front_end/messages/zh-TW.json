@@ -1577,7 +1577,6 @@
   "aibModelsHeaderScore": "得分",
   "aibForecasts": "{count, plural, one {{count} 預測} other {{count} 預測}}",
   "aibLegendPros": "專業預測員",
-  "aibLinearTrend": "線性趨勢",
   "aibScore": "得分",
   "aibModelReleaseDate": "模型發布日期",
   "aibAvgScore": "平均得分",
@@ -1633,5 +1632,6 @@
   "aibLbThCIHigher": "95% 置信區間上限",
   "aibShowMore": "顯示更多（{count}）",
   "aibShowMoreAria": "顯示更多型號（{count}）",
+  "aibSOTALinearTrend": "SOTA 線性趨勢",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

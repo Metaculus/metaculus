@@ -11,9 +11,13 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
   const { leaderboard } = useAIBLeaderboard();
   const models = mapLeaderboardToModelPoints(leaderboard, t);
   const firstIdxByGroup = new Map<string, number>();
+  const normalizeGroup = (name: string) => {
+    const first = String(name).split(" ")[0] ?? name;
+    return /^gpt/i.test(first) ? "OpenAI" : first;
+  };
   models.forEach((m, i) => {
     if (m.isAggregate) return;
-    const group = String(m.name).split(" ")[0] ?? m.name;
+    const group = normalizeGroup(m.name);
     if (!firstIdxByGroup.has(group)) firstIdxByGroup.set(group, i);
   });
 
@@ -22,7 +26,7 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
       label,
       pointIndex,
     })),
-    { label: t("aibLinearTrend"), trend: true as const },
+    { label: t("aibSOTALinearTrend"), trend: true as const },
     {
       label: t("aibSotaModels"),
       sota: true as const,
