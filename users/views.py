@@ -5,6 +5,7 @@ import numpy as np
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Sum, Q, F
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -450,6 +451,7 @@ def current_user_api_view(request):
     return Response(UserPrivateSerializer(request.user).data)
 
 
+@cache_page(60 * 60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
