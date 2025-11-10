@@ -1,3 +1,6 @@
+'use client"';
+
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { KeyFactor } from "@/types/comment";
@@ -22,24 +25,25 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   mode,
   projectPermission,
 }) => {
+  const router = useRouter();
   const t = useTranslations();
   if (!keyFactor.base_rate) return null;
   const { base_rate: baseRate } = keyFactor;
   const isConsumer = mode === "consumer";
-  const isCompactConsumer = isConsumer && isCompact;
   return (
     <>
-      <KeyFactorHeader
-        username={keyFactor.author.username}
-        linkAnchor={`#comment-${keyFactor.comment_id}`}
-        label={t("baseRate")}
-      />
+      {!isConsumer && (
+        <KeyFactorHeader
+          username={keyFactor.author.username}
+          linkAnchor={`#comment-${keyFactor.comment_id}`}
+          label={t("baseRate")}
+        />
+      )}
 
       <KeyFactorText
         text={baseRate.reference_class}
         className={cn("text-base leading-5", {
           "text-sm": isConsumer,
-          "text-xs": isCompactConsumer,
         })}
       />
 
@@ -47,15 +51,29 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         <KeyFactorBaseRateFrequency
           numerator={baseRate.rate_numerator ?? 0}
           denominator={baseRate.rate_denominator ?? 0}
+          withLightBoxes={isCompact || isConsumer}
         />
       )}
 
-      <hr className="my-0 opacity-20" />
+      {!isCompact && !isConsumer && (
+        <>
+          <hr className="my-0 opacity-20" />
+          <KeyFactorDirectionVoter
+            keyFactor={keyFactor}
+            projectPermission={projectPermission}
+          />
+        </>
+      )}
 
-      <KeyFactorDirectionVoter
-        keyFactor={keyFactor}
-        projectPermission={projectPermission}
-      />
+      {isCompact && (
+        <div
+          className="text-left text-xs text-blue-600 hover:underline dark:text-blue-600-dark"
+          role="link"
+          onClick={() => router.push(baseRate.source)}
+        >
+          (source)
+        </div>
+      )}
     </>
   );
 };

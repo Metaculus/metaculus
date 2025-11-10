@@ -105,7 +105,7 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
       </InputContainer>
 
       <div className="flex items-start gap-4">
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <InputContainer
             labelText={t("rate")}
             className="flex-1"

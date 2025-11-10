@@ -16,7 +16,10 @@ import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import KeyFactorsAddInComment from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
-import { useKeyFactorsCtx } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
+import {
+  INITIAL_DRAFTS,
+  useKeyFactorsCtx,
+} from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
 import {
   createForecasts,
   editComment,
@@ -332,6 +335,14 @@ const Comment: FC<CommentProps> = ({
     [combinedKeyFactors, comment.id]
   );
 
+  const isTextEmpty = !commentMarkdown.trim();
+  const { setComments } = useCommentsFeed();
+  useEffect(() => {
+    if (isTextEmpty && commentKeyFactors.length === 0) {
+      setComments((prev) => prev.filter((c) => c.id !== comment.id));
+    }
+  }, [isTextEmpty, commentKeyFactors.length, comment.id, setComments]);
+
   const canListKeyFactors = !postData?.notebook;
   const questionNotClosed = ![
     PostStatus.CLOSED,
@@ -351,9 +362,7 @@ const Comment: FC<CommentProps> = ({
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
     resetAll();
-    setDrafts([
-      { driver: { text: "", impact_direction: null, certainty: null } },
-    ]);
+    setDrafts(INITIAL_DRAFTS);
     setIsKeyfactorsFormOpen((open) => !open);
   };
   const openEdit = useCallback(() => {
@@ -747,13 +756,13 @@ const Comment: FC<CommentProps> = ({
                   withCodeBlocks
                 />
               )}{" "}
-              {!isEditing && (
+              {!isEditing && !(isTextEmpty && commentKeyFactors.length > 0) && (
                 <MarkdownEditor
                   markdown={parseUserMentions(
                     commentMarkdown,
                     comment.mentioned_users
                   )}
-                  mode={"read"}
+                  mode="read"
                   withUgcLinks
                   withTwitterPreview
                   withCodeBlocks
