@@ -73,7 +73,7 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
           }
           className="bg-transparent dark:bg-transparent"
         >
-          <TabsList className="bg-transparent pb-0 dark:bg-transparent">
+          <TabsList className="static bg-transparent pb-0 dark:bg-transparent">
             {tabDefs.map((tab) => (
               <TabsTab
                 key={tab.value}
