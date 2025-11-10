@@ -1580,8 +1580,6 @@
   "aibPerfOverTimeTitle": "预测性能随时间变化",
   "aibModelsHeaderName": "模型名称",
   "aibModelsHeaderScore": "评分",
-  "aibShowAll": "显示全部 ({count})",
-  "aibShowAllAria": "显示所有模型 ({count})",
   "aibForecasts": "{count, plural, one {{count} 个预测} other {{count} 个预测}}",
   "aibLegendPros": "专业预测者",
   "aibLinearTrend": "线性趋势",
@@ -1638,5 +1636,7 @@
   "aibSubmitStep3": "观看您的机器人预测并竞赛赢取奖品！",
   "aibLbThCILower": "95% 置信区间下限",
   "aibLbThCIHigher": "95% 置信区间上限",
+  "aibShowMore": "显示更多 ({count})",
+  "aibShowMoreAria": "显示更多模型 ({count})",
   "othersCount": "其他（{count}）"
 }

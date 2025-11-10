@@ -22,7 +22,7 @@ const AIBBenchmarkModels: React.FC = () => {
 
   const entries = useMemo(() => {
     const e = [...(leaderboard.entries ?? [])].filter((e) =>
-      shouldDisplayEntry(e)
+      shouldDisplayEntry(e, 300)
     );
     e.sort((a, b) => {
       if (a.rank != null && b.rank != null) return a.rank - b.rank;
@@ -78,9 +78,11 @@ const AIBBenchmarkModels: React.FC = () => {
         <button
           onClick={() => setIsAllShown(true)}
           className="dark:hover-bg-opacity-20 w-full rounded-[4px] border-[1px] border-transparent bg-blue-700 bg-opacity-10 p-[10px] text-left text-[14px] font-[500] text-blue-700 antialiased transition-colors duration-150 hover:border-blue-500 hover:bg-opacity-20 dark:bg-blue-700-dark dark:bg-opacity-10 dark:text-blue-700-dark dark:hover:border-blue-500-dark sm:text-[16px]"
-          aria-label={t("aibShowAllAria", { count: entries.length })}
+          aria-label={t("aibShowMoreAria", {
+            count: entries.length - MAX_VISIBLE_MODELS,
+          })}
         >
-          {t("aibShowAll", { count: entries.length })}
+          {t("aibShowMore", { count: entries.length - MAX_VISIBLE_MODELS })}
         </button>
       )}
     </div>

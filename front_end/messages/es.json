@@ -1578,8 +1578,6 @@
   "aibPerfOverTimeTitle": "Rendimiento de Predicción a lo Largo del Tiempo",
   "aibModelsHeaderName": "Nombre del Modelo",
   "aibModelsHeaderScore": "Puntuación",
-  "aibShowAll": "Mostrar todos ({count})",
-  "aibShowAllAria": "Mostrar todos los modelos ({count})",
   "aibForecasts": "{count, plural, one {{count} predicción} other {{count} predicciones}}",
   "aibLegendPros": "Forecasts Profesionales",
   "aibLinearTrend": "Tendencia Lineal",
@@ -1636,5 +1634,7 @@
   "aibSubmitStep3": "¡Mira cómo tu bot pronostica y compite por premios!",
   "aibLbThCILower": "Límite inferior del IC del 95%",
   "aibLbThCIHigher": "Límite superior del IC del 95%",
+  "aibShowMore": "Mostrar más ({count})",
+  "aibShowMoreAria": "Mostrar más modelos ({count})",
   "othersCount": "Otros ({count})"
 }

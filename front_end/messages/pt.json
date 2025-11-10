@@ -1576,8 +1576,6 @@
   "aibPerfOverTimeTitle": "Desempenho de Previsão ao Longo do Tempo",
   "aibModelsHeaderName": "Nome do Modelo",
   "aibModelsHeaderScore": "Pontuação",
-  "aibShowAll": "Mostrar todos ({count})",
-  "aibShowAllAria": "Mostrar todos os modelos ({count})",
   "aibForecasts": "{count, plural, one {{count} previsão} other {{count} previsões}}",
   "aibLegendPros": "Previsores Profissionais",
   "aibLinearTrend": "Tendência Linear",
@@ -1634,5 +1632,7 @@
   "aibSubmitStep3": "Veja seu bot fazer previsões e competir por prêmios!",
   "aibLbThCILower": "IC 95% inferior",
   "aibLbThCIHigher": "IC 95% superior",
+  "aibShowMore": "Mostrar mais ({count})",
+  "aibShowMoreAria": "Mostrar mais modelos ({count})",
   "othersCount": "Outros ({count})"
 }

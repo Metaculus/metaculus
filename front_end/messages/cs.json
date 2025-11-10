@@ -1578,8 +1578,6 @@
   "aibPerfOverTimeTitle": "Výkon předpovědi v průběhu času",
   "aibModelsHeaderName": "Název modelu",
   "aibModelsHeaderScore": "Skóre",
-  "aibShowAll": "Zobrazit vše ({count})",
-  "aibShowAllAria": "Zobrazit všechny modely ({count})",
   "aibForecasts": "{count, plural, one {{count} předpověď} other {{count} předpovědí}}",
   "aibLegendPros": "Profesionální předpovídači",
   "aibLinearTrend": "Lineární trend",
@@ -1636,5 +1634,7 @@
   "aibSubmitStep3": "Sledujte, jak váš robot předpovídá a soutěží o ceny!",
   "aibLbThCILower": "95% CI dolní",
   "aibLbThCIHigher": "95% CI horní",
+  "aibShowMore": "Zobrazit více ({count})",
+  "aibShowMoreAria": "Zobrazit více modelů ({count})",
   "othersCount": "Ostatní ({count})"
 }

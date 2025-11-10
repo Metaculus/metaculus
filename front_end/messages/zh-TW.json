@@ -1575,8 +1575,6 @@
   "aibPerfOverTimeTitle": "隨時間變化的預測表現",
   "aibModelsHeaderName": "模型名稱",
   "aibModelsHeaderScore": "得分",
-  "aibShowAll": "顯示全部 ({count})",
-  "aibShowAllAria": "顯示所有模型 ({count})",
   "aibForecasts": "{count, plural, one {{count} 預測} other {{count} 預測}}",
   "aibLegendPros": "專業預測員",
   "aibLinearTrend": "線性趨勢",
@@ -1633,5 +1631,7 @@
   "aibSubmitStep3": "觀看您的機器人預測並競逐獎品！",
   "aibLbThCILower": "95% 置信區間下限",
   "aibLbThCIHigher": "95% 置信區間上限",
+  "aibShowMore": "顯示更多（{count}）",
+  "aibShowMoreAria": "顯示更多型號（{count}）",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

@@ -73,9 +73,10 @@ export function shouldDisplayEntry(
   entry: Partial<LeaderboardEntry>,
   minResolved = MIN_RESOLVED_FORECASTS
 ): boolean {
-  if (isAggregateEntry(entry)) return true;
+  const resolved = getResolvedCount(entry);
+  const moreResolved = resolved >= minResolved;
+  if (isAggregateEntry(entry) && moreResolved) return true;
   const showFlag = entry?.user?.metadata?.bot_details?.display_in_leaderboard;
   if (!showFlag) return false;
-  const resolved = getResolvedCount(entry);
-  return resolved >= minResolved;
+  return moreResolved;
 }
