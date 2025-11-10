@@ -1634,5 +1634,7 @@
   "aibSubmitStep1": "Crea una nueva cuenta de bot <here>aquí</here>.",
   "aibSubmitStep2": "Construye tu bot usando nuestra plantilla prehecha en las <instructions>instrucciones</instructions> proporcionadas.",
   "aibSubmitStep3": "¡Mira cómo tu bot pronostica y compite por premios!",
+  "aibLbThCILower": "Límite inferior del IC del 95%",
+  "aibLbThCIHigher": "Límite superior del IC del 95%",
   "othersCount": "Otros ({count})"
 }

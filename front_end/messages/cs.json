@@ -1634,5 +1634,7 @@
   "aibSubmitStep1": "Vytvořte si nový účet robota <here>zde</here>.",
   "aibSubmitStep2": "Vybudujte si robota pomocí naší předpřipravené šablony v poskytnutých <instructions>pokynech</instructions>.",
   "aibSubmitStep3": "Sledujte, jak váš robot předpovídá a soutěží o ceny!",
+  "aibLbThCILower": "95% CI dolní",
+  "aibLbThCIHigher": "95% CI horní",
   "othersCount": "Ostatní ({count})"
 }

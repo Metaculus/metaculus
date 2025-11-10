@@ -28,6 +28,8 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
           icons,
           forecasts: Math.round((entry.contribution_count ?? 0) * 1000) / 1000,
           score: entry.score,
+          ciLower: entry.ci_lower,
+          ciUpper: entry.ci_upper,
           profileHref: userId ? `/accounts/profile/${userId}/` : null,
           isAggregate: !entry.user?.username,
         };
@@ -36,6 +38,8 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
     return entries;
   }, [details.entries, t]);
 
+  const hasCI = rows.some((r) => r.ciLower != null || r.ciUpper != null);
+
   return (
     <table className="mx-auto w-full max-w-[854px] table-fixed border-collapse border-spacing-0 border-[1px] border-gray-300 dark:border-gray-300-dark">
       <colgroup>
@@ -43,6 +47,12 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
         <col />
         <col className="hidden w-[100px] sm:table-cell" />
         <col className="w-[100px]" />
+        {hasCI && (
+          <>
+            <col className="hidden w-[120px] md:table-cell" />
+            <col className="hidden w-[120px] md:table-cell" />
+          </>
+        )}
       </colgroup>
 
       <thead>
@@ -53,6 +63,16 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
             {t("aibLbThForecasts")}
           </Th>
           <Th className="w-[100px] text-center">{t("aibLbThAvgScore")}</Th>
+          {hasCI && (
+            <>
+              <Th className="hidden w-[120px] text-center md:table-cell">
+                {t("aibLbThCILower")}
+              </Th>
+              <Th className="hidden w-[120px] text-center md:table-cell">
+                {t("aibLbThCIHigher")}
+              </Th>
+            </>
+          )}
         </tr>
       </thead>
 
@@ -94,6 +114,17 @@ const AIBLeaderboardTable: React.FC<Props> = ({ details }) => {
 
             <Td className="hidden text-center sm:table-cell">{r.forecasts}</Td>
             <Td className="w-[100px] text-center">{fmt(r.score, 2)}</Td>
+
+            {hasCI && (
+              <>
+                <Td className="hidden text-center md:table-cell">
+                  {fmt(r.ciLower, 2)}
+                </Td>
+                <Td className="hidden text-center md:table-cell">
+                  {fmt(r.ciUpper, 2)}
+                </Td>
+              </>
+            )}
           </tr>
         ))}
       </tbody>

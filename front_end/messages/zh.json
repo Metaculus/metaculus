@@ -1636,5 +1636,7 @@
   "aibSubmitStep1": "在<here>此处</here>创建一个新的机器人账户。",
   "aibSubmitStep2": "使用我们提供的<instructions>说明</instructions>中的预制模板构建您的机器人。",
   "aibSubmitStep3": "观看您的机器人预测并竞赛赢取奖品！",
+  "aibLbThCILower": "95% 置信区间下限",
+  "aibLbThCIHigher": "95% 置信区间上限",
   "othersCount": "其他（{count}）"
 }

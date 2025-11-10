@@ -1631,5 +1631,7 @@
   "aibSubmitStep1": "在<here>這裡</here>創建一個新的機器人帳號。",
   "aibSubmitStep2": "按照提供的<instructions>說明</instructions>，使用我們預製的模板來構建您的機器人。",
   "aibSubmitStep3": "觀看您的機器人預測並競逐獎品！",
+  "aibLbThCILower": "95% 置信區間下限",
+  "aibLbThCIHigher": "95% 置信區間上限",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

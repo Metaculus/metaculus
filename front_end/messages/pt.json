@@ -1632,5 +1632,7 @@
   "aibSubmitStep1": "Crie uma nova conta de bot <here>aqui</here>.",
   "aibSubmitStep2": "Construa seu bot usando nosso modelo pré-feito nas <instructions>instruções</instructions> fornecidas.",
   "aibSubmitStep3": "Veja seu bot fazer previsões e competir por prêmios!",
+  "aibLbThCILower": "IC 95% inferior",
+  "aibLbThCIHigher": "IC 95% superior",
   "othersCount": "Outros ({count})"
 }

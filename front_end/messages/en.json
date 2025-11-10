@@ -1628,5 +1628,7 @@
   "aibLbThAvgScore": "Avg Score",
   "aibViewFullLeaderboard": "View full leaderboard",
   "aibSotaModels": "SOTA models",
+  "aibLbThCILower": "95% CI lower",
+  "aibLbThCIHigher": "95% CI higher",
   "none": "none"
 }
