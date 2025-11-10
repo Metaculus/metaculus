@@ -1689,5 +1689,10 @@
   "yearRequired": "Year is required",
   "helpful": "helpful",
   "notHelpful": "not helpful",
+  "projection": "Projection",
+  "linearExtrapolation": "linear extrapolation",
+  "exponentialExtrapolation": "exponential extrapolation",
+  "genericExtrapolation": "extrapolation",
+  "basedOnDataRich": "(based on <strong>{value}</strong> data)",
   "none": "none"
 }
