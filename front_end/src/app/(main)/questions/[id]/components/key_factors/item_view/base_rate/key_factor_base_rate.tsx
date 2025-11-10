@@ -10,6 +10,7 @@ import cn from "@/utils/core/cn";
 import KeyFactorText from "../driver/key_factor_text";
 import KeyFactorHeader from "../key_factor_header";
 import KeyFactorBaseRateFrequency from "./key_factor_base_rate_frequency";
+import KeyFactorBaseRateTrend from "./key_factor_base_rate_trend";
 import KeyFactorDirectionVoter from "./key_factor_direction_voter";
 
 type Props = {
@@ -52,6 +53,17 @@ const KeyFactorBaseRate: React.FC<Props> = ({
           numerator={baseRate.rate_numerator ?? 0}
           denominator={baseRate.rate_denominator ?? 0}
           withLightBoxes={isCompact || isConsumer}
+        />
+      )}
+
+      {baseRate.type === "trend" && (
+        <KeyFactorBaseRateTrend
+          unit={baseRate.unit}
+          value={baseRate.projected_value ?? 0}
+          year={baseRate.projected_by_year ?? 0}
+          extrapolation={baseRate.extrapolation}
+          basedOn={baseRate.based_on ?? undefined}
+          source={baseRate.source}
         />
       )}
 
