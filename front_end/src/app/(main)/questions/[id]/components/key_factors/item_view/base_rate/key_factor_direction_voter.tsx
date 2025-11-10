@@ -88,7 +88,7 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
           className={cn(
             "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
             userVote === 5
-              ? "border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-200-dark dark:bg-purple-100-dark dark:text-purple-800"
+              ? "border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-200-dark dark:bg-purple-100-dark dark:text-purple-500"
               : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
           )}
         >
