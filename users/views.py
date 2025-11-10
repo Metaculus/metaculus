@@ -3,7 +3,7 @@ from datetime import timedelta
 
 import numpy as np
 from django.contrib.auth.password_validation import validate_password
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
