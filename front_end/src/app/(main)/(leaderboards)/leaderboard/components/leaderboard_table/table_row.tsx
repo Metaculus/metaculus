@@ -17,8 +17,8 @@ import {
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../../search_params";
+import AggregationRankTooltip from "../aggregation_rank_tooltip";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
-import RecencyWeightedAggregationRankTooltip from "../recency_weighted_aggregation_rank_tooltip";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -66,8 +66,10 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-between gap-1.5 py-2.5 pl-2.5 text-gray-500 no-underline"
           prefetch={false}
         >
-          {!user && aggregation_method === "recency_weighted" ? (
-            <RecencyWeightedAggregationRankTooltip />
+          {!user &&
+          (aggregation_method === "recency_weighted" ||
+            aggregation_method === "unweighted") ? (
+            <AggregationRankTooltip aggregationMethod={aggregation_method} />
           ) : (
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
@@ -100,7 +102,9 @@ const LeaderboardRow: FC<Props> = ({
               ? formatUsername(user)
               : aggregation_method == "recency_weighted"
                 ? t("communityPrediction")
-                : aggregation_method}
+                : aggregation_method == "unweighted"
+                  ? t("unweightedAggregate")
+                  : aggregation_method}
           </span>
         </Link>
       </td>
