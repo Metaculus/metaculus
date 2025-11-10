@@ -64,6 +64,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
           extrapolation={baseRate.extrapolation}
           basedOn={baseRate.based_on ?? undefined}
           source={baseRate.source}
+          isCompact={isCompact || isConsumer}
         />
       )}
 
@@ -77,9 +78,12 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         </>
       )}
 
-      {isCompact && (
+      {(isCompact || isConsumer) && (
         <div
-          className="text-left text-xs text-blue-600 hover:underline dark:text-blue-600-dark"
+          className={cn(
+            "text-left text-xs text-blue-600 hover:underline dark:text-blue-600-dark",
+            baseRate.type === "trend" && "-mt-2"
+          )}
           role="link"
           onClick={() => router.push(baseRate.source)}
         >
