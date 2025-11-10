@@ -37,7 +37,7 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
   const labelClassName =
     "text-xs font-medium text-blue-700 dark:text-blue-700-dark";
   const inputClassName =
-    "rounded-[4px] h-10 border border-blue-500 px-3 py-2 text-base font-normal text-blue-800 placeholder-blue-700 placeholder-opacity-50 dark:border-blue-500-dark dark:text-blue-800-dark dark:placeholder-blue-700-dark";
+    "rounded-[4px] h-10 border border-blue-500 px-3 py-2 text-base font-normal text-blue-800 placeholder-blue-700 placeholder-opacity-50 dark:border-blue-500-dark dark:text-blue-800-dark dark:placeholder-blue-700-dark bg-transparent";
 
   const tabDefs = [
     { value: "frequency" as const, label: t("frequency") },

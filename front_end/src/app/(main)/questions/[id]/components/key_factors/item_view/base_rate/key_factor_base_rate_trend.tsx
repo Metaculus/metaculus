@@ -7,6 +7,7 @@ type Props = {
   extrapolation?: "" | "linear" | "exponential" | "other";
   basedOn?: string | null;
   source?: string | null;
+  isCompact?: boolean;
 };
 
 const KeyFactorBaseRateTrend: React.FC<Props> = ({
@@ -16,6 +17,7 @@ const KeyFactorBaseRateTrend: React.FC<Props> = ({
   extrapolation = "",
   basedOn,
   source,
+  isCompact,
 }) => {
   const t = useTranslations();
 
@@ -48,7 +50,7 @@ const KeyFactorBaseRateTrend: React.FC<Props> = ({
         <span> {year}</span>
       </p>
 
-      {(exLabel || basedOn || source) && (
+      {!isCompact && (exLabel || basedOn || source) && (
         <p className="my-0 mt-1 text-xs text-gray-500 dark:text-gray-500-dark">
           {exLabel && <span>{exLabel} </span>}
 
