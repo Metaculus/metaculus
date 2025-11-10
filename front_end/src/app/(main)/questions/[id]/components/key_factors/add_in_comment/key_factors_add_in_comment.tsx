@@ -11,7 +11,8 @@ import Stub from "../add_modal/stub";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
 import { KFType } from "../types";
 import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
-import { useKeyFactorsCtx } from "../key_factors_context";
+import { INITIAL_DRAFTS, useKeyFactorsCtx } from "../key_factors_context";
+import KeyFactorsAddInCommentBaseRate from "./key_factors_add_in_comment_base_rate";
 
 type Props = {
   postData: PostWithForecasts;
@@ -67,9 +68,7 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   const onCancel = () => {
     closeKeyFactorsForm?.();
     resetAll();
-    setDrafts([
-      { driver: { text: "", impact_direction: null, certainty: null } },
-    ]);
+    setDrafts(INITIAL_DRAFTS);
   };
 
   return (
@@ -78,6 +77,12 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
         <KeyFactorsTypePicker onPick={setSelectedType} />
       ) : selectedType === "driver" ? (
         <KeyFactorsAddInCommentDriver
+          postData={postData}
+          onSubmit={handleSubmit}
+          onCancel={onCancel}
+        />
+      ) : selectedType === "base_rate" ? (
+        <KeyFactorsAddInCommentBaseRate
           postData={postData}
           onSubmit={handleSubmit}
           onCancel={onCancel}

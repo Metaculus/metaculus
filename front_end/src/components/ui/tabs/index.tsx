@@ -103,10 +103,12 @@ export const TabsTab = ({
       )}
       onClick={(e) => {
         ctx.setActive(value);
-        (e.target as HTMLElement).scrollIntoView({
-          inline: "center",
-          behavior: "smooth",
-        });
+        if (scrollOnSelect) {
+          (e.target as HTMLElement).scrollIntoView({
+            inline: "center",
+            behavior: "smooth",
+          });
+        }
 
         if (e.target instanceof HTMLElement) {
           handleClick(value, e.target);
