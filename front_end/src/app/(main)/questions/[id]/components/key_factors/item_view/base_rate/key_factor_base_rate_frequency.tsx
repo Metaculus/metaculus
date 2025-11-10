@@ -40,7 +40,10 @@ const FrequencyBoxes: React.FC<{
 
   return (
     <div
-      className="mt-2 flex flex-wrap content-center items-center gap-[2px] self-stretch pb-1"
+      className="mt-2 grid content-center items-center gap-[2px] pb-1"
+      style={{
+        gridTemplateColumns: `repeat(${MAX_PER_ROW}, ${size}px)`,
+      }}
       aria-label={`${numerator} of ${denominator}`}
       role="img"
     >
@@ -85,7 +88,8 @@ const Box: React.FC<{
   );
 };
 
-const MAX_BOXES = 50;
+const MAX_BOXES = 100;
+const MAX_PER_ROW = 17;
 function calcBoxes(numerator: number, denominator: number) {
   if (!denominator || denominator <= 0)
     return { filled: 0, half: 0, empty: 0, total: 0 };
