@@ -15,5 +15,5 @@ export default async function FutureEvalNewsPage() {
     "manual",
     "Global Bot Leaderboard"
   );
-  return <AIBScreen leaderboard={leaderboard} />;
+  return <AIBScreen leaderboard={leaderboard} current="news" />;
 }

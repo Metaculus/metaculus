@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   ButtonHTMLAttributes,
   createContext,
@@ -94,6 +95,16 @@ export const TabsList = ({
   );
 };
 
+type TabsTabProps = {
+  value: string;
+  children: ReactNode;
+  icon?: ReactNode;
+  className?: string;
+  onSelect?: (value: string) => void;
+  scrollOnSelect?: boolean;
+  href?: string;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
+
 export const TabsTab = ({
   value,
   children,
@@ -101,78 +112,62 @@ export const TabsTab = ({
   className,
   onSelect,
   scrollOnSelect = true,
+  href,
   ...buttonProps
-}: {
-  value: string;
-  children: ReactNode;
-  icon?: ReactNode;
-  className?: string;
-  onSelect?: (value: string) => void;
-  scrollOnSelect?: boolean;
-} & ButtonHTMLAttributes<HTMLButtonElement>) => {
+}: TabsTabProps) => {
   const ctx = useTabsContext();
   const isActive = ctx.active === value;
-
   const HEADER_OFFSET = 60;
-  const handleClick = (value: string, target: HTMLElement) => {
-    ctx.setActive(value);
-    const elementTop = target.getBoundingClientRect().top + window.scrollY;
 
-    if (!scrollOnSelect) return;
-    window.scrollTo({
-      top: elementTop - HEADER_OFFSET,
-      behavior: "smooth",
-    });
+  const baseClass = cn(
+    "whitespace-nowrap transition-colors",
+    isActive
+      ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
+      : "bg-gray-0 dark:bg-gray-0-dark",
+    "first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
+    "border px-3 py-1 text-sm font-[500] leading-[16px] sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
+    !isActive &&
+      "border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
+    isActive && "border-transparent",
+    className
+  );
+
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+    ctx.setActive(value);
+
+    if (!href && scrollOnSelect) {
+      (e.target as HTMLElement)?.scrollIntoView({
+        inline: "center",
+        behavior: "smooth",
+      });
+      const top =
+        (e.target as HTMLElement).getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top - HEADER_OFFSET, behavior: "smooth" });
+    }
+    onSelect?.(value);
   };
 
-  return (
-    <button
-      {...buttonProps}
-      className={cn(
-        "whitespace-nowrap transition-colors",
-        isActive
-          ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "bg-gray-0  dark:bg-gray-0-dark ",
-        ctx.variant === "separated" && [
-          "rounded-full px-3 py-1 text-sm",
-          !isActive && "text-gray-800 dark:text-gray-800-dark",
-        ],
-        ctx.variant === "group" && [
-          "first:rounded-l-full",
-          "last:rounded-r-full",
-          "[&:not(:first-child)]:-ml-px",
-          "border text-sm leading-[16px] sm:text-lg sm:leading-[26px]",
-          "px-3 py-1 font-[500] sm:px-5 sm:py-1.5",
-          !isActive && "text-blue-700 dark:text-blue-700-dark",
-          isActive
-            ? "border-transparent"
-            : "border-blue-400 dark:border-blue-400",
-        ],
-        className
-      )}
-      onClick={(e) => {
-        ctx.setActive(value);
-        if (scrollOnSelect) {
-          (e.target as HTMLElement).scrollIntoView({
-            inline: "center",
-            behavior: "smooth",
-          });
-        }
+  const inner = icon ? (
+    <span className="mt-[1px] inline-flex items-center gap-2 sm:gap-3">
+      {icon}
+      <span>{children}</span>
+    </span>
+  ) : (
+    children
+  );
 
-        if (e.target instanceof HTMLElement) {
-          handleClick(value, e.target);
-        }
-        onSelect?.(value);
-      }}
+  return href ? (
+    <Link href={href} className={baseClass} onClick={handleClick}>
+      {inner}
+    </Link>
+  ) : (
+    <button
+      type="button"
+      {...buttonProps}
+      className={baseClass}
+      onClick={handleClick}
     >
-      {icon ? (
-        <span className="mt-[1px] inline-flex items-center gap-2 sm:gap-3">
-          {icon}
-          <span>{children}</span>
-        </span>
-      ) : (
-        children
-      )}
+      {inner}
     </button>
   );
 };

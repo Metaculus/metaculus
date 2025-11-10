@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 
-const AIBNewsTab: React.FC = async () => (
+const AIBNewsTab: React.FC = () => (
   <div className="w-full">
     <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
       <Suspense

@@ -15,5 +15,5 @@ export default async function FutureEvalPage() {
     "manual",
     "Global Bot Leaderboard"
   );
-  return <AIBScreen leaderboard={leaderboard} />;
+  return <AIBScreen leaderboard={leaderboard} current="benchmark" />;
 }
