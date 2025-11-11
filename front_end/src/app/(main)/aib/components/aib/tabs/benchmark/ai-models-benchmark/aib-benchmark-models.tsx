@@ -46,7 +46,7 @@ const AIBBenchmarkModels: React.FC = () => {
   }, [entries, BASE]);
 
   return (
-    <div className="mt-[20px] space-y-2 md:mt-[43px]">
+    <div className="mt-[20px] space-y-2 md:mt-[32px]">
       <p className="m-0 flex justify-between font-normal text-gray-700 antialiased dark:text-gray-700-dark">
         <span>{t("aibModelsHeaderName")}</span>
         <span>{t("aibModelsHeaderScore")}</span>
