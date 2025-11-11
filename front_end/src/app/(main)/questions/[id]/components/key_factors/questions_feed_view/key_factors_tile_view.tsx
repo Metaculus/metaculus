@@ -29,7 +29,11 @@ const KF_COMPONENTS = {
   questionLink: KeyFactorTileQuestionLinkView,
 } satisfies Record<string, React.FC<KfDisplayProps>>;
 
-function pickKfComponent(_kf: KeyFactor): React.FC<KfDisplayProps> {
+function pickKfComponent(kf: KeyFactor): React.FC<KfDisplayProps> {
+  const brType = kf.base_rate?.type;
+  if (brType === "trend") return KF_COMPONENTS.baseRateTrend;
+  if (brType === "frequency") return KF_COMPONENTS.baseRateFreq;
+
   return KF_COMPONENTS.driver;
 }
 
