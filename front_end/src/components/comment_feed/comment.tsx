@@ -16,10 +16,7 @@ import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import KeyFactorsAddInComment from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
-import {
-  INITIAL_DRAFTS,
-  useKeyFactorsCtx,
-} from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
+import { useKeyFactorsCtx } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
 import {
   createForecasts,
   editComment,
@@ -290,7 +287,6 @@ const Comment: FC<CommentProps> = ({
     isLoadingSuggestedKeyFactors,
     factorsLimit,
     resetAll,
-    setDrafts,
     loadSuggestions,
   } = useKeyFactorsCtx();
 
@@ -359,12 +355,25 @@ const Comment: FC<CommentProps> = ({
     limitNotReached &&
     canListKeyFactors;
 
+  const forceReloadOnOpenRef = useRef(false);
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
+
     resetAll();
-    setDrafts(INITIAL_DRAFTS);
-    setIsKeyfactorsFormOpen((open) => !open);
+    setIsKeyfactorsFormOpen((prev) => {
+      const next = !prev;
+      if (next) forceReloadOnOpenRef.current = true;
+      return next;
+    });
   };
+
+  useEffect(() => {
+    if (!isKeyfactorsFormOpen) return;
+    if (!forceReloadOnOpenRef.current) return;
+    forceReloadOnOpenRef.current = false;
+    Promise.resolve().then(() => loadSuggestions(true));
+  }, [isKeyfactorsFormOpen, loadSuggestions]);
+
   const openEdit = useCallback(() => {
     setTempCommentMarkdown(originalTextRef.current);
     setIsEditing(true);

@@ -50,7 +50,7 @@ type Ctx = State & {
   setErrors: (e?: ErrorResponse) => void;
   resetAll: () => void;
   submit: (markdownOverride?: string) => Promise<SubmitResult>;
-  loadSuggestions: () => void;
+  loadSuggestions: (force?: boolean) => void;
 };
 
 const NOOP = () => {};
@@ -150,6 +150,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
     submit: submitImpl,
     isPending,
     clearState,
+    reloadSuggestions,
   } = useKeyFactors({
     user_id: user.id,
     commentId,
@@ -195,9 +196,10 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
           suggestedKeyFactors,
           markdownOverride ?? state.markdown
         ),
-      loadSuggestions: () => {
-        if (isLoadingSuggestedKeyFactors || shouldLoadSuggestions) return;
-        setShouldLoadSuggestions(true);
+      loadSuggestions: (force?: boolean) => {
+        if (isLoadingSuggestedKeyFactors) return;
+        if (force) reloadSuggestions();
+        else if (!shouldLoadSuggestions) setShouldLoadSuggestions(true);
       },
     }),
     [
@@ -213,6 +215,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       setErrors,
       resetAll,
       submitImpl,
+      reloadSuggestions,
     ]
   );
 

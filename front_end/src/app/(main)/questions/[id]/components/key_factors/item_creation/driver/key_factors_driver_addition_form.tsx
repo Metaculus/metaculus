@@ -4,7 +4,6 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useEffect } from "react";
 
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
@@ -13,7 +12,6 @@ import { PostWithForecasts } from "@/types/post";
 import { isDriverDraft } from "@/utils/key_factors";
 
 import KeyFactorsNewDriverFields from "./key_factors_new_driver_fields";
-import KeyFactorsSuggestedItems from "./key_factors_suggested_items";
 import { useKeyFactorsCtx } from "../../key_factors_context";
 
 const FACTORS_PER_COMMENT = 4;
@@ -24,21 +22,9 @@ type Props = {
 
 const KeyFactorsDriverAdditionForm: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
-  const {
-    drafts,
-    setDrafts,
-    factorsLimit,
-    limitError,
-    suggestedKeyFactors,
-    setSuggestedKeyFactors,
-  } = useKeyFactorsCtx();
+  const { drafts, setDrafts, factorsLimit, limitError, suggestedKeyFactors } =
+    useKeyFactorsCtx();
   const { user } = useAuth();
-  useEffect(() => {
-    if (suggestedKeyFactors.length > 0) {
-      setDrafts([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   if (!user) return null;
 
@@ -52,17 +38,6 @@ const KeyFactorsDriverAdditionForm: React.FC<Props> = ({ post }) => {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {suggestedKeyFactors.length > 0 && (
-        <KeyFactorsSuggestedItems
-          drafts={drafts}
-          post={post}
-          setDrafts={setDrafts}
-          setSuggestedKeyFactors={setSuggestedKeyFactors}
-          suggestedKeyFactors={suggestedKeyFactors}
-          user={user}
-        />
-      )}
-
       <div className="flex flex-col gap-3">
         {suggestedKeyFactors.length === 0 && (
           <p className="m-0 mb-2 text-base leading-tight">

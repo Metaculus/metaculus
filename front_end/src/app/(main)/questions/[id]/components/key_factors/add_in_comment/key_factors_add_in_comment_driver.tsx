@@ -9,8 +9,8 @@ import { isDriverDraft } from "@/utils/key_factors";
 
 import KeyFactorsDriverAdditionForm from "../item_creation/driver/key_factors_driver_addition_form";
 import { useKeyFactorsCtx } from "../key_factors_context";
-import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
 import { driverTextSchema } from "../schemas";
+import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
 
 type Props = {
   postData: PostWithForecasts;
