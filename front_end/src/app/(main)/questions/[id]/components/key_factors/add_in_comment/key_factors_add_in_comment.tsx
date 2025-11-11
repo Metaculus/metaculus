@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentType, KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 
-import Stub from "../add_modal/stub";
+import KeyFactorsSuggestedItems from "../item_creation/driver/key_factors_suggested_items";
+import { INITIAL_DRAFTS, useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
 import { KFType } from "../types";
-import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
-import { INITIAL_DRAFTS, useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsAddInCommentBaseRate from "./key_factors_add_in_comment_base_rate";
+import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
 
 type Props = {
   postData: PostWithForecasts;
@@ -29,12 +29,22 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   const { user, setUser } = useAuth();
 
   const {
+    drafts,
+    suggestedKeyFactors,
+    isLoadingSuggestedKeyFactors,
+    setSuggestedKeyFactors,
     setErrors: setKeyFactorsErrors,
     submit,
     resetAll,
     setDrafts,
   } = useKeyFactorsCtx();
   const { comments, setComments } = useCommentsFeed();
+
+  useEffect(() => {
+    if (selectedType && selectedType !== "driver") {
+      setSuggestedKeyFactors([]);
+    }
+  }, [selectedType, setSuggestedKeyFactors]);
 
   const handleSubmit = async () => {
     const result = await submit();
@@ -73,22 +83,38 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
 
   return (
     <>
-      {!selectedType ? (
-        <KeyFactorsTypePicker onPick={setSelectedType} />
-      ) : selectedType === "driver" ? (
+      {user && suggestedKeyFactors.length > 0 && (
+        <KeyFactorsSuggestedItems
+          drafts={drafts}
+          post={postData}
+          setDrafts={setDrafts}
+          setSuggestedKeyFactors={setSuggestedKeyFactors}
+          setSelectedType={setSelectedType}
+          selectedType={selectedType}
+          suggestedKeyFactors={suggestedKeyFactors}
+          user={user}
+        />
+      )}
+      {!selectedType && !isLoadingSuggestedKeyFactors && (
+        <KeyFactorsTypePicker
+          onPick={(type) => {
+            setSelectedType(type);
+          }}
+        />
+      )}
+      {selectedType === "driver" && (
         <KeyFactorsAddInCommentDriver
           postData={postData}
           onSubmit={handleSubmit}
           onCancel={onCancel}
         />
-      ) : selectedType === "base_rate" ? (
+      )}
+      {selectedType === "base_rate" && (
         <KeyFactorsAddInCommentBaseRate
           postData={postData}
           onSubmit={handleSubmit}
           onCancel={onCancel}
         />
-      ) : (
-        <Stub selectedType={selectedType} />
       )}
     </>
   );

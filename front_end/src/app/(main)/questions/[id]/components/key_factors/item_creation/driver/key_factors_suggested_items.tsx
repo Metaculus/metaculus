@@ -11,6 +11,7 @@ import { CurrentUser } from "@/types/users";
 import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import KeyFactorItem from "../../item_view";
+import { KFType } from "../../types";
 
 type Props = {
   suggestedKeyFactors: KeyFactorDraft[];
@@ -21,6 +22,8 @@ type Props = {
   setSuggestedKeyFactors: React.Dispatch<
     React.SetStateAction<KeyFactorDraft[]>
   >;
+  selectedType: KFType;
+  setSelectedType: React.Dispatch<React.SetStateAction<KFType>>;
 };
 
 const KeyFactorsSuggestedItems: React.FC<Props> = ({
@@ -30,6 +33,8 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
   drafts,
   setDrafts,
   setSuggestedKeyFactors,
+  setSelectedType,
+  selectedType,
 }) => {
   const t = useTranslations();
 
@@ -87,10 +92,17 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
                   <button
                     className="pointer-events-auto flex h-6 w-6 rounded-full bg-blue-400 p-0 text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
                     onClick={() => {
-                      setDrafts([...drafts, kf]);
-                      setSuggestedKeyFactors(
-                        suggestedKeyFactors.filter((_, i) => i !== idx)
-                      );
+                      setSelectedType("driver");
+                      requestAnimationFrame(() => {
+                        if (!selectedType) {
+                          setDrafts([kf]);
+                        } else {
+                          setDrafts([...drafts, kf]);
+                        }
+                        setSuggestedKeyFactors(
+                          suggestedKeyFactors.filter((_, i) => i !== idx)
+                        );
+                      });
                     }}
                   >
                     <FontAwesomeIcon icon={faPen} className="m-auto size-3" />
