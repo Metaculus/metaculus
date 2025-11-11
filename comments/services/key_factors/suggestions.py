@@ -335,6 +335,7 @@ def generate_keyfactors(
         - Be conservative and only include clearly relevant factors
         - Do not include any formatting like quotes, numbering or other punctuation
         - If the comment provides no meaningful forecasting insight, return the literal string "None".
+        - Ensure suggested key factors do not duplicate each other
 
         The question details are:
         <question_summary>
