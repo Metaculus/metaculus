@@ -63,31 +63,38 @@ export const useKeyFactors = ({
     return payload;
   };
 
+  const fetchSuggestions = useCallback(async (cid: number) => {
+    if (inFlightRef.current[cid]) return;
+    inFlightRef.current[cid] = true;
+    setIsLoadingSuggestedKeyFactors(true);
+    try {
+      const drafts = await ClientCommentsApi.getSuggestedKeyFactors(cid);
+      setSuggestedKeyFactors(drafts);
+      if (drafts.length > 0) {
+        setTimeout(() => {
+          const el = document.getElementById("suggested-key-factors");
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
+      }
+      fetchedOnceRef.current.add(cid);
+    } finally {
+      setIsLoadingSuggestedKeyFactors(false);
+      delete inFlightRef.current[cid];
+    }
+  }, []);
+
   useEffect(() => {
     if (!shouldLoadKeyFactors || !commentId) return;
     if (fetchedOnceRef.current.has(commentId)) return;
-    if (inFlightRef.current[commentId]) return;
+    void fetchSuggestions(commentId);
+  }, [commentId, shouldLoadKeyFactors, fetchSuggestions]);
 
-    inFlightRef.current[commentId] = true;
-    setIsLoadingSuggestedKeyFactors(true);
-
-    ClientCommentsApi.getSuggestedKeyFactors(commentId)
-      .then((drafts: KeyFactorWritePayload[]) => {
-        setSuggestedKeyFactors(drafts);
-        if (drafts.length > 0) {
-          setTimeout(() => {
-            const el = document.getElementById("suggested-key-factors");
-            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 50);
-        }
-      })
-      .finally(() => {
-        setIsLoadingSuggestedKeyFactors(false);
-        fetchedOnceRef.current.add(commentId);
-        delete inFlightRef.current[commentId];
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commentId, shouldLoadKeyFactors]);
+  const reloadSuggestions = useCallback(() => {
+    if (!commentId) return;
+    setSuggestedKeyFactors([]);
+    fetchedOnceRef.current.delete(commentId);
+    void fetchSuggestions(commentId);
+  }, [commentId, fetchSuggestions]);
 
   const { factorsLimit } = useMemo(
     () => getKeyFactorsLimits(combinedKeyFactors, user_id, commentId),
@@ -209,6 +216,7 @@ export const useKeyFactors = ({
     submit,
     isPending,
     clearState,
+    reloadSuggestions,
   };
 };
 
