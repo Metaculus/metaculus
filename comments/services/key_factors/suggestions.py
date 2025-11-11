@@ -20,7 +20,6 @@ from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 MAX_LENGTH = 50
 
 
-# TODO: unit tests!
 class KeyFactorResponse(BaseModel):
     text: str = Field(
         ..., description="Concise single-sentence key factor (<= 50 chars)"
