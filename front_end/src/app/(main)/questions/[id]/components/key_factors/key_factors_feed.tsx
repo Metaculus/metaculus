@@ -8,7 +8,7 @@ import { AddKeyFactorsButton } from "@/app/(main)/questions/[id]/components/key_
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
-import KeyFactorItem from "./key_factor_item";
+import KeyFactorItem from "./item_view";
 
 type Props = {
   post: PostWithForecasts;

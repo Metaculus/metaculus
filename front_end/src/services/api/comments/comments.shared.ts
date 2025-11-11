@@ -1,10 +1,10 @@
 import { ApiService } from "@/services/api/api_service";
 import {
+  CommentOfWeekEntry,
   CommentType,
   KeyFactorVoteType,
-  CommentOfWeekEntry,
-  Driver,
 } from "@/types/comment";
+import { BaseRateDraft, DriverDraft } from "@/types/key_factors";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {
@@ -19,11 +19,19 @@ export type getCommentsParams = {
   is_private?: boolean;
 };
 
-export type KeyFactorWritePayload = {
-  question_id?: number;
-  question_option?: string;
-  driver: Driver;
-};
+export type KeyFactorWritePayload =
+  | {
+      question_id?: number;
+      question_option?: string;
+      driver: DriverDraft["driver"];
+      base_rate?: never;
+    }
+  | {
+      question_id?: number;
+      question_option?: string;
+      driver?: never;
+      base_rate: BaseRateDraft["base_rate"];
+    };
 
 export type CreateCommentParams = {
   parent?: number;

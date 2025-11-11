@@ -9,7 +9,7 @@ import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
-import { KeyFactorItem } from "./key_factor_item";
+import { KeyFactorItem } from "./item_view";
 import KeyFactorsCarousel from "./key_factors_carousel";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 

@@ -29,6 +29,7 @@ export type ErrorProps = {
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   errors?: ErrorResponse;
+  errorClassName?: string;
 }
 
 export interface TextAreaProps
@@ -108,7 +109,7 @@ export const FormErrorMessage: FC<{
 };
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, name, errors, ...props }, ref) => {
+  ({ className, type, name, errors, errorClassName, ...props }, ref) => {
     return (
       <>
         <input
@@ -118,7 +119,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           name={name}
           {...props}
         />
-        {errors && <FormError name={name} errors={errors} />}
+        {errors && (
+          <FormError name={name} errors={errors} className={errorClassName} />
+        )}
       </>
     );
   }
