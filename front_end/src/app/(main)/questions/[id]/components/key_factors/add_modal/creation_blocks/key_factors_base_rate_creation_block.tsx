@@ -54,7 +54,7 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
     }
     queueMicrotask(async () => {
       if (!lastValid) return;
-      const result = await submit();
+      const result = await submit("base_rate");
       if (result && "errors" in result) {
         setErrors(result.errors);
         return;

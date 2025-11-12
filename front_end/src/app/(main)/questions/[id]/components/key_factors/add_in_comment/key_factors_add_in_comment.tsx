@@ -61,7 +61,7 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   };
 
   const handleSubmitDriver = async () => {
-    const result = await submit();
+    const result = await submit("driver");
     if (result && "errors" in result) {
       setKeyFactorsErrors(result.errors);
       return;
@@ -81,7 +81,7 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
     await new Promise(requestAnimationFrame);
     if (!brIsValidRef.current) return;
 
-    const result = await submit();
+    const result = await submit("base_rate");
     if (result && "errors" in result) {
       setKeyFactorsErrors(result.errors);
       return;
