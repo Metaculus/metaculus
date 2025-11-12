@@ -106,7 +106,7 @@ class NewsResponse(BaseModel):
     def validate_xor_source(self):
         """Ensure exactly one of itn_article_id or url is provided."""
 
-        if not (self.itn_article_id ^ self.url):
+        if bool(self.itn_article_id) == bool(self.url):
             raise ValueError(
                 "Exactly one of 'itn_article_id' or 'url' must be provided"
             )
