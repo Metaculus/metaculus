@@ -4,7 +4,7 @@ import {
   CommentType,
   KeyFactorVoteType,
 } from "@/types/comment";
-import { BaseRateDraft, DriverDraft } from "@/types/key_factors";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {
@@ -19,19 +19,7 @@ export type getCommentsParams = {
   is_private?: boolean;
 };
 
-export type KeyFactorWritePayload =
-  | {
-      question_id?: number;
-      question_option?: string;
-      driver: DriverDraft["driver"];
-      base_rate?: never;
-    }
-  | {
-      question_id?: number;
-      question_option?: string;
-      driver?: never;
-      base_rate: BaseRateDraft["base_rate"];
-    };
+export type KeyFactorWritePayload = KeyFactorDraft;
 
 export type CreateCommentParams = {
   parent?: number;
