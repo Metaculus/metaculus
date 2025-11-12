@@ -3,7 +3,6 @@ import logging
 import textwrap
 from typing import List, Optional, Union
 
-from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from django.conf import settings
 from pydantic import (
     BaseModel,
@@ -14,14 +13,15 @@ from pydantic import (
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor, KeyFactorDriver
+from pydantic import BaseModel, Field, ValidationError, model_validator
+
+from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from misc.models import ITNArticle
 from misc.services.itn import get_post_similar_articles
 from posts.models import Post
-from pydantic import BaseModel, Field, ValidationError, model_validator
 from questions.models import Question
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 
-# Central constraints
 MAX_LENGTH = 50
 
 logger = logging.getLogger(__name__)
