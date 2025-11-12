@@ -49,7 +49,7 @@ const AccordionResolutionCell: FC<Props> = ({
     <div className="flex h-full flex-col items-center justify-center gap-0.5 sm:w-[105px]">
       <p
         className={cn(
-          "m-0 text-sm leading-4 text-olive-800 dark:text-olive-800-dark",
+          "m-0 whitespace-nowrap text-sm leading-4 text-olive-800 dark:text-olive-800-dark",
           {
             "text-gray-700 dark:text-gray-700-dark":
               type === QuestionStatus.CLOSED,
@@ -67,7 +67,7 @@ const AccordionResolutionCell: FC<Props> = ({
               placement="right-start"
               tooltipClassName="z-[999] sm:ml-0 ml-[68px] -mt-4 sm:mt-0 rounded-sm px-1.5 py-0.5 text-[10px] leading-tight border-0 bg-salmon-800 dark:text-gray-0-dark text-gray-0 shadow-none dark:bg-salmon-800-dark"
             >
-              <div className="inline-flex items-center gap-1">
+              <div className="inline-flex items-center gap-1 whitespace-nowrap">
                 <span className="text-sm font-normal text-orange-700 dark:text-orange-700-dark">
                   {userMedian}
                 </span>
@@ -79,7 +79,7 @@ const AccordionResolutionCell: FC<Props> = ({
               </div>
             </Tooltip>
           ) : (
-            <p className="m-0 text-sm text-orange-700 dark:text-orange-700-dark">
+            <p className="m-0 whitespace-nowrap text-sm text-orange-700 dark:text-orange-700-dark">
               {userMedian}
             </p>
           )}
