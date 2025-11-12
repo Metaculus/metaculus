@@ -9,24 +9,24 @@ server {
     listen [::]:${PORT};
     server_name ~^(.+)$;
 
-    # Access control: allow localhost and configured host (if provided)
-    set $allow_access "off";
+    # Access control
+    set $should_deny 1;
     
-    # Always allow localhost/127.0.0.1
+    # Allow localhost
     if ($remote_addr ~* ^(127\.0\.0\.1|::1)$) {
-        set $allow_access "on";
+        set $should_deny 0;
     }
-    
-    # Allow configured host if APP_DOMAIN is set
+
     if ($host = "${APP_DOMAIN}") {
-        set $allow_access "on";
+        set $should_deny 0;
     }
-    
-    # Redirect to APP_DOMAIN if not allowed (unless APP_DOMAIN is empty, then allow all)
-    if ($allow_access = "off") {
-        if ("${APP_DOMAIN}" != "") {
-            return 301 https://${APP_DOMAIN}$request_uri;
-        }
+
+    if ("${APP_DOMAIN}" = "") {
+        set $should_deny 0;
+    }
+
+    if ($should_deny = 1) {
+        return 301 https://${APP_DOMAIN}$request_uri;
     }
 
     location / {
