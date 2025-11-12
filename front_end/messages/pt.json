@@ -1663,5 +1663,16 @@
   "yearRequired": "O ano é necessário",
   "helpful": "útil",
   "notHelpful": "não útil",
+  "projection": "Projeção",
+  "linearExtrapolation": "extrapolação linear",
+  "exponentialExtrapolation": "extrapolação exponencial",
+  "genericExtrapolation": "extrapolação",
+  "basedOnDataRich": "(baseado em <strong>{value}</strong> dados)",
+  "referenceRequired": "Referência é obrigatória",
+  "rateNumeratorGte0": "Numerador deve ser ≥ 0",
+  "rateDenominatorGte1": "Denominador deve ser ≥ 1",
+  "rateDenominatorGtNumerator": "Denominador deve ser maior que o numerador",
+  "yearOutOfRange": "O ano deve estar entre {min} e {max}",
+  "extrapolationRequired": "Por favor, selecione um método de extrapolação",
   "othersCount": "Outros ({count})"
 }

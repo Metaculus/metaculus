@@ -1667,5 +1667,16 @@
   "yearRequired": "年份是必需的",
   "helpful": "有帮助的",
   "notHelpful": "无帮助的",
+  "projection": "投影",
+  "linearExtrapolation": "线性外推",
+  "exponentialExtrapolation": "指数外推",
+  "genericExtrapolation": "外推",
+  "basedOnDataRich": "(基于 <strong>{value}</strong> 数据)",
+  "referenceRequired": "需要参考",
+  "rateNumeratorGte0": "分子必须 ≥ 0",
+  "rateDenominatorGte1": "分母必须 ≥ 1",
+  "rateDenominatorGtNumerator": "分母必须大于分子",
+  "yearOutOfRange": "年份必须在 {min} 和 {max} 之间",
+  "extrapolationRequired": "请选择一个外推方法",
   "othersCount": "其他（{count}）"
 }
