@@ -47,8 +47,7 @@ const CreateQuestionButton: FC = () => {
     <div
       className={cn(
         "flex h-full items-center capitalize",
-        hasEmphasis &&
-          "rounded-full bg-blue-700 px-2 py-1 dark:bg-blue-700-dark"
+        hasEmphasis && "rounded-full bg-blue-700 px-2 py-1"
       )}
     >
       <FontAwesomeIcon size="xs" className="mr-1" icon={faPlus} />
