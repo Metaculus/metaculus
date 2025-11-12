@@ -9,11 +9,11 @@ export const driverTextSchema = z
   .or(z.string().trim().length(0));
 
 const baseRateCommonSchema = z.object({
-  reference_class: z.string().trim().min(3),
+  reference_class: z.string().trim().min(1),
   unit: z.string().trim().min(1),
-  extrapolation: z.enum(["", "linear", "exponential", "other"]).optional(),
+  extrapolation: z.enum(["linear", "exponential", "other"]),
   based_on: z.string().trim().optional(),
-  source: z.string().trim().min(3),
+  source: z.string().trim().min(1),
 });
 
 export const baseRateFrequencySchema = z
@@ -22,12 +22,18 @@ export const baseRateFrequencySchema = z
     rate_numerator: z.number().int().min(0),
     rate_denominator: z.number().int().min(1),
   })
-  .refine(
-    (v) =>
+  .superRefine((v, ctx) => {
+    if (
       typeof v.rate_numerator === "number" &&
       typeof v.rate_denominator === "number" &&
-      v.rate_numerator <= v.rate_denominator
-  )
+      !(v.rate_denominator > v.rate_numerator)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [],
+      });
+    }
+  })
   .and(baseRateCommonSchema);
 
 export const baseRateTrendSchema = z

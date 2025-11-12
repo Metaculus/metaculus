@@ -1598,5 +1598,16 @@
   "yearRequired": "年份為必填項",
   "helpful": "有幫助",
   "notHelpful": "沒幫助",
+  "projection": "預測",
+  "linearExtrapolation": "線性外推",
+  "exponentialExtrapolation": "指數外推",
+  "genericExtrapolation": "外推",
+  "basedOnDataRich": "(根據 <strong>{value}</strong> 數據)",
+  "referenceRequired": "需要參考資料",
+  "rateNumeratorGte0": "分子必須 ≥ 0",
+  "rateDenominatorGte1": "分母必須 ≥ 1",
+  "rateDenominatorGtNumerator": "分母必須大於分子",
+  "yearOutOfRange": "年份必須介於 {min} 和 {max} 之間",
+  "extrapolationRequired": "請選擇一種外推方法",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

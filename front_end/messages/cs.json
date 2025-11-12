@@ -1601,5 +1601,16 @@
   "yearRequired": "Rok je povinný",
   "helpful": "užitečné",
   "notHelpful": "neužitečné",
+  "projection": "Projekce",
+  "linearExtrapolation": "lineární extrapolace",
+  "exponentialExtrapolation": "exponenciální extrapolace",
+  "genericExtrapolation": "extrapolace",
+  "basedOnDataRich": "(založeno na <strong>{value}</strong> datech)",
+  "referenceRequired": "Je vyžadován odkaz",
+  "rateNumeratorGte0": "Čitatel musí být ≥ 0",
+  "rateDenominatorGte1": "Jmenovatel musí být ≥ 1",
+  "rateDenominatorGtNumerator": "Jmenovatel musí být větší než čitatel",
+  "yearOutOfRange": "Rok musí být mezi {min} a {max}",
+  "extrapolationRequired": "Vyberte prosím metodu extrapolace",
   "othersCount": "Ostatní ({count})"
 }
