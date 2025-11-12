@@ -9,8 +9,6 @@ import { User } from "@/types/users";
 
 import { KeyFactorsProvider } from "../key_factors_context";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
-import { KFType } from "../types";
-import KeyFactorsBaseRateCreationBlock from "./creation_blocks/key_factors_base_rate_creation_block";
 import KeyFactorsDriverCreationBlock from "./creation_blocks/key_factors_driver_creation_block";
 import KeyFactorsNewsCreationBlock from "./creation_blocks/key_factors_news_creation_block";
 import KeyFactorsBreadcrumbs from "./key_factors_breadcrumbs";
