@@ -111,7 +111,8 @@ export const useKeyFactors = ({
 
   const onSubmit = async (
     submittedDrafts: KeyFactorDraft[],
-    suggestedKeyFactors: KeyFactorDraft[],
+    suggested: KeyFactorDraft[],
+    submitType: "driver" | "base_rate",
     markdown?: string
   ): Promise<
     | { errors: ErrorResponse; comment?: never }
@@ -119,60 +120,45 @@ export const useKeyFactors = ({
   > => {
     const driverDrafts = submittedDrafts.filter(isDriverDraft);
     const baseRateDrafts = submittedDrafts.filter(isBaseRateDraft);
+    const suggestedDriverDrafts = suggested.filter(isDriverDraft);
+    const suggestedBaseRateDrafts = suggested.filter(isBaseRateDraft);
 
-    const suggestedDriverDrafts = suggestedKeyFactors.filter(isDriverDraft);
-    const suggestedBaseRateDrafts = suggestedKeyFactors.filter(isBaseRateDraft);
+    const finalDrivers =
+      submitType === "driver"
+        ? [...driverDrafts, ...suggestedDriverDrafts].filter(
+            (d) => d.driver.text.trim() !== ""
+          )
+        : [];
 
-    const filteredDriverDrafts = driverDrafts.filter(
-      (d) => d.driver.text.trim() !== ""
+    const finalBaseRates =
+      submitType === "base_rate"
+        ? [...baseRateDrafts, ...suggestedBaseRateDrafts]
+        : [];
+
+    const driverPayloads: KeyFactorWritePayload[] = finalDrivers.map((d) =>
+      applyTargetForDraft(d, {
+        driver: {
+          text: d.driver.text,
+          impact_direction: d.driver.impact_direction ?? null,
+          certainty: d.driver.certainty ?? null,
+        },
+      })
     );
-    const filteredSuggestedDriverDrafts = suggestedDriverDrafts.filter(
-      (d) => d.driver.text.trim() !== ""
+
+    const baseRatePayloads: KeyFactorWritePayload[] = finalBaseRates.map((d) =>
+      applyTargetForDraft(d, { base_rate: d.base_rate })
     );
-
-    const driverPayloads: KeyFactorWritePayload[] = [
-      ...filteredDriverDrafts.map((d) =>
-        applyTargetForDraft(d, {
-          driver: {
-            text: d.driver.text,
-            impact_direction: d.driver.impact_direction ?? null,
-            certainty: d.driver.certainty ?? null,
-          },
-        })
-      ),
-      ...filteredSuggestedDriverDrafts.map((d) =>
-        applyTargetForDraft(d, {
-          driver: {
-            text: d.driver.text,
-            impact_direction: d.driver.impact_direction ?? null,
-            certainty: d.driver.certainty ?? null,
-          },
-        })
-      ),
-    ];
-
-    const baseRatePayloads: KeyFactorWritePayload[] = [
-      ...baseRateDrafts.map((d) =>
-        applyTargetForDraft(d, { base_rate: d.base_rate })
-      ),
-      ...suggestedBaseRateDrafts.map((d) =>
-        applyTargetForDraft(d, { base_rate: d.base_rate })
-      ),
-    ];
 
     const writePayloads = [...driverPayloads, ...baseRatePayloads];
 
-    let comment;
-    if (commentId) {
-      comment = await addKeyFactorsToComment(commentId, writePayloads);
-    } else {
-      comment = await createComment({
-        on_post: postId,
-        text: markdown || "",
-        key_factors: writePayloads,
-        is_private: false,
-      });
-    }
+    const comment = commentId
+      ? await addKeyFactorsToComment(commentId, writePayloads)
+      : await createComment({
+          on_post: postId,
+          text: markdown || "",
+          key_factors: writePayloads,
+          is_private: false,
+        });
 
     sendAnalyticsEvent("addKeyFactor", {
       event_label: isNil(commentId) ? "fromList" : "fromComment",
