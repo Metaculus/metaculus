@@ -38,8 +38,8 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
     const zodInput = {
       type: "frequency" as const,
       reference_class: br.reference_class ?? "",
-      rate_numerator: br.rate_numerator ?? ("" as unknown as number),
-      rate_denominator: br.rate_denominator ?? ("" as unknown as number),
+      rate_numerator: br.rate_numerator,
+      rate_denominator: br.rate_denominator,
       unit: br.unit ?? "",
       extrapolation: br.extrapolation ?? "",
       based_on: br.based_on ?? "",
@@ -49,30 +49,24 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
     const r = baseRateFrequencySchema.safeParse(zodInput);
     if (r.success) return {};
 
-    const errs: Errs = {};
-    const msg = {
-      refRequired: t("referenceClassRequired"),
-      rateRequired: t("rateRequired"),
-      unitRequired: t("unitRequired"),
-      sourceRequired: t("sourceRequired"),
+    const errs: Errs = {
+      reference_class: !zodInput.reference_class
+        ? t("referenceRequired")
+        : undefined,
+      unit: !zodInput.unit ? t("unitRequired") : undefined,
+      source: !zodInput.source ? t("sourceRequired") : undefined,
     };
+    const num = zodInput.rate_numerator;
+    const den = zodInput.rate_denominator;
 
-    const asString = (v: unknown) => `${v ?? ""}`.trim();
-    if (!asString(zodInput.reference_class))
-      errs.reference_class = msg.refRequired;
-    if (!asString(zodInput.unit)) errs.unit = msg.unitRequired;
-    if (!asString(zodInput.source)) errs.source = msg.sourceRequired;
-
-    const rateIssues = r.error.issues.filter((i) =>
-      ["rate_numerator", "rate_denominator"].includes(`${i.path[0]}`)
-    );
-    if (
-      zodInput.rate_numerator === ("" as unknown as number) ||
-      zodInput.rate_denominator === ("" as unknown as number) ||
-      rateIssues.length > 0
-    ) {
-      const cross = r.error.issues.find((i) => i.message.includes("≤"));
-      errs.rate = cross?.message ?? msg.rateRequired;
+    if (num == null || Number.isNaN(num) || num < 0) {
+      errs.rate = t("rateNumeratorGte0");
+    } else if (den == null || Number.isNaN(den) || den < 1) {
+      errs.rate = t("rateDenominatorGte1");
+    } else if (!(den > num)) {
+      errs.rate = t("rateDenominatorGtNumerator");
+    } else {
+      errs.rate = undefined;
     }
 
     return errs;
@@ -88,7 +82,6 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
       >
         <Input
           aria-invalid={!!maybeErrors?.reference_class}
-          data-first-error={maybeErrors?.reference_class ? "true" : undefined}
           name="reference_class"
           value={br.reference_class ?? ""}
           placeholder={t("referenceClassPlaceholderFrequency")}
@@ -105,7 +98,7 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
       </InputContainer>
 
       <div className="flex items-start gap-4">
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <InputContainer
             labelText={t("rate")}
             className="flex-1"
@@ -129,7 +122,7 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
                   })
                 }
                 placeholder="1"
-                className={cn("w-[96px]", inputClassName)}
+                className={cn("w-[96px] flex-1", inputClassName)}
               />
               <span className="text-sm text-gray-700 dark:text-gray-700-dark">
                 in
@@ -150,7 +143,7 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
                   })
                 }
                 placeholder="10"
-                className={cn("w-[96px]", inputClassName)}
+                className={cn("w-[96px] flex-1", inputClassName)}
               />
             </div>
           </InputContainer>
