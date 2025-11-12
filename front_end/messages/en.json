@@ -1664,5 +1664,11 @@
   "exponentialExtrapolation": "exponential extrapolation",
   "genericExtrapolation": "extrapolation",
   "basedOnDataRich": "(based on <strong>{value}</strong> data)",
+  "referenceRequired": "Reference is required",
+  "rateNumeratorGte0": "Numerator must be ≥ 0",
+  "rateDenominatorGte1": "Denominator must be ≥ 1",
+  "rateDenominatorGtNumerator": "Denominator must be greater than numerator",
+  "yearOutOfRange": "Year must be between {min} and {max}",
+  "extrapolationRequired": "Please select an extrapolation method",
   "none": "none"
 }

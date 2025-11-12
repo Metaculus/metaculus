@@ -2,7 +2,7 @@
 
 import { faSquarePollVertical } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { Tabs, TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 import { BaseRateDraft } from "@/types/key_factors";
@@ -19,20 +19,31 @@ type Props = {
   draft: BaseRateDraft;
   setDraft: (d: BaseRateDraft) => void;
   post: PostWithForecasts;
-  showErrors?: boolean;
+  showErrorsSignal?: number;
 };
 
 const KeyFactorsNewBaseRate: FC<Props> = ({
   draft,
   setDraft,
   post,
-  showErrors = false,
+  showErrorsSignal = 0,
 }) => {
   const t = useTranslations();
   const effectiveUnit = useMemo(
     () => getEffectiveUnit(post, draft),
     [post, draft]
   );
+
+  const [showLocalErrors, setShowLocalErrors] = useState(false);
+
+  useEffect(() => {
+    if (showErrorsSignal > 0) setShowLocalErrors(true);
+  }, [showErrorsSignal]);
+
+  const onTabChange = (v: string) => {
+    setShowLocalErrors(false);
+    setDraft(switchBaseType(draft, v as "frequency" | "trend", effectiveUnit));
+  };
 
   const labelClassName =
     "text-xs font-medium text-blue-700 dark:text-blue-700-dark";
@@ -50,7 +61,7 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
     effectiveUnit,
     labelClassName,
     inputClassName,
-    showErrors,
+    showErrors: showLocalErrors,
   };
 
   return (
@@ -66,11 +77,7 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
         <Tabs
           defaultValue={draft.base_rate.type}
           value={draft.base_rate.type}
-          onChange={(v) =>
-            setDraft(
-              switchBaseType(draft, v as "frequency" | "trend", effectiveUnit)
-            )
-          }
+          onChange={onTabChange}
           className="bg-transparent dark:bg-transparent"
         >
           <TabsList className="static bg-transparent pb-0 dark:bg-transparent">
