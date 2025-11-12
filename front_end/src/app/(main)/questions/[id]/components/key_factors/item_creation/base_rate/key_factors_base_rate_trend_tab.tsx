@@ -2,7 +2,7 @@
 
 import { Radio, RadioGroup } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC } from "react";
 
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
@@ -17,9 +17,8 @@ type Props = {
   labelClassName: string;
   inputClassName: string;
   showErrors?: boolean;
+  errors?: Record<string, string | undefined>;
 };
-
-type Errs = Record<string, string | undefined>;
 
 const KeyFactorsBaseRateTrendTab: FC<Props> = ({
   draft,
@@ -28,39 +27,12 @@ const KeyFactorsBaseRateTrendTab: FC<Props> = ({
   labelClassName,
   inputClassName,
   showErrors = false,
+  errors,
 }) => {
   const t = useTranslations();
   const br = draft.base_rate;
 
-  const fieldErrors: Errs = useMemo(() => {
-    if (br.type !== "trend") return {};
-
-    const errs: Errs = {};
-
-    const ref = (br.reference_class ?? "").trim();
-    const unit = (br.unit ?? "").trim();
-    const source = (br.source ?? "").trim();
-
-    const pv = br.projected_value;
-    const year = br.projected_by_year;
-
-    if (!ref) errs.reference_class = t("referenceClassRequired");
-    if (pv === null || pv === undefined || Number.isNaN(pv))
-      errs.projected_value = t("projectedValueRequired");
-
-    if (year === null || year === undefined || Number.isNaN(year)) {
-      errs.projected_by_year = t("yearRequired");
-    } else if (year < 1900 || year > 2100) {
-      errs.projected_by_year = t("yearOutOfRange", { min: 1900, max: 2100 });
-    }
-    if (!unit) errs.unit = t("unitRequired");
-    if (!source) errs.source = t("sourceRequired");
-    if (!br.extrapolation) errs.extrapolation = t("extrapolationRequired");
-
-    return errs;
-  }, [br, t]);
-
-  const errorBag = showErrors ? fieldErrors : undefined;
+  const errorBag = showErrors ? errors : undefined;
 
   return (
     <div className="flex flex-col gap-3">
