@@ -29,32 +29,6 @@ server {
         }
     }
 
-    # redirect http to https
-    if ($http_x_forwarded_proto = "http") {
-        return 301 https://$host$request_uri;
-    }
-
-    # redirect root domain to www
-    if ($host ~* ^metaculus\.com$) {
-        return 301 https://www.metaculus.com$request_uri;
-    }
-
-    location /questions/question_embed/ {
-        rewrite ^/questions/question_embed/(.*)$ /questions/embed/$1;
-    }
-
-    location /api/posts/preview-image/ {
-        rewrite ^/api/posts/preview-image/(.*)$ /questions/$1/image-preview break;
-    }
-
-    location /tournament/future-perfect/  {
-        return 301 https://$host/c/future-perfect/;
-    }
-
-    location /tournament/brightlinewatch/  {
-        return 301 https://$host/c/brightlinewatch/;
-    }
-
     location / {
         include proxy_params;
 
