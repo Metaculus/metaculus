@@ -81,7 +81,13 @@ class DriverResponse(BaseModel):
 
 class NewsResponse(BaseModel):
     type: str = Field("news", description="Type identifier")
-    itn_article_id: int = Field(..., description="ID of the ITN article")
+    itn_article_id: Optional[int] = Field(
+        None, description="ID of the ITN article from the provided list (XOR with url)"
+    )
+    url: Optional[str] = Field(
+        None,
+        description="URL of the news article extracted from the comment (XOR with itn_article_id)",
+    )
     impact_direction: Optional[int] = Field(
         None,
         description="Set to 1 or -1 to indicate direction; omit if certainty is set",
@@ -95,6 +101,17 @@ class NewsResponse(BaseModel):
     @classmethod
     def normalize_fields(cls, data):
         return _normalize_impact_fields(data)
+
+    @model_validator(mode="after")
+    def validate_xor_source(self):
+        """Ensure exactly one of itn_article_id or url is provided."""
+
+        if not (self.itn_article_id ^ self.url):
+            raise ValueError(
+                "Exactly one of 'itn_article_id' or 'url' must be provided"
+            )
+
+        return self
 
 
 class BaseRateResponse(BaseModel):
@@ -164,24 +181,37 @@ def _create_driver_key_factor(post: Post, response: DriverResponse) -> KeyFactor
 
 
 def _create_news_key_factor(response: NewsResponse) -> KeyFactor:
-    """Create a KeyFactor with a News type from LLM response."""
-    kf = KeyFactor()
-    itn_article = ITNArticle.objects.filter(pk=response.itn_article_id).first()
+    """Create a KeyFactor with a News type from LLM response.
 
-    if itn_article:
+    Handles both ITN articles (itn_article_id) and extracted links (url).
+    """
+    kf = KeyFactor()
+
+    if response.itn_article_id:
+        itn_article = ITNArticle.objects.filter(pk=response.itn_article_id).first()
+
+        if itn_article:
+            kf.news = KeyFactorNews(
+                itn_article=itn_article,
+                url=itn_article.url,
+                title=itn_article.title,
+                img_url=itn_article.img_url,
+                source=(itn_article.media_label or itn_article.media_name),
+                published_at=itn_article.created_at,
+                certainty=response.certainty,
+                impact_direction=response.impact_direction,
+            )
+        else:
+            logger.warning(
+                f"Failed to get itn article returned by LLM: {response.itn_article_id}"
+            )
+    elif response.url:
         kf.news = KeyFactorNews(
-            itn_article=itn_article,
-            url=itn_article.url,
-            title=itn_article.title,
-            img_url=itn_article.img_url,
-            source=(itn_article.media_label or itn_article.media_name),
-            published_at=itn_article.created_at,
+            url=response.url,
+            # Other fields will be extracted on the frontend side
+            # by fetching link-preview endpoint
             certainty=response.certainty,
             impact_direction=response.impact_direction,
-        )
-    else:
-        logger.warning(
-            f"Failed to get itn article returned by LLM: {response.itn_article_id}"
         )
 
     return kf
@@ -319,8 +349,9 @@ def generate_keyfactors(
             - Text should be single sentences under {MAX_LENGTH} characters.
             - Should only contain the key factor, no other text (e.g.: do not reference the user).
             - Specify impact_direction (1/-1) or certainty (-1)
-        2. News: A relevant news article - if matching one from the related articles list, include its itn_article_id
-            - Include only the itn_article_id from the related articles list (content will be auto-populated from the article)
+        2. News: A relevant news article from one of two sources:
+            - Provide url if extracting a link from the comment body pointing to a relevant article
+            - Provide itn_article_id if referencing a related ITN article from the provided list
             - Specify impact_direction (1/-1) or certainty (-1) for how this article affects the forecast
         3. BaseRate: A historical base rate or reference frequency/trend (e.g., "Historical success rate is 45%")
 
@@ -331,11 +362,12 @@ def generate_keyfactors(
         Output rules:
         - Return valid JSON only, matching the schema.
         - Include a "type" field for each factor: "driver", "news", or "base_rate"
+        - For news: provide exactly one of itn_article_id (from the related articles list) or url (extracted from comment)
         - Do not duplicate existing key factors - check the list carefully
+        - Ensure suggested key factors do not duplicate each other
         - Be conservative and only include clearly relevant factors
         - Do not include any formatting like quotes, numbering or other punctuation
         - If the comment provides no meaningful forecasting insight, return the literal string "None".
-        - Ensure suggested key factors do not duplicate each other
 
         The question details are:
         <question_summary>
@@ -410,8 +442,9 @@ def _serialize_key_factor(kf: KeyFactor):
     elif kf.news_id:
         return {
             "type": "news",
-            "itn_article_id": kf.news.itn_article_id,
             "title": kf.news.title,
+            "itn_article_id": kf.news.itn_article_id,
+            "url": kf.news.url,
         }
     elif kf.base_rate_id:
         return {
