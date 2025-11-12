@@ -1571,5 +1571,8 @@
   "postComment": "发表评论",
   "sendReport": "发送报告",
   "points": "积分",
+  "unweightedAggregate": "未加权汇总",
+  "submitAQuestion": "提交问题",
+  "leaderboardUnweightedInfo": "这是每个问题中所有预测者的未加权预测汇总。<br></br>了解其计算方法 <link>这里</link>。",
   "othersCount": "其他（{count}）"
 }

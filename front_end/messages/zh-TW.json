@@ -1566,5 +1566,8 @@
   "postComment": "發佈評論",
   "sendReport": "發送報告",
   "points": "點數",
+  "unweightedAggregate": "非加權綜合",
+  "submitAQuestion": "提交問題",
+  "leaderboardUnweightedInfo": "這是來自所有預測者的每個問題的非加權預測彙總。<br></br>了解它是如何計算的<link>這裡</link>。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

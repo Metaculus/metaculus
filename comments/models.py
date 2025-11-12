@@ -15,6 +15,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
+from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
@@ -103,7 +104,8 @@ class Comment(TimeStampedModel, TranslatedModel):
     )
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(default=False, db_index=True)
-    text = models.TextField(max_length=150_000)
+    # Some comments with KeyFactors can have empty text
+    text = models.TextField(max_length=150_000, blank=True)
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )
@@ -253,6 +255,34 @@ class KeyFactorBaseRate(TimeStampedModel, TranslatedModel):
         return f"Base Rate {self.type} {self.reference_class}"
 
 
+class KeyFactorNews(TimeStampedModel):
+    itn_article = models.ForeignKey(
+        "misc.ITNArticle",
+        # We perform a periodic cleanup of ITN articles
+        # So we want to set null when this happens
+        models.SET_NULL,
+        related_name="key_factor_news",
+        null=True,
+        blank=True,
+    )
+
+    # Even if article has an ITN reference,
+    # We still duplicate its fields here
+    url = models.CharField(default="", max_length=1000)
+    title = models.CharField(default="", max_length=256)
+    img_url = models.CharField(default="", max_length=1000, blank=True)
+    source = models.CharField(default="", max_length=50)
+    published_at = models.DateTimeField(default=timezone.now, blank=True)
+
+    impact_direction = models.SmallIntegerField(
+        choices=ImpactDirection.choices, null=True, blank=True
+    )
+    certainty = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"News {self.title[:20]}"
+
+
 class KeyFactor(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="key_factors")
     votes_score = models.FloatField(default=0, db_index=True, editable=False)
@@ -282,7 +312,15 @@ class KeyFactor(TimeStampedModel):
     base_rate = models.OneToOneField(
         KeyFactorBaseRate,
         models.PROTECT,
-        related_name="base_rate",
+        related_name="key_factor",
+        null=True,
+        unique=True,
+        blank=True,
+    )
+    news = models.OneToOneField(
+        KeyFactorNews,
+        models.PROTECT,
+        related_name="key_factor",
         null=True,
         unique=True,
         blank=True,
@@ -311,6 +349,7 @@ class KeyFactor(TimeStampedModel):
                     lhs=Func(
                         "driver",
                         "base_rate",
+                        "news",
                         function="num_nonnulls",
                         output_field=IntegerField(),
                     ),
@@ -324,6 +363,8 @@ class KeyFactor(TimeStampedModel):
             return f"Key Factor {self.driver}"
         if self.base_rate_id:
             return f"Key Factor {self.base_rate}"
+        if self.news_id:
+            return f"Key Factor {self.news}"
 
         return "Key Factor"
 

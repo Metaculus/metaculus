@@ -13,7 +13,9 @@ from comments.models import (
     KeyFactorDriver,
     ImpactDirection,
     KeyFactorBaseRate,
+    KeyFactorNews,
 )
+from misc.models import ITNArticle
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -101,6 +103,7 @@ def create_key_factor(
     question_option: str = None,
     driver: dict = None,
     base_rate: dict = None,
+    news: dict = None,
     **kwargs,
 ) -> KeyFactor:
     question = None
@@ -143,6 +146,8 @@ def create_key_factor(
         obj.driver = create_key_factor_driver(**driver)
     elif base_rate:
         obj.base_rate = create_key_factor_base_rate(**base_rate)
+    elif news:
+        obj.news = create_key_factor_news(**news)
     else:
         raise ValidationError("Wrong Key Factor Type")
 
@@ -191,6 +196,51 @@ def create_key_factor_base_rate(*, type: str = None, **kwargs) -> KeyFactorBaseR
     return obj
 
 
+def create_key_factor_news(
+    *,
+    itn_article_id: int = None,
+    url: str = None,
+    title: str = None,
+    img_url: str = None,
+    source: str = None,
+    published_at=None,
+    **kwargs,
+) -> KeyFactorNews:
+    """
+    Creates a KeyFactorNews object.
+
+    If itn_article_id is provided:
+        - Will populate url, title, img_url from the ITN Article if not explicitly provided
+
+    Otherwise:
+        - Requires url, title, source
+    """
+
+    if itn_article_id:
+        itn_article: ITNArticle = get_object_or_404(ITNArticle, pk=itn_article_id)
+
+        # Populate from ITN article
+        url = itn_article.url
+        title = itn_article.title
+        img_url = itn_article.img_url
+        source = itn_article.media_label or itn_article.media_name
+        published_at = itn_article.created_at
+
+    obj = KeyFactorNews(
+        itn_article_id=itn_article_id,
+        url=url,
+        title=title,
+        img_url=img_url or "",
+        source=source,
+        published_at=published_at or timezone.now(),
+        **kwargs,
+    )
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
 def calculate_votes_strength(scores: list[int]):
     """
     Calculates overall strengths of the KeyFactor
@@ -199,10 +249,18 @@ def calculate_votes_strength(scores: list[int]):
     return (sum(scores) + 2 * max(0, 3 - len(scores))) / max(3, len(scores))
 
 
+@transaction.atomic
 def delete_key_factor(key_factor: KeyFactor):
-    # TODO: should it delete a comment if that comment was automatically created?
-
+    comment = key_factor.comment
     key_factor.delete()
+
+    # Delete comment without text if it was the last key factor
+    if (
+        not comment.text
+        and not comment.text_original
+        and not comment.key_factors.exists()
+    ):
+        comment.delete()
 
 
 def get_key_factor_question_lifetime(key_factor: KeyFactor) -> float:
@@ -222,8 +280,8 @@ def get_key_factor_question_lifetime(key_factor: KeyFactor) -> float:
     return lifetime if lifetime > 0 else 0.0
 
 
-def calculate_freshness_driver(
-    key_factor: KeyFactor, votes: list[KeyFactorVote]
+def calculate_freshness_votes_decay(
+    key_factor: KeyFactor, votes: list[KeyFactorVote], lifetime_denominator: int
 ) -> float:
     now = timezone.now()
     lifetime = get_key_factor_question_lifetime(key_factor)
@@ -233,7 +291,8 @@ def calculate_freshness_driver(
 
     for vote in votes:
         weight = 2 ** (
-            -timedelta_to_days(now - vote.created_at) / max(lifetime / 5, 14)
+            -timedelta_to_days(now - vote.created_at)
+            / max(lifetime / lifetime_denominator, 14)
         )
         weights_sum += weight
         strengths_sum += vote.score * weight
@@ -258,7 +317,9 @@ def calculate_freshness_base_rate(
 
 def calculate_freshness(key_factor: KeyFactor, votes: list[KeyFactorVote]) -> float:
     if key_factor.driver_id:
-        return calculate_freshness_driver(key_factor, votes)
+        return calculate_freshness_votes_decay(key_factor, votes, 5)
+    elif key_factor.news_id:
+        return calculate_freshness_votes_decay(key_factor, votes, 10)
     elif key_factor.base_rate_id:
         return calculate_freshness_base_rate(key_factor, votes)
 
@@ -284,10 +345,13 @@ def get_key_factor_vote_type_and_choices(key_factor: KeyFactor) -> tuple[str, li
 
     - Driver: vote_type=STRENGTH, choices=VoteStrength
     - BaseRate: vote_type=DIRECTION, choices=VoteDirection
+    - News: vote_type=STRENGTH, choices=VoteStrength
     """
-    if key_factor.driver_id:
+    if key_factor.driver_id or key_factor.news_id:
         return KeyFactorVote.VoteType.STRENGTH, KeyFactorVote.VoteStrength.choices
     elif key_factor.base_rate_id:
         return KeyFactorVote.VoteType.DIRECTION, KeyFactorVote.VoteDirection.choices
     else:
-        raise ValidationError("KeyFactor has no valid type (driver or base_rate)")
+        raise ValidationError(
+            "KeyFactor has no valid type (driver, base_rate, or news)"
+        )
