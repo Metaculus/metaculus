@@ -9,6 +9,26 @@ server {
     listen [::]:${PORT};
     server_name ~^(.+)$;
 
+    # Access control: allow localhost and configured host (if provided)
+    set $allow_access "off";
+    
+    # Always allow localhost/127.0.0.1
+    if ($remote_addr ~* ^(127\.0\.0\.1|::1)$) {
+        set $allow_access "on";
+    }
+    
+    # Allow configured host if APP_DOMAIN is set
+    if ($host = "${APP_DOMAIN}") {
+        set $allow_access "on";
+    }
+    
+    # Redirect to APP_DOMAIN if not allowed (unless APP_DOMAIN is empty, then allow all)
+    if ($allow_access = "off") {
+        if ("${APP_DOMAIN}" != "") {
+            return 301 https://${APP_DOMAIN}$request_uri;
+        }
+    }
+
     # redirect http to https
     if ($http_x_forwarded_proto = "http") {
         return 301 https://$host$request_uri;
