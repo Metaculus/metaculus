@@ -15,6 +15,7 @@ import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
 import Stub from "./stub";
 import { KFType } from "../types";
 import KeyFactorsBaseRateCreationBlock from "./creation_blocks/key_factors_base_rate_creation_block";
+import KeyFactorsNewsCreationBlock from "./creation_blocks/key_factors_news_creation_block";
 
 type Props = {
   isOpen: boolean;
@@ -101,6 +102,12 @@ const KeyFactorsAddModalBody: React.FC<{
             <KeyFactorsBaseRateCreationBlock
               post={post}
               commentId={commentId}
+              onClose={onClose}
+              onSuccess={onSuccess}
+            />
+          ) : selectedType === "news" ? (
+            <KeyFactorsNewsCreationBlock
+              post={post}
               onClose={onClose}
               onSuccess={onSuccess}
             />
