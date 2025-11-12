@@ -15,15 +15,12 @@ import { NewsArticle } from "@/types/news";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
 
+import { getProxiedFaviconUrl } from "../../../utils";
+
 type Props = {
   article: NewsArticle;
   isClosest?: boolean;
 };
-
-function getProxiedFaviconUrl(originalUrl: string): string {
-  if (!originalUrl) return "";
-  return `/newsmatch/favicon?url=${encodeURIComponent(originalUrl)}`;
-}
 
 const NewsMatchArticle: FC<Props> = ({ article, isClosest }) => {
   const { user } = useAuth();

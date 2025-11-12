@@ -1,7 +1,7 @@
 import { faRobot, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import {
   faCog,
-  // faNewspaper,
+  faNewspaper,
   faSquarePollVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -99,12 +99,12 @@ const ITEMS: {
     value: "driver",
     icon: faCog,
   },
-  // {
-  //   label: "News",
-  //   description: "A recent event or article that could affect the forecast.",
-  //   value: "news",
-  //   icon: faNewspaper,
-  // },
+  {
+    label: "News",
+    description: "A recent event or article that could affect the forecast.",
+    value: "news",
+    icon: faNewspaper,
+  },
 ];
 
 export default KeyFactorsTypePicker;
