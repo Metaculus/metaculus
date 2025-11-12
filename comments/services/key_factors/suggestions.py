@@ -1,7 +1,7 @@
 import json
 import logging
 import textwrap
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from django.conf import settings
 from pydantic import (
@@ -14,11 +14,12 @@ from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor, KeyFactorDriver
 from pydantic import BaseModel, Field, ValidationError, model_validator
+from typing import Optional, Union
 
 from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
-from misc.models import ITNArticle
-from misc.services.itn import get_post_similar_articles
+from django.conf import settings
 from posts.models import Post
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from questions.models import Question
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 
@@ -80,13 +81,9 @@ class DriverResponse(BaseModel):
 
 
 class NewsResponse(BaseModel):
-    type: str = Field("news", description="Type identifier")
-    itn_article_id: Optional[int] = Field(
-        None, description="ID of the ITN article from the provided list (XOR with url)"
-    )
     url: Optional[str] = Field(
         None,
-        description="URL of the news article extracted from the comment (XOR with itn_article_id)",
+        description="URL of the news article extracted from the comment",
     )
     impact_direction: Optional[int] = Field(
         None,
@@ -101,17 +98,6 @@ class NewsResponse(BaseModel):
     @classmethod
     def normalize_fields(cls, data):
         return _normalize_impact_fields(data)
-
-    @model_validator(mode="after")
-    def validate_xor_source(self):
-        """Ensure exactly one of itn_article_id or url is provided."""
-
-        if bool(self.itn_article_id) == bool(self.url):
-            raise ValueError(
-                "Exactly one of 'itn_article_id' or 'url' must be provided"
-            )
-
-        return self
 
 
 class BaseRateResponse(BaseModel):
@@ -143,7 +129,7 @@ KeyFactorResponseType = Union[DriverResponse, NewsResponse, BaseRateResponse]
 
 
 class KeyFactorsResponse(BaseModel):
-    key_factors: List[KeyFactorResponseType]
+    key_factors: list[KeyFactorResponseType]
 
 
 def _create_driver_key_factor(post: Post, response: DriverResponse) -> KeyFactor:
@@ -181,38 +167,17 @@ def _create_driver_key_factor(post: Post, response: DriverResponse) -> KeyFactor
 
 
 def _create_news_key_factor(response: NewsResponse) -> KeyFactor:
-    """Create a KeyFactor with a News type from LLM response.
-
-    Handles both ITN articles (itn_article_id) and extracted links (url).
+    """
+    Create a KeyFactor with a News type from LLM response.
     """
     kf = KeyFactor()
-
-    if response.itn_article_id:
-        itn_article = ITNArticle.objects.filter(pk=response.itn_article_id).first()
-
-        if itn_article:
-            kf.news = KeyFactorNews(
-                itn_article=itn_article,
-                url=itn_article.url,
-                title=itn_article.title,
-                img_url=itn_article.img_url,
-                source=(itn_article.media_label or itn_article.media_name),
-                published_at=itn_article.created_at,
-                certainty=response.certainty,
-                impact_direction=response.impact_direction,
-            )
-        else:
-            logger.warning(
-                f"Failed to get itn article returned by LLM: {response.itn_article_id}"
-            )
-    elif response.url:
-        kf.news = KeyFactorNews(
-            url=response.url,
-            # Other fields will be extracted on the frontend side
-            # by fetching link-preview endpoint
-            certainty=response.certainty,
-            impact_direction=response.impact_direction,
-        )
+    kf.news = KeyFactorNews(
+        url=response.url,
+        # Other fields will be extracted on the frontend side
+        # by fetching link-preview endpoint
+        certainty=response.certainty,
+        impact_direction=response.impact_direction,
+    )
 
     return kf
 
@@ -351,7 +316,6 @@ def generate_keyfactors(
             - Specify impact_direction (1/-1) or certainty (-1)
         2. News: A relevant news article from one of two sources:
             - Provide url if extracting a link from the comment body pointing to a relevant article
-            - Provide itn_article_id if referencing a related ITN article from the provided list
             - Specify impact_direction (1/-1) or certainty (-1) for how this article affects the forecast
         3. BaseRate: A historical base rate or reference frequency/trend (e.g., "Historical success rate is 45%")
 
@@ -362,7 +326,6 @@ def generate_keyfactors(
         Output rules:
         - Return valid JSON only, matching the schema.
         - Include a "type" field for each factor: "driver", "news", or "base_rate"
-        - For news: provide exactly one of itn_article_id (from the related articles list) or url (extracted from comment)
         - Do not duplicate existing key factors - check the list carefully
         - Ensure suggested key factors do not duplicate each other
         - Be conservative and only include clearly relevant factors
@@ -385,12 +348,6 @@ def generate_keyfactors(
         <key_factors>
         {existing_key_factors}
         </key_factors>
-        
-        The related news articles are:
-        
-        <news>
-        {related_news}
-        </news>
         """
     )
 
@@ -443,7 +400,6 @@ def _serialize_key_factor(kf: KeyFactor):
         return {
             "type": "news",
             "title": kf.news.title,
-            "itn_article_id": kf.news.itn_article_id,
             "url": kf.news.url,
         }
     elif kf.base_rate_id:
@@ -471,16 +427,6 @@ def generate_key_factors_for_comment(
     serialized_question_summary, post_type = build_post_question_summary(post)
     serialized_key_factors = [_serialize_key_factor(kf) for kf in existing_key_factors]
 
-    # Get related news articles for context
-    articles = get_post_similar_articles(post)
-    related_news = [
-        {
-            "itn_article_id": x.article_id,
-            "title": x.article.title,
-        }
-        for x in articles
-    ]
-
     response = generate_keyfactors(
         question_summary=serialized_question_summary,
         comment=comment_text,
@@ -488,7 +434,6 @@ def generate_key_factors_for_comment(
         type_instructions=get_impact_type_instructions(
             post_type, bool(post.group_of_questions_id)
         ),
-        related_news=related_news,
     )
 
     return [_convert_llm_response_to_key_factor(post, kf) for kf in response]
