@@ -17,7 +17,11 @@ import { BECommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
+import {
+  isBaseRateDraft,
+  isDriverDraft,
+  isNewsDraft,
+} from "@/utils/key_factors";
 
 import { coerceBaseForType } from "./item_creation/base_rate/utils";
 
@@ -114,7 +118,7 @@ export const useKeyFactors = ({
   const onSubmit = async (
     submittedDrafts: KeyFactorDraft[],
     suggested: KeyFactorDraft[],
-    submitType: "driver" | "base_rate",
+    submitType: "driver" | "base_rate" | "news",
     markdown?: string
   ): Promise<
     | { errors: ErrorResponse; comment?: never }
@@ -122,8 +126,10 @@ export const useKeyFactors = ({
   > => {
     const driverDrafts = submittedDrafts.filter(isDriverDraft);
     const baseRateDrafts = submittedDrafts.filter(isBaseRateDraft);
+    const newsDrafts = submittedDrafts.filter(isNewsDraft);
     const suggestedDriverDrafts = suggested.filter(isDriverDraft);
     const suggestedBaseRateDrafts = suggested.filter(isBaseRateDraft);
+    const suggestedNewsDrafts = suggested.filter(isNewsDraft);
 
     const finalDrivers =
       submitType === "driver"
@@ -136,6 +142,9 @@ export const useKeyFactors = ({
       submitType === "base_rate"
         ? [...baseRateDrafts, ...suggestedBaseRateDrafts]
         : [];
+
+    const finalNews =
+      submitType === "news" ? [...newsDrafts, ...suggestedNewsDrafts] : [];
 
     const driverPayloads: KeyFactorWritePayload[] = finalDrivers.map((d) =>
       applyTargetForDraft(d, {
@@ -153,7 +162,15 @@ export const useKeyFactors = ({
       })
     );
 
-    const writePayloads = [...driverPayloads, ...baseRatePayloads];
+    const newsPayloads = finalNews.map((d) =>
+      applyTargetForDraft(d, { news: d.news })
+    );
+
+    const writePayloads = [
+      ...driverPayloads,
+      ...baseRatePayloads,
+      ...newsPayloads,
+    ];
 
     const comment = commentId
       ? await addKeyFactorsToComment(commentId, writePayloads)
