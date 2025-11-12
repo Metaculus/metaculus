@@ -9,11 +9,8 @@ import { PostWithForecasts } from "@/types/post";
 import { isBaseRateDraft } from "@/utils/key_factors";
 import { isQuestionPost } from "@/utils/questions/helpers";
 
-import KeyFactorsNewBaseRate from "../../item_creation/base_rate/key_factors_new_base_rate";
-import {
-  createEmptyBaseRateDraft,
-  validateBaseRateDraft,
-} from "../../item_creation/base_rate/utils";
+import KeyFactorsBaseRateForm from "../../item_creation/base_rate/key_factors_base_rate_form";
+import { createEmptyBaseRateDraft } from "../../item_creation/base_rate/utils";
 import { useKeyFactorsCtx } from "../../key_factors_context";
 import KeyFactorsModalFooter from "../key_factors_modal_footer";
 
@@ -31,6 +28,7 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
 }) => {
   const t = useTranslations();
   const [showErrorsSignal, setShowErrorsSignal] = useState(0);
+  const [lastValid, setLastValid] = useState(false);
   const { isPending, submit, resetAll, errors, setErrors, drafts, setDrafts } =
     useKeyFactorsCtx();
 
@@ -54,28 +52,28 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
       setErrors(new Error(t("pleaseAddAtLeastOneBaseRate")));
       return;
     }
-    const r = validateBaseRateDraft(draft);
-    if (!r.success) {
-      return;
-    }
-    const result = await submit();
-    if (result && "errors" in result) {
-      setErrors(result.errors);
-      return;
-    }
-    if (result?.comment) onSuccess?.(result.comment);
-    resetAll();
-    onClose();
+    queueMicrotask(async () => {
+      if (!lastValid) return;
+      const result = await submit();
+      if (result && "errors" in result) {
+        setErrors(result.errors);
+        return;
+      }
+      if (result?.comment) onSuccess?.(result.comment);
+      resetAll();
+      onClose();
+    });
   };
 
   return (
     <>
       {draft && (
-        <KeyFactorsNewBaseRate
+        <KeyFactorsBaseRateForm
           draft={draft}
           setDraft={setDraft}
           post={post}
           showErrorsSignal={showErrorsSignal}
+          onValidate={setLastValid}
         />
       )}
       <KeyFactorsModalFooter

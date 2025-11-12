@@ -1,14 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC } from "react";
 
-import { Input, FormError } from "@/components/ui/form_field";
+import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { BaseRateDraft } from "@/types/key_factors";
 import cn from "@/utils/core/cn";
-
-import { baseRateFrequencySchema } from "../../schemas";
 
 type Props = {
   draft: BaseRateDraft;
@@ -17,9 +15,8 @@ type Props = {
   labelClassName: string;
   inputClassName: string;
   showErrors?: boolean;
+  errors?: Record<string, string | undefined>;
 };
-
-type Errs = Record<string, string | undefined>;
 
 const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
   draft,
@@ -28,51 +25,11 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
   labelClassName,
   inputClassName,
   showErrors = false,
+  errors,
 }) => {
   const t = useTranslations();
   const br = draft.base_rate;
-
-  const fieldErrors: Errs = useMemo(() => {
-    if (br.type !== "frequency") return {};
-
-    const zodInput = {
-      type: "frequency" as const,
-      reference_class: br.reference_class ?? "",
-      rate_numerator: br.rate_numerator,
-      rate_denominator: br.rate_denominator,
-      unit: br.unit ?? "",
-      extrapolation: br.extrapolation ?? "",
-      based_on: br.based_on ?? "",
-      source: br.source ?? "",
-    };
-
-    const r = baseRateFrequencySchema.safeParse(zodInput);
-    if (r.success) return {};
-
-    const errs: Errs = {
-      reference_class: !zodInput.reference_class
-        ? t("referenceRequired")
-        : undefined,
-      unit: !zodInput.unit ? t("unitRequired") : undefined,
-      source: !zodInput.source ? t("sourceRequired") : undefined,
-    };
-    const num = zodInput.rate_numerator;
-    const den = zodInput.rate_denominator;
-
-    if (num == null || Number.isNaN(num) || num < 0) {
-      errs.rate = t("rateNumeratorGte0");
-    } else if (den == null || Number.isNaN(den) || den < 1) {
-      errs.rate = t("rateDenominatorGte1");
-    } else if (!(den > num)) {
-      errs.rate = t("rateDenominatorGtNumerator");
-    } else {
-      errs.rate = undefined;
-    }
-
-    return errs;
-  }, [br, t]);
-
-  const maybeErrors = showErrors ? fieldErrors : undefined;
+  const maybeErrors = showErrors ? errors : undefined;
 
   return (
     <div className="flex flex-col gap-4">

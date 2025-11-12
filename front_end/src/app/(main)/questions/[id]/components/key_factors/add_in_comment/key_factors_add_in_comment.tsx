@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { useAuth } from "@/contexts/auth_context";
@@ -41,38 +41,59 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   const { comments, setComments } = useCommentsFeed();
 
   useEffect(() => {
-    if (selectedType && selectedType !== "driver") {
-      setSuggestedKeyFactors([]);
-    }
+    if (selectedType && selectedType !== "driver") setSuggestedKeyFactors([]);
   }, [selectedType, setSuggestedKeyFactors]);
 
-  const handleSubmit = async () => {
+  const [brShowErrorsSignal, setBrShowErrorsSignal] = useState(0);
+  const brIsValidRef = useRef(false);
+
+  const afterSuccessfulSubmit = (newCommentId: number, newKf: KeyFactor[]) => {
+    if (user && !user.should_suggest_keyfactors) {
+      setUser({ ...user, should_suggest_keyfactors: true });
+    }
+    const updated = comments.map((c) =>
+      updateCommentKeyFactors(c, newCommentId, newKf ?? [])
+    );
+    resetAll();
+    setComments(updated);
+    onAfterCommentSubmit?.();
+    closeKeyFactorsForm?.();
+  };
+
+  const handleSubmitDriver = async () => {
     const result = await submit();
     if (result && "errors" in result) {
       setKeyFactorsErrors(result.errors);
       return;
     }
     if (result?.comment) {
-      const newComment = result.comment;
-
-      if (user && !user.should_suggest_keyfactors) {
-        // Update the user state so now the user can get suggested key factors
-        setUser({ ...user, should_suggest_keyfactors: true });
-      }
-
-      const updatedComments = comments.map((comment) =>
-        updateCommentKeyFactors(
-          comment,
-          newComment.id,
-          newComment.key_factors ?? []
-        )
+      afterSuccessfulSubmit(
+        result.comment.id,
+        result.comment.key_factors ?? []
       );
-
-      resetAll();
-      setComments(updatedComments);
-      onAfterCommentSubmit?.();
+    } else {
+      closeKeyFactorsForm?.();
     }
-    closeKeyFactorsForm?.();
+  };
+
+  const handleSubmitBaseRate = async () => {
+    setBrShowErrorsSignal((n) => n + 1);
+    await new Promise(requestAnimationFrame);
+    if (!brIsValidRef.current) return;
+
+    const result = await submit();
+    if (result && "errors" in result) {
+      setKeyFactorsErrors(result.errors);
+      return;
+    }
+    if (result?.comment) {
+      afterSuccessfulSubmit(
+        result.comment.id,
+        result.comment.key_factors ?? []
+      );
+    } else {
+      closeKeyFactorsForm?.();
+    }
   };
 
   const onCancel = () => {
@@ -95,25 +116,28 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
           user={user}
         />
       )}
+
       {!selectedType && !isLoadingSuggestedKeyFactors && (
-        <KeyFactorsTypePicker
-          onPick={(type) => {
-            setSelectedType(type);
-          }}
-        />
+        <KeyFactorsTypePicker onPick={setSelectedType} />
       )}
+
       {selectedType === "driver" && (
         <KeyFactorsAddInCommentDriver
           postData={postData}
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmitDriver}
           onCancel={onCancel}
         />
       )}
+
       {selectedType === "base_rate" && (
         <KeyFactorsAddInCommentBaseRate
           postData={postData}
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmitBaseRate}
           onCancel={onCancel}
+          showErrorsSignal={brShowErrorsSignal}
+          onValidate={(ok) => {
+            brIsValidRef.current = ok;
+          }}
         />
       )}
     </>
@@ -126,13 +150,9 @@ function updateCommentKeyFactors(
   newKeyFactors: KeyFactor[]
 ): CommentType {
   if (comment.id === targetId) {
-    return {
-      ...comment,
-      key_factors: newKeyFactors,
-    };
+    return { ...comment, key_factors: newKeyFactors };
   }
-
-  if (comment.children && comment.children.length > 0) {
+  if (comment.children?.length) {
     return {
       ...comment,
       children: comment.children.map((child) =>
@@ -140,7 +160,6 @@ function updateCommentKeyFactors(
       ),
     };
   }
-
   return comment;
 }
 

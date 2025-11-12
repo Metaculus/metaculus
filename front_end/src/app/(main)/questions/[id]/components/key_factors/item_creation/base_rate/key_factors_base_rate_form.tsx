@@ -9,35 +9,44 @@ import { BaseRateDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import OptionTargetPicker from "../driver/option_target_picker";
-import KeyFactorsNewItemContainer from "../key_factors_new_item_container";
 import KeyFactorsBaseRateFrequencyTab from "./key_factors_base_rate_frequency_tab";
 import KeyFactorsBaseRateTrendTab from "./key_factors_base_rate_trend_tab";
 import { getEffectiveUnit, switchBaseType } from "./utils";
+import useBaseRateValidation from "../../hooks/use_base_rate_validation";
+import OptionTargetPicker from "../driver/option_target_picker";
+import KeyFactorsNewItemContainer from "../key_factors_new_item_container";
 
 type Props = {
   draft: BaseRateDraft;
   setDraft: (d: BaseRateDraft) => void;
   post: PostWithForecasts;
   showErrorsSignal?: number;
+  onValidate?: (valid: boolean) => void;
 };
 
-const KeyFactorsNewBaseRate: FC<Props> = ({
+const KeyFactorsBaseRateForm: FC<Props> = ({
   draft,
   setDraft,
   post,
   showErrorsSignal = 0,
+  onValidate,
 }) => {
   const t = useTranslations();
+  const [showLocalErrors, setShowLocalErrors] = useState(false);
+
   const effectiveUnit = useMemo(
     () => getEffectiveUnit(post, draft),
     [post, draft]
   );
 
-  const [showLocalErrors, setShowLocalErrors] = useState(false);
+  const { errors, isValid } = useBaseRateValidation(draft);
 
   useEffect(() => {
-    if (showErrorsSignal > 0) setShowLocalErrors(true);
+    if (showErrorsSignal > 0) {
+      setShowLocalErrors(true);
+      onValidate?.(isValid);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showErrorsSignal]);
 
   const onTabChange = (v: string) => {
@@ -55,13 +64,14 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
     { value: "trend" as const, label: t("trend") },
   ];
 
-  const commonSubTabProps = {
+  const commonProps = {
     draft,
     setDraft,
     effectiveUnit,
     labelClassName,
     inputClassName,
     showErrors: showLocalErrors,
+    errors,
   };
 
   return (
@@ -100,11 +110,11 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
           </TabsList>
 
           <TabsSection value="frequency">
-            <KeyFactorsBaseRateFrequencyTab {...commonSubTabProps} />
+            <KeyFactorsBaseRateFrequencyTab {...commonProps} />
           </TabsSection>
 
           <TabsSection value="trend">
-            <KeyFactorsBaseRateTrendTab {...commonSubTabProps} />
+            <KeyFactorsBaseRateTrendTab {...commonProps} />
           </TabsSection>
         </Tabs>
 
@@ -127,4 +137,4 @@ const KeyFactorsNewBaseRate: FC<Props> = ({
   );
 };
 
-export default KeyFactorsNewBaseRate;
+export default KeyFactorsBaseRateForm;
