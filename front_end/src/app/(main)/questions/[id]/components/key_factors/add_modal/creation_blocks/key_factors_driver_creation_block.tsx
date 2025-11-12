@@ -44,7 +44,7 @@ const KeyFactorsDriverCreationBlock: React.FC<Props> = ({
       setErrors(new Error(t("emptyCommentField")));
       return;
     }
-    const result = await submit();
+    const result = await submit("driver");
     if (result && "errors" in result) {
       setErrors(result.errors);
       return;
@@ -79,13 +79,21 @@ const KeyFactorsDriverCreationBlock: React.FC<Props> = ({
         <p className="my-2 text-base leading-tight sm:mt-6">
           {t("addDriverModalCommentDescription")}
         </p>
-        <MemoMarkdownEditor
-          mode="write"
-          markdown={markdown}
-          onChange={setMarkdown}
-          className="border"
-          contentEditableClassName="text-base sm:text-inherit"
-        />
+        <div
+          onKeyDownCapture={(e) => {
+            if (e.key === " " || e.key === "Spacebar" || e.key === "Enter") {
+              e.stopPropagation();
+            }
+          }}
+        >
+          <MemoMarkdownEditor
+            mode="write"
+            markdown={markdown}
+            onChange={setMarkdown}
+            className="border"
+            contentEditableClassName="text-base sm:text-inherit"
+          />
+        </div>
       </div>
       <KeyFactorsModalFooter
         isPending={isPending}
