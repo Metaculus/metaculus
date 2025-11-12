@@ -16,7 +16,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry
+from scoring.models import Leaderboard, LeaderboardEntry, Score
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
@@ -49,9 +49,11 @@ def get_score_pair(
         total_duration = forecast_horizon_end - forecast_horizon_start
         current_timestamp = actual_close_time
         for gm in geometric_means[::-1]:
+            end = max(min(current_timestamp, actual_close_time), forecast_horizon_start)
+            start = max(min(gm.timestamp, actual_close_time), forecast_horizon_start)
             if gm.num_forecasters == 2:  # converage only when both have a forecast
-                coverage += max(0, (current_timestamp - gm.timestamp)) / total_duration
-                cvs.append(max(0, (current_timestamp - gm.timestamp)) / total_duration)
+                coverage += max(0, (end - start)) / total_duration
+                cvs.append(max(0, (end - start)) / total_duration)
             current_timestamp = gm.timestamp
         if coverage == 0:
             return None
@@ -105,6 +107,10 @@ def gather_data(
 ) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
     csv_path = Path("HtH_score_data.csv")
     if csv_path.exists():
+        userset = set([str(u.id) for u in users]) | {
+            "Pro Aggregate",
+            "Community Aggregate",
+        }
         import csv
 
         def _deserialize_user(value: str) -> int | str:
@@ -124,11 +130,12 @@ def gather_data(
         with csv_path.open() as input_file:
             reader = csv.DictReader(input_file)
             for row in reader:
-                user1_ids.append(_deserialize_user(row["user1"]))
-                user2_ids.append(_deserialize_user(row["user2"]))
-                question_ids.append(int(row["questionid"]))
-                scores.append(float(row["score"]))
-                coverages.append(float(row["coverage"]))
+                if (row["user1"] in userset) and (row["user2"] in userset):
+                    user1_ids.append(_deserialize_user(row["user1"]))
+                    user2_ids.append(_deserialize_user(row["user2"]))
+                    question_ids.append(int(row["questionid"]))
+                    scores.append(float(row["score"]))
+                    coverages.append(float(row["coverage"]))
         return (user1_ids, user2_ids, question_ids, scores, coverages)
 
     # TODO: make authoritative mapping
@@ -360,7 +367,7 @@ def estimate_variances_from_head_to_head(
                 (pair_scores - weighted_mean) ** 2, weights=pair_weights
             )
             rematch_variances.append(weighted_var)
-    σ_error = np.sqrt(np.mean(rematch_variances))
+    σ_error = np.sqrt(np.mean(rematch_variances)) if rematch_variances else 1
     σ_error = 1 if np.isnan(σ_error) else σ_error
 
     # Estimating σ_true
@@ -396,7 +403,7 @@ def estimate_variances_from_head_to_head(
     for player in players:
         if len(questions_participated[player]) >= min_questions_for_true:
             high_match_skills.append([skills[player_to_idx[player]]])
-    σ_true = np.var(high_match_skills, ddof=1) or 1
+    σ_true = np.var(high_match_skills, ddof=1) if len(high_match_skills) > 1 else 1
     # σ_true = np.std(high_match_skills, ddof=1) or 1
     σ_true = 1 if np.isnan(σ_true) else σ_true
 
@@ -470,7 +477,7 @@ def rescale_skills_(
     for player in skills.keys():
         skills[player] -= baseline_shift
     # apply variance scaling
-    var_skills = np.var(np.array(list(skills.values())))
+    var_skills = np.var(np.array(list(skills.values()))) if len(skills) > 1 else 0
     scale_factor = np.sqrt(var_avg_scores / var_skills)
     for uid in skills:
         skills[uid] *= scale_factor
@@ -615,19 +622,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # SETTINGS - TODO: allow these as args
-        baseline_player: int | str = 236038
-        # baseline_player: int | str = 269788
+        baseline_player: int | str = 236038  # metac-gpt-4o+asknews
+        # baseline_player: int | str = 269788  # metac-o3+asknews
+        # baseline_player = User.objects.get(
+        #     username="metac-claude-4-5-sonnet+asknews"
+        # ).id
 
         bootstrap_iterations = 30
 
         # SETUP: users to evaluate & questions
-        print("Initializing...", end="\r")
+        print("Initializing...")
         users: QuerySet[User] = User.objects.filter(
             metadata__bot_details__metac_bot=True,
             metadata__bot_details__include_in_calculations=True,
+            # metadata__bot_details__display_in_leaderboard=True,
             is_active=True,
+            # id__in=[baseline_player],  # for testing only
         ).order_by("id")
-        # users = User.objects.filter(id=269788)
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
         )
@@ -663,6 +674,27 @@ class Command(BaseCommand):
             .order_by("id")
             .distinct("id")
         )
+        ###############
+        # make sure they have at least 30 resolved questions
+        print("initialize list")
+        question_list = list(questions)
+        print("Filtering users.")
+        scored_question_counts: dict[int, int] = defaultdict(int)
+        c = users.count()
+        i = 0
+        for user in users:
+            i += 1
+            print(i, "/", c, end="\r")
+            scored_question_counts[user.id] = (
+                Score.objects.filter(user=user, question__in=question_list)
+                .distinct("question_id")
+                .count()
+            )
+        excluded_ids = [
+            uid for uid, count in scored_question_counts.items() if count < 100
+        ]
+        users = users.exclude(id__in=excluded_ids)
+        ###############
         print("Initializing... DONE")
 
         # Gather head to head scores
@@ -677,10 +709,11 @@ class Command(BaseCommand):
             )
         # get variance of average scores (used in rescaling)
         avg_scores = get_avg_scores(user1_ids, user2_ids, scores, weights)
-        var_avg_scores = np.var(np.array(list(avg_scores.values())))
+        var_avg_scores = (
+            np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
+        )
 
         # compute skills initially
-        print("Computing Skills initial...")
         skills = get_skills(
             user1_ids=user1_ids,
             user2_ids=user2_ids,
@@ -689,11 +722,11 @@ class Command(BaseCommand):
             weights=weights,
             baseline_player=baseline_player,
             var_avg_scores=var_avg_scores,
-            verbose=True,
+            verbose=False,
         )
-        print("Computing Skills initial... DONE\n")
 
         # Compute bootstrap confidence intervals
+        ci_lower, ci_upper = dict(), dict()
         ci_lower, ci_upper = bootstrap_skills(
             user1_ids,
             user2_ids,
@@ -706,11 +739,6 @@ class Command(BaseCommand):
         )
         print()
 
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # UPDATE Leaderboard
         ordered_skills = sorted(
             [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
         )
@@ -720,6 +748,12 @@ class Command(BaseCommand):
             player_stats[u1id][1].add(qid)
             player_stats[u2id][0] += 1
             player_stats[u2id][1].add(qid)
+
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        ##########################################################################
+        # UPDATE Leaderboard
         print("Updating leaderboard...", end="\r")
         leaderboard, _ = Leaderboard.objects.get_or_create(
             name="Global Bot Leaderboard",
