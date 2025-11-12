@@ -10,6 +10,7 @@ server {
     server_name ~^(.+)$;
 
     # Access control
+    set $app_domain "${APP_DOMAIN}";
     set $should_deny 1;
     
     # Allow localhost
@@ -17,16 +18,19 @@ server {
         set $should_deny 0;
     }
 
-    if ($host = "${APP_DOMAIN}") {
+    # Allow APP_DOMAIN
+    if ($host = $app_domain) {
         set $should_deny 0;
     }
 
-    if ("${APP_DOMAIN}" = "") {
+    # Allow if APP_DOMAIN is empty (no restriction)
+    if ($app_domain = "") {
         set $should_deny 0;
     }
 
+    # Redirect to APP_DOMAIN if denied
     if ($should_deny = 1) {
-        return 301 https://${APP_DOMAIN}$request_uri;
+        return 301 https://$app_domain$request_uri;
     }
 
     location / {
