@@ -289,9 +289,11 @@ const Comment: FC<CommentProps> = ({
     resetAll,
     loadSuggestions,
   } = useKeyFactorsCtx();
+  const isCommentEmpty = !commentMarkdown.trim();
 
   useEffect(() => {
     if (!shouldSuggestKeyFactors) return;
+    if (isCommentEmpty) return;
 
     if (suggestKeyFactorsFirstRender) {
       if (!isLoadingSuggestedKeyFactors) {
@@ -314,9 +316,10 @@ const Comment: FC<CommentProps> = ({
       suggestedKeyFactors.length === 0 &&
       !requestedSuggestionsRef.current
     ) {
-      loadSuggestions();
+      if (!isCommentEmpty) loadSuggestions();
     }
   }, [
+    isCommentEmpty,
     shouldSuggestKeyFactors,
     suggestKeyFactorsFirstRender,
     isKeyfactorsFormOpen,
@@ -362,7 +365,7 @@ const Comment: FC<CommentProps> = ({
     resetAll();
     setIsKeyfactorsFormOpen((prev) => {
       const next = !prev;
-      if (next) forceReloadOnOpenRef.current = true;
+      if (next) forceReloadOnOpenRef.current = !isCommentEmpty;
       return next;
     });
   };
@@ -370,9 +373,10 @@ const Comment: FC<CommentProps> = ({
   useEffect(() => {
     if (!isKeyfactorsFormOpen) return;
     if (!forceReloadOnOpenRef.current) return;
+    if (isCommentEmpty) return;
     forceReloadOnOpenRef.current = false;
     Promise.resolve().then(() => loadSuggestions(true));
-  }, [isKeyfactorsFormOpen, loadSuggestions]);
+  }, [isKeyfactorsFormOpen, loadSuggestions, isCommentEmpty]);
 
   const openEdit = useCallback(() => {
     setTempCommentMarkdown(originalTextRef.current);
