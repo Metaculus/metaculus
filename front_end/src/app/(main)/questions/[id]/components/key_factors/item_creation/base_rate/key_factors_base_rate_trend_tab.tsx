@@ -4,13 +4,11 @@ import { Radio, RadioGroup } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import { Input } from "@/components/ui/form_field";
+import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import RadioButton from "@/components/ui/radio_button";
 import { BaseRateDraft } from "@/types/key_factors";
 import cn from "@/utils/core/cn";
-
-import { baseRateTrendSchema } from "../../schemas";
 
 type Props = {
   draft: BaseRateDraft;
@@ -37,55 +35,27 @@ const KeyFactorsBaseRateTrendTab: FC<Props> = ({
   const fieldErrors: Errs = useMemo(() => {
     if (br.type !== "trend") return {};
 
-    const zodInput = {
-      type: "trend" as const,
-      reference_class: br.reference_class ?? "",
-      projected_value: br.projected_value ?? ("" as unknown as number),
-      projected_by_year: br.projected_by_year ?? ("" as unknown as number),
-      unit: br.unit ?? "",
-      extrapolation: br.extrapolation ?? "",
-      based_on: br.based_on ?? "",
-      source: br.source ?? "",
-    };
-
-    const r = baseRateTrendSchema.safeParse(zodInput);
-    if (r.success) return {};
-
     const errs: Errs = {};
-    const require = (k: keyof typeof zodInput, msg: string) => {
-      const val = `${zodInput[k] ?? ""}`.trim();
-      if (!val) errs[k] = msg;
-    };
 
-    const msg = {
-      refRequired: t("referenceClassRequired"),
-      valueRequired: t("projectedValueRequired"),
-      yearRequired: t("yearRequired"),
-      unitRequired: t("unitRequired"),
-      sourceRequired: t("sourceRequired"),
-    };
-    require("reference_class", msg.refRequired);
-    require("unit", msg.unitRequired);
-    require("source", msg.sourceRequired);
+    const ref = (br.reference_class ?? "").trim();
+    const unit = (br.unit ?? "").trim();
+    const source = (br.source ?? "").trim();
 
-    const issues = r.error.issues;
-    const pvIssue = issues.find((i) => `${i.path[0]}` === "projected_value");
-    if (
-      zodInput.projected_value === ("" as unknown as number) ||
-      (pvIssue && !errs.projected_value)
-    ) {
-      errs.projected_value = pvIssue?.message ?? msg.valueRequired;
+    const pv = br.projected_value;
+    const year = br.projected_by_year;
+
+    if (!ref) errs.reference_class = t("referenceClassRequired");
+    if (pv === null || pv === undefined || Number.isNaN(pv))
+      errs.projected_value = t("projectedValueRequired");
+
+    if (year === null || year === undefined || Number.isNaN(year)) {
+      errs.projected_by_year = t("yearRequired");
+    } else if (year < 1900 || year > 2100) {
+      errs.projected_by_year = t("yearOutOfRange", { min: 1900, max: 2100 });
     }
-
-    const yearIssue = issues.find(
-      (i) => `${i.path[0]}` === "projected_by_year"
-    );
-    if (
-      zodInput.projected_by_year === ("" as unknown as number) ||
-      (yearIssue && !errs.projected_by_year)
-    ) {
-      errs.projected_by_year = yearIssue?.message ?? msg.yearRequired;
-    }
+    if (!unit) errs.unit = t("unitRequired");
+    if (!source) errs.source = t("sourceRequired");
+    if (!br.extrapolation) errs.extrapolation = t("extrapolationRequired");
 
     return errs;
   }, [br, t]);
@@ -154,10 +124,7 @@ const KeyFactorsBaseRateTrendTab: FC<Props> = ({
             name="unit"
             value={br.unit ?? effectiveUnit ?? ""}
             onChange={(e) =>
-              setDraft({
-                ...draft,
-                base_rate: { ...br, unit: e.target.value },
-              })
+              setDraft({ ...draft, base_rate: { ...br, unit: e.target.value } })
             }
             className={cn(inputClassName, "w-full")}
             placeholder="%"
@@ -219,6 +186,12 @@ const KeyFactorsBaseRateTrendTab: FC<Props> = ({
             </Radio>
           ))}
         </RadioGroup>
+
+        <FormError
+          name="extrapolation"
+          errors={errorBag}
+          className="normal-case"
+        />
       </InputContainer>
 
       <InputContainer
@@ -245,10 +218,7 @@ const KeyFactorsBaseRateTrendTab: FC<Props> = ({
           value={br.source ?? ""}
           placeholder={t("sourcePlaceholderTrend")}
           onChange={(e) =>
-            setDraft({
-              ...draft,
-              base_rate: { ...br, source: e.target.value },
-            })
+            setDraft({ ...draft, base_rate: { ...br, source: e.target.value } })
           }
           className={inputClassName}
           errors={errorBag}

@@ -30,7 +30,7 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
   onSuccess,
 }) => {
   const t = useTranslations();
-  const [showErrors, setShowErrors] = useState(false);
+  const [showErrorsSignal, setShowErrorsSignal] = useState(0);
   const { isPending, submit, resetAll, errors, setErrors, drafts, setDrafts } =
     useKeyFactorsCtx();
 
@@ -49,7 +49,7 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
   const setDraft = (next: BaseRateDraft) => setDrafts([next]);
 
   const handleSubmit = async () => {
-    setShowErrors(true);
+    setShowErrorsSignal((n) => n + 1);
     if (!draft) {
       setErrors(new Error(t("pleaseAddAtLeastOneBaseRate")));
       return;
@@ -75,7 +75,7 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
           draft={draft}
           setDraft={setDraft}
           post={post}
-          showErrors={showErrors}
+          showErrorsSignal={showErrorsSignal}
         />
       )}
       <KeyFactorsModalFooter
