@@ -1,10 +1,18 @@
 import pytest  # noqa
 from django.urls import reverse
+from django_dynamic_fixture import G
 
-from comments.models import Comment, KeyFactorBaseRate, KeyFactorDriver
+from comments.models import (
+    Comment,
+    KeyFactorBaseRate,
+    KeyFactorDriver,
+    KeyFactor,
+    KeyFactorNews,
+)
 from comments.services.feed import get_comments_feed
 from questions.services import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
+from tests.unit.test_misc.factories import factory_itn_article
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
@@ -225,6 +233,11 @@ class TestCommentCreation:
     def post(self, user1, question_binary):
         return factory_post(author=user1, question=question_binary)
 
+    def test_no_text_failure(self, post, user1_client, user1, user2):
+        response = user1_client.post(self.url, {"on_post": post.pk})
+
+        assert response.status_code == 400
+
     def test_private(self, post, user1_client, user1, user2):
         response = user1_client.post(
             self.url,
@@ -344,6 +357,7 @@ class TestCommentCreation:
 
         assert response.status_code == 201
         assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Comment with Frequency BaseRate"
 
         kf = response.data["key_factors"][0]
         assert kf["base_rate"]["type"] == "frequency"
@@ -393,6 +407,59 @@ class TestCommentCreation:
         assert kf["base_rate"]["source"] == "Semiconductor Industry Association"
         assert kf["driver"] is None
 
+    def test_create_with_base_rate_trend__no_comment_text(self, user1_client, post):
+        """
+        We should allow comment without text if it contains a BaseRate/News key factor
+        """
+
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "key_factors": [
+                    {
+                        "base_rate": {
+                            "type": "trend",
+                            "reference_class": "Global AI chip demand",
+                            "projected_value": 250.5,
+                            "projected_by_year": 2025,
+                            "unit": "billion USD",
+                            "extrapolation": "other",
+                            "based_on": "Moore's Law extrapolation",
+                            "source": "Semiconductor Industry Association",
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.data["on_post"] == post.pk
+        assert not response.data["text"]
+
+        kf = response.data["key_factors"][0]
+        assert kf["base_rate"]["type"] == "trend"
+        assert kf["base_rate"]["reference_class"] == "Global AI chip demand"
+
+    def test_create_with_driver__no_comment_text__failure(self, user1_client, post):
+        """
+        Other Key Factor types should not allow empty text
+        """
+
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "key_factors": [
+                    {"driver": {"text": "Key Factor Driver", "impact_direction": -1}}
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 400
+
     def test_create_with_mixed_key_factors(self, user1_client, post, question_binary):
         """Test creating a comment with both Driver and BaseRate key factors"""
         response = user1_client.post(
@@ -438,6 +505,68 @@ class TestCommentCreation:
         assert br_kf["base_rate"]["reference_class"] == "Historical baseline"
         assert br_kf["driver"] is None
 
+    def test_create_with_news_manual_fields(self, user1_client, post):
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with News",
+                "key_factors": [
+                    {
+                        "news": {
+                            "url": "https://example.com/article",
+                            "title": "Breaking News",
+                            "img_url": "https://example.com/img.jpg",
+                            "source": "News Agency",
+                            "impact_direction": 1,
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.data["on_post"] == post.pk
+        assert response.data["text"] == "Comment with News"
+
+        kf = response.data["key_factors"][0]
+        assert kf["news"]["url"] == "https://example.com/article"
+        assert kf["news"]["title"] == "Breaking News"
+        assert kf["news"]["img_url"] == "https://example.com/img.jpg"
+        assert kf["news"]["source"] == "News Agency"
+        assert kf["driver"] is None
+        assert kf["base_rate"] is None
+
+    def test_create_with_news_from_itn_article(self, user1_client, post):
+        itn_article = factory_itn_article(
+            title="ITN News",
+            url="https://itn.example.com/article",
+            media_label="Reuters",
+        )
+
+        response = user1_client.post(
+            self.url,
+            {
+                "on_post": post.pk,
+                "text": "Comment with ITN Article",
+                "key_factors": [
+                    {
+                        "news": {
+                            "itn_article_id": itn_article.id,
+                            "impact_direction": 1,
+                        }
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        kf = response.data["key_factors"][0]
+        assert kf["news"]["url"] == itn_article.url
+        assert kf["news"]["title"] == itn_article.title
+
 
 class TestKeyFactorVoting:
     @pytest.fixture()
@@ -460,7 +589,7 @@ class TestKeyFactorVoting:
 
         url = reverse("key-factor-vote", kwargs={"pk": kf.pk})
 
-        # User2 votes with 1
+        # User2 votes with 5
         response = user2_client.post(url, data={"vote": 5}, format="json")
         assert response.status_code == 200
         assert response.data["count"] == 1
@@ -482,7 +611,66 @@ class TestKeyFactorVoting:
         assert response.status_code == 200
         assert response.data["count"] == 1
 
-        # User3 votes with 5
+        # User1 votes with 5
         response = user1_client.post(url, data={"vote": 5}, format="json")
         assert response.status_code == 200
         assert response.data["count"] == 2
+
+    def test_vote_news(self, user1, post, user2_client, user1_client):
+        comment = factory_comment(author=user1, on_post=post)
+        kf = factory_key_factor(comment=comment, news=G(KeyFactorNews))
+
+        url = reverse("key-factor-vote", kwargs={"pk": kf.pk})
+
+        # User2 votes with 1
+        response = user2_client.post(url, data={"vote": 1}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+
+        # User1 votes with 5
+        response = user1_client.post(url, data={"vote": 5}, format="json")
+        assert response.status_code == 200
+        assert response.data["count"] == 2
+
+
+class TestKeyFactorDeletion:
+    @pytest.fixture()
+    def post(self, user1):
+        return factory_post(author=user1)
+
+    def test_regular_comment(self, user1, post, user1_client):
+        comment = factory_comment(
+            author=user1, on_post=post, text_original="Regular Comment"
+        )
+        kf = factory_key_factor(comment=comment, driver=G(KeyFactorDriver))
+
+        response = user1_client.delete(
+            reverse("key-factor-delete", kwargs={"pk": kf.pk})
+        )
+        assert response.status_code == 204
+
+        assert not KeyFactor.objects.filter(pk=kf.pk).exists()
+        assert Comment.objects.filter(pk=comment.pk).exists()
+
+    def test_empty_comment(self, user1, post, user1_client):
+        comment = factory_comment(author=user1, on_post=post)
+        kf1 = factory_key_factor(comment=comment, driver=G(KeyFactorDriver))
+        kf2 = factory_key_factor(comment=comment, driver=G(KeyFactorDriver))
+
+        response = user1_client.delete(
+            reverse("key-factor-delete", kwargs={"pk": kf1.pk})
+        )
+        assert response.status_code == 204
+
+        assert not KeyFactor.objects.filter(pk=kf1.pk).exists()
+        # Comment exists
+        assert Comment.objects.filter(pk=comment.pk).exists()
+
+        response = user1_client.delete(
+            reverse("key-factor-delete", kwargs={"pk": kf2.pk})
+        )
+        assert response.status_code == 204
+
+        assert not KeyFactor.objects.filter(pk=kf2.pk).exists()
+        # Last KF deleted - drop comment
+        assert not Comment.objects.filter(pk=comment.pk).exists()

@@ -7,7 +7,7 @@ from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors.common import (
     key_factor_vote,
     create_key_factors,
-    calculate_freshness_driver,
+    calculate_freshness_votes_decay,
     calculate_freshness_base_rate,
 )
 from comments.services.notifications import notify_mentioned_users
@@ -304,9 +304,9 @@ def test_calculate_freshness_driver(user1, post):
     # ((0.967 * 1 + 0.785 * 5 + 0.616 * 2) + 2 * max(0, 3 - (0.967 + 0.785 + 0.616)))
     # / max((0.967 + 0.785 + 0.616), 3)
 
-    assert calculate_freshness_driver(kf, list(kf.votes.all())) == pytest.approx(
-        2.463, abs=0.001
-    )
+    assert calculate_freshness_votes_decay(
+        kf, list(kf.votes.all()), 5
+    ) == pytest.approx(2.463, abs=0.001)
 
 
 @freeze_time("2025-09-30")

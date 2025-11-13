@@ -9,30 +9,28 @@ server {
     listen [::]:${PORT};
     server_name ~^(.+)$;
 
-    # redirect http to https
-    if ($http_x_forwarded_proto = "http") {
-        return 301 https://$host$request_uri;
+    # Access control
+    set $app_domain "${APP_DOMAIN}";
+    set $should_deny 1;
+    
+    # Allow localhost
+    if ($remote_addr ~* ^(127\.0\.0\.1|::1)$) {
+        set $should_deny 0;
     }
 
-    # redirect root domain to www
-    if ($host ~* ^metaculus\.com$) {
-        return 301 https://www.metaculus.com$request_uri;
+    # Allow APP_DOMAIN
+    if ($host = $app_domain) {
+        set $should_deny 0;
     }
 
-    location /questions/question_embed/ {
-        rewrite ^/questions/question_embed/(.*)$ /questions/embed/$1;
+    # Allow if APP_DOMAIN is empty (no restriction)
+    if ($app_domain = "") {
+        set $should_deny 0;
     }
 
-    location /api/posts/preview-image/ {
-        rewrite ^/api/posts/preview-image/(.*)$ /questions/$1/image-preview break;
-    }
-
-    location /tournament/future-perfect/  {
-        return 301 https://$host/c/future-perfect/;
-    }
-
-    location /tournament/brightlinewatch/  {
-        return 301 https://$host/c/brightlinewatch/;
+    # Redirect to APP_DOMAIN if denied
+    if ($should_deny = 1) {
+        return 301 https://$app_domain$request_uri;
     }
 
     location / {
