@@ -170,7 +170,7 @@ class Command(BaseCommand):
         # Weekly Top Comments every Sunday at 12:00 UTC
         scheduler.add_job(
             close_old_connections(job_finalize_and_send_weekly_top_comments.send),
-            trigger=CronTrigger.from_crontab("0 12 * * 0"),
+            trigger=CronTrigger.from_crontab("0 12 * * 6"),
             id="weekly_top_comments_finalize_and_send",
             max_instances=1,
             replace_existing=True,

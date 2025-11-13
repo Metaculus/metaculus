@@ -52,7 +52,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
             <TableHeader className="sticky left-0 text-left">
               {t("rank")}
             </TableHeader>
-            <TableHeader className="sticky left-0 text-left">
+            <TableHeader className="sticky left-0 w-0 max-w-[16rem] text-left">
               {t("forecaster")}
             </TableHeader>
             <TableHeader className="text-right">{t("totalScore")}</TableHeader>

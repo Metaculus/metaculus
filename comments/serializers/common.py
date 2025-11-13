@@ -14,7 +14,7 @@ from questions.serializers.common import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import flatten, generate_map_from_list
-from .key_factors import serialize_key_factors_many
+from .key_factors import serialize_key_factors_many, KeyFactorWriteSerializer
 
 
 class CommentFilterSerializer(serializers.Serializer):
@@ -108,10 +108,19 @@ class CommentWriteSerializer(serializers.ModelSerializer):
     parent = serializers.IntegerField(required=False, allow_null=True)
     is_private = serializers.BooleanField(required=False, default=False)
     included_forecast = serializers.BooleanField(required=False, default=False)
+    text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    key_factors = KeyFactorWriteSerializer(many=True, allow_null=True, required=False)
 
     class Meta:
         model = Comment
-        fields = ("on_post", "parent", "included_forecast", "is_private", "text")
+        fields = (
+            "on_post",
+            "parent",
+            "included_forecast",
+            "is_private",
+            "text",
+            "key_factors",
+        )
 
     def validate_on_post(self, value):
         return Post.objects.get(pk=value)
@@ -121,6 +130,20 @@ class CommentWriteSerializer(serializers.ModelSerializer):
             return value
 
         return Comment.objects.get(pk=value)
+
+    def validate(self, attrs: dict) -> dict:
+        text = attrs.get("text")
+        key_factors = attrs.get("key_factors") or []
+
+        # Comment is not required to have text if it has a BaseRate/News key factor
+        has_sufficient_kf = any(
+            x for x in key_factors if x.get("base_rate") or x.get("news")
+        )
+
+        if not text and not has_sufficient_kf:
+            raise ValidationError({"text": "Comment text is required"})
+
+        return attrs
 
 
 def serialize_comment(

@@ -8,11 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.constants import CommentReportType
-from comments.models import (
-    Comment,
-    KeyFactor,
-    KeyFactorVote,
-)
+from comments.models import Comment, KeyFactor
 from comments.serializers.common import serialize_comment_many
 from comments.serializers.key_factors import (
     KeyFactorWriteSerializer,
@@ -22,6 +18,7 @@ from comments.services.key_factors.common import (
     create_key_factors,
     key_factor_vote,
     delete_key_factor,
+    get_key_factor_vote_type_and_choices,
 )
 from comments.services.key_factors.suggestions import generate_key_factors_for_comment
 from notifications.services import send_key_factor_report_notification_to_staff
@@ -32,14 +29,12 @@ from projects.permissions import ObjectPermission
 @api_view(["POST"])
 def key_factor_vote_view(request: Request, pk: int):
     key_factor = get_object_or_404(KeyFactor, pk=pk)
+
+    vote_type, vote_choices = get_key_factor_vote_type_and_choices(key_factor)
+
     vote = serializers.ChoiceField(
-        required=False, allow_null=True, choices=KeyFactorVote.VoteStrength.choices
+        required=False, allow_null=True, choices=vote_choices
     ).run_validation(request.data.get("vote"))
-    # vote_type is always required, and when vote is None, the type is being used to
-    # decide which vote to delete based on the type
-    vote_type = serializers.ChoiceField(
-        required=True, allow_null=False, choices=KeyFactorVote.VoteType.choices
-    ).run_validation(request.data.get("vote_type"))
 
     key_factor_vote(key_factor, user=request.user, vote=vote, vote_type=vote_type)
 

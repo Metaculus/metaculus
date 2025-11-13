@@ -1,14 +1,35 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useRef, useState } from "react";
+import Link from "next/link";
+import {
+  ButtonHTMLAttributes,
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import cn from "@/utils/core/cn";
 
+type TabsVariant = "separated" | "group";
 type TabsContextValue = {
+  variant: TabsVariant;
   active: string;
   setActive: (v: string) => void;
 };
 const TabsContext = createContext<TabsContextValue | null>(null);
+TabsContext.displayName = "TabsContext";
+
+export function useTabsContext(): TabsContextValue {
+  const ctx = useContext(TabsContext);
+  if (!ctx) {
+    throw new Error("useTabsContext must be used within <Tabs>");
+  }
+  return ctx;
+}
 
 export const Tabs = ({
   defaultValue,
@@ -16,27 +37,36 @@ export const Tabs = ({
   onChange,
   children,
   className,
+  variant = "separated",
 }: {
   defaultValue: string;
   value?: string;
   onChange?: (value: string) => void;
   children: ReactNode;
   className?: string;
+  variant?: TabsVariant;
 }) => {
   const [internalActive, setInternalActive] = useState(defaultValue);
 
   // Support both controlled and uncontrolled modes
   const active = controlledValue ?? internalActive;
-  const setActive = (v: string) => {
-    if (onChange) {
-      onChange(v);
-    } else {
-      setInternalActive(v);
-    }
-  };
+  const setActive = useCallback(
+    (v: string) => {
+      if (onChange) {
+        onChange(v);
+      } else {
+        setInternalActive(v);
+      }
+    },
+    [onChange]
+  );
+  const value = useMemo(
+    () => ({ active, setActive, variant }),
+    [active, variant, setActive]
+  );
 
   return (
-    <TabsContext.Provider value={{ active, setActive }}>
+    <TabsContext.Provider value={value}>
       <div className={cn("bg-gray-0 dark:bg-gray-0-dark", className)}>
         {children}
       </div>
@@ -44,59 +74,100 @@ export const Tabs = ({
   );
 };
 
-export const TabsList = ({ children }: { children: ReactNode }) => {
+export const TabsList = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  const ctx = useTabsContext();
   return (
-    <div className="scrollbar-none sticky top-12 z-10 -mx-4 flex gap-2 overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark">
+    <div
+      className={cn(
+        "scrollbar-none z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
+        ctx.variant === "separated" && "sticky top-12 gap-2",
+        className
+      )}
+    >
       {children}
     </div>
   );
 };
 
+type TabsTabProps = {
+  value: string;
+  children: ReactNode;
+  icon?: ReactNode;
+  className?: string;
+  onSelect?: (value: string) => void;
+  scrollOnSelect?: boolean;
+  href?: string;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
+
 export const TabsTab = ({
   value,
   children,
-}: {
-  value: string;
-  children: ReactNode;
-}) => {
-  const ctx = useContext(TabsContext);
-
-  if (!ctx) throw new Error("Tabs.Tab must be inside <Tabs>");
-
+  icon,
+  className,
+  onSelect,
+  scrollOnSelect = true,
+  href,
+  ...buttonProps
+}: TabsTabProps) => {
+  const ctx = useTabsContext();
   const isActive = ctx.active === value;
-
   const HEADER_OFFSET = 60;
-  const handleClick = (value: string, target: HTMLElement) => {
-    ctx.setActive(value);
-    const elementTop = target.getBoundingClientRect().top + window.scrollY;
 
-    window.scrollTo({
-      top: elementTop - HEADER_OFFSET,
-      behavior: "smooth",
-    });
+  const baseClass = cn(
+    "whitespace-nowrap transition-colors",
+    isActive
+      ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
+      : "bg-gray-0 dark:bg-gray-0-dark",
+    "first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
+    "border px-3 py-1 text-sm font-[500] leading-[16px] sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
+    !isActive &&
+      "border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
+    isActive && "border-transparent",
+    className
+  );
+
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+    ctx.setActive(value);
+
+    if (!href && scrollOnSelect) {
+      (e.target as HTMLElement)?.scrollIntoView({
+        inline: "center",
+        behavior: "smooth",
+      });
+      const top =
+        (e.target as HTMLElement).getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top - HEADER_OFFSET, behavior: "smooth" });
+    }
+    onSelect?.(value);
   };
 
-  return (
-    <button
-      className={cn(
-        "whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors",
-        isActive
-          ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark"
-      )}
-      onClick={(e) => {
-        ctx.setActive(value);
-        (e.target as HTMLElement).scrollIntoView({
-          inline: "center",
-          behavior: "smooth",
-        });
+  const inner = icon ? (
+    <span className="mt-[1px] inline-flex items-center gap-2 sm:gap-3">
+      {icon}
+      <span>{children}</span>
+    </span>
+  ) : (
+    children
+  );
 
-        if (e.target instanceof HTMLElement) {
-          handleClick(value, e.target);
-        }
-      }}
+  return href ? (
+    <Link href={href} className={baseClass} onClick={handleClick}>
+      {inner}
+    </Link>
+  ) : (
+    <button
+      type="button"
+      {...buttonProps}
+      className={baseClass}
+      onClick={handleClick}
     >
-      {children}
+      {inner}
     </button>
   );
 };
@@ -105,17 +176,24 @@ export function TabsSection({
   value,
   children,
   className,
+  suppress,
+  placeholder,
 }: {
   value: string;
   children: ReactNode;
   className?: string;
+  suppress?: boolean;
+  placeholder?: ReactNode;
 }) {
-  const ctx = useContext(TabsContext);
-  if (!ctx) throw new Error("Tabs.Section must be inside <Tabs>");
+  const ctx = useTabsContext();
   const ref = useRef<HTMLDivElement>(null);
 
   if (ctx.active !== value) {
     return null;
+  }
+
+  if (suppress) {
+    return placeholder;
   }
 
   return (

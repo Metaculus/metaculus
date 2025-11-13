@@ -147,3 +147,34 @@ export function findLastIndexBefore(line: Line, timestamp: number): number {
   }
   return -1;
 }
+
+export function fitTrend(
+  pts: Array<{ x: Date; y: number }>,
+  yMeta: { lo: number; hi: number }
+) {
+  if (pts.length < 2) return null;
+
+  const xs = pts.map((p) => +p.x);
+  const ys = pts.map((p) => p.y);
+  const n = xs.length;
+  const meanX = xs.reduce((a, b) => a + b, 0) / n;
+  const meanY = ys.reduce((a, b) => a + b, 0) / n;
+
+  const num = xs.reduce(
+    (s, x, i) => s + (x - meanX) * ((ys[i] ?? 0) - meanY),
+    0
+  );
+  const den = xs.reduce((s, x) => s + (x - meanX) ** 2, 0) || 1;
+  const m = num / den;
+  const b = meanY - m * meanX;
+
+  const clampY = (v: number) =>
+    Math.max(yMeta.lo - 0.5, Math.min(yMeta.hi + 0.5, v));
+
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  return [
+    { x: new Date(minX), y: clampY(m * minX + b) },
+    { x: new Date(maxX), y: clampY(m * maxX + b) },
+  ];
+}
