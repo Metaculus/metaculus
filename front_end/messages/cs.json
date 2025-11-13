@@ -1713,5 +1713,7 @@
   "generatedKeyFactors": "Vygenerované klíčové faktory",
   "noGeneratedKeyFactors": "Nepodařilo se nám automaticky vygenerovat klíčové faktory z tohoto komentáře. Můžete je přidat ručně.",
   "baseRate": "Základní sazba",
+  "addAsKeyFactor": "Přidat jako klíčový faktor",
+  "showNMore": "Zobrazit dalších {count}",
   "othersCount": "Ostatní ({count})"
 }

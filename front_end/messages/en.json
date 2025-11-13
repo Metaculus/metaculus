@@ -1707,5 +1707,7 @@
   "askAnLLMDescription": "We’ll send question info and your comment to an LLM to generate key factors on your behalf.",
   "generatedKeyFactors": "Generated Key Factors",
   "noGeneratedKeyFactors": "We couldn’t automatically generate key factors from this comment. You can add them manually.",
+  "addAsKeyFactor": "Add as Key Factor",
+  "showNMore": "Show {count} more",
   "none": "none"
 }

@@ -1713,5 +1713,7 @@
   "generatedKeyFactors": "Factores clave generados",
   "noGeneratedKeyFactors": "No pudimos generar automáticamente factores clave de este comentario. Puedes añadirlos manualmente.",
   "baseRate": "Tarifa base",
+  "addAsKeyFactor": "Agregar como factor clave",
+  "showNMore": "Mostrar {count} más",
   "othersCount": "Otros ({count})"
 }

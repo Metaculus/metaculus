@@ -1711,5 +1711,7 @@
   "generatedKeyFactors": "Fatores-Chave Gerados",
   "noGeneratedKeyFactors": "Não conseguimos gerar automaticamente fatores-chave a partir deste comentário. Você pode adicioná-los manualmente.",
   "baseRate": "Taxa Base",
+  "addAsKeyFactor": "Adicionar como Fator Chave",
+  "showNMore": "Mostrar mais {count}",
   "othersCount": "Outros ({count})"
 }
