@@ -1614,5 +1614,9 @@
   "extrapolationRequired": "Por favor seleccione un método de extrapolación",
   "addAsKeyFactor": "Agregar como factor clave",
   "showNMore": "Mostrar {count} más",
+  "pasteUrl": "Pegar URL",
+  "newsMatchCount": "Coincidencia de Noticias ({count})",
+  "chooseUrl": "Elige un artículo existente o pega una nueva URL.",
+  "pasteUrlPlaceholder": "Pegar URL de un artículo de noticias",
   "othersCount": "Otros ({count})"
 }
