@@ -253,7 +253,10 @@ class TestGenerateKeyfactors:
         mock_get_client.return_value = mock_client
 
         result = generate_keyfactors(
-            question_summary="Q", comment="C", existing_key_factors=[], type_instructions="I"
+            question_summary="Q",
+            comment="C",
+            existing_key_factors=[],
+            type_instructions="I",
         )
 
         assert len(result) == 3
@@ -267,7 +270,10 @@ class TestGenerateKeyfactors:
         mock_get_client.return_value = mock_client
 
         result = generate_keyfactors(
-            question_summary="Q", comment="C", existing_key_factors=[], type_instructions="I"
+            question_summary="Q",
+            comment="C",
+            existing_key_factors=[],
+            type_instructions="I",
         )
         assert result == []
 
@@ -278,7 +284,10 @@ class TestGenerateKeyfactors:
         mock_get_client.return_value = mock_client
 
         result = generate_keyfactors(
-            question_summary="Q", comment="C", existing_key_factors=[], type_instructions="I"
+            question_summary="Q",
+            comment="C",
+            existing_key_factors=[],
+            type_instructions="I",
         )
         assert result == []
 
