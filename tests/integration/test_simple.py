@@ -9,7 +9,7 @@ frontend_process = None
 def setup_all(cls):
     cls.playwright = sync_playwright().start()
     cls.browser = cls.playwright.chromium.launch(headless=True)
-    cls.context = cls.browser.new_context()
+    cls.context = cls.browser.new_context(record_video_dir="videos")
     cls.context.tracing.start(screenshots=True, snapshots=True, sources=True)
 
     expect.set_options(timeout=2)
@@ -50,3 +50,5 @@ class TestSimpleFunctionality:
         page.get_by_role("button", name="Binary").click()
         page.get_by_role("button", name="Open").click()
         page.get_by_role("button", name="Done").click()
+
+        page.close()
