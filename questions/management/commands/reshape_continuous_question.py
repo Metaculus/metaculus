@@ -14,8 +14,6 @@ from utils.the_math.formulas import (
 from posts.models import Post
 from questions.models import Forecast, Question
 from questions.services import build_question_forecasts
-from dataclasses import dataclass
-from bisect import bisect_right
 
 Boundary = Literal["natural", "clamped", "not-a-knot"]
 
@@ -186,7 +184,6 @@ def cubic_spline_c2(
         #     and solves it with Thomas after band extraction.
 
         # Build dense then reduce to band (simple/robust for small n):
-        import math
 
         N = n + 1
         A = [[0.0] * (N) for _ in range(N)]
@@ -662,7 +659,7 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Failed to reshape question: {str(e)}"))
             return
-        self.stdout.write(self.style.SUCCESS(f"Reshaped question successfully!"))
+        self.stdout.write(self.style.SUCCESS("Reshaped question successfully!"))
 
         # print out restult
         if stored_question:
