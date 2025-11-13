@@ -170,7 +170,7 @@ const ContinuousAreaChart: FC<Props> = ({
       }
     }
     return chartData;
-  }, [data, graphType, hideCP, question]);
+  }, [data, graphType, hideCP, question, globalScaling]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;

@@ -88,7 +88,11 @@ const GlobalModals: FC = () => {
         <SignInModal isOpen onClose={onClose} />
       )}
       {isModal(currentModal, "signup") && (
-        <SignUpModal isOpen onClose={onClose} />
+        <SignUpModal
+          isOpen
+          onClose={onClose}
+          forceIsBot={currentModal.data?.forceIsBot}
+        />
       )}
       {isModal(currentModal, "signupSuccess") && (
         <SignUpModalSuccess
