@@ -1612,5 +1612,7 @@
   "rateDenominatorGtNumerator": "Jmenovatel musí být větší než čitatel",
   "yearOutOfRange": "Rok musí být mezi {min} a {max}",
   "extrapolationRequired": "Vyberte prosím metodu extrapolace",
+  "addAsKeyFactor": "Přidat jako klíčový faktor",
+  "showNMore": "Zobrazit dalších {count}",
   "othersCount": "Ostatní ({count})"
 }

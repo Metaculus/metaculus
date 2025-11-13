@@ -1606,5 +1606,7 @@
   "rateDenominatorGtNumerator": "Denominator must be greater than numerator",
   "yearOutOfRange": "Year must be between {min} and {max}",
   "extrapolationRequired": "Please select an extrapolation method",
+  "addAsKeyFactor": "Add as Key Factor",
+  "showNMore": "Show {count} more",
   "none": "none"
 }

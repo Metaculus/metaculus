@@ -1614,5 +1614,7 @@
   "rateDenominatorGtNumerator": "分母必须大于分子",
   "yearOutOfRange": "年份必须在 {min} 和 {max} 之间",
   "extrapolationRequired": "请选择一个外推方法",
+  "addAsKeyFactor": "添加为关键因素",
+  "showNMore": "显示更多 {count}",
   "othersCount": "其他（{count}）"
 }

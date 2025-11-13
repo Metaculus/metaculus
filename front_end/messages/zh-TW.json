@@ -1609,5 +1609,7 @@
   "rateDenominatorGtNumerator": "分母必須大於分子",
   "yearOutOfRange": "年份必須介於 {min} 和 {max} 之間",
   "extrapolationRequired": "請選擇一種外推方法",
+  "addAsKeyFactor": "新增為關鍵因素",
+  "showNMore": "顯示另外 {count} 項",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
