@@ -78,7 +78,7 @@ export function formatResolution({
     if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
       const date = new Date(Number(resolution));
       if (isValid(date)) {
-        return scaling
+        const formattedDate = scaling
           ? formatInTimeZone(
               date,
               "UTC",
@@ -89,13 +89,14 @@ export function formatResolution({
               })
             )
           : formatDate(locale, date);
+        return `${formattedDate} UTC`;
       }
       return resolution;
     }
 
     const date = new Date(resolution);
     if (isValid(date)) {
-      return scaling
+      const formattedDate = scaling
         ? formatInTimeZone(
             date,
             "UTC",
@@ -106,6 +107,7 @@ export function formatResolution({
             })
           )
         : formatDate(locale, date);
+      return `${formattedDate} UTC`;
     }
     return resolution;
   }
