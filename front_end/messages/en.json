@@ -1679,5 +1679,9 @@
   "noGeneratedKeyFactors": "We couldn’t automatically generate key factors from this comment. You can add them manually.",
   "addAsKeyFactor": "Add as Key Factor",
   "showNMore": "Show {count} more",
+  "pasteUrl": "Paste URL",
+  "newsMatchCount": "News Match ({count})",
+  "chooseUrl": "Choose from an existing article, or paste a new URL.",
+  "pasteUrlPlaceholder": "Paste URL for a news article",
   "none": "none"
 }

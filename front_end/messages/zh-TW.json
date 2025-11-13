@@ -1682,5 +1682,9 @@
   "noGeneratedKeyFactors": "我們無法自動從此評論生成關鍵因素。您可以手動添加它們。",
   "addAsKeyFactor": "新增為關鍵因素",
   "showNMore": "顯示另外 {count} 項",
+  "pasteUrl": "貼上網址",
+  "newsMatchCount": "新聞匹配 ({count})",
+  "chooseUrl": "從現有文章中選擇，或貼上一個新的網址。",
+  "pasteUrlPlaceholder": "貼上一個新聞文章的網址",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
