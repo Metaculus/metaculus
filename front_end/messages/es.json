@@ -1685,5 +1685,9 @@
   "noGeneratedKeyFactors": "No pudimos generar automáticamente factores clave de este comentario. Puedes añadirlos manualmente.",
   "addAsKeyFactor": "Agregar como factor clave",
   "showNMore": "Mostrar {count} más",
+  "pasteUrl": "Pegar URL",
+  "newsMatchCount": "Coincidencia de Noticias ({count})",
+  "chooseUrl": "Elige un artículo existente o pega una nueva URL.",
+  "pasteUrlPlaceholder": "Pegar URL de un artículo de noticias",
   "othersCount": "Otros ({count})"
 }
