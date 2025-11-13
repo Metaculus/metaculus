@@ -322,12 +322,16 @@ def make_copy_of_question(question: Question, appove_copy_post: bool) -> Questio
     new_post.save()
 
     # copy forecasts
-    forecasts: Forecast = question.user_forecasts.all()
-    for f in forecasts:
-        f.id = None
-        f.question_id = new_question.id
-        f.post_id = new_post.id
-        f.save()
+    original_forecasts = question.user_forecasts.all()
+    new_forecasts: list[Forecast] = []
+    for forecast in original_forecasts.iterator(chunk_size=100):
+        forecast.id = None
+        forecast.pk = None
+        forecast.question = new_question
+        forecast.post = new_post
+        new_forecasts.append(forecast)
+    if new_forecasts:
+        Forecast.objects.bulk_create(new_forecasts, batch_size=500)
 
     new_question.aggregate_forecasts.all().delete()
     build_question_forecasts(new_question)
