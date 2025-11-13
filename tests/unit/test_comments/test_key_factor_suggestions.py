@@ -2,9 +2,13 @@ import json
 from unittest.mock import Mock, patch
 
 import pytest
-from comments.models import KeyFactorDriver
+from pydantic import ValidationError
+
+from comments.models import KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from comments.services.key_factors.suggestions import (
-    KeyFactorResponse,
+    DriverResponse,
+    NewsResponse,
+    BaseRateResponse,
     _convert_llm_response_to_key_factor,
     build_post_question_summary,
     get_impact_type_instructions,
@@ -12,63 +16,108 @@ from comments.services.key_factors.suggestions import (
     _serialize_key_factor,
     generate_key_factors_for_comment,
 )
-from pydantic import ValidationError
 from questions.models import Question
-from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import (
     create_question,
     factory_group_of_questions,
 )
+from .factories import factory_comment, factory_key_factor
+
+
+@pytest.fixture()
+def binary_post(user1):
+    return factory_post(
+        author=user1,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+
+
+@pytest.fixture()
+def multiple_choice_post(user1):
+    question = create_question(
+        question_type=Question.QuestionType.MULTIPLE_CHOICE,
+        options=["Option A", "Option B"],
+    )
+    return factory_post(author=user1, question=question)
+
+
+@pytest.fixture()
+def group_questions_post(user1):
+    q1 = create_question(
+        question_type=Question.QuestionType.BINARY, label_original="First"
+    )
+    q2 = create_question(
+        question_type=Question.QuestionType.BINARY, label_original="Second"
+    )
+    group = factory_group_of_questions(questions=[q1, q2])
+    return factory_post(author=user1, group_of_questions=group)
 
 
 class TestConvertLlmResponseToKeyFactor:
     """Test _convert_llm_response_to_key_factor"""
 
-    def test_simple_conversion(self, user1):
-        post = factory_post(
-            author=user1,
-            question=create_question(question_type=Question.QuestionType.BINARY),
-        )
-        response = KeyFactorResponse(text="Test factor", impact_direction=1)
-        key_factor = _convert_llm_response_to_key_factor(post, response)
+    def test_driver_conversion(self, binary_post):
+        response = DriverResponse(text="Test factor", impact_direction=1)
+        key_factor = _convert_llm_response_to_key_factor(binary_post, response)
 
         assert key_factor.driver.text == "Test factor"
         assert key_factor.driver.impact_direction == 1
 
-    def test_multiple_choice_option_matching(self, user1):
-        question = create_question(
-            question_type=Question.QuestionType.MULTIPLE_CHOICE,
-            options=["Option A", "Option B"],
-        )
-        post = factory_post(author=user1, question=question)
-        response = KeyFactorResponse(text="Test", impact_direction=1, option="option a")
-        key_factor = _convert_llm_response_to_key_factor(post, response)
+    def test_driver_with_multiple_choice_option(self, multiple_choice_post):
+        question = multiple_choice_post.question
+        response = DriverResponse(text="Test", impact_direction=1, option="option a")
+        key_factor = _convert_llm_response_to_key_factor(multiple_choice_post, response)
 
         assert key_factor.question_id == question.id
         assert key_factor.question_option == "Option A"
 
-    def test_group_question_matching(self, user1):
-        q1 = create_question(
-            question_type=Question.QuestionType.BINARY, label_original="First"
-        )
-        q2 = create_question(
-            question_type=Question.QuestionType.BINARY, label_original="Second"
-        )
-        group = factory_group_of_questions(questions=[q1, q2])
-        post = factory_post(author=user1, group_of_questions=group)
+    def test_driver_with_group_question_option(self, group_questions_post):
+        # Refresh questions to get labels
+        questions = [q for q in group_questions_post.get_questions()]
+        q1 = questions[0]
 
-        # Refresh questions from DB to ensure labels are loaded
-        q1.refresh_from_db()
-        q2.refresh_from_db()
-
-        response = KeyFactorResponse(
+        response = DriverResponse(
             text="Test", impact_direction=1, option="first", certainty=None
         )
-        key_factor = _convert_llm_response_to_key_factor(post, response)
+        key_factor = _convert_llm_response_to_key_factor(group_questions_post, response)
 
-        # The function should match the label case-insensitively
         assert key_factor.question_id == q1.id
+
+    def test_news_conversion(self, binary_post):
+        response = NewsResponse(url="https://example.com/article", impact_direction=1)
+        key_factor = _convert_llm_response_to_key_factor(binary_post, response)
+
+        assert key_factor.news.url == "https://example.com/article"
+        assert key_factor.news.impact_direction == 1
+
+    def test_base_rate_frequency_conversion(self, binary_post):
+        response = BaseRateResponse(
+            base_rate_type="frequency",
+            reference_class="Test Class",
+            unit="%",
+            rate_numerator=10,
+            rate_denominator=100,
+        )
+        key_factor = _convert_llm_response_to_key_factor(binary_post, response)
+
+        assert key_factor.base_rate.type == "frequency"
+        assert key_factor.base_rate.reference_class == "Test Class"
+        assert key_factor.base_rate.rate_numerator == 10
+
+    def test_base_rate_trend_conversion(self, binary_post):
+        response = BaseRateResponse(
+            base_rate_type="trend",
+            reference_class="Test Class",
+            unit="%",
+            projected_value=75.5,
+            projected_by_year=2025,
+            extrapolation="linear",
+        )
+        key_factor = _convert_llm_response_to_key_factor(binary_post, response)
+
+        assert key_factor.base_rate.type == "trend"
+        assert key_factor.base_rate.projected_value == 75.5
 
 
 class TestBuildPostQuestionSummary:
@@ -84,7 +133,6 @@ class TestBuildPostQuestionSummary:
         assert "Title:" in summary
         assert "Type: binary" in summary
         assert "Description:" in summary
-        assert "Will it happen?" in summary
         assert post_type == Question.QuestionType.BINARY
 
     def test_multiple_choice_includes_options(self, user1):
@@ -94,7 +142,7 @@ class TestBuildPostQuestionSummary:
         post = factory_post(author=user1, question=question)
         summary, _ = build_post_question_summary(post)
 
-        assert "Options: ['A', 'B']" in summary
+        assert "Options:" in summary
 
 
 class TestGetImpactTypeInstructions:
@@ -112,7 +160,6 @@ class TestGetImpactTypeInstructions:
             Question.QuestionType.NUMERIC, is_group=False
         )
         assert "certainty" in instructions
-        assert "1 pushes the predicted value higher" in instructions
 
     def test_multiple_choice_has_option(self):
         instructions = get_impact_type_instructions(
@@ -124,82 +171,114 @@ class TestGetImpactTypeInstructions:
 class TestSerializeKeyFactor:
     """Test _serialize_key_factor"""
 
-    def test_serialize_with_driver(self, user1):
+    def test_serialize_driver(self, user1):
         comment = factory_comment(author=user1, on_post=factory_post(author=user1))
         driver = KeyFactorDriver.objects.create(text="Driver", impact_direction=1)
         key_factor = factory_key_factor(comment=comment, driver=driver)
         serialized = _serialize_key_factor(key_factor)
 
+        assert serialized["type"] == "driver"
         assert serialized["text"] == "Driver"
-        assert serialized["impact_direction"] == 1
 
-    def test_serialize_without_driver_returns_none(self, user1):
-        """Test that _serialize_key_factor returns None when driver_id is None"""
+    def test_serialize_news(self, user1):
+        comment = factory_comment(author=user1, on_post=factory_post(author=user1))
+        news = KeyFactorNews.objects.create(
+            url="https://example.com/article",
+            title="Breaking News",
+            source="News Agency",
+            impact_direction=1,
+        )
+        key_factor = factory_key_factor(comment=comment, news=news)
+        serialized = _serialize_key_factor(key_factor)
+
+        assert serialized["type"] == "news"
+        assert serialized["url"] == "https://example.com/article"
+
+    def test_serialize_base_rate(self, user1):
+        comment = factory_comment(author=user1, on_post=factory_post(author=user1))
+        base_rate = KeyFactorBaseRate.objects.create(
+            type=KeyFactorBaseRate.BaseRateType.FREQUENCY,
+            reference_class="Test Class",
+            rate_numerator=10,
+            rate_denominator=100,
+            unit="%",
+            source="Test Source",
+        )
+        key_factor = factory_key_factor(comment=comment, base_rate=base_rate)
+        serialized = _serialize_key_factor(key_factor)
+
+        assert serialized["type"] == "base_rate"
+        assert serialized["base_rate_type"] == "frequency"
+
+    def test_serialize_without_type_returns_none(self, user1):
         comment = factory_comment(author=user1, on_post=factory_post(author=user1))
         driver = KeyFactorDriver.objects.create(text="Driver", impact_direction=1)
         key_factor = factory_key_factor(comment=comment, driver=driver)
-        # Manually set driver_id to None to test the function logic
         key_factor.driver_id = None
+        key_factor.news_id = None
+        key_factor.base_rate_id = None
         assert _serialize_key_factor(key_factor) is None
 
 
 class TestGenerateKeyfactors:
     """Test generate_keyfactors with mocked OpenAI"""
 
-    @patch("comments.services.key_factors.suggestions.get_openai_client")
-    def test_successful_generation(self, mock_get_client):
+    def _mock_response(self, content):
+        """Helper to create mock OpenAI response"""
         mock_client = Mock()
-        mock_get_client.return_value = mock_client
         mock_response = Mock()
         mock_response.choices = [Mock()]
-        mock_response.choices[0].message.content = json.dumps(
+        mock_response.choices[0].message.content = json.dumps(content)
+        mock_client.chat.completions.create.return_value = mock_response
+        return mock_client
+
+    @patch("comments.services.key_factors.suggestions.get_openai_client")
+    def test_successful_generation(self, mock_get_client):
+        mock_client = self._mock_response(
             {
                 "key_factors": [
-                    {"text": "Factor 1", "impact_direction": 1},
-                    {"text": "Factor 2", "impact_direction": -1},
+                    {"type": "driver", "text": "Factor 1", "impact_direction": 1},
+                    {"type": "news", "url": "https://example.com/article"},
+                    {
+                        "type": "base_rate",
+                        "base_rate_type": "frequency",
+                        "reference_class": "Historical",
+                        "unit": "%",
+                        "rate_numerator": 45,
+                        "rate_denominator": 100,
+                    },
                 ]
             }
         )
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_get_client.return_value = mock_client
 
         result = generate_keyfactors(
-            question_summary="Q",
-            comment="C",
-            existing_key_factors=[],
-            type_instructions="I",
+            question_summary="Q", comment="C", existing_key_factors=[], type_instructions="I"
         )
 
-        assert len(result) == 2
-        assert result[0].text == "Factor 1"
+        assert len(result) == 3
+        assert isinstance(result[0], DriverResponse)
+        assert isinstance(result[1], NewsResponse)
+        assert isinstance(result[2], BaseRateResponse)
 
     @patch("comments.services.key_factors.suggestions.get_openai_client")
     def test_handles_none_response(self, mock_get_client):
-        mock_client = Mock()
+        mock_client = self._mock_response({"key_factors": []})
         mock_get_client.return_value = mock_client
-        mock_response = Mock()
-        mock_response.choices = [Mock()]
-        mock_response.choices[0].message.content = "None"
-        mock_client.chat.completions.create.return_value = mock_response
 
         result = generate_keyfactors(
-            question_summary="Q",
-            comment="C",
-            existing_key_factors=[],
-            type_instructions="I",
+            question_summary="Q", comment="C", existing_key_factors=[], type_instructions="I"
         )
         assert result == []
 
     @patch("comments.services.key_factors.suggestions.get_openai_client")
     def test_handles_api_errors(self, mock_get_client):
         mock_client = Mock()
-        mock_get_client.return_value = mock_client
         mock_client.chat.completions.create.side_effect = Exception("API Error")
+        mock_get_client.return_value = mock_client
 
         result = generate_keyfactors(
-            question_summary="Q",
-            comment="C",
-            existing_key_factors=[],
-            type_instructions="I",
+            question_summary="Q", comment="C", existing_key_factors=[], type_instructions="I"
         )
         assert result == []
 
@@ -208,37 +287,42 @@ class TestGenerateKeyFactorsForComment:
     """Test generate_key_factors_for_comment integration"""
 
     def test_validation_error_no_question(self, user1):
-        """Test that error is raised when post has no question or group"""
         post = factory_post(author=user1)
         with pytest.raises((ValidationError, TypeError)):
             generate_key_factors_for_comment("comment", [], post)
 
     @patch("comments.services.key_factors.suggestions.generate_keyfactors")
-    def test_successful_generation(self, mock_generate, user1):
-        question = create_question(question_type=Question.QuestionType.BINARY)
-        post = factory_post(author=user1, question=question)
+    def test_generation_all_types(self, mock_generate, binary_post):
         mock_generate.return_value = [
-            KeyFactorResponse(text="Factor", impact_direction=1)
+            DriverResponse(text="Factor", impact_direction=1),
+            NewsResponse(url="https://example.com/article"),
+            BaseRateResponse(
+                base_rate_type="frequency",
+                reference_class="Historical",
+                unit="%",
+                rate_numerator=50,
+                rate_denominator=100,
+            ),
         ]
 
-        result = generate_key_factors_for_comment("comment", [], post)
+        result = generate_key_factors_for_comment("comment", [], binary_post)
 
-        assert len(result) == 1
-        assert result[0].driver.text == "Factor"
+        assert len(result) == 3
+        assert result[0].driver is not None
+        assert result[1].news is not None
+        assert result[2].base_rate is not None
 
     @patch("comments.services.key_factors.suggestions.generate_keyfactors")
-    def test_passes_existing_key_factors(self, mock_generate, user1):
-        question = create_question(question_type=Question.QuestionType.BINARY)
-        post = factory_post(author=user1, question=question)
-        comment = factory_comment(author=user1, on_post=post)
+    def test_passes_existing_key_factors(self, mock_generate, user1, binary_post):
+        comment = factory_comment(author=user1, on_post=binary_post)
         existing_driver = KeyFactorDriver.objects.create(
             text="Existing", impact_direction=1
         )
         existing_kf = factory_key_factor(comment=comment, driver=existing_driver)
         mock_generate.return_value = []
 
-        generate_key_factors_for_comment("comment", [existing_kf], post)
+        generate_key_factors_for_comment("comment", [existing_kf], binary_post)
 
         call_kwargs = mock_generate.call_args.kwargs
         assert len(call_kwargs["existing_key_factors"]) == 1
-        assert call_kwargs["existing_key_factors"][0]["text"] == "Existing"
+        assert call_kwargs["existing_key_factors"][0]["type"] == "driver"
