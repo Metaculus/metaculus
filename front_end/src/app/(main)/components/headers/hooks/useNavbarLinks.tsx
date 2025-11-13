@@ -2,7 +2,6 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { ReactNode, useMemo } from "react";
 
 import { LogOut } from "@/app/(main)/accounts/actions";
@@ -12,6 +11,8 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { Community } from "@/types/projects";
 import cn from "@/utils/core/cn";
+
+import CreateQuestionButton from "../components/create_question_button";
 
 type NavbarLinkDefinition = {
   label: ReactNode;
@@ -25,49 +26,6 @@ type MobileMenuItemDefinition = Omit<NavbarLinkDefinition, "href"> & {
   onClick?: () => void;
 };
 
-/**
- * Get the create button label and style based on PostHog A/B test variant
- * @param t - Translation function
- * @returns Object with label and whether emphasis is needed
- */
-const getCreateButtonConfig = (t: ReturnType<typeof useTranslations>) => {
-  const variant =
-    posthog.getFeatureFlag("create_question_button_type") || "experiment_A";
-
-  switch (variant) {
-    case "experiment_A":
-      // A: '+ Create' (no emphasis)
-      return {
-        text: t("create"),
-        hasEmphasis: false,
-      };
-    case "experiment_B":
-      // B: '+ Create' (with emphasis)
-      return {
-        text: t("create"),
-        hasEmphasis: true,
-      };
-    case "experiment_C":
-      // C: '+ Submit a Question' (no emphasis)
-      return {
-        text: t("submitAQuestion"),
-        hasEmphasis: false,
-      };
-    case "experiment_D":
-      // D: '+ Submit a Question' (with emphasis)
-      return {
-        text: t("submitAQuestion"),
-        hasEmphasis: true,
-      };
-    default:
-      // Fallback to control
-      return {
-        text: t("create"),
-        hasEmphasis: false,
-      };
-  }
-};
-
 const useNavbarLinks = ({
   community,
 }: { community?: Community | null } = {}) => {
@@ -78,70 +36,60 @@ const useNavbarLinks = ({
   const { PUBLIC_MINIMAL_UI, PUBLIC_ALLOW_TUTORIAL, PUBLIC_ALLOW_SIGNUP } =
     usePublicSettings();
 
-  const LINKS = useMemo(() => {
-    const buttonConfig = getCreateButtonConfig(t);
-
-    return {
-      questions: {
-        label: t("questions"),
-        href: "/questions",
-      },
-      tournaments: {
-        label: t("tournaments"),
-        href: "/tournaments",
-      },
-      services: {
-        label: t("services"),
-        href: "/services",
-      },
-      leaderboards: {
-        label: <span className="capitalize">{t("leaderboards")}</span>,
-        href: "/leaderboard",
-      },
-      news: {
-        label: t("news"),
-        href: "/news/",
-      },
-      about: {
-        label: t("aboutMetaculus"),
-        href: "/about/",
-      },
-      press: {
-        label: t("forJournalists"),
-        href: "/press/",
-      },
-      faq: {
-        label: t("faq"),
-        href: "/faq/",
-      },
-      journal: {
-        label: t("theJournal"),
-        href: "/project/journal/",
-      },
-      trackRecord: {
-        label: t("trackRecord"),
-        href: "/questions/track-record/",
-      },
-      aggregationExplorer: {
-        label: t("aggregationExplorer"),
-        href: "/aggregation-explorer",
-      },
-      createQuestion: {
-        label: (
-          <div
-            className={cn(
-              "flex h-full items-center capitalize",
-              buttonConfig.hasEmphasis && "rounded-full bg-blue-700 px-2 py-1 "
-            )}
-          >
-            <FontAwesomeIcon size="xs" className="mr-1" icon={faPlus} />
-            {buttonConfig.text}
-          </div>
-        ),
-        href: "/questions/create/",
-      },
-    } as const;
-  }, [t]);
+  const LINKS = useMemo(
+    () =>
+      ({
+        questions: {
+          label: t("questions"),
+          href: "/questions",
+        },
+        tournaments: {
+          label: t("tournaments"),
+          href: "/tournaments",
+        },
+        services: {
+          label: t("services"),
+          href: "/services",
+        },
+        leaderboards: {
+          label: <span className="capitalize">{t("leaderboards")}</span>,
+          href: "/leaderboard",
+        },
+        news: {
+          label: t("news"),
+          href: "/news/",
+        },
+        about: {
+          label: t("aboutMetaculus"),
+          href: "/about/",
+        },
+        press: {
+          label: t("forJournalists"),
+          href: "/press/",
+        },
+        faq: {
+          label: t("faq"),
+          href: "/faq/",
+        },
+        journal: {
+          label: t("theJournal"),
+          href: "/project/journal/",
+        },
+        trackRecord: {
+          label: t("trackRecord"),
+          href: "/questions/track-record/",
+        },
+        aggregationExplorer: {
+          label: t("aggregationExplorer"),
+          href: "/aggregation-explorer",
+        },
+        createQuestion: {
+          label: <CreateQuestionButton />,
+          href: "/questions/create/",
+        },
+      }) as const,
+    [t]
+  );
 
   // We generate and render links set based on css to ensure proper rendering on the 1st frame
   // That's why we need a separate list for every expected screen size

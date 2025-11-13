@@ -70,7 +70,8 @@ echo "All upstreams are ready. Starting Nginx..."
 
 # 4) Render Nginx config & launch it
 PORT="${PORT:-8080}" \
-envsubst '${PORT}' \
+APP_DOMAIN="${APP_DOMAIN:-}" \
+envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/http.d/app_nginx.template \
   > /etc/nginx/http.d/app_nginx.conf
 

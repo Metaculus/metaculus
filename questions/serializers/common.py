@@ -200,9 +200,6 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("CP Reveal Time must not be after Closing Time")
             if scheduled_resolve_time and cp_reveal_time > scheduled_resolve_time:
                 errors.append("CP Reveal Time must not be after Resolving Time")
-        if scheduled_close_time:
-            if scheduled_resolve_time and scheduled_close_time > scheduled_resolve_time:
-                errors.append("Closing Time must not be after Resolving Time")
 
         if question_type == Question.QuestionType.MULTIPLE_CHOICE:
             if not data.get("options"):
