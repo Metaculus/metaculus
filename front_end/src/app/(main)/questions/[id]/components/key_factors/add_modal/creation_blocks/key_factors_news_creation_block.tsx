@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { BECommentType } from "@/types/comment";
 import { NewsDraft } from "@/types/key_factors";
@@ -100,7 +101,6 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
     setDrafts(() => drafts);
 
     const result = await submit("news");
-    console.log("submit result:", result);
     if (result && "errors" in result) {
       setErrors(result.errors);
       return;
@@ -111,6 +111,35 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
     onClose();
   };
 
+  const setOnlyImpact = (
+    id: number,
+    meta: { impact_direction: 1 | -1 | null; certainty: -1 | null }
+  ) =>
+    setImpactsById((prev) => {
+      const next: typeof prev = {};
+      for (const k of Object.keys(prev)) {
+        const n = Number(k);
+        next[n] =
+          n === id
+            ? {
+                impact_direction: meta.impact_direction,
+                certainty: meta.certainty,
+              }
+            : { impact_direction: null, certainty: null };
+      }
+      return next;
+    });
+
+  const clearAllImpacts = () =>
+    setImpactsById((prev) => {
+      const next: typeof prev = {};
+      for (const k of Object.keys(prev)) {
+        const n = Number(k);
+        next[n] = { impact_direction: null, certainty: null };
+      }
+      return next;
+    });
+
   if (loading) return <div className="py-8 text-center">{t("loading")}</div>;
   if (!articles.length) return <div className="py-8 text-center">no found</div>;
 
@@ -119,7 +148,7 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
 
   return (
     <>
-      <div className="flex min-h-0 grow flex-col">
+      <div className="flex min-h-0 grow flex-col gap-[14px]">
         <div
           ref={scrollRef}
           role="radiogroup"
@@ -139,17 +168,21 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
                   }
                 }
                 onToggleSelect={(id) =>
-                  setSelectedId((curr) => (curr === id ? null : id))
+                  setSelectedId((curr) => {
+                    if (curr === id) {
+                      clearAllImpacts();
+                      return null;
+                    }
+                    clearAllImpacts();
+                    return id;
+                  })
                 }
                 onSelectImpact={(id, meta) => {
                   setSelectedId(id);
-                  setImpactsById((s) => ({
-                    ...s,
-                    [id]: {
-                      impact_direction: meta.impact_direction,
-                      certainty: meta.certainty,
-                    },
-                  }));
+                  setOnlyImpact(id, {
+                    impact_direction: meta.impact_direction,
+                    certainty: meta.certainty,
+                  });
                 }}
                 questionType={
                   post.question?.type ??
@@ -163,24 +196,22 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
         </div>
 
         {hasMore && (
-          <div className="mt-2 flex justify-center">
-            <button
-              type="button"
-              className="w-fit rounded border border-gray-300 px-3 py-1 text-sm"
-              onClick={() => {
-                setVisibleCount((c) =>
-                  Math.min(c + VISIBLE_STEP, articles.length)
-                );
-                requestAnimationFrame(() => {
-                  const el = scrollRef.current;
-                  if (!el) return;
-                  el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-                });
-              }}
-            >
-              {"Show 3 more"}
-            </button>
-          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setVisibleCount(articles.length);
+              requestAnimationFrame(() => {
+                const el = scrollRef.current;
+                if (!el) return;
+                el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+              });
+            }}
+            className="mr-auto border-blue-400 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark"
+            disabled={isPending}
+          >
+            {t("showNMore", { count: articles.length - visibleCount })}
+          </Button>
         )}
       </div>
 
@@ -188,7 +219,7 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
         isPending={isPending}
         onCancel={onClose}
         onSubmit={handleSubmit}
-        submitLabel={"add"}
+        submitLabel={t("addAsKeyFactor")}
         disabled={!canSubmit}
         errors={undefined}
       />
