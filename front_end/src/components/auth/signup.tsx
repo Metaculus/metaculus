@@ -227,10 +227,11 @@ export const AccountInactive: FC<AccountInactiveModalProps> = ({
   );
 };
 
-export const SignUpModal: FC<SignInModalType> = ({
+export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
   isOpen,
   onClose,
-}: SignInModalType) => {
+  forceIsBot,
+}) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
@@ -253,7 +254,7 @@ export const SignUpModal: FC<SignInModalType> = ({
       </div>
       <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
         <div className="border-gray-300 dark:border-gray-300-dark sm:w-80 sm:border-r sm:pr-4">
-          <SignupForm withNewsletterOptin={true} />
+          <SignupForm withNewsletterOptin={true} forceIsBot={forceIsBot} />
         </div>
         <div className="flex flex-col gap-2 sm:w-80 sm:pl-4">
           <ul className="hidden leading-tight sm:block">

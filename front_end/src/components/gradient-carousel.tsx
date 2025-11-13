@@ -54,6 +54,7 @@ function ReusableGradientCarousel<T>({
 }: Props<T>) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
 
@@ -79,14 +80,11 @@ function ReusableGradientCarousel<T>({
     const el = viewportRef.current;
     if (!el) return;
     recompute();
-
     const onScroll = () => recompute();
     el.addEventListener("scroll", onScroll, { passive: true });
-
     const ro = new ResizeObserver(() => recompute());
     ro.observe(el);
     if (listRef.current) ro.observe(listRef.current);
-
     return () => {
       el.removeEventListener("scroll", onScroll);
       ro.disconnect();
