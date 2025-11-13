@@ -336,7 +336,6 @@ def make_copy_of_question(question: Question, appove_copy_post: bool) -> Questio
     return new_question
 
 
-@transaction.atomic  # TODO: make this only around the db writes
 def reshape_question(
     question_to_change: Question,
     basis_question: Question,
@@ -450,13 +449,23 @@ def reshape_question(
     print("rescaling forecasts...")
     forecasts = question_to_change.user_forecasts.all()
     c = forecasts.count()
+    updated_forecasts: list[Forecast] = []
     for i, forecast in enumerate(forecasts.iterator(chunk_size=100), 1):
         print(i, "/", c, end="\r")
         forecast.continuous_cdf = transform_cdf(forecast.continuous_cdf)
         forecast.distribution_input = None
-        forecast.save()
+        updated_forecasts.append(forecast)
     print()
     print("Done")
+    if updated_forecasts:
+        print("Saving forecasts...", end="\r")
+        with transaction.atomic():
+            Forecast.objects.bulk_update(
+                updated_forecasts,
+                fields=["continuous_cdf", "distribution_input"],
+                batch_size=500,
+            )
+        print("Saving forecasts... DONE")
     print("Rebuilding aggregations...", end="\r")
     build_question_forecasts(question_to_change)
     print("Rebuilding aggregations... DONE")
