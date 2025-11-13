@@ -50,5 +50,3 @@ class TestSimpleFunctionality:
         page.get_by_role("button", name="Binary").click()
         page.get_by_role("button", name="Open").click()
         page.get_by_role("button", name="Done").click()
-
-        page.close()
