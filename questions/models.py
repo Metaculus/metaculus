@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
+from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef, Subquery
 from django.utils import timezone
 from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
@@ -24,6 +24,20 @@ class QuestionQuerySet(QuerySet):
     def annotate_forecasts_count(self):
         return self.annotate(
             forecasts_count=SubqueryAggregate("forecast", aggregate=Count)
+        )
+
+    def annotate_forecasters_count(self):
+        from questions.models import Forecast
+
+        return self.annotate(
+            forecasters_count=Subquery(
+                Forecast.objects.filter(question=OuterRef("pk"))
+                .filter_within_question_period()
+                .values("question")
+                .annotate(count=Count("author", distinct=True))
+                .values("count")[:1],
+                output_field=models.IntegerField(),
+            )
         )
 
     def filter_public(self):
@@ -51,6 +65,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Annotated fields
     forecasts_count: int = 0
+    forecasters_count: int = 0
     request_user_forecasts: list["Forecast"]
     user_scores: list["Score"]
     user_archived_scores: list["ArchivedScore"]
