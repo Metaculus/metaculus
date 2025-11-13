@@ -1717,5 +1717,9 @@
   "baseRate": "基准费率",
   "addAsKeyFactor": "添加为关键因素",
   "showNMore": "显示更多 {count}",
+  "pasteUrl": "粘贴网址",
+  "newsMatchCount": "新闻匹配（{count}）",
+  "chooseUrl": "从现有文章中选择，或粘贴一个新网址。",
+  "pasteUrlPlaceholder": "粘贴新闻文章的网址",
   "othersCount": "其他（{count}）"
 }
