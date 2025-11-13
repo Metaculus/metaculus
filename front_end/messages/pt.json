@@ -1610,5 +1610,11 @@
   "rateDenominatorGtNumerator": "Denominador deve ser maior que o numerador",
   "yearOutOfRange": "O ano deve estar entre {min} e {max}",
   "extrapolationRequired": "Por favor, selecione um método de extrapolação",
+  "addAsKeyFactor": "Adicionar como Fator Chave",
+  "showNMore": "Mostrar mais {count}",
+  "pasteUrl": "Colar URL",
+  "newsMatchCount": "Correspondência de Notícias ({count})",
+  "chooseUrl": "Escolha um artigo existente ou cole uma nova URL.",
+  "pasteUrlPlaceholder": "Cole o URL de um artigo de notícias",
   "othersCount": "Outros ({count})"
 }

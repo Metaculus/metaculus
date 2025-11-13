@@ -4,10 +4,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
-import { KeyFactor, KeyFactorVoteAggregate } from "@/types/comment";
+import { KeyFactor, KeyFactorVoteAggregate, News } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
+import {
+  isBaseRateDraft,
+  isDriverDraft,
+  isNewsDraft,
+} from "@/utils/key_factors";
 import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import KeyFactorItem from "../../item_view";
@@ -48,37 +53,7 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
           items={suggestedKeyFactors}
           gapClassName="gap-3.5"
           renderItem={(kf, idx) => {
-            const question = post.group_of_questions?.questions.find(
-              (obj) => obj.id === kf.question_id
-            );
-
-            const emptyAggregate: KeyFactorVoteAggregate = {
-              score: 0,
-              user_vote: null,
-              count: 0,
-              aggregated_data: [],
-            };
-
-            const fake: KeyFactor = {
-              ...kf,
-              id: -1,
-              author: user,
-              freshness: 0,
-              comment_id: -1,
-              vote: emptyAggregate,
-              question: kf.question_id
-                ? {
-                    id: kf.question_id,
-                    label: question?.label || "",
-                  }
-                : undefined,
-              post: {
-                id: post.id,
-                unit: post.question?.unit || question?.unit,
-                question_type:
-                  inferEffectiveQuestionTypeFromPost(post) || undefined,
-              },
-            };
+            const fake = draftToDisplayKeyFactor(kf, post, user);
 
             return (
               <div key={idx} className="group relative mt-3">
@@ -126,5 +101,88 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
     </div>
   );
 };
+
+const emptyAggregate: KeyFactorVoteAggregate = {
+  score: 0,
+  user_vote: null,
+  count: 0,
+  aggregated_data: [],
+};
+
+type QuestionLite = { id: number; label: string; unit?: string | null };
+const isQuestionLite = (x: unknown): x is QuestionLite =>
+  !!x && typeof x === "object" && "id" in x && "label" in x;
+
+function draftToDisplayKeyFactor(
+  kf: KeyFactorDraft,
+  post: PostWithForecasts,
+  user: CurrentUser
+): KeyFactor {
+  const raw =
+    kf.question_id &&
+    post.group_of_questions?.questions.find((q) => q?.id === kf.question_id);
+
+  const question = isQuestionLite(raw) ? raw : undefined;
+
+  const base: Omit<KeyFactor, "driver" | "base_rate" | "news"> = {
+    id: -1,
+    author: user,
+    freshness: 0,
+    comment_id: -1,
+    vote: emptyAggregate,
+    question: kf.question_id
+      ? {
+          id: kf.question_id,
+          label: question?.label || "",
+          unit: question?.unit ?? undefined,
+        }
+      : undefined,
+    question_option: kf.question_option,
+    post: {
+      id: post.id,
+      unit: post.question?.unit || question?.unit || undefined,
+      question_type: inferEffectiveQuestionTypeFromPost(post) || undefined,
+    },
+    flagged_by_me: false,
+  };
+
+  if (isDriverDraft(kf)) {
+    return {
+      ...base,
+      driver: {
+        text: kf.driver.text,
+        impact_direction: kf.driver.impact_direction,
+        certainty: kf.driver.certainty,
+      },
+      base_rate: null,
+      news: null,
+    };
+  }
+
+  if (isBaseRateDraft(kf)) {
+    return {
+      ...base,
+      driver: null,
+      base_rate: { ...kf.base_rate },
+      news: null,
+    };
+  }
+
+  if (isNewsDraft(kf)) {
+    const n = kf.news;
+    const news: News = {
+      url: n.url ?? "",
+      title: n.title ?? "",
+      source: n.source ?? "",
+      img_url: n.img_url ?? undefined,
+      published_at: n.published_at ?? undefined,
+      impact_direction: n.impact_direction ?? null,
+      certainty: n.certainty ?? null,
+    };
+    return { ...base, driver: null, base_rate: null, news };
+  }
+
+  return { ...base, driver: null, base_rate: null, news: null };
+}
 
 export default KeyFactorsSuggestedItems;

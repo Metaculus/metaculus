@@ -50,7 +50,7 @@ type Ctx = State & {
   setErrors: (e?: ErrorResponse) => void;
   resetAll: () => void;
   submit: (
-    submitType: "driver" | "base_rate",
+    submitType: "driver" | "base_rate" | "news",
     markdownOverride?: string
   ) => Promise<SubmitResult>;
   loadSuggestions: (force?: boolean) => void;
@@ -194,7 +194,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       setErrors,
       resetAll,
       submit: async (
-        submitType: "driver" | "base_rate",
+        submitType: "driver" | "base_rate" | "news",
         markdownOverride?: string
       ) =>
         submitImpl(
