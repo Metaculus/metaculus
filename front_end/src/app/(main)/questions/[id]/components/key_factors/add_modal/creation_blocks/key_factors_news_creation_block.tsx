@@ -151,7 +151,6 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
                     },
                   }));
                 }}
-                chooseDirectionLabel={t("chooseDirectionOfImpact")}
                 questionType={
                   post.question?.type ??
                   post.group_of_questions?.questions?.[0]?.type ??
