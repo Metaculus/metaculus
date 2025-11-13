@@ -11,6 +11,7 @@ type ImpactDirectionControlsProps = {
   impact: { impact_direction: 1 | -1 | null; certainty: -1 | null } | null;
   onSelect: (impactMetadata: ImpactMetadata) => void;
   unit?: string;
+  itemClassName?: string;
 };
 
 type ButtonConfig =
@@ -97,6 +98,7 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
   impact,
   onSelect,
   unit,
+  itemClassName,
 }) => {
   const currentCertainty = impact?.certainty ?? null;
   const currentDirection = impact?.impact_direction ?? null;
@@ -141,6 +143,7 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
                 }
               }}
               selected={isSelected}
+              className={itemClassName}
             >
               <KeyFactorImpactDirectionLabel
                 impact={impactLabel}
