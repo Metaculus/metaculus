@@ -87,7 +87,7 @@ const KeyFactorsAddModalBody: React.FC<{
 
       {isLoadingSuggestedKeyFactors && <KeyFactorsLoadingSuggested />}
       {!isLoadingSuggestedKeyFactors && (
-        <div className="flex grow flex-col gap-2">
+        <div className="flex grow flex-col">
           {!selectedType ? (
             <KeyFactorsTypePicker onPick={setSelectedType} />
           ) : selectedType === "driver" ? (

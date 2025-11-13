@@ -1683,5 +1683,7 @@
   "askAnLLMDescription": "Pošleme informace o otázce a váš komentář LLM, aby za vás vygeneroval klíčové faktory.",
   "generatedKeyFactors": "Vygenerované klíčové faktory",
   "noGeneratedKeyFactors": "Nepodařilo se nám automaticky vygenerovat klíčové faktory z tohoto komentáře. Můžete je přidat ručně.",
+  "addAsKeyFactor": "Přidat jako klíčový faktor",
+  "showNMore": "Zobrazit dalších {count}",
   "othersCount": "Ostatní ({count})"
 }

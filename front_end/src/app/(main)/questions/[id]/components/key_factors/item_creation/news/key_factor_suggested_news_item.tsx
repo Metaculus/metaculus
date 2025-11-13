@@ -47,10 +47,10 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
         if (e.key === "Enter" || e.key === " ") onToggleSelect(article.id);
       }}
       className={cn(
-        "flex cursor-pointer flex-col gap-3 rounded border p-3 antialiased focus:outline-none",
+        "flex cursor-pointer flex-col gap-3 rounded border p-3 antialiased transition-colors duration-150 focus:outline-none",
         selected
           ? "border-blue-700 bg-blue-200 dark:border-blue-700-dark dark:bg-blue-200-dark"
-          : "border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark"
+          : "border-blue-400 bg-blue-100 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:hover:bg-blue-200-dark"
       )}
     >
       <div className="flex items-start gap-[14px]">

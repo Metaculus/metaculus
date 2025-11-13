@@ -1683,5 +1683,7 @@
   "askAnLLMDescription": "Enviaremos la información de la pregunta y tu comentario a un LLM para generar factores clave en tu nombre.",
   "generatedKeyFactors": "Factores clave generados",
   "noGeneratedKeyFactors": "No pudimos generar automáticamente factores clave de este comentario. Puedes añadirlos manualmente.",
+  "addAsKeyFactor": "Agregar como factor clave",
+  "showNMore": "Mostrar {count} más",
   "othersCount": "Otros ({count})"
 }
