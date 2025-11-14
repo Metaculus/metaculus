@@ -3,6 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
+const AWS_S3_CUSTOM_DOMAIN = process.env.AWS_S3_CUSTOM_DOMAIN;
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -48,6 +49,11 @@ const nextConfig = {
         hostname: "raw.githubusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.metaculus.com",
+        pathname: "/**",
+      },
       ...(AWS_STORAGE_BUCKET_NAME
         ? [
             {
@@ -57,12 +63,16 @@ const nextConfig = {
             },
           ]
         : []),
+      ...(AWS_S3_CUSTOM_DOMAIN
+        ? [
+            {
+              protocol: "https",
+              hostname: AWS_S3_CUSTOM_DOMAIN,
+              pathname: "/**",
+            },
+          ]
+        : []),
       // TODO: move this to ENV
-      {
-        protocol: "https",
-        hostname: "d3s0w6fek99l5b.cloudfront.net",
-        pathname: "/**",
-      },
     ],
   },
   async redirects() {

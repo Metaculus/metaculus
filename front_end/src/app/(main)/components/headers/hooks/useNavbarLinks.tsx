@@ -12,6 +12,8 @@ import { useBreakpoint } from "@/hooks/tailwind";
 import { Community } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
+import CreateQuestionButton from "../components/create_question_button";
+
 type NavbarLinkDefinition = {
   label: ReactNode;
   href: string;
@@ -82,12 +84,7 @@ const useNavbarLinks = ({
           href: "/aggregation-explorer",
         },
         createQuestion: {
-          label: (
-            <div className="flex h-full items-center capitalize">
-              <FontAwesomeIcon size="xs" className="mr-1" icon={faPlus} />
-              {t("create")}
-            </div>
-          ),
+          label: <CreateQuestionButton />,
           href: "/questions/create/",
         },
       }) as const,

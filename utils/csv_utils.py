@@ -67,7 +67,7 @@ def export_all_data_for_questions(
         for question in questions:
             aggregation_dict = get_aggregation_history(
                 question,
-                aggregation_methods,
+                aggregation_methods or [question.default_aggregation_method],
                 only_include_user_ids=only_include_user_ids,
                 minimize=minimize,
                 include_stats=True,
@@ -178,7 +178,7 @@ def export_data_for_questions(
         for question in questions_with_revealed_cp:
             aggregation_dict = get_aggregation_history(
                 question,
-                aggregation_methods,
+                aggregation_methods or [question.default_aggregation_method],
                 only_include_user_ids=only_include_user_ids,
                 minimize=minimize,
                 include_stats=True,

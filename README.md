@@ -26,6 +26,8 @@ If you're on a Mac, we recommend using [Homebrew](https://brew.sh/) as your pack
 Create a `.env` file in the front_end directory of the project by copying the `.env.example` file.
 This will hold all of the environment variables that are used by the project. For example, adding `DEBUG=true` will give you access to the django debug toolbar in browser.
 
+**Optional:** Set `APP_DOMAIN` to restrict Nginx access to a specific domain (e.g., `APP_DOMAIN=www.metaculus.com`). Localhost (127.0.0.1) is always allowed. If unset, all hosts are allowed.
+
 ## Database
 Install Postgres - your database manager:
 >`sudo apt install postgresql`

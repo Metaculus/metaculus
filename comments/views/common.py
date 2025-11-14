@@ -23,7 +23,6 @@ from comments.serializers.common import (
     CommentFilterSerializer,
     serialize_comments_of_the_week_many,
 )
-from comments.serializers.key_factors import KeyFactorWriteSerializer
 from comments.services.common import (
     set_comment_excluded_from_week_top,
     create_comment,
@@ -130,10 +129,7 @@ def comment_create_api_view(request: Request):
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
     included_forecast = serializer.validated_data.pop("included_forecast", False)
-
-    key_factors = KeyFactorWriteSerializer(allow_null=True, many=True).run_validation(
-        request.data.get("key_factors")
-    )
+    key_factors = serializer.validated_data.pop("key_factors", None)
 
     # Small validation
     permission = get_post_permission_for_user(
