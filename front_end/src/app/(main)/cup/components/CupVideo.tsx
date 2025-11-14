@@ -35,7 +35,7 @@ export const CupVideo: FC<CupVideoProps> = ({ className = "" }) => {
     >
       {!isVideoLoaded && (
         <Image
-          src="https://metaculus-media.s3.us-west-2.amazonaws.com/first-frame.jpg"
+          src="https://cdn.metaculus.com/first-frame.jpg"
           alt="Metaculus Cup Preview"
           fill
           className="object-cover"
@@ -53,7 +53,7 @@ export const CupVideo: FC<CupVideoProps> = ({ className = "" }) => {
         playsInline
       >
         <source
-          src="https://metaculus-media.s3.us-west-2.amazonaws.com/metaculus-cup-video-compressed.mp4"
+          src="https://cdn.metaculus.com/metaculus-cup-video-compressed.mp4"
           type="video/mp4"
         />
         Your browser does not support the video tag.

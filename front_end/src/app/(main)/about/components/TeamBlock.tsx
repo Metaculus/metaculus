@@ -42,24 +42,21 @@ const people: Person[] = [
   {
     name: "Alex Costea",
     position: "Research Engineer",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/alex-costea-modified.webp",
+    imgSrc: "https://cdn.metaculus.com/alex-costea-modified.webp",
     introduction:
       "Alex Costea is a Research Engineer at Metaculus, developing the PRISM-CC project. His passion lies in bridging the gap between technology and societal systems. Prior to Metaculus, he worked as a Software Engineer for SAP, developing e-commerce solutions for large multi-national corporations. He received a Bachelor's degree in Sociology from the University of Amsterdam. In his free time, he enjoys learning new things and creating various projects, software and otherwise.",
   },
   {
     name: "Jordan Rubin",
     position: "Quantitative Finance Executive",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/jordan-rubin-modified.webp",
+    imgSrc: "https://cdn.metaculus.com/jordan-rubin-modified.webp",
     introduction:
       "Jordan is on garden leave after building the systematic buy-side alpha capture business at Two Sigma Investments. He currently blogs at FUTURE TOKENS on Substack. Jordan received a BS/BA degree in Economics from Wharton School at University of Pennsylvania. As advisor to Metaculus, he focuses on commercialization and monetization.",
   },
   {
     name: "Abhimanyu Pallavi Sudhir",
     position: "Research Fellow",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/abhimanyu-pallavi-sudhir-modified.webp",
+    imgSrc: "https://cdn.metaculus.com/abhimanyu-pallavi-sudhir-modified.webp",
     introduction:
       "Abhimanyu focuses on three primary research areas: (1) exploring analogies between economics and AI systems, particularly examining market dynamics and bounded rationality frameworks, (2) developing information markets and scalable oversight mechanisms to enhance epistemic processes and advance AI alignment, and (3) investigating applications of thermodynamics to these domains.",
   },
@@ -81,8 +78,7 @@ const people: Person[] = [
     userId: 103275,
     name: "Christian Williams",
     position: "Director of Communications & Data",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/christian_williams.webp",
+    imgSrc: "https://cdn.metaculus.com/about/christian_williams.webp",
     introduction:
       "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
@@ -131,8 +127,7 @@ const people: Person[] = [
     userId: 117502,
     name: "Ryan Beck",
     position: "Forecasting Program Coordinator",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/ryan_beck.webp",
+    imgSrc: "https://cdn.metaculus.com/about/ryan_beck.webp",
     introduction:
       "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
   },
@@ -149,8 +144,7 @@ const people: Person[] = [
     userId: 105951,
     name: "Sylvain Chevalier",
     position: "Director of Product",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/sylvain_chevalier.webp",
+    imgSrc: "https://cdn.metaculus.com/about/sylvain_chevalier.webp",
     introduction:
       "Sylvain is the Director of Product at Metaculus, with a background in software engineering and expertise in forecasting methodologies. He holds two master's degrees in physical and organic chemistry from top universities in Lyon. Sylvain is dedicated to empowering forecasters and improving decision-making through advanced tools and techniques.",
   },
@@ -159,8 +153,7 @@ const people: Person[] = [
     name: "Juan Cambeiro",
     position:
       "Senior Advisor for Biosecurity, U.S. Center for AI Standards and Innovation",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/juan_cambeiro.webp",
+    imgSrc: "https://cdn.metaculus.com/about/juan_cambeiro.webp",
     introduction:
       "Juan is a Presidential Management Fellow in the Division of Biosafety, Biosecurity, and Emerging Biotechnology Policy at the National Institutes of Health. Juan received his Masters of Public Health in epidemiology/biostatistics from Columbia University. He is currently a PhD student in Health Security at Johns Hopkins University. Juan was the top-ranked forecaster in IARPA’s COVID-19 FOCUS Forecasting Tournament and is a Superforecaster with Good Judgment Open, where he was ranked #1 on COVID-19 forecast questions.",
   },
@@ -168,8 +161,7 @@ const people: Person[] = [
     userId: 109639,
     name: "Nikos Bosse",
     position: "Research Coordinator",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/nikos_bosse.webp",
+    imgSrc: "https://cdn.metaculus.com/about/nikos_bosse.webp",
     introduction:
       "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
   },
@@ -205,8 +197,7 @@ const people: Person[] = [
     userId: 137979,
     name: "Elis Popescu",
     position: "Head of Engineering",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/elis_popescu.webp",
+    imgSrc: "https://cdn.metaculus.com/about/elis_popescu.webp",
     introduction:
       "Elis previously cofounded Tekudo, a SaaS tool for VC firms to manage ESG data. Prior to that, he was VP and head of software at Airtame, where he managed five teams developing multiple products with various technologies. With over a decade of experience, he has expertise in cross-platform development, live video streaming, embedded systems, and more.",
   },
@@ -214,8 +205,7 @@ const people: Person[] = [
     userId: 135613,
     name: "Luke Sabor",
     position: "Software Engineer",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/luke_sabor.webp",
+    imgSrc: "https://cdn.metaculus.com/about/luke_sabor.webp",
     introduction:
       "Passionate about AI safety and fueled by a love for math and logic games, Luke previously worked as a personal assistant to Max Tegmark and conducted research at UPenn's superforecasting team under Philip Tetlock. His diverse experience, spanning AI safety research to collaborating with quantum physicists, led him to work on development for Metaculus. Beyond technology, Luke enjoys exploring nature through climbing, running, biking, and birdwatching.",
   },
@@ -238,8 +228,7 @@ const people: Person[] = [
     userId: 8,
     name: "Anthony Aguirre",
     position: "Founder & Chairman of the Board",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/anthony_aguirre.webp",
+    imgSrc: "https://cdn.metaculus.com/about/anthony_aguirre.webp",
     introduction:
       "An astrophysicist and cosmologist, Anthony co-founded the Foundational Questions Institute and The Future of Life Institute. He is a Professor of Physics at UCSC and holds a PhD from Harvard. Fascinated by deep questions in physics and a belief that the long-term future of humanity hinges upon the next half-century, Anthony’s work with Metaculus is driven by his belief that it will help society navigate the coming crucial decades.",
     socials: [
@@ -266,8 +255,7 @@ const people: Person[] = [
     userId: 10,
     name: "Greg Laughlin",
     position: "Founder & R&D Fellow",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/greg_laughlin.webp",
+    imgSrc: "https://cdn.metaculus.com/about/greg_laughlin.webp",
     introduction:
       "Greg is a planet-finder, astrophysicist, and expert on numerical computation and time-series analysis from accretion disks to trading and finance. Greg has probed the limits of predictability, from microseconds in markets to the ultra-long term cosmic future. Greg is a Professor of Astronomy at Yale and holds a PhD from UCSC.",
     socials: [
@@ -281,8 +269,7 @@ const people: Person[] = [
     userId: 5,
     name: "Carroll “Max” Wainwright",
     position: "Founder & AI Advisor",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/carroll_wainwright.webp",
+    imgSrc: "https://cdn.metaculus.com/about/carroll_wainwright.webp",
     introduction:
       "Max is an AI Research Scientist at OpenAI where he focuses on technical aspects of AI safety. He earned his Ph.D. in theoretical physics from the University of California Santa Cruz, where he studied phase transitions in the very early universe.",
     socials: [
@@ -296,8 +283,7 @@ const people: Person[] = [
     userId: 100038,
     name: "David Levine",
     position: "Founder",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/david_levine.webp",
+    imgSrc: "https://cdn.metaculus.com/about/david_levine.webp",
     introduction:
       "David is the president and CEO of Choice Yield Inc. and the co-founder of Goodsource Solutions. He has 30 years of experience in growing, marketing, and operating successful businesses.",
     socials: [
@@ -311,8 +297,7 @@ const people: Person[] = [
     userId: 104761,
     name: "Tamay Besiroglu",
     position: "Co-founder & CEO, Mechanize",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tamay_besiroglu.webp",
+    imgSrc: "https://cdn.metaculus.com/about/tamay_besiroglu.webp",
     introduction:
       "Tamay is a research scientist at the Computer Science and AI Lab at MIT, an associate director at Epoch, and was previously the strategy and operations lead at Metaculus. Tamay has also contributed to the Future of Humanity Institute at Oxford University and to Bloomberg LP in London. He studied philosophy, politics, and economics at University of Warwick and received his Master of Philosophy in economics from the University of Cambridge.",
     socials: [
@@ -325,8 +310,7 @@ const people: Person[] = [
   {
     name: "Welton Chang",
     position: "Co-founder & CEO, Pyrra Technologies",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/welton_chang.webp",
+    imgSrc: "https://cdn.metaculus.com/about/welton_chang.webp",
     introduction:
       "Welton Chang is a co-founder and CEO of Pyrra Technologies, a startup combating disinformation, conspiracy, and incitement online. Welton received his PhD from the University of Pennsylvania, where he wrote his dissertation on forecasting and accountability systems. For nearly a decade, he worked as an intelligence officer at the Defense Intelligence Agency.",
     socials: [
@@ -339,8 +323,7 @@ const people: Person[] = [
   {
     name: "Burak Nehbit",
     position: "Senior Interaction Designer, Google",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/burak_nehbit.webp",
+    imgSrc: "https://cdn.metaculus.com/about/burak_nehbit.webp",
     introduction:
       "Burak is a Senior Interaction Designer at Google and was the co-founder of Aether, a decentralized peer-to-peer network. Previously, Burak worked on AdWords  at Google and ad fraud at Meta. He received BFAs in communication design from Parsons School of Design in New York and from Istanbul Bilgi University.",
     socials: [
@@ -353,8 +336,7 @@ const people: Person[] = [
   {
     name: "Steven Schkolne",
     position: "Founder, MightyMeld",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/steven_schkolne.webp",
+    imgSrc: "https://cdn.metaculus.com/about/steven_schkolne.webp",
     introduction:
       "Steven Schkolne is a computer scientist, artist, and entrepreneur who has worked with companies such as BMW, Microsoft, and Disney. He laid the foundations for popular VR art programs like Tilt Brush and Quill while at Caltech, where he also earned his MS and PhD in Computer Science. Steven has also founded and grown companies, including Vain Media and 3dSunshine. Steven’s design leadership shaped past iterations of Metaculus, and he currently advises on UI/UX across the platform.",
     socials: [
