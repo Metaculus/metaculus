@@ -49,6 +49,11 @@ const nextConfig = {
         hostname: "raw.githubusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.metaculus.com",
+        pathname: "/**",
+      },
       ...(AWS_STORAGE_BUCKET_NAME
         ? [
             {
