@@ -2790,7 +2790,7 @@ export default function FAQ() {
           </p>
           {/* <img alt="Interfaz de predicción" loading="lazy" width="769" height="773" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Finterface.png&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Finterface.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Finterface.png&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/interface.png"
+            src="https://cdn.metaculus.com/static/faq/interface.png"
             alt="Prediction Interface"
             className="my-4"
             width={769}
@@ -2815,7 +2815,7 @@ export default function FAQ() {
           </p>
           {/* <img alt="Interfaz acumulada" loading="lazy" width="771" height="776" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/cumulative.png"
+            src="https://cdn.metaculus.com/static/faq/cumulative.png"
             alt="Cumulative Interface"
             className="my-4"
             width={771}
