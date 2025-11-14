@@ -13,7 +13,7 @@ const AIBNewsTab: React.FC = () => (
       >
         <AwaitedPostsFeed
           filters={{
-            categories: "futureeval",
+            tournaments: "futureeval-posts",
           }}
           type="news"
         />
