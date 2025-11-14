@@ -40,6 +40,7 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
   );
   const [submitting, setSubmitting] = useState(false);
   const userVote = aggregate?.user_vote as 5 | -5 | null;
+
   const { helpful, notHelpful } = useMemo(() => {
     const arr = aggregate?.aggregated_data ?? [];
     return {
@@ -48,6 +49,48 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
     };
   }, [aggregate]);
 
+  const applyOptimisticUpdate = (
+    prev: KeyFactorVoteAggregate,
+    next: 5 | -5 | null
+  ): KeyFactorVoteAggregate => {
+    const prevVote = (prev.user_vote as 5 | -5 | null) ?? null;
+    if (prevVote === next) return prev;
+
+    const deltaHelpful = (prevVote === 5 ? -1 : 0) + (next === 5 ? 1 : 0);
+    const deltaNotHelpful = (prevVote === -5 ? -1 : 0) + (next === -5 ? 1 : 0);
+
+    const aggregatedData: { score: number; count: number }[] =
+      prev.aggregated_data.map((item) => ({
+        score: item.score,
+        count: item.count,
+      }));
+
+    const bump = (score: 5 | -5, delta: number) => {
+      if (delta === 0) return;
+      const idx = aggregatedData.findIndex((a) => a.score === score);
+      if (idx === -1) {
+        if (delta > 0) {
+          aggregatedData.push({ score, count: delta });
+        }
+        return;
+      }
+      const item = aggregatedData[idx];
+      aggregatedData[idx] = {
+        score: item?.score ?? 0,
+        count: Math.max(0, (item?.count ?? 0) + delta),
+      };
+    };
+
+    bump(5, deltaHelpful);
+    bump(-5, deltaNotHelpful);
+
+    return {
+      ...prev,
+      user_vote: next,
+      aggregated_data: aggregatedData,
+    };
+  };
+
   const submit = async (next: 5 | -5 | null) => {
     if (!user) {
       setCurrentModal({ type: "signin" });
@@ -55,7 +98,10 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
     }
     if (submitting) return;
     setSubmitting(true);
-    setAggregate((prev) => ({ ...prev, user_vote: next }));
+
+    const optimistic = applyOptimisticUpdate(aggregate, next);
+    setAggregate(optimistic);
+    setKeyFactorVote(keyFactor.id, optimistic);
 
     try {
       const resp = await voteKeyFactor({
@@ -88,12 +134,17 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
           className={cn(
             "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
             userVote === 5
-              ? "border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-200-dark dark:bg-purple-100-dark dark:text-purple-500"
+              ? "border-olive-700 bg-olive-700 text-gray-0 dark:border-olive-700-dark dark:bg-olive-700-dark dark:text-gray-0-dark"
               : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
           )}
         >
           <FontAwesomeIcon
-            className="text-[14px] text-olive-700 dark:text-olive-700-dark"
+            className={cn(
+              "text-[14px]",
+              userVote === 5
+                ? "text-gray-0 dark:text-gray-0-dark"
+                : "text-olive-700 dark:text-olive-700-dark"
+            )}
             icon={faThumbsUp}
           />
           <span>
@@ -109,15 +160,20 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
           className={cn(
             "inline-flex items-center gap-1.5 rounded-[4px] border border-blue-400 px-2 py-1 text-xs font-normal transition-colors dark:border-blue-400-dark",
             userVote === -5
-              ? "border-salmon-200 bg-salmon-100 text-salmon-800 dark:border-salmon-200-dark dark:bg-salmon-100-dark dark:text-salmon-800-dark"
+              ? "border-salmon-600 bg-salmon-600 text-gray-0 dark:border-salmon-600-dark dark:bg-salmon-600-dark dark:text-gray-0-dark"
               : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
           )}
         >
           <FontAwesomeIcon
-            className="text-[14px] text-salmon-600 dark:text-salmon-600-dark"
+            className={cn(
+              "text-[14px]",
+              userVote === -5
+                ? "text-gray-0 dark:text-gray-0-dark"
+                : "text-salmon-600 dark:text-salmon-600-dark"
+            )}
             icon={faThumbsDown}
           />
-          <span className="text-blue-800 dark:text-blue-800-dark">
+          <span>
             {notHelpful} {t("notHelpful")}
           </span>
         </button>
