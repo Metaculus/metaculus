@@ -30,6 +30,7 @@ const AIBBenchmarkModels: React.FC = () => {
     });
     return e;
   }, [leaderboard.entries]);
+
   const [isAllShown, setIsAllShown] = useState(false);
   const visible = isAllShown ? entries : entries.slice(0, MAX_VISIBLE_MODELS);
 
