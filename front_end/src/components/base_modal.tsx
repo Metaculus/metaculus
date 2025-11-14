@@ -50,6 +50,11 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
         className={cn("relative z-[201]", dialogClassName)}
         onClose={onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
+        onKeyDownCapture={(e) => {
+          if (isImmersive) {
+            e.stopPropagation();
+          }
+        }}
       >
         <div
           className={cn(
