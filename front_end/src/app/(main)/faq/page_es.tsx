@@ -1190,9 +1190,9 @@ export default function FAQ() {
           diferencia es que presentamos los dos condicionales cercanos el uno al
           otro para mayor comodidad:
         </p>
-        {/* <img alt="Los dos condicionales uno al lado del otro" loading="lazy" width="730" height="75" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_2.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75"> */}
+        {/* <img alt="Los dos condicionales uno al lado del otro" loading="lazy" width="730" height="75" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_2.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75"> */}
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_2.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_2.jpg"
           alt="The two conditionals next to each other"
           width={730}
           height={75}
@@ -1225,9 +1225,9 @@ export default function FAQ() {
           Para la simplicidad, Metaculus presenta preguntas gráficamente
           condicionales. En la interfaz de pronóstico, están en una tabla:
         </p>
-        {/* <img alt="La interfaz de pronóstico de Pares condicionales" loading="lazy" width="754" height="253" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_3.jpg&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75"> */}
+        {/* <img alt="La interfaz de pronóstico de Pares condicionales" loading="lazy" width="754" height="253" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_3.jpg&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75"> */}
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_3.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_3.jpg"
           alt="The Conditional Pair forecasting interface"
           width={754}
           height={253}
@@ -1236,9 +1236,9 @@ export default function FAQ() {
           Y en los piensos, todo resultado posible del Padre es una flecha, y
           toda probabilidad condicional es una barra:
         </p>
-        {/* <img alt="La baldosa de alimentación de pared condicional" loading="lazy" width="746" height="142" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_1.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75"> */}
+        {/* <img alt="La baldosa de alimentación de pared condicional" loading="lazy" width="746" height="142" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_1.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75"> */}
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_1.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_1.jpg"
           alt="The Conditional Pair feed tile"
           width={746}
           height={142}
@@ -3416,9 +3416,9 @@ export default function FAQ() {
             normal en la página de preguntas o mediante el uso de un botón
             especial en los feeds.
           </p>
-          {/* <img alt="Reafirmando una predicción" loading="lazy" width="922" height="575" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1080&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75"> */}
+          {/* <img alt="Reafirmando una predicción" loading="lazy" width="922" height="575" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1080&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
+            src="https://cdn.metaculus.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
             alt="Reaffirming a prediction"
             className="my-4"
             width={922}

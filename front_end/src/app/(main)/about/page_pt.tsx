@@ -618,7 +618,7 @@ export default function AboutPage() {
                 <Image
                   alt="Leonard Barrett"
                   className="object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png"
+                  src="https://cdn.metaculus.com/leonard.png"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                   priority
@@ -670,7 +670,7 @@ export default function AboutPage() {
                 <Image
                   alt="Deger Turan"
                   className="object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/deger.webp"
+                  src="https://cdn.metaculus.com/deger.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />
@@ -704,7 +704,7 @@ export default function AboutPage() {
                 <Image
                   alt="Molly Hickman"
                   className="object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/molly.webp"
+                  src="https://cdn.metaculus.com/molly.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />
@@ -772,7 +772,7 @@ export default function AboutPage() {
                 <Image
                   alt="Hlib Kononenko"
                   className="object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/Hlib-Kononenko.webp"
+                  src="https://cdn.metaculus.com/Hlib-Kononenko.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />
@@ -789,7 +789,7 @@ export default function AboutPage() {
                 <Image
                   alt="John Bash"
                   className="object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/john-bash.webp"
+                  src="https://cdn.metaculus.com/john-bash.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />
@@ -823,7 +823,7 @@ export default function AboutPage() {
                 <Image
                   alt="Ben Wilson"
                   className="object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/Ben-Wilson.webp"
+                  src="https://cdn.metaculus.com/Ben-Wilson.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />
@@ -840,7 +840,7 @@ export default function AboutPage() {
                 <Image
                   alt="Nikita Oleinykof"
                   className="size-full rounded-full object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/Nikita-Oleinykof.webp"
+                  src="https://cdn.metaculus.com/Nikita-Oleinykof.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />
@@ -915,7 +915,7 @@ export default function AboutPage() {
                 <Image
                   alt="Joshua Elliott"
                   className="size-full rounded-full object-cover"
-                  src="https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp"
+                  src="https://cdn.metaculus.com/joshua-elliott-image.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />

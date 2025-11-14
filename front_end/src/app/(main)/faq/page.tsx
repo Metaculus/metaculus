@@ -1112,7 +1112,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_2.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_2.jpg"
           alt="The two conditionals next to each other"
           width={730}
           height={75}
@@ -1155,7 +1155,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_3.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_3.jpg"
           alt="The Conditional Pair forecasting interface"
           width={754}
           height={253}
@@ -1167,7 +1167,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_1.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_1.jpg"
           alt="The Conditional Pair feed tile"
           width={746}
           height={142}
@@ -2381,7 +2381,7 @@ export default async function FAQ() {
             the question page, or using a special button in feeds.
           </p>
           <Image
-            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
+            src="https://cdn.metaculus.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
             alt="Reaffirming a prediction"
             className="my-4"
             width={922}

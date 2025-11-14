@@ -29,7 +29,7 @@ const people: Person[] = [
     userId: 177019,
     name: "Deger Turan",
     position: "Chief Executive Officer",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/deger.webp",
+    imgSrc: "https://cdn.metaculus.com/deger.webp",
     introduction:
       "Before joining Metaculus as CEO in 2024, Deger Turan served as President of the AI Objectives Institute, developing Talk to the City, a platform that strengthens communication between under-resourced communities and the government officials serving them. Prior to AOI, he founded Cerebra Technologies, which forecasted shifts of public opinion and demand trends for 300 million citizens to support governments, hedge funds, and international retailers.",
     socials: [
@@ -85,8 +85,7 @@ const people: Person[] = [
   {
     name: "Nikitas Angeletos Chrysaitis",
     position: "Forecasting Analyst",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/nikitas-angeletos-chrysaitis.webp",
+    imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
     introduction:
       "Nikitas is a Forecasting Analyst at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
   },
@@ -94,8 +93,7 @@ const people: Person[] = [
     userId: 183695,
     name: "Nikita Oleinykof",
     position: "Software Developer",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/Nikita-Oleinykof.webp",
+    imgSrc: "https://cdn.metaculus.com/Nikita-Oleinykof.webp",
     introduction:
       "At Metaculus, Nikita focuses on delivering seamless, user-centered experiences. His contributions include enhancing core platform functionality, automating deployments, increasing test coverage for key logic, and integrating third-party services.",
   },
@@ -103,8 +101,7 @@ const people: Person[] = [
     userId: 183708,
     name: "Hlib Kononenko",
     position: "Senior Software Engineer",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/Hlib-Kononenko.webp",
+    imgSrc: "https://cdn.metaculus.com/Hlib-Kononenko.webp",
     introduction:
       "With over a decade of experience, Hlib has a diverse background spanning from IoT to healthcare and AI medical research. Passionate about solving real-world problems, he specializes in infrastructure, backend, and frontend development. Throughout his career, Hlib has focused on building innovative solutions that bridge the gap between technology and practical applications.",
   },
@@ -112,8 +109,7 @@ const people: Person[] = [
     userId: 228596,
     name: "Ben Wilson",
     position: "AI Research Automation Engineer",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/Ben-Wilson.webp",
+    imgSrc: "https://cdn.metaculus.com/Ben-Wilson.webp",
     introduction:
       "Ben is an AI Research Automation Engineer proficient in Python, web scraping, prompt engineering, Next.js, and a wide range of other technologies. In 2024, he briefly entered the top 100 on Metaculus, and his bot placed 12th in Metaculus's Q3 AI Forecasting Benchmark Tournament. Ben also founded a non-profit with the goal of creating 'Logipedia: The Wikipedia for Debatable Topics.' He has a passion for philosophy and enjoys improvising on the piano.",
     socials: [
@@ -135,8 +131,7 @@ const people: Person[] = [
     userId: 115975,
     name: "John Bash",
     position: "Forecasting Analyst",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/john-bash.webp",
+    imgSrc: "https://cdn.metaculus.com/john-bash.webp",
     introduction:
       "John specializes in question writing, resolution, and moderation. He qualified as a superforecaster at Good Judgment Project and has predicted for Swift Centre, the Rand Forecasting Initiative, and Metaculus. Previously, he ran an e-publishing business and earned an MBA from the University of Georgia.",
   },
@@ -169,7 +164,7 @@ const people: Person[] = [
     userId: 127582,
     name: "Leonard Barrett",
     position: "Chief Operating Officer",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Leonard.webp",
+    imgSrc: "https://cdn.metaculus.com/Leonard.webp",
     introduction:
       "Leonard joined Metaculus as Chief of Staff in 2024, after several years as a highly ranked forecaster and question contributor on the platform. Now, as COO, he leads our operations and spearheads strategic initiatives. Before Metaculus, Leonard was a principal at a real estate development and asset management firm, overseeing complex office and mixed-use projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various platforms and tournaments.",
     socials: [
@@ -182,14 +177,14 @@ const people: Person[] = [
   {
     name: "Molly Hickman",
     position: "Technical Product Manager",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/molly.webp",
+    imgSrc: "https://cdn.metaculus.com/molly.webp",
     introduction:
       "Molly is a computer scientist specializing in crowdsourced intelligence. She previously worked at the MITRE Corporation, focusing on testing and evaluation for forecasting projects. At the Forecasting Research Institute, Molly concentrated on developing metrics and methods to identify the most impactful questions. She forecasts as part of the Samotsvety team and as a Pro at INFER.",
   },
   {
     name: "Felipe Oliveira",
     position: "Operations Lead",
-    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/Felipe.webp",
+    imgSrc: "https://cdn.metaculus.com/Felipe.webp",
     introduction:
       "Felipe Oliveira is the Operations Lead at Metaculus, where he oversees finance, HR, and internal systems. With over 15 years of experience in financial planning, operations, and accounting, he specializes in building efficient, scalable structures that support mission-driven organizations. Felipe has worked across the nonprofit and private sectors with a strong focus on accountability, aligning operations with strategy, and enabling responsible expansion.",
   },
@@ -213,8 +208,7 @@ const people: Person[] = [
   {
     userId: 100912,
     name: "Peter Wildeford",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/peter-wildeford.webp",
+    imgSrc: "https://cdn.metaculus.com/peter-wildeford.webp",
     introduction:
       "Peter Wildeford helps run the Institute for AI Policy and Strategy, a think tank that convenes experts across the US and allied nations to deliver concrete, technically sound policy research to ensure geopolitical stability and mitigate emerging risks while protecting the space for innovation to thrive. Prior to work at IAPS, Peter was a co-founder of a multi-issue think-and-do tank, as well as a data scientist in industry. Throughout his career, Peter has been an avid forecaster, ranking highly in forecasting tournaments, and specializing in geopolitical and electoral forecasting.",
     socials: [
@@ -240,8 +234,7 @@ const people: Person[] = [
   },
   {
     name: "Joshua Elliott",
-    imgSrc:
-      "https://metaculus-public.s3.us-west-2.amazonaws.com/joshua-elliott-image.webp",
+    imgSrc: "https://cdn.metaculus.com/joshua-elliott-image.webp",
     introduction:
       'Joshua Elliott is the Chief Scientist of Renaissance Philanthropy, with over 15 years of experience across academia, government, and philanthropy. He has led initiatives on solar radiation management, CO₂ removal, and climate resilience at Quadrature Climate Foundation, launched the Brains non-profit science accelerator, and incubated innovative R&D programs like ARC and Project InnerSpace.\n\nPreviously, Joshua managed nearly $600M in federal R&D funding at DARPA, focusing on "AI for Science" and programs spanning computational science, synthetic biology, and epidemiology. Earlier, he spent a decade in academia working on climate economics, energy modeling, and climate impacts, co-founding key initiatives like the Center for Robust Decision-making in Climate and Energy Policy. He holds a PhD in theoretical high-energy physics from McGill University.',
     socials: [
