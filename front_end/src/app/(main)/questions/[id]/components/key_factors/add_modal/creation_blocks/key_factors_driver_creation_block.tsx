@@ -82,21 +82,13 @@ const KeyFactorsDriverCreationBlock: React.FC<Props> = ({
         <p className="my-2 text-base leading-tight sm:mt-6 sm:hidden">
           {t("addDriverModalCommentDescriptionMobile")}
         </p>
-        <div
-          onKeyDownCapture={(e) => {
-            if (e.key === " " || e.key === "Spacebar" || e.key === "Enter") {
-              e.stopPropagation();
-            }
-          }}
-        >
-          <MemoMarkdownEditor
-            mode="write"
-            markdown={markdown}
-            onChange={setMarkdown}
-            className="border"
-            contentEditableClassName="text-base sm:text-inherit"
-          />
-        </div>
+        <MemoMarkdownEditor
+          mode="write"
+          markdown={markdown}
+          onChange={setMarkdown}
+          className="border"
+          contentEditableClassName="text-base sm:text-inherit"
+        />
       </div>
       <KeyFactorsModalFooter
         isPending={isPending}

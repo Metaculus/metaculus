@@ -77,9 +77,6 @@ const KeyFactorsTileView: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => onToggle(idx)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") onToggle(idx);
-                }}
                 aria-expanded={expanded}
                 className="w-full text-left"
               >
