@@ -32,8 +32,7 @@ export const getMockData = (isResolved: boolean) => {
           type: "tournament",
           name: "Metaculus Cup",
           slug: "metaculus-cup",
-          header_image:
-            "https://dev-rewrite-metaculus-media.s3.amazonaws.com/mcup-banner.jpg",
+          header_image: "https://cdn.metaculus.com/mcup-banner.jpg",
           prize_pool: "5000.00",
           start_date: "2025-05-02T17:00:00Z",
           close_date: "2025-09-04T00:00:00Z",
@@ -54,8 +53,7 @@ export const getMockData = (isResolved: boolean) => {
         type: "tournament",
         name: "Metaculus Cup",
         slug: "metaculus-cup",
-        header_image:
-          "https://dev-rewrite-metaculus-media.s3.amazonaws.com/mcup-banner.jpg",
+        header_image: "https://cdn.metaculus.com/mcup-banner.jpg",
         prize_pool: "5000.00",
         start_date: "2025-05-02T17:00:00Z",
         close_date: "2025-09-04T00:00:00Z",

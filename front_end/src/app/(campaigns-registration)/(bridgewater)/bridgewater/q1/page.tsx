@@ -29,7 +29,7 @@ export default function BridgewaterTournamentPage() {
               <Hero />
               <div className="relative flex size-full min-h-[8rem] flex-row overflow-hidden rounded lg:h-auto lg:w-1/2">
                 <Image
-                  src="https://metaculus-media.s3.amazonaws.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp"
+                  src="https://cdn.metaculus.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp"
                   alt=""
                   fill
                   className="object-cover"

@@ -50,14 +50,14 @@ export default function HowItWorks() {
 
         <div className="relative w-full">
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/bw-timeline-light_4.webp"
+            src="https://cdn.metaculus.com/bw-timeline-light_4.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
             className="w-full dark:hidden"
           />
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/bw-timeline-dark_3.webp"
+            src="https://cdn.metaculus.com/bw-timeline-dark_3.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
@@ -281,7 +281,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/binary_zEP7bCz.gif"
+            src="https://cdn.metaculus.com/binary_zEP7bCz.gif"
             alt="Binary prediction interface demonstration"
             width={800}
             height={400}
@@ -298,7 +298,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/multiple-choice_J1uNZk9.gif"
+            src="https://cdn.metaculus.com/multiple-choice_J1uNZk9.gif"
             alt="Multiple choice prediction interface demonstration"
             width={800}
             height={400}
@@ -334,7 +334,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/numerical.gif"
+            src="https://cdn.metaculus.com/numerical.gif"
             alt="Numerical prediction interface demonstration"
             width={800}
             height={400}
@@ -350,7 +350,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/numerical2.gif"
+            src="https://cdn.metaculus.com/numerical2.gif"
             alt="Multiple distribution prediction interface demonstration"
             width={800}
             height={400}
@@ -405,7 +405,7 @@ export default function HowItWorks() {
         </p>
 
         <Image
-          src="https://metaculus-web-media.s3.amazonaws.com/weight.jpg"
+          src="https://cdn.metaculus.com/weight.jpg"
           alt="Question Weighting Image"
           width={765}
           height={263}
