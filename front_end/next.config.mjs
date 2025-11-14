@@ -3,6 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
+const AWS_S3_CUSTOM_DOMAIN = process.env.AWS_S3_CUSTOM_DOMAIN;
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -53,6 +54,15 @@ const nextConfig = {
             {
               protocol: "https",
               hostname: `${AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com`,
+              pathname: "/**",
+            },
+          ]
+        : []),
+      ...(AWS_S3_CUSTOM_DOMAIN
+        ? [
+            {
+              protocol: "https",
+              hostname: AWS_S3_CUSTOM_DOMAIN,
               pathname: "/**",
             },
           ]
