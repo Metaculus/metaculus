@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
@@ -17,13 +17,13 @@ import { BECommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
 
 type UseKeyFactorsProps = {
   user_id: number | undefined;
   commentId?: number;
   postId?: number;
   suggestKeyFactors?: boolean;
-  onKeyFactorsLoaded?: (success: boolean) => void;
 };
 
 export const useKeyFactors = ({
@@ -31,7 +31,6 @@ export const useKeyFactors = ({
   commentId,
   postId,
   suggestKeyFactors: shouldLoadKeyFactors = false,
-  onKeyFactorsLoaded,
 }: UseKeyFactorsProps) => {
   const t = useTranslations();
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
@@ -42,6 +41,8 @@ export const useKeyFactors = ({
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
     KeyFactorDraft[]
   >([]);
+  const fetchedOnceRef = useRef<Set<number>>(new Set());
+  const inFlightRef = useRef<Record<number, boolean>>({});
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
 
@@ -62,31 +63,38 @@ export const useKeyFactors = ({
     return payload;
   };
 
-  useEffect(() => {
-    if (shouldLoadKeyFactors && commentId) {
-      setIsLoadingSuggestedKeyFactors(true);
-      ClientCommentsApi.getSuggestedKeyFactors(commentId)
-        .then((drafts: KeyFactorWritePayload[]) => {
-          setSuggestedKeyFactors(drafts);
-          onKeyFactorsLoaded?.(drafts.length !== 0);
-          if (drafts.length > 0) {
-            setTimeout(() => {
-              const el = document.getElementById("suggested-key-factors");
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
-            }, 50);
-          }
-        })
-        .catch(() => {
-          onKeyFactorsLoaded?.(false);
-        })
-        .finally(() => {
-          setIsLoadingSuggestedKeyFactors(false);
-        });
+  const fetchSuggestions = useCallback(async (cid: number) => {
+    if (inFlightRef.current[cid]) return;
+    inFlightRef.current[cid] = true;
+    setIsLoadingSuggestedKeyFactors(true);
+    try {
+      const drafts = await ClientCommentsApi.getSuggestedKeyFactors(cid);
+      setSuggestedKeyFactors(drafts);
+      if (drafts.length > 0) {
+        setTimeout(() => {
+          const el = document.getElementById("suggested-key-factors");
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
+      }
+      fetchedOnceRef.current.add(cid);
+    } finally {
+      setIsLoadingSuggestedKeyFactors(false);
+      delete inFlightRef.current[cid];
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commentId, shouldLoadKeyFactors]);
+  }, []);
+
+  useEffect(() => {
+    if (!shouldLoadKeyFactors || !commentId) return;
+    if (fetchedOnceRef.current.has(commentId)) return;
+    void fetchSuggestions(commentId);
+  }, [commentId, shouldLoadKeyFactors, fetchSuggestions]);
+
+  const reloadSuggestions = useCallback(() => {
+    if (!commentId) return;
+    setSuggestedKeyFactors([]);
+    fetchedOnceRef.current.delete(commentId);
+    void fetchSuggestions(commentId);
+  }, [commentId, fetchSuggestions]);
 
   const { factorsLimit } = useMemo(
     () => getKeyFactorsLimits(combinedKeyFactors, user_id, commentId),
@@ -103,57 +111,54 @@ export const useKeyFactors = ({
 
   const onSubmit = async (
     submittedDrafts: KeyFactorDraft[],
-    suggestedKeyFactors: KeyFactorDraft[],
+    suggested: KeyFactorDraft[],
+    submitType: "driver" | "base_rate",
     markdown?: string
   ): Promise<
-    | {
-        errors: ErrorResponse;
-        comment?: never;
-      }
-    | {
-        error?: never;
-        comment: BECommentType;
-      }
+    | { errors: ErrorResponse; comment?: never }
+    | { error?: never; comment: BECommentType }
   > => {
-    const filteredDrafts = submittedDrafts.filter(
-      (d) => d.driver.text.trim() !== ""
-    );
-    const filteredSuggestedKeyFactors = suggestedKeyFactors.filter(
-      (d) => d.driver.text.trim() !== ""
+    const driverDrafts = submittedDrafts.filter(isDriverDraft);
+    const baseRateDrafts = submittedDrafts.filter(isBaseRateDraft);
+    const suggestedDriverDrafts = suggested.filter(isDriverDraft);
+    const suggestedBaseRateDrafts = suggested.filter(isBaseRateDraft);
+
+    const finalDrivers =
+      submitType === "driver"
+        ? [...driverDrafts, ...suggestedDriverDrafts].filter(
+            (d) => d.driver.text.trim() !== ""
+          )
+        : [];
+
+    const finalBaseRates =
+      submitType === "base_rate"
+        ? [...baseRateDrafts, ...suggestedBaseRateDrafts]
+        : [];
+
+    const driverPayloads: KeyFactorWritePayload[] = finalDrivers.map((d) =>
+      applyTargetForDraft(d, {
+        driver: {
+          text: d.driver.text,
+          impact_direction: d.driver.impact_direction ?? null,
+          certainty: d.driver.certainty ?? null,
+        },
+      })
     );
 
-    const writePayloads: KeyFactorWritePayload[] = [
-      ...filteredDrafts.map((d) =>
-        applyTargetForDraft(d, {
-          driver: {
-            text: d.driver.text,
-            impact_direction: d.driver.impact_direction ?? null,
-            certainty: d.driver.certainty ?? null,
-          },
-        })
-      ),
-      ...filteredSuggestedKeyFactors.map((d) =>
-        applyTargetForDraft(d, {
-          driver: {
-            text: d.driver.text,
-            impact_direction: d.driver.impact_direction ?? null,
-            certainty: d.driver.certainty ?? null,
-          },
-        })
-      ),
-    ];
+    const baseRatePayloads: KeyFactorWritePayload[] = finalBaseRates.map((d) =>
+      applyTargetForDraft(d, { base_rate: d.base_rate })
+    );
 
-    let comment;
-    if (commentId) {
-      comment = await addKeyFactorsToComment(commentId, writePayloads);
-    } else {
-      comment = await createComment({
-        on_post: postId,
-        text: markdown || "",
-        key_factors: writePayloads,
-        is_private: false,
-      });
-    }
+    const writePayloads = [...driverPayloads, ...baseRatePayloads];
+
+    const comment = commentId
+      ? await addKeyFactorsToComment(commentId, writePayloads)
+      : await createComment({
+          on_post: postId,
+          text: markdown || "",
+          key_factors: writePayloads,
+          is_private: false,
+        });
 
     sendAnalyticsEvent("addKeyFactor", {
       event_label: isNil(commentId) ? "fromList" : "fromComment",
@@ -161,9 +166,7 @@ export const useKeyFactors = ({
     });
 
     if ("errors" in comment) {
-      return {
-        errors: comment.errors as ErrorResponse,
-      };
+      return { errors: comment.errors as ErrorResponse };
     }
 
     setCombinedKeyFactors([
@@ -199,6 +202,7 @@ export const useKeyFactors = ({
     submit,
     isPending,
     clearState,
+    reloadSuggestions,
   };
 };
 

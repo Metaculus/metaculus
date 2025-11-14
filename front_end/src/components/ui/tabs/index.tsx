@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ButtonHTMLAttributes,
   createContext,
+  MouseEventHandler,
   ReactNode,
   useCallback,
   useContext,
@@ -15,11 +16,13 @@ import {
 import cn from "@/utils/core/cn";
 
 type TabsVariant = "separated" | "group";
+
 type TabsContextValue = {
   variant: TabsVariant;
   active: string;
   setActive: (v: string) => void;
 };
+
 const TabsContext = createContext<TabsContextValue | null>(null);
 TabsContext.displayName = "TabsContext";
 
@@ -48,7 +51,6 @@ export const Tabs = ({
 }) => {
   const [internalActive, setInternalActive] = useState(defaultValue);
 
-  // Support both controlled and uncontrolled modes
   const active = controlledValue ?? internalActive;
   const setActive = useCallback(
     (v: string) => {
@@ -60,6 +62,7 @@ export const Tabs = ({
     },
     [onChange]
   );
+
   const value = useMemo(
     () => ({ active, setActive, variant }),
     [active, variant, setActive]
@@ -82,6 +85,7 @@ export const TabsList = ({
   className?: string;
 }) => {
   const ctx = useTabsContext();
+
   return (
     <div
       className={cn(
@@ -103,6 +107,7 @@ type TabsTabProps = {
   onSelect?: (value: string) => void;
   scrollOnSelect?: boolean;
   href?: string;
+  dynamicClassName?: (isActive: boolean) => string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const TabsTab = ({
@@ -113,6 +118,7 @@ export const TabsTab = ({
   onSelect,
   scrollOnSelect = true,
   href,
+  dynamicClassName,
   ...buttonProps
 }: TabsTabProps) => {
   const ctx = useTabsContext();
@@ -134,23 +140,33 @@ export const TabsTab = ({
             ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark border-transparent"
             : "bg-gray-0 dark:bg-gray-0-dark border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
         ],
+    dynamicClassName?.(isActive),
     className
   );
 
-  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+  const handleTabClick: MouseEventHandler<
+    HTMLButtonElement | HTMLAnchorElement
+  > = (e) => {
     ctx.setActive(value);
 
     if (!href && scrollOnSelect) {
-      (e.target as HTMLElement)?.scrollIntoView({
+      const target = e.currentTarget;
+
+      target.scrollIntoView({
         inline: "center",
         behavior: "smooth",
       });
-      const top =
-        (e.target as HTMLElement).getBoundingClientRect().top + window.scrollY;
+
+      const top = target.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top: top - HEADER_OFFSET, behavior: "smooth" });
     }
 
     onSelect?.(value);
+  };
+
+  const handleButtonClick: MouseEventHandler<HTMLButtonElement> = (e) => {
+    handleTabClick(e);
+    buttonProps.onClick?.(e);
   };
 
   const inner = icon ? (
@@ -163,7 +179,7 @@ export const TabsTab = ({
   );
 
   return href ? (
-    <Link href={href} className={baseClass} onClick={handleClick}>
+    <Link href={href} className={baseClass} onClick={handleTabClick}>
       {inner}
     </Link>
   ) : (
@@ -171,7 +187,7 @@ export const TabsTab = ({
       type="button"
       {...buttonProps}
       className={baseClass}
-      onClick={handleClick}
+      onClick={handleButtonClick}
     >
       {inner}
     </button>

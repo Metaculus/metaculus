@@ -10,7 +10,8 @@ import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import KeyFactorDriver from "./key_factor_driver";
+import KeyFactorBaseRate from "./base_rate/key_factor_base_rate";
+import KeyFactorDriver from "./driver/key_factor_driver";
 
 type Props = {
   id?: string;
@@ -74,6 +75,14 @@ export const KeyFactorItem: FC<Props> = ({
           keyFactor={keyFactor}
           mode={mode}
           isCompact={isCompact}
+          projectPermission={projectPermission}
+        />
+      )}
+      {keyFactor.base_rate && (
+        <KeyFactorBaseRate
+          keyFactor={keyFactor}
+          isCompact={isCompact}
+          mode={mode}
           projectPermission={projectPermission}
         />
       )}
