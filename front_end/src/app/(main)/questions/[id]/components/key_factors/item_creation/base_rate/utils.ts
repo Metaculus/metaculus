@@ -5,8 +5,6 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
-import { baseRateDraftSchema } from "../../schemas";
-
 export const getEffectiveUnit = (
   post: PostWithForecasts,
   draft?: BaseRateDraft
@@ -75,6 +73,3 @@ export const switchBaseType = (
   );
   return next;
 };
-
-export const validateBaseRateDraft = (draft: BaseRateDraft) =>
-  baseRateDraftSchema.safeParse(draft);
