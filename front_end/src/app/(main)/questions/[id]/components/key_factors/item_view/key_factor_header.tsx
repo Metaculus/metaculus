@@ -44,7 +44,7 @@ const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
         {t.rich("byUsername", {
           link: (chunk) => (
             <div
-              className="inline-block bg-transparent p-0 text-[10px] font-normal text-blue-700 no-underline underline-offset-2 hover:underline focus:underline focus:outline-none dark:text-blue-700-dark"
+              className="inline-block cursor-pointer bg-transparent p-0 text-[10px] font-normal text-blue-700 no-underline underline-offset-2 hover:underline focus:underline focus:outline-none dark:text-blue-700-dark"
               onClick={handleActivate}
               onKeyDown={handleKeyDown}
               role="link"
