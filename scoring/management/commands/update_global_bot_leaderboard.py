@@ -1,5 +1,5 @@
 import random
-from collections import defaultdict, Counter
+from collections import defaultdict
 from pathlib import Path
 
 from datetime import datetime, timedelta, timezone as dt_timezone
@@ -561,7 +561,7 @@ def bootstrap_skills(
         data[2].append(score)
         data[3].append(weight)
 
-    print(f"Bootstrapping (method - question):")
+    print("Bootstrapping (method - question):")
     print("| Bootstrap |    Duration    | Est. Duration  |")
     t0 = datetime.now()
     for i in range(bootstrap_iterations):
@@ -889,9 +889,9 @@ class Command(BaseCommand):
                 f"  Shapiro-Wilk test: statistic={shapiro_stat:.4f}, p-value={shapiro_p:.4f}"
             )
             if shapiro_p > 0.05:
-                print(f"    → Skills appear normally distributed (p > 0.05)")
+                print("    → Skills appear normally distributed (p > 0.05)")
             else:
-                print(f"    → Skills may not be normally distributed (p ≤ 0.05)")
+                print("    → Skills may not be normally distributed (p ≤ 0.05)")
 
         # 3. Anderson-Darling test (more sensitive to tails)
         anderson_result = stats.anderson(skills_array, dist="norm")
@@ -900,9 +900,9 @@ class Command(BaseCommand):
         critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
         print(f"    Critical value at 5%: {critical_5pct:.4f}")
         if anderson_result.statistic < critical_5pct:
-            print(f"    → Skills appear normally distributed (stat < critical)")
+            print("    → Skills appear normally distributed (stat < critical)")
         else:
-            print(f"    → Skills may not be normally distributed (stat ≥ critical)")
+            print("    → Skills may not be normally distributed (stat ≥ critical)")
 
         # 4. Kolmogorov-Smirnov test (compare to normal distribution)
         ks_stat, ks_p = stats.kstest(
@@ -910,12 +910,12 @@ class Command(BaseCommand):
         )
         print(f"  Kolmogorov-Smirnov test: statistic={ks_stat:.4f}, p-value={ks_p:.4f}")
         if ks_p > 0.05:
-            print(f"    → Skills appear normally distributed (p > 0.05)")
+            print("    → Skills appear normally distributed (p > 0.05)")
         else:
-            print(f"    → Skills may not be normally distributed (p ≤ 0.05)")
+            print("    → Skills may not be normally distributed (p ≤ 0.05)")
 
         # 5. Summary statistics
-        print(f"\nSkill distribution summary:")
+        print("\nSkill distribution summary:")
         print(f"  Mean: {skills_array.mean():.2f}")
         print(f"  Std: {skills_array.std():.2f}")
         print(f"  Skewness: {stats.skew(skills_array):.4f}")
