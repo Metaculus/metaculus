@@ -7,6 +7,33 @@ import { BaseRateDraft } from "@/types/key_factors";
 
 export type KFErrors = Record<string, string | undefined>;
 
+const MIN_REF_LEN = 20;
+const MAX_REF_LEN = 120;
+
+function looksLikeUrl(raw: string): boolean {
+  const value = raw.trim();
+  if (!value) return false;
+  if (/\s/.test(value)) return false;
+  const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    const url = new URL(withProtocol);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return false;
+    }
+    const host = url.hostname;
+    if (!host || !host.includes(".")) return false;
+
+    const parts = host.split(".");
+    const tld = parts[parts.length - 1] ?? "";
+    if (tld.length < 2 || !/^[a-zA-Z]+$/.test(tld)) return false;
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default function useBaseRateValidation(
   draft: BaseRateDraft | undefined
 ) {
@@ -21,9 +48,22 @@ export default function useBaseRateValidation(
     const unit = (br.unit ?? "").trim();
     const source = (br.source ?? "").trim();
 
-    if (!ref) errs.reference_class = t("referenceClassRequired");
+    if (!ref) {
+      errs.reference_class = t("referenceClassRequired");
+    } else if (ref.length < MIN_REF_LEN || ref.length > MAX_REF_LEN) {
+      errs.reference_class = t("referenceClassLengthInvalid", {
+        min: MIN_REF_LEN,
+        max: MAX_REF_LEN,
+      });
+    }
+
     if (!unit) errs.unit = t("unitRequired");
-    if (!source) errs.source = t("sourceRequired");
+
+    if (!source) {
+      errs.source = t("sourceRequired");
+    } else if (!looksLikeUrl(source)) {
+      errs.source = t("sourceMustBeLink");
+    }
 
     if (br.type === "frequency") {
       const num = br.rate_numerator;

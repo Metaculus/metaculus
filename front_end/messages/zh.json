@@ -1710,5 +1710,7 @@
   "extrapolationRequired": "请选择一个外推方法",
   "addDriverModalDescriptionMobile": "在下面输入您的驱动因素——尽量保持简短和清晰。",
   "addDriverModalCommentDescriptionMobile": "驱动因素应该由评论支持——在下面输入评论并解释您的理由。",
+  "referenceClassLengthInvalid": "参考类长度必须在 {min} 到 {max} 个字符之间",
+  "sourceMustBeLink": "来源必须是有效的链接",
   "othersCount": "其他（{count}）"
 }

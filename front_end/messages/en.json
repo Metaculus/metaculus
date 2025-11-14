@@ -1702,5 +1702,7 @@
   "extrapolationRequired": "Please select an extrapolation method",
   "addDriverModalDescriptionMobile": "Enter your drivers below - try to keep them short and clear.",
   "addDriverModalCommentDescriptionMobile": "Drivers should be backed up by comments - enter a comment below and explain your reasoning.",
+  "referenceClassLengthInvalid": "Reference class must be between {min} and {max} characters",
+  "sourceMustBeLink": "Source must be a valid link",
   "none": "none"
 }
