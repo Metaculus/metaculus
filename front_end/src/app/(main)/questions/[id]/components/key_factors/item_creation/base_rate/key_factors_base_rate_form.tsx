@@ -97,7 +97,7 @@ const KeyFactorsBaseRateForm: FC<Props> = ({
                 value={tab.value}
                 scrollOnSelect={false}
                 dynamicClassName={(isActive) =>
-                  `py-2 font-medium h-8 leading-[16px] ${
+                  `py-2 !px-3 !text-[14px] flex items-center font-medium h-8 leading-[16px] ${
                     isActive
                       ? ""
                       : "text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark border border-blue-400 dark:border-blue-400-dark"
