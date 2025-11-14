@@ -1678,5 +1678,7 @@
   "extrapolationRequired": "Vyberte prosím metodu extrapolace",
   "addDriverModalDescriptionMobile": "Zadejte níže své ovladače - snažte se, aby byly stručné a jasné.",
   "addDriverModalCommentDescriptionMobile": "Řidiče by měly podporovat komentáře - zadejte níže komentář a vysvětlete své důvody.",
+  "referenceClassLengthInvalid": "Referenční třída musí mít délku mezi {min} a {max} znaky",
+  "sourceMustBeLink": "Zdroj musí být platný odkaz",
   "othersCount": "Ostatní ({count})"
 }

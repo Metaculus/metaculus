@@ -1676,5 +1676,7 @@
   "extrapolationRequired": "Por favor, selecione um método de extrapolação",
   "addDriverModalDescriptionMobile": "Digite seus drivers abaixo - tente mantê-los curtos e claros.",
   "addDriverModalCommentDescriptionMobile": "Os drivers devem ser suportados por comentários - insira um comentário abaixo e explique seu raciocínio.",
+  "referenceClassLengthInvalid": "A classe de referência deve ter entre {min} e {max} caracteres",
+  "sourceMustBeLink": "A fonte deve ser um link válido",
   "othersCount": "Outros ({count})"
 }
