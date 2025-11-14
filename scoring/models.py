@@ -255,7 +255,7 @@ class Leaderboard(TimeStampedModel):
         )
 
         gl_dates = global_leaderboard_dates()
-        checked_intervals: list[tuple[datetime, datetime]] = []
+        checked_intervals: set[tuple[datetime, datetime]] = set()
         for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
             if (
                 (self.start_time, self.end_time) == (start, end)
@@ -269,12 +269,13 @@ class Leaderboard(TimeStampedModel):
                     to_add = False
                     break
             if to_add:
-                checked_intervals.append((start, end))
-                questions = questions.filter(
-                    Q(open_time__lt=start)
-                    | Q(scheduled_close_time__gt=end + close_grace_period)
-                    | Q(actual_resolve_time__gt=end + resolve_grace_period)
-                )
+                if (start, end) not in checked_intervals:
+                    checked_intervals.add((start, end))
+                    questions = questions.filter(
+                        Q(open_time__lt=start)
+                        | Q(scheduled_close_time__gt=end + close_grace_period)
+                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                    )
 
         return questions
 
@@ -464,5 +465,5 @@ def global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
         end_time__isnull=False,
     )
     intervals = [(lb.start_time, lb.end_time) for lb in leaderboards]
-    intervals.sort(key=lambda x: (x[1] - x[0], x[0]))
+    intervals.sort(key=lambda x: (x[1].year - x[0].year, x[0]))
     return intervals
