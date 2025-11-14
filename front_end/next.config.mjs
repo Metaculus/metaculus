@@ -73,11 +73,6 @@ const nextConfig = {
           ]
         : []),
       // TODO: move this to ENV
-      {
-        protocol: "https",
-        hostname: "d3s0w6fek99l5b.cloudfront.net",
-        pathname: "/**",
-      },
     ],
   },
   async redirects() {
