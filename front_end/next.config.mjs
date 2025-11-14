@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
+
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
@@ -26,31 +27,6 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "metaculus-media.s3.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metaculus-media.s3.us-west-2.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metaculus-public.s3.us-west-2.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metaculus-web-media.s3.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "raw.githubusercontent.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
         hostname: "cdn.metaculus.com",
         pathname: "/**",
       },
@@ -72,7 +48,6 @@ const nextConfig = {
             },
           ]
         : []),
-      // TODO: move this to ENV
     ],
   },
   async redirects() {
