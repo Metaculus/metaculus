@@ -104,39 +104,41 @@ def get_score_pair(
 def gather_data(
     users: QuerySet[User],
     questions: QuerySet[Question],
+    cache: bool = False,
 ) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
-    csv_path = Path("HtH_score_data.csv")
-    if csv_path.exists():
-        userset = set([str(u.id) for u in users]) | {
-            "Pro Aggregate",
-            "Community Aggregate",
-        }
-        import csv
+    if cache:
+        csv_path = Path("HtH_score_data.csv")
+        if csv_path.exists():
+            userset = set([str(u.id) for u in users]) | {
+                "Pro Aggregate",
+                "Community Aggregate",
+            }
+            import csv
 
-        def _deserialize_user(value: str) -> int | str:
-            value = value.strip()
-            if not value:
-                return value
-            try:
-                return int(value)
-            except ValueError:
-                return value
+            def _deserialize_user(value: str) -> int | str:
+                value = value.strip()
+                if not value:
+                    return value
+                try:
+                    return int(value)
+                except ValueError:
+                    return value
 
-        user1_ids: list[int | str] = []
-        user2_ids: list[int | str] = []
-        question_ids: list[int] = []
-        scores: list[float] = []
-        coverages: list[float] = []
-        with csv_path.open() as input_file:
-            reader = csv.DictReader(input_file)
-            for row in reader:
-                if (row["user1"] in userset) and (row["user2"] in userset):
-                    user1_ids.append(_deserialize_user(row["user1"]))
-                    user2_ids.append(_deserialize_user(row["user2"]))
-                    question_ids.append(int(row["questionid"]))
-                    scores.append(float(row["score"]))
-                    coverages.append(float(row["coverage"]))
-        return (user1_ids, user2_ids, question_ids, scores, coverages)
+            user1_ids: list[int | str] = []
+            user2_ids: list[int | str] = []
+            question_ids: list[int] = []
+            scores: list[float] = []
+            coverages: list[float] = []
+            with csv_path.open() as input_file:
+                reader = csv.DictReader(input_file)
+                for row in reader:
+                    if (row["user1"] in userset) and (row["user2"] in userset):
+                        user1_ids.append(_deserialize_user(row["user1"]))
+                        user2_ids.append(_deserialize_user(row["user2"]))
+                        question_ids.append(int(row["questionid"]))
+                        scores.append(float(row["score"]))
+                        coverages.append(float(row["coverage"]))
+            return (user1_ids, user2_ids, question_ids, scores, coverages)
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
@@ -250,19 +252,6 @@ def gather_data(
                 )
                 forecast.end_time = None
                 forecast_dict["Pro Aggregate"] = [forecast]
-                # match question.get_post().default_project_id:
-                #     case 3349:  # Q3 2024
-                #         forecast_dict["2024 Q3 Pro Aggregate"] = [forecast]
-                #     case 32506:  # Q4 2024
-                #         forecast_dict["2024 Q4 Pro Aggregate"] = [forecast]
-                #     case 32627:  # Q1 2025
-                #         forecast_dict["2025 Q1 Pro Aggregate"] = [forecast]
-                #     case 32721:  # Q2 2025
-                #         forecast_dict["2025 Q2 Pro Aggregate"] = [forecast]
-                #     case 32813:  # fall 2025
-                #         forecast_dict["2025 Fall Pro Aggregate"] = [forecast]
-                #     case other:
-                #         print(question.id, human_question.id, "NOT FOUND...", other)
             else:
                 forecast_dict["Community Aggregate"] = aggregate_forecasts
 
@@ -296,16 +285,15 @@ def gather_data(
                     coverages.append(cov)
     print("\n")
     weights = coverages
-    # cov_arr = np.array(coverages)
-    # weights = list(cov_arr * len(cov_arr) / sum(cov_arr))
 
-    import csv
+    if cache:
+        import csv
 
-    with open("HtH_score_data.csv", "w") as output_file:
-        writer = csv.writer(output_file)
-        writer.writerow(["user1", "user2", "questionid", "score", "coverage"])
-        for row in zip(user1_ids, user2_ids, question_ids, scores, weights):
-            writer.writerow(row)
+        with open("HtH_score_data.csv", "w") as output_file:
+            writer = csv.writer(output_file)
+            writer.writerow(["user1", "user2", "questionid", "score", "coverage"])
+            for row in zip(user1_ids, user2_ids, question_ids, scores, weights):
+                writer.writerow(row)
 
     return (user1_ids, user2_ids, question_ids, scores, weights)
 
@@ -367,8 +355,8 @@ def estimate_variances_from_head_to_head(
                 (pair_scores - weighted_mean) ** 2, weights=pair_weights
             )
             rematch_variances.append(weighted_var)
-    σ_error = np.sqrt(np.mean(rematch_variances)) if rematch_variances else 1
-    σ_error = 1 if np.isnan(σ_error) else σ_error
+    error = np.sqrt(np.mean(rematch_variances)) if rematch_variances else 1
+    error = 1 if np.isnan(error) else error
 
     # Estimating σ_true
     # Quick ridge regression to estimate skills
@@ -376,7 +364,7 @@ def estimate_variances_from_head_to_head(
     player_to_idx = {p: i for i, p in enumerate(players)}
     n_players = len(players)
     # Use small λ for initial fit
-    λ_init = σ_error**2 / 1.0  # Assume unit variance initially
+    lambda_init = error**2 / 1.0  # Assume unit variance initially
     # Build normal equations: (X^T W X + λI)β = X^T W y
     XTX = np.zeros((n_players, n_players))
     XTy = np.zeros(n_players)
@@ -392,7 +380,7 @@ def estimate_variances_from_head_to_head(
         XTy[i] += coverage * score
         XTy[j] -= coverage * score
     # Add ridge penalty and solve
-    XTX += λ_init * np.eye(n_players)
+    XTX += lambda_init * np.eye(n_players)
     skills = np.linalg.solve(XTX, XTy)
     # Get variance of skills only for high-participation players
     questions_participated: dict[int | str, set[int]] = defaultdict(set)
@@ -403,20 +391,21 @@ def estimate_variances_from_head_to_head(
     for player in players:
         if len(questions_participated[player]) >= min_questions_for_true:
             high_match_skills.append([skills[player_to_idx[player]]])
-    σ_true = np.var(high_match_skills, ddof=1) if len(high_match_skills) > 1 else 1
-    # σ_true = np.std(high_match_skills, ddof=1) or 1
-    σ_true = 1 if np.isnan(σ_true) else σ_true
+    skill_variance = (
+        np.var(high_match_skills, ddof=1) if len(high_match_skills) > 1 else 1
+    )
+    skill_variance = 1 if np.isnan(skill_variance) else skill_variance
 
-    alpha = (σ_error / σ_true) ** 2
+    alpha = (error / skill_variance) ** 2
     if verbose:
         print(
             f"Found {len(rematch_variances)} matchups with >={min_paired_matches} rematches"
         )
-        print(f"σ_error (match noise): {σ_error:.4f}")
+        print(f"σ_error (match noise): {error:.4f}")
         print(
             f"Found {len(high_match_skills)} players with >={min_questions_for_true} questions"
         )
-        print(f"σ_true (skill variance): {σ_true:.4f}")
+        print(f"σ_true (skill variance): {skill_variance:.4f}")
         print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
     return 2
 
@@ -621,13 +610,7 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options) -> None:
-        # SETTINGS - TODO: allow these as args
         baseline_player: int | str = 236038  # metac-gpt-4o+asknews
-        # baseline_player: int | str = 269788  # metac-o3+asknews
-        # baseline_player = User.objects.get(
-        #     username="metac-claude-4-5-sonnet+asknews"
-        # ).id
-
         bootstrap_iterations = 30
 
         # SETUP: users to evaluate & questions
@@ -637,7 +620,6 @@ class Command(BaseCommand):
             metadata__bot_details__include_in_calculations=True,
             metadata__bot_details__display_in_leaderboard=True,
             is_active=True,
-            # id__in=[baseline_player],  # for testing only
         ).order_by("id")
         user_forecast_exists = Forecast.objects.filter(
             question_id=OuterRef("pk"), author__in=users
@@ -675,7 +657,7 @@ class Command(BaseCommand):
             .distinct("id")
         )
         ###############
-        # make sure they have at least 30 resolved questions
+        # make sure they have at least 100 resolved questions
         print("initialize list")
         question_list = list(questions)
         print("Filtering users.")
