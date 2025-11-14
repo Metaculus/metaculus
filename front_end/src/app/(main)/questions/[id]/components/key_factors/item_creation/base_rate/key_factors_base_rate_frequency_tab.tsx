@@ -55,14 +55,16 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
       </InputContainer>
 
       <div className="flex items-start gap-4">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {/* RATE COLUMN – now flex-1 and shrinkable */}
+        <div className="flex min-w-0 flex-1 basis-0 flex-col gap-1">
           <InputContainer
             labelText={t("rate")}
-            className="flex-1"
+            className="w-full flex-1"
             isNativeFormControl={false}
             labelClassName={labelClassName}
           >
-            <div className="flex items-center gap-[10px]">
+            {/* allow children to shrink */}
+            <div className="flex min-w-0 max-w-full items-center gap-[10px]">
               <Input
                 aria-invalid={!!maybeErrors?.rate}
                 name="rate_numerator"
@@ -79,7 +81,7 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
                   })
                 }
                 placeholder="1"
-                className={cn("w-[96px] flex-1", inputClassName)}
+                className={cn("min-w-0 flex-1", inputClassName)}
               />
               <span className="text-sm text-gray-700 dark:text-gray-700-dark">
                 in
@@ -100,17 +102,18 @@ const KeyFactorsBaseRateFrequencyTab: FC<Props> = ({
                   })
                 }
                 placeholder="10"
-                className={cn("w-[96px] flex-1", inputClassName)}
+                className={cn("min-w-0 flex-1", inputClassName)}
               />
             </div>
           </InputContainer>
           <FormError name="rate" errors={maybeErrors} className="normal-case" />
         </div>
 
+        {/* UNIT COLUMN – also flex-1 + shrinkable */}
         <InputContainer
           labelClassName={labelClassName}
           labelText={t("unit")}
-          className="flex-1"
+          className="min-w-0 flex-1 basis-0"
         >
           <Input
             aria-invalid={!!maybeErrors?.unit}

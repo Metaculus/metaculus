@@ -33,18 +33,33 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
     useKeyFactorsCtx();
 
   useEffect(() => {
-    const first = drafts.find(isBaseRateDraft) as BaseRateDraft | undefined;
-    if (first) {
-      setDrafts([first]);
-      return;
-    }
-    const initialUnit = (isQuestionPost(post) ? post.question.unit : "") ?? "";
-    setDrafts([createEmptyBaseRateDraft(initialUnit)]);
+    setDrafts((prevDrafts) => {
+      const existingBaseRate = prevDrafts.find(isBaseRateDraft) as
+        | BaseRateDraft
+        | undefined;
+
+      const otherDrafts = prevDrafts.filter((d) => !isBaseRateDraft(d));
+
+      if (existingBaseRate) {
+        return [...otherDrafts, existingBaseRate];
+      }
+
+      const initialUnit =
+        (isQuestionPost(post) ? post.question.unit : "") ?? "";
+      const newBaseRate = createEmptyBaseRateDraft(initialUnit);
+
+      return [...otherDrafts, newBaseRate];
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const draft = useMemo(() => drafts.find(isBaseRateDraft), [drafts]);
-  const setDraft = (next: BaseRateDraft) => setDrafts([next]);
+  const setDraft = (next: BaseRateDraft) => {
+    setDrafts((prevDrafts) => {
+      const otherDrafts = prevDrafts.filter((d) => !isBaseRateDraft(d));
+      return [...otherDrafts, next];
+    });
+  };
 
   const handleSubmit = async () => {
     setShowErrorsSignal((n) => n + 1);
