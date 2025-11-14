@@ -551,7 +551,7 @@ export default function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets.jpg"
+          src="https://cdn.metaculus.com/user_uploaded/metac-vs-markets.jpg"
           alt="Comparação de Metaculus e Mercados"
           className="my-4"
           width={700}
@@ -2431,9 +2431,9 @@ export default function FAQ() {
             &quot;retirar&quot; está aninhado no menu &quot;...&quot; ao lado da
             opção que você deseja retirar.
           </p>
-          {/* <img alt="Prediction Interface"loading="lazy"width="700"height="400"decoding="async"data-nimg="1"className="my-4"style="color: transparent;"srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75 2x"src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75"> */}
+          {/* <img alt="Prediction Interface"loading="lazy"width="700"height="400"decoding="async"data-nimg="1"className="my-4"style="color: transparent;"srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75 2x"src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/withdraw_button.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/withdraw_button.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={700}
@@ -2760,9 +2760,9 @@ export default function FAQ() {
             Para ver rapidamente quais perguntas você já previu, retirou ou
             ainda tem uma previsão permanente, há filtros no menu de filtro:
           </p>
-          {/* <img alt="Search Filters"loading="lazy"width="700"height="500"decoding="async"data-nimg="1"className="my-4"style="color: transparent;"srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75 2x"src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75"> */}
+          {/* <img alt="Search Filters"loading="lazy"width="700"height="500"decoding="async"data-nimg="1"className="my-4"style="color: transparent;"srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75 2x"src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/search_filters.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/search_filters.jpg"
             alt="Search Filters"
             className="my-4"
             width={700}
@@ -2772,9 +2772,9 @@ export default function FAQ() {
             E as retiradas aparecem como cruzamentos nos gráficos da linha do
             tempo:
           </p>
-          {/* <img alt="Prediction Interface"loading="lazy"width="300"height="300"decoding="async"data-nimg="1"className="my-4"style="color: transparent;"srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=384&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75 2x"src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75"> */}
+          {/* <img alt="Prediction Interface"loading="lazy"width="300"height="300"decoding="async"data-nimg="1"className="my-4"style="color: transparent;"srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=384&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75 2x"src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75"> */}
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/timeline_withdraw.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/timeline_withdraw.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={300}

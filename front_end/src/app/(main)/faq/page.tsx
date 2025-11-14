@@ -574,7 +574,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
+          src="https://cdn.metaculus.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
           alt="Metaculus and Markets Comparison"
           className="my-4"
           width={700}
@@ -2409,7 +2409,7 @@ export default async function FAQ() {
             next to the option you wish to withdraw.
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/withdraw_button.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/withdraw_button.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={700}
@@ -2648,7 +2648,7 @@ export default async function FAQ() {
             the filter menu:
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/search_filters.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/search_filters.jpg"
             alt="Search Filters"
             className="my-4"
             width={700}
@@ -2656,7 +2656,7 @@ export default async function FAQ() {
           />
           <p>And withdrawals show up as crosses in the timeline graphs:</p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/timeline_withdraw.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/timeline_withdraw.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={300}
@@ -2743,7 +2743,7 @@ export default async function FAQ() {
             Prediction assigns a density of 0.319.
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_zcQBntc.png"
+            src="https://cdn.metaculus.com/user_uploaded/image_zcQBntc.png"
             alt="Continuous Prediction Interface"
             className="my-4"
             width={734}
@@ -2769,7 +2769,7 @@ export default async function FAQ() {
             the Community Prediction predicts 69.4%.
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_eVvUMVQ.png"
+            src="https://cdn.metaculus.com/user_uploaded/image_eVvUMVQ.png"
             alt="Cumulative Interface"
             className="my-4"
             width={734}

@@ -14,20 +14,20 @@ const AIBInfoTournaments: React.FC = () => {
     {
       title: "Fall 2025",
       href: "/aib/2025/fall",
-      imgUrl: "https://metaculus-web-media.s3.amazonaws.com/aib-q3.webp",
+      imgUrl: "https://cdn.metaculus.com/aib-q3.webp",
       prize: "$58,000",
       isLive: true,
     },
     {
       title: "Q2 2025",
       href: "/aib/2025/q2",
-      imgUrl: "https://metaculus-web-media.s3.amazonaws.com/aib-q2.webp",
+      imgUrl: "https://cdn.metaculus.com/aib-q2.webp",
       prize: "$30,000",
     },
     {
       title: "Q1 2025",
       href: "/aib/2025/q1",
-      imgUrl: "https://metaculus-web-media.s3.amazonaws.com/2025-q1.webp",
+      imgUrl: "https://cdn.metaculus.com/2025-q1.webp",
       prize: "$30,000",
     },
     {
