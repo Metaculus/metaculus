@@ -687,7 +687,7 @@ export default function AboutPage() {
                 <Image
                   alt="Atakan Seçkin"
                   className="object-cover"
-                  src="https://metaculus-media.s3.amazonaws.com/ato-bw.webp"
+                  src="https://cdn.metaculus.com/ato-bw.webp"
                   fill
                   sizes="(min-width: 768px) 176px, 96px"
                 />

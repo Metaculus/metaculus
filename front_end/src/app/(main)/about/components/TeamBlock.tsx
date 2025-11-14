@@ -67,7 +67,7 @@ const people: Person[] = [
     userId: 126463,
     name: "Atakan Seçkin",
     position: "Head of Design",
-    imgSrc: "https://metaculus-media.s3.amazonaws.com/ato-bw.webp",
+    imgSrc: "https://cdn.metaculus.com/ato-bw.webp",
     introduction:
       "Atakan began his career in graphic design and has since worked with startups of various sizes and stages, with a particular emphasis on education and healthcare. During his studies in Visual Communication Design, he interned at Google as a UX Designer. After graduation, Atakan continued helping companies with product management, UX design, and front-end development.",
     socials: [

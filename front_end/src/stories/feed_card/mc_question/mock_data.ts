@@ -51,8 +51,7 @@ export const getMockData = (isResolved: boolean) => {
           type: "question_series",
           name: "AI 2027",
           slug: "ai-2027",
-          header_image:
-            "https://dev-rewrite-metaculus-media.s3.amazonaws.com/2027-banner.jpg",
+          header_image: "https://cdn.metaculus.com/2027-banner.jpg",
           prize_pool: null,
           start_date: "2025-06-10T00:00:00Z",
           close_date: null,
@@ -73,8 +72,7 @@ export const getMockData = (isResolved: boolean) => {
         type: "question_series",
         name: "AI 2027",
         slug: "ai-2027",
-        header_image:
-          "https://dev-rewrite-metaculus-media.s3.amazonaws.com/2027-banner.jpg",
+        header_image: "https://cdn.metaculus.com/2027-banner.jpg",
         prize_pool: null,
         start_date: "2025-06-10T00:00:00Z",
         close_date: null,

@@ -33,13 +33,13 @@ const AIBInfoTournaments: React.FC = () => {
     {
       title: "Q4 2024",
       href: "/aib/2024/q4",
-      imgUrl: "https://metaculus-media.s3.amazonaws.com/hires-q4.webp",
+      imgUrl: "https://cdn.metaculus.com/hires-q4.webp",
       prize: "$30,000",
     },
     {
       title: "Q3 2024",
       href: "/aib/2024/q3",
-      imgUrl: "https://metaculus-media.s3.amazonaws.com/hires-bw.webp",
+      imgUrl: "https://cdn.metaculus.com/hires-bw.webp",
       prize: "$30,000",
     },
   ];

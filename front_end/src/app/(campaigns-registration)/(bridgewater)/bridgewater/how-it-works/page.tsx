@@ -334,7 +334,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/numerical.gif"
+            src="https://cdn.metaculus.com/numerical.gif"
             alt="Numerical prediction interface demonstration"
             width={800}
             height={400}
@@ -350,7 +350,7 @@ export default function HowItWorks() {
 
         <div className="mb-8">
           <Image
-            src="https://metaculus-media.s3.amazonaws.com/numerical2.gif"
+            src="https://cdn.metaculus.com/numerical2.gif"
             alt="Multiple distribution prediction interface demonstration"
             width={800}
             height={400}

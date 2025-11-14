@@ -32,8 +32,7 @@ export const getMockData = (isResolved: boolean, isFanChart?: boolean) => {
           type: "tournament",
           name: "POTUS Predictions",
           slug: "POTUS-predictions",
-          header_image:
-            "https://dev-rewrite-metaculus-media.s3.amazonaws.com/potus-banner0.5x.webp",
+          header_image: "https://cdn.metaculus.com/potus-banner0.5x.webp",
           prize_pool: "15000.00",
           start_date: "2025-03-28T12:00:00Z",
           close_date: "2029-01-20T00:00:00Z",
@@ -54,8 +53,7 @@ export const getMockData = (isResolved: boolean, isFanChart?: boolean) => {
         type: "tournament",
         name: "POTUS Predictions",
         slug: "POTUS-predictions",
-        header_image:
-          "https://dev-rewrite-metaculus-media.s3.amazonaws.com/potus-banner0.5x.webp",
+        header_image: "https://cdn.metaculus.com/potus-banner0.5x.webp",
         prize_pool: "15000.00",
         start_date: "2025-03-28T12:00:00Z",
         close_date: "2029-01-20T00:00:00Z",
