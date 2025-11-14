@@ -35,14 +35,25 @@ const KeyFactorsDriverAdditionForm: React.FC<Props> = ({ post }) => {
   const last = drafts.at(-1);
   const lastDriverEmpty =
     !!last && isDriverDraft(last) && last.driver.text === "";
+  const driverDraftsCount = drafts.filter(isDriverDraft).length;
 
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-4 antialiased">
       <div className="flex flex-col gap-3">
         {suggestedKeyFactors.length === 0 && (
-          <p className="m-0 mb-2 text-base leading-tight">
-            {t("addDriverModalDescription")}
-          </p>
+          <>
+            <p className="m-0 mb-2 hidden text-base leading-tight sm:block">
+              {t(
+                driverDraftsCount === 1
+                  ? "addDriverModalDescriptionDesktop"
+                  : "addDriverModalDescriptionMobile"
+              )}
+            </p>
+
+            <p className="m-0 mb-2 text-base leading-tight sm:hidden">
+              {t("addDriverModalDescriptionMobile")}
+            </p>
+          </>
         )}
 
         {drafts.map((draft, idx) =>

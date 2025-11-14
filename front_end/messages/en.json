@@ -1275,8 +1275,8 @@
   "addDriver": "Add Driver",
   "addKeyFactors": "Add Key Factors",
   "addKeyFactorsModalP1": "List the key factors you think matter most — keep each one short and specific.",
-  "addDriverModalDescription": "Drivers are impactful facts, principles, or hypotheticals. For example: “The MMLU benchmark started saturating in late 2024”, “China could invade Taiwan”, “Winner-take-all dynamics”.",
-  "addDriverModalCommentDescription": "Drivers should be backed up by sources and arguments. Write a comment below and explain your reasoning.",
+  "addDriverModalDescriptionDesktop": "Drivers are impactful facts, principles, or hypotheticals. For example: “The MMLU benchmark started saturating in late 2024”, “China could invade Taiwan”, “Winner-take-all dynamics”.",
+  "addDriverModalCommentDescriptionDesktop": "Drivers should be backed up by sources and arguments. Write a comment below and explain your reasoning.",
   "addDriverCommentDisclaimer": "Make sure your drivers are backed up by sources and reasoning in your comment.",
   "addKeyFactorsModalP2": "Please post a comment to explain why these factors matter for your forecast.",
   "typeKeyFator": "Type a key factor here",
@@ -1700,5 +1700,7 @@
   "rateDenominatorGtNumerator": "Denominator must be greater than numerator",
   "yearOutOfRange": "Year must be between {min} and {max}",
   "extrapolationRequired": "Please select an extrapolation method",
+  "addDriverModalDescriptionMobile": "Enter your drivers below - try to keep them short and clear.",
+  "addDriverModalCommentDescriptionMobile": "Drivers should be backed up by comments - enter a comment below and explain your reasoning.",
   "none": "none"
 }

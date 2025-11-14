@@ -1552,8 +1552,8 @@
   "allSubquestions": "所有子问题",
   "chooseOptionImpactedMost": "选择一个受此驱动因素影响最大的选项：",
   "chooseSubquestionImpactedMost": "选择一个受此驱动因素影响最大的子问题：",
-  "addDriverModalDescription": "驱动因素是重要的事实、原则或假设。例如：“MMLU 基准测试在 2024 年末开始饱和”，“中国可能入侵台湾”，“赢家通吃的动态”。",
-  "addDriverModalCommentDescription": "驱动因素应有来源和论据支持。在下面写下评论并解释您的推理。",
+  "addDriverModalDescriptionDesktop": "驱动因素是重要的事实、原则或假设。例如：“MMLU 基准测试在 2024 年末开始饱和”，“中国可能入侵台湾”，“赢家通吃的动态”。",
+  "addDriverModalCommentDescriptionDesktop": "驱动因素应有来源和论据支持。在下面写下评论并解释您的推理。",
   "addDriverCommentDisclaimer": "确保您的驱动因素在评论中有来源和推理的支持。",
   "confirmDeletion": "确认删除",
   "confirmDeletionKeyFactorDescription": "您确定要删除您的关键因素吗？",
@@ -1708,5 +1708,7 @@
   "rateDenominatorGtNumerator": "分母必须大于分子",
   "yearOutOfRange": "年份必须在 {min} 和 {max} 之间",
   "extrapolationRequired": "请选择一个外推方法",
+  "addDriverModalDescriptionMobile": "在下面输入您的驱动因素——尽量保持简短和清晰。",
+  "addDriverModalCommentDescriptionMobile": "驱动因素应该由评论支持——在下面输入评论并解释您的理由。",
   "othersCount": "其他（{count}）"
 }
