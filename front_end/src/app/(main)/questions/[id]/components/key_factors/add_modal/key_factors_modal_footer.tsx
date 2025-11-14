@@ -21,9 +21,9 @@ const KeyFactorsModalFooter: React.FC<Props> = ({
 }) => (
   <div
     className={[
-      "sticky -bottom-5 z-10",
+      "sticky -bottom-5 z-10 -mb-5 mt-auto sm:mb-0 sm:mt-0",
       "-mx-5 px-5 py-3 md:-mx-7 md:px-7 md:pb-0 md:pt-6",
-      "border-t border-blue-100/40",
+      "border-t border-blue-400 dark:border-blue-400-dark",
       "bg-gray-0/80 backdrop-blur supports-[backdrop-filter]:bg-gray-0/60",
       "dark:bg-gray-0-dark/80 dark:supports-[backdrop-filter]:bg-gray-0-dark/60",
       "sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-0",

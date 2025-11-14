@@ -76,8 +76,11 @@ const KeyFactorsDriverCreationBlock: React.FC<Props> = ({
     <>
       <KeyFactorsDriverAdditionForm post={post} />
       <div className="flex w-full flex-col gap-2">
-        <p className="my-2 text-base leading-tight sm:mt-6">
-          {t("addDriverModalCommentDescription")}
+        <p className="my-2 hidden text-base leading-tight sm:mt-6 sm:block">
+          {t("addDriverModalCommentDescriptionDesktop")}
+        </p>
+        <p className="my-2 text-base leading-tight sm:mt-6 sm:hidden">
+          {t("addDriverModalCommentDescriptionMobile")}
         </p>
         <div
           onKeyDownCapture={(e) => {
