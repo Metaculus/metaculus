@@ -635,7 +635,7 @@ class Command(BaseCommand):
         users: QuerySet[User] = User.objects.filter(
             metadata__bot_details__metac_bot=True,
             metadata__bot_details__include_in_calculations=True,
-            # metadata__bot_details__display_in_leaderboard=True,
+            metadata__bot_details__display_in_leaderboard=True,
             is_active=True,
             # id__in=[baseline_player],  # for testing only
         ).order_by("id")
@@ -726,7 +726,6 @@ class Command(BaseCommand):
         )
 
         # Compute bootstrap confidence intervals
-        ci_lower, ci_upper = dict(), dict()
         ci_lower, ci_upper = bootstrap_skills(
             user1_ids,
             user2_ids,
