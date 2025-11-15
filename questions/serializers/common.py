@@ -17,9 +17,8 @@ from questions.models import (
     AggregateForecast,
     Forecast,
 )
-from questions.serializers.aggregate_forecasts import (
-    serialize_question_aggregations,
-)
+from questions.serializers.aggregate_forecasts import serialize_question_aggregations
+from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import QuestionMovement
 from users.models import User
 from utils.the_math.formulas import (
@@ -40,6 +39,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     actual_close_time = serializers.SerializerMethodField()
     resolution = serializers.SerializerMethodField()
     spot_scoring_time = serializers.SerializerMethodField()
+    all_options_ever = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -58,6 +58,8 @@ class QuestionSerializer(serializers.ModelSerializer):
             "type",
             # Multiple-choice Questions only
             "options",
+            "all_options_ever",
+            "options_history",
             "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
@@ -121,6 +123,10 @@ class QuestionSerializer(serializers.ModelSerializer):
         if question.actual_resolve_time:
             return min(question.scheduled_close_time, question.actual_resolve_time)
         return question.scheduled_close_time
+
+    def get_all_options_ever(self, question: Question):
+        if question.options_history:
+            return get_all_options_from_history(question.options_history)
 
     def get_resolution(self, question: Question):
         resolution = question.resolution

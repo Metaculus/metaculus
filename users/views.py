@@ -326,7 +326,7 @@ def get_forecasting_stats_data(
     )
     if user is not None:
         forecasts = forecasts.filter(author=user)
-    forecasts_count = forecasts.count()
+    forecasts_count = forecasts.exclude(source=Forecast.SourceChoices.AUTOMATIC).count()
     questions_predicted_count = forecasts.values("question").distinct().count()
     score_count = len(scores)
 
