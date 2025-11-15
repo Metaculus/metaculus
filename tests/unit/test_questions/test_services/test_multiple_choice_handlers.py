@@ -7,7 +7,10 @@ from questions.services.multiple_choice_handlers import (
     multiple_choice_add_options,
     multiple_choice_delete_options,
     multiple_choice_rename_option,
+<<<<<<< HEAD
     multiple_choice_reorder_options,
+=======
+>>>>>>> 668d4c125 (add options_history field to question model and migration)
 )
 from tests.unit.utils import datetime_aware as dt
 from users.models import User
