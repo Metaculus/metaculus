@@ -256,7 +256,11 @@ def multiple_choice_add_options(
     for forecast in user_forecasts:
         pmf = forecast.probability_yes_per_category
         forecast.probability_yes_per_category = (
+<<<<<<< HEAD
             pmf[:-1] + [None] * len(options_to_add) + [pmf[-1]]
+=======
+            pmf[:-1] + [0.0] * len(options_to_add) + [pmf[-1]]
+>>>>>>> 668d4c125 (add options_history field to question model and migration)
         )
         if forecast.start_time < grace_period_end and (
             forecast.end_time is None or forecast.end_time > grace_period_end
