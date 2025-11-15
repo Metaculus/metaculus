@@ -277,6 +277,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.zero_point = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
+        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+            # initialize options history on first save
+            self.options_history = [(0.0, self.options or [])]
 
         return super().save(**kwargs)
 
