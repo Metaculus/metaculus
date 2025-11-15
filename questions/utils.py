@@ -138,10 +138,12 @@ def multiple_choice_delete_options(
     new_options = [opt for opt in question.options if opt not in options_to_delete]
     question.options = new_options
     question.options_history.append((timestep.timestamp(), new_options))
+    question.save()
 
     # update user forecasts
     user_forecasts = question.user_forecasts.filter(
-        Q(end_time__isnull=True) | Q(end_time__gt=timestep)
+        Q(end_time__isnull=True) | Q(end_time__gt=timestep),
+        start_time__lt=timestep,
     )
     forecasts_to_create: list[Forecast] = []
     for forecast in user_forecasts:
@@ -219,6 +221,7 @@ def multiple_choice_add_options(
     new_options = question.options[:-1] + options_to_add + question.options[-1:]
     question.options = new_options
     question.options_history.append((grace_period_end.timestamp(), new_options))
+    question.save()
 
     # update user forecasts
     user_forecasts = question.user_forecasts.filter(
