@@ -20,6 +20,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name="forecast",
+            name="source",
+            field=models.CharField(
+                blank=True,
+                choices=[("api", "Api"), ("ui", "Ui"), ("automatic", "Automatic")],
+                db_index=True,
+                default="",
+                max_length=30,
+                null=True,
+            ),
+        ),
         migrations.AddField(
             model_name="question",
             name="options_history",
