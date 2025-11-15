@@ -6,7 +6,6 @@ from django.db.models import Q
 from django.utils import timezone
 
 from questions.models import Question, AggregateForecast, Forecast
-from questions.services import build_question_forecasts
 
 
 def get_question_group_title(title: str) -> str:
@@ -185,6 +184,8 @@ def multiple_choice_delete_options(
         Forecast.objects.bulk_create(forecasts_to_create)
 
     # trigger recalculation of aggregates
+    from questions.services import build_question_forecasts
+
     build_question_forecasts(question)
 
     return question
@@ -228,6 +229,8 @@ def multiple_choice_add_options(
         user_forecasts.update(end_time=grace_period_end)
 
     # trigger recalculation of aggregates
+    from questions.services import build_question_forecasts
+
     build_question_forecasts(question)
 
     return question
