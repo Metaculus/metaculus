@@ -214,8 +214,10 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     unit = models.CharField(max_length=25, blank=True)
 
     # multiple choice fields
-    options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    options_history: list[tuple[float, list[str]]] = models.JSONField(
+    options: list[str] | None = ArrayField(
+        models.CharField(max_length=200), blank=True, null=True
+    )
+    options_history: list[tuple[float, list[str]]] | None = models.JSONField(
         null=True,
         blank=True,
         validators=[validate_options_history],
@@ -576,6 +578,7 @@ class Forecast(models.Model):
     class SourceChoices(models.TextChoices):
         API = "api"
         UI = "ui"
+        AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
     source = models.CharField(
