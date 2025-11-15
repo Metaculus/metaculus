@@ -576,8 +576,10 @@ class Forecast(models.Model):
     )
 
     class SourceChoices(models.TextChoices):
-        API = "api"
-        UI = "ui"
+        API = "api"  # made via the api
+        UI = "ui"  # made using the api
+        # an automatically assigned forecast
+        # usually this means a regular forecast was split
         AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
@@ -587,6 +589,7 @@ class Forecast(models.Model):
         null=True,
         choices=SourceChoices.choices,
         default="",
+        db_index=True,
     )
 
     distribution_input = models.JSONField(

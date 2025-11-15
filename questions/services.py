@@ -1194,6 +1194,7 @@ def get_forecasts_per_user(question: Question) -> dict[int, int]:
     """
     qs = (
         Forecast.objects.filter(question=question)
+        .exclude(source=Forecast.SourceChoices.AUTOMATIC)
         .filter_within_question_period()
         .values("author_id")
         .annotate(ct=Count("id"))
