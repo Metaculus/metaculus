@@ -33,7 +33,12 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "curation_status",
         "post_link",
     ]
-    readonly_fields = ["post_link", "view_forecasts"]
+    readonly_fields = [
+        "post_link",
+        "view_forecasts",
+        "options",
+        "options_history",
+    ]
     search_fields = [
         "id",
         "title_original",

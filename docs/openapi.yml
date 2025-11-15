@@ -534,6 +534,40 @@ components:
           items:
             type: string
           description: "List of options for multiple_choice questions"
+          example:
+            - "Democratic"
+            - "Republican"
+            - "Libertarian"
+            - "Green"
+            - "Other"
+        all_options_ever:
+          type: array
+          items:
+            type: string
+          description: "List of all options ever for multiple_choice questions"
+          example:
+            - "Democratic"
+            - "Republican"
+            - "Libertarian"
+            - "Green"
+            - "Blue"
+            - "Other"
+        options_history:
+          type: array
+          description: "List of [iso format time, options] pairs for multiple_choice questions"
+          items:
+            type: array
+            items:
+              oneOf:
+                - type: string
+                  description: "ISO 8601 timestamp when the options became active"
+                - type: array
+                  items:
+                    type: string
+                  description: "Options list active from this timestamp onward"
+          example:
+            - ["0001-01-01T00:00:00", ["a", "b", "c", "other"]]
+            - ["2026-10-22T16:00:00", ["a", "b", "c", "d", "other"]]
         status:
           type: string
           enum: [ upcoming, open, closed, resolved ]
@@ -1346,6 +1380,7 @@ paths:
                           actual_close_time: "2020-11-01T00:00:00Z"
                           type: "numeric"
                           options: null
+                          options_history: null
                           status: "resolved"
                           resolution: "77289125.94957079"
                           resolution_criteria: "Resolution Criteria Copy"
@@ -1519,6 +1554,7 @@ paths:
                           actual_close_time: "2015-12-15T03:34:00Z"
                           type: "binary"
                           options: null
+                          options_history: null
                           status: "resolved"
                           possibilities:
                             type: "binary"
@@ -1588,6 +1624,16 @@ paths:
                             - "Libertarian"
                             - "Green"
                             - "Other"
+                          all_options_ever:
+                            - "Democratic"
+                            - "Republican"
+                            - "Libertarian"
+                            - "Green"
+                            - "Blue"
+                            - "Other"
+                          options_history:
+                            - ["0001-01-01T00:00:00", ["Democratic", "Republican", "Libertarian", "Other"]]
+                            - ["2026-10-22T16:00:00", ["Democratic", "Republican", "Libertarian", "Green", "Other"]]
                           status: "open"
                           possibilities: { }
                           resolution: null
