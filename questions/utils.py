@@ -278,7 +278,9 @@ def multiple_choice_add_options(
     return question
 
 
-def get_all_options_from_history(options_history: OptionsHistoryType) -> list[str]:
+def get_all_options_from_history(
+    options_history: OptionsHistoryType | None,
+) -> list[str]:
     """Returns the list of all options ever available. The last value in the list
     is always the "catch-all" option.
 
