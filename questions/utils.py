@@ -1,5 +1,5 @@
 import re
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone as dt_timezone
 
 from django.db import transaction
 from django.db.models import Q
@@ -278,49 +278,136 @@ def multiple_choice_add_options(
     return question
 
 
-def multiple_choice_interpret_forecast(
-    pmf: list[float],
+def get_all_options_from_history(options_history: OptionsHistoryType) -> list[str]:
+    """Returns the list of all options ever available. The last value in the list
+    is always the "catch-all" option.
+
+    example:
+    options_history = [
+        (0, ["a", "other"]),
+        (100, ["a", "b", "other"]),
+    ]
+    return ["a", "b", "other"]
+    """
+    if not options_history:
+        raise ValueError("Cannot make master list from empty history")
+    designated_other_label = options_history[0][1][-1]
+    all_labels: list[str] = []
+    for _, options in options_history:
+        for label in options[:-1]:
+            if label not in all_labels:
+                all_labels.append(label)
+    return all_labels + [designated_other_label]
+
+
+def multiple_choice_interpret_forecasts(
+    forecasts: list[Forecast | AggregateForecast],
     options_history: OptionsHistoryType | None,
-    timestep: datetime,
-) -> list[float]:
-    """Interprets a multiple choice forecast with respect to the history of options.
-    If the pmf is the same size as the last set of options at/before the given timestep,
-    it is returned as-is.
-    If the pmf is longer, then it represents a pre-registered forecast and needs to
-    be interpreted. This is done by adding the value of any soon-to-be-added options
-    to the catch-all option which is always at index -1.
+) -> list[Forecast | AggregateForecast]:
+    """Interprets a multiple choice forecasts with respect to the history of options.
+    Returns an altered list of forecasts with the PMFs reflecting the total list of
+    values ever available for the question.
+
+    `forecasts` param must be sorted by `start_time`
 
     Example:
         options_history = [
             (0, ["a", "other"]),
             (100, ["a", "b", "other"]),
         ]
-        pmf = [0.6, 0.15, 0.25]
-        timestamp = 50
+        pmf = [0.6, 0.15, 0.25] at timestamp 50 (a pre-registered forecast)
     option "b" is added at timestamp 100
-    the pmf at timestamp 50 is like the options at timestamp 100, not 0
-    thus, we fold the value "b" into "other"
-    interpreted_pmf = [0.6, 0.15 + 0.25] = [0.6, 0.4]
+    interpreted_pmf at time 50 = [0.6, 0.4, 0.4]
+    interpreted_pmf at time 100 = [0.6, 0.15, 0.25]
+
+    This allows the resolution to be an index used universally across all forecasts
+    interpreted this way. A resolution of "b" would correspond to index `1`, meaning
+    that the forecast would be `0.4` at time 50 and `0.15` at time 100.
+    Similarly, a resolution of "other" would correspond to a forecast of `0.4` at time
+    50 and `0.25` at time 100.
+
+    NOTE: intepreted "PMF"s are no longer valid forecasts, and the resulting forecasts
+    should NOT be saved.
     """
-    if not options_history or len(options_history) == 1:
-        return pmf
-    timestamp = timestep.timestamp()
-    options = options_history[-1][1]
-    next_options = options_history[-1][1]
-    for t, options_entry in options_history[::-1]:
-        if t <= timestamp:
-            options = options_entry
-            break
-        next_options = options_entry
-    if len(pmf) == len(options):
-        return pmf
-    if len(pmf) < len(options) or len(pmf) != len(next_options):
-        raise ValueError(
-            f"PMF ({pmf}) at {timestep}({timestamp}) is "
-            f"incompatible with {options_history}"
-        )
-    # len(pmf) == len(next_options) -> it is a pre-registerd forecast
-    interpreted_pmf = [0.0] * len(options)
-    for value, label in zip(pmf, next_options):
-        interpreted_pmf[options.index(label) if label in options else -1] += value
-    return interpreted_pmf
+    if not options_history or len(options_history) == 1 or not forecasts:
+        # we have no change in options, no intepretation is required
+        return forecasts
+
+    list_of_all_options = get_all_options_from_history(options_history)
+
+    def interpret_pmf(
+        pmf: list[float],
+        current_options: list[str],
+        next_options: list[str],
+    ) -> list[float]:
+        if len(pmf) != len(current_options):
+            if len(pmf) < len(current_options):
+                raise ValueError(f"pmf {pmf} not interpretable as {current_options}")
+            if len(pmf) != len(next_options):
+                raise ValueError(f"pmf {pmf} not interpretable as {next_options}")
+            # translate it into equivalent current options
+            current_pmf = [0.0] * len(current_options)
+            for value, option in zip(pmf, next_options):
+                current_pmf[
+                    current_options.index(option) if option in current_options else -1
+                ] += value
+            pmf = current_pmf
+        interpreted_pmf = [
+            pmf[current_options.index(option) if option in current_options else -1]
+            for option in list_of_all_options
+        ]
+        return interpreted_pmf
+
+    interpreted_forecasts: list[Forecast | AggregateForecast] = []
+    options_index = -1
+    next_step = datetime.min.replace(tzinfo=dt_timezone.utc)
+    for forecast in forecasts:
+        while (
+            forecast.start_time >= next_step
+        ):  # important for forecasts to be in order
+            options_index += 1
+            _, current_options = options_history[options_index]
+            if options_index + 1 < len(options_history):
+                next_ts, next_options = options_history[options_index + 1]
+                next_step = datetime.fromtimestamp(next_ts).replace(
+                    tzinfo=dt_timezone.utc
+                )
+            else:  # there is no next step
+                next_step = datetime.max.replace(tzinfo=dt_timezone.utc)
+                next_options = current_options
+
+        # annotate question type for efficient get_pmf() call
+        forecast.question_type = Question.QuestionType.MULTIPLE_CHOICE
+        pmf = forecast.get_pmf()
+        current_pmf = interpret_pmf(pmf, current_options, next_options)
+        if isinstance(forecast, Forecast):
+            forecast.probability_yes_per_category = current_pmf
+        else:
+            forecast.forecast_values = current_pmf
+        interpreted_forecasts.append(forecast)
+        if not forecast.end_time or forecast.end_time > next_step:
+            next_pmf = interpret_pmf(pmf, next_options, next_options)
+            # we need to split the forecast
+            if isinstance(forecast, Forecast):
+                extra_forecast = Forecast(
+                    probability_yes_per_category=next_pmf,
+                    start_time=next_step,
+                    author_id=forecast.author_id,
+                    question_id=forecast.question_id,
+                    post_id=forecast.post_id,
+                    source=Forecast.SourceChoices.AUTOMATIC,
+                    end_time=forecast.end_time,
+                )
+            else:
+                extra_forecast = AggregateForecast(
+                    forecast_values=next_pmf,
+                    start_time=next_step,
+                    method=forecast.method,
+                    forecaster_count=forecast.forecaster_count,
+                    question_id=forecast.question_id,
+                )
+            forecast.end_time = next_step
+            extra_forecast.question_type = Question.QuestionType.MULTIPLE_CHOICE
+            interpreted_forecasts.append(extra_forecast)
+    interpreted_forecasts.sort(key=lambda x: x.start_time)
+    return interpreted_forecasts
