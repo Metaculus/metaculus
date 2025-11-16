@@ -6,7 +6,7 @@ from questions.models import AggregateForecast, Forecast, Question
 from questions.types import OptionsHistoryType
 from questions.utils import (
     get_last_forecast_in_the_past,
-    multiple_choice_interpret_forecast,
+    multiple_choice_interpret_forecasts,
     multiple_choice_add_options,
     multiple_choice_delete_options,
     multiple_choice_rename_option,
@@ -424,104 +424,338 @@ def test_multiple_choice_add_options(
 
 
 @pytest.mark.parametrize(
-    "pmf,options_history,timestep,expected",
+    "forecasts,options_history,expected",
     [
         # Trivial
-        ([0.6, 0.4], None, dt(2024, 1, 1), [0.6, 0.4]),
-        ([0.6, 0.4], [(0, ["a", "other"])], dt(2024, 1, 1), [0.6, 0.4]),
+        ([], None, []),
+        (
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
+            ],
+            None,
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
+            ],
+        ),
+        (
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
+            ],
+            [(0, ["a", "other"])],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
+            ],
+        ),
         # Simple
         (
-            [0.6, 0.4],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                )
+            ],
             [(0, ["a", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "b", "other"])],
-            dt(2024, 1, 1),
-            [0.6, 0.4],
-        ),  # standard path, like current options
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                ),
+            ],
+        ),  # standard path, stops before change
         (
-            [0.6, 0.15, 0.25],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
+            ],
             [(0, ["a", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "b", "other"])],
-            dt(2024, 1, 1),
-            [0.6, 0.4],
-        ),  # standard path, like next options
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                    start_time=dt(2025, 1, 1),
+                    end_time=None,
+                ),
+            ],
+        ),  # standard path, carries through change, must get split
         # Failure
         (
-            [0.6, 0.4],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
+            ],
             [(0, ["a", "b", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "other"])],
-            dt(2024, 1, 1),
             ValueError,
         ),  # forecast values too small
         (
-            [0.6, 0.15, 0.2, 0.05],
             [
-                (0, ["a", "other"]),
-                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.2, 0.05],
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                )
             ],
-            dt(2024, 1, 1),
+            [(0, ["a", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "b", "other"])],
             ValueError,
         ),  # forecast values too large
         # more complicated history
         (
-            [0.6, 0.4],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                )
+            ],
             [
                 (0, ["a", "other"]),
                 (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
                 (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
             ],
-            dt(2024, 1, 1),
-            [0.6, 0.4],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                ),
+            ],
         ),  # in first interval, like current options
         (
-            [0.6, 0.15, 0.25],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2026, 1, 1),
+                )
+            ],
             [
                 (0, ["a", "other"]),
                 (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
                 (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
             ],
-            dt(2024, 1, 1),
-            [0.6, 0.4],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4, 0.4],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25, 0.25],
+                    start_time=dt(2025, 1, 1),
+                    end_time=dt(2026, 1, 1),
+                ),
+            ],
         ),  # in first interval, like next options
         (
-            [0.6, 0.15, 0.25],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                    start_time=dt(2026, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                )
+            ],
             [
                 (0, ["a", "other"]),
                 (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
                 (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
             ],
-            dt(2026, 1, 1),
-            [0.6, 0.15, 0.25],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25, 0.25],
+                    start_time=dt(2026, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                ),
+            ],
         ),  # in second interval, like current options
         (
-            [0.6, 0.15, 0.2, 0.05],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                    start_time=dt(2026, 1, 1),
+                    end_time=dt(2028, 1, 1),
+                )
+            ],
             [
                 (0, ["a", "other"]),
                 (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
                 (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
             ],
-            dt(2026, 1, 1),
-            [0.6, 0.15, 0.25],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25, 0.25],
+                    start_time=dt(2026, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                    start_time=dt(2027, 1, 1),
+                    end_time=dt(2028, 1, 1),
+                ),
+            ],
         ),  # in second interval, like next options
+        # put it ALL together
         (
-            [0.6, 0.15, 0.25],
             [
-                (0, ["a", "other"]),
-                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
-                (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4],
+                    start_time=dt(2025, 1, 1),
+                    end_time=dt(2026, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.1, 0.3],
+                    start_time=dt(2026, 1, 1),
+                    end_time=None,
+                ),
             ],
-            dt(2025, 1, 1),
-            [0.6, 0.15, 0.25],
-        ),  # at exact start of second interval, like current options
+            [
+                (0, ["a", "b", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "c", "other"]),
+            ],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25, 0.25],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4, 0.4],
+                    start_time=dt(2025, 1, 1),
+                    end_time=dt(2026, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4, 0.4],
+                    start_time=dt(2026, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.3, 0.1, 0.3],
+                    start_time=dt(2027, 1, 1),
+                    end_time=None,
+                ),
+            ],
+        ),  # option removal and addition
+        (
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    author_id=1,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.1, 0.4, 0.5],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    author_id=2,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.1, 0.9],
+                    start_time=dt(2025, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                    author_id=2,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.1, 0.3],
+                    start_time=dt(2026, 1, 1),
+                    end_time=None,
+                    author_id=1,
+                ),
+            ],
+            [
+                (0, ["a", "b", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "c", "other"]),
+            ],
+            [
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.15, 0.25, 0.25],
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    author_id=1,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.1, 0.4, 0.5, 0.5],
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    author_id=2,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.1, 0.9, 0.9, 0.9],
+                    start_time=dt(2025, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                    author_id=2,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.4, 0.4, 0.4],
+                    start_time=dt(2026, 1, 1),
+                    end_time=dt(2027, 1, 1),
+                    author_id=1,
+                ),
+                Forecast(
+                    probability_yes_per_category=[0.6, 0.3, 0.1, 0.3],
+                    start_time=dt(2027, 1, 1),
+                    end_time=None,
+                    author_id=1,
+                ),
+            ],
+        ),  # multiple forecasters
     ],
 )
-def test_multiple_choice_interpret_forecast(
-    pmf: list[float],
+def test_multiple_choice_interpret_forecasts(
+    forecasts: list[Forecast | AggregateForecast],
     options_history: OptionsHistoryType,
-    timestep: datetime,
-    expected: list[float] | ValueError,
+    expected: list[Forecast | AggregateForecast] | ValueError,
 ):
     if expected is ValueError:
         with pytest.raises(ValueError):
-            multiple_choice_interpret_forecast(pmf, options_history, timestep)
+            multiple_choice_interpret_forecasts(forecasts, options_history)
         return
 
-    assert (
-        multiple_choice_interpret_forecast(pmf, options_history, timestep) == expected
-    )
+    result = multiple_choice_interpret_forecasts(forecasts, options_history)
+    assert len(result) == len(expected)
+    for r, e in zip(result, expected):
+        r.question_type = Question.QuestionType.MULTIPLE_CHOICE
+        e.question_type = Question.QuestionType.MULTIPLE_CHOICE
+        rpmf = r.get_pmf()
+        epmf = e.get_pmf()
+        assert len(rpmf) == len(epmf)
+        assert isinstance(r, type(e))
+        assert r.start_time == e.start_time
+        assert r.end_time == e.end_time
+        if isinstance(r, Forecast):
+            assert r.author_id == e.author_id
+        else:
+            assert r.method == e.method
