@@ -12,7 +12,7 @@ export const metadata = {
       "Join the Metaculus Cup and compete for a share of the $5,000 prize pool by predicting topical questions from May 5th to September 1st.",
     images: [
       {
-        url: "https://dev-metaculus-web-media.s3.amazonaws.com/og-image.jpg",
+        url: "https://cdn.metaculus.com/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Metaculus Cup - Forecasting Tournament",

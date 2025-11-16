@@ -50,8 +50,7 @@ export const getMockData = (isResolved: boolean) => {
           type: "question_series",
           name: "AI Progress Essay Contest",
           slug: "ai-fortified-essay-contest",
-          header_image:
-            "https://dev-rewrite-metaculus-media.s3.amazonaws.com/neural_net.png",
+          header_image: "https://cdn.metaculus.com/neural_net.png",
           prize_pool: "6500.00",
           start_date: "2022-02-08T13:02:52Z",
           close_date: "2022-04-16T15:54:55Z",
@@ -72,8 +71,7 @@ export const getMockData = (isResolved: boolean) => {
           type: "question_series",
           name: "AGI Outcomes",
           slug: "agi-horizons",
-          header_image:
-            "https://dev-rewrite-metaculus-media.s3.amazonaws.com/agi.png",
+          header_image: "https://cdn.metaculus.com/agi.png",
           prize_pool: null,
           start_date: "2023-08-09T13:41:42.701000Z",
           close_date: "2023-08-09T13:41:42.701000Z",
@@ -108,8 +106,7 @@ export const getMockData = (isResolved: boolean) => {
         type: "question_series",
         name: "AGI Outcomes",
         slug: "agi-horizons",
-        header_image:
-          "https://dev-rewrite-metaculus-media.s3.amazonaws.com/agi.png",
+        header_image: "https://cdn.metaculus.com/agi.png",
         prize_pool: null,
         start_date: "2023-08-09T13:41:42.701000Z",
         close_date: "2023-08-09T13:41:42.701000Z",

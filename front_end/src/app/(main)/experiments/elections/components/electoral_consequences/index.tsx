@@ -34,7 +34,7 @@ const ElectoralConsequences: FC = async () => {
           <div className="flex flex-col items-center gap-2">
             <Image
               className="rounded-full"
-              src="https://metaculus-media.s3.amazonaws.com/user_uploaded/trump_bvntmGs.jpeg"
+              src="https://cdn.metaculus.com/user_uploaded/trump_bvntmGs.jpeg"
               alt="Tramp image"
               width={56}
               height={56}
@@ -47,7 +47,7 @@ const ElectoralConsequences: FC = async () => {
           <div className="flex flex-col items-center gap-2">
             <Image
               className="rounded-full"
-              src="https://metaculus-media.s3.amazonaws.com/user_uploaded/harris_c8Of4TX.jpeg"
+              src="https://cdn.metaculus.com/user_uploaded/harris_c8Of4TX.jpeg"
               alt="Harris image"
               width={56}
               height={56}

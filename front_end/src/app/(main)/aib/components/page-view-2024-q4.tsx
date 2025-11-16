@@ -37,7 +37,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
           </div>
           <div className="relative flex h-auto min-h-[8rem] w-full flex-row overflow-hidden rounded md:w-1/3 lg:h-auto">
             <Image
-              src="https://metaculus-media.s3.amazonaws.com/hires-q4.webp"
+              src="https://cdn.metaculus.com/hires-q4.webp"
               alt=""
               fill
               priority
