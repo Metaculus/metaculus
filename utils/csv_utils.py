@@ -329,7 +329,7 @@ def generate_data(
         + "**`Label`** - for a group question, this is the sub-question object.\n"
         + "**`Question Type`** - the type of the question. Binary, Multiple Choice, Numeric, Discrete, or Date.\n"
         + "**`MC Options`** - the options for a multiple choice question, if applicable.\n"
-        + "**`MC Options Hostiry`** - the history of options over time. Each entry is a timestamp and a record of what the options were at that time.\n"
+        + "**`MC Options History`** - the history of options over time. Each entry is a timestamp and a record of what the options were at that time.\n"
         + "**`Lower Bound`** - the lower bound of the forecasting range for a continuous question.\n"
         + "**`Open Lower Bound`** - whether the lower bound is open.\n"
         + "**`Upper Bound`** - the upper bound of the forecasting range for a continuous question.\n"
