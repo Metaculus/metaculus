@@ -15,7 +15,12 @@ class TestFormulas:
     binary_details = {"type": Question.QuestionType.BINARY}
     multiple_choice_details = {
         "type": Question.QuestionType.MULTIPLE_CHOICE,
-        "options": ["A", "B", "C"],
+        "options": ["a", "c", "Other"],
+        "options_history": [
+            (0, ["a", "b", "Other"]),
+            (100, ["a", "Other"]),
+            (200, ["a", "c", "Other"]),
+        ],
     }
     numeric_details = {
         "type": Question.QuestionType.NUMERIC,
@@ -57,8 +62,10 @@ class TestFormulas:
             ("", binary_details, None),
             (None, binary_details, None),
             # Multiple choice questions
-            ("A", multiple_choice_details, 0),
-            ("C", multiple_choice_details, 2),
+            ("a", multiple_choice_details, 0),
+            ("b", multiple_choice_details, 1),
+            ("c", multiple_choice_details, 2),
+            ("Other", multiple_choice_details, 3),
             # Numeric questions
             ("below_lower_bound", numeric_details, 0),
             ("-2", numeric_details, 0),

@@ -661,15 +661,17 @@ class Forecast(models.Model):
             return self.probability_yes_per_category
         return self.continuous_cdf
 
-    def get_pmf(self) -> list[float]:
+    def get_pmf(self, replace_none: bool = False) -> list[float]:
         """
-        gets the PMF for this forecast, replacing None values with 0.0
-        Not for serialization use (keep None values in that case)
+        gets the PMF for this forecast
+        replaces None values with 0.0 if replace_none is True
         """
         # TODO: return a numpy array with NaNs instead of 0.0s
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
+            if not replace_none:
+                return self.probability_yes_per_category
             return [
                 v or 0.0 for v in self.probability_yes_per_category
             ]  # replace None with 0.0
@@ -744,19 +746,21 @@ class AggregateForecast(models.Model):
             return self.forecast_values
         return None
 
-    def get_pmf(self) -> list[float]:
+    def get_pmf(self, replace_none: bool = False) -> list[float | None]:
         """
-        gets the PMF for this forecast, replacing None values with 0.0
-        Not for serialization use (keep None values in that case)
+        gets the PMF for this forecast
+        replacing None values with 0.0 if replace_none is True
         """
         # TODO: return a numpy array with NaNs instead of 0.0s
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
-        forecast_values = [
-            v or 0.0 for v in self.forecast_values
-        ]  # replace None with 0.0
+        forecast_values = self.forecast_values
+        if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+            if not replace_none:
+                return forecast_values
+            return [v or 0.0 for v in forecast_values]  # replace None with 0.0
         if question_type in QUESTION_CONTINUOUS_TYPES:
-            cdf: list[float] = forecast_values
+            cdf: list[float] = forecast_values  # type: ignore
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
                 pmf.append(cdf[i] - cdf[i - 1])
