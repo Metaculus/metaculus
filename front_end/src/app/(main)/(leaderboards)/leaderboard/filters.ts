@@ -33,7 +33,7 @@ const LEADERBOARD_YEARS = [
   "2022,2",
   "2023,2",
   "2024,2",
-  // "2025,2", // coming soon
+  "2025,2",
   // 5 year leaderboards
   "2016,5",
   "2021,5",
