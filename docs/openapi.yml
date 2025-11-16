@@ -494,6 +494,29 @@ components:
           items:
             type: string
           description: "List of options for multiple_choice questions"
+          example:
+            - "Democratic"
+            - "Republican"
+            - "Libertarian"
+            - "Green"
+            - "Other"
+        options_history:
+          type: array
+          description: "List of [timestamp, options] pairs for multiple_choice questions"
+          items:
+            type: array
+            items:
+              oneOf:
+                - type: number
+                  format: float
+                  description: "Unix timestamp when the options became active"
+                - type: array
+                  items:
+                    type: string
+                  description: "Options list active from this timestamp onward"
+          example:
+            - [0, ["a", "b", "c", "other"]]
+            - [1763240000.0, ["a", "b", "c", "d", "other"]]
         status:
           type: string
           enum: [ upcoming, open, closed, resolved ]
@@ -1306,6 +1329,7 @@ paths:
                           actual_close_time: "2020-11-01T00:00:00Z"
                           type: "numeric"
                           options: null
+                          options_history: null
                           status: "resolved"
                           resolution: "77289125.94957079"
                           resolution_criteria: "Resolution Criteria Copy"
@@ -1479,6 +1503,7 @@ paths:
                           actual_close_time: "2015-12-15T03:34:00Z"
                           type: "binary"
                           options: null
+                          options_history: null
                           status: "resolved"
                           possibilities:
                             type: "binary"
@@ -1548,6 +1573,9 @@ paths:
                             - "Libertarian"
                             - "Green"
                             - "Other"
+                          options_history:
+                            - [0, ["Democratic", "Republican", "Libertarian", "Other"]]
+                            - [1763240000.0, ["Democratic", "Republican", "Libertarian", "Green", "Other"]]
                           status: "open"
                           possibilities: { }
                           resolution: null

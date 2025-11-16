@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
@@ -18,6 +19,21 @@ if TYPE_CHECKING:
     from scoring.models import Score, ArchivedScore
 
 DEFAULT_INBOUND_OUTCOME_COUNT = 200
+
+
+def validate_options_history(value):
+    # Expect: [ (float, [str, ...]), ... ] or equivalent
+    if not isinstance(value, list):
+        raise ValidationError("Must be a list.")
+    for i, item in enumerate(value):
+        if (
+            not isinstance(item, (list, tuple))
+            or len(item) != 2
+            or not isinstance(item[0], (int, float))
+            or not isinstance(item[1], list)
+            or not all(isinstance(s, str) for s in item[1])
+        ):
+            raise ValidationError(f"Bad item at index {i}: {item!r}")
 
 
 class QuestionQuerySet(QuerySet):
@@ -197,8 +213,20 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     unit = models.CharField(max_length=25, blank=True)
 
-    # list of multiple choice option labels
-    options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    # multiple choice fields
+    options: list[str] | None = ArrayField(
+        models.CharField(max_length=200), blank=True, null=True
+    )
+    options_history: list[tuple[float, list[str]]] | None = models.JSONField(
+        null=True,
+        blank=True,
+        validators=[validate_options_history],
+        help_text="""For Multiple Choice only.
+        <br>list of tuples: (timestamp, options_list). (json stores them as lists)
+        <br>Records the history of options over time.
+        <br>Initialized with (0, self.options) upon question creation.
+        <br>Updated whenever options are changed.""",
+    )
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
@@ -251,6 +279,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.zero_point = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
+        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+            # initialize options history on first save
+            self.options_history = [(0.0, self.options or [])]
 
         return super().save(**kwargs)
 
@@ -545,8 +576,11 @@ class Forecast(models.Model):
     )
 
     class SourceChoices(models.TextChoices):
-        API = "api"
-        UI = "ui"
+        API = "api"  # made via the api
+        UI = "ui"  # made using the api
+        # an automatically assigned forecast
+        # usually this means a regular forecast was split
+        AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
     source = models.CharField(
@@ -555,6 +589,7 @@ class Forecast(models.Model):
         null=True,
         choices=SourceChoices.choices,
         default="",
+        db_index=True,
     )
 
     distribution_input = models.JSONField(

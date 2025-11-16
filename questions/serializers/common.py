@@ -58,6 +58,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "type",
             # Multiple-choice Questions only
             "options",
+            "options_history",
             "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
