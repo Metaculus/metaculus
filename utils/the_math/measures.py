@@ -56,7 +56,7 @@ def weighted_percentile_2d(
     # replace np.nan back to None
     weighted_percentiles = np.array(weighted_percentiles)
     weighted_percentiles = np.where(
-        weighted_percentiles == np.nan, None, weighted_percentiles
+        np.isnan(weighted_percentiles.astype(float)), None, weighted_percentiles
     )
     return weighted_percentiles.tolist()
 
