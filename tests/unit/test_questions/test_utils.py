@@ -3,8 +3,10 @@ import pytest
 from freezegun import freeze_time
 
 from questions.models import AggregateForecast, Forecast, Question
+from questions.types import OptionsHistoryType
 from questions.utils import (
     get_last_forecast_in_the_past,
+    multiple_choice_interpret_forecast,
     multiple_choice_add_options,
     multiple_choice_delete_options,
     multiple_choice_rename_option,
@@ -419,3 +421,107 @@ def test_multiple_choice_add_options(
         assert f.end_time == e.end_time
         assert f.probability_yes_per_category == e.probability_yes_per_category
         assert f.source == e.source
+
+
+@pytest.mark.parametrize(
+    "pmf,options_history,timestep,expected",
+    [
+        # Trivial
+        ([0.6, 0.4], None, dt(2024, 1, 1), [0.6, 0.4]),
+        ([0.6, 0.4], [(0, ["a", "other"])], dt(2024, 1, 1), [0.6, 0.4]),
+        # Simple
+        (
+            [0.6, 0.4],
+            [(0, ["a", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "b", "other"])],
+            dt(2024, 1, 1),
+            [0.6, 0.4],
+        ),  # standard path, like current options
+        (
+            [0.6, 0.15, 0.25],
+            [(0, ["a", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "b", "other"])],
+            dt(2024, 1, 1),
+            [0.6, 0.4],
+        ),  # standard path, like next options
+        # Failure
+        (
+            [0.6, 0.4],
+            [(0, ["a", "b", "other"]), (dt(2025, 1, 1).timestamp(), ["a", "other"])],
+            dt(2024, 1, 1),
+            ValueError,
+        ),  # forecast values too small
+        (
+            [0.6, 0.15, 0.2, 0.05],
+            [
+                (0, ["a", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+            ],
+            dt(2024, 1, 1),
+            ValueError,
+        ),  # forecast values too large
+        # more complicated history
+        (
+            [0.6, 0.4],
+            [
+                (0, ["a", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
+            ],
+            dt(2024, 1, 1),
+            [0.6, 0.4],
+        ),  # in first interval, like current options
+        (
+            [0.6, 0.15, 0.25],
+            [
+                (0, ["a", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
+            ],
+            dt(2024, 1, 1),
+            [0.6, 0.4],
+        ),  # in first interval, like next options
+        (
+            [0.6, 0.15, 0.25],
+            [
+                (0, ["a", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
+            ],
+            dt(2026, 1, 1),
+            [0.6, 0.15, 0.25],
+        ),  # in second interval, like current options
+        (
+            [0.6, 0.15, 0.2, 0.05],
+            [
+                (0, ["a", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
+            ],
+            dt(2026, 1, 1),
+            [0.6, 0.15, 0.25],
+        ),  # in second interval, like next options
+        (
+            [0.6, 0.15, 0.25],
+            [
+                (0, ["a", "other"]),
+                (dt(2025, 1, 1).timestamp(), ["a", "b", "other"]),
+                (dt(2027, 1, 1).timestamp(), ["a", "b", "c", "other"]),
+            ],
+            dt(2025, 1, 1),
+            [0.6, 0.15, 0.25],
+        ),  # at exact start of second interval, like current options
+    ],
+)
+def test_multiple_choice_interpret_forecast(
+    pmf: list[float],
+    options_history: OptionsHistoryType,
+    timestep: datetime,
+    expected: list[float] | ValueError,
+):
+    if expected is ValueError:
+        with pytest.raises(ValueError):
+            multiple_choice_interpret_forecast(pmf, options_history, timestep)
+        return
+
+    assert (
+        multiple_choice_interpret_forecast(pmf, options_history, timestep) == expected
+    )

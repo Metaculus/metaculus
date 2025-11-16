@@ -276,3 +276,51 @@ def multiple_choice_add_options(
     build_question_forecasts(question)
 
     return question
+
+
+def multiple_choice_interpret_forecast(
+    pmf: list[float],
+    options_history: OptionsHistoryType | None,
+    timestep: datetime,
+) -> list[float]:
+    """Interprets a multiple choice forecast with respect to the history of options.
+    If the pmf is the same size as the last set of options at/before the given timestep,
+    it is returned as-is.
+    If the pmf is longer, then it represents a pre-registered forecast and needs to
+    be interpreted. This is done by adding the value of any soon-to-be-added options
+    to the catch-all option which is always at index -1.
+
+    Example:
+        options_history = [
+            (0, ["a", "other"]),
+            (100, ["a", "b", "other"]),
+        ]
+        pmf = [0.6, 0.15, 0.25]
+        timestamp = 50
+    option "b" is added at timestamp 100
+    the pmf at timestamp 50 is like the options at timestamp 100, not 0
+    thus, we fold the value "b" into "other"
+    interpreted_pmf = [0.6, 0.15 + 0.25] = [0.6, 0.4]
+    """
+    if not options_history or len(options_history) == 1:
+        return pmf
+    timestamp = timestep.timestamp()
+    options = options_history[-1][1]
+    next_options = options_history[-1][1]
+    for t, options_entry in options_history[::-1]:
+        if t <= timestamp:
+            options = options_entry
+            break
+        next_options = options_entry
+    if len(pmf) == len(options):
+        return pmf
+    if len(pmf) < len(options) or len(pmf) != len(next_options):
+        raise ValueError(
+            f"PMF ({pmf}) at {timestep}({timestamp}) is "
+            f"incompatible with {options_history}"
+        )
+    # len(pmf) == len(next_options) -> it is a pre-registerd forecast
+    interpreted_pmf = [0.0] * len(options)
+    for value, label in zip(pmf, next_options):
+        interpreted_pmf[options.index(label) if label in options else -1] += value
+    return interpreted_pmf
