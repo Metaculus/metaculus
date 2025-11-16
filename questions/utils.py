@@ -286,10 +286,11 @@ def get_all_options_from_history(
 
     example:
     options_history = [
-        (0, ["a", "other"]),
-        (100, ["a", "b", "other"]),
+        (0, ["a", "b", "other"]),
+        (100, ["a", "b", "c", "other"]),
+        (200, ["a", "c", "other"]),
     ]
-    return ["a", "b", "other"]
+    return ["a", "b", "c", "other"]
     """
     if not options_history:
         raise ValueError("Cannot make master list from empty history")
@@ -306,7 +307,7 @@ def multiple_choice_interpret_forecasts(
     forecasts: list[Forecast | AggregateForecast],
     options_history: OptionsHistoryType | None,
 ) -> list[Forecast | AggregateForecast]:
-    """Interprets a multiple choice forecasts with respect to the history of options.
+    """Interprets multiple choice forecasts with respect to the history of options.
     Returns an altered list of forecasts with the PMFs reflecting the total list of
     values ever available for the question.
 
@@ -343,20 +344,20 @@ def multiple_choice_interpret_forecasts(
         next_options: list[str],
     ) -> list[float]:
         if len(pmf) != len(current_options):
-            if len(pmf) < len(current_options):
-                raise ValueError(f"pmf {pmf} not interpretable as {current_options}")
-            if len(pmf) != len(next_options):
-                raise ValueError(f"pmf {pmf} not interpretable as {next_options}")
+            if len(pmf) < len(current_options) or len(pmf) != len(next_options):
+                raise ValueError(
+                    f"pmf {pmf} not interpretable as "
+                    f"{current_options} or {next_options}"
+                )
             # translate it into equivalent current options
             current_pmf = [0.0] * len(current_options)
-            for value, option in zip(pmf, next_options):
-                current_pmf[
-                    current_options.index(option) if option in current_options else -1
-                ] += value
+            for value, opt in zip(pmf, next_options):
+                index = current_options.index(opt) if opt in current_options else -1
+                current_pmf[index] += value
             pmf = current_pmf
         interpreted_pmf = [
-            pmf[current_options.index(option) if option in current_options else -1]
-            for option in list_of_all_options
+            pmf[current_options.index(opt) if opt in current_options else -1]
+            for opt in list_of_all_options
         ]
         return interpreted_pmf
 
@@ -386,30 +387,31 @@ def multiple_choice_interpret_forecasts(
             forecast.probability_yes_per_category = current_pmf
         else:
             forecast.forecast_values = current_pmf
-        interpreted_forecasts.append(forecast)
         if not forecast.end_time or forecast.end_time > next_step:
-            next_pmf = interpret_pmf(pmf, next_options, next_options)
             # we need to split the forecast
+            next_pmf = interpret_pmf(pmf, next_options, next_options)
             if isinstance(forecast, Forecast):
                 extra_forecast = Forecast(
                     probability_yes_per_category=next_pmf,
                     start_time=next_step,
+                    end_time=forecast.end_time,
                     author_id=forecast.author_id,
                     question_id=forecast.question_id,
                     post_id=forecast.post_id,
                     source=Forecast.SourceChoices.AUTOMATIC,
-                    end_time=forecast.end_time,
                 )
             else:
                 extra_forecast = AggregateForecast(
                     forecast_values=next_pmf,
                     start_time=next_step,
+                    end_time=forecast.end_time,
                     method=forecast.method,
-                    forecaster_count=forecast.forecaster_count,
                     question_id=forecast.question_id,
+                    forecaster_count=forecast.forecaster_count,
                 )
             forecast.end_time = next_step
             extra_forecast.question_type = Question.QuestionType.MULTIPLE_CHOICE
             interpreted_forecasts.append(extra_forecast)
+        interpreted_forecasts.append(forecast)
     interpreted_forecasts.sort(key=lambda x: x.start_time)
     return interpreted_forecasts
