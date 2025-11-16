@@ -11,6 +11,7 @@ from questions.models import (
     Question,
 )
 from questions.types import AggregationMethod
+from questions.utils import multiple_choice_interpret_forecasts
 from scoring.constants import ScoreTypes
 from scoring.models import Score
 from utils.the_math.aggregations import get_aggregation_history
@@ -356,6 +357,20 @@ def evaluate_question(
         only_include_user_ids=only_include_user_ids,
     )
     recency_weighted_aggregation = aggregations.get(AggregationMethod.RECENCY_WEIGHTED)
+
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+        # we need to interpret all the forecasts to account for changes in the
+        # options_history
+        user_forecasts = multiple_choice_interpret_forecasts(
+            user_forecasts, question.options_history
+        )
+        base_forecasts = multiple_choice_interpret_forecasts(
+            base_forecasts, question.options_history
+        )
+        for method, forecasts in aggregations.items():
+            aggregations[method] = user_forecasts = multiple_choice_interpret_forecasts(
+                forecasts, question.options_history
+            )
 
     geometric_means: list[AggregationEntry] = []
     if ScoreTypes.PEER in score_types:
