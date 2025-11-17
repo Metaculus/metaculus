@@ -1357,7 +1357,6 @@
   "CPMovementDayChangeLabel": "<value></value> today",
   "CPMovementWeekChangeLabel": "<value></value> this week",
   "add": "Add",
-  "suggestedKeyFactorsSection": "Here are the suggested key factors based on your comment text. Feel free to add the ones you see fit, or enter your key factors manually.",
   "loadingSuggestedKeyFactors": "Generating key factors...",
   "close": "Close",
   "indexValue": "Index value",
@@ -1704,5 +1703,9 @@
   "addDriverModalCommentDescriptionMobile": "Drivers should be backed up by comments - enter a comment below and explain your reasoning.",
   "referenceClassLengthInvalid": "Reference class must be between {min} and {max} characters",
   "sourceMustBeLink": "Source must be a valid link",
+  "askAnLLMTitle": "Ask an LLM",
+  "askAnLLMDescription": "We’ll send question info and your comment to an LLM to generate key factors on your behalf.",
+  "generatedKeyFactors": "Generated Key Factors",
+  "noGeneratedKeyFactors": "We couldn’t automatically generate key factors from this comment. You can add them manually.",
   "none": "none"
 }

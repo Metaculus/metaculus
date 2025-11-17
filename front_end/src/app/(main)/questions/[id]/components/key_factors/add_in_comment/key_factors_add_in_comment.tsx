@@ -7,12 +7,12 @@ import { useAuth } from "@/contexts/auth_context";
 import { CommentType, KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 
-import KeyFactorsSuggestedItems from "../item_creation/driver/key_factors_suggested_items";
 import { INITIAL_DRAFTS, useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
 import { KFType } from "../types";
 import KeyFactorsAddInCommentBaseRate from "./key_factors_add_in_comment_base_rate";
 import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
+import KeyFactorsAddInCommentLLMSuggestions from "./key_factors_add_in_comment_llm_suggestions";
 
 type Props = {
   postData: PostWithForecasts;
@@ -26,23 +26,22 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   closeKeyFactorsForm,
 }) => {
   const [selectedType, setSelectedType] = useState<KFType>(null);
+  const [autoOpenedForSuggestions, setAutoOpenedForSuggestions] =
+    useState(false);
+
   const { user, setUser } = useAuth();
 
   const {
-    drafts,
-    suggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
-    setSuggestedKeyFactors,
+    suggestedKeyFactors,
     setErrors: setKeyFactorsErrors,
     submit,
     resetAll,
     setDrafts,
+    loadSuggestions,
   } = useKeyFactorsCtx();
-  const { comments, setComments } = useCommentsFeed();
 
-  useEffect(() => {
-    if (selectedType && selectedType !== "driver") setSuggestedKeyFactors([]);
-  }, [selectedType, setSuggestedKeyFactors]);
+  const { comments, setComments } = useCommentsFeed();
 
   const [brShowErrorsSignal, setBrShowErrorsSignal] = useState(0);
   const brIsValidRef = useRef(false);
@@ -102,23 +101,29 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
     setDrafts(INITIAL_DRAFTS);
   };
 
+  const handlePickType = (type: KFType) => {
+    if (type === "ask_llm") {
+      loadSuggestions(true);
+      setAutoOpenedForSuggestions(true);
+    }
+    setSelectedType(type);
+  };
+
+  useEffect(() => {
+    if (
+      suggestedKeyFactors.length > 0 &&
+      selectedType === null &&
+      !autoOpenedForSuggestions
+    ) {
+      setSelectedType("ask_llm");
+      setAutoOpenedForSuggestions(true);
+    }
+  }, [suggestedKeyFactors.length, selectedType, autoOpenedForSuggestions]);
+
   return (
     <>
-      {user && suggestedKeyFactors.length > 0 && (
-        <KeyFactorsSuggestedItems
-          drafts={drafts}
-          post={postData}
-          setDrafts={setDrafts}
-          setSuggestedKeyFactors={setSuggestedKeyFactors}
-          setSelectedType={setSelectedType}
-          selectedType={selectedType}
-          suggestedKeyFactors={suggestedKeyFactors}
-          user={user}
-        />
-      )}
-
       {!selectedType && !isLoadingSuggestedKeyFactors && (
-        <KeyFactorsTypePicker onPick={setSelectedType} />
+        <KeyFactorsTypePicker onPick={handlePickType} withLLM />
       )}
 
       {selectedType === "driver" && (
@@ -126,6 +131,15 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
           postData={postData}
           onSubmit={handleSubmitDriver}
           onCancel={onCancel}
+          onBack={() => setSelectedType(null)}
+        />
+      )}
+
+      {selectedType === "ask_llm" && (
+        <KeyFactorsAddInCommentLLMSuggestions
+          onBack={() => setSelectedType(null)}
+          postData={postData}
+          setSelectedType={setSelectedType}
         />
       )}
 
@@ -134,6 +148,7 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
           postData={postData}
           onSubmit={handleSubmitBaseRate}
           onCancel={onCancel}
+          onBack={() => setSelectedType(null)}
           showErrorsSignal={brShowErrorsSignal}
           onValidate={(ok) => {
             brIsValidRef.current = ok;

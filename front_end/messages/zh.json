@@ -1236,7 +1236,6 @@
   "CPMovementWeekChangeLabel": "<value></value> 本周",
   "CPMovementChangeLabel": "{period} 内的 {value}",
   "add": "添加",
-  "suggestedKeyFactorsSection": "以下是根据您的评论文本建议的关键因素。您可以添加您认为合适的因素，或手动输入您的关键因素。",
   "loadingSuggestedKeyFactors": "生成关键因素...",
   "close": "关闭",
   "indexValue": "指数值",
@@ -1712,5 +1711,9 @@
   "addDriverModalCommentDescriptionMobile": "驱动因素应该由评论支持——在下面输入评论并解释您的理由。",
   "referenceClassLengthInvalid": "参考类长度必须在 {min} 到 {max} 个字符之间",
   "sourceMustBeLink": "来源必须是有效的链接",
+  "askAnLLMTitle": "请教一个LLM",
+  "askAnLLMDescription": "我们会将问题信息和您的评论发送给一个LLM，以代表您生成关键因素。",
+  "generatedKeyFactors": "生成的关键因素",
+  "noGeneratedKeyFactors": "我们无法从此评论中自动生成关键因素。您可以手动添加。",
   "othersCount": "其他（{count}）"
 }
