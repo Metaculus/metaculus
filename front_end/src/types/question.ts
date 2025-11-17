@@ -267,6 +267,7 @@ export type Question = {
     lifetime_elapsed: number;
     movement: null | CPMovement;
   };
+  average_coverage?: number | null;
 };
 
 export enum MovementDirection {
