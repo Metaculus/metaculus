@@ -54,10 +54,17 @@ type Ctx = State & {
     markdownOverride?: string
   ) => Promise<SubmitResult>;
   loadSuggestions: (force?: boolean) => void;
+  addSingleSuggestedKeyFactor: (draft: KeyFactorDraft) => Promise<SubmitResult>;
 };
 
 const NOOP = () => {};
-const NOOP_ASYNC: Ctx["submit"] = async () => undefined;
+const NOOP_SUBMIT = async (
+  _submitType: "driver" | "base_rate",
+  _markdownOverride?: string
+): Promise<SubmitResult> => undefined;
+
+const NOOP_ADD_SINGLE = async (_draft: KeyFactorDraft): Promise<SubmitResult> =>
+  undefined;
 
 const DISABLED_CTX: Ctx = {
   enabled: false,
@@ -78,8 +85,9 @@ const DISABLED_CTX: Ctx = {
   >,
   setErrors: NOOP,
   resetAll: NOOP,
-  submit: NOOP_ASYNC,
+  submit: NOOP_SUBMIT,
   loadSuggestions: NOOP,
+  addSingleSuggestedKeyFactor: NOOP_ADD_SINGLE,
 };
 
 const KeyFactorsContext = createContext<Ctx | null>(null);
@@ -154,6 +162,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
     isPending,
     clearState,
     reloadSuggestions,
+    addSingleSuggestedKeyFactor,
   } = useKeyFactors({
     user_id: user.id,
     commentId,
@@ -208,6 +217,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
         if (force) reloadSuggestions();
         else if (!shouldLoadSuggestions) setShouldLoadSuggestions(true);
       },
+      addSingleSuggestedKeyFactor,
     }),
     [
       state,
@@ -223,6 +233,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       resetAll,
       submitImpl,
       reloadSuggestions,
+      addSingleSuggestedKeyFactor,
     ]
   );
 

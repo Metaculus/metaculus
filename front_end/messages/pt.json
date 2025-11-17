@@ -1232,7 +1232,6 @@
   "CPMovementDayChangeLabel": "<value></value> hoje",
   "CPMovementWeekChangeLabel": "<value></value> nesta semana",
   "add": "Adicionar",
-  "suggestedKeyFactorsSection": "Aqui estão os fatores-chave sugeridos com base no seu comentário. Sinta-se à vontade para adicionar os que considerar apropriados, ou insira seus fatores-chave manualmente.",
   "loadingSuggestedKeyFactors": "Gerando fatores-chave...",
   "close": "Fechar",
   "indexValue": "Valor do índice",
@@ -1678,5 +1677,9 @@
   "addDriverModalCommentDescriptionMobile": "Os drivers devem ser suportados por comentários - insira um comentário abaixo e explique seu raciocínio.",
   "referenceClassLengthInvalid": "A classe de referência deve ter entre {min} e {max} caracteres",
   "sourceMustBeLink": "A fonte deve ser um link válido",
+  "askAnLLMTitle": "Pergunte a um LLM",
+  "askAnLLMDescription": "Enviaremos informações sobre a pergunta e seu comentário para um LLM a fim de gerar fatores chave em seu nome.",
+  "generatedKeyFactors": "Fatores-Chave Gerados",
+  "noGeneratedKeyFactors": "Não conseguimos gerar automaticamente fatores-chave a partir deste comentário. Você pode adicioná-los manualmente.",
   "othersCount": "Outros ({count})"
 }

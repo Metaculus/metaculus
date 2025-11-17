@@ -1219,7 +1219,6 @@
   "CPMovementDayChangeLabel": "<value></value> 今天",
   "CPMovementWeekChangeLabel": "<value></value> 本週",
   "add": "新增",
-  "suggestedKeyFactorsSection": "這裡是根據您的評論文本推薦的關鍵因素。如果您覺得合適，可以添加這些關鍵因素，或者手動輸入您的關鍵因素。",
   "loadingSuggestedKeyFactors": "生成關鍵因素中...",
   "close": "關閉",
   "indexValue": "指數值",
@@ -1677,5 +1676,9 @@
   "addDriverModalCommentDescriptionMobile": "推動因素應該有評論支持 - 在下面輸入評論並解釋您的理由。",
   "referenceClassLengthInvalid": "參考類別必須在 {min} 到 {max} 個字元之間",
   "sourceMustBeLink": "來源必須是有效的連結",
+  "askAnLLMTitle": "詢問一個LLM",
+  "askAnLLMDescription": "我們將發送問題資訊和您的評論給LLM，以便為您生成關鍵因素。",
+  "generatedKeyFactors": "生成的關鍵因素",
+  "noGeneratedKeyFactors": "我們無法自動從此評論生成關鍵因素。您可以手動添加它們。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

@@ -182,6 +182,20 @@ export const useKeyFactors = ({
     return { comment };
   };
 
+  const addSingleSuggestedKeyFactor = async (
+    draft: KeyFactorDraft
+  ): Promise<
+    | { errors: ErrorResponse; comment?: never }
+    | { error?: never; comment: BECommentType }
+    | undefined
+  > => {
+    const submitType: "driver" | "base_rate" = isDriverDraft(draft)
+      ? "driver"
+      : "base_rate";
+
+    return onSubmit([draft], [], submitType);
+  };
+
   const [submit, isPending] = useServerAction(onSubmit);
 
   const clearState = () => {
@@ -203,6 +217,7 @@ export const useKeyFactors = ({
     isPending,
     clearState,
     reloadSuggestions,
+    addSingleSuggestedKeyFactor,
   };
 };
 

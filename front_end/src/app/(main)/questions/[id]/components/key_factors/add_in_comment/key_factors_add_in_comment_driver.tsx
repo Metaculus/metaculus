@@ -1,5 +1,6 @@
 "use client";
 
+import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
@@ -11,17 +12,20 @@ import KeyFactorsDriverAdditionForm from "../item_creation/driver/key_factors_dr
 import { useKeyFactorsCtx } from "../key_factors_context";
 import { driverTextSchema } from "../schemas";
 import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
+import KeyFactorsNewItemContainer from "../item_creation/key_factors_new_item_container";
 
 type Props = {
   postData: PostWithForecasts;
   onSubmit: () => void;
   onCancel: () => void;
+  onBack: () => void;
 };
 
 const KeyFactorsAddInCommentDriver: React.FC<Props> = ({
   postData,
   onSubmit,
   onCancel,
+  onBack,
 }) => {
   const t = useTranslations();
   const {
@@ -48,10 +52,17 @@ const KeyFactorsAddInCommentDriver: React.FC<Props> = ({
             d.driver.certainty !== -1
         )
       }
+      submitLabel={t("addDriver")}
     >
-      <KeyFactorsDriverAdditionForm post={postData} />
-      <p className="m-0">{t("addDriverCommentDisclaimer")}</p>
-      <FormError errors={keyFactorsErrors} />
+      <KeyFactorsNewItemContainer
+        icon={faCog}
+        label={t("driver")}
+        onBack={onBack}
+      >
+        <KeyFactorsDriverAdditionForm post={postData} />
+        <p className="m-0">{t("addDriverCommentDisclaimer")}</p>
+        <FormError errors={keyFactorsErrors} />
+      </KeyFactorsNewItemContainer>
     </KeyFactorsAddInCommentWrapper>
   );
 };

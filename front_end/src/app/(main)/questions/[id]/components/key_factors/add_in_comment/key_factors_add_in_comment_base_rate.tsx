@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { FormError } from "@/components/ui/form_field";
@@ -15,6 +16,7 @@ type Props = {
   postData: PostWithForecasts;
   onSubmit: () => void;
   onCancel: () => void;
+  onBack: () => void;
   showErrorsSignal?: number;
   onValidate?: (valid: boolean) => void;
 };
@@ -23,9 +25,11 @@ const KeyFactorsAddInCommentBaseRate: React.FC<Props> = ({
   postData,
   onCancel,
   onSubmit,
+  onBack,
   showErrorsSignal = 0,
   onValidate,
 }) => {
+  const t = useTranslations();
   const { drafts, setDrafts, errors: keyFactorsErrors } = useKeyFactorsCtx();
   const draft = useMemo(() => drafts.find(isBaseRateDraft), [drafts]);
   const setDraft = (next: BaseRateDraft) => setDrafts([next]);
@@ -33,13 +37,18 @@ const KeyFactorsAddInCommentBaseRate: React.FC<Props> = ({
   if (!draft) return null;
 
   return (
-    <KeyFactorsAddInCommentWrapper onSubmit={onSubmit} onCancel={onCancel}>
+    <KeyFactorsAddInCommentWrapper
+      submitLabel={t("addBaseRate")}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+    >
       <KeyFactorsBaseRateForm
         draft={draft}
         setDraft={setDraft}
         post={postData}
         showErrorsSignal={showErrorsSignal}
         onValidate={onValidate}
+        onBack={onBack}
       />
       <FormError errors={keyFactorsErrors} />
     </KeyFactorsAddInCommentWrapper>

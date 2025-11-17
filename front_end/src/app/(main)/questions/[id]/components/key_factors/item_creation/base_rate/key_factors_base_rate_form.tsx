@@ -22,6 +22,7 @@ type Props = {
   post: PostWithForecasts;
   showErrorsSignal?: number;
   onValidate?: (valid: boolean) => void;
+  onBack?: () => void;
 };
 
 const KeyFactorsBaseRateForm: FC<Props> = ({
@@ -30,6 +31,7 @@ const KeyFactorsBaseRateForm: FC<Props> = ({
   post,
   showErrorsSignal = 0,
   onValidate,
+  onBack,
 }) => {
   const t = useTranslations();
   const [showLocalErrors, setShowLocalErrors] = useState(false);
@@ -78,6 +80,7 @@ const KeyFactorsBaseRateForm: FC<Props> = ({
     <KeyFactorsNewItemContainer
       icon={faSquarePollVertical}
       label={t("baseRate")}
+      onBack={onBack}
     >
       <div className="flex flex-col gap-3 antialiased">
         <p className={cn("my-0 -mb-[14px]", labelClassName)}>

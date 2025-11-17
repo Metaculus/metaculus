@@ -1234,7 +1234,6 @@
   "CPMovementDayChangeLabel": "<value></value> dnes",
   "CPMovementWeekChangeLabel": "<value></value> tento týden",
   "add": "Přidat",
-  "suggestedKeyFactorsSection": "Zde jsou navrženy klíčové faktory na základě vašeho komentáře. Neváhejte přidat ty, které považujete za vhodné, nebo zadejte své vlastní klíčové faktory ručně.",
   "loadingSuggestedKeyFactors": "Generování klíčových faktorů...",
   "close": "Zavřít",
   "indexValue": "Hodnota indexu",
@@ -1680,5 +1679,9 @@
   "addDriverModalCommentDescriptionMobile": "Řidiče by měly podporovat komentáře - zadejte níže komentář a vysvětlete své důvody.",
   "referenceClassLengthInvalid": "Referenční třída musí mít délku mezi {min} a {max} znaky",
   "sourceMustBeLink": "Zdroj musí být platný odkaz",
+  "askAnLLMTitle": "Zeptejte se LLM",
+  "askAnLLMDescription": "Pošleme informace o otázce a váš komentář LLM, aby za vás vygeneroval klíčové faktory.",
+  "generatedKeyFactors": "Vygenerované klíčové faktory",
+  "noGeneratedKeyFactors": "Nepodařilo se nám automaticky vygenerovat klíčové faktory z tohoto komentáře. Můžete je přidat ručně.",
   "othersCount": "Ostatní ({count})"
 }

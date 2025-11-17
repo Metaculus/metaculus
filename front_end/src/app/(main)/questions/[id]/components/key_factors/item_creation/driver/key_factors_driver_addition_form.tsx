@@ -29,8 +29,7 @@ const KeyFactorsDriverAdditionForm: React.FC<Props> = ({ post }) => {
   if (!user) return null;
 
   const totalKeyFactorsLimitReached =
-    drafts.length + suggestedKeyFactors.length >=
-    Math.min(factorsLimit, FACTORS_PER_COMMENT);
+    drafts.length >= Math.min(factorsLimit, FACTORS_PER_COMMENT);
 
   const last = drafts.at(-1);
   const lastDriverEmpty =

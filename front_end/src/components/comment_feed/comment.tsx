@@ -225,7 +225,6 @@ const Comment: FC<CommentProps> = ({
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
-  const requestedSuggestionsRef = useRef(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editorKey, setEditorKey] = useState<number>(0);
   const originalTextRef = useRef<string>(comment.text);
@@ -278,8 +277,6 @@ const Comment: FC<CommentProps> = ({
   );
 
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
-  const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
-    useState(isCommentJustCreated);
 
   const { combinedKeyFactors } = useCommentsFeed();
   const {
@@ -287,46 +284,55 @@ const Comment: FC<CommentProps> = ({
     isLoadingSuggestedKeyFactors,
     factorsLimit,
     resetAll,
-    loadSuggestions,
   } = useKeyFactorsCtx();
+  const [showInitialSuggestionsLoader, setShowInitialSuggestionsLoader] =
+    useState(false);
+  const hasShownInitialSuggestionsLoaderRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      isLoadingSuggestedKeyFactors &&
+      !hasShownInitialSuggestionsLoaderRef.current &&
+      isCommentJustCreated
+    ) {
+      setShowInitialSuggestionsLoader(true);
+    }
+
+    if (
+      !isLoadingSuggestedKeyFactors &&
+      showInitialSuggestionsLoader &&
+      !hasShownInitialSuggestionsLoaderRef.current
+    ) {
+      setShowInitialSuggestionsLoader(false);
+      hasShownInitialSuggestionsLoaderRef.current = true;
+    }
+  }, [
+    isLoadingSuggestedKeyFactors,
+    showInitialSuggestionsLoader,
+    isCommentJustCreated,
+  ]);
+
   const isCommentEmpty = !commentMarkdown.trim();
 
   useEffect(() => {
     if (!shouldSuggestKeyFactors) return;
+    if (!isCommentJustCreated) return;
     if (isCommentEmpty) return;
 
-    if (suggestKeyFactorsFirstRender) {
-      if (!isLoadingSuggestedKeyFactors) {
-        setIsKeyfactorsFormOpen(true);
-        if (
-          suggestedKeyFactors.length === 0 &&
-          !requestedSuggestionsRef.current
-        ) {
-          requestedSuggestionsRef.current = true;
-          loadSuggestions();
-        }
-        setSuggestKeyFactorsFirstRender(false);
-      }
-      return;
-    }
-
     if (
-      isKeyfactorsFormOpen &&
       !isLoadingSuggestedKeyFactors &&
-      suggestedKeyFactors.length === 0 &&
-      !requestedSuggestionsRef.current
+      suggestedKeyFactors.length > 0 &&
+      !isKeyfactorsFormOpen
     ) {
-      if (!isCommentEmpty) loadSuggestions();
+      setIsKeyfactorsFormOpen(true);
     }
   }, [
-    isCommentEmpty,
     shouldSuggestKeyFactors,
-    suggestKeyFactorsFirstRender,
-    isKeyfactorsFormOpen,
+    isCommentJustCreated,
+    isCommentEmpty,
     isLoadingSuggestedKeyFactors,
     suggestedKeyFactors.length,
-    loadSuggestions,
-    setIsKeyfactorsFormOpen,
+    isKeyfactorsFormOpen,
   ]);
 
   const commentKeyFactors = useMemo(
@@ -358,25 +364,12 @@ const Comment: FC<CommentProps> = ({
     limitNotReached &&
     canListKeyFactors;
 
-  const forceReloadOnOpenRef = useRef(false);
   const onAddKeyFactorClick = () => {
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
 
     resetAll();
-    setIsKeyfactorsFormOpen((prev) => {
-      const next = !prev;
-      if (next) forceReloadOnOpenRef.current = !isCommentEmpty;
-      return next;
-    });
+    setIsKeyfactorsFormOpen((prev) => !prev);
   };
-
-  useEffect(() => {
-    if (!isKeyfactorsFormOpen) return;
-    if (!forceReloadOnOpenRef.current) return;
-    if (isCommentEmpty) return;
-    forceReloadOnOpenRef.current = false;
-    Promise.resolve().then(() => loadSuggestions(true));
-  }, [isKeyfactorsFormOpen, loadSuggestions, isCommentEmpty]);
 
   const openEdit = useCallback(() => {
     setTempCommentMarkdown(originalTextRef.current);
@@ -840,14 +833,18 @@ const Comment: FC<CommentProps> = ({
                       size="xxs"
                       variant="tertiary"
                       onClick={onAddKeyFactorClick}
-                      className="relative flex items-center justify-center"
+                      className={cn(
+                        "relative flex items-center justify-center",
+                        isKeyfactorsFormOpen &&
+                          "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark"
+                      )}
                     >
                       <>
                         <div
                           className={cn(
                             "absolute inset-0 flex items-center justify-center",
-                            isLoadingSuggestedKeyFactors && "visible",
-                            !isLoadingSuggestedKeyFactors && "invisible"
+                            showInitialSuggestionsLoader && "visible",
+                            !showInitialSuggestionsLoader && "invisible"
                           )}
                         >
                           <LoadingSpinner className="size-4" />
@@ -855,8 +852,8 @@ const Comment: FC<CommentProps> = ({
                         <div
                           className={cn(
                             "flex items-center",
-                            isLoadingSuggestedKeyFactors && "invisible",
-                            !isLoadingSuggestedKeyFactors && "visible"
+                            showInitialSuggestionsLoader && "invisible",
+                            !showInitialSuggestionsLoader && "visible"
                           )}
                         >
                           <FontAwesomeIcon
