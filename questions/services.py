@@ -1220,7 +1220,7 @@ def get_average_coverage_for_questions(
     from non-bot users with the question's default score type.
     """
 
-    questions_list = list(q for q in questions if q.status != QuestionStatus.RESOLVED)
+    questions_list = list(q for q in questions if q.status == QuestionStatus.RESOLVED)
 
     # TODO: should we do archive scores?
     scores_data = (
