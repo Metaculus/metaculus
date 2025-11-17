@@ -337,7 +337,7 @@ def serialize_post(
     projects: Iterable[Project] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
-    question_average_scores: dict[Question, float] = None,
+    question_average_coverages: dict[Question, float] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -362,7 +362,7 @@ def serialize_post(
             ),
             include_descriptions=include_descriptions,
             question_movement=question_movements.get(post.question),
-            question_average_score=question_average_scores.get(post.question),
+            question_average_coverage=question_average_coverages.get(post.question),
         )
 
     if post.conditional:
@@ -383,7 +383,7 @@ def serialize_post(
             aggregate_forecasts=aggregate_forecasts,
             include_descriptions=include_descriptions,
             question_movements=question_movements,
-            question_average_scores=question_average_scores,
+            question_average_coverages=question_average_coverages,
         )
 
     if post.notebook:
@@ -519,9 +519,9 @@ def serialize_post_many(
     if include_movements:
         question_movements = calculate_movement_for_questions(questions)
 
-    question_average_scores = {}
+    question_average_coverages = {}
     if include_average_scores:
-        question_average_scores = get_average_coverage_for_questions(questions)
+        question_average_coverages = get_average_coverage_for_questions(questions)
 
     # Fetch projects
     projects_map = get_projects_for_posts(posts, user=current_user)
@@ -545,7 +545,7 @@ def serialize_post_many(
             projects=projects_map.get(post.id),
             include_descriptions=include_descriptions,
             question_movements=question_movements,
-            question_average_scores=question_average_scores,
+            question_average_coverages=question_average_coverages,
         )
         for post in posts
     ]
