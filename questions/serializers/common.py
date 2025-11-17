@@ -8,15 +8,8 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Post
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import (
-    DEFAULT_INBOUND_OUTCOME_COUNT,
-    QUESTION_CONTINUOUS_TYPES,
-    Question,
-    Conditional,
-    GroupOfQuestions,
-    AggregateForecast,
-)
-from questions.models import Forecast
+from questions.models import DEFAULT_INBOUND_OUTCOME_COUNT, QUESTION_CONTINUOUS_TYPES, Question, Conditional, \
+    GroupOfQuestions, AggregateForecast, Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
@@ -584,6 +577,7 @@ def serialize_question(
     minimize: bool = True,
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
+    question_average_score: float = None,
 ):
     """
     Serializes question object
@@ -604,6 +598,7 @@ def serialize_question(
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
+    serialized_data["average_score"] = question_average_score
 
     if question_movement:
         if default_agg := serialized_data["aggregations"].get(
@@ -750,6 +745,7 @@ def serialize_group(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
+    question_average_scores: dict[Question, float] | None = None,
 ):
     question_movements = question_movements or {}
 
@@ -781,6 +777,7 @@ def serialize_group(
                 ),
                 include_descriptions=include_descriptions,
                 question_movement=question_movements.get(question),
+                question_average_score=question_average_scores.get(question),
             )
         )
 

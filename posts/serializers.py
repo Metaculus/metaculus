@@ -36,6 +36,7 @@ from questions.services import (
     calculate_movement_for_questions,
     calculate_period_movement_for_questions,
     QuestionMovement,
+    get_average_coverage_for_questions,
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
@@ -336,6 +337,7 @@ def serialize_post(
     projects: Iterable[Project] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
+    question_average_scores: dict[Question, float] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -360,6 +362,7 @@ def serialize_post(
             ),
             include_descriptions=include_descriptions,
             question_movement=question_movements.get(post.question),
+            question_average_score=question_average_scores.get(post.question),
         )
 
     if post.conditional:
@@ -380,6 +383,7 @@ def serialize_post(
             aggregate_forecasts=aggregate_forecasts,
             include_descriptions=include_descriptions,
             question_movements=question_movements,
+            question_average_scores=question_average_scores,
         )
 
     if post.notebook:
@@ -446,6 +450,7 @@ def serialize_post_many(
     include_cp_history: bool = False,
     include_movements: bool = False,
     include_conditional_cps: bool = False,
+    include_average_scores: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -514,6 +519,10 @@ def serialize_post_many(
     if include_movements:
         question_movements = calculate_movement_for_questions(questions)
 
+    question_average_scores = {}
+    if include_average_scores:
+        question_average_scores = get_average_coverage_for_questions(questions)
+
     # Fetch projects
     projects_map = get_projects_for_posts(posts, user=current_user)
 
@@ -536,6 +545,7 @@ def serialize_post_many(
             projects=projects_map.get(post.id),
             include_descriptions=include_descriptions,
             question_movements=question_movements,
+            question_average_scores=question_average_scores,
         )
         for post in posts
     ]
