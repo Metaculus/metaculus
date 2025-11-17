@@ -1,10 +1,11 @@
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { faRobot, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import {
   faCog,
   // faNewspaper,
   faSquarePollVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { HTMLAttributes } from "react";
 
 import cn from "@/utils/core/cn";
@@ -14,7 +15,10 @@ import { KFType } from "./types";
 const KeyFactorsTypePicker: React.FC<{
   onPick: (t: KFType) => void;
   className?: string;
-}> = ({ onPick, className }) => {
+  withLLM?: boolean;
+}> = ({ onPick, className, withLLM = false }) => {
+  const t = useTranslations();
+
   return (
     <div className={cn("grid grid-cols-1 gap-2 sm:grid-cols-3", className)}>
       {ITEMS.map((item) => (
@@ -26,6 +30,17 @@ const KeyFactorsTypePicker: React.FC<{
           icon={item.icon}
         />
       ))}
+      {withLLM && (
+        <KeyFactorsTypePickerItem
+          key="ask_llm"
+          icon={faRobot}
+          title={t("askAnLLMTitle")}
+          description={t("askAnLLMDescription")}
+          btnClassName="bg-purple-100 dark:bg-purple-100-dark hover:bg-purple-200 dark:hover:bg-purple-200-dark"
+          iconClassName="text-purple-600 dark:text-purple-600-dark"
+          onClick={() => onPick("ask_llm")}
+        />
+      )}
     </div>
   );
 };
@@ -35,16 +50,24 @@ const KeyFactorsTypePickerItem: React.FC<
     title?: string;
     description?: string;
     icon?: IconDefinition;
+    btnClassName?: string;
+    iconClassName?: string;
   } & HTMLAttributes<HTMLButtonElement>
-> = ({ onClick, title, description, icon }) => {
+> = ({ onClick, title, description, icon, btnClassName, iconClassName }) => {
   return (
     <button
-      className="flex flex-col items-start rounded-[4px] bg-blue-200 p-5 text-left antialiased transition-colors duration-200 hover:bg-blue-300 dark:bg-blue-200-dark dark:hover:bg-blue-300-dark"
+      className={cn(
+        "flex flex-col items-start rounded-[4px] bg-blue-200 p-5 text-left antialiased transition-colors duration-200 hover:bg-blue-300 dark:bg-blue-200-dark dark:hover:bg-blue-300-dark",
+        btnClassName
+      )}
       onClick={onClick}
     >
       {icon && (
         <FontAwesomeIcon
-          className="mb-6 text-2xl text-blue-600 opacity-50 dark:text-blue-600-dark"
+          className={cn(
+            "mb-6 text-2xl text-blue-600 opacity-50 dark:text-blue-600-dark",
+            iconClassName
+          )}
           icon={icon}
         />
       )}

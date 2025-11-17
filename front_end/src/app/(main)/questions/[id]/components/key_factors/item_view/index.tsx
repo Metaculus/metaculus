@@ -22,6 +22,7 @@ type Props = {
   onClick?: () => void;
   className?: string;
   projectPermission?: ProjectPermissions;
+  isSuggested?: boolean;
 };
 
 export const KeyFactorItem: FC<Props> = ({
@@ -33,6 +34,7 @@ export const KeyFactorItem: FC<Props> = ({
   onClick,
   className,
   projectPermission,
+  isSuggested,
 }) => {
   const t = useTranslations();
   const isCompactConsumer = mode === "consumer" && isCompact;
@@ -84,6 +86,7 @@ export const KeyFactorItem: FC<Props> = ({
           isCompact={isCompact}
           mode={mode}
           projectPermission={projectPermission}
+          isSuggested={isSuggested}
         />
       )}
     </div>

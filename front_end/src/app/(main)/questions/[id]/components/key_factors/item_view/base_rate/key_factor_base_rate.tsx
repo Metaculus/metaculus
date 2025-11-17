@@ -18,6 +18,7 @@ type Props = {
   mode?: "forecaster" | "consumer";
   isCompact?: boolean;
   projectPermission?: ProjectPermissions;
+  isSuggested?: boolean;
 };
 
 const KeyFactorBaseRate: React.FC<Props> = ({
@@ -25,6 +26,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   isCompact,
   mode,
   projectPermission,
+  isSuggested,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -45,6 +47,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         text={baseRate.reference_class}
         className={cn("text-base leading-5", {
           "text-sm": isConsumer,
+          "text-xs": isCompact,
         })}
       />
 
@@ -52,7 +55,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         <KeyFactorBaseRateFrequency
           numerator={baseRate.rate_numerator ?? 0}
           denominator={baseRate.rate_denominator ?? 0}
-          withLightBoxes={isCompact || isConsumer}
+          withLightBoxes={(isCompact || isConsumer) && !isSuggested}
         />
       )}
 
