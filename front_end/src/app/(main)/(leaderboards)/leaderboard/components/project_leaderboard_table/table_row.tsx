@@ -45,6 +45,16 @@ const TableRow: FC<Props> = ({
       ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
       : (coverage * 100).toFixed(1) + "%"
     : "-";
+  const forecasterLabel = user
+    ? formatUsername(user)
+    : aggregation_method == "recency_weighted"
+      ? t("communityPrediction")
+      : aggregation_method == "unweighted"
+        ? t("unweightedAggregate")
+        : aggregation_method ?? undefined;
+  const forecasterLink = user
+    ? `/accounts/profile/${user.id}/`
+    : `/faq/#community-prediction`;
 
   return (
     <tr>
@@ -71,21 +81,16 @@ const TableRow: FC<Props> = ({
           </>
         )}
       </Td>
-      <Td className="sticky left-0 text-left" highlight={highlight}>
+      <Td
+        className="sticky left-0 w-0 max-w-[16rem] text-left"
+        highlight={highlight}
+      >
         <Link
-          href={
-            user
-              ? `/accounts/profile/${user.id}/`
-              : `/faq/#community-prediction`
-          }
+          href={forecasterLink}
+          title={forecasterLabel}
+          className="block truncate"
         >
-          {user
-            ? formatUsername(user)
-            : aggregation_method == "recency_weighted"
-              ? t("communityPrediction")
-              : aggregation_method == "unweighted"
-                ? t("unweightedAggregate")
-                : aggregation_method}
+          {forecasterLabel}
         </Link>
       </Td>
       <Td className="text-right tabular-nums" highlight={highlight}>

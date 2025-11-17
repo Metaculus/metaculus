@@ -1,8 +1,10 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
+
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
+const AWS_S3_CUSTOM_DOMAIN = process.env.AWS_S3_CUSTOM_DOMAIN;
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -25,27 +27,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "metaculus-media.s3.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metaculus-media.s3.us-west-2.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metaculus-public.s3.us-west-2.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metaculus-web-media.s3.amazonaws.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "raw.githubusercontent.com",
+        hostname: "cdn.metaculus.com",
         pathname: "/**",
       },
       ...(AWS_STORAGE_BUCKET_NAME
@@ -57,12 +39,15 @@ const nextConfig = {
             },
           ]
         : []),
-      // TODO: move this to ENV
-      {
-        protocol: "https",
-        hostname: "d3s0w6fek99l5b.cloudfront.net",
-        pathname: "/**",
-      },
+      ...(AWS_S3_CUSTOM_DOMAIN
+        ? [
+            {
+              protocol: "https",
+              hostname: AWS_S3_CUSTOM_DOMAIN,
+              pathname: "/**",
+            },
+          ]
+        : []),
     ],
   },
   async redirects() {
