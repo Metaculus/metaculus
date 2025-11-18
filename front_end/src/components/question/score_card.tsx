@@ -13,13 +13,13 @@ const Badge: FC<{
 }> = ({ label, value, pos, variant }) => (
   <div
     className={cn(
-      "absolute bottom-0 left-[var(--pos)] z-20 mb-[-9px] flex -translate-x-[var(--pos)] flex-col items-center gap-0.5",
+      "absolute bottom-0 z-20 mb-[-9px] flex -translate-x-1/2 flex-col items-center gap-0.5",
       {
         "text-orange-800 dark:text-orange-800-dark": variant === "user",
         "text-olive-800 dark:text-olive-800-dark": variant === "community",
       }
     )}
-    style={{ "--pos": `${pos}%` } as React.CSSProperties}
+    style={{ left: `${pos}%` }}
   >
     <div className="text-sm capitalize">{label}</div>
     <div>
@@ -110,7 +110,12 @@ const ScoreVisualization: FC<{
 
   return (
     <div className="relative flex flex-col">
-      <div className="relative min-h-[60px]">
+      <div
+        className={cn("relative min-h-[60px]", {
+          "ml-6 mr-2": commPos < userPos,
+          "ml-2 mr-6": commPos > userPos,
+        })}
+      >
         {userScore != null && (
           <Badge
             label={t("me")}
