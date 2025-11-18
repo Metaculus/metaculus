@@ -1,9 +1,10 @@
 import { FC, useMemo } from "react";
 
-import { KeyFactorImpactDirectionLabel } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_impact_direction";
-import LikelihoodButton from "@/app/(main)/questions/[id]/components/key_factors/likehood_button";
+import LikelihoodButton from "@/app/(main)/questions/[id]/components/key_factors/item_creation/driver/likehood_button";
 import { ImpactDirectionCategory, ImpactMetadata } from "@/types/comment";
 import { QuestionType } from "@/types/question";
+
+import { KeyFactorImpactDirectionLabel } from "./impact_direction_label";
 
 type ImpactDirectionControlsProps = {
   questionType: QuestionType;

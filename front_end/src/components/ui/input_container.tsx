@@ -4,6 +4,7 @@ import cn from "@/utils/core/cn";
 
 type InputContainerProps = {
   labelText?: string;
+  labelClassName?: string;
   explanation?: ReactNode;
   className?: string;
   isNativeFormControl?: boolean;
@@ -11,6 +12,7 @@ type InputContainerProps = {
 
 export const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
   labelText,
+  labelClassName,
   explanation,
   className,
   isNativeFormControl = true,
@@ -23,7 +25,12 @@ export const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
 
     if (isNativeFormControl) {
       return (
-        <label className="flex flex-col gap-1.5 text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark">
+        <label
+          className={cn(
+            "flex flex-col gap-1.5 text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark",
+            labelClassName
+          )}
+        >
           {labelText}
           {children}
         </label>
@@ -32,13 +39,18 @@ export const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
 
     return (
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark">
+        <span
+          className={cn(
+            "text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark",
+            labelClassName
+          )}
+        >
           {labelText}
         </span>
         {children}
       </div>
     );
-  }, [children, isNativeFormControl, labelText]);
+  }, [children, isNativeFormControl, labelText, labelClassName]);
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
