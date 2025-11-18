@@ -110,12 +110,7 @@ const ScoreVisualization: FC<{
 
   return (
     <div className="relative flex flex-col">
-      <div
-        className={cn("relative min-h-[60px]", {
-          "ml-6 mr-2": commPos < userPos,
-          "ml-2 mr-6": commPos > userPos,
-        })}
-      >
+      <div className={cn("relative mx-4 min-h-[60px]")}>
         {userScore != null && (
           <Badge
             label={t("me")}
