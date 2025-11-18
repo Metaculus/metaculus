@@ -39,7 +39,7 @@ export const InfoToggleContainer = ({
           <Transition
             show={!showInfo}
             enter="transition-all duration-300"
-            enterFrom="opacity-0 -translate-x-8"
+            enterFrom="opacity-0 translate-x-8"
             enterTo="opacity-100 translate-x-0"
             leave="transition-all duration-300 absolute"
             leaveFrom="opacity-100 translate-x-0"
@@ -58,7 +58,7 @@ export const InfoToggleContainer = ({
             enterTo="opacity-100 translate-x-0"
             leave="transition-all duration-300 absolute"
             leaveFrom="opacity-100 translate-x-0"
-            leaveTo="opacity-0 translate-x-8"
+            leaveTo="opacity-0 -translate-x-8"
             as="h3"
             className="inset-0 text-xl font-semibold text-blue-600 dark:text-blue-600-dark"
           >
