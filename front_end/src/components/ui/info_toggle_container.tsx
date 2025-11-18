@@ -25,12 +25,13 @@ export const InfoToggleContainer = ({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2.5 rounded-lg px-4 py-3 transition-colors duration-300",
+        "group flex cursor-pointer flex-col gap-2.5 overflow-hidden rounded-lg px-4 py-3 transition-colors duration-300",
         showInfo
           ? "bg-blue-400 dark:bg-blue-400-dark"
-          : "bg-gray-0 dark:bg-gray-0-dark",
+          : "bg-blue-200 dark:bg-blue-200-dark",
         className
       )}
+      onClick={() => setShowInfo(!showInfo)}
     >
       {/* Header with animated title */}
       <div className="flex items-center justify-between">
@@ -66,16 +67,18 @@ export const InfoToggleContainer = ({
         </div>
 
         <button
-          onClick={() => setShowInfo(!showInfo)}
-          className="flex-shrink-0 transition-colors duration-200 hover:opacity-70"
+          className="flex-shrink-0 transition-colors duration-200"
           aria-label="Toggle info"
         >
           <FontAwesomeIcon
             icon={faCircleInfo}
-            className={cn("text-base transition-colors duration-300", {
-              "text-blue-500 dark:text-blue-500-dark": showInfo,
-              "text-gray-400 dark:text-gray-400-dark": !showInfo,
-            })}
+            className={cn(
+              "text-base transition-colors duration-300 group-hover:text-blue-700 group-hover:dark:text-blue-700-dark",
+              {
+                "text-blue-500 dark:text-blue-500-dark": !showInfo,
+                "text-blue-700 dark:text-blue-700-dark": showInfo,
+              }
+            )}
           />
         </button>
       </div>
