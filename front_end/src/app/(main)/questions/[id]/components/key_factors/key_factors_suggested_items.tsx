@@ -1,6 +1,7 @@
 "use client";
 import { faCheck, faClose, faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useMemo } from "react";
 
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import { KeyFactor, KeyFactorVoteAggregate } from "@/types/comment";
@@ -72,13 +73,20 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
     setSuggestedKeyFactors((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const filteredSuggestedKeyFactors = useMemo(
+    () =>
+      suggestedKeyFactors.filter((kf) => {
+        return isDriverDraft(kf) || isBaseRateDraft(kf);
+      }),
+    [suggestedKeyFactors]
+  );
+
   return (
     <div id="suggested-key-factors" className="flex flex-col gap-2">
       <KeyFactorsCarousel
-        items={suggestedKeyFactors}
+        items={filteredSuggestedKeyFactors}
         gapClassName="gap-3.5"
         renderItem={(kf, idx) => {
-          if (!isDriverDraft(kf) && !isBaseRateDraft(kf)) return null;
           const question = post.group_of_questions?.questions.find(
             (obj) => obj.id === kf.question_id
           );
