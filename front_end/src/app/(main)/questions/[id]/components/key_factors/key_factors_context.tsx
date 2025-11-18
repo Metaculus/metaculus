@@ -59,7 +59,7 @@ type Ctx = State & {
 
 const NOOP = () => {};
 const NOOP_SUBMIT = async (
-  _submitType: "driver" | "base_rate",
+  _submitType: "driver" | "base_rate" | "news",
   _markdownOverride?: string
 ): Promise<SubmitResult> => undefined;
 

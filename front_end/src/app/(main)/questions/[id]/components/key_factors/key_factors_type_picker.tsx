@@ -36,7 +36,7 @@ const KeyFactorsTypePicker: React.FC<{
           icon={faRobot}
           title={t("askAnLLMTitle")}
           description={t("askAnLLMDescription")}
-          btnClassName="bg-purple-100 dark:bg-purple-100-dark hover:bg-purple-200 dark:hover:bg-purple-200-dark"
+          btnClassName="bg-purple-100 sm:col-span-3 dark:bg-purple-100-dark hover:bg-purple-200 dark:hover:bg-purple-200-dark"
           iconClassName="text-purple-600 dark:text-purple-600-dark"
           onClick={() => onPick("ask_llm")}
         />
