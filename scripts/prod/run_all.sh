@@ -19,9 +19,10 @@ source venv/bin/activate
 DRAMATIQ_PROCESSES="${DRAMATIQ_PROCESSES:-8}"
 DRAMATIQ_THREADS="${DRAMATIQ_THREADS:-16}"
 
-# Propagate nginx port
+# Propagate nginx port and app domain
 PORT="${PORT:-8080}" \
-    envsubst '${PORT}' </etc/nginx/http.d/app_nginx.template >/etc/nginx/http.d/app_nginx.conf
+APP_DOMAIN="${APP_DOMAIN:-}" \
+    envsubst '${PORT},${APP_DOMAIN}' </etc/nginx/http.d/app_nginx.template >/etc/nginx/http.d/app_nginx.conf
 rm -f /etc/nginx/http.d/default.conf
 
 export UV_THREADPOOL_SIZE=6

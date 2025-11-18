@@ -43,11 +43,19 @@ export type MedalCategory = {
   medals: Medal[];
 };
 
+export type BotDetails = {
+  metac_bot: boolean;
+  base_models?: { name: string }[];
+  display_in_leaderboard: boolean;
+};
+
 export type LeaderboardEntry = {
-  user: User | null;
+  user: (User & { metadata?: { bot_details: BotDetails } }) | null;
   aggregation_method: string | null;
   score: number;
   rank: number | null;
+  ci_lower?: number;
+  ci_upper?: number;
   excluded: boolean;
   show_when_excluded: boolean;
   medal: MedalType | null;

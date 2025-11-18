@@ -546,7 +546,7 @@ export default function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets.jpg"
+          src="https://cdn.metaculus.com/user_uploaded/metac-vs-markets.jpg"
           alt="Comparación entre Metaculus y los mercados"
           className="my-4"
           width={700}
@@ -1190,9 +1190,9 @@ export default function FAQ() {
           diferencia es que presentamos los dos condicionales cercanos el uno al
           otro para mayor comodidad:
         </p>
-        {/* <img alt="Los dos condicionales uno al lado del otro" loading="lazy" width="730" height="75" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_2.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75"> */}
+        {/* <img alt="Los dos condicionales uno al lado del otro" loading="lazy" width="730" height="75" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_2.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_2.jpg&amp;w=1920&amp;q=75"> */}
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_2.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_2.jpg"
           alt="The two conditionals next to each other"
           width={730}
           height={75}
@@ -1225,9 +1225,9 @@ export default function FAQ() {
           Para la simplicidad, Metaculus presenta preguntas gráficamente
           condicionales. En la interfaz de pronóstico, están en una tabla:
         </p>
-        {/* <img alt="La interfaz de pronóstico de Pares condicionales" loading="lazy" width="754" height="253" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_3.jpg&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75"> */}
+        {/* <img alt="La interfaz de pronóstico de Pares condicionales" loading="lazy" width="754" height="253" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_3.jpg&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_3.jpg&amp;w=1920&amp;q=75"> */}
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_3.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_3.jpg"
           alt="The Conditional Pair forecasting interface"
           width={754}
           height={253}
@@ -1236,9 +1236,9 @@ export default function FAQ() {
           Y en los piensos, todo resultado posible del Padre es una flecha, y
           toda probabilidad condicional es una barra:
         </p>
-        {/* <img alt="La baldosa de alimentación de pared condicional" loading="lazy" width="746" height="142" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_1.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75"> */}
+        {/* <img alt="La baldosa de alimentación de pared condicional" loading="lazy" width="746" height="142" decoding="async" data-nimg="1" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_1.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fconditional_faq_1.jpg&amp;w=1920&amp;q=75"> */}
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_1.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_1.jpg"
           alt="The Conditional Pair feed tile"
           width={746}
           height={142}
@@ -2421,9 +2421,9 @@ export default function FAQ() {
             $quot;retirar$quot; se anida en el menú $quot;$quot;... junto a la
             opción que desea eliminar.
           </p>
-          {/* <img alt="Interfaz de predicción" loading="lazy" width="700" height="400" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75"> */}
+          {/* <img alt="Interfaz de predicción" loading="lazy" width="700" height="400" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fwithdraw_button.jpg&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/withdraw_button.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/withdraw_button.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={700}
@@ -2732,9 +2732,9 @@ export default function FAQ() {
             incluso tener una previsión permanente, hay filtros en el menú de
             filtros:
           </p>
-          {/* <img alt="Archivos de búsqueda" loading="lazy" width="700" height="500" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75"> */}
+          {/* <img alt="Archivos de búsqueda" loading="lazy" width="700" height="500" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=750&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Fsearch_filters.jpg&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/search_filters.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/search_filters.jpg"
             alt="Search Filters"
             className="my-4"
             width={700}
@@ -2743,9 +2743,9 @@ export default function FAQ() {
           <p>
             Y los retiros aparecen como cruces en las listas de cronometrados:
           </p>
-          {/* <img alt="Interfaz de predicción" loading="lazy" width="300" height="300" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=384&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-web-media.s3.amazonaws.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75"> */}
+          {/* <img alt="Interfaz de predicción" loading="lazy" width="300" height="300" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=384&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2Fuser_uploaded%2Ftimeline_withdraw.jpg&amp;w=640&amp;q=75"> */}
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/timeline_withdraw.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/timeline_withdraw.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={300}
@@ -2790,7 +2790,7 @@ export default function FAQ() {
           </p>
           {/* <img alt="Interfaz de predicción" loading="lazy" width="769" height="773" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Finterface.png&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Finterface.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Finterface.png&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/interface.png"
+            src="https://cdn.metaculus.com/static/faq/interface.png"
             alt="Prediction Interface"
             className="my-4"
             width={769}
@@ -2815,7 +2815,7 @@ export default function FAQ() {
           </p>
           {/* <img alt="Interfaz acumulada" loading="lazy" width="771" height="776" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=828&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fryooan%2Ffaq%2Fmain%2Fstatic%2Fimg%2Fcumulative.png&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://raw.githubusercontent.com/ryooan/faq/main/static/img/cumulative.png"
+            src="https://cdn.metaculus.com/static/faq/cumulative.png"
             alt="Cumulative Interface"
             className="my-4"
             width={771}
@@ -3416,9 +3416,9 @@ export default function FAQ() {
             normal en la página de preguntas o mediante el uso de un botón
             especial en los feeds.
           </p>
-          {/* <img alt="Reafirmando una predicción" loading="lazy" width="922" height="575" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1080&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fmetaculus-public.s3.us-west-2.amazonaws.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75"> */}
+          {/* <img alt="Reafirmando una predicción" loading="lazy" width="922" height="575" decoding="async" data-nimg="1" className="my-4" style="color:transparent" srcset="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1080&amp;q=75 1x, /_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75 2x" src="/_next/image/?url=https%3A%2F%2Fcdn.metaculus.com%2FScreen%2BShot%2B2023-02-14%2Bat%2B2.14.38%2BPM.png&amp;w=1920&amp;q=75"> */}
           <Image
-            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
+            src="https://cdn.metaculus.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
             alt="Reaffirming a prediction"
             className="my-4"
             width={922}

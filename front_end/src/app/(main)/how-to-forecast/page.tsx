@@ -29,7 +29,7 @@ export default function QuestionChecklist() {
           select the field and type the probability.
         </p>
         <Image
-          src="https://metaculus-media.s3.amazonaws.com/binary.gif"
+          src="https://cdn.metaculus.com/binary.gif"
           alt="Binary prediction example"
           className="my-4 h-auto max-w-full"
           width={1308}
@@ -44,7 +44,7 @@ export default function QuestionChecklist() {
           guarantee they do.
         </p>
         <Image
-          src="https://metaculus-media.s3.amazonaws.com/multiple-choice.gif"
+          src="https://cdn.metaculus.com/multiple-choice.gif"
           alt="Multiple choice prediction example"
           className="my-4 h-auto max-w-full"
           width={1152}
@@ -75,7 +75,7 @@ export default function QuestionChecklist() {
           values you think are likely.
         </p>
         <Image
-          src="https://metaculus-media.s3.amazonaws.com/numerical.gif"
+          src="https://cdn.metaculus.com/numerical.gif"
           alt="Numerical prediction example"
           className="my-4 h-auto max-w-full"
           width={1148}
@@ -89,7 +89,7 @@ export default function QuestionChecklist() {
           your distribution and assign a weight to each of them.
         </p>
         <Image
-          src="https://metaculus-media.s3.amazonaws.com/numerical2.gif"
+          src="https://cdn.metaculus.com/numerical2.gif"
           alt="Multiple bell curve prediction example"
           className="my-4 h-auto max-w-full"
           width={972}

@@ -443,7 +443,7 @@ export default function PressPage() {
                     >
                       <Image
                         className="h-auto w-full max-w-full"
-                        src="https://metaculus-media.s3.us-west-2.amazonaws.com/TheEconomistMetaculusAI.webp"
+                        src="https://cdn.metaculus.com/TheEconomistMetaculusAI.webp"
                         alt="The Economist graph based on data by Metaculus on the question of when will the first general-AI system be devised, tested and announced"
                         width={640}
                         height={708}
@@ -656,7 +656,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Economist_Logo.svg"
+                    src="https://cdn.metaculus.com/logos/The_Economist_Logo.svg"
                     alt="The Economist"
                   />
                 </div>
@@ -674,7 +674,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Forbes_logo.svg"
+                    src="https://cdn.metaculus.com/logos/Forbes_logo.svg"
                     alt="Forbes"
                     unoptimized
                   />
@@ -693,7 +693,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Atlantic_magazine_logo.svg"
+                    src="https://cdn.metaculus.com/logos/The_Atlantic_magazine_logo.svg"
                     alt="The Atlantic"
                     unoptimized
                   />
@@ -712,7 +712,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/POLITICOLOGO.svg"
+                    src="https://cdn.metaculus.com/logos/POLITICOLOGO.svg"
                     alt="Politico"
                     unoptimized
                   />
@@ -731,7 +731,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Logo_of_The_Washington_Post_Newspaper.svg"
+                    src="https://cdn.metaculus.com/logos/The_Logo_of_The_Washington_Post_Newspaper.svg"
                     alt="The Washington Post"
                     unoptimized
                   />
@@ -750,7 +750,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Vox_logo.svg"
+                    src="https://cdn.metaculus.com/logos/Vox_logo.svg"
                     alt="Vox"
                     unoptimized
                   />
@@ -769,7 +769,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Seeking_Alpha_Logo.svg"
+                    src="https://cdn.metaculus.com/logos/Seeking_Alpha_Logo.svg"
                     alt="Seeking Alpha"
                     unoptimized
                   />
@@ -789,7 +789,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Conversation_website_text_logo.svg"
+                    src="https://cdn.metaculus.com/logos/The_Conversation_website_text_logo.svg"
                     alt="The Conversation"
                     unoptimized
                   />
@@ -809,7 +809,7 @@ export default function PressPage() {
                   <Image
                     fill
                     className="object-contain object-left"
-                    src="https://metaculus-media.s3.us-west-2.amazonaws.com/logos/BBC_Logo_2021.svg"
+                    src="https://cdn.metaculus.com/logos/BBC_Logo_2021.svg"
                     alt="BBC.com"
                     unoptimized
                   />
@@ -833,7 +833,7 @@ export default function PressPage() {
               <a
                 target="_blank"
                 rel="noreferrer"
-                href="https://metaculus-media.s3.us-west-2.amazonaws.com/metaculus-press-kit.zip"
+                href="https://cdn.metaculus.com/metaculus-press-kit.zip"
               >
                 Clique aqui
               </a>
