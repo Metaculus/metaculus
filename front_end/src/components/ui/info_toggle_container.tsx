@@ -25,7 +25,7 @@ export const InfoToggleContainer = ({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2.5 rounded-lg border border-gray-300 p-4 transition-colors duration-300",
+        "flex flex-col gap-2.5 rounded-lg px-4 py-3 transition-colors duration-300",
         showInfo
           ? "bg-blue-400 dark:bg-blue-400-dark"
           : "bg-gray-0 dark:bg-gray-0-dark",
@@ -34,7 +34,7 @@ export const InfoToggleContainer = ({
     >
       {/* Header with animated title */}
       <div className="flex items-center justify-between">
-        <div className="relative mr-4 flex-1">
+        <div className="relative mr-4 flex-1 text-lg font-medium text-blue-800 dark:text-blue-800-dark">
           {/* Main title - fades out and slides right */}
           <Transition
             show={!showInfo}
@@ -44,8 +44,7 @@ export const InfoToggleContainer = ({
             leave="transition-all duration-300 absolute"
             leaveFrom="opacity-100 translate-x-0"
             leaveTo="opacity-0 translate-x-8"
-            as="h3"
-            className="text-xl font-semibold text-gray-900 dark:text-gray-900-dark"
+            as="div"
           >
             {title}
           </Transition>
@@ -59,8 +58,8 @@ export const InfoToggleContainer = ({
             leave="transition-all duration-300 absolute"
             leaveFrom="opacity-100 translate-x-0"
             leaveTo="opacity-0 -translate-x-8"
-            as="h3"
-            className="inset-0 text-xl font-semibold text-blue-600 dark:text-blue-600-dark"
+            as="div"
+            className="inset-0"
           >
             {infoTitle}
           </Transition>
@@ -107,6 +106,7 @@ export const InfoToggleContainer = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
           as="div"
+          className="text-blue-800 dark:text-blue-800-dark"
         >
           {infoContent}
         </Transition>
