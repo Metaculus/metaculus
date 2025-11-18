@@ -1,5 +1,7 @@
 "use client";
 
+import { faChain } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { Dispatch, SetStateAction, useState } from "react";
 
@@ -48,7 +50,11 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
           ? t.rich("newsMatchCount", { count: articles.length })
           : t("newsMatch"),
     },
-    { value: "url" as const, label: t("pasteUrl") },
+    {
+      value: "url" as const,
+      label: t("pasteUrl"),
+      icon: <FontAwesomeIcon icon={faChain} />,
+    },
   ];
 
   return (
@@ -58,14 +64,15 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
       onChange={(v) => setCurrentTab(v as "news_match" | "url")}
       className="bg-transparent dark:bg-transparent"
     >
-      <TabsList className="static bg-transparent pb-0 dark:bg-transparent">
+      <TabsList className="static bg-transparent pb-0 antialiased dark:bg-transparent">
         {tabDefs.map((tab) => (
           <TabsTab
             key={tab.value}
             value={tab.value}
             scrollOnSelect={false}
+            icon={tab?.icon}
             dynamicClassName={(isActive) =>
-              `py-2 font-medium h-8 leading-[16px] ${
+              `py-2 !text-sm font-medium h-8 !px-3 [&>span]:-mt-[1px] [&>span]:gap-2 leading-[16px] ${
                 isActive
                   ? ""
                   : "text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark border border-blue-400 dark:border-blue-400-dark"
