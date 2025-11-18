@@ -9,12 +9,11 @@ import { User } from "@/types/users";
 
 import { KeyFactorsProvider, useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
+import { KFType } from "../types";
+import KeyFactorsBaseRateCreationBlock from "./creation_blocks/key_factors_base_rate_creation_block";
 import KeyFactorsDriverCreationBlock from "./creation_blocks/key_factors_driver_creation_block";
 import KeyFactorsBreadcrumbs from "./key_factors_breadcrumbs";
 import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
-import Stub from "./stub";
-import { KFType } from "../types";
-import KeyFactorsBaseRateCreationBlock from "./creation_blocks/key_factors_base_rate_creation_block";
 
 type Props = {
   isOpen: boolean;
@@ -104,9 +103,7 @@ const KeyFactorsAddModalBody: React.FC<{
               onClose={onClose}
               onSuccess={onSuccess}
             />
-          ) : (
-            <Stub selectedType={selectedType} />
-          )}
+          ) : null}
         </div>
       )}
     </>

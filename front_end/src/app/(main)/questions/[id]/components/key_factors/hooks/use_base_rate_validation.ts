@@ -10,6 +10,8 @@ export type KFErrors = Record<string, string | undefined>;
 const MIN_REF_LEN = 20;
 const MAX_REF_LEN = 120;
 
+const ALLOWED_EXTRAPOLATIONS = new Set(["linear", "exponential", "other"]);
+
 function looksLikeUrl(raw: string): boolean {
   const value = raw.trim();
   if (!value) return false;
@@ -91,7 +93,10 @@ export default function useBaseRateValidation(
         errs.projected_by_year = t("yearOutOfRange", { min: 1900, max: 2100 });
       }
 
-      if (!br.extrapolation) errs.extrapolation = t("extrapolationRequired");
+      const extrap = (br.extrapolation ?? "").trim();
+      if (!ALLOWED_EXTRAPOLATIONS.has(extrap)) {
+        errs.extrapolation = t("extrapolationRequired");
+      }
     }
 
     const isValid = Object.values(errs).every((m) => !m);
