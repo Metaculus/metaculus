@@ -1,14 +1,12 @@
 "use client";
 import { faCheck, faClose, faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useMemo } from "react";
 
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import { KeyFactor, KeyFactorVoteAggregate } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
-import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
 import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import KeyFactorItem from "./item_view";
@@ -69,22 +67,16 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
 }) => {
   const { addSingleSuggestedKeyFactor } = useKeyFactorsCtx();
 
+  if (suggestedKeyFactors.length === 0) return null;
+
   const removeAt = (idx: number) => {
     setSuggestedKeyFactors((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const filteredSuggestedKeyFactors = useMemo(
-    () =>
-      suggestedKeyFactors.filter((kf) => {
-        return isDriverDraft(kf) || isBaseRateDraft(kf);
-      }),
-    [suggestedKeyFactors]
-  );
-
   return (
     <div id="suggested-key-factors" className="flex flex-col gap-2">
       <KeyFactorsCarousel
-        items={filteredSuggestedKeyFactors}
+        items={suggestedKeyFactors}
         gapClassName="gap-3.5"
         renderItem={(kf, idx) => {
           const question = post.group_of_questions?.questions.find(
@@ -141,12 +133,10 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
                     removeAt(idx);
                   }}
                 />
-
                 <KeyFactorActionButton
                   kind="edit"
                   onClick={() => onEdit(kf, idx)}
                 />
-
                 <KeyFactorActionButton
                   kind="reject"
                   onClick={() => removeAt(idx)}
