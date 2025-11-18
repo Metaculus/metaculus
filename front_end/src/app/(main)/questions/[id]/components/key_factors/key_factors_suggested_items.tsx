@@ -7,6 +7,7 @@ import { KeyFactor, KeyFactorVoteAggregate } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
+import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
 import { inferEffectiveQuestionTypeFromPost } from "@/utils/questions/helpers";
 
 import KeyFactorItem from "./item_view";
@@ -77,6 +78,7 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
         items={suggestedKeyFactors}
         gapClassName="gap-3.5"
         renderItem={(kf, idx) => {
+          if (!isDriverDraft(kf) && !isBaseRateDraft(kf)) return null;
           const question = post.group_of_questions?.questions.find(
             (obj) => obj.id === kf.question_id
           );
