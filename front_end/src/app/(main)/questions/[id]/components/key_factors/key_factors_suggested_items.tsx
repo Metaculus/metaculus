@@ -51,7 +51,11 @@ type Props = {
   setSuggestedKeyFactors: React.Dispatch<
     React.SetStateAction<KeyFactorDraft[]>
   >;
-  onEdit: (kf: KeyFactorDraft, index: number) => void;
+  onEdit: (
+    kf: KeyFactorDraft,
+    index: number,
+    opts?: { showErrors?: boolean }
+  ) => void;
 };
 
 const KeyFactorsSuggestedItems: React.FC<Props> = ({
@@ -121,6 +125,7 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
                   onClick={async () => {
                     const res = await addSingleSuggestedKeyFactor(kf);
                     if (!res || ("errors" in res && res.errors)) {
+                      onEdit(kf, idx, { showErrors: true });
                       return;
                     }
                     removeAt(idx);

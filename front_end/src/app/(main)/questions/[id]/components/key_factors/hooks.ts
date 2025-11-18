@@ -19,6 +19,8 @@ import { KeyFactorDraft } from "@/types/key_factors";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
 
+import { coerceBaseForType } from "./item_creation/base_rate/utils";
+
 type UseKeyFactorsProps = {
   user_id: number | undefined;
   commentId?: number;
@@ -146,7 +148,9 @@ export const useKeyFactors = ({
     );
 
     const baseRatePayloads: KeyFactorWritePayload[] = finalBaseRates.map((d) =>
-      applyTargetForDraft(d, { base_rate: d.base_rate })
+      applyTargetForDraft(d, {
+        base_rate: coerceBaseForType(d),
+      })
     );
 
     const writePayloads = [...driverPayloads, ...baseRatePayloads];
@@ -193,7 +197,12 @@ export const useKeyFactors = ({
       ? "driver"
       : "base_rate";
 
-    return onSubmit([draft], [], submitType);
+    const res = await onSubmit([draft], [], submitType);
+
+    if (res && "errors" in res && res.errors) {
+      setErrors(res.errors as ErrorResponse);
+    }
+    return res;
   };
 
   const [submit, isPending] = useServerAction(onSubmit);

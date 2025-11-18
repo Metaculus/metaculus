@@ -37,27 +37,28 @@ export const coerceBaseForType = (
   unitFallback = ""
 ): BaseRateDraft["base_rate"] => {
   const br = draft.base_rate;
-  const common = {
+
+  const base = {
+    type: br.type,
     reference_class: br.reference_class ?? "",
     unit: br.unit ?? unitFallback,
-    extrapolation: br.extrapolation ?? "",
-    based_on: br.based_on ?? "",
     source: br.source ?? "",
   };
 
   if (br.type === "frequency") {
     return {
-      type: "frequency",
-      ...common,
+      ...base,
       rate_numerator: br.rate_numerator ?? null,
       rate_denominator: br.rate_denominator ?? null,
     };
   }
+
   return {
-    type: "trend",
-    ...common,
+    ...base,
     projected_value: br.projected_value ?? null,
     projected_by_year: br.projected_by_year ?? null,
+    extrapolation: br.extrapolation ?? "",
+    based_on: br.based_on ?? "",
   };
 };
 

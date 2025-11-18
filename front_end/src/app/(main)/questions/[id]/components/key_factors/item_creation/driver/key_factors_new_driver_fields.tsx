@@ -1,6 +1,6 @@
 import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/item_creation/driver/impact_direction_controls";
 import { Input } from "@/components/ui/form_field";
@@ -23,6 +23,7 @@ type Props = {
   showXButton: boolean;
   onXButtonClick: () => void;
   post: PostWithForecasts;
+  showErrorsSignal?: number;
 };
 
 const KeyFactorsNewDriverFields: FC<Props> = ({
@@ -31,8 +32,10 @@ const KeyFactorsNewDriverFields: FC<Props> = ({
   showXButton,
   onXButtonClick,
   post,
+  showErrorsSignal = 0,
 }) => {
   const t = useTranslations();
+  const [showLocalErrors, setShowLocalErrors] = useState(false);
   const questionTypeBase = inferEffectiveQuestionTypeFromPost(post);
   let questionType = questionTypeBase;
   let effectiveUnit = isQuestionPost(post) ? post.question.unit : undefined;
@@ -51,6 +54,12 @@ const KeyFactorsNewDriverFields: FC<Props> = ({
     return result.error.issues[0]?.message ?? null;
   }, [draft.driver.text]);
 
+  useEffect(() => {
+    if (showErrorsSignal > 0) {
+      setShowLocalErrors(true);
+    }
+  }, [showErrorsSignal]);
+
   return (
     <KeyFactorsNewItemContainer
       showDeleteButton={showXButton}
@@ -61,12 +70,13 @@ const KeyFactorsNewDriverFields: FC<Props> = ({
       <Input
         value={draft.driver.text}
         placeholder={t("driverInputPlaceholder")}
-        onChange={(e) =>
+        onChange={(e) => {
+          if (!showLocalErrors) setShowLocalErrors(true);
           setDraft({
             ...draft,
             driver: { ...draft.driver, text: e.target.value },
-          })
-        }
+          });
+        }}
         className="grow rounded-none border-0 border-b border-blue-400 bg-transparent px-0 py-1 text-base text-blue-700 outline-0 placeholder:text-blue-700 placeholder:text-opacity-50 dark:border-blue-400-dark dark:text-blue-700-dark dark:placeholder:text-blue-700-dark"
       />
       {validationError && (

@@ -2,7 +2,7 @@
 
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
@@ -26,6 +26,14 @@ type Props = {
   setSelectedType: React.Dispatch<React.SetStateAction<KFType>>;
 };
 
+type EditingSession = {
+  id: number;
+  draft: KeyFactorDraft;
+  originalDraft: KeyFactorDraft;
+  index: number;
+  showErrors: boolean;
+};
+
 const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
   onBack,
   postData,
@@ -40,64 +48,90 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     isLoadingSuggestedKeyFactors,
   } = useKeyFactorsCtx();
 
-  const [editingDraft, setEditingDraft] = useState<KeyFactorDraft | null>(null);
-  const [editingOriginalDraft, setEditingOriginalDraft] =
-    useState<KeyFactorDraft | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingSessions, setEditingSessions] = useState<EditingSession[]>([]);
+  const editingIdRef = useRef(0);
 
-  const setSuggestedWithSideEffects: typeof setSuggestedKeyFactors = (
-    updater
+  const prevLenRef = useRef(suggestedKeyFactors.length);
+
+  useEffect(() => {
+    const prevLen = prevLenRef.current;
+    const currLen = suggestedKeyFactors.length;
+    prevLenRef.current = currLen;
+
+    const becameEmpty = prevLen > 0 && currLen === 0;
+
+    if (
+      becameEmpty &&
+      !isLoadingSuggestedKeyFactors &&
+      editingSessions.length === 0
+    ) {
+      setSelectedType(null);
+    }
+  }, [
+    suggestedKeyFactors.length,
+    isLoadingSuggestedKeyFactors,
+    editingSessions.length,
+    setSelectedType,
+  ]);
+
+  const updateEditingSession = (
+    id: number,
+    updater: (session: EditingSession) => EditingSession
   ) => {
+    setEditingSessions((prev) =>
+      prev.map((session) => (session.id === id ? updater(session) : session))
+    );
+  };
+
+  const removeEditingSession = (id: number) => {
+    setEditingSessions((prev) => prev.filter((session) => session.id !== id));
+  };
+
+  const reinsertIntoSuggestions = (
+    draftToInsert: KeyFactorDraft | null,
+    index: number
+  ) => {
+    if (!draftToInsert) return;
+
     setSuggestedKeyFactors((prev) => {
-      const next =
-        typeof updater === "function"
-          ? (updater as (p: KeyFactorDraft[]) => KeyFactorDraft[])(prev)
-          : updater;
-
-      if (next.length === 0 && !editingDraft) {
-        setSelectedType(null);
-      }
-
+      const next = [...prev];
+      const clampedIndex = Math.min(index, next.length);
+      next.splice(clampedIndex, 0, draftToInsert);
       return next;
     });
   };
 
-  const handleEdit = (kf: KeyFactorDraft, idx: number) => {
-    setEditingOriginalDraft(kf);
-    setEditingDraft(kf);
-    setEditingIndex(idx);
+  const handleEdit = (
+    kf: KeyFactorDraft,
+    idx: number,
+    opts?: { showErrors?: boolean }
+  ) => {
+    const id = editingIdRef.current++;
+    setEditingSessions((prev) => [
+      ...prev,
+      {
+        id,
+        draft: kf,
+        originalDraft: kf,
+        index: idx,
+        showErrors: !!opts?.showErrors,
+      },
+    ]);
     setSuggestedKeyFactors((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const resetEditing = () => {
-    setEditingDraft(null);
-    setEditingOriginalDraft(null);
-    setEditingIndex(null);
+  const handleApplyEdit = (sessionId: number) => {
+    const session = editingSessions.find((s) => s.id === sessionId);
+    if (!session) return;
+    reinsertIntoSuggestions(session.draft, session.index);
+    removeEditingSession(sessionId);
   };
 
-  const reinsertIntoSuggestions = (draftToInsert: KeyFactorDraft | null) => {
-    if (!draftToInsert) return;
-
-    setSuggestedWithSideEffects((prev) => {
-      const next = [...prev];
-      const idx =
-        editingIndex === null
-          ? next.length
-          : Math.min(editingIndex, next.length);
-      next.splice(idx, 0, draftToInsert);
-      return next;
-    });
-  };
-
-  const handleApplyEdit = () => {
-    if (!editingDraft) return;
-    reinsertIntoSuggestions(editingDraft);
-    resetEditing();
-  };
-
-  const handleDiscardEdit = () => {
-    reinsertIntoSuggestions(editingOriginalDraft);
-    resetEditing();
+  const handleDiscardEdit = (sessionId: number) => {
+    const session = editingSessions.find((s) => s.id === sessionId);
+    if (!session) return;
+    reinsertIntoSuggestions(session.originalDraft, session.index);
+    removeEditingSession(sessionId);
   };
 
   const EditingToolbar = ({
@@ -113,34 +147,59 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     </div>
   );
 
-  const renderEditingBlock = (content: ReactNode) => (
-    <div className="relative">
-      <EditingToolbar onApply={handleApplyEdit} onDiscard={handleDiscardEdit} />
+  const renderEditingBlock = (session: EditingSession, content: ReactNode) => (
+    <div key={session.id} className="relative">
+      <EditingToolbar
+        onApply={() => handleApplyEdit(session.id)}
+        onDiscard={() => handleDiscardEdit(session.id)}
+      />
       {content}
     </div>
   );
 
-  let editingForm: ReactNode = null;
-
-  if (editingDraft && isDriverDraft(editingDraft)) {
-    editingForm = renderEditingBlock(
-      <KeyFactorsNewDriverFields
-        draft={editingDraft}
-        setDraft={(next) => setEditingDraft(next)}
-        showXButton={false}
-        onXButtonClick={handleDiscardEdit}
-        post={postData}
-      />
-    );
-  } else if (editingDraft && isBaseRateDraft(editingDraft)) {
-    editingForm = renderEditingBlock(
-      <KeyFactorsBaseRateForm
-        draft={editingDraft}
-        setDraft={(next) => setEditingDraft(next)}
-        post={postData}
-      />
-    );
-  }
+  const editingForms = editingSessions.flatMap((session) => {
+    if (isDriverDraft(session.draft)) {
+      return [
+        renderEditingBlock(
+          session,
+          <KeyFactorsNewDriverFields
+            key={session.id}
+            draft={session.draft}
+            setDraft={(next) =>
+              updateEditingSession(session.id, (prev) => ({
+                ...prev,
+                draft: next,
+              }))
+            }
+            showXButton={false}
+            onXButtonClick={() => handleDiscardEdit(session.id)}
+            post={postData}
+            showErrorsSignal={session.showErrors ? 1 : 0}
+          />
+        ),
+      ];
+    }
+    if (isBaseRateDraft(session.draft)) {
+      return [
+        renderEditingBlock(
+          session,
+          <KeyFactorsBaseRateForm
+            key={session.id}
+            draft={session.draft}
+            setDraft={(next) =>
+              updateEditingSession(session.id, (prev) => ({
+                ...prev,
+                draft: next,
+              }))
+            }
+            post={postData}
+            showErrorsSignal={session.showErrors ? 1 : 0}
+          />
+        ),
+      ];
+    }
+    return [];
+  });
 
   const showInitialLoader =
     isLoadingSuggestedKeyFactors && suggestedKeyFactors.length === 0;
@@ -149,7 +208,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     !showInitialLoader &&
     !isLoadingSuggestedKeyFactors &&
     suggestedKeyFactors.length === 0 &&
-    !editingDraft;
+    editingSessions.length === 0;
 
   return (
     <KeyFactorsNewItemContainer
@@ -174,13 +233,15 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
         </p>
       )}
 
-      {!showInitialLoader && editingForm}
+      {!showInitialLoader && editingForms.length > 0 && (
+        <div className="flex flex-col gap-4">{editingForms}</div>
+      )}
 
       {!showInitialLoader && user && suggestedKeyFactors.length > 0 && (
         <KeyFactorsSuggestedItems
           post={postData}
           suggestedKeyFactors={suggestedKeyFactors}
-          setSuggestedKeyFactors={setSuggestedWithSideEffects}
+          setSuggestedKeyFactors={setSuggestedKeyFactors}
           onEdit={handleEdit}
           user={user}
         />
