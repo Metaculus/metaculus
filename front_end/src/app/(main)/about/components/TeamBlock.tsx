@@ -331,13 +331,20 @@ const people: Person[] = [
     position: "Founder, MightyMeld",
     imgSrc: "https://cdn.metaculus.com/about/steven_schkolne.webp",
     introduction:
-      "Steven Schkolne is a computer scientist, artist, and entrepreneur who has worked with companies such as BMW, Microsoft, and Disney. He laid the foundations for popular VR art programs like Tilt Brush and Quill while at Caltech, where he also earned his MS and PhD in Computer Science. Steven has also founded and grown companies, including Vain Media and 3dSunshine. Steven’s design leadership shaped past iterations of Metaculus, and he currently advises on UI/UX across the platform.",
+      "Steven Schkolne is a computer scientist, artist, and entrepreneur who has worked with companies such as BMW, Microsoft, and Disney. He laid the foundations for popular VR art programs like Tilt Brush and Quill while at Caltech, where he also earned his MS and PhD in Computer Science. Steven has also founded and grown companies, including Vain Media and 3dSunshine. Steven's design leadership shaped past iterations of Metaculus, and he currently advises on UI/UX across the platform.",
     socials: [
       {
         link: "https://www.linkedin.com/in/schkolne/",
         platform: "LinkedIn",
       },
     ],
+  },
+  {
+    name: "Seth Killian",
+    position: "Game Designer\nCo-Founder, Evo Championship Series",
+    imgSrc: "https://cdn.metaculus.com/seth01.JPG",
+    introduction:
+      "Seth Killian was a graduate fellow at the UIUC Center for Advanced Study teaching philosophy when he was recruited by Capcom into game development. As a designer and founder, he helped revive the Street Fighter series with Street Fighter IV, co-founded the first team acquired by Riot Games, served as lead designer on Fortnite, and as Head of Game Design for Netflix. As a player and organizer, he played on the first US National Street Fighter team, hosted the first fighting game broadcast on ESPN, and co-founded the Evo Championship Series, which has grown to become the largest live gaming competition in the world.",
   },
 ];
 
@@ -376,6 +383,7 @@ const groups: Groups = {
     "Burak Nehbit",
     "Jordan Rubin",
     "Steven Schkolne",
+    "Seth Killian",
   ],
 };
 
@@ -432,7 +440,7 @@ const TeamBlock: FC = ({}) => {
                     {name}
                   </h3>
                   {position && (
-                    <p className="my-1 text-base leading-tight text-blue-700 dark:text-blue-500">
+                    <p className="my-1 whitespace-pre-line text-base leading-tight text-blue-700 dark:text-blue-500">
                       {position}
                     </p>
                   )}
