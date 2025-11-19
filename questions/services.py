@@ -713,7 +713,7 @@ def create_forecast(
     end_time = kwargs.pop("end_time", None)
 
     # if the forecast to be created is for a multiple choice question during a grace
-    # period, we need to set a agument forecast accordingly
+    # period, we need to agument the forecast accordingly (possibly preregister)
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
         if not probability_yes_per_category:
             raise ValueError("probability_yes_per_category required for MC questions")
@@ -724,7 +724,7 @@ def create_forecast(
             )
             if period_end > now:
                 all_options = get_all_options_from_history(question.options_history)
-                _, prior_options = options_history[-2]
+                prior_options = options_history[-2][1]
                 if end_time is None or end_time > period_end:
                     # create a pre-registration for the given forecast
                     source = kwargs.pop("source", None)
@@ -740,7 +740,7 @@ def create_forecast(
                     )
                     if source:
                         kwargs["source"] = source
-                    end_time = period_end  # set end_time to period_end for regular created forecast
+                    end_time = period_end
 
                 prior_pmf = [0.0] * len(all_options)
                 for i, (option, value) in enumerate(

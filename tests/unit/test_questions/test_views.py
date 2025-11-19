@@ -181,6 +181,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
                         start_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=None,
+                        source=Forecast.SourceChoices.AUTOMATIC,
                     ),
                 ],
             ),  # forecasting during a grace period
@@ -208,6 +209,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
                         start_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2027, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.AUTOMATIC,
                     ),
                 ],
             ),  # forecasting during a grace period with end time
@@ -241,6 +243,7 @@ class TestQuestionForecast:
             assert f.start_time == e.start_time
             assert f.end_time == e.end_time
             assert f.probability_yes_per_category == e.probability_yes_per_category
+            assert f.source == e.source
 
     @pytest.mark.parametrize(
         "props",

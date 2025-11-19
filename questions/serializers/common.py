@@ -645,7 +645,7 @@ def serialize_question(
         user_forecasts = question.request_user_forecasts
         last_forecast = user_forecasts[-1] if user_forecasts else None
         # if the user has a pre-registered forecast,
-        # replace the the current (and anything after) with it
+        # replace the current forecast and anything after it
         if question.type == Question.QuestionType.MULTIPLE_CHOICE:
             # Right now, Multiple Choice is the only type that can have pre-registered
             # forecasts
