@@ -83,9 +83,9 @@ export const InfoToggleContainer = ({
       <div className="relative">
         <Transition
           show={!showInfo}
-          enter=""
-          enterFrom=""
-          enterTo=""
+          enter="transition-opacity duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
           leave="transition-opacity duration-300 absolute w-full top-0"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
