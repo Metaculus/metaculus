@@ -18,11 +18,12 @@ import { getProxiedFaviconUrl } from "../../../../utils";
 type Props = {
   article: NewsArticle;
   selected: boolean;
-  impact: { impact_direction: 1 | -1 | null; certainty: -1 | null } | null;
+  impact: ImpactMetadata | null;
   onToggleSelect: (id: number) => void;
   onSelectImpact: (id: number, impact: ImpactMetadata) => void;
   questionType?: QuestionType;
   unit?: string;
+  className?: string;
 };
 
 const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
@@ -33,6 +34,7 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
   onSelectImpact,
   questionType = QuestionType.Binary,
   unit,
+  className,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -50,7 +52,8 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
         "flex cursor-pointer flex-col gap-3 rounded border p-3 antialiased transition-colors duration-150 focus:outline-none",
         selected
           ? "border-blue-700 bg-blue-200 dark:border-blue-700-dark dark:bg-blue-200-dark"
-          : "border-blue-400 bg-blue-100 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:hover:bg-blue-200-dark"
+          : "border-blue-400 bg-blue-100 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:hover:bg-blue-200-dark",
+        className
       )}
     >
       <div className="flex items-start gap-[14px]">

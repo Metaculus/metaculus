@@ -34,30 +34,47 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
     certainty: null,
   });
 
+  const [pastedArticle, setPastedArticle] = useState<NewsArticle | null>(null);
+
   const canSubmit = useMemo(() => {
-    if (isPending || selectedId == null) return false;
+    if (isPending) return false;
+
+    const hasArticleFromMatches =
+      selectedId != null && articles.some((a) => a.id === selectedId);
+    const hasPastedArticle = !!pastedArticle;
+
     const m = selectedImpact;
-    return (
+    const hasImpact =
       !!m &&
       (m.impact_direction === 1 ||
         m.impact_direction === -1 ||
-        m.certainty === -1)
-    );
-  }, [isPending, selectedId, selectedImpact]);
+        m.certainty === -1);
+
+    return (hasArticleFromMatches || hasPastedArticle) && hasImpact;
+  }, [isPending, selectedId, pastedArticle, selectedImpact, articles]);
 
   const handleSubmit = async () => {
-    if (!canSubmit || selectedId == null) return;
+    if (!canSubmit) return;
 
-    const a = articles.find((x) => x.id === selectedId);
+    let a: NewsArticle | undefined;
+
+    if (selectedId != null) {
+      a = articles.find((x) => x.id === selectedId);
+    } else if (pastedArticle) {
+      a = pastedArticle;
+    }
+
+    if (!a) return;
+
     const m = selectedImpact;
     const drafts: NewsDraft[] = [
       {
         news: {
-          url: a?.url,
-          title: a?.title,
-          img_url: a?.favicon_url ?? "",
-          source: a?.media_label,
-          published_at: a?.created_at,
+          url: a.url,
+          title: a.title,
+          img_url: a.favicon_url ?? "",
+          source: a.media_label,
+          published_at: a.created_at,
           impact_direction: m?.impact_direction ?? null,
           certainty: m?.certainty ?? null,
         },
@@ -91,6 +108,7 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
         setSelectedImpact={setSelectedImpact}
         setSelectedId={setSelectedId}
         setArticles={setArticles}
+        onUrlPreviewLoaded={setPastedArticle}
       />
 
       <KeyFactorsModalFooter

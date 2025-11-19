@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
 import type { ImpactMetadata } from "@/types/comment";
 import type { NewsArticle } from "@/types/news";
 import type { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
 
 import KeyFactorsPasteUrlTab from "./key_factors_paste_url_tab";
 import KeyFactorsSuggestedNewsTab from "./key_factors_suggested_news_tab";
@@ -21,6 +22,8 @@ type Props = {
   setSelectedImpact: Dispatch<SetStateAction<ImpactMetadata>>;
   setArticles: Dispatch<SetStateAction<NewsArticle[]>>;
   setSelectedId: Dispatch<SetStateAction<number | null>>;
+  onUrlPreviewLoaded?: (article: NewsArticle | null) => void;
+  className?: string;
 };
 
 const KeyFactorsNewsForm: React.FC<Props> = ({
@@ -31,16 +34,13 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
   setSelectedImpact,
   setArticles,
   setSelectedId,
+  onUrlPreviewLoaded,
+  className,
 }) => {
   const t = useTranslations();
   const [currentTab, setCurrentTab] = useState<"news_match" | "url">(
     "news_match"
   );
-  const [pasteUrl, setPasteUrl] = useState("");
-  const [pasteImpact, setPasteImpact] = useState<ImpactMetadata>({
-    impact_direction: null,
-    certainty: null,
-  });
 
   const tabDefs = [
     {
@@ -62,7 +62,7 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
       defaultValue={currentTab}
       value={currentTab}
       onChange={(v) => setCurrentTab(v as "news_match" | "url")}
-      className="bg-transparent dark:bg-transparent"
+      className={cn("bg-transparent dark:bg-transparent", className)}
     >
       <TabsList className="static bg-transparent pb-0 antialiased dark:bg-transparent">
         {tabDefs.map((tab) => (
@@ -99,11 +99,9 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
       <TabsSection value="url">
         <KeyFactorsPasteUrlTab
           post={post}
-          url={pasteUrl}
-          setUrl={setPasteUrl}
-          selectedImpact={pasteImpact}
-          setSelectedImpact={setPasteImpact}
-          showError={false}
+          selectedImpact={selectedImpact}
+          setSelectedImpact={setSelectedImpact}
+          onPreviewLoaded={onUrlPreviewLoaded}
         />
       </TabsSection>
     </Tabs>
