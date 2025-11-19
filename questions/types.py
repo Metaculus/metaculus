@@ -6,9 +6,6 @@ from django.db.models import TextChoices
 OptionsHistoryType = list[tuple[float, list[str]]]
 
 
-OptionsHistoryType = list[tuple[float, list[str]]]
-
-
 class Direction(TextChoices):
     UNCHANGED = "unchanged"
     UP = "up"
