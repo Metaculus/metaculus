@@ -1,7 +1,8 @@
 "use client";
 
-import { faCircleInfo, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, {
   forwardRef,
@@ -12,6 +13,7 @@ import React, {
   useState,
 } from "react";
 
+import { InfoToggleContainer } from "@/components/ui/info_toggle_container";
 import cn from "@/utils/core/cn";
 
 const MIN_BADGE_GAP_PX = 12;
@@ -78,7 +80,7 @@ const BaselineBadge = ({
   icon: ReactNode;
 }) => (
   <div
-    className="absolute z-20 mt-[-12px] flex -translate-x-1/2 flex-col items-center"
+    className="absolute z-10 mt-[-12px] flex -translate-x-1/2 flex-col items-center"
     style={{ marginLeft: `${pos}%` }}
   >
     <div className="mx-auto h-7 w-[1px] bg-gray-500 dark:bg-gray-500-dark" />
@@ -87,7 +89,7 @@ const BaselineBadge = ({
       {icon}
     </div>
 
-    <div className="mt-0.5 text-center text-sm font-medium text-gray-600 dark:text-gray-600-dark">
+    <div className="mt-0.5 text-center text-sm font-medium leading-[16px] text-gray-600 dark:text-gray-600-dark">
       {label}
     </div>
   </div>
@@ -186,7 +188,7 @@ const ScoreVisualization = ({
   return (
     <div className="relative flex flex-col">
       {/* Badges */}
-      <div ref={containerRef} className="relative mx-4 min-h-[60px]">
+      <div ref={containerRef} className="relative mx-4 min-h-[58px]">
         {userScore != null && (
           <Badge
             ref={userRef}
@@ -209,7 +211,7 @@ const ScoreVisualization = ({
       </div>
 
       {/* Gradient background */}
-      <div className="relative z-10 h-3">
+      <div className="relative h-3">
         <div className="absolute inset-0 overflow-hidden rounded-full opacity-35">
           <div
             className="absolute left-0 top-0 h-full"
@@ -240,26 +242,23 @@ const ScoreVisualization = ({
 const ScoreCardContainer = ({
   title,
   children,
+  infoTitle,
+  infoContent,
   className,
-}: PropsWithChildren<{ title: string; className?: string }>) => (
-  <div
-    className={cn(
-      "flex flex-col gap-4 rounded-lg border border-gray-300 bg-gray-0 p-4 dark:border-gray-300-dark dark:bg-gray-0-dark",
-      className
-    )}
+}: PropsWithChildren<{
+  title: string;
+  infoTitle: ReactNode;
+  infoContent: ReactNode;
+  className?: string;
+}>) => (
+  <InfoToggleContainer
+    title={title}
+    infoTitle={infoTitle}
+    infoContent={infoContent}
+    className={className}
   >
-    <div className="flex items-center justify-between">
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900-dark">
-        {title}
-      </h3>
-      <FontAwesomeIcon
-        icon={faCircleInfo}
-        className="text-base text-gray-400 dark:text-gray-400-dark"
-      />
-    </div>
-
     {children}
-  </div>
+  </InfoToggleContainer>
 );
 
 export const PeerScoreCard = ({
@@ -273,7 +272,22 @@ export const PeerScoreCard = ({
 }) => {
   const t = useTranslations();
   return (
-    <ScoreCardContainer title={t("peerScore")} className={className}>
+    <ScoreCardContainer
+      title={t("peerScore")}
+      infoTitle={t("whatIsPeerScore")}
+      infoContent={
+        <>
+          <p className="my-0 mb-2.5">{t("peerScoreExplanation")}</p>
+          <Link
+            href="/help/scores-faq/#peer-score"
+            className="text-blue-700 underline dark:text-blue-700-dark"
+          >
+            {t("learnMoreAboutPeerScore")}
+          </Link>
+        </>
+      }
+      className={className}
+    >
       <ScoreVisualization
         userScore={userScore}
         communityScore={communityScore}
@@ -304,7 +318,22 @@ export const BaselineScoreCard = ({
 }) => {
   const t = useTranslations();
   return (
-    <ScoreCardContainer title={t("baselineScore")} className={className}>
+    <ScoreCardContainer
+      title={t("baselineScore")}
+      infoTitle={t("whatIsBaselineScore")}
+      infoContent={
+        <>
+          <p className="my-0 mb-2.5">{t("baselineScoreExplanation")}</p>
+          <Link
+            href="/help/scores-faq/#baseline-score"
+            className="text-blue-700 underline dark:text-blue-700-dark"
+          >
+            {t("learnMoreAboutBaselineScore")}
+          </Link>
+        </>
+      }
+      className={className}
+    >
       <ScoreVisualization
         userScore={userScore}
         communityScore={communityScore}
