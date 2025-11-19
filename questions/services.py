@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import cast, Iterable
 
 import sentry_sdk
@@ -37,6 +37,7 @@ from questions.types import AggregationMethod, QuestionMovement
 from questions.utils import (
     get_question_movement_period,
     get_last_forecast_in_the_past,
+    get_all_options_from_history,
 )
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import Leaderboard, Score
@@ -699,21 +700,62 @@ def update_leaderboards_for_question(question: Question):
 
 def create_forecast(
     *,
-    question: Question = None,
-    user: User = None,
-    continuous_cdf: list[float] = None,
-    probability_yes: float = None,
-    probability_yes_per_category: list[float] = None,
+    question: Question,
+    user: User,
+    continuous_cdf: list[float] | None = None,
+    probability_yes: float | None = None,
+    probability_yes_per_category: list[float] | None = None,
     distribution_input=None,
     **kwargs,
 ):
     now = timezone.now()
     post = question.get_post()
+    end_time = kwargs.pop("end_time", None)
 
+    # if the forecast to be created is for a multiple choice question during a grace
+    # period, we need to set a agument forecast accordingly
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+        if not probability_yes_per_category:
+            raise ValueError("probability_yes_per_category required for MC questions")
+        options_history = question.options_history
+        if options_history and len(options_history) > 1:
+            period_end = datetime.fromtimestamp(options_history[-1][0]).replace(
+                tzinfo=dt_timezone.utc
+            )
+            if period_end > now:
+                all_options = get_all_options_from_history(question.options_history)
+                _, prior_options = options_history[-2]
+                if end_time is None or end_time > period_end:
+                    # create a pre-registration for the given forecast
+                    source = kwargs.pop("source", None)
+                    Forecast.objects.create(
+                        question=question,
+                        author=user,
+                        start_time=period_end,
+                        end_time=end_time,
+                        probability_yes_per_category=probability_yes_per_category,
+                        post=post,
+                        source=Forecast.SourceChoices.AUTOMATIC,
+                        **kwargs,
+                    )
+                    if source:
+                        kwargs["source"] = source
+                    end_time = period_end  # set end_time to period_end for regular created forecast
+
+                prior_pmf = [0.0] * len(all_options)
+                for i, (option, value) in enumerate(
+                    zip(all_options, probability_yes_per_category)
+                ):
+                    if option in prior_options:
+                        prior_pmf[i] += value
+                    else:
+                        prior_pmf[-1] += value
+                probability_yes_per_category = prior_pmf
     forecast = Forecast.objects.create(
         question=question,
         author=user,
         start_time=now,
+        end_time=end_time,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
@@ -723,6 +765,7 @@ def create_forecast(
         post=post,
         **kwargs,
     )
+
     # tidy up all forecasts
     # go backwards through time and make sure end_time isn't none for any forecast other
     # than the last one, and there aren't any invalid end_times
