@@ -38,23 +38,41 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
     certainty: null,
   });
 
+  const [pastedArticle, setPastedArticle] = useState<NewsArticle | null>(null);
+
   const canSubmit = useMemo(() => {
-    if (isPending || selectedId == null) return false;
+    if (isPending) return false;
+
+    const hasArticleFromMatches =
+      selectedId != null && articles.some((x) => x.id === selectedId);
+    const hasPastedArticle = !!pastedArticle;
+
     const m = selectedImpact;
-    return (
+    const hasImpact =
       !!m &&
       (m.impact_direction === 1 ||
         m.impact_direction === -1 ||
-        m.certainty === -1)
-    );
-  }, [isPending, selectedId, selectedImpact]);
+        m.certainty === -1);
+
+    return (hasArticleFromMatches || hasPastedArticle) && hasImpact;
+  }, [isPending, selectedId, pastedArticle, selectedImpact, articles]);
 
   const handleSubmit = () => {
-    if (!canSubmit || selectedId == null) return;
-    const article = articles.find((x) => x.id === selectedId);
+    if (!canSubmit) return;
+
+    let article: NewsArticle | undefined;
+
+    if (selectedId != null) {
+      article = articles.find((x) => x.id === selectedId);
+    } else if (pastedArticle) {
+      article = pastedArticle;
+    }
+
     if (!article) return;
+
     onSubmit({ article, impact: selectedImpact });
   };
+
   return (
     <KeyFactorsAddInCommentWrapper
       submitLabel={t("addAsKeyFactor")}
@@ -74,6 +92,8 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
           setSelectedImpact={setSelectedImpact}
           setSelectedId={setSelectedId}
           setArticles={setArticles}
+          onUrlPreviewLoaded={setPastedArticle}
+          className="-mt-2"
         />
         <FormError errors={keyFactorsErrors} />
       </KeyFactorsNewItemContainer>
