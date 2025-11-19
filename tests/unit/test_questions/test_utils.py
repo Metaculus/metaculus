@@ -171,6 +171,41 @@ def test_multiple_choice_rename_option(
             [],
             False,
         ),  # initial forecast is invalid
+        (
+            ["a", "b", "other"],
+            ["b"],
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                ),
+            ],
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                ),
+                Forecast(
+                    start_time=dt(2025, 1, 1),
+                    end_time=None,
+                    probability_yes_per_category=[0.2, 0.0, 0.8],
+                    source=Forecast.SourceChoices.AUTOMATIC,
+                ),
+            ],
+            True,
+        ),  # preserve previous forecasts
     ],
 )
 def test_multiple_choice_delete_options(
@@ -307,6 +342,36 @@ def test_multiple_choice_delete_options(
             ],
             True,
         ),  # no effect
+        (
+            ["a", "b", "other"],
+            ["c"],
+            dt(2025, 1, 1),
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                ),
+            ],
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.0, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    probability_yes_per_category=[0.2, 0.3, 0.0, 0.5],
+                ),
+            ],
+            True,
+        ),  # even edit old forecasts
     ],
 )
 def test_multiple_choice_add_options(
