@@ -33,10 +33,8 @@ export const InfoToggleContainer = ({
       )}
       onClick={() => setShowInfo(!showInfo)}
     >
-      {/* Header with animated title */}
       <div className="flex items-center justify-between">
         <div className="relative mr-4 flex-1 text-lg font-medium text-blue-800 dark:text-blue-800-dark">
-          {/* Main title - fades out and slides right */}
           <Transition
             show={!showInfo}
             enter="transition-all duration-300"
@@ -50,7 +48,6 @@ export const InfoToggleContainer = ({
             {title}
           </Transition>
 
-          {/* Info title - fades in and slides from left */}
           <Transition
             show={showInfo}
             enter="transition-all duration-300"
@@ -83,9 +80,7 @@ export const InfoToggleContainer = ({
         </button>
       </div>
 
-      {/* Content container with overlaid absolute positioning */}
       <div className="relative">
-        {/* Children content - no enter animation, fade out on leave */}
         <Transition
           show={!showInfo}
           enter=""
@@ -99,7 +94,6 @@ export const InfoToggleContainer = ({
           {children}
         </Transition>
 
-        {/* Info content - fade in on enter */}
         <Transition
           show={showInfo}
           enter="transition-opacity duration-300"
