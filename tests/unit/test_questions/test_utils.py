@@ -89,7 +89,7 @@ def test_multiple_choice_rename_option(
                 Forecast(
                     start_time=dt(2025, 1, 1),
                     end_time=None,
-                    probability_yes_per_category=[0.2, 0.8],
+                    probability_yes_per_category=[0.2, 0.0, 0.8],
                     source=Forecast.SourceChoices.AUTOMATIC,
                 ),
             ],
@@ -114,7 +114,7 @@ def test_multiple_choice_rename_option(
                 Forecast(
                     start_time=dt(2025, 1, 1),
                     end_time=None,
-                    probability_yes_per_category=[0.2, 0.8],
+                    probability_yes_per_category=[0.2, 0.0, 0.0, 0.8],
                     source=Forecast.SourceChoices.AUTOMATIC,
                 ),
             ],
@@ -242,7 +242,7 @@ def test_multiple_choice_delete_options(
                 Forecast(
                     start_time=dt(2024, 1, 1),
                     end_time=dt(2025, 1, 1),
-                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                    probability_yes_per_category=[0.2, 0.3, 0.0, 0.5],
                 )
             ],
             True,
@@ -262,7 +262,7 @@ def test_multiple_choice_delete_options(
                 Forecast(
                     start_time=dt(2024, 1, 1),
                     end_time=dt(2025, 1, 1),
-                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                    probability_yes_per_category=[0.2, 0.3, 0.0, 0.0, 0.5],
                 )
             ],
             True,
@@ -282,7 +282,7 @@ def test_multiple_choice_delete_options(
                 Forecast(
                     start_time=dt(2025, 1, 1),
                     end_time=None,
-                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                    probability_yes_per_category=[0.2, 0.3, 0.0, 0.5],
                 )
             ],
             True,
@@ -331,13 +331,18 @@ def test_multiple_choice_add_options(
 
     if not expect_success:
         with pytest.raises(ValueError):
-            multiple_choice_add_options(question, options_to_add, grace_period_end)
+            multiple_choice_add_options(
+                question, options_to_add, grace_period_end, timestep=dt(2024, 7, 1)
+            )
         return
 
-    multiple_choice_add_options(question, options_to_add, grace_period_end)
+    multiple_choice_add_options(
+        question, options_to_add, grace_period_end, timestep=dt(2024, 7, 1)
+    )
 
     question.refresh_from_db()
     expected_options = initial_options[:-1] + options_to_add + initial_options[-1:]
+    assert question.options == expected_options
     ts, options = question.options_history[-1]
     assert ts == (grace_period_end.timestamp() if options_to_add else 0)
     assert options == expected_options

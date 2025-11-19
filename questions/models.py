@@ -9,7 +9,7 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, OptionsHistoryType
 from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -217,7 +217,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     options: list[str] | None = ArrayField(
         models.CharField(max_length=200), blank=True, null=True
     )
-    options_history: list[tuple[float, list[str]]] | None = models.JSONField(
+    options_history: OptionsHistoryType | None = models.JSONField(
         null=True,
         blank=True,
         validators=[validate_options_history],

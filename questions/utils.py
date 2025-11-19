@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from questions.models import Question, AggregateForecast, Forecast
+from questions.types import OptionsHistoryType
 
 
 def get_question_group_title(title: str) -> str:
@@ -76,6 +77,31 @@ def get_last_forecast_in_the_past(
     )
 
 
+def get_all_options_from_history(
+    options_history: OptionsHistoryType | None,
+) -> list[str]:
+    """Returns the list of all options ever available. The last value in the list
+    is always the "catch-all" option.
+
+    example:
+    options_history = [
+        (0, ["a", "b", "other"]),
+        (100, ["a", "b", "c", "other"]),
+        (200, ["a", "c", "other"]),
+    ]
+    return ["a", "b", "c", "other"]
+    """
+    if not options_history:
+        raise ValueError("Cannot make master list from empty history")
+    designated_other_label = options_history[0][1][-1]
+    all_labels: list[str] = []
+    for _, options in options_history:
+        for label in options[:-1]:
+            if label not in all_labels:
+                all_labels.append(label)
+    return all_labels + [designated_other_label]
+
+
 def multiple_choice_rename_option(
     question: Question,
     old_option: str,
@@ -134,8 +160,9 @@ def multiple_choice_delete_options(
         raise ValueError("Timestep is before the last options history entry")
 
     # update question
-    previous_options = question.options.copy()
     new_options = [opt for opt in question.options if opt not in options_to_delete]
+    all_options = get_all_options_from_history(question.options_history)
+
     question.options = new_options
     question.options_history.append((timestep.timestamp(), new_options))
     question.save()
@@ -149,15 +176,15 @@ def multiple_choice_delete_options(
     for forecast in user_forecasts:
         # get new PMF
         previous_pmf = forecast.probability_yes_per_category
-        if len(previous_pmf) != len(previous_options):
+        if len(previous_pmf) != len(all_options):
             raise ValueError(
                 f"Forecast {forecast.id} PMF length does not match "
-                f"previous options {previous_options}"
+                f"all options {all_options}"
             )
-        new_pmf = [0] * len(new_options)
-        for value, label in zip(previous_pmf, previous_options):
+        new_pmf = [0] * len(all_options)
+        for value, label in zip(previous_pmf, all_options):
             if label in new_options:
-                new_pmf[new_options.index(label)] += value
+                new_pmf[all_options.index(label)] += value
             else:
                 new_pmf[-1] += value  # add to catch-all last option
 
@@ -197,6 +224,7 @@ def multiple_choice_add_options(
     question: Question,
     options_to_add: list[str],
     grace_period_end: datetime,
+    timestep: datetime | None = None,
 ) -> Question:
     """
     Modifies question in place and returns it.
@@ -207,6 +235,7 @@ def multiple_choice_add_options(
     """
     if not options_to_add:
         return question
+    timestep = timestep or timezone.now()
     if question.type != Question.QuestionType.MULTIPLE_CHOICE:
         raise ValueError("Question must be multiple choice")
     if not question.options or any([opt in question.options for opt in options_to_add]):
@@ -216,6 +245,8 @@ def multiple_choice_add_options(
 
     if question.options_history[-1][0] > grace_period_end.timestamp():
         raise ValueError("grace_period_end is before the last options history entry")
+    if timestep > grace_period_end:
+        raise ValueError("grace_period_end must end after timestep")
 
     # update question
     new_options = question.options[:-1] + options_to_add + question.options[-1:]
@@ -224,12 +255,20 @@ def multiple_choice_add_options(
     question.save()
 
     # update user forecasts
-    user_forecasts = question.user_forecasts.filter(
-        Q(end_time__isnull=True) | Q(end_time__gt=grace_period_end),
-        start_time__lt=grace_period_end,
-    )
+    user_forecasts = question.user_forecasts.all()
+    for forecast in user_forecasts:
+        pmf = forecast.probability_yes_per_category
+        forecast.probability_yes_per_category = (
+            pmf[:-1] + [0.0] * len(options_to_add) + [pmf[-1]]
+        )
+        if forecast.start_time < grace_period_end and (
+            forecast.end_time is None or forecast.end_time > grace_period_end
+        ):
+            forecast.end_time = grace_period_end
     with transaction.atomic():
-        user_forecasts.update(end_time=grace_period_end)
+        Forecast.objects.bulk_update(
+            user_forecasts, ["probability_yes_per_category", "end_time"]
+        )
 
     # trigger recalculation of aggregates
     from questions.services import build_question_forecasts
