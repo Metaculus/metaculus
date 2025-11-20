@@ -1,24 +1,25 @@
 "use client";
 
-import { faNewspaper } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useLocale, useTranslations } from "next-intl";
-import React from "react";
+import { useTranslations } from "next-intl";
+import React, { Dispatch, SetStateAction } from "react";
 
 import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/item_creation/driver/impact_direction_controls";
-import ImageWithFallback from "@/components/ui/image_with_fallback";
 import { ImpactMetadata } from "@/types/comment";
 import { NewsArticle } from "@/types/news";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { formatDate } from "@/utils/formatters/date";
 
-import { getProxiedFaviconUrl } from "../../../../utils";
+import KeyFactorNewsItem from "../../item_view/news/key_factor_news_item";
+import OptionTargetPicker, { Target } from "../driver/option_target_picker";
 
 type Props = {
+  post: PostWithForecasts;
   article: NewsArticle;
   selected: boolean;
   impact: ImpactMetadata | null;
+  target: Target;
+  onTargetChange: Dispatch<SetStateAction<Target>>;
   onToggleSelect: (id: number) => void;
   onSelectImpact: (id: number, impact: ImpactMetadata) => void;
   questionType?: QuestionType;
@@ -27,9 +28,12 @@ type Props = {
 };
 
 const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
+  post,
   article,
   selected,
   impact,
+  target,
+  onTargetChange,
   onToggleSelect,
   onSelectImpact,
   questionType = QuestionType.Binary,
@@ -37,7 +41,11 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
   className,
 }) => {
   const t = useTranslations();
-  const locale = useLocale();
+
+  const stopAll = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+  };
 
   return (
     <div
@@ -56,35 +64,12 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
         className
       )}
     >
-      <div className="flex items-start gap-[14px]">
-        {article.favicon_url ? (
-          <ImageWithFallback
-            className="size-[42px] rounded"
-            src={getProxiedFaviconUrl(article.favicon_url)}
-            alt={`${article.media_label} logo`}
-            aria-label={`${article.media_label} logo`}
-          >
-            <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
-              <FontAwesomeIcon icon={faNewspaper} size="xl" />
-            </span>
-          </ImageWithFallback>
-        ) : (
-          <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
-        )}
-
-        <div className="flex flex-1 flex-col gap-1.5">
-          <h6 className="my-0 text-sm font-medium text-blue-800 dark:text-blue-800-dark">
-            {article.title}
-          </h6>
-          <div className="flex items-center gap-1.5 text-xs font-normal text-gray-600 dark:text-gray-600-dark">
-            <span>{article.media_label}</span>
-            <span className="text-gray-400 dark:text-gray-400-dark">•</span>
-            <span suppressHydrationWarning>
-              {formatDate(locale, new Date(article.created_at))}
-            </span>
-          </div>
-        </div>
-      </div>
+      <KeyFactorNewsItem
+        faviconUrl={article.favicon_url ?? ""}
+        source={article.media_label}
+        title={article.title}
+        createdAt={article.created_at ?? ""}
+      />
 
       {selected && (
         <>
@@ -112,6 +97,14 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
               impact={impact}
               onSelect={(m) => onSelectImpact(article.id, m)}
               itemClassName="bg-gray-0 dark:bg-gray-0-dark"
+            />
+          </div>
+
+          <div onClick={stopAll} onMouseDown={stopAll} onKeyDown={stopAll}>
+            <OptionTargetPicker
+              post={post}
+              value={target}
+              onChange={onTargetChange}
             />
           </div>
         </>

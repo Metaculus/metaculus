@@ -14,6 +14,7 @@ import { QuestionType } from "@/types/question";
 
 import KeyFactorSuggestedNewsItem from "./key_factor_suggested_news_item";
 import { useKeyFactorsCtx } from "../../key_factors_context";
+import { Target } from "../driver/option_target_picker";
 
 const VISIBLE_STEP = 3;
 
@@ -22,6 +23,8 @@ type Props = {
   articles: NewsArticle[];
   selectedId: number | null;
   selectedImpact: ImpactMetadata;
+  target: Target;
+  onTargetChange: Dispatch<SetStateAction<Target>>;
   setSelectedImpact: Dispatch<SetStateAction<ImpactMetadata>>;
   setArticles: Dispatch<SetStateAction<NewsArticle[]>>;
   setSelectedId: Dispatch<SetStateAction<number | null>>;
@@ -35,6 +38,8 @@ const KeyFactorsSuggestedNewsTab: React.FC<Props> = ({
   setSelectedImpact,
   setArticles,
   setSelectedId,
+  target,
+  onTargetChange,
 }) => {
   const t = useTranslations();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -96,6 +101,9 @@ const KeyFactorsSuggestedNewsTab: React.FC<Props> = ({
           const isSelected = selectedId === a.id;
           return (
             <KeyFactorSuggestedNewsItem
+              post={post}
+              target={target}
+              onTargetChange={onTargetChange}
               key={a.id}
               article={a}
               selected={isSelected}

@@ -14,10 +14,14 @@ import type { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
 import KeyFactorSuggestedNewsItem from "./key_factor_suggested_news_item";
+import { fetchNewsPreview } from "../../utils";
+import OptionTargetPicker, { Target } from "../driver/option_target_picker";
 
 type Props = {
   post: PostWithForecasts;
   selectedImpact: ImpactMetadata;
+  target: Target;
+  onTargetChange: Dispatch<SetStateAction<Target>>;
   setSelectedImpact: Dispatch<SetStateAction<ImpactMetadata>>;
   onPreviewLoaded?: (article: NewsArticle | null) => void;
 };
@@ -27,6 +31,8 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
   selectedImpact,
   setSelectedImpact,
   onPreviewLoaded,
+  target,
+  onTargetChange,
 }) => {
   const t = useTranslations();
 
@@ -47,6 +53,11 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
     post.group_of_questions?.questions?.[0]?.type ??
     QuestionType.Binary;
 
+  const stopAll = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+  };
+
   useEffect(() => {
     const effectiveUrl = debouncedUrl.trim();
 
@@ -64,35 +75,14 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
 
     (async () => {
       try {
-        const res = await fetch(
-          `/link-preview?url=${encodeURIComponent(effectiveUrl)}`,
-          { signal: controller.signal }
-        );
+        const preview = await fetchNewsPreview(effectiveUrl, controller.signal);
 
-        if (!res.ok) {
-          let message = "Failed to fetch preview";
-          try {
-            const data = await res.json();
-            if (data?.error) message = data.error;
-          } catch {
-            // ignore JSON parse errors
-          }
-          setPreviewError(message);
+        if (!preview) {
+          setPreviewError("Failed to fetch preview");
           setArticle(null);
           onPreviewLoadedRef.current?.(null);
           return;
         }
-
-        const data = await res.json();
-
-        const preview: NewsArticle = {
-          id: Date.now(),
-          url: data.url ?? effectiveUrl,
-          title: data.title ?? effectiveUrl,
-          favicon_url: data.logo ?? data.favicon ?? "",
-          media_label: data.siteName ?? data.source ?? "",
-          created_at: data.published ?? new Date().toISOString(),
-        } as NewsArticle;
 
         setArticle(preview);
         onPreviewLoadedRef.current?.(preview);
@@ -151,6 +141,9 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
             article={article}
             selected={false}
             impact={null}
+            post={post}
+            target={target}
+            onTargetChange={onTargetChange}
             onToggleSelect={() => {}}
             onSelectImpact={() => {}}
             questionType={questionType}
@@ -170,6 +163,14 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
         impact={selectedImpact}
         onSelect={setSelectedImpact}
       />
+
+      <div onClick={stopAll} onMouseDown={stopAll} onKeyDown={stopAll}>
+        <OptionTargetPicker
+          post={post}
+          value={target}
+          onChange={onTargetChange}
+        />
+      </div>
     </div>
   );
 };
