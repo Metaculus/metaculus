@@ -2,10 +2,15 @@ import { useTranslations } from "next-intl";
 import { PropsWithChildren, Suspense } from "react";
 
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
+import PostScoreData from "@/app/(main)/questions/[id]/components/post_score_data";
 import ConsumerTabs from "@/app/(main)/questions/[id]/components/question_layout/consumer_question_layout/consumer_tabs";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import { TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
-import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import {
+  GroupOfQuestionsGraphType,
+  PostStatus,
+  PostWithForecasts,
+} from "@/types/post";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import QuestionTimeline, {
@@ -47,6 +52,9 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <NewsPresence questionId={postData.id}>
                 <TabsTab value="news">{t("inNews")}</TabsTab>
               </NewsPresence>
+              {postData.status === PostStatus.RESOLVED && (
+                <TabsTab value="scores">{t("resolutionScores")}</TabsTab>
+              )}
               <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
             </TabsList>
@@ -81,6 +89,15 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 </Suspense>
               </TabsSection>
             </NewsPresence>
+            {postData.status === PostStatus.RESOLVED && (
+              <TabsSection value="scores">
+                <PostScoreData
+                  post={postData}
+                  isConsumerView
+                  noSectionWrapper
+                />
+              </TabsSection>
+            )}
             <TabsSection value="key-factors">
               <div className="-m-4 bg-blue-200 p-4 pt-0 dark:bg-blue-200-dark">
                 <KeyFactorsFeed

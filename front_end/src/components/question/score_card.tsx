@@ -265,26 +265,34 @@ export const PeerScoreCard = ({
   userScore,
   communityScore,
   className,
+  title,
+  infoTitle,
+  infoContent,
 }: {
   userScore: number | null | undefined;
   communityScore: number | null | undefined;
   className?: string;
+  title?: string;
+  infoTitle?: ReactNode;
+  infoContent?: ReactNode;
 }) => {
   const t = useTranslations();
   return (
     <ScoreCardContainer
-      title={t("peerScore")}
-      infoTitle={t("whatIsPeerScore")}
+      title={title ?? t("peerScore")}
+      infoTitle={infoTitle ?? t("whatIsPeerScore")}
       infoContent={
-        <>
-          <p className="my-0 mb-2.5">{t("peerScoreExplanation")}</p>
-          <Link
-            href="/help/scores-faq/#peer-score"
-            className="text-blue-700 underline dark:text-blue-700-dark"
-          >
-            {t("learnMoreAboutPeerScore")}
-          </Link>
-        </>
+        infoContent ?? (
+          <>
+            <p className="my-0 mb-2.5">{t("peerScoreExplanation")}</p>
+            <Link
+              href="/help/scores-faq/#peer-score"
+              className="text-blue-700 underline dark:text-blue-700-dark"
+            >
+              {t("learnMoreAboutPeerScore")}
+            </Link>
+          </>
+        )
       }
       className={className}
     >
@@ -311,26 +319,34 @@ export const BaselineScoreCard = ({
   userScore,
   communityScore,
   className,
+  title,
+  infoTitle,
+  infoContent,
 }: {
   userScore: number | null | undefined;
   communityScore: number | null | undefined;
   className?: string;
+  title?: string;
+  infoTitle?: ReactNode;
+  infoContent?: ReactNode;
 }) => {
   const t = useTranslations();
   return (
     <ScoreCardContainer
-      title={t("baselineScore")}
-      infoTitle={t("whatIsBaselineScore")}
+      title={title ?? t("baselineScore")}
+      infoTitle={infoTitle ?? t("whatIsBaselineScore")}
       infoContent={
-        <>
-          <p className="my-0 mb-2.5">{t("baselineScoreExplanation")}</p>
-          <Link
-            href="/help/scores-faq/#baseline-score"
-            className="text-blue-700 underline dark:text-blue-700-dark"
-          >
-            {t("learnMoreAboutBaselineScore")}
-          </Link>
-        </>
+        infoContent ?? (
+          <>
+            <p className="my-0 mb-2.5">{t("baselineScoreExplanation")}</p>
+            <Link
+              href="/help/scores-faq/#baseline-score"
+              className="text-blue-700 underline dark:text-blue-700-dark"
+            >
+              {t("learnMoreAboutBaselineScore")}
+            </Link>
+          </>
+        )
       }
       className={className}
     >
@@ -353,23 +369,35 @@ export default function ScoreCard({
   userScore,
   communityScore,
   className,
+  title,
+  infoTitle,
+  infoContent,
 }: {
   type: "peer" | "baseline";
   userScore: number | null | undefined;
   communityScore: number | null | undefined;
   className?: string;
+  title?: string;
+  infoTitle?: ReactNode;
+  infoContent?: ReactNode;
 }) {
   return type === "peer" ? (
     <PeerScoreCard
       userScore={userScore}
       communityScore={communityScore}
       className={className}
+      title={title}
+      infoTitle={infoTitle}
+      infoContent={infoContent}
     />
   ) : (
     <BaselineScoreCard
       userScore={userScore}
       communityScore={communityScore}
       className={className}
+      title={title}
+      infoTitle={infoTitle}
+      infoContent={infoContent}
     />
   );
 }

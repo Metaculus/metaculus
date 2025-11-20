@@ -1,4 +1,3 @@
-// TODO: for some reason fortawesome regular does not contain faRepeat and faFire
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { faFire, faRepeat } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,7 +12,7 @@ const ParticipationItem: React.FC<PropsWithChildren<{ icon: ReactNode }>> = ({
   children,
 }) => {
   return (
-    <div className="flex w-full items-center gap-2.5 rounded-xl bg-gray-0 px-2.5 py-1.5 text-xs dark:bg-gray-0-dark">
+    <div className="flex w-full items-center gap-2.5 rounded-xl bg-gray-0 px-2.5 py-1.5 text-xs dark:bg-purple-800/50">
       <div className="h-3.5 text-purple-700 dark:text-purple-700-dark">
         {icon}
       </div>
