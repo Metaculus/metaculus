@@ -50,7 +50,7 @@ type Ctx = State & {
   setErrors: (e?: ErrorResponse) => void;
   resetAll: () => void;
   submit: (
-    submitType: "driver" | "base_rate",
+    submitType: "driver" | "base_rate" | "news",
     markdownOverride?: string
   ) => Promise<SubmitResult>;
   loadSuggestions: (force?: boolean) => void;
@@ -59,7 +59,7 @@ type Ctx = State & {
 
 const NOOP = () => {};
 const NOOP_SUBMIT = async (
-  _submitType: "driver" | "base_rate",
+  _submitType: "driver" | "base_rate" | "news",
   _markdownOverride?: string
 ): Promise<SubmitResult> => undefined;
 
@@ -203,7 +203,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       setErrors,
       resetAll,
       submit: async (
-        submitType: "driver" | "base_rate",
+        submitType: "driver" | "base_rate" | "news",
         markdownOverride?: string
       ) =>
         submitImpl(
