@@ -59,7 +59,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
         <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
       )}
 
-      <div className="flex flex-1 flex-col gap-1.5">
+      <div className="flex max-w-full flex-1 flex-col gap-1.5">
         <h6
           className={cn(
             "my-0 font-medium text-blue-800 dark:text-blue-800-dark",
@@ -70,7 +70,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
         </h6>
         <div
           className={cn(
-            "flex items-center gap-1.5 font-normal",
+            "flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-normal",
             isCompact ? "text-[10px]" : "text-xs",
             isConsumer
               ? "text-blue-600 dark:text-blue-600-dark"
