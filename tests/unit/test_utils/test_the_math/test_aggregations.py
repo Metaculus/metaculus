@@ -23,6 +23,12 @@ from utils.the_math.aggregations import (
     GoldMedalistsAggregation,
     JoinedBeforeDateAggregation,
     SingleAggregation,
+    compute_weighted_semi_standard_deviations,
+)
+from utils.typing import (
+    ForecastValues,
+    ForecastsValues,
+    Weights,
 )
 
 
@@ -45,6 +51,26 @@ def test_summarize_array(array, max_size, expceted_array):
 
 
 class TestAggregations:
+
+    @pytest.mark.parametrize(
+        "forecasts_values, weights, expected",
+        [
+            (
+                [[1.0]],
+                None,
+                ([0.0], [0.0]),
+            ),  # Trivial
+        ],
+    )
+    def test_compute_weighted_semi_standard_deviations(
+        self,
+        forecasts_values: ForecastsValues,
+        weights: Weights | None,
+        expected: tuple[ForecastValues, ForecastValues],
+    ):
+        result = compute_weighted_semi_standard_deviations(forecasts_values, weights)
+        assert result[0] == expected[0]
+        assert result[1] == expected[1]
 
     @pytest.mark.parametrize("aggregation_name", [Agg.method for Agg in AGGREGATIONS])
     def test_aggregations_initialize(
@@ -241,19 +267,106 @@ class TestAggregations:
                     histogram=None,
                 ),
             ),
+            # Multiple choice with placeholders
+            (
+                {},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.6, 0.15, 0.0, 0.25],
+                        [0.6, 0.25, 0.0, 0.15],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    forecaster_ids=[1, 2],
+                    timesteps=[
+                        datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    method=AggregationMethod.UNWEIGHTED,
+                    forecast_values=[0.6, 0.20, 0.0, 0.20],
+                    interval_lower_bounds=[0.6, 0.15, 0.0, 0.15],
+                    centers=[0.6, 0.20, 0.0, 0.20],
+                    interval_upper_bounds=[0.6, 0.25, 0.0, 0.25],
+                    means=[0.6, 0.20, 0.0, 0.20],
+                    forecaster_count=2,
+                ),
+            ),
+            (
+                {},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.6, 0.15, 0.0, 0.25],
+                        [0.6, 0.25, 0.0, 0.15],
+                        [0.4, 0.35, 0.0, 0.25],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    forecaster_ids=[1, 2],
+                    timesteps=[
+                        datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    method=AggregationMethod.UNWEIGHTED,
+                    forecast_values=[
+                        0.5448505013673655,
+                        0.22707474931631721,
+                        0.0,
+                        0.22707474931631721,
+                    ],
+                    interval_lower_bounds=[
+                        0.36323366757824366,
+                        0.13624484958979033,
+                        0.0,
+                        0.13624484958979033,
+                    ],
+                    centers=[
+                        0.5448505013673655,
+                        0.22707474931631721,
+                        0.0,
+                        0.22707474931631721,
+                    ],
+                    interval_upper_bounds=[
+                        0.5448505013673655,
+                        0.3179046490428441,
+                        0.0,
+                        0.22707474931631721,
+                    ],
+                    means=[
+                        0.5333333333333333,
+                        0.25,
+                        0.0,
+                        0.21666666666666667,
+                    ],
+                    forecaster_count=3,
+                ),
+            ),
         ],
     )
     def test_UnweightedAggregation(
         self,
         question_binary: Question,
+        question_multiple_choice: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = UnweightedAggregation(question=question_binary, **init_params)
-        new_aggregation = aggregation.calculate_aggregation_entry(
+        if len(forecast_set.forecasts_values[0]) == 2:
+            question = question_binary
+        else:
+            question = question_multiple_choice
+
+        aggregation = UnweightedAggregation(question=question, **init_params)
+        new_aggregation: AggregateForecast = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
 
@@ -468,20 +581,52 @@ class TestAggregations:
                     histogram=None,
                 ),
             ),
+            # Multiple choice with placeholders
+            (
+                {},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.6, 0.15, 0.0, 0.25],
+                        [0.6, 0.25, 0.0, 0.15],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    forecaster_ids=[1, 2],
+                    timesteps=[
+                        datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    method=AggregationMethod.UNWEIGHTED,
+                    forecast_values=[0.6, 0.20, 0.0, 0.20],
+                    interval_lower_bounds=[0.6, 0.15, 0.0, 0.15],
+                    centers=[0.6, 0.20, 0.0, 0.20],
+                    interval_upper_bounds=[0.6, 0.25, 0.0, 0.25],
+                    means=[0.6, 0.20, 0.0, 0.20],
+                    forecaster_count=2,
+                ),
+            ),
         ],
     )
     def test_RecencyWeightedAggregation(
         self,
         question_binary: Question,
+        question_multiple_choice: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = RecencyWeightedAggregation(
-            question=question_binary, **init_params
-        )
+        if len(forecast_set.forecasts_values[0]) == 2:
+            question = question_binary
+        else:
+            question = question_multiple_choice
+
+        aggregation = RecencyWeightedAggregation(question=question, **init_params)
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
