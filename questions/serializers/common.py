@@ -451,7 +451,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Forecast must be a dictionary")
         if set(probability_yes_per_category.keys()) != set(current_options):
             raise serializers.ValidationError(
-                f"Forecast must include all options {current_options}"
+                f"Forecast must reflect current options: {current_options}"
             )
 
         all_options = get_all_options_from_history(options_history)
@@ -673,11 +673,7 @@ def serialize_question(
                 many=True,
             ).data,
             "latest": (
-                MyForecastSerializer(
-                    last_forecast,
-                ).data
-                if last_forecast
-                else None
+                MyForecastSerializer(last_forecast).data if last_forecast else None
             ),
             "score_data": dict(),
         }
