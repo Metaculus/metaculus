@@ -371,7 +371,7 @@ def test_multiple_choice_delete_options(
                 ),
             ],
             True,
-        ),  # even edit old forecasts
+        ),  # edit all forecasts including old
     ],
 )
 def test_multiple_choice_add_options(
