@@ -56,14 +56,26 @@ from utils.the_math.measures import (
         (
             [
                 [0.33, 0.33, 0.34],
-                [0.0, 0.5, 0.5],
+                [0.01, 0.49, 0.5],
                 [0.4, 0.2, 0.4],
                 [0.2, 0.6, 0.2],
             ],
             [0.1, 0.2, 0.3, 0.4],
             [50.0],
-            [[0.2, 0.5, 0.37]],
+            [[0.2, 0.49, 0.37]],
         ),
+        (
+            [
+                [0.33, 0.33, None, 0.34],
+                [0.01, 0.49, None, 0.5],
+                [0.4, 0.2, None, 0.4],
+                [0.2, 0.6, None, 0.2],
+            ],
+            [0.1, 0.2, 0.3, 0.4],
+            [50.0],
+            [[0.2, 0.49, None, 0.37]],
+        ),
+        # multiple choice options with placeholder values
     ],
 )
 def test_weighted_percentile_2d(values, weights, percentiles, expected_result):
@@ -73,7 +85,11 @@ def test_weighted_percentile_2d(values, weights, percentiles, expected_result):
     result = weighted_percentile_2d(
         values=values, weights=weights, percentiles=percentiles
     )
-    np.testing.assert_allclose(result, expected_result)
+    result = np.where(np.equal(result, None), np.nan, result).astype(float)
+    expected_result = np.where(
+        np.equal(expected_result, None), np.nan, expected_result
+    ).astype(float)
+    np.testing.assert_allclose(result, expected_result, equal_nan=True)
     if weights is None and [percentiles] == [50.0]:  # should behave like np.median
         numpy_medians = np.median(values, axis=0)
         np.testing.assert_allclose(result, [numpy_medians])
@@ -95,6 +111,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
 @pytest.mark.parametrize(
     "p1, p2, question, expected_result",
     [
+        # binary
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -107,6 +124,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             Question(type="binary"),
             sum([-0.1 * np.log2(0.5 / 0.6), 0.1 * np.log2(0.5 / 0.4)]),  # 0.05849625
         ),
+        # multiple choice
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -138,6 +156,54 @@ def test_percent_point_function(cdf, percentiles, expected_result):
                 ]
             ),  # 1.3169925
         ),
+        (
+            [0.2, 0.3, 0.5],
+            [0.2, 0.2, 0.6],
+            Question(type="multiple_choice"),
+            sum(
+                [
+                    0,
+                    (0.3 - 0.2) * np.log2(0.3 / 0.2),
+                    (0.5 - 0.6) * np.log2(0.5 / 0.6),
+                ]
+            ),  # 0.0847996
+        ),
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, None, 0.5],
+            Question(type="multiple_choice"),
+            0.0,
+        ),  # deal with Nones happily
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, 0.1, 0.4],
+            Question(type="multiple_choice"),
+            0.0,
+        ),  # no difference across adding an option
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.2, 0.2, 0.1, 0.5],
+            Question(type="multiple_choice"),
+            sum(
+                [
+                    0,
+                    (0.3 - 0.2) * np.log2(0.3 / 0.2),
+                    (0.5 - 0.6) * np.log2(0.5 / 0.6),
+                ]
+            ),  # 0.0847996
+        ),  # difference across adding an option
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.1, None, 0.7, 0.2],
+            Question(type="multiple_choice"),
+            sum(
+                [
+                    (0.2 - 0.1) * np.log2(0.2 / 0.1),
+                    (0.8 - 0.9) * np.log2(0.8 / 0.9),
+                ]
+            ),  # 0.1169925
+        ),  # difference across removing and adding options
+        # continuous
         (
             [0.01, 0.5, 0.99],
             [0.01, 0.5, 0.99],
@@ -214,6 +280,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
 @pytest.mark.parametrize(
     "p1, p2, question, expected_result",
     [
+        # binary
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -230,6 +297,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 (-0.1, (2 / 3) / 1),
             ],
         ),
+        # multiple choice
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -270,6 +338,61 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 (-0.3, (1 / 9) / (4 / 6)),
             ],
         ),
+        (
+            [0.2, 0.3, 0.5],
+            [0.2, 0.2, 0.6],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (-0.1, (2 / 8) / (3 / 7)),
+                (0.1, (6 / 4) / (5 / 5)),
+            ],
+        ),
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, None, 0.5],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (0.0, (3 / 7) / (3 / 7)),
+                (0.0, 1.0),
+                (0.0, (5 / 5) / (5 / 5)),
+            ],
+        ),  # deal with 0.0s happily
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, 0.1, 0.4],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (0.0, (3 / 7) / (3 / 7)),
+                (0.0, 1.0),
+                (0.0, (5 / 5) / (5 / 5)),
+            ],
+        ),  # no difference across adding an option
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.2, 0.2, 0.1, 0.5],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (-0.1, (2 / 8) / (3 / 7)),
+                (0.0, 1.0),
+                (0.1, (6 / 4) / (5 / 5)),
+            ],
+        ),  # difference across adding an option
+        (
+            [0.2, 0.3, None, 0.5],
+            [0.1, None, 0.7, 0.2],
+            Question(type="multiple_choice"),
+            [
+                (-0.1, (1 / 9) / (2 / 8)),
+                (0.0, 1.0),
+                (0.0, 1.0),
+                (0.1, (9 / 1) / (8 / 2)),
+            ],
+        ),  # difference across removing and adding options
+        # continuous
         (
             [0.0, 0.5, 1.0],
             [0.0, 0.5, 1.0],

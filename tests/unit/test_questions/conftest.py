@@ -9,6 +9,7 @@ from tests.unit.utils import datetime_aware
 
 __all__ = [
     "question_binary",
+    "question_multiple_choice",
     "question_numeric",
     "conditional_1",
     "question_binary_with_forecast_user_1",
