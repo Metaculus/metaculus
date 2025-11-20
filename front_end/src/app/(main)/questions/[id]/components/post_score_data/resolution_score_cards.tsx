@@ -157,7 +157,7 @@ const ResolutionScoreCards: FC<Props> = ({
     }
 
     return (
-      <SectionToggle title={t("resolutionScores")} defaultOpen>
+      <SectionToggle title={t("scores")} defaultOpen>
         {renderPrimaryCards()}
       </SectionToggle>
     );

@@ -53,7 +53,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 <TabsTab value="news">{t("inNews")}</TabsTab>
               </NewsPresence>
               {postData.status === PostStatus.RESOLVED && (
-                <TabsTab value="scores">{t("resolutionScores")}</TabsTab>
+                <TabsTab value="scores">{t("scores")}</TabsTab>
               )}
               <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
