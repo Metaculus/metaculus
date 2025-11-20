@@ -24,6 +24,7 @@ import {
 } from "@/utils/key_factors";
 
 import { coerceBaseForType } from "./item_creation/base_rate/utils";
+import { fetchNewsPreview } from "./utils";
 
 type UseKeyFactorsProps = {
   user_id: number | undefined;
@@ -75,8 +76,42 @@ export const useKeyFactors = ({
     setIsLoadingSuggestedKeyFactors(true);
     try {
       const drafts = await ClientCommentsApi.getSuggestedKeyFactors(cid);
-      setSuggestedKeyFactors(drafts);
-      if (drafts.length > 0) {
+
+      const hydratedDrafts: KeyFactorDraft[] = await Promise.all(
+        drafts.map(async (draft) => {
+          if (!isNewsDraft(draft) || !draft.news?.url) return draft;
+
+          if (draft.news.title && draft.news.source) return draft;
+
+          const preview = await fetchNewsPreview(draft.news.url).catch(
+            () => null
+          );
+          if (!preview) return draft;
+
+          return {
+            ...draft,
+            news: {
+              ...draft.news,
+              url: preview.url,
+              title: preview.title,
+              img_url: preview.favicon_url ?? "",
+              source: preview.media_label,
+              published_at: preview.created_at,
+            },
+          };
+        })
+      );
+
+      const filtered = hydratedDrafts.filter(
+        (d) =>
+          isDriverDraft(d) ||
+          isBaseRateDraft(d) ||
+          (isNewsDraft(d) && d.news?.title && d.news?.source)
+      );
+
+      setSuggestedKeyFactors(filtered);
+
+      if (filtered.length > 0) {
         setTimeout(() => {
           const el = document.getElementById("suggested-key-factors");
           if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -210,15 +245,24 @@ export const useKeyFactors = ({
     | { error?: never; comment: BECommentType }
     | undefined
   > => {
-    const submitType: "driver" | "base_rate" = isDriverDraft(draft)
+    const submitType: "driver" | "base_rate" | "news" = isDriverDraft(draft)
       ? "driver"
-      : "base_rate";
+      : isBaseRateDraft(draft)
+        ? "base_rate"
+        : isNewsDraft(draft)
+          ? "news"
+          : (() => {
+              return undefined as never;
+            })();
+
+    if (!submitType) return;
 
     const res = await onSubmit([draft], [], submitType);
 
     if (res && "errors" in res && res.errors) {
       setErrors(res.errors as ErrorResponse);
     }
+
     return res;
   };
 

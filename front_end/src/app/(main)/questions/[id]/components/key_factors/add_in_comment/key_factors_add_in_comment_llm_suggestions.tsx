@@ -48,24 +48,6 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     isLoadingSuggestedKeyFactors,
   } = useKeyFactorsCtx();
 
-  useEffect(() => {
-    if (isLoadingSuggestedKeyFactors) return;
-    if (suggestedKeyFactors.length === 0) return;
-
-    setSuggestedKeyFactors((prev) => {
-      const filtered = prev.filter(
-        (kf) => isDriverDraft(kf) || isBaseRateDraft(kf)
-      );
-
-      if (filtered.length === prev.length) return prev;
-      return filtered;
-    });
-  }, [
-    isLoadingSuggestedKeyFactors,
-    suggestedKeyFactors.length,
-    setSuggestedKeyFactors,
-  ]);
-
   const [editingSessions, setEditingSessions] = useState<EditingSession[]>([]);
   const editingIdRef = useRef(0);
 

@@ -8,6 +8,7 @@ import type { NewsDraft } from "@/types/key_factors";
 import type { NewsArticle } from "@/types/news";
 import type { PostWithForecasts } from "@/types/post";
 
+import { Target } from "../../item_creation/driver/option_target_picker";
 import KeyFactorsNewsForm from "../../item_creation/news/key_factors_news_form";
 import { useKeyFactorsCtx } from "../../key_factors_context";
 import KeyFactorsModalFooter from "../key_factors_modal_footer";
@@ -35,6 +36,7 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
   });
 
   const [pastedArticle, setPastedArticle] = useState<NewsArticle | null>(null);
+  const [target, setTarget] = useState<Target>({});
 
   const canSubmit = useMemo(() => {
     if (isPending) return false;
@@ -78,6 +80,8 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
           impact_direction: m?.impact_direction ?? null,
           certainty: m?.certainty ?? null,
         },
+        question_id: target.question_id,
+        question_option: target.question_option,
       },
     ];
 
@@ -105,10 +109,12 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
         articles={articles}
         selectedId={selectedId}
         selectedImpact={selectedImpact}
+        target={target}
         setSelectedImpact={setSelectedImpact}
         setSelectedId={setSelectedId}
         setArticles={setArticles}
         onUrlPreviewLoaded={setPastedArticle}
+        onTargetChange={setTarget}
       />
 
       <KeyFactorsModalFooter

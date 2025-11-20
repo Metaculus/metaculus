@@ -13,16 +13,19 @@ import cn from "@/utils/core/cn";
 
 import KeyFactorsPasteUrlTab from "./key_factors_paste_url_tab";
 import KeyFactorsSuggestedNewsTab from "./key_factors_suggested_news_tab";
+import { Target } from "../driver/option_target_picker";
 
 type Props = {
   post: PostWithForecasts;
   articles: NewsArticle[];
   selectedId: number | null;
   selectedImpact: ImpactMetadata;
+  target: Target;
   setSelectedImpact: Dispatch<SetStateAction<ImpactMetadata>>;
   setArticles: Dispatch<SetStateAction<NewsArticle[]>>;
   setSelectedId: Dispatch<SetStateAction<number | null>>;
   onUrlPreviewLoaded?: (article: NewsArticle | null) => void;
+  onTargetChange: Dispatch<SetStateAction<Target>>;
   className?: string;
 };
 
@@ -31,10 +34,12 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
   articles,
   selectedId,
   selectedImpact,
+  target,
   setSelectedImpact,
   setArticles,
   setSelectedId,
   onUrlPreviewLoaded,
+  onTargetChange,
   className,
 }) => {
   const t = useTranslations();
@@ -90,6 +95,8 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
           articles={articles}
           selectedId={selectedId}
           selectedImpact={selectedImpact}
+          target={target}
+          onTargetChange={onTargetChange}
           setSelectedImpact={setSelectedImpact}
           setSelectedId={setSelectedId}
           setArticles={setArticles}
@@ -100,6 +107,8 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
         <KeyFactorsPasteUrlTab
           post={post}
           selectedImpact={selectedImpact}
+          target={target}
+          onTargetChange={onTargetChange}
           setSelectedImpact={setSelectedImpact}
           onPreviewLoaded={onUrlPreviewLoaded}
         />

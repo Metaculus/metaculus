@@ -17,6 +17,7 @@ import KeyFactorsAddInCommentBaseRate from "./key_factors_add_in_comment_base_ra
 import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
 import KeyFactorsAddInCommentLLMSuggestions from "./key_factors_add_in_comment_llm_suggestions";
 import KeyFactorsAddInCommentNews from "./key_factors_add_in_comment_news";
+import { Target } from "../item_creation/driver/option_target_picker";
 
 type Props = {
   postData: PostWithForecasts;
@@ -104,9 +105,11 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   const handleSubmitNews = ({
     article,
     impact,
+    target,
   }: {
     article: NewsArticle;
     impact: ImpactMetadata;
+    target: Target;
   }) => {
     if (!article) return;
 
@@ -121,6 +124,8 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
           impact_direction: impact.impact_direction ?? null,
           certainty: impact.certainty ?? null,
         },
+        question_id: target.question_id,
+        question_option: target.question_option,
       },
     ];
 
