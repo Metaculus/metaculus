@@ -13,10 +13,15 @@ import KeyFactorsNewItemContainer from "../item_creation/key_factors_new_item_co
 import KeyFactorsNewsForm from "../item_creation/news/key_factors_news_form";
 import { useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
+import { Target } from "../item_creation/driver/option_target_picker";
 
 type Props = {
   postData: PostWithForecasts;
-  onSubmit: (payload: { article: NewsArticle; impact: ImpactMetadata }) => void;
+  onSubmit: (payload: {
+    article: NewsArticle;
+    impact: ImpactMetadata;
+    target: Target;
+  }) => void;
   onCancel: () => void;
   onBack: () => void;
 };
@@ -39,6 +44,7 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
   });
 
   const [pastedArticle, setPastedArticle] = useState<NewsArticle | null>(null);
+  const [target, setTarget] = useState<Target>({});
 
   const canSubmit = useMemo(() => {
     if (isPending) return false;
@@ -70,7 +76,7 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
 
     if (!article) return;
 
-    onSubmit({ article, impact: selectedImpact });
+    onSubmit({ article, impact: selectedImpact, target });
   };
 
   return (
@@ -86,6 +92,8 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
       >
         <KeyFactorsNewsForm
           post={postData}
+          target={target}
+          onTargetChange={setTarget}
           articles={articles}
           selectedId={selectedId}
           selectedImpact={selectedImpact}

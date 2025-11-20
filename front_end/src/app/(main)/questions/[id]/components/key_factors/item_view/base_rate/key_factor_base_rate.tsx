@@ -7,8 +7,8 @@ import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import KeyFactorText from "../driver/key_factor_text";
 import KeyFactorHeader from "../key_factor_header";
+import KeyFactorText from "../key_factor_text";
 import KeyFactorBaseRateFrequency from "./key_factor_base_rate_frequency";
 import KeyFactorBaseRateTrend from "./key_factor_base_rate_trend";
 import KeyFactorDirectionVoter from "./key_factor_direction_voter";
