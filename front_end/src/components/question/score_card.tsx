@@ -42,7 +42,7 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
       <div>
         <div
           className={cn(
-            "whitespace-nowrap rounded-[4px] px-1 py-0.5 text-sm font-medium leading-tight text-gray-0",
+            "whitespace-nowrap rounded-[4px] px-1 py-0.5 text-sm font-medium leading-tight text-gray-0 dark:text-gray-0-dark",
             {
               "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
               "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
