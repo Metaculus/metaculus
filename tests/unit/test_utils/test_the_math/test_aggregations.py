@@ -56,10 +56,44 @@ class TestAggregations:
         "forecasts_values, weights, expected",
         [
             (
-                [[1.0]],
+                [[0.5, 0.5]],
                 None,
-                ([0.0], [0.0]),
+                ([0.0, 0.0], [0.0, 0.0]),
             ),  # Trivial
+            (
+                [
+                    [0.5, 0.5],
+                    [0.5, 0.5],
+                    [0.5, 0.5],
+                ],
+                None,
+                ([0.0, 0.0], [0.0, 0.0]),
+            ),  # 3 unwavaring forecasts
+            (
+                [
+                    [0.2, 0.8],
+                    [0.5, 0.5],
+                    [0.8, 0.2],
+                ],
+                None,
+                ([0.3, 0.3], [0.3, 0.3]),
+            ),  # 3 unwavaring forecasts
+            (
+                [
+                    [0.6, 0.15, 0.0, 0.25],
+                    [0.6, 0.15, 0.0, 0.25],
+                ],
+                None,
+                ([0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]),
+            ),  # identical forecasts with placeholders
+            (
+                [
+                    [0.4, 0.25, 0.0, 0.35],
+                    [0.6, 0.15, 0.0, 0.25],
+                ],
+                None,
+                ([0.1, 0.05, 0.0, 0.05], [0.1, 0.05, 0.0, 0.05]),
+            ),  # minorly different forecasts with placeholders
         ],
     )
     def test_compute_weighted_semi_standard_deviations(
@@ -69,8 +103,12 @@ class TestAggregations:
         expected: tuple[ForecastValues, ForecastValues],
     ):
         result = compute_weighted_semi_standard_deviations(forecasts_values, weights)
-        assert result[0] == expected[0]
-        assert result[1] == expected[1]
+        rl, ru = result
+        el, eu = expected
+        for v, e in zip(rl, el):
+            np.testing.assert_approx_equal(v, e)
+        for v, e in zip(ru, eu):
+            np.testing.assert_approx_equal(v, e)
 
     @pytest.mark.parametrize("aggregation_name", [Agg.method for Agg in AGGREGATIONS])
     def test_aggregations_initialize(
