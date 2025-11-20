@@ -705,12 +705,13 @@ def create_forecast(
     continuous_cdf: list[float] | None = None,
     probability_yes: float | None = None,
     probability_yes_per_category: list[float] | None = None,
-    distribution_input=None,
+    distribution_input: dict | None = None,
+    end_time: datetime | None = None,
+    source: Forecast.SourceChoices | None = None,
     **kwargs,
 ):
     now = timezone.now()
     post = question.get_post()
-    end_time = kwargs.pop("end_time", None)
 
     # if the forecast to be created is for a multiple choice question during a grace
     # period, we need to agument the forecast accordingly (possibly preregister)
@@ -727,7 +728,6 @@ def create_forecast(
                 prior_options = options_history[-2][1]
                 if end_time is None or end_time > period_end:
                     # create a pre-registration for the given forecast
-                    source = kwargs.pop("source", None)
                     Forecast.objects.create(
                         question=question,
                         author=user,
@@ -738,8 +738,6 @@ def create_forecast(
                         source=Forecast.SourceChoices.AUTOMATIC,
                         **kwargs,
                     )
-                    if source:
-                        kwargs["source"] = source
                     end_time = period_end
 
                 prior_pmf = [0.0] * len(all_options)
@@ -763,6 +761,7 @@ def create_forecast(
             distribution_input if question.type in QUESTION_CONTINUOUS_TYPES else None
         ),
         post=post,
+        source=source,
         **kwargs,
     )
 
