@@ -157,7 +157,7 @@ def multiple_choice_delete_options(
         raise ValueError("Options history is empty")
 
     if question.options_history[-1][0] > timestep.timestamp():
-        raise ValueError("Timestep is before the last options history entry")
+        raise ValueError("timestep is before the last options history entry")
 
     # update question
     new_options = [opt for opt in question.options if opt not in options_to_delete]
@@ -243,10 +243,10 @@ def multiple_choice_add_options(
     if not question.options_history:
         raise ValueError("Options history is empty")
 
-    if question.options_history[-1][0] > grace_period_end.timestamp():
-        raise ValueError("grace_period_end is before the last options history entry")
     if timestep > grace_period_end:
         raise ValueError("grace_period_end must end after timestep")
+    if question.options_history[-1][0] > timestep.timestamp():
+        raise ValueError("timestep is before the last options history entry")
 
     # update question
     new_options = question.options[:-1] + options_to_add + question.options[-1:]
