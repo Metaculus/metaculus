@@ -241,8 +241,9 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
     ):
         ts, current_options = options_history[-1]
         if new_options == current_options:  # no change
-            pass
-        elif len(new_options) == len(current_options):  # renaming
+            return
+
+        if len(new_options) == len(current_options):  # renaming
             if any(v > 1 for v in Counter(new_options).values()):
                 ValidationError("new_options includes duplicate labels")
         elif timezone.now().timestamp() < ts:
