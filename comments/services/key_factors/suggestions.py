@@ -1,7 +1,18 @@
 import json
 import logging
 import textwrap
-from typing import Optional, Union
+from typing import Optional, Union, Literal
+
+from django.conf import settings
+from django.core.validators import URLValidator
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    model_validator,
+    field_validator,
+    ValidationInfo,
+)
 
 from django.conf import settings
 from pydantic import (
@@ -17,9 +28,7 @@ from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing import Optional, Union
 
 from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
-from django.conf import settings
 from posts.models import Post
-from pydantic import BaseModel, Field, ValidationError, model_validator
 from questions.models import Question
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 
@@ -81,7 +90,7 @@ class DriverResponse(BaseModel):
 
 
 class NewsResponse(BaseModel):
-    url: Optional[str] = Field(
+    url: str = Field(
         None,
         description="URL of the news article extracted from the comment",
     )
@@ -102,27 +111,60 @@ class NewsResponse(BaseModel):
 
 class BaseRateResponse(BaseModel):
     type: str = Field("base_rate", description="Type identifier")
-    base_rate_type: str = Field(..., description="'frequency' or 'trend'")
-    reference_class: str = Field(..., description="Reference class for the base rate")
-    unit: str = Field(..., description="Unit of measurement")
+    base_rate_type: str = Field(
+        ..., description="'frequency' or 'trend' - must be one of these two types"
+    )
+    reference_class: str = Field(
+        ..., description="Reference class for the base rate (required)"
+    )
+    unit: str = Field(..., description="Unit of measurement (required)")
+    source_url: str = Field(
+        ..., description="URL of the base rate data source (required)"
+    )
+
     # Frequency-specific fields
     rate_numerator: Optional[int] = Field(
-        None, description="Numerator for frequency type"
+        None, description="Numerator for frequency type (required for frequency)"
     )
     rate_denominator: Optional[int] = Field(
-        None, description="Denominator for frequency type"
+        None, description="Denominator for frequency type (required for frequency)"
     )
     # Trend-specific fields
     projected_value: Optional[float] = Field(
-        None, description="Projected value for trend type"
+        None, description="Projected value for trend type (required for trend)"
     )
     projected_by_year: Optional[int] = Field(
-        None, description="Year for trend projection"
+        None, description="Year for trend projection (required for trend)"
     )
-    extrapolation: Optional[str] = Field(
-        None, description="Extrapolation method for trend type"
+    extrapolation: Optional[Literal["linear", "exponential", "other"]] = Field(
+        None,
+        description=(
+            "Extrapolation method for trend type (required for trend); "
+            "must be one of: linear, exponential, other"
+        ),
     )
-    based_on: Optional[str] = Field(None, description="What the trend is based on")
+    based_on: Optional[str] = Field(
+        None, description="What the trend is based on (optional)"
+    )
+
+    @field_validator("source_url")
+    @classmethod
+    def validate_source_url(cls, value: str, info: ValidationInfo) -> str:
+        # Validate URL
+        URLValidator()(value)
+
+        if not info.context:
+            return value
+
+        comment = info.context.get("comment")
+
+        if not comment:
+            return value
+
+        if value.lower().strip("/") in comment.lower():
+            return value
+
+        raise ValueError("URL must be present in the comment")
 
 
 KeyFactorResponseType = Union[DriverResponse, NewsResponse, BaseRateResponse]
@@ -195,6 +237,7 @@ def _create_base_rate_key_factor(response: BaseRateResponse) -> KeyFactor:
         unit=response.unit,
         extrapolation=response.extrapolation,
         based_on=response.based_on or "",
+        source=response.source_url,
     )
     return kf
 
@@ -286,7 +329,6 @@ def generate_keyfactors(
     comment: str,
     existing_key_factors: list[dict],
     type_instructions: str,
-    related_news: list[dict] = None,
 ) -> list[KeyFactorResponseType]:
     """
     Generate key factors based on question type and comment.
@@ -314,10 +356,13 @@ def generate_keyfactors(
             - Text should be single sentences under {MAX_LENGTH} characters.
             - Should only contain the key factor, no other text (e.g.: do not reference the user).
             - Specify impact_direction (1/-1) or certainty (-1)
-        2. News: A relevant news article from one of two sources:
-            - Provide url if extracting a link from the comment body pointing to a relevant article
+        2. News: A relevant news article found in the comment.
+            - url: REQUIRED. Must be extracted from the comment body. If no URL, skip this factor.
             - Specify impact_direction (1/-1) or certainty (-1) for how this article affects the forecast
-        3. BaseRate: A historical base rate or reference frequency/trend (e.g., "Historical success rate is 45%")
+        3. BaseRate: A historical base rate or reference frequency/trend.
+            - source_url: REQUIRED. Must be a real URL extracted verbatim from <user_comment>.
+            - CRITICAL: Do not use URLs from <question_summary> or hallucinate URLs.
+            - If no valid URL is found in the comment, skip this factor entirely.
 
         The key factors should represent the most important things influencing the forecast.
 
@@ -326,6 +371,7 @@ def generate_keyfactors(
         Output rules:
         - Return valid JSON only, matching the schema.
         - Include a "type" field for each factor: "driver", "news", or "base_rate"
+        - For base_rate: source_url must come from <user_comment> only, never from <question_summary>
         - Do not duplicate existing key factors - check the list carefully
         - Ensure suggested key factors do not duplicate each other
         - Be conservative and only include clearly relevant factors
@@ -383,6 +429,29 @@ def generate_keyfactors(
         return parsed.key_factors
     except (json.JSONDecodeError, PydanticValidationError):
         return []
+
+    # Validate each key factor individually
+    type_map = {
+        "driver": DriverResponse,
+        "news": NewsResponse,
+        "base_rate": BaseRateResponse,
+    }
+
+    validated_key_factors = []
+    for item in data.get("key_factors", []):
+        try:
+            kf_type = item.get("type")
+            model_class = type_map.get(kf_type)
+
+            if model_class:
+                model_instance = model_class.model_validate(
+                    item, context={"comment": comment}
+                )
+                validated_key_factors.append(model_instance)
+        except ValidationError as e:
+            logger.debug(f"Validation error for key factor at index: {e}")
+
+    return validated_key_factors
 
 
 def _serialize_key_factor(kf: KeyFactor):
