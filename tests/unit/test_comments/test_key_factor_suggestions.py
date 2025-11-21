@@ -98,12 +98,14 @@ class TestConvertLlmResponseToKeyFactor:
             unit="%",
             rate_numerator=10,
             rate_denominator=100,
+            source_url="https://example.com/data",
         )
         key_factor = _convert_llm_response_to_key_factor(binary_post, response)
 
         assert key_factor.base_rate.type == "frequency"
         assert key_factor.base_rate.reference_class == "Test Class"
         assert key_factor.base_rate.rate_numerator == 10
+        assert key_factor.base_rate.source == "https://example.com/data"
 
     def test_base_rate_trend_conversion(self, binary_post):
         response = BaseRateResponse(
@@ -113,11 +115,13 @@ class TestConvertLlmResponseToKeyFactor:
             projected_value=75.5,
             projected_by_year=2025,
             extrapolation="linear",
+            source_url="https://example.com/data",
         )
         key_factor = _convert_llm_response_to_key_factor(binary_post, response)
 
         assert key_factor.base_rate.type == "trend"
         assert key_factor.base_rate.projected_value == 75.5
+        assert key_factor.base_rate.source == "https://example.com/data"
 
 
 class TestBuildPostQuestionSummary:
@@ -246,6 +250,7 @@ class TestGenerateKeyfactors:
                         "unit": "%",
                         "rate_numerator": 45,
                         "rate_denominator": 100,
+                        "source_url": "https://example.com/data",
                     },
                 ]
             }
@@ -254,7 +259,7 @@ class TestGenerateKeyfactors:
 
         result = generate_keyfactors(
             question_summary="Q",
-            comment="C",
+            comment="C https://example.com/data",
             existing_key_factors=[],
             type_instructions="I",
         )
@@ -311,10 +316,13 @@ class TestGenerateKeyFactorsForComment:
                 unit="%",
                 rate_numerator=50,
                 rate_denominator=100,
+                source_url="https://example.com/data",
             ),
         ]
 
-        result = generate_key_factors_for_comment("comment", [], binary_post)
+        result = generate_key_factors_for_comment(
+            "comment https://example.com/data", [], binary_post
+        )
 
         assert len(result) == 3
         assert result[0].driver is not None
