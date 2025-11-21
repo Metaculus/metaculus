@@ -1222,7 +1222,6 @@ def get_average_coverage_for_questions(
 
     questions_list = list(q for q in questions if q.status == QuestionStatus.RESOLVED)
 
-    # TODO: should we do archive scores?
     scores_data = (
         Score.objects.filter(
             question_id__in=[q.id for q in questions_list],
