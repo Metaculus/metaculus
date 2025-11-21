@@ -233,6 +233,7 @@ def post_detail(request: Request, pk):
         include_descriptions=True,
         include_cp_history=True,
         include_movements=True,
+        include_average_scores=True,
     )
 
     if not posts:
