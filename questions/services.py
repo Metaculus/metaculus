@@ -220,22 +220,22 @@ def update_question(
         current_options = question.options or []
         if len(current_options) < len(new_options):
             # deletion
-            if not grace_period_end:
-                raise ValueError("grace_period_end required when adding options")
-            options_to_add = [l for l in new_options if l not in current_options]
-            multiple_choice_add_options(
+            options_to_delete = [l for l in new_options if l not in current_options]
+            multiple_choice_delete_options(
                 question,
-                options_to_add,
-                grace_period_end=grace_period_end,
+                options_to_delete,
                 timestep=timezone.now(),
             )
             question.save(update_fields=["options", "options_history"])
         elif len(current_options) > len(new_options):
             # addition
-            options_to_delete = [l for l in current_options if l not in new_options]
-            multiple_choice_delete_options(
+            if not grace_period_end:
+                raise ValueError("grace_period_end required when adding options")
+            options_to_add = [l for l in current_options if l not in new_options]
+            multiple_choice_add_options(
                 question,
-                options_to_delete,
+                options_to_add,
+                grace_period_end=grace_period_end,
                 timestep=timezone.now(),
             )
             question.save(update_fields=["options", "options_history"])
