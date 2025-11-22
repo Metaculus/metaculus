@@ -46,6 +46,7 @@ class Bulletin(TimeStampedModel):
     post = models.ForeignKey(
         Post,
         null=True,
+        blank=True,
         db_index=True,
         on_delete=models.CASCADE,
         help_text="""Optional. If set, places this Bulletin only on this post's page.""",
@@ -53,6 +54,7 @@ class Bulletin(TimeStampedModel):
     project = models.ForeignKey(
         Project,
         null=True,
+        blank=True,
         db_index=True,
         on_delete=models.CASCADE,
         help_text="""Optional. If set, places this Bulletin only on this project's page.""",
@@ -61,9 +63,9 @@ class Bulletin(TimeStampedModel):
     def __str__(self):
         text = self.text
         if self.post:
-            text = (self.post.short_title or self.post.title) + ": " + text
+            text = (self.post.short_title or self.post.title)[:50] + "... " + text
         elif self.project:
-            text = self.project.name + ": " + text
+            text = self.project.name[:50] + "... " + text
         return text[:150] + "..." if len(text) > 150 else text
 
 
