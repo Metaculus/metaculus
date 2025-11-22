@@ -220,17 +220,35 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
 
 class QuestionUpdateSerializer(QuestionWriteSerializer):
     id = serializers.IntegerField(required=False)
-    grace_period_end = serializers.DateTimeField(required=False)
 
     class Meta(QuestionWriteSerializer.Meta):
         fields = QuestionWriteSerializer.Meta.fields + (
             "id",
             "open_time",
             "cp_reveal_time",
-            "grace_period_end",
         )
 
     # TODO: add validation for updating continuous question bounds
+
+    def validate(self, data: dict):
+        data = super().validate(data)
+
+        if qid := data.get("id"):
+            question = Question.objects.get(id=qid)
+            if data.get("options") != question.options:
+                # if there are user forecasts, we can't update options this way
+                if question.user_forecasts.exists():
+                    ValidationError(
+                        "Cannot update options through this endpoint while there are "
+                        "user forecasts. "
+                        "Instead, use /api/questions/update-mc-options/ or the UI on "
+                        "the question detail page."
+                    )
+
+
+class MultipleChoiceOptionsUpdateSerializer(serializers.Serializer):
+    options = serializers.ListField(child=serializers.CharField(), required=True)
+    grace_period_end = serializers.DateTimeField(required=False)
 
     def validate_new_options(
         self,
@@ -269,23 +287,24 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
                 )
 
     def validate(self, data: dict) -> dict:
-        data = super().validate(data)
-
-        qid = data.get("id")
-        question = Question.objects.filter(id=qid).first()
+        question_id = data.get("question_id")
+        question: Question = self.context.get("question")
         if not question:
-            raise ValidationError("id of question required for updating question")
+            raise ValidationError(f"question with id: {question_id} not found")
 
-        if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-            options = data.get("options")
-            grace_period_end = data.get("grace_period_end")
-            options_history = question.options_history
-            if not options or not options_history:
-                raise ValidationError(
-                    "updating multiple choice questions requires options "
-                    "and question must already have options_history"
-                )
-            self.validate_new_options(options, options_history, grace_period_end)
+        if question.type != Question.QuestionType.MULTIPLE_CHOICE:
+            raise ValidationError("question must be of multiple choice type")
+
+        options = data.get("options")
+        options_history = question.options_history
+        if not options or not options_history:
+            raise ValidationError(
+                "updating multiple choice questions requires options "
+                "and question must already have options_history"
+            )
+
+        grace_period_end = data.get("grace_period_end")
+        self.validate_new_options(options, options_history, grace_period_end)
 
         return data
 

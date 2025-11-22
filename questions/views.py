@@ -15,17 +15,23 @@ from projects.permissions import ObjectPermission
 from questions.constants import QuestionStatus
 from questions.models import Question
 from questions.serializers.common import (
-    validate_question_resolution,
-    OldForecastWriteSerializer,
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
+    MultipleChoiceOptionsUpdateSerializer,
+    OldForecastWriteSerializer,
     serialize_question,
+    validate_question_resolution,
 )
 from questions.services import (
     resolve_question,
     unresolve_question,
     create_forecast_bulk,
     withdraw_forecast_bulk,
+)
+from questions.utils import (
+    multiple_choice_rename_option,
+    multiple_choice_add_options,
+    multiple_choice_delete_options,
 )
 
 
@@ -250,3 +256,53 @@ def legacy_question_api_view(request, pk: int):
     return Response(
         {"question_id": pk, "post_id": post.pk, "post_slug": get_post_slug(post)}
     )
+
+
+@api_view(["POST"])
+def update_question_options(request, pk: int):
+    now = timezone.now()
+    question: Question = get_object_or_404(Question.objects.all(), pk=pk)
+    user = request.user
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=user)
+    ObjectPermission.can_edit(permission, raise_exception=True)
+
+    serializer = MultipleChoiceOptionsUpdateSerializer(
+        data=request.data,
+        context={question: question},
+    )
+    serializer.is_valid(raise_exception=True)
+    validated_data = serializer.validated_data
+
+    options = validated_data.get("options")
+    grace_period_end = validated_data.get("grace_period_end")
+
+    new_options = options or []
+    current_options = question.options or []
+    if len(current_options) < len(new_options):
+        # deletion
+        options_to_delete = [l for l in new_options if l not in current_options]
+        multiple_choice_delete_options(
+            question,
+            options_to_delete,
+            timestep=now,
+        )
+        question.save(update_fields=["options", "options_history"])
+    elif len(current_options) > len(new_options):
+        # addition
+        if not grace_period_end:
+            raise ValueError("grace_period_end required when adding options")
+        options_to_add = [l for l in current_options if l not in new_options]
+        multiple_choice_add_options(
+            question,
+            options_to_add,
+            grace_period_end=grace_period_end,
+            timestep=now,
+        )
+        question.save(update_fields=["options", "options_history"])
+    elif current_options != new_options:
+        # renaming
+        for old, new in zip(current_options, new_options):
+            multiple_choice_rename_option(question, old, new)
+        question.save(update_fields=["options", "options_history"])
