@@ -1,10 +1,11 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import dramatiq
 from django.db.models import Q
 from django.utils import timezone
 
+from comments.services.common import create_comment
 from notifications.constants import MailingTags
 from notifications.services import (
     NotificationPredictedQuestionResolved,
@@ -255,3 +256,51 @@ def format_time_remaining(time_remaining: timedelta):
         return f"{minutes} minute{'s' if minutes != 1 else ''}"
     else:
         return f"{total_seconds} second{'s' if total_seconds != 1 else ''}"
+
+
+# @dramatiq.actor
+def multiple_choice_delete_option_notificiations(
+    question_id: int,
+    timestep: datetime,
+):
+    question = Question.objects.get(id=question_id)
+    post = question.get_post()
+    options_history = question.options_history
+    removed_options = list(set(options_history[-2][1]) - set(options_history[-1][1]))
+
+    comment_author = User.objects.filter(id=4)  # placeholder - anthony lol
+    create_comment(
+        comment_author,
+        post,
+        text=(
+            f"PLACEHOLDER: (at)forecasters Option(s) {removed_options} "
+            f"were removed at {timestep}."
+        ),
+    )
+
+
+# @dramatiq.actor
+def multiple_choice_add_option_notificiations(
+    question_id: int,
+    grace_period_end: datetime,
+    timestep: datetime,
+):
+    question = Question.objects.get(id=question_id)
+    post = question.get_post()
+    options_history = question.options_history
+    added_options = list(set(options_history[-1][1]) - set(options_history[-2][1]))
+
+    comment_author = User.objects.filter(id=4)  # placeholder - anthony lol
+    create_comment(
+        comment_author,
+        post,
+        text=(
+            f"PLACEHOLDER: (at)forecasters Option(s) {added_options} "
+            f"were added at {timestep}. "
+            f"You have until {grace_period_end} to update your forecast to reflect "
+            "the new options. "
+            "If you do not, your forecast will be automatically withdrawn "
+            f"at {grace_period_end}. "
+            "Please see our faq (link) for details on how this works."
+        ),
+    )
