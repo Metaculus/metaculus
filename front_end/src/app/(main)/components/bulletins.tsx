@@ -35,14 +35,28 @@ const Bulletins: FC = () => {
     );
   }, [pathname]);
 
+  const bulletinParams = useMemo(() => {
+    const questionMatch = pathname.match(/^\/questions\/(\d+)(?:\/|$)/);
+    if (questionMatch) {
+      return { post_id: Number(questionMatch[1]) };
+    }
+
+    const projectMatch = pathname.match(/^\/tournament\/([^/]+)(?:\/|$)/);
+    if (projectMatch) {
+      return { project_slug: projectMatch[1] };
+    }
+
+    return undefined;
+  }, [pathname]);
+
   const fetchBulletins = useCallback(async () => {
     try {
-      const bulletins = await ClientMiscApi.getBulletins();
-      setBulletins(bulletins);
+      const bulletins = await ClientMiscApi.getBulletins(bulletinParams);
+      setBulletins(bulletins ?? []);
     } catch (error) {
       logError(error);
     }
-  }, []);
+  }, [bulletinParams]);
 
   useEffect(() => {
     if (!shouldHide) {
