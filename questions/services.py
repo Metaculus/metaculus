@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from coherence.models import CoherenceLink
+from misc.models import Bulletin, BulletinViewedBy
 from notifications.constants import MailingTags
 from notifications.services import delete_scheduled_question_resolution_notifications
 from posts.models import PostUserSnapshot, PostSubscription, Notebook, Post
@@ -902,6 +903,9 @@ def update_forecast_notification(
 
     When created=True: Creates/updates notification if forecast has future end_time
     When created=False: Deletes existing notification for user/question pair
+
+    In condition where forecast is during a grace period, deactivate scheduled emails
+    and treat Bulletin as viewed.
     """
 
     user = forecast.author
@@ -947,6 +951,14 @@ def update_forecast_notification(
                 "forecast": forecast,
             },
         )
+
+    post_bulletins = Bulletin.objects.filter(
+        # since this is an automated bulletin, should it get
+        # another field we can filter on like "type"?
+        post=question.get_post(),
+    )
+    for bulletin in post_bulletins:
+        BulletinViewedBy.objects.create(bulletin=bulletin, user=user)
 
 
 @sentry_sdk.trace
