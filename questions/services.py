@@ -712,6 +712,7 @@ def create_forecast(
 ):
     now = timezone.now()
     post = question.get_post()
+    end_time = kwargs.pop("end_time", None)
 
     # if the forecast to be created is for a multiple choice question during a grace
     # period, we need to agument the forecast accordingly (possibly preregister)
