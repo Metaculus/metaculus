@@ -18,7 +18,7 @@ from notifications.services import (
 )
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
-from questions.models import Question, UserForecastNotification
+from questions.models import Forecast, Question, UserForecastNotification
 from questions.services import (
     build_question_forecasts,
     get_forecasts_per_user,
@@ -283,7 +283,7 @@ def multiple_choice_delete_option_notificiations(
         ),
     )
 
-    # send out an email
+    # send out an immediate email
     forecaster_emails = (
         User.objects.filter(
             forecast__in=question.user_forecasts.filter(
@@ -331,6 +331,23 @@ def multiple_choice_add_option_notificiations(
     options_history = question.options_history
     added_options = list(set(options_history[-1][1]) - set(options_history[-2][1]))
 
+    forecasters = (
+        User.objects.filter(
+            forecast__in=question.user_forecasts.filter(
+                end_time=grace_period_end
+            )  # all effected forecasts have their end_time set to grace_period_end
+        )
+        .exclude(
+            ubsubscribed_mailing_tags__contains=[
+                MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
+            ]
+        )
+        .exclude(email__isnull=True)
+        .exclude(email="")
+        .distinct("id")
+        .order_by("id")
+    )
+
     # send out a comment
     comment_author = User.objects.get(id=comment_author_id)
     create_comment(
@@ -347,24 +364,8 @@ def multiple_choice_add_option_notificiations(
         ),
     )
 
-    # send out an email
-    forecaster_emails = (
-        User.objects.filter(
-            forecast__in=question.user_forecasts.filter(
-                Q(end_time__isnull=True) | Q(end_time__gt=timestep)
-            )
-        )
-        .exclude(
-            ubsubscribed_mailing_tags__contains=[
-                MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
-            ]
-        )
-        .exclude(email__isnull=True)
-        .exclude(email="")
-        .values_list("email", flat=True)
-        .distinct("id")
-        .order_by("id")
-    )
+    # send out an immediate email
+    forecaster_emails = forecasters.values_list("email", flat=True)
     start = 0
     batch_size = 300
     while True:
@@ -384,7 +385,24 @@ def multiple_choice_add_option_notificiations(
 
     # schedule a followup email for 1 day before grace period
     #   (if grace period is more than 1 day away)
-    ...
+    if grace_period_end - timedelta(days=1) > timestep:
+        for forecaster in forecasters:
+            UserForecastNotification.objects.filter(
+                user=forecaster, question=question
+            ).delete()  # is this necessary?
+            UserForecastNotification.objects.update_or_create(
+                user=forecaster,
+                question=question,
+                defaults={
+                    "trigger_time": grace_period_end - timedelta(days=1),
+                    "email_sent": False,
+                    "forecast": Forecast.objects.filter(
+                        question=question, author=forecaster
+                    )
+                    .order_by("-start_time")
+                    .first(),
+                },
+            )
 
     # add Post bulletin
     Bulletin.objects.create(
