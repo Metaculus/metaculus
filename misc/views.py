@@ -1,10 +1,11 @@
 from datetime import datetime
 
-import django
+from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -85,11 +86,26 @@ def remove_article_api_view(request, pk):
 @permission_classes([AllowAny])
 def get_bulletins(request):
     user = request.user
+    data = request.query_params
+    post_id = data.get("post_id")
+    project_id = data.get("project_id")  # maybe needs to be slug for simplicity
 
     bulletins = Bulletin.objects.filter(
-        bulletin_start__lte=django.utils.timezone.now(),
-        bulletin_end__gte=django.utils.timezone.now(),
+        bulletin_start__lte=timezone.now(),
+        bulletin_end__gte=timezone.now(),
     )
+
+    if post_id:
+        bulletins = bulletins.filter(Q(post_id__isnull=True) | Q(post_id=post_id))
+    else:
+        bulletins = bulletins.filter(post_id__isnull=True)
+
+    if project_id:
+        bulletins = bulletins.filter(
+            Q(project_id__isnull=False) | Q(project_id=project_id)
+        )
+    else:
+        bulletins = bulletins.filter(project_id__isnull=True)
 
     bulletins_viewed_by_user = []
     if user and user.is_authenticated:
