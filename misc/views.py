@@ -88,7 +88,7 @@ def get_bulletins(request):
     user = request.user
     data = request.query_params
     post_id = data.get("post_id")
-    project_id = data.get("project_id")  # maybe needs to be slug for simplicity
+    project_slug = data.get("project_slug")  # maybe needs to be slug for simplicity
 
     bulletins = Bulletin.objects.filter(
         bulletin_start__lte=timezone.now(),
@@ -100,9 +100,9 @@ def get_bulletins(request):
     else:
         bulletins = bulletins.filter(post_id__isnull=True)
 
-    if project_id:
+    if project_slug:
         bulletins = bulletins.filter(
-            Q(project_id__isnull=False) | Q(project_id=project_id)
+            Q(project_id__isnull=True) | Q(project__slug=project_slug)
         )
     else:
         bulletins = bulletins.filter(project_id__isnull=True)
