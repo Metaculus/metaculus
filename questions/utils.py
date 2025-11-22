@@ -136,6 +136,7 @@ def multiple_choice_rename_option(
 def multiple_choice_delete_options(
     question: Question,
     options_to_delete: list[str],
+    comment_author: User,
     timestep: datetime | None = None,
 ) -> Question:
     """
@@ -224,6 +225,7 @@ def multiple_choice_delete_options(
     multiple_choice_delete_option_notificiations(
         question_id=question.id,
         timestep=timestep,
+        comment_author_id=comment_author.id,
     )
 
     return question
@@ -233,6 +235,7 @@ def multiple_choice_add_options(
     question: Question,
     options_to_add: list[str],
     grace_period_end: datetime,
+    comment_author: User,
     timestep: datetime | None = None,
 ) -> Question:
     """
@@ -291,6 +294,7 @@ def multiple_choice_add_options(
         question_id=question.id,
         grace_period_end=timestep,
         timestep=timestep,
+        comment_author_id=comment_author.id,
     )
 
     return question

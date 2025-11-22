@@ -262,13 +262,14 @@ def format_time_remaining(time_remaining: timedelta):
 def multiple_choice_delete_option_notificiations(
     question_id: int,
     timestep: datetime,
+    comment_author_id: int,
 ):
     question = Question.objects.get(id=question_id)
     post = question.get_post()
     options_history = question.options_history
     removed_options = list(set(options_history[-2][1]) - set(options_history[-1][1]))
 
-    comment_author = User.objects.filter(id=4)  # placeholder - anthony lol
+    comment_author = User.objects.get(id=comment_author_id)
     create_comment(
         comment_author,
         post,
@@ -284,13 +285,14 @@ def multiple_choice_add_option_notificiations(
     question_id: int,
     grace_period_end: datetime,
     timestep: datetime,
+    comment_author_id: int,
 ):
     question = Question.objects.get(id=question_id)
     post = question.get_post()
     options_history = question.options_history
     added_options = list(set(options_history[-1][1]) - set(options_history[-2][1]))
 
-    comment_author = User.objects.filter(id=4)  # placeholder - anthony lol
+    comment_author = User.objects.get(id=comment_author_id)
     create_comment(
         comment_author,
         post,
