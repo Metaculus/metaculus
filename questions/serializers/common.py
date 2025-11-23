@@ -288,10 +288,9 @@ class MultipleChoiceOptionsUpdateSerializer(serializers.Serializer):
                 )
 
     def validate(self, data: dict) -> dict:
-        question_id = data.get("question_id")
         question: Question = self.context.get("question")
         if not question:
-            raise ValidationError(f"question with id: {question_id} not found")
+            raise ValidationError(f"question must be provided in context")
 
         if question.type != Question.QuestionType.MULTIPLE_CHOICE:
             raise ValidationError("question must be of multiple choice type")
