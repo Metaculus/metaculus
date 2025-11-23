@@ -22,7 +22,10 @@ from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
 from questions.types import QuestionMovement, OptionsHistoryType
+<<<<<<< HEAD
 from questions.utils import get_all_options_from_history
+=======
+>>>>>>> 85a0289db (add options update validation and functionality)
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
@@ -221,12 +224,14 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
 
 class QuestionUpdateSerializer(QuestionWriteSerializer):
     id = serializers.IntegerField(required=False)
+    grace_period_end = serializers.DateTimeField(required=False)
 
     class Meta(QuestionWriteSerializer.Meta):
         fields = QuestionWriteSerializer.Meta.fields + (
             "id",
             "open_time",
             "cp_reveal_time",
+            "grace_period_end",
         )
 
     # TODO: add validation for updating continuous question bounds
