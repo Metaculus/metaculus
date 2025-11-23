@@ -251,11 +251,13 @@ def test_multiple_choice_delete_options(
     if not expect_success:
         with pytest.raises(ValueError):
             multiple_choice_delete_options(
-                question, options_to_delete, timestep=timestep
+                question, options_to_delete, comment_author=user1, timestep=timestep
             )
         return
 
-    multiple_choice_delete_options(question, options_to_delete, timestep=timestep)
+    multiple_choice_delete_options(
+        question, options_to_delete, comment_author=user1, timestep=timestep
+    )
 
     question.refresh_from_db()
     expected_options = [opt for opt in initial_options if opt not in options_to_delete]
@@ -420,12 +422,20 @@ def test_multiple_choice_add_options(
     if not expect_success:
         with pytest.raises(ValueError):
             multiple_choice_add_options(
-                question, options_to_add, grace_period_end, timestep=dt(2024, 7, 1)
+                question,
+                options_to_add,
+                grace_period_end,
+                comment_author=user1,
+                timestep=dt(2024, 7, 1),
             )
         return
 
     multiple_choice_add_options(
-        question, options_to_add, grace_period_end, timestep=dt(2024, 7, 1)
+        question,
+        options_to_add,
+        grace_period_end,
+        comment_author=user1,
+        timestep=dt(2024, 7, 1),
     )
 
     question.refresh_from_db()
