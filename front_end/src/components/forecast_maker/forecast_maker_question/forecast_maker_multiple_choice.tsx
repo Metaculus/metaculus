@@ -30,6 +30,7 @@ import {
   isForecastActive,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
+import { getAllOptionsHistory } from "@/utils/questions/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -72,6 +73,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+
+  const allOptions = getAllOptionsHistory(question);
 
   const activeUserForecast =
     question.my_forecasts?.latest &&
@@ -144,19 +147,31 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     [choicesForecasts]
   );
   const forecastsSum = useMemo(
-    () => (forecastHasValues ? sumForecasts(choicesForecasts) : null),
-    [choicesForecasts, forecastHasValues]
+    () =>
+      forecastHasValues
+        ? sumForecasts(
+            choicesForecasts.filter((choice) =>
+              question.options.includes(choice.name)
+            )
+          )
+        : null,
+    [question.options, choicesForecasts, forecastHasValues]
   );
   const remainingSum = forecastsSum ? 100 - forecastsSum : null;
   const isForecastValid = forecastHasValues && forecastsSum === 100;
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
+  const showUserMustForecast =
+    !!activeUserForecast &&
+    activeUserForecast.forecast_values.filter((value) => value !== null)
+      .length < question.options.length;
+
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      question.options.map((_, index) => {
-        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on question.options
+      allOptions.map((_, index) => {
+        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on allOptions
         // so there won't be a case where arrays are not of the same length
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const choiceOption = prev[index]!;
@@ -171,7 +186,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
+  }, [allOptions, question.my_forecasts?.latest?.forecast_values]);
 
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
@@ -207,6 +222,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     const newForecasts = choicesForecasts.map((choice, index) => {
       if (isNil(choice.forecast) || isNil(forecastsSum)) {
         return null;
+      }
+      if (!question.options.includes(choice.name)) {
+        return 0.0;
       }
 
       const value = round(
@@ -249,6 +267,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
       const forecastValue: Record<string, number> = {};
       choicesForecasts.forEach((el) => {
+        if (!question.options.includes(el.name)) {
+          return; // only submit forecasts for current options
+        }
         const forecast = el.forecast;
         if (!isNil(forecast)) {
           forecastValue[el.name] = round(
@@ -354,28 +375,32 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {choicesForecasts.map((choice) => (
-            <ForecastChoiceOption
-              key={choice.name}
-              id={choice.name}
-              forecastValue={choice.forecast}
-              defaultSliderValue={equalizedForecast}
-              choiceName={choice.name}
-              choiceColor={choice.color}
-              communityForecast={
-                !user || !hideCP ? choice.communityForecast : null
-              }
-              inputMin={BINARY_MIN_VALUE}
-              inputMax={BINARY_MAX_VALUE}
-              onChange={handleForecastChange}
-              isDirty={isDirty}
-              disabled={!canPredict}
-              optionResolution={{
-                type: "question",
-                resolution: question.resolution,
-              }}
-            />
-          ))}
+          {choicesForecasts.map((choice) => {
+            if (question.options.includes(choice.name)) {
+              return (
+                <ForecastChoiceOption
+                  key={choice.name}
+                  id={choice.name}
+                  forecastValue={choice.forecast}
+                  defaultSliderValue={equalizedForecast}
+                  choiceName={choice.name}
+                  choiceColor={choice.color}
+                  communityForecast={
+                    !user || !hideCP ? choice.communityForecast : null
+                  }
+                  inputMin={BINARY_MIN_VALUE}
+                  inputMax={BINARY_MAX_VALUE}
+                  onChange={handleForecastChange}
+                  isDirty={isDirty}
+                  disabled={!canPredict}
+                  optionResolution={{
+                    type: "question",
+                    resolution: question.resolution,
+                  }}
+                />
+              );
+            }
+          })}
         </tbody>
       </table>
       {predictionMessage && (
@@ -388,6 +413,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <div className="flex flex-col pb-5">
           <div className="mt-5 flex flex-wrap items-center justify-center gap-4 ">
             <div className="mx-auto text-center sm:ml-0 sm:text-left">
+              {showUserMustForecast && (
+                <div className="mb-1 text-sm font-semibold text-red-600">
+                  PLACEHOLDER: User must forecast (a new option).
+                </div>
+              )}
               <div>
                 <span className="text-2xl font-bold">
                   Total: {getForecastPctString(forecastsSum)}
@@ -485,8 +515,9 @@ function generateChoiceOptions(
   userLastForecast: MultipleChoiceUserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
+  const allOptions = getAllOptionsHistory(question);
 
-  const choiceItems = question.options.map((option, index) => {
+  const choiceItems = allOptions.map((option, index) => {
     const communityForecastValue = latest?.forecast_values[index];
     const userForecastValue = userLastForecast?.forecast_values[index];
 
@@ -502,8 +533,8 @@ function generateChoiceOptions(
         : null,
     };
   });
-  const resolutionIndex = question.options.findIndex(
-    (_, index) => question.options[index] === question.resolution
+  const resolutionIndex = allOptions.findIndex(
+    (_, index) => allOptions[index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);

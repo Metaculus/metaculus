@@ -32,14 +32,16 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   const t = useTranslations();
   const { hideCP } = useHideCP();
   const forecastAvailability = getQuestionForecastAvailability(question);
-  const continuousAreaChartData = getContinuousAreaChartData({
-    question,
-    isClosed: question.status === QuestionStatus.CLOSED,
-  });
   const isContinuous =
     question.type === QuestionType.Numeric ||
     question.type === QuestionType.Discrete ||
     question.type === QuestionType.Date;
+  const continuousAreaChartData = !isContinuous
+    ? null
+    : getContinuousAreaChartData({
+        question,
+        isClosed: question.status === QuestionStatus.CLOSED,
+      });
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
