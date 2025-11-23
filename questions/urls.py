@@ -17,6 +17,11 @@ urlpatterns = [
         "questions/<int:pk>/", views.question_detail_api_view, name="question-details"
     ),
     path(
+        "questions/<int:pk>/upate-question-options/",
+        views.update_question_options,
+        name="upate-question-options",
+    ),
+    path(
         "questions/<int:pk>/resolve/", views.resolve_api_view, name="question-resolve"
     ),
     path(

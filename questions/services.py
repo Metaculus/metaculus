@@ -38,9 +38,6 @@ from questions.utils import (
     get_question_movement_period,
     get_last_forecast_in_the_past,
     get_all_options_from_history,
-    multiple_choice_rename_option,
-    multiple_choice_add_options,
-    multiple_choice_delete_options,
 )
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import Leaderboard, Score
@@ -197,13 +194,8 @@ def create_question(*, title: str = None, **kwargs) -> Question:
     return obj
 
 
-def update_question(
-    question: Question,
-    options: list[str] | None = None,
-    grace_period_end: datetime | None = None,
-    **kwargs,
-) -> Question:
-    scheduled_close_time: datetime | None = kwargs.get("scheduled_close_time")
+def update_question(question: Question, **kwargs) -> Question:
+    scheduled_close_time = kwargs.get("scheduled_close_time")
 
     question, _ = model_update(
         instance=question,
@@ -214,37 +206,6 @@ def update_question(
     if scheduled_close_time and scheduled_close_time > timezone.now():
         question.actual_close_time = None
         question.save()
-
-    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        # deal with option updates
-        new_options = options or []
-        current_options = question.options or []
-        if len(current_options) < len(new_options):
-            # deletion
-            options_to_delete = [l for l in new_options if l not in current_options]
-            multiple_choice_delete_options(
-                question,
-                options_to_delete,
-                timestep=timezone.now(),
-            )
-            question.save(update_fields=["options", "options_history"])
-        elif len(current_options) > len(new_options):
-            # addition
-            if not grace_period_end:
-                raise ValueError("grace_period_end required when adding options")
-            options_to_add = [l for l in current_options if l not in new_options]
-            multiple_choice_add_options(
-                question,
-                options_to_add,
-                grace_period_end=grace_period_end,
-                timestep=timezone.now(),
-            )
-            question.save(update_fields=["options", "options_history"])
-        elif current_options != new_options:
-            # renaming
-            for old, new in zip(current_options, new_options):
-                multiple_choice_rename_option(question, old, new)
-            question.save(update_fields=["options", "options_history"])
 
     return question
 
