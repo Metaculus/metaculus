@@ -1,10 +1,17 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.contrib import admin
+from datetime import timedelta
+
+from django import forms
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
-from django.http import HttpResponse
-from django.urls import reverse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import path, reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from posts.models import Post
 from questions.constants import UnsuccessfulResolutionType
@@ -15,10 +22,216 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
+from questions.serializers.common import MultipleChoiceOptionsUpdateSerializer
 from questions.services import build_question_forecasts
 from questions.types import AggregationMethod
+from questions.utils import (
+    get_all_options_from_history,
+    multiple_choice_add_options,
+    multiple_choice_delete_options,
+    multiple_choice_rename_option,
+)
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+
+
+class MultipleChoiceOptionsAdminForm(forms.Form):
+    ACTION_RENAME = "rename_options"
+    ACTION_DELETE = "delete_options"
+    ACTION_ADD = "add_options"
+    ACTION_CHOICES = (
+        (ACTION_RENAME, "Rename options"),
+        (ACTION_DELETE, "Delete options"),
+        (ACTION_ADD, "Add options"),
+    )
+
+    action = forms.ChoiceField(choices=ACTION_CHOICES, required=True)
+    old_option = forms.ChoiceField(required=False)
+    new_option = forms.CharField(
+        required=False, label="New option text", strip=True, max_length=200
+    )
+    options_to_delete = forms.MultipleChoiceField(
+        required=False, widget=forms.CheckboxSelectMultiple
+    )
+    new_options = forms.CharField(
+        required=False,
+        help_text="Comma-separated options to add before the catch-all option.",
+    )
+    grace_period_end = forms.DateTimeField(
+        required=False,
+        help_text=(
+            "Default value is 2 weeks from now. "
+            "Required when adding options; must be in the future. "
+            "Format: YYYY-MM-DD or YYYY-MM-DD HH:MM (time optional)."
+        ),
+    )
+
+    def __init__(self, question: Question, *args, **kwargs):
+        self.question = question
+        super().__init__(*args, **kwargs)
+
+        self.fields["action"].choices = [("", "Select action")] + list(
+            self.ACTION_CHOICES
+        )
+        self.fields["action"].initial = ""
+
+        options_history = question.options_history or []
+        all_options = (
+            get_all_options_from_history(options_history) if options_history else []
+        )
+        self.fields["old_option"].choices = [(opt, opt) for opt in all_options]
+
+        current_options = question.options or []
+        self.fields["options_to_delete"].choices = [
+            (opt, opt) for opt in current_options[:-1]
+        ]
+        self.fields["options_to_delete"].help_text = (
+            "You can remove any option except the final catch-all. "
+            "Leave at least one other option in place."
+        )
+        self.fields["grace_period_end"].widget.attrs[
+            "placeholder"
+        ] = "YYYY-MM-DD or YYYY-MM-DD HH:MM"
+        self.fields["grace_period_end"].initial = timezone.now() + timedelta(days=14)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        question = self.question
+        action = cleaned_data.get("action")
+        current_options = question.options or []
+        options_history = question.options_history or []
+        now = timezone.now()
+
+        if not question.options or not question.options_history:
+            raise forms.ValidationError(
+                "This question needs options and an options history to update."
+            )
+
+        if not action:
+            return cleaned_data
+
+        if action == self.ACTION_RENAME:
+            old_option = cleaned_data.get("old_option")
+            new_option = cleaned_data.get("new_option", "")
+
+            if not old_option:
+                self.add_error("old_option", "Select an option to rename.")
+            if not new_option or not new_option.strip():
+                self.add_error("new_option", "Enter the new option text.")
+            new_option = (new_option or "").strip()
+
+            if self.errors:
+                return cleaned_data
+
+            if old_option not in current_options:
+                self.add_error(
+                    "old_option", "Selected option is not part of the current choices."
+                )
+                return cleaned_data
+
+            new_options = [
+                new_option if opt == old_option else opt for opt in current_options
+            ]
+            if len(set(new_options)) != len(new_options):
+                self.add_error(
+                    "new_option", "New option duplicates an existing option."
+                )
+                return cleaned_data
+
+            cleaned_data["target_option"] = old_option
+            cleaned_data["parsed_new_option"] = new_option
+            return cleaned_data
+
+        if action == self.ACTION_DELETE:
+            options_to_delete = cleaned_data.get("options_to_delete") or []
+            if not options_to_delete:
+                self.add_error(
+                    "options_to_delete", "Select at least one option to delete."
+                )
+                return cleaned_data
+
+            new_options = [
+                opt for opt in current_options if opt not in options_to_delete
+            ]
+            if len(new_options) < 2:
+                self.add_error(
+                    "options_to_delete",
+                    "At least one option in addition to the catch-all must remain.",
+                )
+            if options_history and now.timestamp() < options_history[-1][0]:
+                self.add_error(
+                    "options_to_delete",
+                    "Options cannot change during an active grace period.",
+                )
+
+            if self.errors:
+                return cleaned_data
+
+            serializer = MultipleChoiceOptionsUpdateSerializer(
+                context={"question": question}
+            )
+            try:
+                serializer.validate_new_options(new_options, options_history, None)
+            except DRFValidationError as exc:
+                raise forms.ValidationError(exc.detail or exc.args)
+
+            cleaned_data["options_to_delete"] = options_to_delete
+            return cleaned_data
+
+        if action == self.ACTION_ADD:
+            new_options_raw = cleaned_data.get("new_options") or ""
+            grace_period_end = cleaned_data.get("grace_period_end")
+            if grace_period_end and timezone.is_naive(grace_period_end):
+                grace_period_end = timezone.make_aware(grace_period_end)
+                cleaned_data["grace_period_end"] = grace_period_end
+            new_options_list = [
+                opt.strip() for opt in new_options_raw.split(",") if opt.strip()
+            ]
+            if not new_options_list:
+                self.add_error("new_options", "Enter at least one option to add.")
+            if len(new_options_list) != len(set(new_options_list)):
+                self.add_error("new_options", "New options list includes duplicates.")
+
+            duplicate_existing = set(current_options).intersection(new_options_list)
+            if duplicate_existing:
+                self.add_error(
+                    "new_options",
+                    f"Options already exist: {', '.join(sorted(duplicate_existing))}",
+                )
+
+            if not grace_period_end:
+                self.add_error(
+                    "grace_period_end", "Grace period end is required when adding."
+                )
+            elif grace_period_end <= now:
+                self.add_error(
+                    "grace_period_end", "Grace period end must be in the future."
+                )
+            if options_history and now.timestamp() < options_history[-1][0]:
+                self.add_error(
+                    "grace_period_end",
+                    "Options cannot change during an active grace period.",
+                )
+
+            if self.errors:
+                return cleaned_data
+
+            serializer = MultipleChoiceOptionsUpdateSerializer(
+                context={"question": question}
+            )
+            new_options = current_options[:-1] + new_options_list + current_options[-1:]
+            try:
+                serializer.validate_new_options(
+                    new_options, options_history, grace_period_end
+                )
+            except DRFValidationError as exc:
+                raise forms.ValidationError(exc.detail or exc.args)
+
+            cleaned_data["new_options_list"] = new_options_list
+            cleaned_data["grace_period_end"] = grace_period_end
+            return cleaned_data
+
+        raise forms.ValidationError("Invalid action selected.")
 
 
 @admin.register(Question)
@@ -37,6 +250,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "view_forecasts",
         "options",
         "options_history",
+        "update_mc_options",
     ]
     search_fields = [
         "id",
@@ -88,6 +302,22 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         url = reverse("admin:questions_forecast_changelist") + f"?question={obj.id}"
         return format_html('<a href="{}">View Forecasts</a>', url)
 
+    def update_mc_options(self, obj):
+        if not obj:
+            return "Save the question to manage options."
+        if obj.type != Question.QuestionType.MULTIPLE_CHOICE:
+            return "Option updates are available for multiple choice questions only."
+        if not obj.options_history or not obj.options:
+            return "Options and options history are required to update choices."
+        url = reverse("admin:questions_question_update_options", args=[obj.id])
+        return format_html(
+            '<a class="button" href="{}">Update multiple choice options</a>'
+            '<p class="help">Rename, delete, or add options while keeping history.</p>',
+            url,
+        )
+
+    update_mc_options.short_description = "Multiple choice options"
+
     def should_update_translations(self, obj):
         post = obj.get_post()
         is_private = post.default_project.default_permission is None
@@ -95,12 +325,34 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         return not is_private and is_approved
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:question_id>/update-options/",
+                self.admin_site.admin_view(self.update_options_view),
+                name="questions_question_update_options",
+            ),
+        ]
+        return custom_urls + urls
+
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
+
+        def insert_after(target_field: str, new_field: str):
+            if new_field in fields:
+                fields.remove(new_field)
+            if target_field in fields:
+                fields.insert(fields.index(target_field) + 1, new_field)
+            else:
+                fields.append(new_field)
+
         for field in ["post_link", "view_forecasts"]:
             if field in fields:
                 fields.remove(field)
             fields.insert(0, field)
+        if obj:
+            insert_after("options_history", "update_mc_options")
         return fields
 
     def get_actions(self, request):
@@ -135,6 +387,90 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         self, request, queryset: QuerySet[Question]
     ):
         return self.export_selected_questions_data(request, queryset, anonymized=True)
+
+    def update_options_view(self, request, question_id: int):
+        question = Question.objects.filter(pk=question_id).first()
+        if not question:
+            raise Http404("Question not found.")
+        if not self.has_change_permission(request, question):
+            raise PermissionDenied
+
+        change_url = reverse("admin:questions_question_change", args=[question.id])
+        if question.type != Question.QuestionType.MULTIPLE_CHOICE:
+            messages.error(
+                request, "Option updates are available for multiple choice questions."
+            )
+            return HttpResponseRedirect(change_url)
+        if not question.options or not question.options_history:
+            messages.error(
+                request,
+                "Options and options history are required before updating choices.",
+            )
+            return HttpResponseRedirect(change_url)
+
+        form = MultipleChoiceOptionsAdminForm(
+            question, data=request.POST or None, prefix="options"
+        )
+        if request.method == "POST" and form.is_valid():
+            action = form.cleaned_data["action"]
+            if action == form.ACTION_RENAME:
+                old_option = form.cleaned_data["target_option"]
+                new_option = form.cleaned_data["parsed_new_option"]
+                multiple_choice_rename_option(question, old_option, new_option)
+                question.save(update_fields=["options", "options_history"])
+                self.message_user(
+                    request, f"Renamed option '{old_option}' to '{new_option}'."
+                )
+            elif action == form.ACTION_DELETE:
+                options_to_delete = form.cleaned_data["options_to_delete"]
+                multiple_choice_delete_options(
+                    question,
+                    options_to_delete,
+                    comment_author=request.user,
+                    timestep=timezone.now(),
+                )
+                question.save(update_fields=["options", "options_history"])
+                self.message_user(
+                    request,
+                    f"Deleted {len(options_to_delete)} option"
+                    f"{'' if len(options_to_delete) == 1 else 's'}.",
+                )
+            elif action == form.ACTION_ADD:
+                new_options = form.cleaned_data["new_options_list"]
+                grace_period_end = form.cleaned_data["grace_period_end"]
+                if timezone.is_naive(grace_period_end):
+                    grace_period_end = timezone.make_aware(grace_period_end)
+                multiple_choice_add_options(
+                    question,
+                    new_options,
+                    grace_period_end=grace_period_end,
+                    comment_author=request.user,
+                    timestep=timezone.now(),
+                )
+                question.save(update_fields=["options", "options_history"])
+                self.message_user(
+                    request,
+                    f"Added {len(new_options)} option"
+                    f"{'' if len(new_options) == 1 else 's'}.",
+                )
+            return HttpResponseRedirect(change_url)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "app_label": self.model._meta.app_label,
+            "original": question,
+            "question": question,
+            "title": f"Update options for {question}",
+            "form": form,
+            "media": self.media + form.media,
+            "change_url": change_url,
+            "current_options": question.options or [],
+            "all_history_options": get_all_options_from_history(
+                question.options_history
+            ),
+        }
+        return TemplateResponse(request, "admin/questions/update_options.html", context)
 
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
         for question in queryset:
