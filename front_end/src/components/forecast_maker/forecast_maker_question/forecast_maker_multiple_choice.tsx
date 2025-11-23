@@ -269,6 +269,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
       const forecastValue: Record<string, number> = {};
       choicesForecasts.forEach((el) => {
+        if (!question.options.includes(el.name)) {
+          return; // only submit forecasts for current options
+        }
         const forecast = el.forecast;
         if (!isNil(forecast)) {
           forecastValue[el.name] = round(
