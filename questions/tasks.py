@@ -283,40 +283,40 @@ def multiple_choice_delete_option_notificiations(
         ),
     )
 
-    # send out an immediate email
-    forecaster_emails = (
-        User.objects.filter(
-            forecast__in=question.user_forecasts.filter(
-                Q(end_time__isnull=True) | Q(end_time__gt=timestep)
-            )
-        )
-        .exclude(
-            unsubscribed_mailing_tags__contains=[
-                MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
-            ]
-        )
-        .exclude(email__isnull=True)
-        .exclude(email="")
-        .values_list("email", flat=True)
-        .distinct("id")
-        .order_by("id")
-    )
-    start = 0
-    batch_size = 300
-    while True:
-        emails_batch = list(forecaster_emails[start : start + batch_size])
-        if not emails_batch:
-            break
+    # # send out an immediate email
+    # forecaster_emails = (
+    #     User.objects.filter(
+    #         forecast__in=question.user_forecasts.filter(
+    #             Q(end_time__isnull=True) | Q(end_time__gt=timestep)
+    #         )
+    #     )
+    #     .exclude(
+    #         unsubscribed_mailing_tags__contains=[
+    #             MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
+    #         ]
+    #     )
+    #     .exclude(email__isnull=True)
+    #     .exclude(email="")
+    #     .values_list("email", flat=True)
+    #     .distinct("id")
+    #     .order_by("id")
+    # )
+    # start = 0
+    # batch_size = 300
+    # while True:
+    #     emails_batch = list(forecaster_emails[start : start + batch_size])
+    #     if not emails_batch:
+    #         break
 
-        send_email_with_template(
-            to=emails_batch,
-            subject="Multiple Choice Question Options Change",
-            template_name="emails/multiple_choice_option_deletion.html",
-            context={},
-            use_async=False,
-            from_email=settings.EMAIL_NOTIFICATIONS_USER,
-        )
-        start += batch_size
+    #     send_email_with_template(
+    #         to=emails_batch,
+    #         subject="Multiple Choice Question Options Change",
+    #         template_name="emails/multiple_choice_option_deletion.html",
+    #         context={},
+    #         use_async=False,
+    #         from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    #     )
+    #     start += batch_size
 
 
 # @dramatiq.actor
@@ -364,24 +364,24 @@ def multiple_choice_add_option_notificiations(
         ),
     )
 
-    # send out an immediate email
-    forecaster_emails = forecasters.values_list("email", flat=True)
-    start = 0
-    batch_size = 300
-    while True:
-        emails_batch = list(forecaster_emails[start : start + batch_size])
-        if not emails_batch:
-            break
+    # # send out an immediate email
+    # forecaster_emails = forecasters.values_list("email", flat=True)
+    # start = 0
+    # batch_size = 300
+    # while True:
+    #     emails_batch = list(forecaster_emails[start : start + batch_size])
+    #     if not emails_batch:
+    #         break
 
-        send_email_with_template(
-            to=emails_batch,
-            subject="Multiple Choice Question Options Change",
-            template_name="emails/multiple_choice_option_addition.html",
-            context={},
-            use_async=False,
-            from_email=settings.EMAIL_NOTIFICATIONS_USER,
-        )
-        start += batch_size
+    #     send_email_with_template(
+    #         to=emails_batch,
+    #         subject="Multiple Choice Question Options Change",
+    #         template_name="emails/multiple_choice_option_addition.html",
+    #         context={},
+    #         use_async=False,
+    #         from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    #     )
+    #     start += batch_size
 
     # schedule a followup email for 1 day before grace period
     #   (if grace period is more than 1 day away)

@@ -292,7 +292,7 @@ def multiple_choice_add_options(
 
     multiple_choice_add_option_notificiations(
         question_id=question.id,
-        grace_period_end=timestep,
+        grace_period_end=grace_period_end,
         timestep=timestep,
         comment_author_id=comment_author.id,
     )
