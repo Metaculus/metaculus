@@ -206,9 +206,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
             serializer = MultipleChoiceOptionsUpdateSerializer(
                 context={"question": question}
             )
-            new_options = (
-                current_options[:-1] + new_options_list + current_options[-1:]
-            )
+            new_options = current_options[:-1] + new_options_list + current_options[-1:]
             try:
                 serializer.validate_new_options(
                     new_options, options_history, grace_period_end
@@ -413,7 +411,10 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             elif action == form.ACTION_DELETE:
                 options_to_delete = form.cleaned_data["options_to_delete"]
                 multiple_choice_delete_options(
-                    question, options_to_delete, timestep=timezone.now()
+                    question,
+                    options_to_delete,
+                    comment_author=request.user,
+                    timestep=timezone.now(),
                 )
                 question.save(update_fields=["options", "options_history"])
                 self.message_user(
@@ -430,6 +431,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
                     question,
                     new_options,
                     grace_period_end=grace_period_end,
+                    comment_author=request.user,
                     timestep=timezone.now(),
                 )
                 question.save(update_fields=["options", "options_history"])
@@ -455,9 +457,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
                 question.options_history
             ),
         }
-        return TemplateResponse(
-            request, "admin/questions/update_options.html", context
-        )
+        return TemplateResponse(request, "admin/questions/update_options.html", context)
 
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
         for question in queryset:
