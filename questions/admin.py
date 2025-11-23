@@ -1,4 +1,5 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from datetime import timedelta
 from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
@@ -43,9 +44,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         (ACTION_ADD, "Add options"),
     )
 
-    action = forms.ChoiceField(
-        choices=ACTION_CHOICES, widget=forms.RadioSelect, required=True
-    )
+    action = forms.ChoiceField(choices=ACTION_CHOICES, required=True)
     old_option = forms.ChoiceField(required=False)
     new_option = forms.CharField(
         required=False, label="New option text", strip=True, max_length=200
@@ -59,12 +58,21 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
     )
     grace_period_end = forms.DateTimeField(
         required=False,
-        help_text="Required when adding options; must be in the future.",
+        help_text=(
+            "Default value is 2 weeks from now. "
+            "Required when adding options; must be in the future. "
+            "Format: YYYY-MM-DD or YYYY-MM-DD HH:MM (time optional)."
+        ),
     )
 
     def __init__(self, question: Question, *args, **kwargs):
         self.question = question
         super().__init__(*args, **kwargs)
+
+        self.fields["action"].choices = [("", "Select action")] + list(
+            self.ACTION_CHOICES
+        )
+        self.fields["action"].initial = ""
 
         options_history = question.options_history or []
         all_options = (
@@ -80,6 +88,10 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
             "You can remove any option except the final catch-all. "
             "Leave at least one other option in place."
         )
+        self.fields["grace_period_end"].widget.attrs[
+            "placeholder"
+        ] = "YYYY-MM-DD or YYYY-MM-DD HH:MM"
+        self.fields["grace_period_end"].initial = timezone.now() + timedelta(days=14)
 
     def clean(self):
         cleaned_data = super().clean()
