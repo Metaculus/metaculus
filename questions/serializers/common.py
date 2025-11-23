@@ -22,10 +22,7 @@ from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
 from questions.types import QuestionMovement, OptionsHistoryType
-<<<<<<< HEAD
 from questions.utils import get_all_options_from_history
-=======
->>>>>>> 85a0289db (add options update validation and functionality)
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
