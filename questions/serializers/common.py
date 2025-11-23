@@ -224,14 +224,12 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
 
 class QuestionUpdateSerializer(QuestionWriteSerializer):
     id = serializers.IntegerField(required=False)
-    grace_period_end = serializers.DateTimeField(required=False)
 
     class Meta(QuestionWriteSerializer.Meta):
         fields = QuestionWriteSerializer.Meta.fields + (
             "id",
             "open_time",
             "cp_reveal_time",
-            "grace_period_end",
         )
 
     # TODO: add validation for updating continuous question bounds

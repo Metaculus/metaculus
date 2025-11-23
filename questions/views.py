@@ -286,7 +286,10 @@ def update_question_options(request, pk: int):
         multiple_choice_delete_options(
             question,
             options_to_delete,
+<<<<<<< HEAD
             comment_author=user,
+=======
+>>>>>>> 20f99f164 (decouple options update from question update endpoint)
             timestep=now,
         )
         question.save(update_fields=["options", "options_history"])
@@ -299,7 +302,10 @@ def update_question_options(request, pk: int):
             question,
             options_to_add,
             grace_period_end=grace_period_end,
+<<<<<<< HEAD
             comment_author=user,
+=======
+>>>>>>> 20f99f164 (decouple options update from question update endpoint)
             timestep=now,
         )
         question.save(update_fields=["options", "options_history"])
