@@ -436,6 +436,7 @@ def serialize_post(
     )
 
     serialized_data["is_current_content_translated"] = is_current_content_translated
+
     return serialized_data
 
 
