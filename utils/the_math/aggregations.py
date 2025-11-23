@@ -451,7 +451,7 @@ class MedianAggregatorMixin:
                     forecast_set.forecasts_values, weights, 50.0
                 )[0]
             )
-            nonzeros = arr == 0.0
+            nonzeros = arr != 0.0
             arr[nonzeros] -= 0.001  # remove minimum forecastable value
             arr = arr / sum(arr)  # renormalize
             # squeeze into forecastable value range
