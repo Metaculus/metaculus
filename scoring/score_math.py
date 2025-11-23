@@ -109,9 +109,12 @@ def evaluate_forecasts_baseline_accuracy(
         forecast_coverage = forecast_duration / total_duration
         pmf = forecast.get_pmf()
         if question_type in ["binary", "multiple_choice"]:
-            forecast_score = (
-                100 * np.log(pmf[resolution_bucket] * len(pmf)) / np.log(len(pmf))
-            )
+            # forecasts always have `0.0` assigned to MC options that aren't
+            # available at the time. Detecting these allows us to avoid trying to
+            # follow the question's options_history.
+            options_at_time = len([p for p in pmf if p > 0.0])
+            p = pmf[resolution_bucket] or pmf[-1]  # if 0.0, read from Other
+            forecast_score = 100 * np.log(p * options_at_time) / np.log(options_at_time)
         else:
             if resolution_bucket in [0, len(pmf) - 1]:
                 baseline = 0.05
@@ -141,8 +144,13 @@ def evaluate_forecasts_baseline_spot_forecast(
         if start <= spot_forecast_timestamp < end:
             pmf = forecast.get_pmf()
             if question_type in ["binary", "multiple_choice"]:
+                # forecasts always have `0.0` assigned to MC options that aren't
+                # available at the time. Detecting these allows us to avoid trying to
+                # follow the question's options_history.
+                options_at_time = len([p for p in pmf if p > 0.0])
+                p = pmf[resolution_bucket] or pmf[-1]  # if 0.0, read from Other
                 forecast_score = (
-                    100 * np.log(pmf[resolution_bucket] * len(pmf)) / np.log(len(pmf))
+                    100 * np.log(p * options_at_time) / np.log(options_at_time)
                 )
             else:
                 if resolution_bucket in [0, len(pmf) - 1]:
@@ -184,17 +192,19 @@ def evaluate_forecasts_peer_accuracy(
             continue
 
         pmf = forecast.get_pmf()
+        p = pmf[resolution_bucket] or pmf[-1]  # if 0.0, read from Other
         interval_scores: list[float | None] = []
         for gm in geometric_mean_forecasts:
             if forecast_start <= gm.timestamp < forecast_end:
-                score = (
+                gmp = gm.pmf[resolution_bucket] or gm.pmf[-1]  # if 0.0, read from Other
+                interval_score = (
                     100
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
-                    * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
+                    * np.log(p / gmp)
                 )
                 if question_type in QUESTION_CONTINUOUS_TYPES:
-                    score /= 2
-                interval_scores.append(score)
+                    interval_score /= 2
+                interval_scores.append(interval_score)
             else:
                 interval_scores.append(None)
 
@@ -242,10 +252,10 @@ def evaluate_forecasts_peer_spot_forecast(
         )
         if start <= spot_forecast_timestamp < end:
             pmf = forecast.get_pmf()
+            p = pmf[resolution_bucket] or pmf[-1]  # if 0.0, read from Other
+            gmp = gm.pmf[resolution_bucket] or gm.pmf[-1]  # if 0.0, read from Other
             forecast_score = (
-                100
-                * (gm.num_forecasters / (gm.num_forecasters - 1))
-                * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
+                100 * (gm.num_forecasters / (gm.num_forecasters - 1)) * np.log(p / gmp)
             )
             if question_type in QUESTION_CONTINUOUS_TYPES:
                 forecast_score /= 2
@@ -284,11 +294,13 @@ def evaluate_forecasts_legacy_relative(
             continue
 
         pmf = forecast.get_pmf()
+        p = pmf[resolution_bucket] or pmf[-1]  # if 0.0, read from Other
         interval_scores: list[float | None] = []
         for bf in baseline_forecasts:
             if forecast_start <= bf.timestamp < forecast_end:
-                score = np.log2(pmf[resolution_bucket] / bf.pmf[resolution_bucket])
-                interval_scores.append(score)
+                bfp = bf.pmf[resolution_bucket] or bf.pmf[-1]  # if 0.0, read from Other
+                interval_score = np.log2(p / bfp)
+                interval_scores.append(interval_score)
             else:
                 interval_scores.append(None)
 
@@ -339,7 +351,7 @@ def evaluate_question(
     if spot_forecast_time:
         spot_forecast_timestamp = min(spot_forecast_time.timestamp(), actual_close_time)
 
-    # We need all user forecasts to calculated GeoMean even
+    # We need all user forecasts to calculate GeoMean even
     # if we're only scoring some or none of the users
     user_forecasts = question.user_forecasts.all()
     if only_include_user_ids:
