@@ -107,6 +107,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
 @pytest.mark.parametrize(
     "p1, p2, question, expected_result",
     [
+        # binary
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -119,6 +120,7 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             Question(type="binary"),
             sum([-0.1 * np.log2(0.5 / 0.6), 0.1 * np.log2(0.5 / 0.4)]),  # 0.05849625
         ),
+        # multiple choice
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -150,6 +152,54 @@ def test_percent_point_function(cdf, percentiles, expected_result):
                 ]
             ),  # 1.3169925
         ),
+        (
+            [0.2, 0.3, 0.5],
+            [0.2, 0.2, 0.6],
+            Question(type="multiple_choice"),
+            sum(
+                [
+                    0,
+                    (0.3 - 0.2) * np.log2(0.3 / 0.2),
+                    (0.5 - 0.6) * np.log2(0.5 / 0.6),
+                ]
+            ),  # 0.0847996
+        ),
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.2, 0.3, 0.0, 0.5],
+            Question(type="multiple_choice"),
+            0.0,
+        ),  # deal with 0.0s happily
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.2, 0.3, 0.1, 0.4],
+            Question(type="multiple_choice"),
+            0.0,
+        ),  # no difference across adding an option
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.2, 0.2, 0.1, 0.5],
+            Question(type="multiple_choice"),
+            sum(
+                [
+                    0,
+                    (0.3 - 0.2) * np.log2(0.3 / 0.2),
+                    (0.5 - 0.6) * np.log2(0.5 / 0.6),
+                ]
+            ),  # 0.0847996
+        ),  # difference across adding an option
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.1, 0.0, 0.7, 0.2],
+            Question(type="multiple_choice"),
+            sum(
+                [
+                    (0.2 - 0.1) * np.log2(0.2 / 0.1),
+                    (0.8 - 0.9) * np.log2(0.8 / 0.9),
+                ]
+            ),  # 0.1169925
+        ),  # difference across removing and adding options
+        # continuous
         (
             [0.01, 0.5, 0.99],
             [0.01, 0.5, 0.99],

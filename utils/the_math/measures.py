@@ -96,7 +96,19 @@ def prediction_difference_for_sorting(
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
     # Uses Jeffrey's Divergence
-    if question_type in ["binary", "multiple_choice"]:
+    if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+        # cover for 0.0s
+        never_zero_mask = (p1 != 0.0) * (p2 != 0.0)
+        p1_new = p1[never_zero_mask]
+        p2_new = p2[never_zero_mask]
+        p1_new[-1] += sum(p1[~never_zero_mask])
+        p2_new[-1] += sum(p2[~never_zero_mask])
+        p1 = p1_new
+        p2 = p2_new
+    if question_type in [
+        Question.QuestionType.BINARY,
+        Question.QuestionType.MULTIPLE_CHOICE,
+    ]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
     cdf1 = np.array([1 - np.array(p1), p1])
     cdf2 = np.array([1 - np.array(p2), p2])
