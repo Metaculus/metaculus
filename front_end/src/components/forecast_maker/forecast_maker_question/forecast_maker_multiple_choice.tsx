@@ -30,6 +30,7 @@ import {
   isForecastActive,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
+import { getAllOptionsHistory } from "@/utils/questions/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -78,6 +79,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+
+  const allOptions = getAllOptionsHistory(question);
 
   const activeUserForecast =
     question.my_forecasts?.latest &&
@@ -149,9 +152,17 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     () => choicesForecasts.every((el) => el.forecast !== null),
     [choicesForecasts]
   );
+  console.log(choicesForecasts.map(({ forecast }) => forecast));
   const forecastsSum = useMemo(
-    () => (forecastHasValues ? sumForecasts(choicesForecasts) : null),
-    [choicesForecasts, forecastHasValues]
+    () =>
+      forecastHasValues
+        ? sumForecasts(
+            choicesForecasts.filter((choice) =>
+              question.options.includes(choice.name)
+            )
+          )
+        : null,
+    [question.options, choicesForecasts, forecastHasValues]
   );
   const remainingSum = forecastsSum ? 100 - forecastsSum : null;
   const isForecastValid = forecastHasValues && forecastsSum === 100;
@@ -161,8 +172,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      question.options.map((_, index) => {
-        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on question.options
+      allOptions.map((_, index) => {
+        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on allOptions
         // so there won't be a case where arrays are not of the same length
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const choiceOption = prev[index]!;
@@ -177,7 +188,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
+  }, [allOptions, question.my_forecasts?.latest?.forecast_values]);
 
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
@@ -213,6 +224,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     const newForecasts = choicesForecasts.map((choice, index) => {
       if (isNil(choice.forecast) || isNil(forecastsSum)) {
         return null;
+      }
+      if (!question.options.includes(choice.name)) {
+        return 0.0;
       }
 
       const value = round(
@@ -360,28 +374,32 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {choicesForecasts.map((choice) => (
-            <ForecastChoiceOption
-              key={choice.name}
-              id={choice.name}
-              forecastValue={choice.forecast}
-              defaultSliderValue={equalizedForecast}
-              choiceName={choice.name}
-              choiceColor={choice.color}
-              communityForecast={
-                !user || !hideCP ? choice.communityForecast : null
-              }
-              inputMin={BINARY_MIN_VALUE}
-              inputMax={BINARY_MAX_VALUE}
-              onChange={handleForecastChange}
-              isDirty={isDirty}
-              disabled={!canPredict}
-              optionResolution={{
-                type: "question",
-                resolution: question.resolution,
-              }}
-            />
-          ))}
+          {choicesForecasts.map((choice) => {
+            if (question.options.includes(choice.name)) {
+              return (
+                <ForecastChoiceOption
+                  key={choice.name}
+                  id={choice.name}
+                  forecastValue={choice.forecast}
+                  defaultSliderValue={equalizedForecast}
+                  choiceName={choice.name}
+                  choiceColor={choice.color}
+                  communityForecast={
+                    !user || !hideCP ? choice.communityForecast : null
+                  }
+                  inputMin={BINARY_MIN_VALUE}
+                  inputMax={BINARY_MAX_VALUE}
+                  onChange={handleForecastChange}
+                  isDirty={isDirty}
+                  disabled={!canPredict}
+                  optionResolution={{
+                    type: "question",
+                    resolution: question.resolution,
+                  }}
+                />
+              );
+            }
+          })}
         </tbody>
       </table>
       {predictionMessage && (
@@ -501,8 +519,9 @@ function generateChoiceOptions(
   userLastForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
+  const allOptions = getAllOptionsHistory(question);
 
-  const choiceItems = question.options.map((option, index) => {
+  const choiceItems = allOptions.map((option, index) => {
     const communityForecastValue = latest?.forecast_values[index];
     const userForecastValue = userLastForecast?.forecast_values[index];
 
@@ -518,8 +537,8 @@ function generateChoiceOptions(
         : null,
     };
   });
-  const resolutionIndex = question.options.findIndex(
-    (_, index) => question.options[index] === question.resolution
+  const resolutionIndex = allOptions.findIndex(
+    (_, index) => allOptions[index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
