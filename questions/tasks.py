@@ -291,7 +291,7 @@ def multiple_choice_delete_option_notificiations(
             )
         )
         .exclude(
-            ubsubscribed_mailing_tags__contains=[
+            unsubscribed_mailing_tags__contains=[
                 MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
             ]
         )
@@ -338,7 +338,7 @@ def multiple_choice_add_option_notificiations(
             )  # all effected forecasts have their end_time set to grace_period_end
         )
         .exclude(
-            ubsubscribed_mailing_tags__contains=[
+            unsubscribed_mailing_tags__contains=[
                 MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
             ]
         )
