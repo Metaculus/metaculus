@@ -152,7 +152,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     () => choicesForecasts.every((el) => el.forecast !== null),
     [choicesForecasts]
   );
-  console.log(choicesForecasts.map(({ forecast }) => forecast));
   const forecastsSum = useMemo(
     () =>
       forecastHasValues

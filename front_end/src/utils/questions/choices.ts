@@ -34,10 +34,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     question.aggregations[question.default_aggregation_method].latest;
 
   const allOptions = getAllOptionsHistory(question);
-  if (question.id == 39727) {
-    console.log(question.options, allOptions);
-  }
-
   const choiceOrdering: number[] = allOptions?.map((_, i) => i) ?? [];
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
