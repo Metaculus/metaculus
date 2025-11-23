@@ -28,9 +28,10 @@ from questions.services.multiple_choice_handlers import (
     MultipleChoiceOptionsUpdateSerializer,
     get_all_options_from_history,
     multiple_choice_add_options,
+    multiple_choice_change_grace_period_end,
     multiple_choice_delete_options,
     multiple_choice_rename_option,
-    multiple_choice_change_grace_period_end,
+    multiple_choice_reorder_options,
 )
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
