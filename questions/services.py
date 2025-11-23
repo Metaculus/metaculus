@@ -36,6 +36,7 @@ from questions.models import (
 from questions.serializers.common import serialize_question_movement
 from questions.types import AggregationMethod, QuestionMovement
 from questions.utils import (
+    get_all_options_from_history,
     get_question_movement_period,
     get_last_forecast_in_the_past,
 )
