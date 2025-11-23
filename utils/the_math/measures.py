@@ -96,7 +96,19 @@ def prediction_difference_for_sorting(
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
     # Uses Jeffrey's Divergence
-    if question_type in ["binary", "multiple_choice"]:
+    if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+        # cover for 0.0s
+        never_zero_mask = (p1 != 0.0) * (p2 != 0.0)
+        p1_new = p1[never_zero_mask]
+        p2_new = p2[never_zero_mask]
+        p1_new[-1] += sum(p1[~never_zero_mask])
+        p2_new[-1] += sum(p2[~never_zero_mask])
+        p1 = p1_new
+        p2 = p2_new
+    if question_type in [
+        Question.QuestionType.BINARY,
+        Question.QuestionType.MULTIPLE_CHOICE,
+    ]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
     cdf1 = np.array([1 - np.array(p1), p1])
     cdf2 = np.array([1 - np.array(p2), p2])
@@ -116,7 +128,17 @@ def prediction_difference_for_display(
         return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]
     elif question.type == "multiple_choice":
         # list of (pred diff, ratio of odds)
-        return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
+        for p, q in zip(p1[:-1], p2[:-1]):
+            if p == 0.0 or q == 0.0:
+                p1[-1] += p
+                p2[-1] += q
+        arr = []
+        for p, q in zip(p1, p2):
+            if p == 0.0 or q == 0.0:
+                arr.append((0.0, 0.0))
+            else:
+                arr.append((q - p, (q / (1 - q)) / (p / (1 - p))))
+        return arr
     # total earth mover's distance, assymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question

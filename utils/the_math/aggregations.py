@@ -446,14 +446,17 @@ class MedianAggregatorMixin:
                 )[0]
             )
         elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
-            medians = np.array(
+            arr = np.array(
                 compute_discrete_forecast_values(
                     forecast_set.forecasts_values, weights, 50.0
                 )[0]
             )
-            floored_medians = medians - 0.001
-            normalized_floored_medians = floored_medians / sum(floored_medians)
-            return normalized_floored_medians * (1 - len(medians) * 0.001) + 0.001
+            nonzeros = arr != 0.0
+            arr[nonzeros] -= 0.001  # remove minimum forecastable value
+            arr = arr / sum(arr)  # renormalize
+            # squeeze into forecastable value range
+            arr[nonzeros] = arr[nonzeros] * (1 - len(arr[nonzeros]) * 0.001) + 0.001
+            return arr
         else:  # continuous
             return np.average(forecast_set.forecasts_values, axis=0, weights=weights)
 
@@ -472,6 +475,7 @@ class MedianAggregatorMixin:
                 forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
             )
             centers_array = np.array(centers)
+            centers_array[centers_array == 0.0] = 1.0  # avoid divide by zero
             normalized_centers = np.array(aggregation_forecast_values)
             normalized_lowers = np.array(lowers) * normalized_centers / centers_array
             normalized_uppers = np.array(uppers) * normalized_centers / centers_array

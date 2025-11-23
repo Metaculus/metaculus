@@ -712,6 +712,7 @@ def create_forecast(
 ):
     now = timezone.now()
     post = question.get_post()
+    end_time = kwargs.pop("end_time", None)
 
     # delete all future-dated predictions, as this one will override them
     Forecast.objects.filter(question=question, author=user, start_time__gt=now).delete()
