@@ -225,9 +225,7 @@ export function inferEffectiveQuestionTypeFromPost(
   return null;
 }
 
-export function getAllOptionsHistory(
-  question: QuestionWithMultipleChoiceForecasts
-): string[] {
+export function getAllOptionsHistory(question: Question): string[] {
   const allOptions: string[] = [];
   (question.options_history ?? []).map((entry) => {
     entry[1].slice(0, -1).map((option) => {
