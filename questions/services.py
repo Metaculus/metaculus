@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from coherence.models import CoherenceLink
+from misc.models import Bulletin, BulletinViewedBy
 from notifications.constants import MailingTags
 from notifications.services import delete_scheduled_question_resolution_notifications
 from posts.models import PostUserSnapshot, PostSubscription, Notebook, Post
@@ -35,9 +36,9 @@ from questions.models import (
 from questions.serializers.common import serialize_question_movement
 from questions.types import AggregationMethod, QuestionMovement
 from questions.utils import (
+    get_all_options_from_history,
     get_question_movement_period,
     get_last_forecast_in_the_past,
-    get_all_options_from_history,
 )
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import Leaderboard, Score
@@ -903,6 +904,9 @@ def update_forecast_notification(
 
     When created=True: Creates/updates notification if forecast has future end_time
     When created=False: Deletes existing notification for user/question pair
+
+    In condition where forecast is during a grace period, deactivate scheduled emails
+    and treat Bulletin as viewed.
     """
 
     user = forecast.author
@@ -948,6 +952,14 @@ def update_forecast_notification(
                 "forecast": forecast,
             },
         )
+
+    post_bulletins = Bulletin.objects.filter(
+        # since this is an automated bulletin, should it get
+        # another field we can filter on like "type"?
+        post=question.get_post(),
+    )
+    for bulletin in post_bulletins:
+        BulletinViewedBy.objects.create(bulletin=bulletin, user=user)
 
 
 @sentry_sdk.trace

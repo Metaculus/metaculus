@@ -286,6 +286,7 @@ def update_question_options(request, pk: int):
         multiple_choice_delete_options(
             question,
             options_to_delete,
+            comment_author=user,
             timestep=now,
         )
         question.save(update_fields=["options", "options_history"])
@@ -298,6 +299,7 @@ def update_question_options(request, pk: int):
             question,
             options_to_add,
             grace_period_end=grace_period_end,
+            comment_author=user,
             timestep=now,
         )
         question.save(update_fields=["options", "options_history"])
