@@ -713,6 +713,9 @@ def create_forecast(
     now = timezone.now()
     post = question.get_post()
 
+    # delete all future-dated predictions, as this one will override them
+    Forecast.objects.filter(question=question, author=user, start_time__gt=now).delete()
+
     # if the forecast to be created is for a multiple choice question during a grace
     # period, we need to agument the forecast accordingly (possibly preregister)
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
