@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ media }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  › <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_label|capfirst }}</a>
+  › <a href="{% url 'admin:questions_question_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  › <a href="{{ change_url }}">{{ original }}</a>
+  › Update options
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Update options for "{{ question }}"</h1>
+  <p><strong>Current options:</strong> {{ current_options|join:", " }}</p>
+  <p class="help">All options ever used: {{ all_history_options|join:", " }}</p>
+  <p class="help">When deleting options, the checkboxes will let you select most options, but you must leave at least one option plus the catch-all.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+          <div>
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="submit-row">
+      <a class="button cancel-link" href="{{ change_url }}">{% trans "Cancel" %}</a>
+      <input type="submit" value="{% trans 'Submit' %}">
+    </div>
+  </form>
+</div>
+{% endblock %}
