@@ -276,6 +276,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
 @pytest.mark.parametrize(
     "p1, p2, question, expected_result",
     [
+        # binary
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -292,6 +293,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 (-0.1, (2 / 3) / 1),
             ],
         ),
+        # multiple choice
         (
             [0.5, 0.5],
             [0.5, 0.5],
@@ -332,6 +334,61 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
                 (-0.3, (1 / 9) / (4 / 6)),
             ],
         ),
+        (
+            [0.2, 0.3, 0.5],
+            [0.2, 0.2, 0.6],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (-0.1, (2 / 8) / (3 / 7)),
+                (0.1, (6 / 4) / (5 / 5)),
+            ],
+        ),
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.2, 0.3, 0.0, 0.5],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (0.0, (3 / 7) / (3 / 7)),
+                (0.0, 0.0),
+                (0.0, (5 / 5) / (5 / 5)),
+            ],
+        ),  # deal with 0.0s happily
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.2, 0.3, 0.1, 0.4],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (0.0, (3 / 7) / (3 / 7)),
+                (0.0, 0.0),
+                (0.0, (5 / 5) / (5 / 5)),
+            ],
+        ),  # no difference across adding an option
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.2, 0.2, 0.1, 0.5],
+            Question(type="multiple_choice"),
+            [
+                (0.0, (2 / 8) / (2 / 8)),
+                (-0.1, (2 / 8) / (3 / 7)),
+                (0.0, 0.0),
+                (0.1, (6 / 4) / (5 / 5)),
+            ],
+        ),  # difference across adding an option
+        (
+            [0.2, 0.3, 0.0, 0.5],
+            [0.1, 0.0, 0.7, 0.2],
+            Question(type="multiple_choice"),
+            [
+                (-0.1, (1 / 9) / (2 / 8)),
+                (0.0, 0.0),
+                (0.0, 0.0),
+                (0.1, (9 / 1) / (8 / 2)),
+            ],
+        ),  # difference across removing and adding options
+        # continuous
         (
             [0.0, 0.5, 1.0],
             [0.0, 0.5, 1.0],

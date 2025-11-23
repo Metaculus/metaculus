@@ -128,7 +128,17 @@ def prediction_difference_for_display(
         return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]
     elif question.type == "multiple_choice":
         # list of (pred diff, ratio of odds)
-        return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
+        for p, q in zip(p1[:-1], p2[:-1]):
+            if p == 0.0 or q == 0.0:
+                p1[-1] += p
+                p2[-1] += q
+        arr = []
+        for p, q in zip(p1, p2):
+            if p == 0.0 or q == 0.0:
+                arr.append((0.0, 0.0))
+            else:
+                arr.append((q - p, (q / (1 - q)) / (p / (1 - p))))
+        return arr
     # total earth mover's distance, assymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question
