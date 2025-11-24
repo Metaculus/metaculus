@@ -412,7 +412,7 @@ def generate_keyfactors(
     try:
         data = json.loads(content)
     except json.JSONDecodeError:
-        logger.exception(f"Failed to parse JSON response")
+        logger.exception("Failed to parse JSON response")
         return []
 
     # Validate each key factor individually
