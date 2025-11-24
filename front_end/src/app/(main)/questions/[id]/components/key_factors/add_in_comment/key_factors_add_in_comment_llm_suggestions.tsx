@@ -24,6 +24,7 @@ type Props = {
   onBack: () => void;
   postData: PostWithForecasts;
   setSelectedType: React.Dispatch<React.SetStateAction<KFType>>;
+  onAllSuggestionsHandled?: () => void;
 };
 
 type EditingSession = {
@@ -38,6 +39,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
   onBack,
   postData,
   setSelectedType,
+  onAllSuggestionsHandled,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -66,12 +68,14 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
       editingSessions.length === 0
     ) {
       setSelectedType(null);
+      onAllSuggestionsHandled?.();
     }
   }, [
     suggestedKeyFactors.length,
     isLoadingSuggestedKeyFactors,
     editingSessions.length,
     setSelectedType,
+    onAllSuggestionsHandled,
   ]);
 
   const updateEditingSession = (

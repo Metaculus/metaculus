@@ -23,12 +23,14 @@ type Props = {
   postData: PostWithForecasts;
   onAfterCommentSubmit?: () => void;
   closeKeyFactorsForm?: () => void;
+  onSuggestionsCompleted?: () => void;
 };
 
 const KeyFactorsAddInComment: React.FC<Props> = ({
   postData,
   onAfterCommentSubmit,
   closeKeyFactorsForm,
+  onSuggestionsCompleted,
 }) => {
   const [selectedType, setSelectedType] = useState<KFType>(null);
   const [autoOpenedForSuggestions, setAutoOpenedForSuggestions] =
@@ -208,6 +210,13 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
           onBack={() => setSelectedType(null)}
           postData={postData}
           setSelectedType={setSelectedType}
+          onAllSuggestionsHandled={() => {
+            resetAll();
+            setDrafts(INITIAL_DRAFTS);
+            setPendingNewsSubmit(false);
+            setSelectedType(null);
+            onSuggestionsCompleted?.();
+          }}
         />
       )}
 

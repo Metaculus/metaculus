@@ -130,6 +130,9 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
             flagged_by_me: false,
           };
 
+          const isBaseRateWithMissingSource =
+            !!kf.base_rate && !kf.base_rate.source;
+
           return (
             <div key={idx} className="group relative mt-3">
               <KeyFactorItem
@@ -141,17 +144,19 @@ const KeyFactorsSuggestedItems: React.FC<Props> = ({
                 className="bg-gray-0 dark:bg-gray-0-dark"
               />
               <div className="absolute -right-3 -top-3 flex gap-2">
-                <KeyFactorActionButton
-                  kind="accept"
-                  onClick={async () => {
-                    const res = await addSingleSuggestedKeyFactor(kf);
-                    if (!res || ("errors" in res && res.errors)) {
-                      onEdit(kf, idx, { showErrors: true });
-                      return;
-                    }
-                    removeAt(idx);
-                  }}
-                />
+                {!isBaseRateWithMissingSource && (
+                  <KeyFactorActionButton
+                    kind="accept"
+                    onClick={async () => {
+                      const res = await addSingleSuggestedKeyFactor(kf);
+                      if (!res || ("errors" in res && res.errors)) {
+                        onEdit(kf, idx, { showErrors: true });
+                        return;
+                      }
+                      removeAt(idx);
+                    }}
+                  />
+                )}
                 <KeyFactorActionButton
                   kind="edit"
                   onClick={() => onEdit(kf, idx)}

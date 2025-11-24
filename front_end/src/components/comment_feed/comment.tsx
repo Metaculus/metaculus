@@ -277,6 +277,7 @@ const Comment: FC<CommentProps> = ({
   );
 
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
+  const [hasExhaustedSuggestions, setHasExhaustedSuggestions] = useState(false);
 
   const { combinedKeyFactors } = useCommentsFeed();
   const {
@@ -358,17 +359,22 @@ const Comment: FC<CommentProps> = ({
   const limitNotReached = factorsLimit > 0;
   const isCommentAuthor = comment.author.id === user?.id;
 
-  const canAddKeyFactors =
-    isCommentAuthor &&
-    questionNotClosed &&
-    limitNotReached &&
-    canListKeyFactors;
+  const canShowAddKeyFactorsButton =
+    isCommentAuthor && questionNotClosed && canListKeyFactors;
+
+  const isAddKeyFactorsDisabled = !limitNotReached || hasExhaustedSuggestions;
 
   const onAddKeyFactorClick = () => {
+    if (isAddKeyFactorsDisabled) return;
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
 
     resetAll();
     setIsKeyfactorsFormOpen((prev) => !prev);
+  };
+
+  const handleSuggestionsCompleted = () => {
+    setHasExhaustedSuggestions(true);
+    setIsKeyfactorsFormOpen(false);
   };
 
   const openEdit = useCallback(() => {
@@ -828,15 +834,17 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {canAddKeyFactors && (
+                  {canShowAddKeyFactorsButton && (
                     <Button
                       size="xxs"
                       variant="tertiary"
                       onClick={onAddKeyFactorClick}
+                      disabled={isAddKeyFactorsDisabled}
                       className={cn(
                         "relative flex items-center justify-center",
                         isKeyfactorsFormOpen &&
-                          "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark"
+                          "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark",
+                        isAddKeyFactorsDisabled && "cursor-default opacity-60"
                       )}
                     >
                       <>
@@ -941,6 +949,7 @@ const Comment: FC<CommentProps> = ({
             }, 500);
           }}
           closeKeyFactorsForm={() => setIsKeyfactorsFormOpen(false)}
+          onSuggestionsCompleted={handleSuggestionsCompleted}
         />
       )}
       {isCommentJustCreated && postData && (

@@ -87,7 +87,7 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
 
     setDrafts(() => drafts);
 
-    const result = await submit("news");
+    const result = await submit("news", undefined, drafts);
     if (result && "errors" in result) {
       setErrors(result.errors);
       return;

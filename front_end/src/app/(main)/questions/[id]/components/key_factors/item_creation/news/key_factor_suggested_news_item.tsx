@@ -69,6 +69,7 @@ const KeyFactorSuggestedNewsItem: React.FC<Props> = ({
         source={article.media_label}
         title={article.title}
         createdAt={article.created_at ?? ""}
+        url={article.url}
       />
 
       {selected && (

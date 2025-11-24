@@ -1,6 +1,6 @@
 "use client";
 
-import { isValid, parse, parseISO, fromUnixTime } from "date-fns";
+import { fromUnixTime, isValid, parse, parseISO } from "date-fns";
 
 import { ImpactDirectionCategory } from "@/types/comment";
 import type { NewsArticle } from "@/types/news";
@@ -19,6 +19,71 @@ export const firstVisible = (sel: string) => {
       );
     }) || null
   );
+};
+
+export const openKeyFactorsSectionAndScrollTo = ({
+  selector,
+  attempts = 15,
+  offset = 55,
+  mobileOnly = false,
+}: {
+  selector: string;
+  attempts?: number;
+  offset?: number;
+  mobileOnly?: boolean;
+}) => {
+  if (typeof window === "undefined") return;
+  if (mobileOnly && window.innerWidth >= 640) return;
+
+  const scrollWhenReady = (attemptsLeft: number) => {
+    if (attemptsLeft <= 0) return;
+
+    const sectionEl = document.getElementById("key-factors-section-toggle");
+    if (sectionEl?.getAttribute("data-headlessui-state") !== "open") {
+      sectionEl?.querySelector("button")?.click();
+    }
+
+    const el = firstVisible(selector);
+
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const absoluteTop = rect.top + window.scrollY - offset;
+
+      if (!document.body.contains(el)) return;
+
+      el.classList.remove(
+        "kf-scroll-highlight-static",
+        "kf-scroll-highlight-fade"
+      );
+
+      el.classList.add("kf-scroll-highlight-static");
+
+      window.scrollTo({
+        top: absoluteTop,
+        behavior: "smooth",
+      });
+
+      const fadeDelay = 800;
+      const fadeDuration = 450;
+
+      window.setTimeout(() => {
+        if (!document.body.contains(el)) return;
+
+        el.classList.remove("kf-scroll-highlight-static");
+        el.classList.add("kf-scroll-highlight-fade");
+
+        window.setTimeout(() => {
+          el.classList.remove("kf-scroll-highlight-fade");
+        }, fadeDuration + 50);
+      }, fadeDelay);
+
+      return;
+    }
+
+    setTimeout(() => scrollWhenReady(attemptsLeft - 1), 100);
+  };
+
+  scrollWhenReady(attempts);
 };
 
 export const convertNumericImpactToDirectionCategory = (

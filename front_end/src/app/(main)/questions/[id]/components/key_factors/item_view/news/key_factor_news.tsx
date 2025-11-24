@@ -22,6 +22,7 @@ const KeyFactorNews: React.FC<
         createdAt={news.published_at ?? ""}
         isCompact={props.isCompact}
         isConsumer={props.mode === "consumer"}
+        url={news.url}
       />
     </KeyFactorStrengthItem>
   );
