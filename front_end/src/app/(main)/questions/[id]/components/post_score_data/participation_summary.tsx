@@ -34,16 +34,19 @@ const ParticipationSummary: React.FC<Props> = ({
 }) => {
   const t = useTranslations();
 
+  const userForecasts = question.my_forecasts?.history.length ?? 0;
   const userScores = question.my_forecasts?.score_data;
+
+  if (!userForecasts) {
+    return null;
+  }
+
   const communityScores =
     question.aggregations[question.default_aggregation_method]?.score_data;
 
   const communityUpdates =
     (forecastsCount - forecastersCount) / forecastersCount;
-  const userUpdates = Math.max(
-    (question.my_forecasts?.history.length ?? 0) - 1,
-    0
-  );
+  const userUpdates = Math.max(userForecasts - 1, 0);
 
   const userCoverage = userScores?.coverage ?? 0;
   const averageCoverage = question.average_coverage ?? 0;
