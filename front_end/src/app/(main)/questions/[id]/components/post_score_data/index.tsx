@@ -1,15 +1,14 @@
 import React, { FC } from "react";
 
-import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import { PostWithForecasts } from "@/types/post";
 import {
   isConditionalPost,
   isGroupOfQuestionsPost,
 } from "@/utils/questions/helpers";
 
-import GroupResolutionScores from "./group_resolution_scores";
-import ParticipationSummary from "./participation_summary";
-import ResolutionScoreCards from "./resolution_score_cards";
+import ConditionalScoreData from "./conditional_score_data";
+import GroupResolutionScores from "./group_resolution_score_data";
+import SingleQuestionScoreData from "./single_question_score_data";
 
 type Props = {
   post: PostWithForecasts;
@@ -17,68 +16,18 @@ type Props = {
   noSectionWrapper?: boolean;
 };
 
-const PostScoreData: FC<Props> = ({
-  post,
-  isConsumerView,
-  noSectionWrapper,
-}) => {
-  let effectivePost = post;
+const PostScoreData: FC<Props> = (props) => {
+  const { post } = props;
+
+  if (isGroupOfQuestionsPost(post)) {
+    return <GroupResolutionScores post={post} />;
+  }
 
   if (isConditionalPost(post)) {
-    const { condition, question_yes, question_no } = post.conditional;
-    if (condition.resolution === "yes") {
-      effectivePost = {
-        ...post,
-        question: question_yes,
-        conditional: undefined,
-      } as unknown as PostWithForecasts;
-    } else if (condition.resolution === "no") {
-      effectivePost = {
-        ...post,
-        question: question_no,
-        conditional: undefined,
-      } as unknown as PostWithForecasts;
-    }
+    return <ConditionalScoreData {...props} />;
   }
 
-  const { question, status, nr_forecasters } = effectivePost;
-
-  if (!question && !isGroupOfQuestionsPost(effectivePost)) return null;
-
-  const isGroup = isGroupOfQuestionsPost(effectivePost);
-
-  if (isGroup) {
-    return <GroupResolutionScores post={effectivePost} />;
-  }
-
-  const isResolved = status === PostStatus.RESOLVED;
-
-  if (!isResolved) return null;
-
-  if (isConsumerView) {
-    return (
-      <ResolutionScoreCards
-        post={effectivePost}
-        isConsumerView={isConsumerView}
-        noSectionWrapper={noSectionWrapper}
-      />
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      {question &&
-        question.type != QuestionType.MultipleChoice &&
-        !isConditionalPost(post) && (
-          <ParticipationSummary
-            question={question}
-            forecastsCount={effectivePost.forecasts_count ?? 0}
-            forecastersCount={nr_forecasters}
-          />
-        )}
-      <ResolutionScoreCards post={effectivePost} />
-    </div>
-  );
+  return <SingleQuestionScoreData {...props} />;
 };
 
 export default PostScoreData;

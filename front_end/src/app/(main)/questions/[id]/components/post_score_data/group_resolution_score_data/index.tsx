@@ -4,13 +4,13 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import { AdditionalScoresTable } from "@/app/(main)/questions/[id]/components/post_score_data/additional_scores_table";
 import SectionToggle from "@/components/ui/section_toggle";
 import Tooltip from "@/components/ui/tooltip";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts, ScoreData } from "@/types/question";
 import cn from "@/utils/core/cn";
 
+import { AdditionalScoresTable } from "../additional_scores_table";
 import GroupScoreCell from "./group_score_cell";
 
 type Props = {
