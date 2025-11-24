@@ -344,6 +344,7 @@ def serialize_post(
     )
     serialized_data = PostReadSerializer(post).data
     question_movements = question_movements or {}
+    question_average_coverages = question_average_coverages or {}
 
     # Appending projects
     projects = projects or []
