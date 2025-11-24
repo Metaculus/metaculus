@@ -44,12 +44,10 @@ const GroupResolutionScoreRow: FC<RowData> = ({
         </span>
         <Tooltip
           tooltipContent={
-            <div className="w-[300px]">
-              <AdditionalScoresTable question={question} />
-            </div>
+            <AdditionalScoresTable question={question} variant="compact" />
           }
           className="cursor-help text-blue-500 hover:text-blue-800 dark:text-blue-500-dark dark:hover:text-blue-800-dark"
-          tooltipClassName="p-0 border-none bg-transparent"
+          tooltipClassName="p-0 border-none bg-transparent w-[320px]"
         >
           <FontAwesomeIcon icon={faCircleInfo} />
         </Tooltip>

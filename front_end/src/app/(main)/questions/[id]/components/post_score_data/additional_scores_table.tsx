@@ -6,15 +6,18 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { QuestionWithForecasts, ScoreData } from "@/types/question";
 import cn from "@/utils/core/cn";
 
+type Variant = "auto" | "compact";
 type Props = {
   question: QuestionWithForecasts;
   separateCoverage?: boolean;
+  variant?: Variant;
 };
 
 const ScoreTable: FC<{
   rows: { label: string; value: string }[];
   className?: string;
-}> = ({ rows, className }) => (
+  variant?: Variant;
+}> = ({ rows, className, variant = "auto" }) => (
   <div
     className={cn(
       "overflow-hidden rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-gray-0-dark",
@@ -24,12 +27,24 @@ const ScoreTable: FC<{
     {rows.map((row, index) => (
       <div
         key={index}
-        className="flex items-center justify-between border-b border-gray-300 px-4 py-3 last:border-b-0 dark:border-gray-300-dark"
+        className="flex items-center border-b border-gray-300 px-4 py-3 last:border-b-0 dark:border-gray-300-dark"
       >
-        <span className="text-sm text-gray-700 dark:text-gray-700-dark">
+        <span
+          className={cn(
+            "w-[66%] pr-4 text-sm text-gray-700 dark:text-gray-700-dark",
+            {
+              "sm:w-1/2": variant === "auto",
+            }
+          )}
+        >
           {row.label}
         </span>
-        <span className="text-basetext-gray-800 dark:text-gray-800-dark sm:w-1/2 sm:text-center">
+        <span
+          className={cn(
+            "w-[34%] pl-4 text-center text-base text-gray-800 dark:text-gray-800-dark",
+            { "sm:w-1/2": variant === "auto" }
+          )}
+        >
           {row.value}
         </span>
       </div>
@@ -64,6 +79,7 @@ const buildScoreLabelKey = (
 export const AdditionalScoresTable: FC<Props> = ({
   question,
   separateCoverage,
+  variant,
 }) => {
   const t = useTranslations();
 
@@ -131,15 +147,19 @@ export const AdditionalScoresTable: FC<Props> = ({
   if (coverageRows.length === 0 && otherRows.length === 0) return null;
 
   if (!separateCoverage) {
-    return <ScoreTable rows={[...coverageRows, ...otherRows]} />;
+    return (
+      <ScoreTable rows={[...coverageRows, ...otherRows]} variant={variant} />
+    );
   }
 
   return (
     <>
       {coverageRows.length > 0 && (
-        <ScoreTable rows={coverageRows} className="-mt-4" />
+        <ScoreTable rows={coverageRows} className="-mt-4" variant={variant} />
       )}
-      {otherRows.length > 0 && <ScoreTable rows={otherRows} />}
+      {otherRows.length > 0 && (
+        <ScoreTable rows={otherRows} variant={variant} />
+      )}
     </>
   );
 };
