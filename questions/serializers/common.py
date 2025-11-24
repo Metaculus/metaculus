@@ -15,8 +15,8 @@ from questions.models import (
     Conditional,
     GroupOfQuestions,
     AggregateForecast,
+    Forecast,
 )
-from questions.models import Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
@@ -584,6 +584,7 @@ def serialize_question(
     minimize: bool = True,
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
+    question_average_coverage: float = None,
 ):
     """
     Serializes question object
@@ -604,6 +605,7 @@ def serialize_question(
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
+    serialized_data["average_coverage"] = question_average_coverage
 
     if question_movement:
         if default_agg := serialized_data["aggregations"].get(
@@ -750,6 +752,7 @@ def serialize_group(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
+    question_average_coverages: dict[Question, float] | None = None,
 ):
     question_movements = question_movements or {}
 
@@ -781,6 +784,7 @@ def serialize_group(
                 ),
                 include_descriptions=include_descriptions,
                 question_movement=question_movements.get(question),
+                question_average_coverage=question_average_coverages.get(question),
             )
         )
 

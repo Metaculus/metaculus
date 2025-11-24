@@ -33,6 +33,7 @@ from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from questions.cache import invalidate_average_coverage_cache
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
@@ -124,6 +125,8 @@ def score_question(
             scores_to_delete = scores_to_delete.filter(id__in=seen)
         scores_to_delete.delete()
         Score.objects.bulk_create(new_scores, batch_size=500)
+
+    invalidate_average_coverage_cache([question])
 
 
 def generate_scoring_leaderboard_entries(

@@ -21,7 +21,8 @@ from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.subscriptions import notify_project_subscriptions_post_open
-from questions.constants import UnsuccessfulResolutionType
+from questions.cache import average_coverage_cache_key
+from questions.constants import UnsuccessfulResolutionType, QuestionStatus
 from questions.models import (
     QUESTION_CONTINUOUS_TYPES,
     Question,
@@ -38,7 +39,7 @@ from questions.utils import (
     get_last_forecast_in_the_past,
 )
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
-from scoring.models import Leaderboard
+from scoring.models import Leaderboard, Score
 from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
 from utils.cache import cache_per_object
@@ -1208,3 +1209,41 @@ def get_outbound_question_links(question: Question, user: User) -> list[Question
     )
     outbound_questions = [link.question2 for link in links]
     return outbound_questions
+
+
+@cache_per_object(average_coverage_cache_key, timeout=60 * 60 * 24)
+def get_average_coverage_for_questions(
+    questions: Iterable[Question],
+) -> dict[Question, float]:
+    """
+    Calculate the average coverage for each question based on scores
+    from non-bot users with the question's default score type.
+    """
+
+    questions_list = list(q for q in questions if q.status == QuestionStatus.RESOLVED)
+
+    scores_data = (
+        Score.objects.filter(
+            question_id__in=[q.id for q in questions_list],
+            score_type=F("question__default_score_type"),
+            user__isnull=False,
+        )
+        .filter(Q(user__is_bot=False) | Q(question__include_bots_in_aggregates=True))
+        .values_list("question_id", "coverage")
+    )
+
+    # Group scores by question_id for efficient filtering
+    coverage_map: dict[int, list[float]] = defaultdict(list)
+    for q_id, coverage in scores_data:
+        coverage_map[q_id].append(coverage)
+
+    # Calculate averages
+    avg_coverage_map: dict[Question, float] = {}
+
+    for question in questions_list:
+        coverages = coverage_map.get(question.id, [])
+
+        if len(coverages) > 0:
+            avg_coverage_map[question] = sum(coverages) / len(coverages)
+
+    return avg_coverage_map
