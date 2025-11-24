@@ -2,7 +2,10 @@ import React, { FC } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isConditionalPost,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import GroupResolutionScores from "./group_resolution_scores";
 import ParticipationSummary from "./participation_summary";
@@ -19,14 +22,33 @@ const PostScoreData: FC<Props> = ({
   isConsumerView,
   noSectionWrapper,
 }) => {
-  const { question, status, nr_forecasters } = post;
+  let effectivePost = post;
 
-  if (!question && !isGroupOfQuestionsPost(post)) return null;
+  if (isConditionalPost(post)) {
+    const { condition, question_yes, question_no } = post.conditional;
+    if (condition.resolution === "yes") {
+      effectivePost = {
+        ...post,
+        question: question_yes,
+        conditional: undefined,
+      } as unknown as PostWithForecasts;
+    } else if (condition.resolution === "no") {
+      effectivePost = {
+        ...post,
+        question: question_no,
+        conditional: undefined,
+      } as unknown as PostWithForecasts;
+    }
+  }
 
-  const isGroup = isGroupOfQuestionsPost(post);
+  const { question, status, nr_forecasters } = effectivePost;
+
+  if (!question && !isGroupOfQuestionsPost(effectivePost)) return null;
+
+  const isGroup = isGroupOfQuestionsPost(effectivePost);
 
   if (isGroup) {
-    return <GroupResolutionScores post={post} />;
+    return <GroupResolutionScores post={effectivePost} />;
   }
 
   const isResolved = status === PostStatus.RESOLVED;
@@ -36,7 +58,7 @@ const PostScoreData: FC<Props> = ({
   if (isConsumerView) {
     return (
       <ResolutionScoreCards
-        post={post}
+        post={effectivePost}
         isConsumerView={isConsumerView}
         noSectionWrapper={noSectionWrapper}
       />
@@ -45,14 +67,16 @@ const PostScoreData: FC<Props> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {question && question.type != QuestionType.MultipleChoice && (
-        <ParticipationSummary
-          question={question}
-          forecastsCount={post.forecasts_count ?? 0}
-          forecastersCount={nr_forecasters}
-        />
-      )}
-      <ResolutionScoreCards post={post} />
+      {question &&
+        question.type != QuestionType.MultipleChoice &&
+        !isConditionalPost(post) && (
+          <ParticipationSummary
+            question={question}
+            forecastsCount={effectivePost.forecasts_count ?? 0}
+            forecastersCount={nr_forecasters}
+          />
+        )}
+      <ResolutionScoreCards post={effectivePost} />
     </div>
   );
 };
