@@ -21,6 +21,7 @@ import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
+import "../components/key_factors/key-factors.css";
 
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")

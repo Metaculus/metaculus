@@ -1689,5 +1689,7 @@
   "newsMatchCount": "Coincidencia de Noticias ({count})",
   "chooseUrl": "Elige un artículo existente o pega una nueva URL.",
   "pasteUrlPlaceholder": "Pegar URL de un artículo de noticias",
+  "sourceMissing": "fuente no encontrada",
+  "invalidNewsUrl": "Esto no parece un artículo de noticias, por favor intenta con otra URL.",
   "othersCount": "Otros ({count})"
 }

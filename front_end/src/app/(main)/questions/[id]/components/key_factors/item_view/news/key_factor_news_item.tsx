@@ -3,6 +3,7 @@
 import { faNewspaper } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale } from "next-intl";
+import React from "react";
 
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import cn from "@/utils/core/cn";
@@ -15,6 +16,7 @@ type Props = {
   source: string;
   title: string;
   createdAt: string;
+  url: string;
   isCompact?: boolean;
   isConsumer?: boolean;
 };
@@ -24,6 +26,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
   source,
   title,
   createdAt,
+  url,
   isCompact = false,
   isConsumer = false,
 }) => {
@@ -37,6 +40,17 @@ const KeyFactorNewsItem: React.FC<Props> = ({
     }
   }
 
+  const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
+    e.stopPropagation();
+  };
+
+  const linkProps = {
+    href: url,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    onClick: handleLinkClick,
+  };
+
   return (
     <div
       className={cn(
@@ -44,40 +58,53 @@ const KeyFactorNewsItem: React.FC<Props> = ({
         isConsumer && "flex-col"
       )}
     >
-      {faviconUrl ? (
-        <ImageWithFallback
-          className="size-[42px] rounded"
-          src={getProxiedFaviconUrl(faviconUrl)}
-          alt={`${source} logo`}
-          aria-label={`${source} logo`}
-        >
-          <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
-            <FontAwesomeIcon icon={faNewspaper} size="xl" />
-          </span>
-        </ImageWithFallback>
-      ) : (
-        <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
-      )}
+      <a
+        {...linkProps}
+        className="flex-shrink-0 no-underline"
+        aria-label={source ? `Open article on ${source}` : "Open article"}
+      >
+        {faviconUrl ? (
+          <ImageWithFallback
+            className="size-[42px] cursor-pointer rounded"
+            src={getProxiedFaviconUrl(faviconUrl)}
+            alt={`${source} logo`}
+          >
+            <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
+              <FontAwesomeIcon icon={faNewspaper} size="xl" />
+            </span>
+          </ImageWithFallback>
+        ) : (
+          <span className="flex size-[42px] cursor-pointer items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
+        )}
+      </a>
 
       <div className="flex max-w-full flex-1 flex-col gap-1.5">
-        <h6
+        <a
+          {...linkProps}
           className={cn(
-            "my-0 font-medium text-blue-800 dark:text-blue-800-dark",
+            "my-0 font-medium text-blue-800 no-underline hover:underline dark:text-blue-800-dark",
             isCompact ? "text-xs" : "text-sm"
           )}
         >
           {title}
-        </h6>
-        <div
+        </a>
+
+        <a
+          {...linkProps}
           className={cn(
-            "flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-normal",
+            "flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-normal no-underline",
             isCompact ? "text-[10px]" : "text-xs",
             isConsumer
               ? "text-blue-600 dark:text-blue-600-dark"
               : "text-gray-600 dark:text-gray-600-dark"
           )}
         >
-          <span className={cn(isCompact && "max-w-[8ch] truncate")}>
+          <span
+            className={cn(
+              "truncate",
+              isCompact ? "max-w-[8ch]" : "max-w-[12ch]"
+            )}
+          >
             {source}
           </span>
           {date && (
@@ -96,7 +123,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
               </span>
             </>
           )}
-        </div>
+        </a>
       </div>
     </div>
   );

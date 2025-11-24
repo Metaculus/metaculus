@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/item_creation/driver/impact_direction_controls";
-import { Input } from "@/components/ui/form_field";
+import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import { useDebouncedValue } from "@/hooks/use_debounce";
 import type { ImpactMetadata } from "@/types/comment";
 import type { NewsArticle } from "@/types/news";
@@ -78,7 +78,7 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
         const preview = await fetchNewsPreview(effectiveUrl, controller.signal);
 
         if (!preview) {
-          setPreviewError("Failed to fetch preview");
+          setPreviewError(t("invalidNewsUrl"));
           setArticle(null);
           onPreviewLoadedRef.current?.(null);
           return;
@@ -86,12 +86,10 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
 
         setArticle(preview);
         onPreviewLoadedRef.current?.(preview);
-      } catch (err) {
+      } catch {
         if (controller.signal.aborted) return;
 
-        setPreviewError(
-          err instanceof Error ? err.message : "Unknown preview error"
-        );
+        setPreviewError(t("invalidNewsUrl"));
         setArticle(null);
         onPreviewLoadedRef.current?.(null);
       } finally {
@@ -102,7 +100,7 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
     })();
 
     return () => controller.abort();
-  }, [debouncedUrl]);
+  }, [debouncedUrl, t]);
 
   return (
     <div className="rounded border border-blue-400 p-4 dark:border-blue-400-dark">
@@ -125,6 +123,10 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
         className="h-10 w-full rounded-[4px] border border-blue-500 bg-transparent px-3 py-2 text-base font-normal text-blue-800 placeholder-blue-700 placeholder-opacity-50 dark:border-blue-500-dark dark:text-blue-800-dark dark:placeholder-blue-700-dark"
         errorClassName="normal-case"
       />
+
+      {previewError && (
+        <FormErrorMessage errors={previewError} containerClassName="mt-1" />
+      )}
 
       <div className="mb-5 mt-4 space-y-2">
         {isFetching && (

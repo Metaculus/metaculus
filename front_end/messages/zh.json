@@ -1691,5 +1691,7 @@
   "newsMatchCount": "新闻匹配（{count}）",
   "chooseUrl": "从现有文章中选择，或粘贴一个新网址。",
   "pasteUrlPlaceholder": "粘贴新闻文章的网址",
+  "sourceMissing": "缺少来源",
+  "invalidNewsUrl": "这看起来不像是一篇新闻文章，请尝试其他 URL。",
   "othersCount": "其他（{count}）"
 }

@@ -1687,5 +1687,7 @@
   "newsMatchCount": "Correspondência de Notícias ({count})",
   "chooseUrl": "Escolha um artigo existente ou cole uma nova URL.",
   "pasteUrlPlaceholder": "Cole o URL de um artigo de notícias",
+  "sourceMissing": "fonte ausente",
+  "invalidNewsUrl": "Este não parece ser um artigo de notícias, por favor tente outro URL.",
   "othersCount": "Outros ({count})"
 }
