@@ -40,7 +40,6 @@ import {
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
@@ -508,7 +507,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         className="flex items-center justify-center"
         detached
       />
-      {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
 };
