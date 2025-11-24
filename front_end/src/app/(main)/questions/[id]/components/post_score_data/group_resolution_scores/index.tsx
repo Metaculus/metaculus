@@ -9,6 +9,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import Tooltip from "@/components/ui/tooltip";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts, ScoreData } from "@/types/question";
+import cn from "@/utils/core/cn";
 
 import GroupScoreCell from "./group_score_cell";
 
@@ -100,25 +101,90 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
 
   const hasUserForecasts = rows.some((r) => r.question.my_forecasts);
 
+  const renderHeader = (
+    label: string,
+    className?: string,
+    scoreLabel?: string
+  ) => (
+    <div
+      className={cn(
+        "flex items-center border-b border-blue-400 bg-blue-100 px-4 py-2.5 text-sm font-bold capitalize text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark",
+        className
+      )}
+    >
+      <div className="flex-1">{label}</div>
+      {scoreLabel && (
+        <div className="w-1/2 text-center">{t(scoreLabel as any)}</div>
+      )}
+      {!scoreLabel && (
+        <>
+          <div className="w-28 text-center sm:w-36">
+            <span className="hidden sm:inline"> {t("baselineScore")}</span>
+            <span className="sm:hidden"> {t("baseline")}</span>
+          </div>
+          <div className="w-28 text-center sm:w-36">
+            <span className="hidden sm:inline"> {t("peerScore")}</span>
+            <span className="sm:hidden"> {t("score")}</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <SectionToggle
       title={hasUserForecasts ? t("myScores") : t("scores")}
       defaultOpen
     >
-      <div className="flex items-center border-b border-blue-400 bg-blue-100 px-4 py-2.5 text-sm font-bold capitalize text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
-        <div className="flex-1">{t("subquestion")}</div>
-        <div className="w-28 text-center sm:w-36">
-          <span className="hidden sm:inline"> {t("baselineScore")}</span>
-          <span className="sm:hidden"> {t("baseline")}</span>
-        </div>
-        <div className="w-28 text-center sm:w-36">
-          <span className="hidden sm:inline"> {t("peerScore")}</span>
-          <span className="sm:hidden"> {t("score")}</span>
-        </div>
+      {/* Mobile View: Baseline Table */}
+      <div className="md:hidden">
+        {renderHeader(t("subquestion"), "", "baselineScore")}
+        {rows.map((row) => (
+          <div
+            key={row.question.id}
+            className="flex items-center border-b border-gray-300 bg-white p-4 dark:border-gray-300-dark dark:bg-gray-0-dark"
+          >
+            <div className="flex w-1/2 items-center gap-2 text-gray-800 dark:text-gray-800-dark">
+              {row.question.label}
+            </div>
+            <div className="w-1/2 text-center">
+              <GroupScoreCell
+                userScore={row.userBaselineScore}
+                communityScore={row.cpBaselineScore}
+              />
+            </div>
+          </div>
+        ))}
       </div>
-      {rows.map((row) => (
-        <GroupResolutionScoreRow key={row.question.id} {...row} />
-      ))}
+
+      {/* Mobile View: Peer Table */}
+      <div className="mt-2.5 md:hidden">
+        {renderHeader(t("subquestion"), "", "peerScore")}
+        {rows.map((row) => (
+          <div
+            key={row.question.id}
+            className="flex items-center border-b border-gray-300 bg-white p-4 dark:border-gray-300-dark dark:bg-gray-0-dark"
+          >
+            <div className="flex w-1/2 items-center gap-2 text-gray-800 dark:text-gray-800-dark">
+              {row.question.label}
+            </div>
+            <div className="w-1/2 text-center">
+              <GroupScoreCell
+                userScore={row.userPeerScore}
+                communityScore={row.cpPeerScore}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden md:block">
+        {renderHeader(t("subquestion"))}
+        {rows.map((row) => (
+          <GroupResolutionScoreRow key={row.question.id} {...row} />
+        ))}
+      </div>
     </SectionToggle>
   );
 };
