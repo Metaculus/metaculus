@@ -1532,6 +1532,8 @@
   "baseline": "Baseline",
   "scores": "Scores",
   "additionalScores": "Additional Scores",
+  "myScores": "My Scores",
+  "subquestion": "Subquestion",
   "learnMoreAboutScores": "Learn more about scores",
   "here": "here",
   "averageOfPeers": "Average <secondary>of peers</secondary>",

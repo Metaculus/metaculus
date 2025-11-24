@@ -33,7 +33,7 @@ const ForecasterQuestionView: React.FC<Props> = ({
           preselectedQuestionId={preselectedGroupQuestionId}
         />
       )}
-      {!isResolved || (isGroup && <ForecastMaker post={postData} />)}
+      {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
     </Fragment>
   );
 };

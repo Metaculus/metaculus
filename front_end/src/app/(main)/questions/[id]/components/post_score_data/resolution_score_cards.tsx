@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
-import AdditionalScoresTable from "@/app/(main)/questions/[id]/components/post_score_data/additional_scores_table";
+import AdditionalScoresTableSection from "@/app/(main)/questions/[id]/components/post_score_data/additional_scores_table";
 import ScoreCard from "@/components/question/score_card";
 import SectionToggle from "@/components/ui/section_toggle";
 import { PostWithForecasts } from "@/types/post";
@@ -82,7 +82,7 @@ const ResolutionScoreCards: FC<Props> = ({
   return (
     <div className="flex flex-col gap-4">
       {renderPrimaryCards()}
-      <AdditionalScoresTable post={post} />
+      <AdditionalScoresTableSection question={question} />
     </div>
   );
 };

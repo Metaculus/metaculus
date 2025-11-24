@@ -3,12 +3,12 @@ import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
-import { PostWithForecasts } from "@/types/post";
-import { ScoreData } from "@/types/question";
+import { QuestionWithForecasts, ScoreData } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
-  post: PostWithForecasts;
+  question: QuestionWithForecasts;
+  separateCoverage?: boolean;
 };
 
 const ScoreTable: FC<{
@@ -29,7 +29,7 @@ const ScoreTable: FC<{
         <span className="text-sm text-gray-700 dark:text-gray-700-dark">
           {row.label}
         </span>
-        <span className="text-gray-800 dark:text-gray-800-dark sm:w-1/2 sm:text-center">
+        <span className="text-basetext-gray-800 dark:text-gray-800-dark sm:w-1/2 sm:text-center">
           {row.value}
         </span>
       </div>
@@ -61,9 +61,11 @@ const buildScoreLabelKey = (
   return t(prefix + toCamel(key) + suffix);
 };
 
-const AdditionalScoresTable: FC<Props> = ({ post }) => {
+export const AdditionalScoresTable: FC<Props> = ({
+  question,
+  separateCoverage,
+}) => {
   const t = useTranslations();
-  const { question } = post;
 
   if (!question) return null;
 
@@ -128,16 +130,32 @@ const AdditionalScoresTable: FC<Props> = ({ post }) => {
 
   if (coverageRows.length === 0 && otherRows.length === 0) return null;
 
+  if (!separateCoverage) {
+    return <ScoreTable rows={[...coverageRows, ...otherRows]} />;
+  }
+
+  return (
+    <>
+      {coverageRows.length > 0 && (
+        <ScoreTable rows={coverageRows} className="-mt-4" />
+      )}
+      {otherRows.length > 0 && <ScoreTable rows={otherRows} />}
+    </>
+  );
+};
+
+const AdditionalScoresTableSection: FC<Props> = ({ question }) => {
+  const t = useTranslations();
+
+  const table = <AdditionalScoresTable question={question} separateCoverage />;
+
+  if (isNil(table)) return null;
+
   return (
     <SectionToggle title={t("additionalScores")} defaultOpen={false}>
-      <div className="my-4 flex flex-col gap-4">
-        {coverageRows.length > 0 && (
-          <ScoreTable rows={coverageRows} className="-mt-4" />
-        )}
-        {otherRows.length > 0 && <ScoreTable rows={otherRows} />}
-      </div>
+      <div className="my-4 flex flex-col gap-4">{table}</div>
     </SectionToggle>
   );
 };
 
-export default AdditionalScoresTable;
+export default AdditionalScoresTableSection;
