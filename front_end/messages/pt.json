@@ -1689,5 +1689,6 @@
   "pasteUrlPlaceholder": "Cole o URL de um artigo de notícias",
   "sourceMissing": "fonte ausente",
   "invalidNewsUrl": "Este não parece ser um artigo de notícias, por favor tente outro URL.",
+  "duplicateNewsUrl": "Este artigo já foi adicionado como um Fator Chave.",
   "othersCount": "Outros ({count})"
 }

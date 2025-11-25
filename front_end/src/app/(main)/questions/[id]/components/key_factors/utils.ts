@@ -2,7 +2,11 @@
 
 import { fromUnixTime, isValid, parse, parseISO } from "date-fns";
 
-import { ImpactDirectionCategory } from "@/types/comment";
+import {
+  CommentType,
+  ImpactDirectionCategory,
+  KeyFactor,
+} from "@/types/comment";
 import type { NewsArticle } from "@/types/news";
 import { QuestionType } from "@/types/question";
 
@@ -187,5 +191,38 @@ export async function fetchNewsPreview(
   } catch {
     if (signal?.aborted) return null;
     return null;
+  }
+}
+
+export function updateCommentKeyFactors(
+  comment: CommentType,
+  targetId: number,
+  newKeyFactors: KeyFactor[]
+): CommentType {
+  if (comment.id === targetId) {
+    return { ...comment, key_factors: newKeyFactors };
+  }
+  if (comment.children?.length) {
+    return {
+      ...comment,
+      children: comment.children.map((child) =>
+        updateCommentKeyFactors(child, targetId, newKeyFactors)
+      ),
+    };
+  }
+  return comment;
+}
+
+export function normalizeUrlForComparison(raw: string): string {
+  if (!raw) return "";
+  try {
+    const u = new URL(raw.trim());
+    u.hash = "";
+    if (u.pathname.endsWith("/")) {
+      u.pathname = u.pathname.slice(0, -1);
+    }
+    return u.toString();
+  } catch {
+    return raw.trim();
   }
 }

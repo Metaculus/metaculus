@@ -4,20 +4,21 @@ import { useEffect, useRef, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { useAuth } from "@/contexts/auth_context";
-import { CommentType, ImpactMetadata, KeyFactor } from "@/types/comment";
+import { ImpactMetadata, KeyFactor } from "@/types/comment";
 import { KeyFactorDraft, NewsDraft } from "@/types/key_factors";
 import { NewsArticle } from "@/types/news";
 import { PostWithForecasts } from "@/types/post";
 import { isNewsDraft } from "@/utils/key_factors";
 
+import { Target } from "../item_creation/driver/option_target_picker";
 import { INITIAL_DRAFTS, useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
 import { KFType } from "../types";
+import { updateCommentKeyFactors } from "../utils";
 import KeyFactorsAddInCommentBaseRate from "./key_factors_add_in_comment_base_rate";
 import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
 import KeyFactorsAddInCommentLLMSuggestions from "./key_factors_add_in_comment_llm_suggestions";
 import KeyFactorsAddInCommentNews from "./key_factors_add_in_comment_news";
-import { Target } from "../item_creation/driver/option_target_picker";
 
 type Props = {
   postData: PostWithForecasts;
@@ -244,24 +245,5 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
     </>
   );
 };
-
-function updateCommentKeyFactors(
-  comment: CommentType,
-  targetId: number,
-  newKeyFactors: KeyFactor[]
-): CommentType {
-  if (comment.id === targetId) {
-    return { ...comment, key_factors: newKeyFactors };
-  }
-  if (comment.children?.length) {
-    return {
-      ...comment,
-      children: comment.children.map((child) =>
-        updateCommentKeyFactors(child, targetId, newKeyFactors)
-      ),
-    };
-  }
-  return comment;
-}
 
 export default KeyFactorsAddInComment;

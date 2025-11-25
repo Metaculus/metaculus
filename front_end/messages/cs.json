@@ -1691,5 +1691,6 @@
   "pasteUrlPlaceholder": "Vložte URL pro zpravodajský článek",
   "sourceMissing": "chybí zdroj",
   "invalidNewsUrl": "Toto nevypadá jako zpravodajský článek, zkuste prosím jinou URL.",
+  "duplicateNewsUrl": "Tento článek byl již přidán jako Klíčový faktor.",
   "othersCount": "Ostatní ({count})"
 }

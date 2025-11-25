@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import type { BECommentType, ImpactMetadata } from "@/types/comment";
 import type { NewsDraft } from "@/types/key_factors";
 import type { NewsArticle } from "@/types/news";
@@ -11,6 +12,7 @@ import type { PostWithForecasts } from "@/types/post";
 import { Target } from "../../item_creation/driver/option_target_picker";
 import KeyFactorsNewsForm from "../../item_creation/news/key_factors_news_form";
 import { useKeyFactorsCtx } from "../../key_factors_context";
+import { normalizeUrlForComparison } from "../../utils";
 import KeyFactorsModalFooter from "../key_factors_modal_footer";
 
 type Props = {
@@ -28,6 +30,8 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
   const { isPending, resetAll, setDrafts, submit, setErrors } =
     useKeyFactorsCtx();
 
+  const { combinedKeyFactors } = useCommentsFeed();
+
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedImpact, setSelectedImpact] = useState<ImpactMetadata>({
@@ -37,6 +41,15 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
 
   const [pastedArticle, setPastedArticle] = useState<NewsArticle | null>(null);
   const [target, setTarget] = useState<Target>({});
+
+  const existingNewsUrls = useMemo(
+    () =>
+      combinedKeyFactors
+        .map((kf) => kf.news?.url as string | undefined)
+        .filter((u): u is string => !!u)
+        .map((u) => normalizeUrlForComparison(u)),
+    [combinedKeyFactors]
+  );
 
   const canSubmit = useMemo(() => {
     if (isPending) return false;
@@ -115,6 +128,7 @@ const KeyFactorsNewsCreationBlock: React.FC<Props> = ({
         setArticles={setArticles}
         onUrlPreviewLoaded={setPastedArticle}
         onTargetChange={setTarget}
+        existingNewsUrls={existingNewsUrls}
       />
 
       <KeyFactorsModalFooter

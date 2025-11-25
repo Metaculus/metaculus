@@ -9,11 +9,16 @@ import { useAuth } from "@/contexts/auth_context";
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
-import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
+import {
+  isBaseRateDraft,
+  isDriverDraft,
+  isNewsDraft,
+} from "@/utils/key_factors";
 
 import KeyFactorsBaseRateForm from "../item_creation/base_rate/key_factors_base_rate_form";
 import KeyFactorsNewDriverFields from "../item_creation/driver/key_factors_new_driver_fields";
 import KeyFactorsNewItemContainer from "../item_creation/key_factors_new_item_container";
+import KeyFactorsNewsSuggestionFields from "../item_creation/news/key_factors_news_suggestion_fields";
 import { useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsSuggestedItems, {
   KeyFactorActionButton,
@@ -48,23 +53,24 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     suggestedKeyFactors,
     setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
+    addSingleSuggestedKeyFactor,
+    setErrors: setKeyFactorsErrors,
   } = useKeyFactorsCtx();
 
   const [editingSessions, setEditingSessions] = useState<EditingSession[]>([]);
   const editingIdRef = useRef(0);
 
-  const prevLenRef = useRef(suggestedKeyFactors.length);
+  const hasEverHadSuggestionsRef = useRef(false);
 
   useEffect(() => {
-    const prevLen = prevLenRef.current;
-    const currLen = suggestedKeyFactors.length;
-    prevLenRef.current = currLen;
-
-    const becameEmpty = prevLen > 0 && currLen === 0;
+    if (suggestedKeyFactors.length > 0) {
+      hasEverHadSuggestionsRef.current = true;
+    }
 
     if (
-      becameEmpty &&
+      hasEverHadSuggestionsRef.current &&
       !isLoadingSuggestedKeyFactors &&
+      suggestedKeyFactors.length === 0 &&
       editingSessions.length === 0
     ) {
       setSelectedType(null);
@@ -72,8 +78,8 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     }
   }, [
     suggestedKeyFactors.length,
-    isLoadingSuggestedKeyFactors,
     editingSessions.length,
+    isLoadingSuggestedKeyFactors,
     setSelectedType,
     onAllSuggestionsHandled,
   ]);
@@ -124,11 +130,22 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     setSuggestedKeyFactors((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const submitEditedSession = async (session: EditingSession) => {
+    const result = await addSingleSuggestedKeyFactor(session.draft);
+
+    if (result && "errors" in result && result.errors) {
+      setKeyFactorsErrors(result.errors);
+      return;
+    }
+
+    setEditingSessions((prev) => prev.filter((s) => s.id !== session.id));
+  };
+
   const handleApplyEdit = (sessionId: number) => {
     const session = editingSessions.find((s) => s.id === sessionId);
     if (!session) return;
-    reinsertIntoSuggestions(session.draft, session.index);
-    removeEditingSession(sessionId);
+
+    void submitEditedSession(session);
   };
 
   const handleDiscardEdit = (sessionId: number) => {
@@ -183,6 +200,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
         ),
       ];
     }
+
     if (isBaseRateDraft(session.draft)) {
       return [
         renderEditingBlock(
@@ -202,6 +220,26 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
         ),
       ];
     }
+
+    if (isNewsDraft(session.draft)) {
+      return [
+        renderEditingBlock(
+          session,
+          <KeyFactorsNewsSuggestionFields
+            key={session.id}
+            draft={session.draft}
+            setDraft={(next) =>
+              updateEditingSession(session.id, (prev) => ({
+                ...prev,
+                draft: next,
+              }))
+            }
+            post={postData}
+          />
+        ),
+      ];
+    }
+
     return [];
   });
 

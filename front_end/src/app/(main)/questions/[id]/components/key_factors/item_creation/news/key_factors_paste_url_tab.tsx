@@ -14,7 +14,7 @@ import type { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
 import KeyFactorSuggestedNewsItem from "./key_factor_suggested_news_item";
-import { fetchNewsPreview } from "../../utils";
+import { fetchNewsPreview, normalizeUrlForComparison } from "../../utils";
 import OptionTargetPicker, { Target } from "../driver/option_target_picker";
 
 type Props = {
@@ -24,6 +24,7 @@ type Props = {
   onTargetChange: Dispatch<SetStateAction<Target>>;
   setSelectedImpact: Dispatch<SetStateAction<ImpactMetadata>>;
   onPreviewLoaded?: (article: NewsArticle | null) => void;
+  existingNewsUrls: string[];
 };
 
 const KeyFactorsPasteUrlTab: React.FC<Props> = ({
@@ -33,6 +34,7 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
   onPreviewLoaded,
   target,
   onTargetChange,
+  existingNewsUrls,
 }) => {
   const t = useTranslations();
 
@@ -69,6 +71,16 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
       return;
     }
 
+    const normalizedTyped = normalizeUrlForComparison(effectiveUrl);
+    if (existingNewsUrls.includes(normalizedTyped)) {
+      // URL already used in a News key factor
+      setArticle(null);
+      setPreviewError(t("duplicateNewsUrl")); // ⬅️ add this key to i18n
+      setIsFetching(false);
+      onPreviewLoadedRef.current?.(null);
+      return;
+    }
+
     const controller = new AbortController();
     setIsFetching(true);
     setPreviewError(null);
@@ -79,6 +91,14 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
 
         if (!preview) {
           setPreviewError(t("invalidNewsUrl"));
+          setArticle(null);
+          onPreviewLoadedRef.current?.(null);
+          return;
+        }
+
+        const normalizedPreview = normalizeUrlForComparison(preview.url);
+        if (existingNewsUrls.includes(normalizedPreview)) {
+          setPreviewError(t("duplicateNewsUrl"));
           setArticle(null);
           onPreviewLoadedRef.current?.(null);
           return;
@@ -100,7 +120,7 @@ const KeyFactorsPasteUrlTab: React.FC<Props> = ({
     })();
 
     return () => controller.abort();
-  }, [debouncedUrl, t]);
+  }, [debouncedUrl, t, existingNewsUrls]);
 
   return (
     <div className="rounded border border-blue-400 p-4 dark:border-blue-400-dark">
