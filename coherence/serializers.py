@@ -46,6 +46,8 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
 
 class NeedsUpdateQuerySerializer(serializers.Serializer):
     datetime = serializers.DateTimeField()
+    project_slug = serializers.CharField(required=False, allow_null=True)
+    username_for_links = serializers.CharField(required=False, allow_null=True)
 
 
 def serialize_coherence_link(
@@ -60,7 +62,9 @@ def serialize_coherence_link(
     return serialized_data
 
 
-def serialize_coherence_link_many(links: Iterable[CoherenceLink]):
+def serialize_coherence_link_many(
+    links: Iterable[CoherenceLink], serialize_questions: bool = True
+):
     ids = [link.pk for link in links]
     qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
         "question1", "question2"
@@ -69,12 +73,22 @@ def serialize_coherence_link_many(links: Iterable[CoherenceLink]):
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
-    return [
-        serialize_coherence_link(
-            link, question1=link.question1, question2=link.question2
-        )
-        for link in objects
-    ]
+    if serialize_questions:
+        result = [
+            serialize_coherence_link(
+                link, question1=link.question1, question2=link.question2
+            )
+            for link in objects
+        ]
+    else:
+        result = [
+            serialize_coherence_link(
+                link,
+            )
+            for link in objects
+        ]
+
+    return result
 
 
 def serialize_aggregate_coherence_link(

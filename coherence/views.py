@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -14,11 +14,16 @@ from coherence.serializers import (
     serialize_aggregate_coherence_link_many,
     NeedsUpdateQuerySerializer,
 )
-from coherence.services import create_coherence_link, get_stale_linked_questions
+from coherence.services import (
+    create_coherence_link,
+    get_stale_linked_questions,
+    get_links_for_question,
+)
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers.common import serialize_question
+from users.models import User
 
 
 @api_view(["POST"])
@@ -100,7 +105,25 @@ def get_questions_requiring_update(request, pk):
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     datetime = serializer.validated_data["datetime"]
+    username_for_links = serializer.validated_data.get("username_for_links", None)
 
-    questions_to_update = get_stale_linked_questions(question, user, datetime)
+    links_user = user
+    if username_for_links:
+        is_user_admin = user.is_staff or user.is_superuser
+        if not is_user_admin:
+            raise PermissionDenied(
+                "Non-admin user can't request to use the links of another user"
+            )
+        links_user = User.objects.filter(Q(username__iexact=username_for_links)).first()
+        if links_user is None:
+            raise NotFound("Links user not found.")
+
+    links = get_links_for_question(question, links_user)
+    questions_to_update = get_stale_linked_questions(links, question, user, datetime)
     serialized_questions = [serialize_question(q) for q in questions_to_update]
-    return Response({"questions": serialized_questions})
+    return Response(
+        {
+            "questions": serialized_questions,
+            "links": serialize_coherence_link_many(links),
+        }
+    )
