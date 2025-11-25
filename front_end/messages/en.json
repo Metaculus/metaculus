@@ -1713,5 +1713,8 @@
   "newsMatchCount": "News Match ({count})",
   "chooseUrl": "Choose from an existing article, or paste a new URL.",
   "pasteUrlPlaceholder": "Paste URL for a news article",
+  "sourceMissing": "source missing",
+  "invalidNewsUrl": "This doesn’t look like a news article, please try another URL.",
+  "duplicateNewsUrl": "This article has already been added as a Key Factor.",
   "none": "none"
 }
