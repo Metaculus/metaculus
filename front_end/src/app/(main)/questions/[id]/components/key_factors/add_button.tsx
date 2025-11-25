@@ -14,6 +14,7 @@ import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import KeyFactorsAddModal from "./add_modal/key_factors_add_modal";
+import { openKeyFactorsSectionAndScrollTo } from "./utils";
 
 type Props = {
   onClick: (event: React.MouseEvent) => void;
@@ -68,32 +69,13 @@ export const AddKeyFactorsButton: FC<AddKeyFactorsButtonProps> = ({
     if (window.innerWidth >= 640) return;
     layout?.requestKeyFactorsExpand?.();
     const rawKfs = comment.key_factors ?? [];
-
     const first = rawKfs[0];
-    if (!first?.id) {
-      return;
-    }
+    if (!first?.id) return;
 
-    const targetId = `key-factor-${first.id}`;
-    const scrollWhenReady = (attemptsLeft: number) => {
-      if (attemptsLeft <= 0) {
-        return;
-      }
-      const sectionEl = document.getElementById("key-factors-section-toggle");
-      if (sectionEl?.getAttribute("data-headlessui-state") !== "open") {
-        sectionEl?.querySelector("button")?.click();
-      }
-      const el = document.getElementById(targetId);
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const absoluteTop = rect.top + window.scrollY - 55;
-        window.scrollTo({ top: absoluteTop, behavior: "smooth" });
-        return;
-      }
-      setTimeout(() => scrollWhenReady(attemptsLeft - 1), 100);
-    };
-
-    scrollWhenReady(15);
+    openKeyFactorsSectionAndScrollTo({
+      selector: `[id="key-factor-${first.id}"]`,
+      mobileOnly: true,
+    });
   };
 
   return (

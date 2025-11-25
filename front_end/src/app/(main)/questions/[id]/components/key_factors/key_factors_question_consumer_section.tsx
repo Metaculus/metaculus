@@ -3,9 +3,8 @@
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import { firstVisible } from "@/app/(main)/questions/[id]/components/key_factors/utils";
+import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
 import { useBreakpoint } from "@/hooks/tailwind";
-import useScrollTo from "@/hooks/use_scroll_to";
 import { KeyFactor } from "@/types/comment";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
@@ -22,7 +21,6 @@ const MAX_TOP_KEY_FACTORS = 8;
 const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
   const t = useTranslations();
   const isDesktop = useBreakpoint("sm");
-  const scrollTo = useScrollTo();
   const { requestKeyFactorsExpand } = useQuestionLayout();
 
   // Filter and limit top key factors by freshness
@@ -33,24 +31,12 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors }) => {
   }, [keyFactors]);
 
   const openKeyFactorsElement = (selector: string) => {
-    // Expand key factors section
-    requestKeyFactorsExpand();
+    requestKeyFactorsExpand?.();
 
-    // Scroll to the specific key factor in the full list
-    setTimeout(() => {
-      // Small workaround: the page renders two KeyFactor sections:
-      // one for mobile, one for desktop — for responsive purposes.
-      // This causes duplicate key-factor element IDs in the DOM.
-      // As a result, using getElementById might return
-      // the hidden version (not visible on the current device).
-      // To avoid this, we use a small hack that returns
-      // the first visible element instead.
-      const keyFactorElement = firstVisible(selector);
-
-      if (keyFactorElement) {
-        scrollTo(keyFactorElement.getBoundingClientRect().top);
-      }
-    }, 100);
+    openKeyFactorsSectionAndScrollTo({
+      selector,
+      mobileOnly: false,
+    });
 
     sendAnalyticsEvent("KeyFactorClick", {
       event_label: "fromTopList",

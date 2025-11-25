@@ -33,6 +33,7 @@ function pickKfComponent(kf: KeyFactor): React.FC<KfDisplayProps> {
   const brType = kf.base_rate?.type;
   if (brType === "trend") return KF_COMPONENTS.baseRateTrend;
   if (brType === "frequency") return KF_COMPONENTS.baseRateFreq;
+  if (kf.news) return KF_COMPONENTS.news;
 
   return KF_COMPONENTS.driver;
 }
@@ -45,7 +46,7 @@ const KeyFactorsTileView: React.FC<Props> = ({
   className,
 }) => {
   const t = useTranslations();
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Array<KeyFactor["id"]>>([]);
 
   const items = useMemo(
     () =>
@@ -55,10 +56,11 @@ const KeyFactorsTileView: React.FC<Props> = ({
     [post.key_factors, maxItems]
   );
 
-  const onToggle = useCallback(
-    (idx: number) => setExpandedIdx(expandedIdx === idx ? null : idx),
-    [expandedIdx]
-  );
+  const onToggle = useCallback((id: KeyFactor["id"]) => {
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }, []);
 
   if (items.length === 0) return null;
 
@@ -69,19 +71,17 @@ const KeyFactorsTileView: React.FC<Props> = ({
       </p>
 
       <ul className="flex flex-col gap-1">
-        {items.map((kf, idx) => {
-          const expanded = expandedIdx === idx;
+        {items.map((kf) => {
+          const expanded = expandedIds.includes(kf.id);
           const Display = pickKfComponent(kf);
+
           return (
             <li key={kf.id}>
-              <button
-                type="button"
-                onClick={() => onToggle(idx)}
-                aria-expanded={expanded}
-                className="w-full text-left"
-              >
-                <Display kf={kf} expanded={expanded} />
-              </button>
+              <Display
+                kf={kf}
+                expanded={expanded}
+                onToggle={() => onToggle(kf.id)}
+              />
             </li>
           );
         })}
