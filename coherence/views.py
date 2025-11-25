@@ -124,6 +124,6 @@ def get_questions_requiring_update(request, pk):
     return Response(
         {
             "questions": serialized_questions,
-            "links": serialize_coherence_link_many(links),
+            "links": serialize_coherence_link_many(links, serialize_questions=False),
         }
     )
