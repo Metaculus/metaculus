@@ -3,14 +3,11 @@ import { PropsWithChildren, Suspense } from "react";
 
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
 import PostScoreData from "@/app/(main)/questions/[id]/components/post_score_data";
+import { shouldShowScores } from "@/app/(main)/questions/[id]/components/post_score_data/utils";
 import ConsumerTabs from "@/app/(main)/questions/[id]/components/question_layout/consumer_question_layout/consumer_tabs";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import { TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
-import {
-  GroupOfQuestionsGraphType,
-  PostStatus,
-  PostWithForecasts,
-} from "@/types/post";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import QuestionTimeline, {
@@ -52,7 +49,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <NewsPresence questionId={postData.id}>
                 <TabsTab value="news">{t("inNews")}</TabsTab>
               </NewsPresence>
-              {postData.status === PostStatus.RESOLVED && (
+              {shouldShowScores(postData) && (
                 <TabsTab value="scores">{t("scores")}</TabsTab>
               )}
               <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
@@ -89,7 +86,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 </Suspense>
               </TabsSection>
             </NewsPresence>
-            {postData.status === PostStatus.RESOLVED && (
+            {shouldShowScores(postData) && (
               <TabsSection value="scores">
                 <PostScoreData
                   post={postData}
