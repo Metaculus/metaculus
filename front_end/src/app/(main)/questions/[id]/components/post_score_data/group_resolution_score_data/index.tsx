@@ -133,7 +133,10 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
   );
 
   return (
-    <SectionToggle title={hasUserForecasts ? t("myScores") : t("scores")}>
+    <SectionToggle
+      title={hasUserForecasts ? t("myScores") : t("scores")}
+      defaultOpen
+    >
       {/* Mobile View: Baseline Table */}
       <div className="md:hidden">
         {renderHeader(t("subquestion"), "", "baselineScore")}
