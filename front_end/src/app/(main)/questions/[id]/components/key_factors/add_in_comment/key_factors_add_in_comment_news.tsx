@@ -4,6 +4,7 @@ import { faNewspaper } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { FormError } from "@/components/ui/form_field";
 import { ImpactMetadata } from "@/types/comment";
 import { NewsArticle } from "@/types/news";
@@ -14,6 +15,7 @@ import KeyFactorsNewsForm from "../item_creation/news/key_factors_news_form";
 import { useKeyFactorsCtx } from "../key_factors_context";
 import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
 import { Target } from "../item_creation/driver/option_target_picker";
+import { normalizeUrlForComparison } from "../utils";
 
 type Props = {
   postData: PostWithForecasts;
@@ -35,6 +37,7 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
   const t = useTranslations();
 
   const { isPending, errors: keyFactorsErrors } = useKeyFactorsCtx();
+  const { combinedKeyFactors } = useCommentsFeed();
 
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -45,6 +48,15 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
 
   const [pastedArticle, setPastedArticle] = useState<NewsArticle | null>(null);
   const [target, setTarget] = useState<Target>({});
+
+  const existingNewsUrls = useMemo(
+    () =>
+      combinedKeyFactors
+        .map((kf) => kf.news?.url as string | undefined)
+        .filter((u): u is string => !!u)
+        .map((u) => normalizeUrlForComparison(u)),
+    [combinedKeyFactors]
+  );
 
   const canSubmit = useMemo(() => {
     if (isPending) return false;
@@ -102,6 +114,7 @@ const KeyFactorsAddInCommentNews: React.FC<Props> = ({
           setArticles={setArticles}
           onUrlPreviewLoaded={setPastedArticle}
           className="-mt-2"
+          existingNewsUrls={existingNewsUrls}
         />
         <FormError errors={keyFactorsErrors} />
       </KeyFactorsNewItemContainer>

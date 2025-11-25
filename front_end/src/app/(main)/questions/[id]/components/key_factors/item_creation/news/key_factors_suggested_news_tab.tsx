@@ -14,6 +14,7 @@ import { QuestionType } from "@/types/question";
 
 import KeyFactorSuggestedNewsItem from "./key_factor_suggested_news_item";
 import { useKeyFactorsCtx } from "../../key_factors_context";
+import { normalizeUrlForComparison } from "../../utils";
 import { Target } from "../driver/option_target_picker";
 
 const VISIBLE_STEP = 3;
@@ -28,6 +29,7 @@ type Props = {
   setSelectedImpact: Dispatch<SetStateAction<ImpactMetadata>>;
   setArticles: Dispatch<SetStateAction<NewsArticle[]>>;
   setSelectedId: Dispatch<SetStateAction<number | null>>;
+  existingNewsUrls: string[];
 };
 
 const KeyFactorsSuggestedNewsTab: React.FC<Props> = ({
@@ -40,6 +42,7 @@ const KeyFactorsSuggestedNewsTab: React.FC<Props> = ({
   setSelectedId,
   target,
   onTargetChange,
+  existingNewsUrls,
 }) => {
   const t = useTranslations();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -61,8 +64,16 @@ const KeyFactorsSuggestedNewsTab: React.FC<Props> = ({
         const res = await ClientPostsApi.getRelatedNews(post.id);
         if (!mounted) return;
         const list = res ?? [];
-        setArticles(list);
-        setVisibleCount(Math.min(VISIBLE_STEP, list.length || VISIBLE_STEP));
+
+        const filtered = list.filter((a) => {
+          const normalized = normalizeUrlForComparison(a.url);
+          return !existingNewsUrls.includes(normalized);
+        });
+
+        setArticles(filtered);
+        setVisibleCount(
+          Math.min(VISIBLE_STEP, filtered.length || VISIBLE_STEP)
+        );
 
         setSelectedId(null);
         setSelectedImpact({ impact_direction: null, certainty: null });
@@ -74,7 +85,14 @@ const KeyFactorsSuggestedNewsTab: React.FC<Props> = ({
     return () => {
       mounted = false;
     };
-  }, [post.id, setArticles, setSelectedId, setSelectedImpact, articles.length]);
+  }, [
+    post.id,
+    setArticles,
+    setSelectedId,
+    existingNewsUrls,
+    setSelectedImpact,
+    articles.length,
+  ]);
 
   const visibleArticles = articles.slice(0, visibleCount);
   const hasMore = visibleCount < articles.length;

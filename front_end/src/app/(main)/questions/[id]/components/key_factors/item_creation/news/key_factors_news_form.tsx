@@ -27,6 +27,7 @@ type Props = {
   onUrlPreviewLoaded?: (article: NewsArticle | null) => void;
   onTargetChange: Dispatch<SetStateAction<Target>>;
   className?: string;
+  existingNewsUrls: string[];
 };
 
 const KeyFactorsNewsForm: React.FC<Props> = ({
@@ -40,6 +41,7 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
   setSelectedId,
   onUrlPreviewLoaded,
   onTargetChange,
+  existingNewsUrls,
   className,
 }) => {
   const t = useTranslations();
@@ -100,6 +102,7 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
           setSelectedImpact={setSelectedImpact}
           setSelectedId={setSelectedId}
           setArticles={setArticles}
+          existingNewsUrls={existingNewsUrls}
         />
       </TabsSection>
 
@@ -111,6 +114,7 @@ const KeyFactorsNewsForm: React.FC<Props> = ({
           onTargetChange={onTargetChange}
           setSelectedImpact={setSelectedImpact}
           onPreviewLoaded={onUrlPreviewLoaded}
+          existingNewsUrls={existingNewsUrls}
         />
       </TabsSection>
     </Tabs>

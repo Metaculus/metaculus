@@ -1721,5 +1721,6 @@
   "pasteUrlPlaceholder": "Pegar URL de un artículo de noticias",
   "sourceMissing": "fuente no encontrada",
   "invalidNewsUrl": "Esto no parece un artículo de noticias, por favor intenta con otra URL.",
+  "duplicateNewsUrl": "Este artículo ya ha sido añadido como un Factor Clave.",
   "othersCount": "Otros ({count})"
 }

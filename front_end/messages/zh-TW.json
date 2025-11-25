@@ -1718,5 +1718,6 @@
   "pasteUrlPlaceholder": "貼上一個新聞文章的網址",
   "sourceMissing": "缺少來源",
   "invalidNewsUrl": "這看起來不像是一篇新聞文章，請嘗試其他網址。",
+  "duplicateNewsUrl": "此文章已作為關鍵因素添加過。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
