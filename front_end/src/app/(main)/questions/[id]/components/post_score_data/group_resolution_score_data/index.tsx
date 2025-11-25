@@ -70,7 +70,7 @@ const GroupResolutionScoreRow: FC<RowData> = ({
   );
 };
 
-const GroupResolutionScores: FC<Props> = ({ post, isConsumerView }) => {
+const GroupResolutionScores: FC<Props> = ({ post }) => {
   const t = useTranslations();
 
   if (!post.group_of_questions) return null;
@@ -133,10 +133,7 @@ const GroupResolutionScores: FC<Props> = ({ post, isConsumerView }) => {
   );
 
   return (
-    <SectionToggle
-      title={hasUserForecasts ? t("myScores") : t("scores")}
-      defaultOpen={!isConsumerView}
-    >
+    <SectionToggle title={hasUserForecasts ? t("myScores") : t("scores")}>
       {/* Mobile View: Baseline Table */}
       <div className="md:hidden">
         {renderHeader(t("subquestion"), "", "baselineScore")}
