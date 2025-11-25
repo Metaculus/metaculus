@@ -20,7 +20,7 @@ const PostScoreData: FC<Props> = (props) => {
   const { post } = props;
 
   if (isGroupOfQuestionsPost(post)) {
-    return <GroupResolutionScores post={post} />;
+    return <GroupResolutionScores {...props} />;
   }
 
   if (isConditionalPost(post)) {

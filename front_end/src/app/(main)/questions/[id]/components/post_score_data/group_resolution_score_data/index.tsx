@@ -15,6 +15,7 @@ import GroupScoreCell from "./group_score_cell";
 
 type Props = {
   post: PostWithForecasts;
+  isConsumerView?: boolean;
 };
 
 const getScore = (data: ScoreData | undefined, key: string) => {
@@ -69,7 +70,7 @@ const GroupResolutionScoreRow: FC<RowData> = ({
   );
 };
 
-const GroupResolutionScores: FC<Props> = ({ post }) => {
+const GroupResolutionScores: FC<Props> = ({ post, isConsumerView }) => {
   const t = useTranslations();
 
   if (!post.group_of_questions) return null;
@@ -99,7 +100,7 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
     return null;
   }
 
-  const hasUserForecasts = rows.some((r) => r.question.my_forecasts);
+  const hasUserForecasts = rows.some((r) => r.question.my_forecasts?.latest);
 
   const renderHeader = (
     label: string,
@@ -134,7 +135,7 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
   return (
     <SectionToggle
       title={hasUserForecasts ? t("myScores") : t("scores")}
-      defaultOpen
+      defaultOpen={!isConsumerView}
     >
       {/* Mobile View: Baseline Table */}
       <div className="md:hidden">
