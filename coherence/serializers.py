@@ -46,7 +46,6 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
 
 class NeedsUpdateQuerySerializer(serializers.Serializer):
     datetime = serializers.DateTimeField()
-    project_slug = serializers.CharField(required=False, allow_null=True)
     username_for_links = serializers.CharField(required=False, allow_null=True)
 
 
