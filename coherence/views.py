@@ -105,16 +105,16 @@ def get_questions_requiring_update(request, pk):
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     datetime = serializer.validated_data["datetime"]
-    username_for_links = serializer.validated_data.get("username_for_links", None)
+    user_id_for_links = serializer.validated_data.get("user_id_for_links", None)
 
     links_user = user
-    if username_for_links:
+    if user_id_for_links:
         is_user_admin = user.is_staff or user.is_superuser
         if not is_user_admin:
             raise PermissionDenied(
                 "Non-admin user can't request to use the links of another user"
             )
-        links_user = User.objects.filter(Q(username__iexact=username_for_links)).first()
+        links_user = User.objects.filter(pk=user_id_for_links).first()
         if links_user is None:
             raise NotFound("Links user not found.")
 
