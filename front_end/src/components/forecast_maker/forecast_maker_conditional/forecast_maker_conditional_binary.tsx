@@ -102,10 +102,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const [activeTableOption, setActiveTableOption] = useState(
     question_yes.resolution === "annulled" ? questionNoId : questionYesId
   );
-  const activeQuestion = useMemo(
-    () => [question_yes, question_no].find((q) => q.id === activeTableOption),
-    [activeTableOption, question_yes, question_no]
-  );
 
   const questionYesDuration =
     new Date(question_yes.scheduled_close_time).getTime() -

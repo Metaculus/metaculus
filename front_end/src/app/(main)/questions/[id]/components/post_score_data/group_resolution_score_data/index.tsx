@@ -8,7 +8,6 @@ import SectionToggle from "@/components/ui/section_toggle";
 import Tooltip from "@/components/ui/tooltip";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts, ScoreData } from "@/types/question";
-import cn from "@/utils/core/cn";
 
 import { AdditionalScoresTable } from "../additional_scores_table";
 import GroupScoreCell from "./group_score_cell";
@@ -102,21 +101,10 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
 
   const hasUserForecasts = rows.some((r) => r.question.my_forecasts?.latest);
 
-  const renderHeader = (
-    label: string,
-    className?: string,
-    scoreLabel?: string
-  ) => (
-    <div
-      className={cn(
-        "flex items-center border-b border-blue-400 bg-blue-100 px-4 py-2.5 text-sm font-bold capitalize text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark",
-        className
-      )}
-    >
+  const renderHeader = (label: string, scoreLabel?: string) => (
+    <div className="flex items-center border-b border-blue-400 bg-blue-100 px-4 py-2.5 text-sm font-bold capitalize text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
       <div className="flex-1">{label}</div>
-      {scoreLabel && (
-        <div className="w-1/2 text-center">{t(scoreLabel as any)}</div>
-      )}
+      {scoreLabel && <div className="w-1/2 text-center">{scoreLabel}</div>}
       {!scoreLabel && (
         <>
           <div className="w-28 text-center sm:w-36">
@@ -139,7 +127,7 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
     >
       {/* Mobile View: Baseline Table */}
       <div className="md:hidden">
-        {renderHeader(t("subquestion"), "", "baselineScore")}
+        {renderHeader(t("subquestion"), t("baselineScore"))}
         {rows.map((row) => (
           <div
             key={row.question.id}
@@ -160,7 +148,7 @@ const GroupResolutionScores: FC<Props> = ({ post }) => {
 
       {/* Mobile View: Peer Table */}
       <div className="mt-2.5 md:hidden">
-        {renderHeader(t("subquestion"), "", "peerScore")}
+        {renderHeader(t("subquestion"), t("peerScore"))}
         {rows.map((row) => (
           <div
             key={row.question.id}

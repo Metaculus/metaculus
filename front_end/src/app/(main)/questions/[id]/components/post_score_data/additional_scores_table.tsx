@@ -4,6 +4,7 @@ import React, { FC } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 import { QuestionWithForecasts, ScoreData } from "@/types/question";
+import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
 
 type Variant = "auto" | "compact";
@@ -67,13 +68,13 @@ const toCamel = (s: string) =>
 
 /** Builds translation key e.g. "myPeerScore", "communityBaselineScore"  */
 const buildScoreLabelKey = (
-  t: any,
   key: string,
   forecaster: "user" | "community"
-) => {
+): TranslationKey => {
   const prefix = forecaster === "user" ? "my" : "community";
   const suffix = key.includes("coverage") ? "" : "Score";
-  return t(prefix + toCamel(key) + suffix);
+
+  return (prefix + toCamel(key) + suffix) as TranslationKey;
 };
 
 export const AdditionalScoresTable: FC<Props> = ({
@@ -123,7 +124,7 @@ export const AdditionalScoresTable: FC<Props> = ({
         : userVal.toFixed(digits);
 
       targetRows.push({
-        label: buildScoreLabelKey(t, key, "user"),
+        label: t(buildScoreLabelKey(key, "user")),
         value: formattedValue,
       });
     }
@@ -137,7 +138,7 @@ export const AdditionalScoresTable: FC<Props> = ({
           : cpVal.toFixed(digits);
 
         targetRows.push({
-          label: buildScoreLabelKey(t, key, "community"),
+          label: t(buildScoreLabelKey(key, "community")),
           value: formattedValue,
         });
       }
