@@ -51,20 +51,25 @@ const ParticipationSummary: React.FC<Props> = ({
   const userCoverage = userScores?.coverage ?? 0;
   const averageCoverage = question.average_coverage ?? 0;
 
+  const isSpot = question.default_score_type.includes("spot");
+  const peerScoreKey = isSpot ? "spot_peer_score" : "peer_score";
+  const baselineScoreKey = isSpot ? "spot_baseline_score" : "baseline_score";
+
   const outperformedPeer =
-    !isNil(userScores?.peer_score) &&
-    !isNil(communityScores?.peer_score) &&
-    userScores.peer_score > communityScores.peer_score;
+    !isNil(userScores?.[peerScoreKey]) &&
+    !isNil(communityScores?.[peerScoreKey]) &&
+    (userScores?.[peerScoreKey] ?? 0) > (communityScores?.[peerScoreKey] ?? 0);
   const outperformedBaseline =
-    !isNil(userScores?.baseline_score) &&
-    !isNil(communityScores?.baseline_score) &&
-    userScores.baseline_score > communityScores.baseline_score;
+    !isNil(userScores?.[baselineScoreKey]) &&
+    !isNil(communityScores?.[baselineScoreKey]) &&
+    (userScores?.[baselineScoreKey] ?? 0) >
+      (communityScores?.[baselineScoreKey] ?? 0);
 
   const getScoreTypes = () => {
     if (outperformedPeer && outperformedBaseline)
-      return t("bothPeerAndBaseline");
-    if (outperformedPeer) return t("peer");
-    return t("baseline");
+      return isSpot ? t("bothSpotPeerAndBaseline") : t("bothPeerAndBaseline");
+    if (outperformedPeer) return t(isSpot ? "spotPeerScore" : "peerScore");
+    return t(isSpot ? "spotBaselineScore" : "baselineScore");
   };
 
   const richStrong = (chunk: ReactNode) => (

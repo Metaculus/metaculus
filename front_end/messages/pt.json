@@ -961,7 +961,6 @@
   "myBaselineScore": "Minha Pontuação Básica",
   "myPeerScore": "Minha Pontuação de Pares",
   "mySpotBaselineScore": "Minha Pontuação Básica de Spot",
-  "mySpotPeerScore": "Minha Pontuação de Spot",
   "myRelativeLegacyScore": "Minha Pontuação Relativa de Legado",
   "myRelativeLegacyArchivedScore": "Minha Pontuação Relativa de Legado Arquivada",
   "communityBaselineScore": "Pontuação Básica da Comunidade",
@@ -1637,7 +1636,6 @@
   "whatIsBaselineScore": "O que é a Pontuação de Referência?",
   "baselineScoreExplanation": "A Pontuação de Referência mostra como a sua previsão se comparou a um palpite aleatório.  Uma pontuação positiva significa que sua previsão adicionou valor; uma pontuação negativa significa que foi pior que o acaso.",
   "learnMoreAboutBaselineScore": "Saiba mais sobre a Pontuação de Referência",
-  "spotScore": "Pontuação Spot",
   "spotBaselineScore": "Pontuação de Referência Spot",
   "whatIsPeerScore": "O que é a Pontuação dos Pares?",
   "peerScoreExplanation": "A Pontuação dos Pares compara uma previsão com todas as outras feitas para a mesma pergunta. Se for positiva, a previsão foi melhor que as outras. Se for negativa, foi pior que as demais.",
@@ -1647,7 +1645,6 @@
   "participationSummaryPredictionNrStats": "Você fez <strong>{userUpdates} {userUpdates, plural, =0 {atualizações} =1 {atualização} other {atualizações} }</strong> vs. uma média da comunidade de <strong>{communityUpdates} {communityUpdates, plural, =0 {atualizações} =1 {atualização} other {atualizações} }</strong>.",
   "participationSummaryCoverageBetterStats": "Sua cobertura foi de <strong>{userCoverage}%</strong>, melhor que a do previsor médio nesta pergunta (<strong>{averageCoverage}%</strong>).",
   "participationSummaryCoverageWorseStats": "Sua cobertura foi de <strong>{userCoverage}%</strong>, pior que a do previsor médio nesta pergunta (<strong>{averageCoverage}%</strong>).",
-  "participationSummaryScoreOutperformance": "Parabéns, você <strong>superou a Previsão da Comunidade</strong> na Pontuação {scoreTypes}{scoreTypes, select, peer {!} baseline {!} other {s!}}",
   "peer": "Par",
   "bothPeerAndBaseline": "tanto Par quanto Referência",
   "scores": "Pontuações",
@@ -1658,5 +1655,9 @@
   "here": "aqui",
   "averageOfPeers": "Média <secondary>dos pares</secondary>",
   "baselineChance": "Referência <secondary>de chance</secondary>",
+  "mySpotPeerScore": "Minha Pontuação de Par",
+  "spotPeerScore": "Pontuação de Par",
+  "participationSummaryScoreOutperformance": "Parabéns, você <strong>superou a Previsão da Comunidade</strong> em {scoreTypes}.",
+  "bothSpotPeerAndBaseline": "tanto Pontuação de Par quanto Pontuação de Referência",
   "othersCount": "Outros ({count})"
 }

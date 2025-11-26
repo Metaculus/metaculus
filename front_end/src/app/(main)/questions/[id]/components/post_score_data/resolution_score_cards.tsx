@@ -46,7 +46,7 @@ const ResolutionScoreCards: FC<Props> = ({
         type="peer"
         userScore={getScore(userScores, peerKey)}
         communityScore={getScore(cpScores, peerKey)}
-        title={spot ? t("spotScore") : t("peerScore")}
+        title={spot ? t("spotPeerScore") : t("peerScore")}
         className={
           isConsumerView && !noSectionWrapper
             ? "bg-gray-0 dark:bg-gray-0-dark"

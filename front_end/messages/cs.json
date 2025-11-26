@@ -843,7 +843,6 @@
   "myBaselineScore": "Můj základní skór",
   "myPeerScore": "Můj skór kolegy",
   "mySpotBaselineScore": "Můj spot základní skór",
-  "mySpotPeerScore": "Můj spot skór",
   "myRelativeLegacyScore": "Můj relativní starší skór",
   "myRelativeLegacyArchivedScore": "Můj relativní starší archivovaný skór",
   "communityBaselineScore": "Základní skóre komunity",
@@ -1639,7 +1638,6 @@
   "whatIsBaselineScore": "Co je základní skóre?",
   "baselineScoreExplanation": "Základní skóre ukazuje, jak váš předpověď porovnává s náhodným odhadem.  Pozitivní skóre znamená, že váš předpověď přidal hodnotu; negativní skóre znamená, že si vedl hůře než náhoda.",
   "learnMoreAboutBaselineScore": "Zjistit více o základním skóre",
-  "spotScore": "Spot skóre",
   "spotBaselineScore": "Základní spot skóre",
   "whatIsPeerScore": "Co je skóre vrstevníků?",
   "peerScoreExplanation": "Skóre vrstevníků porovnává předpověď s ostatními předpověďmi na stejnou otázku. Pokud je pozitivní, předpověď byla lepší než ostatní. Pokud je negativní, byla horší.",
@@ -1649,7 +1647,6 @@
   "participationSummaryPredictionNrStats": "Udělal(a) jste <strong>{userUpdates} {userUpdates, plural, =0 {aktualizací} =1 {aktualizaci} other {aktualizací} }</strong> vs. průměr komunity <strong>{communityUpdates} {communityUpdates, plural, =0 {aktualizací} =1 {aktualizaci} other {aktualizací} }</strong>.",
   "participationSummaryCoverageBetterStats": "Vaše pokrytí bylo <strong>{userCoverage}%</strong>, což je lepší než průměrný předpovídač v této otázce (<strong>{averageCoverage}%</strong>).",
   "participationSummaryCoverageWorseStats": "Vaše pokrytí bylo <strong>{userCoverage}%</strong>, což je horší než průměrný předpovídač v této otázce (<strong>{averageCoverage}%</strong>).",
-  "participationSummaryScoreOutperformance": "Gratulujeme, <strong>předčili jste komunitní předpověď</strong> v {scoreTypes} skóre{scoreTypes, select, peer {!} baseline {!} other {!}}",
   "peer": "Vrstevník",
   "bothPeerAndBaseline": "jak vrstevnické, tak základní",
   "scores": "Skóre",
@@ -1660,5 +1657,9 @@
   "here": "zde",
   "averageOfPeers": "Průměr <secondary>vrstevníků</secondary>",
   "baselineChance": "Základní <secondary>šance</secondary>",
+  "mySpotPeerScore": "Moje skóre sportovce",
+  "spotPeerScore": "Skóre sportovce",
+  "participationSummaryScoreOutperformance": "Gratulujeme, <strong>překonali jste komunitní predikci</strong> v {scoreTypes}.",
+  "bothSpotPeerAndBaseline": "obě skóre Sport Peer a Spot Baseline",
   "othersCount": "Ostatní ({count})"
 }

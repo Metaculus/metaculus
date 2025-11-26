@@ -1639,7 +1639,6 @@
   "whatIsBaselineScore": "¿Qué es el Puntaje de Referencia?",
   "baselineScoreExplanation": "La Puntuación de Referencia muestra cómo se compara tu pronóstico con las conjeturas aleatorias.  Un puntaje positivo significa que tu pronóstico añadió valor; un puntaje negativo significa que fue peor que el azar.",
   "learnMoreAboutBaselineScore": "Aprende más sobre el Puntaje de Referencia",
-  "spotScore": "Puntaje Spot",
   "spotBaselineScore": "Puntaje de Referencia Spot",
   "whatIsPeerScore": "¿Qué es el Puntaje de Pares?",
   "peerScoreExplanation": "El Puntaje de Pares compara una predicción con todas las demás predicciones hechas sobre la misma pregunta. Si es positivo, la predicción fue mejor que las otras. Si es negativo, fue peor que las otras.",
@@ -1649,7 +1648,6 @@
   "participationSummaryPredictionNrStats": "Hiciste <strong>{userUpdates} {userUpdates, plural, =0 {actualizaciones} =1 {actualización} other {actualizaciones} }</strong> versus un promedio comunitario de <strong>{communityUpdates} {communityUpdates, plural, =0 {actualizaciones} =1 {actualización} other {actualizaciones} }</strong>.",
   "participationSummaryCoverageBetterStats": "Tu cobertura fue del <strong>{userCoverage}%</strong>, mejor que el promedio de pronosticadores en esta pregunta (<strong>{averageCoverage}%</strong>).",
   "participationSummaryCoverageWorseStats": "Tu cobertura fue del <strong>{userCoverage}%</strong>, peor que el promedio de pronosticadores en esta pregunta (<strong>{averageCoverage}%</strong>).",
-  "participationSummaryScoreOutperformance": "Felicidades, <strong>superaste la Predicción Comunitaria</strong> en los Puntajes de {scoreTypes}{scoreTypes, select, peer {!} baseline {!} other {s!}}",
   "peer": "Pares",
   "bothPeerAndBaseline": "tanto en Pares como en Referencia",
   "scores": "Puntuaciones",
@@ -1660,5 +1658,8 @@
   "here": "aquí",
   "averageOfPeers": "Promedio <secondary>de pares</secondary>",
   "baselineChance": "Referencia <secondary>azar</secondary>",
+  "spotPeerScore": "Puntuación de Par entre Puntos",
+  "participationSummaryScoreOutperformance": "Felicidades, <strong>superaste la Predicción de la Comunidad</strong> en {scoreTypes}.",
+  "bothSpotPeerAndBaseline": "tanto la Puntuación de Par como la Puntuación de Referencia de Puntos",
   "othersCount": "Otros ({count})"
 }

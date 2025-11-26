@@ -836,7 +836,6 @@
   "myBaselineScore": "我的基线分数",
   "myPeerScore": "我的同伴分数",
   "mySpotBaselineScore": "我的即时基线分数",
-  "mySpotPeerScore": "我的即时分数",
   "myRelativeLegacyScore": "我的相对遗留分数",
   "myRelativeLegacyArchivedScore": "我的相对遗留存档分数",
   "communityBaselineScore": "社区基线分数",
@@ -1641,7 +1640,6 @@
   "whatIsBaselineScore": "什么是基准分数？",
   "baselineScoreExplanation": "基准分数显示您的预测与随机猜测的比较。正分表示您的预测增添了价值；负分表示其表现不如机会。",
   "learnMoreAboutBaselineScore": "了解更多关于基准分数的信息",
-  "spotScore": "现货得分",
   "spotBaselineScore": "现货基准分数",
   "whatIsPeerScore": "什么是同行分数？",
   "peerScoreExplanation": "同行分数将预测与同一问题上所有其他预测进行比较。如果是正数，说明预测优于其他预测；如果是负数，说明不如其他预测。",
@@ -1651,7 +1649,6 @@
   "participationSummaryPredictionNrStats": "您做出了 <strong>{userUpdates} {userUpdates, plural, =0 {次更新} =1 {次更新} other {次更新} }</strong>，社区平均为 <strong>{communityUpdates} {communityUpdates, plural, =0 {次更新} =1 {次更新} other {次更新} }</strong>。",
   "participationSummaryCoverageBetterStats": "您的覆盖率为 <strong>{userCoverage}%</strong>，优于该问题上的平均预测者（<strong>{averageCoverage}%</strong>）。",
   "participationSummaryCoverageWorseStats": "您的覆盖率为 <strong>{userCoverage}%</strong>，逊于该问题上的平均预测者（<strong>{averageCoverage}%</strong>）。",
-  "participationSummaryScoreOutperformance": "恭喜，您在 {scoreTypes} 分数中<strong>超过了社区预测</strong>{scoreTypes, select, peer {!} baseline {!} other {！}}",
   "peer": "同行",
   "bothPeerAndBaseline": "同行和基准",
   "scores": "得分",
@@ -1662,5 +1659,9 @@
   "here": "这里",
   "averageOfPeers": "同行的<secondary>平均值</secondary>",
   "baselineChance": "基准<secondary>机会</secondary>",
+  "mySpotPeerScore": "我的 Sport Peer 分数",
+  "spotPeerScore": "Sport Peer 分数",
+  "participationSummaryScoreOutperformance": "恭喜，你在{scoreTypes}中<strong>超越了社区预测</strong>。",
+  "bothSpotPeerAndBaseline": "同时 Sport Peer 和 Sport 基准分数",
   "othersCount": "其他（{count}）"
 }

@@ -112,7 +112,6 @@
   "myBaselineScore": "我的基準分數",
   "myPeerScore": "我的同儕分數",
   "mySpotBaselineScore": "我的即時基準分數",
-  "mySpotPeerScore": "我的即時得分",
   "myRelativeLegacyScore": "我的相對遺產分數",
   "myRelativeLegacyArchivedScore": "我的相對遺產存檔分數",
   "communityBaselineScore": "社群基準分數",
@@ -1636,7 +1635,6 @@
   "whatIsBaselineScore": "什麼是基準分數？",
   "baselineScoreExplanation": "基準分數顯示您的預測與隨機猜測的比較。正分表示您的預測有增加價值；負分表示比隨機還差。",
   "learnMoreAboutBaselineScore": "了解更多關於基準分數",
-  "spotScore": "Spot 分數",
   "spotBaselineScore": "Spot 基準分數",
   "whatIsPeerScore": "什麼是同行分數？",
   "peerScoreExplanation": "同行分數將預測與同一問題上做出的其他預測進行比較。若為正，表示預測比其他預測好；若為負，則比其他預測差。",
@@ -1646,7 +1644,6 @@
   "participationSummaryPredictionNrStats": "您做出了 <strong>{userUpdates} {userUpdates, plural, =0 {次更新} =1 {次更新} other {次更新} }</strong>，而社群平均為 <strong>{communityUpdates} {communityUpdates, plural, =0 {次更新} =1 {次更新} other {次更新} }</strong>。",
   "participationSummaryCoverageBetterStats": "您的涵蓋率是 <strong>{userCoverage}%</strong>，比該問題的平均預測者更好（<strong>{averageCoverage}%</strong>）。",
   "participationSummaryCoverageWorseStats": "您的涵蓋率是 <strong>{userCoverage}%</strong>，比該問題的平均預測者更差（<strong>{averageCoverage}%</strong>）。",
-  "participationSummaryScoreOutperformance": "恭喜，您在 {scoreTypes} 分數{scoreTypes, select, peer {!} baseline {!} other {!}}中<strong>超越了社群預測</strong>",
   "peer": "同行",
   "bothPeerAndBaseline": "同行和基準",
   "scores": "分數",
@@ -1657,5 +1654,9 @@
   "here": "這裡",
   "averageOfPeers": "同行的<secondary>平均值</secondary>",
   "baselineChance": "基準<secondary>機會</secondary>",
+  "mySpotPeerScore": "我的 Spot 同行評分",
+  "spotPeerScore": "Spot 同行評分",
+  "participationSummaryScoreOutperformance": "恭喜，您在{scoreTypes}方面<strong>超越了社群預測</strong>。",
+  "bothSpotPeerAndBaseline": "包含運動同行和 Spot 基準評分",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
