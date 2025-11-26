@@ -88,6 +88,6 @@ def get_stale_linked_questions(
         current_question
         for current_question, last_forecast in last_forecast_map.items()
         if current_question.id != question.id
-        and (not last_forecast)
-        or last_forecast.start_time < question_forecast_time
+        and (not last_forecast
+        or last_forecast.start_time < question_forecast_time)
     ]
