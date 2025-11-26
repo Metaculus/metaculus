@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 
+import { shouldPostShowScores } from "@/app/(main)/questions/[id]/components/post_score_data/utils";
 import { PostWithForecasts } from "@/types/post";
 import {
   isConditionalPost,
@@ -18,6 +19,10 @@ type Props = {
 
 const PostScoreData: FC<Props> = (props) => {
   const { post } = props;
+
+  if (!shouldPostShowScores(post)) {
+    return null;
+  }
 
   if (isGroupOfQuestionsPost(post)) {
     return <GroupResolutionScores {...props} />;

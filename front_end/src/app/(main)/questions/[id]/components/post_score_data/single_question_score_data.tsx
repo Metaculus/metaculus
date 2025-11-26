@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
 import ParticipationSummary from "./participation_summary";
@@ -19,13 +19,9 @@ const SingleQuestionScoreData: FC<Props> = ({
   noSectionWrapper,
   hideParticipation,
 }) => {
-  const { question, status, nr_forecasters } = post;
+  const { question, nr_forecasters } = post;
 
   if (!question) return null;
-
-  const isResolved = status === PostStatus.RESOLVED;
-
-  if (!isResolved) return null;
 
   if (isConsumerView) {
     return (

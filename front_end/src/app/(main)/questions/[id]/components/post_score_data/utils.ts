@@ -1,16 +1,41 @@
 import { isNil } from "lodash";
 
-import { PostStatus, PostWithForecasts } from "@/types/post";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import { PostWithForecasts } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
+import {
+  isConditionalPost,
+  isGroupOfQuestionsPost,
+  isQuestionPost,
+} from "@/utils/questions/helpers";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
-export function shouldShowScores(post: PostWithForecasts): boolean {
+export const shouldQuestionShowScores = (question: QuestionWithForecasts) => {
+  const cpScores =
+    question.aggregations?.[question.default_aggregation_method]?.score_data;
+
+  return (
+    !isNil(cpScores) &&
+    Object.keys(cpScores).length > 0 &&
+    !isUnsuccessfullyResolved(question.resolution)
+  );
+};
+
+export function shouldPostShowScores(post: PostWithForecasts): boolean {
   if (isGroupOfQuestionsPost(post)) {
-    return post.group_of_questions.questions.some((q) => {
-      const cpScores =
-        q.aggregations?.[q.default_aggregation_method]?.score_data;
-      return !isNil(cpScores) && Object.keys(cpScores).length > 0;
-    });
+    return post.group_of_questions.questions.some(shouldQuestionShowScores);
   }
 
-  return post.status === PostStatus.RESOLVED;
+  if (isConditionalPost(post)) {
+    const { condition, question_yes, question_no } = post.conditional;
+
+    if (condition.resolution === "yes") {
+      return shouldQuestionShowScores(question_yes);
+    } else if (condition.resolution === "no") {
+      return shouldQuestionShowScores(question_no);
+    }
+  }
+
+  if (isQuestionPost(post)) return shouldQuestionShowScores(post.question);
+
+  return false;
 }
