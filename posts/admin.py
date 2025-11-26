@@ -161,6 +161,10 @@ class PostAdmin(CustomTranslationAdmin):
 
     mark_as_deleted.short_description = "Mark as DELETED"
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        obj.update_pseudo_materialized_fields()
+
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
         for field in ["view_questions"]:
