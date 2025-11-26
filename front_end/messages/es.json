@@ -1661,5 +1661,10 @@
   "spotPeerScore": "Puntuación de Par entre Puntos",
   "participationSummaryScoreOutperformance": "Felicidades, <strong>superaste la Predicción de la Comunidad</strong> en {scoreTypes}.",
   "bothSpotPeerAndBaseline": "tanto la Puntuación de Par como la Puntuación de Referencia de Puntos",
+  "whatIsSpotPeerScore": "¿Qué es el Spot Peer Score?",
+  "spotPeerScoreExplanation": "El Spot Peer Score compara la predicción del pronosticador en un único momento con las predicciones de todos los demás en ese momento. Si es positivo, la predicción fue (en promedio) mejor que las otras, y viceversa. La hora de puntuación de Spot generalmente es cuando se reveló la Predicción de la Comunidad.",
+  "whatIsSpotBaselineScore": "¿Qué es el Spot Baseline Score?",
+  "spotBaselineScoreExplanation": "El Spot Baseline Score compara la predicción del pronosticador en un único momento con una línea de base \"al azar\" (50% para una pregunta binaria, etc.). Si es positivo, la predicción fue mejor que al azar, y viceversa. La hora de puntuación de Spot generalmente es cuando se reveló la Predicción de la Comunidad.",
+  "learnMoreAboutSpotScores": "Obtén más información sobre las puntuaciones Spot",
   "othersCount": "Otros ({count})"
 }

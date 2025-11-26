@@ -1663,5 +1663,10 @@
   "spotPeerScore": "Sport Peer 分数",
   "participationSummaryScoreOutperformance": "恭喜，你在{scoreTypes}中<strong>超越了社区预测</strong>。",
   "bothSpotPeerAndBaseline": "同时 Sport Peer 和 Sport 基准分数",
+  "whatIsSpotPeerScore": "Spot同行评分是什么？",
+  "spotPeerScoreExplanation": "Spot同行评分将预测者在某一时刻的预测与其他人在同一时间的预测进行比较。如果是正数，说明预测（平均而言）比其他人好，反之亦然。Spot评分时间通常是社区预测揭晓的时间。",
+  "whatIsSpotBaselineScore": "Spot基线评分是什么？",
+  "spotBaselineScoreExplanation": "Spot基线评分将预测者在某一时刻的预测与固定的“机会”基线（例如二元问题的50%）进行比较。如果是正数，说明预测比机会好，反之亦然。Spot评分时间通常是社区预测揭晓的时间。",
+  "learnMoreAboutSpotScores": "了解有关 Spot Scores 的更多信息",
   "othersCount": "其他（{count}）"
 }

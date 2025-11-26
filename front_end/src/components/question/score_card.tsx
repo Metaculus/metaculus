@@ -272,28 +272,16 @@ export const PeerScoreCard = ({
   userScore: number | null | undefined;
   communityScore: number | null | undefined;
   className?: string;
-  title?: string;
+  title: string;
   infoTitle?: ReactNode;
   infoContent?: ReactNode;
 }) => {
   const t = useTranslations();
   return (
     <ScoreCardContainer
-      title={title ?? t("peerScore")}
-      infoTitle={infoTitle ?? t("whatIsPeerScore")}
-      infoContent={
-        infoContent ?? (
-          <>
-            <p className="my-0 mb-2.5">{t("peerScoreExplanation")}</p>
-            <Link
-              href="/help/scores-faq/#peer-score"
-              className="text-blue-700 underline dark:text-blue-700-dark"
-            >
-              {t("learnMoreAboutPeerScore")}
-            </Link>
-          </>
-        )
-      }
+      title={title}
+      infoTitle={infoTitle}
+      infoContent={infoContent}
       className={className}
     >
       <ScoreVisualization
@@ -326,28 +314,16 @@ export const BaselineScoreCard = ({
   userScore: number | null | undefined;
   communityScore: number | null | undefined;
   className?: string;
-  title?: string;
+  title: string;
   infoTitle?: ReactNode;
   infoContent?: ReactNode;
 }) => {
   const t = useTranslations();
   return (
     <ScoreCardContainer
-      title={title ?? t("baselineScore")}
-      infoTitle={infoTitle ?? t("whatIsBaselineScore")}
-      infoContent={
-        infoContent ?? (
-          <>
-            <p className="my-0 mb-2.5">{t("baselineScoreExplanation")}</p>
-            <Link
-              href="/help/scores-faq/#baseline-score"
-              className="text-blue-700 underline dark:text-blue-700-dark"
-            >
-              {t("learnMoreAboutBaselineScore")}
-            </Link>
-          </>
-        )
-      }
+      title={title}
+      infoTitle={infoTitle}
+      infoContent={infoContent}
       className={className}
     >
       <ScoreVisualization
@@ -369,35 +345,84 @@ export default function ScoreCard({
   userScore,
   communityScore,
   className,
-  title,
-  infoTitle,
-  infoContent,
 }: {
-  type: "peer" | "baseline";
+  type: "peer" | "baseline" | "spot_peer" | "spot_baseline";
   userScore: number | null | undefined;
   communityScore: number | null | undefined;
   className?: string;
-  title?: string;
-  infoTitle?: ReactNode;
-  infoContent?: ReactNode;
 }) {
-  return type === "peer" ? (
-    <PeerScoreCard
-      userScore={userScore}
-      communityScore={communityScore}
-      className={className}
-      title={title}
-      infoTitle={infoTitle}
-      infoContent={infoContent}
-    />
-  ) : (
+  const t = useTranslations();
+  const isSpot = type.includes("spot");
+
+  console.log("isSpot", isSpot, type);
+
+  if (type.includes("peer")) {
+    return (
+      <PeerScoreCard
+        userScore={userScore}
+        communityScore={communityScore}
+        className={cn(className, {
+          "min-h-[290px]": isSpot,
+        })}
+        title={isSpot ? t("spotPeerScore") : t("peerScore")}
+        infoTitle={isSpot ? t("whatIsSpotPeerScore") : t("whatIsPeerScore")}
+        infoContent={
+          <>
+            <p className="my-0 mb-2.5">
+              {isSpot
+                ? t("spotPeerScoreExplanation")
+                : t("peerScoreExplanation")}
+            </p>
+            <Link
+              href={
+                isSpot
+                  ? "/help/scores-faq/#spot-score"
+                  : "/help/scores-faq/#peer-score"
+              }
+              className="text-blue-700 underline dark:text-blue-700-dark"
+            >
+              {isSpot
+                ? t("learnMoreAboutSpotScores")
+                : t("learnMoreAboutPeerScore")}
+            </Link>
+          </>
+        }
+      />
+    );
+  }
+
+  return (
     <BaselineScoreCard
       userScore={userScore}
       communityScore={communityScore}
-      className={className}
-      title={title}
-      infoTitle={infoTitle}
-      infoContent={infoContent}
+      className={cn(className, {
+        "min-h-[290px]": isSpot,
+      })}
+      title={isSpot ? t("spotBaselineScore") : t("baselineScore")}
+      infoTitle={
+        isSpot ? t("whatIsSpotBaselineScore") : t("whatIsBaselineScore")
+      }
+      infoContent={
+        <>
+          <p className="my-0 mb-2.5">
+            {isSpot
+              ? t("spotBaselineScoreExplanation")
+              : t("baselineScoreExplanation")}
+          </p>
+          <Link
+            href={
+              isSpot
+                ? "/help/scores-faq/#spot-score"
+                : "/help/scores-faq/#baseline-score"
+            }
+            className="text-blue-700 underline dark:text-blue-700-dark"
+          >
+            {isSpot
+              ? t("learnMoreAboutSpotScores")
+              : t("learnMoreAboutBaselineScore")}
+          </Link>
+        </>
+      }
     />
   );
 }

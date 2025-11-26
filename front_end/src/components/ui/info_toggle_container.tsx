@@ -80,16 +80,17 @@ export const InfoToggleContainer = ({
         </button>
       </div>
 
-      <div className="relative">
+      <div className="relative flex h-full flex-col">
         <Transition
           show={!showInfo}
           enter="transition-opacity duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="transition-opacity duration-300 absolute w-full top-0"
+          leave="transition-opacity duration-300 absolute w-full top-1/2 -translate-y-1/2"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
           as="div"
+          className="my-auto"
         >
           {children}
         </Transition>

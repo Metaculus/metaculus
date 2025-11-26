@@ -43,10 +43,9 @@ const ResolutionScoreCards: FC<Props> = ({
   const renderPrimaryCards = () => (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <ScoreCard
-        type="peer"
+        type={peerKey}
         userScore={getScore(userScores, peerKey)}
         communityScore={getScore(cpScores, peerKey)}
-        title={spot ? t("spotPeerScore") : t("peerScore")}
         className={
           isConsumerView && !noSectionWrapper
             ? "bg-gray-0 dark:bg-gray-0-dark"
@@ -54,10 +53,9 @@ const ResolutionScoreCards: FC<Props> = ({
         }
       />
       <ScoreCard
-        type="baseline"
+        type={baselineKey}
         userScore={getScore(userScores, baselineKey)}
         communityScore={getScore(cpScores, baselineKey)}
-        title={spot ? t("spotBaselineScore") : t("baselineScore")}
         className={
           isConsumerView && !noSectionWrapper
             ? "bg-gray-0 dark:bg-gray-0-dark"
