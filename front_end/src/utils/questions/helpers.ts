@@ -49,30 +49,9 @@ export function isNotebookPost(post: Post): post is NotebookPost {
   return !isNil(post.notebook);
 }
 
-export function getConditionTitle(
-  postTitle: string,
-  condition: Question
-): string {
-  const titleCandidate = postTitle.split("→")[0];
-  if (titleCandidate) {
-    return titleCandidate.trim();
-  }
-
-  return condition.title;
-}
-
-export function getConditionalQuestionTitle(question: Question): string {
-  const titleCandidate = question.title.split("→")[1];
-  if (titleCandidate) {
-    return titleCandidate.trim();
-  }
-
-  return question.title;
-}
-
 export function getPostTitle(post: Post) {
   if (post.conditional) {
-    return getConditionalQuestionTitle(post.conditional.question_yes);
+    return post.conditional.condition_child.title;
   }
 
   return post.title;
