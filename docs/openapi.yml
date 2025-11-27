@@ -500,6 +500,18 @@ components:
             - "Libertarian"
             - "Green"
             - "Other"
+        all_options_ever:
+          type: array
+          items:
+            type: string
+          description: "List of all options ever for multiple_choice questions"
+          example:
+            - "Democratic"
+            - "Republican"
+            - "Libertarian"
+            - "Green"
+            - "Blue"
+            - "Other"
         options_history:
           type: array
           description: "List of [timestamp, options] pairs for multiple_choice questions"
@@ -1572,6 +1584,13 @@ paths:
                             - "Republican"
                             - "Libertarian"
                             - "Green"
+                            - "Other"
+                          all_options_ever:
+                            - "Democratic"
+                            - "Republican"
+                            - "Libertarian"
+                            - "Green"
+                            - "Blue"
                             - "Other"
                           options_history:
                             - [0, ["Democratic", "Republican", "Libertarian", "Other"]]
