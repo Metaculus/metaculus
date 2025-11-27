@@ -1722,5 +1722,9 @@
   "sourceMissing": "fuente no encontrada",
   "invalidNewsUrl": "Esto no parece un artículo de noticias, por favor intenta con otra URL.",
   "duplicateNewsUrl": "Este artículo ya ha sido añadido como un Factor Clave.",
+  "questionLink": "Enlace a la pregunta",
+  "copyToMyAccount": "Copiar a mi cuenta",
+  "agree": "de acuerdo",
+  "disagree": "en desacuerdo",
   "othersCount": "Otros ({count})"
 }

@@ -1,0 +1,239 @@
+"use client";
+
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { FC, useEffect, useMemo, useState } from "react";
+
+import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
+import QuestionCPMovement from "@/components/cp_movement";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { FetchedAggregateCoherenceLink } from "@/types/coherence";
+import { ImpactDirectionCategory } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
+import cn from "@/utils/core/cn";
+import { getPostLink } from "@/utils/navigation";
+
+import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
+import KeyFactorCardContainer from "../key_factor_card_container";
+import { StrengthScale } from "../key_factor_strength_voter";
+import QuestionLinkAgreeVoter from "./question_link_agree_voter";
+
+type Props = {
+  link: FetchedAggregateCoherenceLink;
+  post: PostWithForecasts;
+  compact?: boolean;
+};
+
+const otherQuestionCache = new Map<number, QuestionWithForecasts>();
+
+const QuestionLinkKeyFactorItem: FC<Props> = ({ link, post, compact }) => {
+  const t = useTranslations();
+
+  const isFirstQuestion = link.question1_id === post.question?.id;
+  const [otherQuestion, setOtherQuestion] =
+    useState<QuestionWithForecasts | null>(null);
+  const [isFlagged, setIsFlagged] = useState<boolean>(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const embedded = isFirstQuestion ? link.question2 : link.question1;
+    const questionId = isFirstQuestion ? link.question2_id : link.question1_id;
+
+    if (!questionId) return;
+
+    const cached = otherQuestionCache.get(questionId);
+    if (cached) {
+      setOtherQuestion(cached);
+      return;
+    }
+
+    const fetchOtherQuestionWithCP = async () => {
+      try {
+        if (embedded?.post_id) {
+          const otherPost = await ClientPostsApi.getPost(
+            embedded.post_id,
+            true
+          );
+          if (!cancelled && otherPost.question) {
+            const q = otherPost.question as QuestionWithForecasts;
+            otherQuestionCache.set(questionId, q);
+            setOtherQuestion(q);
+          }
+          return;
+        }
+
+        const q = await ClientPostsApi.getQuestion(questionId, false);
+        if (cancelled) return;
+
+        const postId = q.post_id as number | undefined;
+        if (postId) {
+          const otherPost = await ClientPostsApi.getPost(postId, true);
+          if (!cancelled && otherPost.question) {
+            const qWithCP = otherPost.question as QuestionWithForecasts;
+            otherQuestionCache.set(questionId, qWithCP);
+            setOtherQuestion(qWithCP);
+          }
+        } else {
+          otherQuestionCache.set(questionId, q as QuestionWithForecasts);
+          setOtherQuestion(q as QuestionWithForecasts);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load other question with CP", error);
+        }
+      }
+    };
+
+    fetchOtherQuestionWithCP();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isFirstQuestion, link]);
+
+  const votesCount = link.links_nr ?? 0;
+  const rawStrength = link.strength ?? 0;
+  const avgStrength = votesCount > 0 ? rawStrength / votesCount : 0;
+  const strengthScore = Math.max(0, Math.min(5, avgStrength));
+
+  const questionType: QuestionType | null =
+    (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
+
+  const impactCategory = useMemo(
+    () => mapDirectionToImpactCategory(link.direction, questionType),
+    [link.direction, questionType]
+  );
+
+  const binaryForecastQuestion =
+    otherQuestion?.type === QuestionType.Binary
+      ? (otherQuestion as QuestionWithNumericForecasts & QuestionWithForecasts)
+      : null;
+
+  if (!otherQuestion) return null;
+
+  return (
+    <KeyFactorCardContainer
+      isFlagged={isFlagged}
+      linkToComment
+      isCompact={compact}
+      className={cn("shadow-sm", compact ? "max-w-[360px]" : "w-full")}
+    >
+      <div className="flex justify-between">
+        <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+          {t("questionLink")}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Link
+          href={getPostLink({ id: otherQuestion.post_id })}
+          target="_blank"
+          className="text-base font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
+        >
+          {otherQuestion.title}
+        </Link>
+
+        {binaryForecastQuestion && (
+          <div className="flex-col items-center justify-center md:hidden">
+            <BinaryCPBar
+              question={
+                binaryForecastQuestion as unknown as QuestionWithNumericForecasts
+              }
+              size="sm"
+            />
+            <QuestionCPMovement
+              question={binaryForecastQuestion}
+              unit="%"
+              boldValueUnit
+              size="xs"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-row gap-4">
+        {binaryForecastQuestion && (
+          <div className="hidden flex-col items-center justify-center md:flex">
+            <BinaryCPBar
+              question={
+                binaryForecastQuestion as unknown as QuestionWithNumericForecasts
+              }
+              size="sm"
+            />
+            <QuestionCPMovement
+              question={binaryForecastQuestion}
+              unit="%"
+              boldValueUnit
+              size="xs"
+            />
+          </div>
+        )}
+
+        <div className="flex flex-1 flex-col gap-3">
+          {impactCategory !== null && (
+            <div className="flex flex-col gap-1.5 leading-tight">
+              <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+                {t("impact")}
+              </div>
+              <KeyFactorImpactDirectionLabel
+                impact={impactCategory}
+                unit={otherQuestion.unit || post.question?.unit || undefined}
+              />
+            </div>
+          )}
+
+          <StrengthScale
+            score={strengthScore}
+            count={votesCount}
+            mode="consumer"
+          />
+        </div>
+      </div>
+
+      <hr className="my-0 bg-gray-500 opacity-20 dark:bg-gray-500-dark" />
+
+      <QuestionLinkAgreeVoter
+        initialAgree={0}
+        initialDisagree={0}
+        onReportSpam={() => {
+          setIsFlagged(true);
+        }}
+      />
+    </KeyFactorCardContainer>
+  );
+};
+
+const mapDirectionToImpactCategory = (
+  direction: number | null,
+  questionType: QuestionType | null
+): ImpactDirectionCategory | null => {
+  if (!direction || !questionType) return null;
+
+  if (questionType === QuestionType.Binary) {
+    return direction > 0
+      ? ImpactDirectionCategory.Increase
+      : ImpactDirectionCategory.Decrease;
+  }
+
+  if (questionType === QuestionType.Numeric) {
+    return direction > 0
+      ? ImpactDirectionCategory.More
+      : ImpactDirectionCategory.Less;
+  }
+
+  if (questionType === QuestionType.Date) {
+    return direction > 0
+      ? ImpactDirectionCategory.Earlier
+      : ImpactDirectionCategory.Later;
+  }
+
+  return null;
+};
+
+export default QuestionLinkKeyFactorItem;

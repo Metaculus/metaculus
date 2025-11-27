@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useId } from "react";
 
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
@@ -17,6 +17,7 @@ type Props = {
 const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+  const gradientId = useId();
 
   const questionCP =
     question.aggregations[question.default_aggregation_method]?.latest
@@ -87,7 +88,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
-            id={`progressGradient-${question.id}-${size}`}
+            id={gradientId}
             x1={gradientStartX}
             y1={gradientStartY}
             x2={gradientEndX}
@@ -118,7 +119,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           <path
             d={progressArc.path}
             fill="none"
-            stroke={`url(#progressGradient-${question.id}-${size})`}
+            stroke={`url(#${gradientId})`}
             strokeWidth={strokeWidth}
           />
         )}

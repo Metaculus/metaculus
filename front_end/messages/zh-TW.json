@@ -1719,5 +1719,9 @@
   "sourceMissing": "缺少來源",
   "invalidNewsUrl": "這看起來不像是一篇新聞文章，請嘗試其他網址。",
   "duplicateNewsUrl": "此文章已作為關鍵因素添加過。",
+  "questionLink": "問題連結",
+  "copyToMyAccount": "複製到我的帳戶",
+  "agree": "同意",
+  "disagree": "不同意",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

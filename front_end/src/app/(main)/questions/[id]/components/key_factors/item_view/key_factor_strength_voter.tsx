@@ -27,7 +27,7 @@ type Props = {
   footerControls?: ReactElement;
 };
 
-const StrengthScale: FC<{
+export const StrengthScale: FC<{
   score: number;
   count: number;
   mode?: "forecaster" | "consumer";
