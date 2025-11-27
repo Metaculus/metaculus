@@ -11,16 +11,12 @@ from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription
-from posts.services.subscriptions import (
-    create_subscription_cp_change,
-)
+from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
 from scoring.models import Score
 from users.models import User
 from utils.cache import cache_per_object
-from utils.the_math.aggregations import (
-    get_aggregation_history,
-)
+from utils.the_math.aggregations import get_aggregation_history
 from .common import get_questions_cutoff
 from ..cache import average_coverage_cache_key
 from ..constants import QuestionStatus

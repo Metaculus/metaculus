@@ -11,11 +11,7 @@ from posts.services.subscriptions import notify_post_status_change
 from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.subscriptions import notify_project_subscriptions_post_open
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import (
-    Question,
-    Conditional,
-    UserForecastNotification,
-)
+from questions.models import Question, Conditional, UserForecastNotification
 from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from .common import update_leaderboards_for_question

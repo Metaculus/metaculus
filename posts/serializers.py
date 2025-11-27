@@ -35,7 +35,7 @@ from questions.services.forecasts import (
     get_user_last_forecasts_map,
     get_average_coverage_for_questions,
 )
-from questions.services.movements import (
+from questions.services.movement import (
     calculate_movement_for_questions,
     calculate_period_movement_for_questions,
     QuestionMovement,

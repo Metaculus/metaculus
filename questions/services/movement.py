@@ -5,25 +5,15 @@ from typing import Iterable
 import sentry_sdk
 from django.utils import timezone
 
-from questions.models import (
-    Question,
-    AggregateForecast,
-)
+from questions.models import Question, AggregateForecast
 from questions.serializers.common import serialize_question_movement
 from questions.types import QuestionMovement
-from questions.utils import (
-    get_question_movement_period,
-    get_last_forecast_in_the_past,
-)
+from questions.utils import get_question_movement_period, get_last_forecast_in_the_past
 from utils.cache import cache_per_object
 from utils.db import transaction_repeatable_read
 from utils.dtypes import flatten
-from utils.the_math.aggregations import (
-    get_aggregations_at_time,
-)
-from utils.the_math.measures import (
-    prediction_difference_for_sorting,
-)
+from utils.the_math.aggregations import get_aggregations_at_time
+from utils.the_math.measures import prediction_difference_for_sorting
 from .forecasts import get_aggregated_forecasts_for_questions
 
 logger = logging.getLogger(__name__)
