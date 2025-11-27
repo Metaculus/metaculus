@@ -12,21 +12,17 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
-from questions.constants import QuestionStatus
-from questions.models import Question
-from questions.serializers.common import (
+from .constants import QuestionStatus
+from .models import Question
+from .serializers.common import (
     validate_question_resolution,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
     serialize_question,
 )
-from questions.services import (
-    resolve_question,
-    unresolve_question,
-    create_forecast_bulk,
-    withdraw_forecast_bulk,
-)
+from .services.forecasts import create_forecast_bulk, withdraw_forecast_bulk
+from .services.lifecycle import resolve_question, unresolve_question
 
 
 @api_view(["GET"])

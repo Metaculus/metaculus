@@ -2,7 +2,7 @@ from freezegun import freeze_time
 
 from notifications.models import Notification
 from questions.models import Question
-from questions.services import create_question
+from questions.services.common import create_question
 from questions.tasks import resolve_question_and_send_notifications
 from scoring.constants import ScoreTypes
 from tests.unit.test_posts.factories import factory_post

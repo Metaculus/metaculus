@@ -10,7 +10,7 @@ from posts.models import Post, Notebook
 from posts.services.common import trigger_update_post_translations
 from posts.services.hotness import explain_post_hotness
 from questions.models import Question
-from questions.services import build_question_forecasts
+from questions.services.forecasts import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 
