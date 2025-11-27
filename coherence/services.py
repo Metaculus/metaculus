@@ -7,7 +7,7 @@ from coherence.models import (
     LinkType,
 )
 from questions.models import Question
-from questions.services import get_user_last_forecasts_map
+from questions.services.forecasts import get_user_last_forecasts_map
 from users.models import User
 from datetime import datetime
 

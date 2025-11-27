@@ -30,13 +30,15 @@ from questions.serializers.common import (
     GroupOfQuestionsUpdateSerializer,
 )
 from questions.serializers.forecasting_flow import serialize_forecasting_flow_content
-from questions.services import (
+from questions.services.forecasts import (
     get_aggregated_forecasts_for_questions,
     get_user_last_forecasts_map,
+    get_average_coverage_for_questions,
+)
+from questions.services.movements import (
     calculate_movement_for_questions,
     calculate_period_movement_for_questions,
     QuestionMovement,
-    get_average_coverage_for_questions,
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list

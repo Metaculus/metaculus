@@ -19,7 +19,7 @@ from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import get_projects_staff_users, get_site_main_project
 from projects.services.common import move_project_forecasting_end_date
 from questions.models import Question
-from questions.services import (
+from questions.services.common import (
     create_conditional,
     create_group_of_questions,
     create_question,

@@ -15,7 +15,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from questions.services import build_question_forecasts
+from questions.services.forecasts import build_question_forecasts
 from questions.types import AggregationMethod
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
