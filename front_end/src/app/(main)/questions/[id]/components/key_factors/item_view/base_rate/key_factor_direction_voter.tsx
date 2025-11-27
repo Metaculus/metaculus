@@ -1,7 +1,5 @@
 "use client";
 
-import { faThumbsDown, faThumbsUp } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 
@@ -18,6 +16,7 @@ import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import KeyFactorDropdownMenuItems from "../dropdown_menu_items";
+import ThumbVoteButtons, { ThumbVoteSelection } from "../thumb_vote_buttons";
 
 type Props = {
   keyFactor: KeyFactor;
@@ -59,19 +58,16 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
     const deltaHelpful = (prevVote === 5 ? -1 : 0) + (next === 5 ? 1 : 0);
     const deltaNotHelpful = (prevVote === -5 ? -1 : 0) + (next === -5 ? 1 : 0);
 
-    const aggregatedData: { score: number; count: number }[] =
-      prev.aggregated_data.map((item) => ({
-        score: item.score,
-        count: item.count,
-      }));
+    const aggregatedData = prev.aggregated_data.map((item) => ({
+      score: item.score,
+      count: item.count,
+    }));
 
     const bump = (score: 5 | -5, delta: number) => {
       if (delta === 0) return;
       const idx = aggregatedData.findIndex((a) => a.score === score);
       if (idx === -1) {
-        if (delta > 0) {
-          aggregatedData.push({ score, count: delta });
-        }
+        if (delta > 0) aggregatedData.push({ score, count: delta });
         return;
       }
       const item = aggregatedData[idx];
@@ -123,61 +119,21 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
 
   const toggle = (value: 5 | -5) => submit(userVote === value ? null : value);
 
+  const selection: ThumbVoteSelection =
+    userVote === 5 ? "up" : userVote === -5 ? "down" : null;
+
   return (
     <div className={cn("flex items-center justify-between gap-2", className)}>
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          disabled={submitting}
-          aria-pressed={userVote === 5}
-          onClick={() => toggle(5)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
-            userVote === 5
-              ? "border-olive-700 bg-olive-700 text-gray-0 dark:border-olive-700-dark dark:bg-olive-700-dark dark:text-gray-0-dark"
-              : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
-          )}
-        >
-          <FontAwesomeIcon
-            className={cn(
-              "text-[14px]",
-              userVote === 5
-                ? "text-gray-0 dark:text-gray-0-dark"
-                : "text-olive-700 dark:text-olive-700-dark"
-            )}
-            icon={faThumbsUp}
-          />
-          <span>
-            {helpful} {t("helpful")}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          disabled={submitting}
-          aria-pressed={userVote === -5}
-          onClick={() => toggle(-5)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-[4px] border border-blue-400 px-2 py-1 text-xs font-normal transition-colors dark:border-blue-400-dark",
-            userVote === -5
-              ? "border-salmon-600 bg-salmon-600 text-gray-0 dark:border-salmon-600-dark dark:bg-salmon-600-dark dark:text-gray-0-dark"
-              : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
-          )}
-        >
-          <FontAwesomeIcon
-            className={cn(
-              "text-[14px]",
-              userVote === -5
-                ? "text-gray-0 dark:text-gray-0-dark"
-                : "text-salmon-600 dark:text-salmon-600-dark"
-            )}
-            icon={faThumbsDown}
-          />
-          <span>
-            {notHelpful} {t("notHelpful")}
-          </span>
-        </button>
-      </div>
+      <ThumbVoteButtons
+        upCount={helpful}
+        downCount={notHelpful}
+        upLabel={t("helpful")}
+        downLabel={t("notHelpful")}
+        selected={selection}
+        disabled={submitting}
+        onClickUp={() => toggle(5)}
+        onClickDown={() => toggle(-5)}
+      />
 
       <KeyFactorDropdownMenuItems
         keyFactor={{ ...keyFactor, vote: aggregate }}
