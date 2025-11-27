@@ -329,6 +329,7 @@ def generate_data(
         + "**`Default Project ID`** - the id of the default project for the Post.\n"
         + "**`Label`** - for a group question, this is the sub-question object.\n"
         + "**`Question Type`** - the type of the question. Binary, Multiple Choice, Numeric, Discrete, or Date.\n"
+        + "**`MC Options (Current)`** - the current options for a multiple choice question, if applicable.\n"
         + "**`MC Options (All)`** - the options for a multiple choice question across all time, if applicable.\n"
         + "**`MC Options History`** - the history of options over time. Each entry is a timestamp and a record of what the options were at that time.\n"
         + "**`Lower Bound`** - the lower bound of the forecasting range for a continuous question.\n"
@@ -359,6 +360,7 @@ def generate_data(
             "Default Project ID",
             "Label",
             "Question Type",
+            "MC Options (Current)",
             "MC Options (All)",
             "MC Options History",
             "Lower Bound",
@@ -409,7 +411,12 @@ def generate_data(
                 post.default_project_id,
                 question.label,
                 question.type,
-                get_all_options_from_history(question.options_history),
+                question.options,
+                (
+                    get_all_options_from_history(question.options_history)
+                    if question.options_history
+                    else None
+                ),
                 question.options_history or None,
                 format_value(question.range_min),
                 question.open_lower_bound,
