@@ -8,11 +8,11 @@ import {
 import { VoteDirection } from "@/types/votes";
 
 import {
+  Category,
   Community,
+  LeaderboardTag,
   NewsCategory,
   Tournament,
-  LeaderboardTag,
-  Category,
 } from "./projects";
 
 export type Resolution =
@@ -78,8 +78,8 @@ export enum PostStatus {
 export type PostConditional<QT> = {
   id: number;
   title: string;
-  condition: QuestionWithForecasts;
-  condition_child: QuestionWithForecasts;
+  condition: QuestionWithForecasts & { short_title: string };
+  condition_child: QuestionWithForecasts & { short_title: string };
   question_yes: QT;
   question_no: QT;
 };
