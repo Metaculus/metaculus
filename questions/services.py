@@ -37,6 +37,7 @@ from questions.types import AggregationMethod, QuestionMovement
 from questions.utils import (
     get_question_movement_period,
     get_last_forecast_in_the_past,
+    has_question_enough_data_for_movement,
 )
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import Leaderboard, Score
@@ -175,7 +176,7 @@ def compute_question_movement(question: Question) -> float | None:
         [question.default_aggregation_method],
     ).get(question.default_aggregation_method)
 
-    if not cp_previous:
+    if not cp_previous or not has_question_enough_data_for_movement(question):
         return
 
     return prediction_difference_for_sorting(
@@ -1063,6 +1064,19 @@ def calculate_period_movement_for_questions(
     Calculate, for each question, how much forecast has moved
     between the user last forecasting date and the latest aggregate forecasts.
     """
+
+    questions = list(questions)
+
+    # Annotate questions with forecasters_count to avoid N+1 queries
+    if questions:
+        question_ids = [q.id for q in questions]
+        annotated_questions = Question.objects.filter(
+            id__in=question_ids
+        ).annotate_forecasters_count()
+        annotated_map = {q.id: q for q in annotated_questions}
+        for q in questions:
+            if q.id in annotated_map:
+                q.forecasters_count = annotated_map[q.id].forecasters_count
 
     question_movement_map: dict[Question, QuestionMovement | None] = {
         q: None for q in questions
