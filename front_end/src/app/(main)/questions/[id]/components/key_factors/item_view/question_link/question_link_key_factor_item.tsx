@@ -27,12 +27,24 @@ type Props = {
   link: FetchedAggregateCoherenceLink;
   post: PostWithForecasts;
   compact?: boolean;
+  id?: string;
+  mode?: "forecaster" | "consumer";
+  linkToComment?: boolean;
 };
 
 const otherQuestionCache = new Map<number, QuestionWithForecasts>();
 
-const QuestionLinkKeyFactorItem: FC<Props> = ({ link, post, compact }) => {
+const QuestionLinkKeyFactorItem: FC<Props> = ({
+  link,
+  post,
+  compact,
+  id,
+  mode = "forecaster",
+  linkToComment = true,
+}) => {
   const t = useTranslations();
+  const isConsumer = mode === "consumer";
+  const isCompactConsumer = isConsumer && compact;
 
   const isFirstQuestion = link.question1_id === post.question?.id;
   const [otherQuestion, setOtherQuestion] =
@@ -119,33 +131,53 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({ link, post, compact }) => {
 
   return (
     <KeyFactorCardContainer
+      id={id}
       isFlagged={isFlagged}
-      linkToComment
+      linkToComment={linkToComment}
       isCompact={compact}
-      className={cn("shadow-sm", compact ? "max-w-[360px]" : "w-full")}
+      mode={mode}
+      className={cn(
+        "shadow-sm",
+        (compact || mode === "consumer") && "max-w-[240px]",
+        isCompactConsumer && "max-w-[186px]"
+      )}
     >
-      <div className="flex justify-between">
-        <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-          {t("questionLink")}
+      {!isConsumer && (
+        <div className="flex justify-between">
+          <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+            {t("questionLink")}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-3">
         <Link
           href={getPostLink({ id: otherQuestion.post_id })}
           target="_blank"
-          className="text-base font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
+          className={cn(
+            "font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
+            {
+              "text-base": !isConsumer,
+              "text-sm": isConsumer && !isCompactConsumer,
+              "text-xs": isCompactConsumer,
+            }
+          )}
         >
           {otherQuestion.title}
         </Link>
 
         {binaryForecastQuestion && (
-          <div className="flex-col items-center justify-center md:hidden">
+          <div
+            className={cn(
+              "flex flex-col items-center justify-center md:hidden",
+              isConsumer && "w-[53px] md:flex"
+            )}
+          >
             <BinaryCPBar
               question={
                 binaryForecastQuestion as unknown as QuestionWithNumericForecasts
               }
-              size="sm"
+              size={isConsumer ? "xs" : "sm"}
             />
             <QuestionCPMovement
               question={binaryForecastQuestion}
@@ -159,12 +191,17 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({ link, post, compact }) => {
 
       <div className="flex flex-row gap-4">
         {binaryForecastQuestion && (
-          <div className="hidden flex-col items-center justify-center md:flex">
+          <div
+            className={cn(
+              "hidden flex-col items-center justify-center md:flex",
+              isConsumer && "md:hidden"
+            )}
+          >
             <BinaryCPBar
               question={
                 binaryForecastQuestion as unknown as QuestionWithNumericForecasts
               }
-              size="sm"
+              size={isCompactConsumer ? "xs" : "sm"}
             />
             <QuestionCPMovement
               question={binaryForecastQuestion}
@@ -182,29 +219,31 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({ link, post, compact }) => {
                 {t("impact")}
               </div>
               <KeyFactorImpactDirectionLabel
+                className={cn({
+                  "text-[10px]": isCompactConsumer,
+                })}
                 impact={impactCategory}
                 unit={otherQuestion.unit || post.question?.unit || undefined}
               />
             </div>
           )}
 
-          <StrengthScale
-            score={strengthScore}
-            count={votesCount}
-            mode="consumer"
-          />
+          <StrengthScale score={strengthScore} count={votesCount} mode={mode} />
         </div>
       </div>
 
-      <hr className="my-0 bg-gray-500 opacity-20 dark:bg-gray-500-dark" />
-
-      <QuestionLinkAgreeVoter
-        initialAgree={0}
-        initialDisagree={0}
-        onReportSpam={() => {
-          setIsFlagged(true);
-        }}
-      />
+      {!isConsumer && (
+        <>
+          <hr className="my-0 bg-gray-500 opacity-20 dark:bg-gray-500-dark" />
+          <QuestionLinkAgreeVoter
+            initialAgree={0}
+            initialDisagree={0}
+            onReportSpam={() => {
+              setIsFlagged(true);
+            }}
+          />
+        </>
+      )}
     </KeyFactorCardContainer>
   );
 };

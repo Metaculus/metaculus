@@ -10,7 +10,7 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 };
 
@@ -78,6 +78,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       className={cn(
         "relative flex origin-top items-center justify-center",
         {
+          "scale-[0.5]": size === "xs",
           "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
           "mb-4 scale-[1.25]": size === "lg",
@@ -151,14 +152,25 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       </svg>
       <div
         className={cn(
-          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
-          textClass
+          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center",
+          textClass,
+          size === "xs" && "bottom-[10px] scale-[200%]"
         )}
       >
-        <span className="text-xl font-bold leading-8">
+        <span
+          className={cn(
+            "font-bold",
+            size === "xs" ? "text-[12px] leading-4" : "text-xl leading-8"
+          )}
+        >
           {cpPercentage != null ? `${cpPercentage}%` : "%"}
         </span>
-        <span className="text-xs font-normal uppercase leading-none">
+        <span
+          className={cn(
+            "font-normal uppercase",
+            size === "xs" ? "text-[6px] leading-[6px]" : "text-xs leading-none"
+          )}
+        >
           {t("chance")}
         </span>
       </div>

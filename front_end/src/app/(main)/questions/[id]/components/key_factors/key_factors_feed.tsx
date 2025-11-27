@@ -95,6 +95,7 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
       {questionLinkAggregates.length > 0 &&
         questionLinkAggregates.map((link) => (
           <QuestionLinkKeyFactorItem
+            id={`question-link-kf-${link.id}`}
             key={`question-link-kf-${link.id}`}
             link={link}
             post={post}
