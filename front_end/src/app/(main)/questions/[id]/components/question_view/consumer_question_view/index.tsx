@@ -87,6 +87,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
         {postData.key_factors && postData.key_factors.length > 0 && (
           <KeyFactorsQuestionConsumerSection
             keyFactors={postData.key_factors}
+            post={postData}
           />
         )}
       </div>
