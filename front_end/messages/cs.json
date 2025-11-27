@@ -1692,5 +1692,9 @@
   "sourceMissing": "chybí zdroj",
   "invalidNewsUrl": "Toto nevypadá jako zpravodajský článek, zkuste prosím jinou URL.",
   "duplicateNewsUrl": "Tento článek byl již přidán jako Klíčový faktor.",
+  "questionLink": "Odkaz na otázku",
+  "copyToMyAccount": "Kopírovat na můj účet",
+  "agree": "souhlasím",
+  "disagree": "nesouhlasím",
   "othersCount": "Ostatní ({count})"
 }

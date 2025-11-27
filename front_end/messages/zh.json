@@ -1694,5 +1694,9 @@
   "sourceMissing": "缺少来源",
   "invalidNewsUrl": "这看起来不像是一篇新闻文章，请尝试其他 URL。",
   "duplicateNewsUrl": "这篇文章已被添加为一个关键因素。",
+  "questionLink": "问题链接",
+  "copyToMyAccount": "复制到我的账户",
+  "agree": "同意",
+  "disagree": "不同意",
   "othersCount": "其他（{count}）"
 }
