@@ -288,7 +288,7 @@ class NotificationTypeSimilarPostsMixin:
     @classmethod
     def get_similar_posts(cls, post_ids: list[int]):
         from posts.services.feed import get_similar_posts_for_posts
-        from questions.services import get_aggregated_forecasts_for_questions
+        from questions.services.forecasts import get_aggregated_forecasts_for_questions
 
         similar_posts = []
         posts = Post.objects.filter(pk__in=post_ids).only("id", "title")

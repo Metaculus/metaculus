@@ -16,7 +16,7 @@ from questions.models import (
     Forecast,
     QUESTION_CONTINUOUS_TYPES,
 )
-from questions.utils import get_all_options_from_history
+from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from utils.the_math.aggregations import get_aggregation_history

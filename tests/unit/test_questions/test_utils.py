@@ -3,8 +3,8 @@ import pytest
 from freezegun import freeze_time
 
 from questions.models import AggregateForecast, Forecast, Question
-from questions.utils import (
-    get_last_forecast_in_the_past,
+from questions.utils import get_last_forecast_in_the_past
+from questions.services.multiple_choice_handlers import (
     multiple_choice_add_options,
     multiple_choice_delete_options,
     multiple_choice_rename_option,

@@ -104,7 +104,7 @@ type NormalizedFanDatum = {
   resolvedValue?: number | null;
   optionScaling: Scaling | null;
   question?: QuestionWithNumericForecasts;
-  type: QuestionType.Binary | QuestionType.Numeric;
+  type: QuestionType.Binary | QuestionType.Numeric | QuestionType.Date;
 };
 
 const FanChart: FC<Props> = ({
@@ -168,7 +168,12 @@ const FanChart: FC<Props> = ({
       question: opt.question,
       type: (opt.question?.type === QuestionType.Binary
         ? QuestionType.Binary
-        : QuestionType.Numeric) as QuestionType.Binary | QuestionType.Numeric,
+        : opt.question?.type === QuestionType.Date
+          ? QuestionType.Date
+          : QuestionType.Numeric) as
+        | QuestionType.Binary
+        | QuestionType.Numeric
+        | QuestionType.Date,
     }));
     return typeof optionsLimit === "number"
       ? mapped.slice(0, optionsLimit)

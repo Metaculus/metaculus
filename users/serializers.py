@@ -113,12 +113,13 @@ class UserPrivateSerializer(UserPublicSerializer):
             .all()
         ]
 
-    def get_should_suggest_keyfactors(self, user: User):
+    def get_should_suggest_keyfactors(self, user: User) -> bool:
+        if user.is_bot or user.is_superuser:
+            return False
+
         return (
             KeyFactor.objects.filter(comment__author=user).exists()
-            or LeaderboardEntry.objects.filter(
-                user=user, medal=LeaderboardEntry.Medals.GOLD
-            ).exists()
+            or LeaderboardEntry.objects.filter(user=user, medal__isnull=False).exists()
         )
 
 

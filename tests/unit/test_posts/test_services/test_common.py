@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from posts.services.common import get_posts_staff_users, update_post
 from projects.permissions import ObjectPermission
 from questions.models import Question, GroupOfQuestions
-from questions.services import (
+from questions.services.forecasts import (
     create_forecast_bulk,
     get_aggregated_forecasts_for_questions,
 )

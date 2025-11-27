@@ -7,7 +7,7 @@ from coherence.models import (
     LinkType,
 )
 from questions.models import Question
-from questions.services import get_user_last_forecasts_map
+from questions.services.forecasts import get_user_last_forecasts_map
 from users.models import User
 from datetime import datetime
 
@@ -62,8 +62,14 @@ def create_aggregate_coherence_link(
     return obj
 
 
-def get_stale_linked_questions(question: Question, user: User, last_datetime: datetime):
+def get_links_for_question(question: Question, user: User):
     links = CoherenceLink.objects.filter(Q(question1=question), user=user)
+    return links
+
+
+def get_stale_linked_questions(
+    links: list[CoherenceLink], question: Question, user: User, last_datetime: datetime
+):
     questions = [link.question2 for link in links]
 
     # In order to avoid making a separate query
@@ -82,5 +88,5 @@ def get_stale_linked_questions(question: Question, user: User, last_datetime: da
         current_question
         for current_question, last_forecast in last_forecast_map.items()
         if current_question.id != question.id
-        and last_forecast.start_time < question_forecast_time
+        and (not last_forecast or last_forecast.start_time < question_forecast_time)
     ]

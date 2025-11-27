@@ -15,7 +15,8 @@ from posts.services.subscriptions import (
 )
 from projects.services.subscriptions import notify_project_subscriptions_post_open
 from questions.models import Question
-from questions.services import compute_question_movement, handle_question_open
+from questions.services.lifecycle import handle_question_open
+from questions.services.movement import compute_question_movement
 from utils.models import ModelBatchUpdater
 
 logger = logging.getLogger(__name__)
