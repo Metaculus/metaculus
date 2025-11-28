@@ -194,7 +194,12 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     [option]
   );
 
-  const rawPreviousCdf = previousForecast?.forecast_values;
+  const rawPreviousCdf = previousForecast?.forecast_values.map((v) => {
+    if (v === null) {
+      throw new Error("Forecast values contain null values");
+    }
+    return v;
+  });
   const showWithdrawnRow = option.wasWithdrawn && !option.isDirty;
   const showPreviousRowByCheckbox =
     !showWithdrawnRow && overlayPreviousForecast;
@@ -238,9 +243,14 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   const withdraw = () => onWithdraw();
 
-  const communityCdf: number[] | undefined =
-    option.question.aggregations[option.question.default_aggregation_method]
-      .latest?.forecast_values;
+  const communityCdf: number[] | undefined = option.question.aggregations[
+    option.question.default_aggregation_method
+  ].latest?.forecast_values.map((v) => {
+    if (v === null) {
+      throw new Error("Forecast values contain null values");
+    }
+    return v;
+  });
 
   const questionDuration =
     new Date(option.question.scheduled_close_time).getTime() -

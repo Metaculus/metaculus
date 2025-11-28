@@ -84,7 +84,12 @@ const ContinuousAggregationChart: FC<Props> = ({
       if (historyItem) {
         charts.push({
           pmf: cdfToPmf(historyItem.forecast_values),
-          cdf: historyItem.forecast_values,
+          cdf: historyItem.forecast_values.map((v) => {
+            if (v === null) {
+              throw new Error("Forecast values contain null values");
+            }
+            return v;
+          }),
           type: "community",
         });
       }

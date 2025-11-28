@@ -81,7 +81,7 @@ const QuestionInfo: React.FC<{
 
   const getYesProbability = (
     q: QuestionWithNumericForecasts
-  ): number | undefined => {
+  ): number | null | undefined => {
     if (q.type !== QuestionType.Binary) return undefined;
     const values =
       q.aggregations?.[q.default_aggregation_method]?.latest?.forecast_values;
