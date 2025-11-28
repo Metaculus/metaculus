@@ -23,10 +23,11 @@ interface BadgeProps {
   value: number;
   pos: number;
   variant: "user" | "community";
+  align?: "left" | "center" | "right";
 }
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
-  ({ label, value, pos, variant }, ref) => (
+  ({ label, value, pos, variant, align = "center" }, ref) => (
     <div
       ref={ref}
       className={cn(
@@ -38,7 +39,21 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
       )}
       style={{ left: `${pos}%` }}
     >
-      <div className="text-sm capitalize">{label}</div>
+      <div className="relative flex w-full justify-center">
+        <div
+          className={cn(
+            "absolute bottom-0 mb-0.5 whitespace-nowrap text-sm capitalize",
+            {
+              "left-1/2 -translate-x-1/2":
+                align === "center" || variant === "user",
+              "left-0": align === "left",
+              "right-0": align === "right",
+            }
+          )}
+        >
+          {label}
+        </div>
+      </div>
       <div>
         <div
           className={cn(
@@ -46,6 +61,8 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
             {
               "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
               "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
+              "rounded-bl-none": align === "left",
+              "rounded-br-none": align === "right",
             }
           )}
         >
@@ -53,15 +70,21 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
           {value.toFixed(1)}
         </div>
         <div
-          className={cn("mx-auto h-[18px] w-[1px]", {
+          className={cn("h-[18px] w-[1px]", {
             "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
             "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
+            "mx-auto": align === "center",
+            "mr-auto": align === "left",
+            "ml-auto": align === "right",
           })}
         />
         <div
-          className={cn("mx-auto h-1.5 w-1.5 rounded-full", {
+          className={cn("h-1.5 w-1.5 rounded-full", {
             "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
             "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
+            "mx-auto": align === "center",
+            "mr-auto translate-x-[-2.5px]": align === "left",
+            "ml-auto translate-x-[2.5px]": align === "right",
           })}
         />
       </div>
@@ -134,6 +157,10 @@ const ScoreVisualization = ({
 
   const [userPos, setUserPos] = useState(initialUserPos);
   const [commPos, setCommPos] = useState(initialCommPos);
+  const [align, setAlign] = useState<{
+    user: "left" | "center" | "right";
+    comm: "left" | "center" | "right";
+  }>({ user: "center", comm: "center" });
   const userRef = useRef<HTMLDivElement>(null);
   const commRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -148,6 +175,7 @@ const ScoreVisualization = ({
     ) {
       setUserPos(initialUserPos);
       setCommPos(initialCommPos);
+      setAlign({ user: "center", comm: "center" });
       return;
     }
 
@@ -162,10 +190,15 @@ const ScoreVisualization = ({
     if (gap >= MIN_BADGE_GAP_PX) {
       setUserPos(initialUserPos);
       setCommPos(initialCommPos);
+      setAlign({ user: "center", comm: "center" });
       return;
     }
 
-    const shiftPct = ((MIN_BADGE_GAP_PX - gap) / containerWidth) * 100;
+    const SIDE_BY_SIDE_GAP_PX = 2;
+    const shiftPct =
+      gap < SIDE_BY_SIDE_GAP_PX
+        ? ((SIDE_BY_SIDE_GAP_PX - gap) / containerWidth) * 100
+        : 0;
     const leftPos = Math.min(initialUserPos, initialCommPos);
     const isUserRight = initialUserPos > initialCommPos;
 
@@ -181,6 +214,10 @@ const ScoreVisualization = ({
 
     setUserPos(Math.max(5, Math.min(95, newUser)));
     setCommPos(Math.max(5, Math.min(95, newComm)));
+    setAlign({
+      user: isUserRight ? "left" : "right",
+      comm: isUserRight ? "right" : "left",
+    });
   }, [userScore, communityScore, initialUserPos, initialCommPos]);
 
   if (userScore == null && communityScore == null) return null;
@@ -196,6 +233,7 @@ const ScoreVisualization = ({
             value={userScore}
             pos={userPos}
             variant="user"
+            align={align.user}
           />
         )}
 
@@ -206,6 +244,7 @@ const ScoreVisualization = ({
             value={communityScore}
             pos={commPos}
             variant="community"
+            align={align.comm}
           />
         )}
       </div>
