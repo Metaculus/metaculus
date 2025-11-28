@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from posts.models import Post
 from .models import Question
-from .services import close_question
+from .services.lifecycle import close_question
 
 logger = logging.getLogger(__name__)
 

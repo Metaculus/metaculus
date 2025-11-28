@@ -15,7 +15,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from questions.services import build_question_forecasts
+from questions.services.forecasts import build_question_forecasts
 from questions.types import AggregationMethod
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
@@ -32,7 +32,12 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "curation_status",
         "post_link",
     ]
-    readonly_fields = ["post_link", "view_forecasts"]
+    readonly_fields = [
+        "post_link",
+        "view_forecasts",
+        "options",
+        "options_history",
+    ]
     search_fields = [
         "id",
         "title_original",

@@ -15,17 +15,17 @@ from notifications.services import (
 )
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
-from questions.models import Question, UserForecastNotification
-from questions.services import (
-    build_question_forecasts,
-    get_forecasts_per_user,
-    get_outbound_question_links,
-)
 from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 from utils.frontend import build_frontend_account_settings_url, build_post_url
+from .models import Question, UserForecastNotification
+from .services.common import get_outbound_question_links
+from .services.forecasts import (
+    build_question_forecasts,
+    get_forecasts_per_user,
+)
 
 
 @dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
@@ -93,7 +93,7 @@ def resolve_question_and_send_notifications(question_id: int):
     ] = {}
 
     # Update leaderboards
-    from questions.services import update_leaderboards_for_question
+    from questions.services.common import update_leaderboards_for_question
 
     update_leaderboards_for_question(question)
 
