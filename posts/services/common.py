@@ -302,7 +302,7 @@ def update_post(
     ):
         run_post_indexing.send(post.id)
 
-    # TODO: propagate to the admin posts & questions?
+    # TODO: should we propagate it to the Admin post & question pages?
     if PostVersionService.check_is_enabled():
         run_post_generate_history_snapshot(
             post.id, updated_by.id if updated_by else None
