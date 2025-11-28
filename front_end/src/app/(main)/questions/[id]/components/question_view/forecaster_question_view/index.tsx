@@ -3,7 +3,7 @@ import { Fragment } from "react";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
   isGroupOfQuestionsPost,
   isQuestionPost,
@@ -20,17 +20,20 @@ const ForecasterQuestionView: React.FC<Props> = ({
   postData,
   preselectedGroupQuestionId,
 }) => {
+  const isResolved = postData.status === PostStatus.RESOLVED;
+  const isGroup = isGroupOfQuestionsPost(postData);
+
   return (
     <Fragment>
       <QuestionHeader post={postData} />
       {isQuestionPost(postData) && <DetailedQuestionCard post={postData} />}
-      {isGroupOfQuestionsPost(postData) && (
+      {isGroup && (
         <DetailedGroupCard
           post={postData}
           preselectedQuestionId={preselectedGroupQuestionId}
         />
       )}
-      <ForecastMaker post={postData} />
+      {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
     </Fragment>
   );
 };
