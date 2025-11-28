@@ -104,7 +104,7 @@ export const InfoToggleContainer = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
           as="div"
-          className="text-blue-800 dark:text-blue-800-dark"
+          className="h-full text-blue-800 dark:text-blue-800-dark"
         >
           {infoContent}
         </Transition>

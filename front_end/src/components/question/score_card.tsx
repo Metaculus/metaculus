@@ -329,7 +329,7 @@ export const BaselineScoreCard = ({
       <ScoreVisualization
         userScore={userScore}
         communityScore={communityScore}
-        baselineLabel={t.rich("baselineChance", {
+        baselineLabel={t.rich("chanceBaseline", {
           secondary: (chunk) => (
             <div className="font-normal opacity-50">{chunk}</div>
           ),
@@ -362,12 +362,13 @@ export default function ScoreCard({
         userScore={userScore}
         communityScore={communityScore}
         className={cn(className, {
+          "min-h-[240px]": !isSpot,
           "min-h-[290px]": isSpot,
         })}
         title={isSpot ? t("spotPeerScore") : t("peerScore")}
         infoTitle={isSpot ? t("whatIsSpotPeerScore") : t("whatIsPeerScore")}
         infoContent={
-          <>
+          <div className="flex h-full flex-col">
             <p className="my-0 mb-2.5">
               {isSpot
                 ? t("spotPeerScoreExplanation")
@@ -379,13 +380,13 @@ export default function ScoreCard({
                   ? "/help/scores-faq/#spot-score"
                   : "/help/scores-faq/#peer-score"
               }
-              className="text-blue-700 underline dark:text-blue-700-dark"
+              className="mt-auto text-blue-700 underline dark:text-blue-700-dark"
             >
               {isSpot
                 ? t("learnMoreAboutSpotScores")
                 : t("learnMoreAboutPeerScore")}
             </Link>
-          </>
+          </div>
         }
       />
     );
@@ -396,6 +397,7 @@ export default function ScoreCard({
       userScore={userScore}
       communityScore={communityScore}
       className={cn(className, {
+        "min-h-[240px]": !isSpot,
         "min-h-[290px]": isSpot,
       })}
       title={isSpot ? t("spotBaselineScore") : t("baselineScore")}
@@ -403,7 +405,7 @@ export default function ScoreCard({
         isSpot ? t("whatIsSpotBaselineScore") : t("whatIsBaselineScore")
       }
       infoContent={
-        <>
+        <div className="flex h-full flex-col">
           <p className="my-0 mb-2.5">
             {isSpot
               ? t("spotBaselineScoreExplanation")
@@ -415,13 +417,13 @@ export default function ScoreCard({
                 ? "/help/scores-faq/#spot-score"
                 : "/help/scores-faq/#baseline-score"
             }
-            className="text-blue-700 underline dark:text-blue-700-dark"
+            className="mt-auto text-blue-700 underline dark:text-blue-700-dark"
           >
             {isSpot
               ? t("learnMoreAboutSpotScores")
               : t("learnMoreAboutBaselineScore")}
           </Link>
-        </>
+        </div>
       }
     />
   );
