@@ -7,7 +7,10 @@ import { FC, useEffect, useMemo, useState } from "react";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionCPMovement from "@/components/cp_movement";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { FetchedAggregateCoherenceLink } from "@/types/coherence";
+import {
+  FetchedAggregateCoherenceLink,
+  QuestionLinkDirection,
+} from "@/types/coherence";
 import { ImpactDirectionCategory } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import {
@@ -111,8 +114,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
 
   const votesCount = link.links_nr ?? 0;
   const rawStrength = link.strength ?? 0;
-  const avgStrength = votesCount > 0 ? rawStrength / votesCount : 0;
-  const strengthScore = Math.max(0, Math.min(5, avgStrength));
+  const strengthScore = Math.max(0, Math.min(5, rawStrength));
 
   const questionType: QuestionType | null =
     (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
@@ -122,12 +124,17 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     [link.direction, questionType]
   );
 
+  if (!otherQuestion || !post.question) return null;
+
   const binaryForecastQuestion =
     otherQuestion?.type === QuestionType.Binary
       ? (otherQuestion as QuestionWithNumericForecasts & QuestionWithForecasts)
       : null;
 
-  if (!otherQuestion) return null;
+  const fromQuestion = isFirstQuestion ? post.question : otherQuestion;
+  const toQuestion = isFirstQuestion ? otherQuestion : post.question;
+  const defaultDirection: QuestionLinkDirection =
+    link.direction && link.direction < 0 ? "negative" : "positive";
 
   return (
     <KeyFactorCardContainer
@@ -238,6 +245,11 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
           <QuestionLinkAgreeVoter
             initialAgree={0}
             initialDisagree={0}
+            fromQuestion={fromQuestion}
+            toQuestion={toQuestion}
+            defaultDirection={defaultDirection}
+            defaultStrength="medium"
+            targetElementId={id}
             onReportSpam={() => {
               setIsFlagged(true);
             }}

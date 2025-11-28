@@ -257,7 +257,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
       icon={faRobot}
       label={t("generatedKeyFactors")}
       onBack={onBack}
-      containerClassName="bg-purple-100 dark:bg-purple-100-dark min-h-[120px]"
+      color="purple"
       headerClassName={cn(
         "text-purple-800 dark:text-purple-800-dark opacity-100 [&>svg]:opacity-50",
         showInitialLoader && "hidden"
