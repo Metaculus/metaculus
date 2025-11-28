@@ -304,7 +304,7 @@ def update_post(
 
     # TODO: propagate to the admin posts & questions?
     if PostVersionService.check_is_enabled():
-        run_post_generate_history_snapshot.send(
+        run_post_generate_history_snapshot(
             post.id, updated_by.id if updated_by else None
         )
 

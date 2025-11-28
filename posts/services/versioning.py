@@ -8,7 +8,7 @@ from django.utils import translation
 from questions.models import Question, GroupOfQuestions, Conditional
 from users.models import User
 from utils.aws import get_boto_client
-from ..models import Post
+from ..models import Post, Notebook
 
 
 class PostVersionService:
@@ -26,26 +26,30 @@ class PostVersionService:
                     "id",
                     "title",
                     "short_title",
+                    "content_original_lang",
                     "author_id",
                     "default_project_id",
                     "open_time",
                     "scheduled_close_time",
                     "scheduled_resolve_time",
+                    "edited_at",
                 ],
             )
 
             snapshot["updated_by_user_id"] = updated_by.id if updated_by else None
 
-            if post.question:
+            if post.question_id:
                 snapshot["question"] = cls._get_question_snapshot(post.question)
-            elif post.group_of_questions:
+            elif post.group_of_questions_id:
                 snapshot["group_of_questions"] = cls._get_group_snapshot(
                     post.group_of_questions
                 )
-            elif post.conditional:
+            elif post.conditional_id:
                 snapshot["conditional"] = cls._get_conditional_snapshot(
                     post.conditional
                 )
+            elif post.notebook_id:
+                snapshot["conditional"] = cls._get_notebook_snapshot(post.notebook)
 
             return snapshot
 
@@ -55,6 +59,7 @@ class PostVersionService:
             "id",
             "type",
             "created_at",
+            "edited_at",
             "open_time",
             "scheduled_close_time",
             "scheduled_resolve_time",
@@ -100,6 +105,7 @@ class PostVersionService:
                 "description",
                 "resolution_criteria",
                 "fine_print",
+                "edited_at",
             ],
         )
 
@@ -111,10 +117,18 @@ class PostVersionService:
     @classmethod
     def _get_conditional_snapshot(cls, conditional: Conditional) -> dict:
         data = cls._extract_fields(
-            conditional, ["id", "condition_id", "condition_child_id"]
+            conditional, ["id", "condition_id", "condition_child_id", "edited_at"]
         )
         data["question_yes"] = cls._get_question_snapshot(conditional.question_yes)
         data["question_no"] = cls._get_question_snapshot(conditional.question_no)
+
+        return data
+
+    @classmethod
+    def _get_notebook_snapshot(cls, notebook: Notebook) -> dict:
+        data = cls._extract_fields(notebook, ["id", "markdown", "markdown_summary"])
+        data["image_url"] = str(notebook.image_url) if notebook.image_url else None
+
         return data
 
     @classmethod
