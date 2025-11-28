@@ -26,7 +26,7 @@ def weighted_percentile_2d(
 
     sorted_values = values.copy()  # avoid side effects
     # replace None with -1.0 for calculations (return to None at the end)
-    sorted_values[sorted_values == None] = -1.0
+    sorted_values[np.equal(sorted_values, None)] = -1.0
     sorted_values.sort(axis=0)
 
     # get the normalized cumulative weights
@@ -104,8 +104,8 @@ def prediction_difference_for_sorting(
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
-    p1[p1 == None] = -1.0  # replace None with -1.0 for calculations
-    p2[p2 == None] = -1.0  # replace None with -1.0 for calculations
+    p1[np.equal(p1, None)] = -1.0  # replace None with -1.0 for calculations
+    p2[np.equal(p2, None)] = -1.0  # replace None with -1.0 for calculations
     # Uses Jeffrey's Divergence
     if question_type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
@@ -123,8 +123,8 @@ def prediction_difference_for_display(
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
-    p1[p1 == None] = -1.0  # replace None with -1.0 for calculations
-    p2[p2 == None] = -1.0  # replace None with -1.0 for calculations
+    p1[np.equal(p1, None)] = -1.0  # replace None with -1.0 for calculations
+    p2[np.equal(p2, None)] = -1.0  # replace None with -1.0 for calculations
     if question.type == "binary":
         # single-item list of (pred diff, ratio of odds)
         return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]

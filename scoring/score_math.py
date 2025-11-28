@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Sequence
 
-from django.db.models import QuerySet
 import numpy as np
 from scipy.stats.mstats import gmean
 
