@@ -46,8 +46,8 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
             {
               "left-1/2 -translate-x-1/2":
                 align === "center" || variant === "user",
-              "left-0": align === "left",
-              "right-0": align === "right",
+              "-left-3": align === "left" && variant === "community",
+              "-right-3": align === "right" && variant === "community",
             }
           )}
         >
@@ -139,16 +139,22 @@ const ScoreVisualization = ({
   );
   const allPositive = scores.every((s) => s > 0);
   const allNegative = scores.every((s) => s < 0);
-  const baseline = allPositive ? 25 : allNegative ? 75 : 50;
-
   const transformed = scores.map(transform);
-  const maxMag = Math.max(...transformed.map((x) => Math.abs(x)));
-  const [minT, maxT] = [Math.min(...transformed), Math.max(...transformed)];
-  const dominantNegative = Math.abs(minT) > Math.abs(maxT);
-  const scale =
-    maxMag > 0
-      ? ((dominantNegative ? baseline : 100 - baseline) * 0.9) / maxMag
-      : 0;
+  const absMaxT = Math.max(...transformed.map(Math.abs));
+
+  let baseline = 50;
+  let scale = 0;
+
+  if (allPositive) {
+    baseline = 25;
+    scale = absMaxT !== 0 ? 70 / absMaxT : 0;
+  } else if (allNegative) {
+    baseline = 75;
+    scale = absMaxT !== 0 ? 70 / absMaxT : 0;
+  } else {
+    baseline = 50;
+    scale = absMaxT !== 0 ? 45 / absMaxT : 0;
+  }
 
   const calcPos = (score?: number | null) =>
     score == null ? 0 : baseline + transform(score) * scale;
@@ -194,7 +200,7 @@ const ScoreVisualization = ({
       return;
     }
 
-    const SIDE_BY_SIDE_GAP_PX = 2;
+    const SIDE_BY_SIDE_GAP_PX = 4;
     const shiftPct =
       gap < SIDE_BY_SIDE_GAP_PX
         ? ((SIDE_BY_SIDE_GAP_PX - gap) / containerWidth) * 100
