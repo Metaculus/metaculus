@@ -5,7 +5,6 @@ import { FC, useEffect } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { AddKeyFactorsButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
-import AggregateCoherenceLinks from "@/app/(main)/questions/[id]/components/key_factors/aggregate_coherence_links";
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
 import { useQuestionLayout } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import ExpandableContent from "@/components/ui/expandable_content";
@@ -93,7 +92,6 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
         ) : (
           <KeyFactorsFeed post={post} />
         )}
-        <AggregateCoherenceLinks post={post} />
       </SectionToggle>
     </>
   );

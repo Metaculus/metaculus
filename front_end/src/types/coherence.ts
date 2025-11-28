@@ -4,6 +4,8 @@ export enum Strengths {
   Medium = "medium",
   High = "high",
 }
+export type QuestionLinkDirection = "positive" | "negative";
+export type QuestionLinkStrength = "low" | "medium" | "high";
 export enum LinkTypes {
   Causal = "causal",
 }
