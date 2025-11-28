@@ -607,7 +607,12 @@ export function getContinuousAreaChartData({
   if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
-      cdf: latest.forecast_values,
+      cdf: latest.forecast_values.map((v) => {
+        if (v === null) {
+          throw new Error("Forecast values contain null values");
+        }
+        return v;
+      }),
       type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
     });
   }

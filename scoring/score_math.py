@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-
 from datetime import datetime
+from typing import Sequence
+
 import numpy as np
 from scipy.stats.mstats import gmean
 
@@ -25,7 +26,7 @@ class AggregationEntry:
 
 
 def get_geometric_means(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
 ) -> list[AggregationEntry]:
     geometric_means = []
     timesteps: set[float] = set()
@@ -52,32 +53,6 @@ def get_geometric_means(
     return geometric_means
 
 
-def get_medians(
-    forecasts: list[Forecast | AggregateForecast],
-) -> list[AggregationEntry]:
-    medians = []
-    timesteps: set[float] = set()
-    for forecast in forecasts:
-        timesteps.add(forecast.start_time.timestamp())
-        if forecast.end_time:
-            timesteps.add(forecast.end_time.timestamp())
-    for timestep in sorted(timesteps):
-        prediction_values = [
-            f.get_pmf()
-            for f in forecasts
-            if f.start_time.timestamp() <= timestep
-            and (f.end_time is None or f.end_time.timestamp() > timestep)
-        ]
-        if not prediction_values:
-            continue  # TODO: doesn't account for going from 1 active forecast to 0
-        median = np.median(prediction_values, axis=0)
-        predictors = len(prediction_values)
-        medians.append(
-            AggregationEntry(median, predictors if predictors > 1 else 0, timestep)
-        )
-    return medians
-
-
 @dataclass
 class ForecastScore:
     score: float
@@ -85,7 +60,7 @@ class ForecastScore:
 
 
 def evaluate_forecasts_baseline_accuracy(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
     actual_close_time: float,
@@ -126,7 +101,7 @@ def evaluate_forecasts_baseline_accuracy(
 
 
 def evaluate_forecasts_baseline_spot_forecast(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     resolution_bucket: int,
     spot_forecast_timestamp: float,
     question_type: str,
@@ -157,7 +132,7 @@ def evaluate_forecasts_baseline_spot_forecast(
 
 
 def evaluate_forecasts_peer_accuracy(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     base_forecasts: list[Forecast | AggregateForecast] | None,
     resolution_bucket: int,
     forecast_horizon_start: float,
@@ -206,10 +181,11 @@ def evaluate_forecasts_peer_accuracy(
             if gm.timestamp < actual_close_time
         ] + [actual_close_time]
         for i in range(len(times) - 1):
-            if interval_scores[i] is None:
+            interval_score = interval_scores[i]
+            if interval_score is None:
                 continue
             interval_duration = times[i + 1] - times[i]
-            forecast_score += interval_scores[i] * interval_duration / total_duration
+            forecast_score += interval_score * interval_duration / total_duration
             forecast_coverage += interval_duration / total_duration
         forecast_scores.append(ForecastScore(forecast_score, forecast_coverage))
 
@@ -217,7 +193,7 @@ def evaluate_forecasts_peer_accuracy(
 
 
 def evaluate_forecasts_peer_spot_forecast(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     base_forecasts: list[Forecast | AggregateForecast] | None,
     resolution_bucket: int,
     spot_forecast_timestamp: float,
@@ -256,8 +232,8 @@ def evaluate_forecasts_peer_spot_forecast(
 
 
 def evaluate_forecasts_legacy_relative(
-    forecasts: list[Forecast | AggregateForecast],
-    base_forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
+    base_forecasts: Sequence[Forecast | AggregateForecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
     actual_close_time: float,
@@ -300,10 +276,11 @@ def evaluate_forecasts_legacy_relative(
             if bf.timestamp < actual_close_time
         ] + [actual_close_time]
         for i in range(len(times) - 1):
-            if interval_scores[i] is None:
+            interval_score = interval_scores[i]
+            if interval_score is None:
                 continue
             interval_duration = times[i + 1] - times[i]
-            forecast_score += interval_scores[i] * interval_duration / total_duration
+            forecast_score += interval_score * interval_duration / total_duration
             forecast_coverage += interval_duration / total_duration
         forecast_scores.append(ForecastScore(forecast_score, forecast_coverage))
 
