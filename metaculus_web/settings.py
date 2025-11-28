@@ -366,7 +366,9 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = False
 # S3 bucket to store posts’ version history.
 # Version tracking will be disabled if this isn’t set.
-AWS_STORAGE_BUCKET_POST_VERSION_HISTORY = os.environ.get("AWS_STORAGE_BUCKET_POST_VERSION_HISTORY")
+AWS_STORAGE_BUCKET_POST_VERSION_HISTORY = os.environ.get(
+    "AWS_STORAGE_BUCKET_POST_VERSION_HISTORY"
+)
 
 # Cloudflare captcha
 # https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
