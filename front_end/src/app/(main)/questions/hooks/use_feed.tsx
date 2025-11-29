@@ -8,6 +8,7 @@ import {
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
+  POST_STATUS_FILTER,
   POST_TOPIC_FILTER,
   POST_USERNAMES_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
@@ -73,6 +74,7 @@ const useFeed = () => {
             [POST_FOR_MAIN_FEED]: "false",
             [POST_FORECASTER_ID_FILTER]: user.id.toString(),
             [POST_ORDER_BY_FILTER]: QuestionOrder.WeeklyMovementDesc,
+            [POST_STATUS_FILTER]: "open",
           };
         case FeedType.MY_QUESTIONS_AND_POSTS:
           if (!user) return {};
