@@ -1,5 +1,6 @@
-import logging
 from datetime import datetime, timezone as dt_timezone, timedelta
+from collections import Counter
+import logging
 
 import numpy as np
 from django.utils import timezone
@@ -232,7 +233,83 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
             "cp_reveal_time",
         )
 
+    def validate(self, data: dict):
+        data = super().validate(data)
+
+        if qid := data.get("id"):
+            question = Question.objects.get(id=qid)
+            if data.get("options") != question.options:
+                # if there are user forecasts, we can't update options this way
+                if question.user_forecasts.exists():
+                    ValidationError(
+                        "Cannot update options through this endpoint while there are "
+                        "user forecasts. "
+                        "Instead, use /api/questions/update-mc-options/ or the UI on "
+                        "the question detail page."
+                    )
+
     # TODO: add validation for updating continuous question bounds
+
+
+class MultipleChoiceOptionsUpdateSerializer(serializers.Serializer):
+    options = serializers.ListField(child=serializers.CharField(), required=True)
+    grace_period_end = serializers.DateTimeField(required=False)
+
+    def validate_new_options(
+        self,
+        new_options: list[str],
+        options_history: OptionsHistoryType,
+        grace_period_end: datetime | None = None,
+    ):
+        ts, current_options = options_history[-1]
+        if new_options == current_options:  # no change
+            return
+        if len(new_options) == len(current_options):  # renaming
+            if any(v > 1 for v in Counter(new_options).values()):
+                ValidationError("new_options includes duplicate labels")
+        elif timezone.now().timestamp() < ts:
+            raise ValidationError("options cannot change during a grace period")
+        elif len(new_options) < len(current_options):  # deletion
+            if len(new_options) < 2:
+                raise ValidationError("Must have 2 or more options")
+            if new_options[-1] != current_options[-1]:
+                raise ValidationError("Cannot delete last option")
+            if [l for l in new_options if l not in current_options]:
+                raise ValidationError(
+                    "options cannot change name while some are being deleted"
+                )
+        elif len(new_options) > len(current_options):  # addition
+            if not grace_period_end or grace_period_end <= timezone.now():
+                raise ValidationError(
+                    "grace_period_end must be in the future if adding options"
+                )
+            if new_options[-1] != current_options[-1]:
+                raise ValidationError("Cannot add option after last option")
+            if [l for l in current_options if l not in new_options]:
+                raise ValidationError(
+                    "options cannot change name while some are being added"
+                )
+
+    def validate(self, data: dict) -> dict:
+        question: Question = self.context.get("question")
+        if not question:
+            raise ValidationError(f"question must be provided in context")
+
+        if question.type != Question.QuestionType.MULTIPLE_CHOICE:
+            raise ValidationError("question must be of multiple choice type")
+
+        options = data.get("options")
+        options_history = question.options_history
+        if not options or not options_history:
+            raise ValidationError(
+                "updating multiple choice questions requires options "
+                "and question must already have options_history"
+            )
+
+        grace_period_end = data.get("grace_period_end")
+        self.validate_new_options(options, options_history, grace_period_end)
+
+        return data
 
 
 class ConditionalSerializer(serializers.ModelSerializer):
