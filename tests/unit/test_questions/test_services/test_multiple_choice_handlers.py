@@ -195,6 +195,44 @@ def test_multiple_choice_reorder_options(
             [],
             False,
         ),  # initial forecast is invalid
+        pytest.param(
+            ["a", "b", "other"],
+            ["b"],
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                ),
+            ],
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                ),
+                Forecast(
+                    start_time=dt(2025, 1, 1),
+                    end_time=None,
+                    probability_yes_per_category=[0.2, None, 0.8],
+                    source=Forecast.SourceChoices.AUTOMATIC,
+                ),
+            ],
+            True,
+            marks=pytest.mark.xfail(
+                reason="Support for aggregations isn't yet implemented"
+            ),
+        ),  # preserve previous forecasts
     ],
 )
 def test_multiple_choice_delete_options(
@@ -342,6 +380,39 @@ def test_multiple_choice_delete_options(
             ],
             True,
         ),  # no effect
+        pytest.param(
+            ["a", "b", "other"],
+            ["c"],
+            dt(2025, 1, 1),
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=None,
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
+                ),
+            ],
+            [
+                Forecast(
+                    start_time=dt(2023, 1, 1),
+                    end_time=dt(2024, 1, 1),
+                    probability_yes_per_category=[0.6, 0.15, None, 0.25],
+                ),
+                Forecast(
+                    start_time=dt(2024, 1, 1),
+                    end_time=dt(2025, 1, 1),
+                    probability_yes_per_category=[0.2, 0.3, None, 0.5],
+                ),
+            ],
+            True,
+            marks=pytest.mark.xfail(
+                reason="Support for aggregations isn't yet implemented"
+            ),
+        ),  # edit all forecasts including old
     ],
 )
 def test_multiple_choice_add_options(
