@@ -1,8 +1,11 @@
 "use client";
 
+import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, ReactNode } from "react";
 
+import Tooltip from "@/components/ui/tooltip";
 import { KeyFactor } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
@@ -127,7 +130,42 @@ export const KeyFactorTileBaseRateFreqView: FC<Props> = ({
     </KeyFactorTileContainer>
   );
 };
-export const KeyFactorTileQuestionLinkView: FC<Props> = () => null;
+
+export const KeyFactorTileQuestionLinkView: FC<
+  Props & { label: string | null; title: string }
+> = ({ className, expanded, onToggle, label, title }) => {
+  const tooltipText = "This is another Metaculus question.";
+
+  return (
+    <KeyFactorTileContainer
+      expanded={expanded}
+      className={className}
+      onClick={onToggle}
+      startAdornment={
+        label ? (
+          <span
+            className={cn(
+              "shrink-0 font-medium text-olive-800 dark:text-olive-800-dark"
+            )}
+          >
+            {label}
+          </span>
+        ) : undefined
+      }
+      endAdornment={
+        <Tooltip tooltipContent={tooltipText} showDelayMs={150}>
+          <FontAwesomeIcon
+            onClick={(e) => e.stopPropagation()}
+            icon={faQuestionCircle}
+            className="cursor-pointer text-blue-500 hover:text-blue-800 dark:text-blue-500-dark dark:hover:text-blue-800-dark"
+          />
+        </Tooltip>
+      }
+    >
+      {title}
+    </KeyFactorTileContainer>
+  );
+};
 
 type KeyFactorTileContainerProps = PropsWithChildren<{
   expanded?: boolean;
