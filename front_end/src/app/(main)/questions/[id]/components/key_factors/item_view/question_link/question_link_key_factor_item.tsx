@@ -52,7 +52,6 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   const isFirstQuestion = link.question1_id === post.question?.id;
   const [otherQuestion, setOtherQuestion] =
     useState<QuestionWithForecasts | null>(null);
-  const [isFlagged, setIsFlagged] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,7 +138,6 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   return (
     <KeyFactorCardContainer
       id={id}
-      isFlagged={isFlagged}
       linkToComment={linkToComment}
       isCompact={compact}
       mode={mode}
@@ -250,9 +248,6 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
             defaultDirection={defaultDirection}
             defaultStrength="medium"
             targetElementId={id}
-            onReportSpam={() => {
-              setIsFlagged(true);
-            }}
           />
         </>
       )}

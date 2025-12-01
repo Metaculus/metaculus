@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  faCommentDots,
-  faCopy,
-  faEllipsis,
-  faExclamationTriangle,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
@@ -30,8 +25,6 @@ type Props = {
   defaultDirection: QuestionLinkDirection;
   defaultStrength?: QuestionLinkStrength;
   onChange?: (next: "agree" | "disagree" | null) => void;
-  onReportSpam?: () => void;
-  onDispute?: () => void;
   targetElementId?: string;
   className?: string;
 };
@@ -44,8 +37,6 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
   defaultDirection,
   defaultStrength = "medium",
   onChange,
-  onReportSpam,
-  onDispute,
   className,
   targetElementId,
 }) => {
@@ -166,65 +157,6 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
       ),
     });
   }
-
-  menuItems.push(
-    {
-      id: "report-spam",
-      element: (
-        <div
-          className={cn(
-            "inline-flex cursor-pointer items-center justify-end gap-2.5 whitespace-nowrap px-3 py-2 text-xs text-blue-700 hover:bg-blue-100 dark:text-blue-700-dark dark:hover:bg-blue-100-dark",
-            "border-b-[1px] border-gray-300 dark:border-gray-300-dark"
-          )}
-          onClick={() => {
-            setCurrentModal({
-              type: "confirm",
-              data: {
-                title: t("reportSpam"),
-                description: t("reportSpamConfirmDescription"),
-                actionText: t("sendReport"),
-                onConfirm: () => {
-                  onReportSpam?.();
-                },
-              },
-            });
-          }}
-        >
-          <span>{t("reportSpam")}</span>
-          <FontAwesomeIcon icon={faExclamationTriangle} />
-        </div>
-      ),
-    },
-    {
-      id: "dispute",
-      element: (
-        <div
-          className="inline-flex cursor-pointer items-center justify-end gap-2.5 whitespace-nowrap px-3 py-2 text-xs text-blue-700 hover:bg-blue-100 dark:text-blue-700-dark dark:hover:bg-blue-100-dark"
-          onClick={() => {
-            if (onDispute) {
-              return onDispute();
-            }
-
-            setCurrentModal({
-              type: "disputeKeyFactor",
-              data: {
-                keyFactorId: 0,
-                parentCommentId: 0,
-                postId: 0,
-                onOptimisticAdd: async () => 0,
-                onFinalize: () => {},
-                onRemove: () => {},
-              },
-            });
-          }}
-        >
-          <span>{t("dispute")}</span>
-          <FontAwesomeIcon icon={faCommentDots} />
-        </div>
-      ),
-    }
-  );
-
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-center justify-between gap-2">
@@ -239,19 +171,21 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
           onClickDown={() => handleVote("disagree")}
         />
 
-        <DropdownMenu
-          items={menuItems}
-          className="border-gray-300 dark:border-gray-300-dark"
-        >
-          <Button
-            aria-label={t("moreActions")}
-            variant="tertiary"
-            size="sm"
-            presentationType="icon"
+        {menuItems.length > 0 && (
+          <DropdownMenu
+            items={menuItems}
+            className="border-gray-300 dark:border-gray-300-dark"
           >
-            <FontAwesomeIcon icon={faEllipsis} />
-          </Button>
-        </DropdownMenu>
+            <Button
+              aria-label={t("moreActions")}
+              variant="tertiary"
+              size="sm"
+              presentationType="icon"
+            >
+              <FontAwesomeIcon icon={faEllipsis} />
+            </Button>
+          </DropdownMenu>
+        )}
       </div>
 
       {!hasPersonalCopy && showCopyHint && (
