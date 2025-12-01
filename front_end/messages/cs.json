@@ -1740,5 +1740,16 @@
   "copyQuestionLinkToAccount": "Kopírovat",
   "mySpotBaselineScore": "Moje základní skóre pro My Spot",
   "mySpotPeerScore": "Moje skóre podle spolužáků pro My Spot",
-  "othersCount": "Ostatní ({count})"
+  "staffPicks": "Výběr personálu",
+  "othersCount": "Ostatní ({count})",
+  "forIndividuals": "Pro jednotlivce",
+  "heroIndividualsTitle": "Rozhodujte se na základě důvěryhodných komunitních předpovědí",
+  "exploreQuestions": "Prozkoumat otázky",
+  "heroIndividualsDescription": "Získejte spolehlivé informace o tématech, která vás zajímají",
+  "forBusinesses": "Pro firmy",
+  "partnerWithMetaculus": "Spolupracujte s Metaculus",
+  "hireProForecasters": "Najměte profesionální prognostiky",
+  "hireProForecastersDescription": "Získejte odborné předpovědi pro vaše klíčové otázky",
+  "hostPrivateInstances": "Hostujte soukromé instance",
+  "hostPrivateInstancesDescription": "Objevte poznatky z vaší organizace"
 }
