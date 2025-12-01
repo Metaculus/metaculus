@@ -33,28 +33,26 @@ const Header: FC = () => {
   return (
     <>
       <header className="fixed left-0 top-0 z-[200] flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
-        <NavbarLogo />
+        <div className="flex items-stretch justify-between">
+          <NavbarLogo className="mr-1 lg:mr-5" />
 
-        {/* Global Search */}
-        <GlobalSearch />
+          {/* Regular links */}
+          <NavbarLinks links={lgLinks} className="hidden lg:flex" />
+          <NavbarLinks
+            links={smLinks}
+            className="hidden justify-start min-[512px]:max-lg:flex md:justify-end"
+          />
+          <NavbarLinks
+            links={xsLinks}
+            className="hidden justify-start min-[375px]:max-[511px]:flex"
+          />
+          <NavbarLinks
+            links={xxsLinks}
+            className="hidden justify-start max-[374px]:flex"
+          />
 
-        {/* Regular links */}
-        <NavbarLinks links={lgLinks} className="hidden lg:flex" />
-        <NavbarLinks
-          links={smLinks}
-          className="hidden justify-start min-[512px]:max-lg:flex md:justify-end"
-        />
-        <NavbarLinks
-          links={xsLinks}
-          className="hidden justify-start min-[375px]:max-[511px]:flex"
-        />
-        <NavbarLinks
-          links={xxsLinks}
-          className="hidden justify-start max-[374px]:flex"
-        />
-
-        <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
-          <li className="h-full">
+          {/* The More menu */}
+          <div className="h-full justify-start text-sm font-medium">
             <Menu>
               <MenuButton
                 className={cn(
@@ -83,7 +81,13 @@ const Header: FC = () => {
                 ))}
               </MenuItems>
             </Menu>
-          </li>
+          </div>
+        </div>
+
+        {/* Global Search */}
+        <GlobalSearch className="ml-auto" />
+
+        <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
           {!!user && (
             <li className="hidden h-full lg:block">
               <NavLink
