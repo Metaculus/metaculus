@@ -1822,5 +1822,16 @@
   "tournamentsInfoScoringLink": "O que são pontuações de previsão?",
   "tournamentsInfoPrizesLink": "Como os prêmios são distribuídos?",
   "featured": "Em destaque",
-  "othersCount": "Outros ({count})"
+  "staffPicks": "Escolhas da Equipe",
+  "othersCount": "Outros ({count})",
+  "forIndividuals": "Para indivíduos",
+  "heroIndividualsTitle": "Tome decisões com base em previsões comunitárias confiáveis",
+  "exploreQuestions": "Explorar perguntas",
+  "heroIndividualsDescription": "Obtenha informações confiáveis sobre os temas que importam para você",
+  "forBusinesses": "Para empresas",
+  "partnerWithMetaculus": "Parceria com Metaculus",
+  "hireProForecasters": "Contrate previsores profissionais",
+  "hireProForecastersDescription": "Obtenha previsões especializadas para suas questões críticas",
+  "hostPrivateInstances": "Hospede instâncias privadas",
+  "hostPrivateInstancesDescription": "Descubra insights de dentro da sua organização"
 }

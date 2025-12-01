@@ -1826,5 +1826,16 @@
   "tournamentsInfoScoringLink": "什么是预测分数？",
   "tournamentsInfoPrizesLink": "奖品如何分配？",
   "featured": "精选",
-  "othersCount": "其他（{count}）"
+  "staffPicks": "员工精选",
+  "othersCount": "其他（{count}）",
+  "forIndividuals": "适用于个人",
+  "heroIndividualsTitle": "根据可信赖的社区预测做出决策",
+  "exploreQuestions": "探索问题",
+  "heroIndividualsDescription": "获取您关心话题的可靠见解",
+  "forBusinesses": "适用于企业",
+  "partnerWithMetaculus": "与 Metaculus 合作",
+  "hireProForecasters": "聘请专业预测师",
+  "hireProForecastersDescription": "为您的关键问题获取专家预测",
+  "hostPrivateInstances": "托管私有实例",
+  "hostPrivateInstancesDescription": "从您的组织内部发掘见解"
 }

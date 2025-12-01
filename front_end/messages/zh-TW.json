@@ -1821,5 +1821,16 @@
   "tournamentsInfoScoringLink": "什麼是預測得分？",
   "tournamentsInfoPrizesLink": "獎品如何分配？",
   "featured": "精選",
-  "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
+  "staffPicks": "員工推薦",
+  "withdrawAfterPercentSetting2": "問題總生命周期後撤回",
+  "forIndividuals": "適用於個人",
+  "heroIndividualsTitle": "根據可信賴的社群預測做出決策",
+  "exploreQuestions": "探索問題",
+  "heroIndividualsDescription": "獲取您關心話題的可靠見解",
+  "forBusinesses": "適用於企業",
+  "partnerWithMetaculus": "與 Metaculus 合作",
+  "hireProForecasters": "聘請專業預測師",
+  "hireProForecastersDescription": "為您的關鍵問題獲取專家預測",
+  "hostPrivateInstances": "託管私有實例",
+  "hostPrivateInstancesDescription": "從您的組織內部發掘見解"
 }
