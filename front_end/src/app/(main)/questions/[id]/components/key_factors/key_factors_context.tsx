@@ -13,6 +13,7 @@ import type { BECommentType } from "@/types/comment";
 import type { ErrorResponse } from "@/types/fetch";
 import type { KeyFactorDraft } from "@/types/key_factors";
 import type { PostWithForecasts } from "@/types/post";
+import { Question } from "@/types/question";
 import type { User } from "@/types/users";
 
 import { createEmptyBaseRateDraft } from "./item_creation/base_rate/utils";
@@ -42,6 +43,8 @@ type Ctx = State & {
   isPending: boolean;
   isLoadingSuggestedKeyFactors: boolean;
   suggestedKeyFactors: KeyFactorDraft[];
+  isDetectingQuestionLinks: boolean;
+  questionLinkCandidates: Question[];
   setDrafts: React.Dispatch<React.SetStateAction<KeyFactorDraft[]>>;
   setMarkdown: (m: string) => void;
   setSuggestedKeyFactors: React.Dispatch<
@@ -78,6 +81,8 @@ const DISABLED_CTX: Ctx = {
   isPending: false,
   isLoadingSuggestedKeyFactors: false,
   suggestedKeyFactors: [],
+  isDetectingQuestionLinks: false,
+  questionLinkCandidates: [],
   setDrafts: NOOP as unknown as React.Dispatch<
     React.SetStateAction<KeyFactorDraft[]>
   >,
@@ -160,6 +165,8 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
     isLoadingSuggestedKeyFactors,
     limitError,
     factorsLimit,
+    isDetectingQuestionLinks,
+    questionLinkCandidates,
     submit: submitImpl,
     isPending,
     clearState,
@@ -191,6 +198,8 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       isPending,
       isLoadingSuggestedKeyFactors,
       suggestedKeyFactors,
+      isDetectingQuestionLinks,
+      questionLinkCandidates,
       setDrafts: (updater) =>
         dispatch({
           drafts:
@@ -231,6 +240,8 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       shouldLoadSuggestions,
       isLoadingSuggestedKeyFactors,
       suggestedKeyFactors,
+      isDetectingQuestionLinks,
+      questionLinkCandidates,
       setSuggestedKeyFactors,
       setErrors,
       resetAll,

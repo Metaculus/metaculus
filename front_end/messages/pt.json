@@ -1738,5 +1738,6 @@
   "copyQuestionLinkImpactPrefix": "tem um",
   "copyQuestionLinkImpactSuffix": "impacto causal em:",
   "copyQuestionLinkStrengthLabel": "A força deste impacto é:",
+  "copyLinkTitle": "Notamos que você adicionou um URL para outra pergunta do Metaculus. Se desejar, você pode criar um link causal entre essas duas perguntas.",
   "othersCount": "Outros ({count})"
 }

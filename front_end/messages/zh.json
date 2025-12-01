@@ -1742,5 +1742,6 @@
   "copyQuestionLinkImpactPrefix": "具有",
   "copyQuestionLinkImpactSuffix": "因果影响在：",
   "copyQuestionLinkStrengthLabel": "此影响的强度是：",
+  "copyLinkTitle": "我们注意到您添加了一个指向另一个 Metaculus 问题的 URL。如果您愿意，您可以在这两个问题之间创建一个因果链接。",
   "othersCount": "其他（{count}）"
 }

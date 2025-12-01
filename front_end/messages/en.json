@@ -1734,5 +1734,6 @@
   "copyQuestionLinkImpactPrefix": "has a",
   "copyQuestionLinkImpactSuffix": "causal impact on:",
   "copyQuestionLinkStrengthLabel": "The strength of this impact is:",
+  "copyLinkTitle": "We noticed you added a URL to another Metaculus question. If you’d like, you can create a causal link between these two questions.",
   "none": "none"
 }

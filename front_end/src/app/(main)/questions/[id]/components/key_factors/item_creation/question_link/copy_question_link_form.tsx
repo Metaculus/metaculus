@@ -22,6 +22,7 @@ type Props = {
   sourceTitle: string;
   targetTitle: string;
   handleSwap: () => void;
+  withContainer?: boolean;
 };
 
 const CopyQuestionLinkForm: React.FC<Props> = ({
@@ -32,15 +33,12 @@ const CopyQuestionLinkForm: React.FC<Props> = ({
   sourceTitle,
   targetTitle,
   handleSwap,
+  withContainer = true,
 }) => {
   const t = useTranslations();
 
-  return (
-    <KeyFactorsNewItemContainer
-      withHeader={false}
-      color="purple"
-      containerClassName="gap-6"
-    >
+  const content = (
+    <>
       <KeyFactorsNewItemContainer
         label={t("question")}
         icon={faChartBar}
@@ -103,6 +101,20 @@ const CopyQuestionLinkForm: React.FC<Props> = ({
           activeClassName="capitalize"
         />
       </div>
+    </>
+  );
+
+  if (!withContainer) {
+    return <>{content}</>;
+  }
+
+  return (
+    <KeyFactorsNewItemContainer
+      withHeader={false}
+      color="purple"
+      containerClassName="gap-6"
+    >
+      {content}
     </KeyFactorsNewItemContainer>
   );
 };

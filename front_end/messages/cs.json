@@ -1740,5 +1740,6 @@
   "copyQuestionLinkImpactPrefix": "má",
   "copyQuestionLinkImpactSuffix": "kauzální dopad na:",
   "copyQuestionLinkStrengthLabel": "Síla tohoto dopadu je:",
+  "copyLinkTitle": "Všimli jsme si, že jste přidali URL k jiné otázce na Metaculu. Pokud chcete, můžete mezi těmito dvěma otázkami vytvořit příčinný odkaz.",
   "othersCount": "Ostatní ({count})"
 }

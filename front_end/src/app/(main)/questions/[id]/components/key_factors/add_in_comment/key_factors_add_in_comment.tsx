@@ -19,6 +19,7 @@ import KeyFactorsAddInCommentBaseRate from "./key_factors_add_in_comment_base_ra
 import KeyFactorsAddInCommentDriver from "./key_factors_add_in_comment_driver";
 import KeyFactorsAddInCommentLLMSuggestions from "./key_factors_add_in_comment_llm_suggestions";
 import KeyFactorsAddInCommentNews from "./key_factors_add_in_comment_news";
+import KeyFactorsAddInCommentQuestionLink from "./key_factors_add_in_comment_question_link";
 
 type Props = {
   postData: PostWithForecasts;
@@ -36,6 +37,8 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   const [selectedType, setSelectedType] = useState<KFType>(null);
   const [autoOpenedForSuggestions, setAutoOpenedForSuggestions] =
     useState(false);
+  const [hasAutoOpenedQuestionLink, setHasAutoOpenedQuestionLink] =
+    useState(false);
 
   const { user, setUser } = useAuth();
 
@@ -48,6 +51,7 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
     resetAll,
     setDrafts,
     loadSuggestions,
+    questionLinkCandidates,
   } = useKeyFactorsCtx();
 
   const { comments, setComments } = useCommentsFeed();
@@ -135,6 +139,17 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
     setDrafts(() => newsDrafts as KeyFactorDraft[]);
     setPendingNewsSubmit(true);
   };
+
+  useEffect(() => {
+    if (
+      !selectedType &&
+      questionLinkCandidates.length > 0 &&
+      !hasAutoOpenedQuestionLink
+    ) {
+      setSelectedType("question_link");
+      setHasAutoOpenedQuestionLink(true);
+    }
+  }, [selectedType, questionLinkCandidates.length, hasAutoOpenedQuestionLink]);
 
   useEffect(() => {
     if (!pendingNewsSubmit) return;
@@ -242,6 +257,21 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
           onBack={() => setSelectedType(null)}
         />
       )}
+
+      {selectedType === "question_link" &&
+        questionLinkCandidates.length > 0 && (
+          <KeyFactorsAddInCommentQuestionLink
+            postData={postData}
+            candidates={questionLinkCandidates}
+            onCancel={onCancel}
+            onBack={() => setSelectedType(null)}
+            onDone={() => {
+              resetAll();
+              setDrafts(INITIAL_DRAFTS);
+              setSelectedType(null);
+            }}
+          />
+        )}
     </>
   );
 };
