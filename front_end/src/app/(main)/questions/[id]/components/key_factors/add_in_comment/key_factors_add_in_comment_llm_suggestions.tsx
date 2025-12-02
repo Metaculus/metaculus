@@ -452,72 +452,78 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
   };
 
   const linkEditingBlocks = linkEditingSessions.map((session) => (
-    <div
-      key={`link-edit-${session.id}`}
-      className="relative flex flex-col gap-5"
-    >
+    <div key={`link-edit-${session.id}`} className="relative">
       <EditingToolbar
         onApply={() => handleApplyLinkEdit(session.id)}
         onDiscard={() => handleDiscardLinkEdit(session.id)}
       />
-      <CopyQuestionLinkForm
-        direction={session.suggestion.direction}
-        setDirection={(updater) =>
-          setLinkEditingSessions((prev) =>
-            prev.map((s) =>
-              s.id === session.id
-                ? {
-                    ...s,
-                    suggestion: {
-                      ...s.suggestion,
-                      direction:
-                        typeof updater === "function"
-                          ? updater(s.suggestion.direction)
-                          : updater,
-                    },
-                  }
-                : s
+      <KeyFactorsNewItemContainer containerClassName="p-4" withHeader={false}>
+        <p className="my-0 max-w-[85%] text-sm text-gray-800 dark:text-gray-800-dark">
+          {t("copyLinkTitle")}
+        </p>
+        <p className="my-0 text-sm text-gray-800 dark:text-gray-800-dark">
+          {t("copyQuestionLinkPrivate")}
+        </p>
+
+        <CopyQuestionLinkForm
+          direction={session.suggestion.direction}
+          setDirection={(updater) =>
+            setLinkEditingSessions((prev) =>
+              prev.map((s) =>
+                s.id === session.id
+                  ? {
+                      ...s,
+                      suggestion: {
+                        ...s.suggestion,
+                        direction:
+                          typeof updater === "function"
+                            ? updater(s.suggestion.direction)
+                            : updater,
+                      },
+                    }
+                  : s
+              )
             )
-          )
-        }
-        strength={session.suggestion.strength}
-        setStrength={(updater) =>
-          setLinkEditingSessions((prev) =>
-            prev.map((s) =>
-              s.id === session.id
-                ? {
-                    ...s,
-                    suggestion: {
-                      ...s.suggestion,
-                      strength:
-                        typeof updater === "function"
-                          ? updater(s.suggestion.strength)
-                          : updater,
-                    },
-                  }
-                : s
+          }
+          strength={session.suggestion.strength}
+          setStrength={(updater) =>
+            setLinkEditingSessions((prev) =>
+              prev.map((s) =>
+                s.id === session.id
+                  ? {
+                      ...s,
+                      suggestion: {
+                        ...s.suggestion,
+                        strength:
+                          typeof updater === "function"
+                            ? updater(s.suggestion.strength)
+                            : updater,
+                      },
+                    }
+                  : s
+              )
             )
-          )
-        }
-        sourceTitle={
-          session.swapped
-            ? session.suggestion.question.title
-            : postData.question?.title ?? ""
-        }
-        targetTitle={
-          session.swapped
-            ? postData.question?.title ?? ""
-            : session.suggestion.question.title
-        }
-        handleSwap={() =>
-          setLinkEditingSessions((prev) =>
-            prev.map((s) =>
-              s.id === session.id ? { ...s, swapped: !s.swapped } : s
+          }
+          sourceTitle={
+            session.swapped
+              ? session.suggestion.question.title
+              : postData.question?.title ?? ""
+          }
+          targetTitle={
+            session.swapped
+              ? postData.question?.title ?? ""
+              : session.suggestion.question.title
+          }
+          handleSwap={() =>
+            setLinkEditingSessions((prev) =>
+              prev.map((s) =>
+                s.id === session.id ? { ...s, swapped: !s.swapped } : s
+              )
             )
-          )
-        }
-        withContainer={false}
-      />
+          }
+          withContainer={false}
+        />
+      </KeyFactorsNewItemContainer>
     </div>
   ));
 

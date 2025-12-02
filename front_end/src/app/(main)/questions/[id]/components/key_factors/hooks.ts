@@ -185,6 +185,10 @@ export const useKeyFactors = ({
 
         setQuestionLinkCandidates(candidates);
         questionLinksCheckedRef.current.add(commentId);
+
+        if (!fetchedOnceRef.current.has(commentId)) {
+          void fetchSuggestions(commentId);
+        }
       } finally {
         if (!cancelled) {
           setIsDetectingQuestionLinks(false);
