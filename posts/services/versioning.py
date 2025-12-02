@@ -11,6 +11,19 @@ from utils.aws import get_boto_client
 from ..models import Post, Notebook
 
 
+def drop_keys(obj: dict, drop: list):
+    """Recursively remove keys from nested dicts (in-place)."""
+
+    if isinstance(obj, dict):
+        for key in list(obj.keys()):
+            if key in drop:
+                del obj[key]
+            else:
+                drop_keys(obj[key], drop)
+
+    return obj
+
+
 class PostVersionService:
     @classmethod
     def get_post_version_snapshot(cls, post: Post, updated_by: User = None) -> dict:
@@ -161,9 +174,52 @@ class PostVersionService:
         )
 
     @classmethod
+    def get_latest_snapshot_from_s3(cls, post: Post) -> dict | None:
+        s3 = get_boto_client("s3")
+        prefix = f"post_versions/{post.id}/"
+
+        response = s3.list_objects_v2(
+            Bucket=settings.AWS_STORAGE_BUCKET_POST_VERSION_HISTORY,
+            Prefix=prefix,
+        )
+        contents = response.get("Contents", [])
+        if not contents:
+            return None
+
+        # Sort by Key (which contains timestamp) descending
+        latest_obj = sorted(contents, key=lambda x: x["Key"], reverse=True)[0]
+
+        obj = s3.get_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_POST_VERSION_HISTORY,
+            Key=latest_obj["Key"],
+        )
+        return json.loads(obj["Body"].read().decode("utf-8"))
+
+    @classmethod
+    def hash_obj(cls, obj: dict) -> str:
+        obj = obj.copy()
+        drop = ["edited_at", "updated_by_user_id"]
+
+        return json.dumps(drop_keys(obj, drop), sort_keys=True, cls=DjangoJSONEncoder)
+
+    @classmethod
+    def _snapshots_are_equal(cls, s1: dict, s2: dict) -> bool:
+        """
+        Compares two snapshots, ignoring metadata fields that always change.
+        """
+        # Create copies to avoid modifying originals
+
+        return cls.hash_obj(s1) == cls.hash_obj(s2)
+
+    @classmethod
     def generate_and_upload(cls, post: Post, updated_by: User = None):
         if not cls.check_is_enabled():
             return
 
         snapshot = cls.get_post_version_snapshot(post, updated_by)
+        latest_snapshot = cls.get_latest_snapshot_from_s3(post)
+
+        if latest_snapshot and cls._snapshots_are_equal(snapshot, latest_snapshot):
+            return
+
         cls.upload_snapshot_to_s3(post, snapshot)
