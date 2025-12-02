@@ -156,7 +156,7 @@ export const AdditionalScoresTable: FC<Props> = ({
   return (
     <>
       {coverageRows.length > 0 && (
-        <ScoreTable rows={coverageRows} className="-mt-4" variant={variant} />
+        <ScoreTable rows={coverageRows} variant={variant} />
       )}
       {otherRows.length > 0 && (
         <ScoreTable rows={otherRows} variant={variant} />
@@ -174,7 +174,7 @@ const AdditionalScoresTableSection: FC<Props> = ({ question }) => {
 
   return (
     <SectionToggle title={t("additionalScores")} defaultOpen={false}>
-      <div className="my-4 flex flex-col gap-4">{table}</div>
+      <div className="flex flex-col gap-4">{table}</div>
     </SectionToggle>
   );
 };
