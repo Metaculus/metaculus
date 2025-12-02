@@ -108,7 +108,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
           />
         </div>
       </QuestionSection>
-      <div className="hidden lg:block">
+      <div className="hidden sm:block">
         <ResponsiveCommentFeed postData={postData} />
       </div>
     </div>
