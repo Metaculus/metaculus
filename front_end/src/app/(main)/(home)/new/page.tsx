@@ -11,6 +11,7 @@ import { convertSidebarItem } from "@/utils/sidebar";
 import EmailConfirmation from "../components/email_confirmation";
 import HeroCTAs from "./components/hero_ctas";
 import StaffPicks from "./components/staff_picks";
+import WhyMetaculus from "./components/why_metaculus";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -41,6 +42,7 @@ export default async function Home() {
       <StaffPicks items={hotTopics} />
       <div className="px-4 lg:px-20">
         <HeroCTAs />
+        <WhyMetaculus className="mt-4 md:mt-8" />
       </div>
     </main>
   );

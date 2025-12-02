@@ -1833,5 +1833,11 @@
   "hireProForecasters": "Contrate previsores profissionais",
   "hireProForecastersDescription": "Obtenha previsões especializadas para suas questões críticas",
   "hostPrivateInstances": "Hospede instâncias privadas",
-  "hostPrivateInstancesDescription": "Descubra insights de dentro da sua organização"
+  "hostPrivateInstancesDescription": "Descubra insights de dentro da sua organização",
+  "whatsMetaculus": "O que é Metaculus?",
+  "metaculusDescription": "Metaculus é uma plataforma de previsões online e motor de agregação que trabalha para melhorar o raciocínio humano e a coordenação em temas de importância global.",
+  "openQuestions": "Perguntas abertas",
+  "forecastsSubmitted": "Previsões enviadas",
+  "yearsOfPrediction": "Anos de previsão",
+  "featuredIn": "Destaque em"
 }
