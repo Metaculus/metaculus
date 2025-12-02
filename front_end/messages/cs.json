@@ -1751,5 +1751,11 @@
   "hireProForecasters": "Najměte profesionální prognostiky",
   "hireProForecastersDescription": "Získejte odborné předpovědi pro vaše klíčové otázky",
   "hostPrivateInstances": "Hostujte soukromé instance",
-  "hostPrivateInstancesDescription": "Objevte poznatky z vaší organizace"
+  "hostPrivateInstancesDescription": "Objevte poznatky z vaší organizace",
+  "whatsMetaculus": "Co je Metaculus?",
+  "metaculusDescription": "Metaculus je online platforma pro předpovídání a agregační nástroj, který pracuje na zlepšení lidského uvažování a koordinace v tématech globálního významu.",
+  "openQuestions": "Otevřené otázky",
+  "forecastsSubmitted": "Odeslaných předpovědí",
+  "yearsOfPrediction": "Let předpovídání",
+  "featuredIn": "Zmíněno v"
 }

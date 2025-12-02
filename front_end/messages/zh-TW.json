@@ -1748,5 +1748,11 @@
   "hireProForecasters": "聘請專業預測師",
   "hireProForecastersDescription": "為您的關鍵問題獲取專家預測",
   "hostPrivateInstances": "託管私有實例",
-  "hostPrivateInstancesDescription": "從您的組織內部發掘見解"
+  "hostPrivateInstancesDescription": "從您的組織內部發掘見解",
+  "whatsMetaculus": "什麼是 Metaculus？",
+  "metaculusDescription": "Metaculus 是一個線上預測平台和聚合引擎，致力於改善人類在全球重要議題上的推理和協調能力。",
+  "openQuestions": "開放問題",
+  "forecastsSubmitted": "已提交預測",
+  "yearsOfPrediction": "預測年數",
+  "featuredIn": "媒體報導"
 }
