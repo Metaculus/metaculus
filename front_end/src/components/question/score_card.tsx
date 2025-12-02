@@ -125,6 +125,42 @@ interface ScoreVisualizationProps {
   baselineIcon: ReactNode;
 }
 
+const scaleScores = (user: number, community: number) => {
+  const max = Math.max(Math.abs(user), Math.abs(community));
+  if (max === 0) return { user: 0.5, community: 0.5 };
+
+  // Safety margin for borders
+  const GAP = 0.1;
+  // Visual divider
+  const PAD = 0.25;
+
+  // Linear Interpolation
+  const lerp = (norm: number, min: number, max: number) =>
+    min + norm * (max - min);
+
+  let getScore: (val: number) => number;
+
+  if (user > 0 && community > 0) {
+    // Both Positive: Map 0..1 to [0.25, 0.95]
+    // 0% becomes 25% (PAD), 100% becomes 90% (1 - GAP)
+    getScore = (val) => lerp(val / max, PAD, 1 - GAP);
+  } else if (user < 0 && community < 0) {
+    // Both Negative: Map 0..1 to [0.1, 0.75]
+    // 0% (Most Negative) becomes 10% (GAP)
+    // 100% (Zero) becomes 75% (1 - PAD)
+    getScore = (val) => lerp(1 - Math.abs(val) / max, GAP, 1 - PAD);
+  } else {
+    // Mixed: Map 0..1 to [0.1, 0.9]
+    // Max becomes 10%, +Max becomes 90%
+    getScore = (val) => lerp((val + max) / (2 * max), GAP, 1 - GAP);
+  }
+
+  return {
+    user: getScore(user),
+    community: getScore(community),
+  };
+};
+
 const ScoreVisualization = ({
   userScore,
   communityScore,
@@ -133,33 +169,24 @@ const ScoreVisualization = ({
 }: ScoreVisualizationProps) => {
   const t = useTranslations();
 
-  const transform = (v: number) => Math.sign(v) * Math.pow(Math.abs(v), 0.75);
   const scores = [userScore, communityScore].filter(
     (s): s is number => s != null
   );
   const allPositive = scores.every((s) => s > 0);
   const allNegative = scores.every((s) => s < 0);
-  const transformed = scores.map(transform);
-  const absMaxT = Math.max(...transformed.map(Math.abs));
 
   let baseline = 50;
-  let scale = 0;
 
   if (allPositive) {
     baseline = 25;
-    scale = absMaxT !== 0 ? 70 / absMaxT : 0;
   } else if (allNegative) {
     baseline = 75;
-    scale = absMaxT !== 0 ? 70 / absMaxT : 0;
-  } else {
-    baseline = 50;
-    scale = absMaxT !== 0 ? 45 / absMaxT : 0;
   }
 
-  const calcPos = (score?: number | null) =>
-    score == null ? 0 : baseline + transform(score) * scale;
-  const initialUserPos = calcPos(userScore);
-  const initialCommPos = calcPos(communityScore);
+  const { user: initialUserPos, community: initialCommPos } = scaleScores(
+    userScore ?? 0,
+    communityScore ?? 0
+  );
 
   const [userPos, setUserPos] = useState(initialUserPos);
   const [commPos, setCommPos] = useState(initialCommPos);
@@ -203,14 +230,14 @@ const ScoreVisualization = ({
     const SIDE_BY_SIDE_GAP_PX = 4;
     const shiftPct =
       gap < SIDE_BY_SIDE_GAP_PX
-        ? ((SIDE_BY_SIDE_GAP_PX - gap) / containerWidth) * 100
+        ? (SIDE_BY_SIDE_GAP_PX - gap) / containerWidth
         : 0;
     const leftPos = Math.min(initialUserPos, initialCommPos);
     const isUserRight = initialUserPos > initialCommPos;
 
     // If left < 50: move right badge right; else: move left badge left
     const [newUser, newComm] =
-      leftPos < 50
+      leftPos < 0.5
         ? isUserRight
           ? [initialUserPos + shiftPct, initialCommPos]
           : [initialUserPos, initialCommPos + shiftPct]
@@ -218,8 +245,8 @@ const ScoreVisualization = ({
           ? [initialUserPos, initialCommPos - shiftPct]
           : [initialUserPos - shiftPct, initialCommPos];
 
-    setUserPos(Math.max(5, Math.min(95, newUser)));
-    setCommPos(Math.max(5, Math.min(95, newComm)));
+    setUserPos(newUser);
+    setCommPos(newComm);
     setAlign({
       user: isUserRight ? "left" : "right",
       comm: isUserRight ? "right" : "left",
@@ -231,13 +258,13 @@ const ScoreVisualization = ({
   return (
     <div className="relative flex flex-col">
       {/* Badges */}
-      <div ref={containerRef} className="relative mx-4 min-h-[58px]">
+      <div ref={containerRef} className="relative min-h-[58px]">
         {userScore != null && (
           <Badge
             ref={userRef}
             label={t("me")}
             value={userScore}
-            pos={userPos}
+            pos={userPos * 100}
             variant="user"
             align={align.user}
           />
@@ -248,7 +275,7 @@ const ScoreVisualization = ({
             ref={commRef}
             label={t("community")}
             value={communityScore}
-            pos={commPos}
+            pos={commPos * 100}
             variant="community"
             align={align.comm}
           />
