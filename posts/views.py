@@ -311,7 +311,7 @@ def post_update_api_view(request, pk):
     )
     serializer.is_valid(raise_exception=True)
 
-    post = update_post(post, **serializer.validated_data)
+    post = update_post(post, updated_by=request.user, **serializer.validated_data)
 
     should_delete = check_and_handle_post_spam(request.user, post)
 
