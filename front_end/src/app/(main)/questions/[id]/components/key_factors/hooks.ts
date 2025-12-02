@@ -165,12 +165,10 @@ export const useKeyFactors = ({
         if (cancelled) return;
 
         const existingLinkedIds = new Set<number>();
-        [...coherenceLinks.data, ...aggregateCoherenceLinks.data].forEach(
-          (link) => {
-            if (link.question1_id) existingLinkedIds.add(link.question1_id);
-            if (link.question2_id) existingLinkedIds.add(link.question2_id);
-          }
-        );
+        [...coherenceLinks.data].forEach((link) => {
+          if (link.question1_id) existingLinkedIds.add(link.question1_id);
+          if (link.question2_id) existingLinkedIds.add(link.question2_id);
+        });
 
         const candidates = questions.filter(
           (q) => !existingLinkedIds.has(q.id)
