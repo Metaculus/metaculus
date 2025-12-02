@@ -1,7 +1,9 @@
 import React, { FC } from "react";
 
+import ForecastMaker from "@/components/forecast_maker";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { isContinuousQuestion } from "@/utils/questions/helpers";
 
 import ParticipationSummary from "./participation_summary";
 import ResolutionScoreCards from "./resolution_score_cards";
@@ -43,6 +45,7 @@ const SingleQuestionScoreData: FC<Props> = ({
         />
       )}
       <ResolutionScoreCards post={post} />
+      {isContinuousQuestion(question) && <ForecastMaker post={post} />}
     </div>
   );
 };
