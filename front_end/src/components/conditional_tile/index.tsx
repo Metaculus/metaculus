@@ -13,10 +13,6 @@ import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
-import {
-  getConditionalQuestionTitle,
-  getConditionTitle,
-} from "@/utils/questions/helpers";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import ConditionalCard from "./conditional_card";
@@ -40,7 +36,7 @@ const ConditionalTile: FC<Props> = ({
   const t = useTranslations();
   const { hideCP } = useHideCP();
 
-  const { conditional, title, nr_forecasters } = post;
+  const { conditional, nr_forecasters } = post;
   const { condition, condition_child, question_yes, question_no } = conditional;
 
   const isEmbedded = !!chartTheme;
@@ -92,7 +88,7 @@ const ConditionalTile: FC<Props> = ({
         >
           <ConditionalCard
             label={t("condition")}
-            title={getConditionTitle(title, condition)}
+            title={condition.short_title || condition.title}
             resolved={parentSuccessfullyResolved}
             href={withNavigation ? conditionHref : undefined}
           >
@@ -143,7 +139,7 @@ const ConditionalTile: FC<Props> = ({
           })}
         >
           <ConditionalCard
-            title={getConditionalQuestionTitle(question_yes)}
+            title={condition_child.short_title || condition_child.title}
             href={withNavigation ? conditionChildHref : undefined}
           >
             <ConditionalChart
@@ -154,7 +150,7 @@ const ConditionalTile: FC<Props> = ({
             />
           </ConditionalCard>
           <ConditionalCard
-            title={getConditionalQuestionTitle(question_no)}
+            title={condition_child.short_title || condition_child.title}
             href={withNavigation ? conditionChildHref : undefined}
           >
             <ConditionalChart

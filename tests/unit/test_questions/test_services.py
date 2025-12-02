@@ -9,7 +9,7 @@ from posts.services.common import create_post, approve_post
 from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.jobs import job_close_question
 from questions.models import Question
-from questions.services import resolve_question, unresolve_question
+from questions.services.lifecycle import resolve_question, unresolve_question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question
 from users.models import User
