@@ -24,14 +24,15 @@ interface BadgeProps {
   pos: number;
   variant: "user" | "community";
   align?: "left" | "center" | "right";
+  xOffset?: number;
 }
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
-  ({ label, value, pos, variant, align = "center" }, ref) => (
+  ({ label, value, pos, variant, align = "center", xOffset = 0 }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "absolute bottom-0 z-20 mb-[-9px] flex -translate-x-1/2 flex-col items-center gap-0.5",
+        "absolute bottom-0 z-20 mb-[-9px] flex -translate-x-1/2 flex-col items-center",
         {
           "text-orange-800 dark:text-orange-800-dark": variant === "user",
           "text-olive-800 dark:text-olive-800-dark": variant === "community",
@@ -39,52 +40,51 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
       )}
       style={{ left: `${pos}%` }}
     >
-      <div className="relative flex w-full justify-center">
-        <div
-          className={cn(
-            "absolute bottom-0 mb-0.5 whitespace-nowrap text-sm capitalize",
-            {
-              "left-1/2 -translate-x-1/2":
-                align === "center" || variant === "user",
-              "-left-3": align === "left" && variant === "community",
-              "-right-3": align === "right" && variant === "community",
-            }
-          )}
-        >
-          {label}
+      <div
+        className="flex flex-col items-center gap-0.5"
+        style={{ transform: `translateX(${xOffset}px)` }}
+      >
+        <div className="relative flex w-full justify-center">
+          <div
+            className={cn(
+              "absolute bottom-0 mb-0.5 whitespace-nowrap text-sm capitalize",
+              {
+                "left-1/2 -translate-x-1/2":
+                  align === "center" || variant === "user",
+                "-left-3": align === "left" && variant === "community",
+                "-right-3": align === "right" && variant === "community",
+              }
+            )}
+          >
+            {label}
+          </div>
+        </div>
+        <div>
+          <div
+            className={cn(
+              "whitespace-nowrap rounded-[4px] px-1 py-0.5 text-sm font-medium leading-tight text-gray-0 dark:text-gray-0-dark",
+              {
+                "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
+                "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
+              }
+            )}
+          >
+            {value >= 0 ? "+" : ""}
+            {value.toFixed(1)}
+          </div>
         </div>
       </div>
-      <div>
+      <div className="flex flex-col items-center">
         <div
-          className={cn(
-            "whitespace-nowrap rounded-[4px] px-1 py-0.5 text-sm font-medium leading-tight text-gray-0 dark:text-gray-0-dark",
-            {
-              "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
-              "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
-              "rounded-bl-none": align === "left",
-              "rounded-br-none": align === "right",
-            }
-          )}
-        >
-          {value >= 0 ? "+" : ""}
-          {value.toFixed(1)}
-        </div>
-        <div
-          className={cn("h-[18px] w-[1px]", {
+          className={cn("-mt-1 h-[22px] w-[1px]", {
             "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
             "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
-            "mx-auto": align === "center",
-            "mr-auto": align === "left",
-            "ml-auto": align === "right",
           })}
         />
         <div
           className={cn("h-1.5 w-1.5 rounded-full", {
             "bg-orange-600 dark:bg-orange-600-dark": variant === "user",
             "bg-olive-700 dark:bg-olive-700-dark": variant === "community",
-            "mx-auto": align === "center",
-            "mr-auto translate-x-[-2.5px]": align === "left",
-            "ml-auto translate-x-[2.5px]": align === "right",
           })}
         />
       </div>
@@ -130,7 +130,7 @@ const scaleScores = (user: number, community: number) => {
   if (max === 0) return { user: 0.5, community: 0.5 };
 
   // Safety margin for borders
-  const GAP = 0.1;
+  const GAP = 0.175;
   // Visual divider
   const PAD = 0.25;
 
@@ -190,6 +190,10 @@ const ScoreVisualization = ({
 
   const [userPos, setUserPos] = useState(initialUserPos);
   const [commPos, setCommPos] = useState(initialCommPos);
+  const [offsets, setOffsets] = useState<{ user: number; comm: number }>({
+    user: 0,
+    comm: 0,
+  });
   const [align, setAlign] = useState<{
     user: "left" | "center" | "right";
     comm: "left" | "center" | "right";
@@ -208,48 +212,75 @@ const ScoreVisualization = ({
     ) {
       setUserPos(initialUserPos);
       setCommPos(initialCommPos);
+      setOffsets({ user: 0, comm: 0 });
       setAlign({ user: "center", comm: "center" });
       return;
     }
 
-    const userRect = userRef.current.getBoundingClientRect();
-    const commRect = commRef.current.getBoundingClientRect();
     const containerWidth = containerRef.current.offsetWidth;
-    const gap =
-      initialUserPos < initialCommPos
-        ? commRect.left - userRect.right
-        : userRect.left - commRect.right;
+    const userPx = initialUserPos * containerWidth;
+    const commPx = initialCommPos * containerWidth;
+
+    // Line gap calculation (center-to-center)
+    const LINE_GAP_PX = 4;
+    const lineGap = Math.abs(userPx - commPx);
+
+    let adjustedUserPos = initialUserPos;
+    let adjustedCommPos = initialCommPos;
+
+    if (lineGap < LINE_GAP_PX) {
+      const neededLineShift = LINE_GAP_PX - lineGap;
+      const shiftPct = neededLineShift / 2 / containerWidth;
+
+      if (initialUserPos < initialCommPos) {
+        adjustedUserPos -= shiftPct;
+        adjustedCommPos += shiftPct;
+      } else {
+        adjustedUserPos += shiftPct;
+        adjustedCommPos -= shiftPct;
+      }
+    }
+
+    setUserPos(adjustedUserPos);
+    setCommPos(adjustedCommPos);
+
+    // Content gap calculation using ADJUSTED positions
+    const adjUserPx = adjustedUserPos * containerWidth;
+    const adjCommPx = adjustedCommPos * containerWidth;
+
+    const userWidth = userRef.current.offsetWidth;
+    const commWidth = commRef.current.offsetWidth;
+
+    const isUserLeft = adjustedUserPos < adjustedCommPos;
+    const leftPx = isUserLeft ? adjUserPx : adjCommPx;
+    const rightPx = isUserLeft ? adjCommPx : adjUserPx;
+    const leftWidth = isUserLeft ? userWidth : commWidth;
+    const rightWidth = isUserLeft ? commWidth : userWidth;
+
+    const gap = rightPx - rightWidth / 2 - (leftPx + leftWidth / 2);
 
     if (gap >= MIN_BADGE_GAP_PX) {
-      setUserPos(initialUserPos);
-      setCommPos(initialCommPos);
+      setOffsets({ user: 0, comm: 0 });
       setAlign({ user: "center", comm: "center" });
       return;
     }
 
     const SIDE_BY_SIDE_GAP_PX = 4;
-    const shiftPct =
-      gap < SIDE_BY_SIDE_GAP_PX
-        ? (SIDE_BY_SIDE_GAP_PX - gap) / containerWidth
-        : 0;
-    const leftPos = Math.min(initialUserPos, initialCommPos);
-    const isUserRight = initialUserPos > initialCommPos;
+    const neededShift = Math.max(0, SIDE_BY_SIDE_GAP_PX - gap);
 
-    // If left < 50: move right badge right; else: move left badge left
-    const [newUser, newComm] =
-      leftPos < 0.5
-        ? isUserRight
-          ? [initialUserPos + shiftPct, initialCommPos]
-          : [initialUserPos, initialCommPos + shiftPct]
-        : isUserRight
-          ? [initialUserPos, initialCommPos - shiftPct]
-          : [initialUserPos - shiftPct, initialCommPos];
+    // Distribute shift proportionally to widths to ensure flush alignment at max compression
+    const totalWidth = leftWidth + rightWidth;
+    const leftShiftMagnitude = neededShift * (leftWidth / totalWidth) - 0.5;
+    const rightShiftMagnitude = neededShift * (rightWidth / totalWidth) - 0.5;
 
-    setUserPos(newUser);
-    setCommPos(newComm);
+    setOffsets(
+      isUserLeft
+        ? { user: -leftShiftMagnitude, comm: rightShiftMagnitude }
+        : { user: rightShiftMagnitude, comm: -leftShiftMagnitude }
+    );
     setAlign({
-      user: isUserRight ? "left" : "right",
-      comm: isUserRight ? "right" : "left",
+      user: isUserLeft ? "right" : "left",
+      comm: isUserLeft ? "left" : "right",
     });
   }, [userScore, communityScore, initialUserPos, initialCommPos]);
 
@@ -267,6 +298,7 @@ const ScoreVisualization = ({
             pos={userPos * 100}
             variant="user"
             align={align.user}
+            xOffset={offsets.user}
           />
         )}
 
@@ -278,6 +310,7 @@ const ScoreVisualization = ({
             pos={commPos * 100}
             variant="community"
             align={align.comm}
+            xOffset={offsets.comm}
           />
         )}
       </div>
