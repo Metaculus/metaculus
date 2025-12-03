@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
-import { NotebookPost, PostWithForecasts } from "@/types/post";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
 import EmailConfirmation from "../components/email_confirmation";
 import HeroCTAs from "./components/hero_ctas";
+import { FILTERS } from "./components/homepage_filters";
+import HomePageForecasts from "./components/homepage_forecasts";
 import StaffPicks from "./components/staff_picks";
 import WhyMetaculus from "./components/why_metaculus";
 
@@ -20,20 +20,15 @@ export default async function Home() {
     return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
-  const t = await getTranslations();
   const sidebarItems = await serverMiscApi.getSidebarItems();
 
   const hotTopics = sidebarItems
     .filter(({ section }) => section === "hot_topics")
     .map((item) => convertSidebarItem(item));
 
-  const homepagePosts = await ServerPostsApi.getPostsForHomepage();
-  const postQuestions = homepagePosts.filter(
-    (post) => !post.notebook
-  ) as unknown as PostWithForecasts[];
-  const postNotebooks = homepagePosts.filter(
-    (post) => !!post.notebook
-  ) as unknown as NotebookPost[];
+  const initialPopularPosts = await ServerPostsApi.getPostsWithCP(
+    FILTERS.popular
+  );
 
   return (
     <main className="min-h-screen bg-gray-0 dark:bg-gray-0-dark">
@@ -43,6 +38,10 @@ export default async function Home() {
       <div className="px-4 lg:px-20">
         <HeroCTAs />
         <WhyMetaculus className="mt-4 md:mt-8" />
+        <HomePageForecasts
+          initialPopularPosts={initialPopularPosts.results}
+          className="mt-16 md:mt-8 lg:mt-16"
+        />
       </div>
     </main>
   );
