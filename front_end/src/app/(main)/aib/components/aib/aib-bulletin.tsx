@@ -7,7 +7,7 @@ const AIBBulletin: React.FC = () => {
   const { setCurrentModal } = useModal();
   return (
     <Bulletin
-      className="mx-auto"
+      className="mx-auto [&>div]:dark:bg-gray-0-dark"
       text={
         <p>
           Congratulations for finding this page! It&apos;s still a Work In

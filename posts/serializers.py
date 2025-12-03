@@ -30,9 +30,12 @@ from questions.serializers.common import (
     GroupOfQuestionsUpdateSerializer,
 )
 from questions.serializers.forecasting_flow import serialize_forecasting_flow_content
-from questions.services import (
+from questions.services.forecasts import (
     get_aggregated_forecasts_for_questions,
     get_user_last_forecasts_map,
+    get_average_coverage_for_questions,
+)
+from questions.services.movement import (
     calculate_movement_for_questions,
     calculate_period_movement_for_questions,
     QuestionMovement,
@@ -336,12 +339,14 @@ def serialize_post(
     projects: Iterable[Project] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
+    question_average_coverages: dict[Question, float] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
     question_movements = question_movements or {}
+    question_average_coverages = question_average_coverages or {}
 
     # Appending projects
     projects = projects or []
@@ -360,6 +365,7 @@ def serialize_post(
             ),
             include_descriptions=include_descriptions,
             question_movement=question_movements.get(post.question),
+            question_average_coverage=question_average_coverages.get(post.question),
         )
 
     if post.conditional:
@@ -380,6 +386,7 @@ def serialize_post(
             aggregate_forecasts=aggregate_forecasts,
             include_descriptions=include_descriptions,
             question_movements=question_movements,
+            question_average_coverages=question_average_coverages,
         )
 
     if post.notebook:
@@ -446,6 +453,7 @@ def serialize_post_many(
     include_cp_history: bool = False,
     include_movements: bool = False,
     include_conditional_cps: bool = False,
+    include_average_scores: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -514,6 +522,10 @@ def serialize_post_many(
     if include_movements:
         question_movements = calculate_movement_for_questions(questions)
 
+    question_average_coverages = {}
+    if include_average_scores:
+        question_average_coverages = get_average_coverage_for_questions(questions)
+
     # Fetch projects
     projects_map = get_projects_for_posts(posts, user=current_user)
 
@@ -536,6 +548,7 @@ def serialize_post_many(
             projects=projects_map.get(post.id),
             include_descriptions=include_descriptions,
             question_movements=question_movements,
+            question_average_coverages=question_average_coverages,
         )
         for post in posts
     ]

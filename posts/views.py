@@ -107,6 +107,7 @@ def posts_list_api_view(request):
         include_cp_history=include_cp_history,
         include_movements=include_movements,
         include_conditional_cps=include_conditional_cps,
+        include_average_scores=True,
     )
 
     return paginator.get_paginated_response(data)
@@ -233,6 +234,7 @@ def post_detail(request: Request, pk):
         include_descriptions=True,
         include_cp_history=True,
         include_movements=True,
+        include_average_scores=True,
     )
 
     if not posts:
@@ -310,7 +312,7 @@ def post_update_api_view(request, pk):
     )
     serializer.is_valid(raise_exception=True)
 
-    post = update_post(post, **serializer.validated_data)
+    post = update_post(post, updated_by=request.user, **serializer.validated_data)
 
     should_delete = check_and_handle_post_spam(request.user, post)
 

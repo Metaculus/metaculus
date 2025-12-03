@@ -12,10 +12,6 @@ import RadioButton from "@/components/ui/radio_button";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
-import {
-  getConditionalQuestionTitle,
-  getConditionTitle,
-} from "@/utils/questions/helpers";
 
 export type ConditionalTableOption = {
   id: number;
@@ -42,10 +38,8 @@ type Props = {
 };
 
 const ConditionalForecastTable: FC<Props> = ({
-  postTitle,
   condition,
   conditionChild,
-  childQuestion,
   options,
   value,
   onChange,
@@ -63,14 +57,14 @@ const ConditionalForecastTable: FC<Props> = ({
           <th className="px-2 py-3 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
               <Link href={conditionHref} className="no-underline">
-                {getConditionTitle(postTitle, condition)}
+                {condition.title}
               </Link>
             </h4>
           </th>
           <th className="border-l py-3 pl-4 pr-2 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
               <Link href={childHref} className="no-underline">
-                {getConditionalQuestionTitle(childQuestion)}
+                {conditionChild.title}
               </Link>
             </h4>
           </th>
