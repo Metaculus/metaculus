@@ -197,17 +197,21 @@ def unpin_comment(comment: Comment):
 
 @transaction.atomic
 def soft_delete_comment(comment: Comment):
-    post = comment.on_post
+    if comment.is_soft_deleted:
+        return
 
-    # Decrement counter during comment deletion
-    post.snapshots.filter(viewed_at__gte=comment.created_at).update(
-        comments_count=F("comments_count") - 1
-    )
+    post = comment.on_post
 
     comment.is_soft_deleted = True
     comment.save(update_fields=["is_soft_deleted"])
 
     post.update_comment_count()
+
+    if not comment.is_private:
+        # Decrement counter during comment deletion
+        post.snapshots.filter(viewed_at__gte=comment.created_at).update(
+            comments_count=F("comments_count") - 1
+        )
 
 
 def compute_comment_score(

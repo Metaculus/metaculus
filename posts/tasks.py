@@ -3,10 +3,12 @@ import logging
 import dramatiq
 
 from misc.services.itn import generate_related_articles_for_post
-from posts.models import Post
-from posts.services.search import update_post_search_embedding_vector
-from posts.services.subscriptions import notify_post_cp_change
+from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
+from .models import Post
+from .services.search import update_post_search_embedding_vector
+from .services.subscriptions import notify_post_cp_change
+from .services.versioning import PostVersionService
 
 logger = logging.getLogger(__name__)
 
@@ -57,3 +59,11 @@ def run_post_indexing(post_id):
         generate_related_articles_for_post(post)
     except Post.DoesNotExist:
         logger.warning(f"Post {post_id} does not exist")
+
+
+@dramatiq.actor(max_retries=1)
+def run_post_generate_history_snapshot(post_id: int, updated_by_id: int):
+    updated_by = User.objects.get(pk=updated_by_id) if updated_by_id else None
+    post = Post.objects.get(pk=post_id)
+
+    PostVersionService.generate_and_upload(post, updated_by=updated_by)

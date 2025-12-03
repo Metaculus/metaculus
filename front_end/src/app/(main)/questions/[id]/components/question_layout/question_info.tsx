@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 
+import PostScoreData from "@/app/(main)/questions/[id]/components/post_score_data";
 import { CoherenceLinks } from "@/app/(main)/questions/components/coherence_links/coherence_links";
 import ConditionalTimeline from "@/components/conditional_timeline";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
@@ -42,6 +43,16 @@ const QuestionInfo: React.FC<Props> = ({
           />
         </SectionToggle>
       )}
+
+      <QuestionVariantComposer
+        postData={postData}
+        forecaster={<PostScoreData post={postData} />}
+        consumer={
+          <div className="hidden sm:block">
+            <PostScoreData post={postData} isConsumerView />
+          </div>
+        }
+      />
 
       <ResolutionCriteria post={postData} />
       {isConditionalPost(postData) && <ConditionalTimeline post={postData} />}
