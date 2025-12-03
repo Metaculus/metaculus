@@ -1843,5 +1843,8 @@
   "openQuestions": "开放问题",
   "forecastsSubmitted": "已提交预测",
   "yearsOfPrediction": "预测年数",
-  "featuredIn": "媒体报道"
+  "featuredIn": "媒体报道",
+  "popular": "热门",
+  "exploreAll": "探索全部",
+  "thousandsOfOpenQuestions": "10,000+ 开放问题"
 }

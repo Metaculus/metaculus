@@ -1838,5 +1838,8 @@
   "openQuestions": "開放問題",
   "forecastsSubmitted": "已提交預測",
   "yearsOfPrediction": "預測年數",
-  "featuredIn": "媒體報導"
+  "featuredIn": "媒體報導",
+  "popular": "熱門",
+  "exploreAll": "探索全部",
+  "thousandsOfOpenQuestions": "10,000+ 開放問題"
 }
