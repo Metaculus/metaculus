@@ -631,38 +631,43 @@ class Command(BaseCommand):
             )
             return
 
-        # Set up basis vs changing question
-        stored_question: Question | None = None
-        if make_copy:
-            stored_question = make_copy_of_question(question, appove_copy_post)
-            if alter_copy:
-                question_to_change = stored_question
-                basis_question = question
+        with transaction.atomic():
+            # Set up basis vs changing question
+            stored_question: Question | None = None
+            if make_copy:
+                stored_question = make_copy_of_question(question, appove_copy_post)
+                if alter_copy:
+                    question_to_change = stored_question
+                    basis_question = question
+                else:
+                    question_to_change = question
+                    basis_question = stored_question
             else:
                 question_to_change = question
-                basis_question = stored_question
-        else:
-            question_to_change = question
-            basis_question = Question.objects.get(id=question.id)
+                basis_question = Question.objects.get(id=question.id)
 
-        # execute reshape
-        try:
-            reshape_question(
-                question_to_change=question_to_change,
-                basis_question=basis_question,
-                new_nominal_range_min=nominal_range_min,
-                new_nominal_range_max=nominal_range_max,
-                new_scheduled_close_time=new_scheduled_close_time,
-                discrete=discrete,
-                step=step,
-            )
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Failed to reshape question: {str(e)}"))
-            return
-        self.stdout.write(self.style.SUCCESS("Reshaped question successfully!"))
+            # execute reshape
+            try:
+                reshape_question(
+                    question_to_change=question_to_change,
+                    basis_question=basis_question,
+                    new_nominal_range_min=nominal_range_min,
+                    new_nominal_range_max=nominal_range_max,
+                    new_scheduled_close_time=new_scheduled_close_time,
+                    discrete=discrete,
+                    step=step,
+                )
+            except Exception as e:
+                self.stdout.write(
+                    self.style.ERROR(f"Failed to reshape question: {str(e)}")
+                )
+                return
+            self.stdout.write(self.style.SUCCESS("Reshaped question successfully!"))
 
-        # print out restult
-        if stored_question:
-            stored_post = stored_question.get_post()
-            assert stored_post
-            self.stdout.write(self.style.SUCCESS(f"Stored Post ID: {stored_post.id}"))
+            # print out restult
+            if stored_question:
+                stored_post = stored_question.get_post()
+                assert stored_post
+                self.stdout.write(
+                    self.style.SUCCESS(f"Stored Post ID: {stored_post.id}")
+                )
