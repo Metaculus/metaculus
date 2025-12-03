@@ -2,6 +2,8 @@ import { useTranslations } from "next-intl";
 import { PropsWithChildren, Suspense } from "react";
 
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
+import PostScoreData from "@/app/(main)/questions/[id]/components/post_score_data";
+import { shouldPostShowScores } from "@/app/(main)/questions/[id]/components/post_score_data/utils";
 import ConsumerTabs from "@/app/(main)/questions/[id]/components/question_layout/consumer_question_layout/consumer_tabs";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import { TabsList, TabsSection, TabsTab } from "@/components/ui/tabs";
@@ -33,6 +35,8 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
     postData.group_of_questions?.graph_type ===
     GroupOfQuestionsGraphType.FanGraph;
 
+  const showScores = shouldPostShowScores(postData);
+
   return (
     <div className="relative z-10 flex w-full flex-col gap-4">
       <QuestionSection compact>
@@ -47,6 +51,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               <NewsPresence questionId={postData.id}>
                 <TabsTab value="news">{t("inNews")}</TabsTab>
               </NewsPresence>
+              {showScores && <TabsTab value="scores">{t("scores")}</TabsTab>}
               <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
             </TabsList>
@@ -81,6 +86,15 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 </Suspense>
               </TabsSection>
             </NewsPresence>
+            {showScores && (
+              <TabsSection value="scores">
+                <PostScoreData
+                  post={postData}
+                  isConsumerView
+                  noSectionWrapper
+                />
+              </TabsSection>
+            )}
             <TabsSection value="key-factors">
               <div className="-m-4 bg-blue-200 p-4 pt-0 dark:bg-blue-200-dark">
                 <KeyFactorsFeed
