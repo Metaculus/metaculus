@@ -247,7 +247,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("resolution", models.TextField(blank=True, null=True)),
-                ("include_bots_in_aggregates", models.BooleanField(default=False)),
+                ("include_bots_in_aggregates", models.BooleanField(default=True)),
                 ("title", models.CharField(max_length=2000)),
                 ("description", models.TextField(blank=True)),
                 ("resolution_criteria", models.TextField(blank=True)),
