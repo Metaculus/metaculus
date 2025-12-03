@@ -5,7 +5,7 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { isContinuousQuestion } from "@/utils/questions/helpers";
 
-import ParticipationSummary from "./participation_summary";
+import ParticipationSummarySection from "./participation_summary";
 import ResolutionScoreCards from "./resolution_score_cards";
 
 type Props = {
@@ -38,7 +38,7 @@ const SingleQuestionScoreData: FC<Props> = ({
   return (
     <div className="flex flex-col gap-4">
       {!hideParticipation && question.type != QuestionType.MultipleChoice && (
-        <ParticipationSummary
+        <ParticipationSummarySection
           question={question}
           forecastsCount={post.forecasts_count ?? 0}
           forecastersCount={nr_forecasters}
