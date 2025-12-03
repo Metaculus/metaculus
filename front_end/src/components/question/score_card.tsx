@@ -51,8 +51,8 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
               {
                 "left-1/2 -translate-x-1/2":
                   align === "center" || variant === "user",
-                "-left-3": align === "left" && variant === "community",
-                "-right-3": align === "right" && variant === "community",
+                "-left-2.5": align === "left" && variant === "community",
+                "-right-2.5": align === "right" && variant === "community",
               }
             )}
           >
