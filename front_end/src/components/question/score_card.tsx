@@ -130,7 +130,16 @@ const scaleScores = (user: number, community: number) => {
   if (max === 0) return { user: 0.5, community: 0.5 };
 
   // Safety margin for borders
-  const GAP = 0.175;
+  // If the same sign and community label is on the left and the highest val -> do 17.5% instead
+  const GAP =
+    user * community > 0 &&
+    Math.abs(community) > Math.abs(user) &&
+    Math.abs(user) / Math.abs(community) > 0.7
+      ? 0.175
+      : 0.1;
+
+  console.log("AA", user, community, Math.abs(user) / Math.abs(community));
+
   // Visual divider
   const PAD = 0.25;
 
