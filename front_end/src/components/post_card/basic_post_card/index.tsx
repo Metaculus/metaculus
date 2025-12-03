@@ -25,6 +25,7 @@ type Props = {
   borderColor?: BorderColor;
   forCommunityFeed?: boolean;
   indexWeight?: number;
+  minimalistic?: boolean;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -35,6 +36,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   children,
   forCommunityFeed,
   indexWeight,
+  minimalistic = false,
 }) => {
   const { title } = post;
 
@@ -50,7 +52,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
+          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
@@ -63,7 +65,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         <Link href={getPostLink(post)} className="block no-underline">
           {!hideTitle && (
             <div className="mb-[18px] flex flex-col gap-[10px] sm:mb-0 sm:flex-row sm:gap-3">
-              <h4 className="relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3">
+              <h4
+                className={cn(
+                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3",
+                  minimalistic && " line-clamp-2"
+                )}
+              >
                 {title}
               </h4>
               {typeof indexWeight === "number" && (
@@ -75,10 +82,13 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           )}
           {children}
         </Link>
-        <BasicPostControls post={post} />
-        {isQuestionPost(post) && (post.key_factors?.length ?? 0) > 0 && (
-          <KeyFactorsTileDisplay post={post} />
-        )}
+        <div className="mt-auto" />
+        <BasicPostControls post={post} withVoter={!minimalistic} />
+        {!minimalistic &&
+          isQuestionPost(post) &&
+          (post.key_factors?.length ?? 0) > 0 && (
+            <KeyFactorsTileDisplay post={post} />
+          )}
         {isQuestionPost(post) && (
           <ParticipationSummaryQuestionTile post={post} />
         )}
