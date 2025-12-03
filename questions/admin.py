@@ -91,6 +91,12 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         return not is_private and is_approved
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        post = obj.get_post()
+        if post:
+            post.update_pseudo_materialized_fields()
+
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
         for field in ["post_link", "view_forecasts"]:
