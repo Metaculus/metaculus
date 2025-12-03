@@ -138,8 +138,6 @@ const scaleScores = (user: number, community: number) => {
       ? 0.175
       : 0.1;
 
-  console.log("AA", user, community, Math.abs(user) / Math.abs(community));
-
   // Visual divider
   const PAD = 0.25;
 
