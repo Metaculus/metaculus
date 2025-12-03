@@ -208,6 +208,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
+    "authentication.social_pipeline.send_user_logged_in",
 )
 
 SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get("SOCIAL_AUTH_FACEBOOK_KEY")
@@ -311,7 +312,6 @@ DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
     "url": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
 }
 
-
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
 if IS_TEST_ENV:
@@ -365,6 +365,11 @@ AWS_S3_CUSTOM_DOMAIN = os.environ.get(
 )
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = False
+# S3 bucket to store posts’ version history.
+# Version tracking will be disabled if this isn’t set.
+AWS_STORAGE_BUCKET_POST_VERSION_HISTORY = os.environ.get(
+    "AWS_STORAGE_BUCKET_POST_VERSION_HISTORY"
+)
 
 # Cloudflare captcha
 # https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
