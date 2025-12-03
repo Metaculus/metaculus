@@ -13,7 +13,7 @@ from utils.the_math.formulas import (
 )
 from posts.models import Post
 from questions.models import Forecast, Question
-from questions.services import build_question_forecasts
+from questions.services.forecasts import build_question_forecasts
 
 Boundary = Literal["natural", "clamped", "not-a-knot"]
 
