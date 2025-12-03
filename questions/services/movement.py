@@ -29,18 +29,15 @@ def compute_question_movement(question: Question) -> float | None:
     if not cp_now:
         return
 
-    movement_period = get_question_movement_period(question)
-
-    if (
-        question.resolution_set_time
-        and question.resolution_set_time < now - movement_period
+    if question.resolution_set_time and question.resolution_set_time < now - timedelta(
+        days=7
     ):
-        # questions that have resolved at least `movement_period` ago have no movement
+        # questions that have resolved at least 7 days ago have no movement
         return 0.0
 
     cp_previous = get_aggregations_at_time(
         question,
-        now - movement_period,
+        now - get_question_movement_period(question),
         [question.default_aggregation_method],
     ).get(question.default_aggregation_method)
 
