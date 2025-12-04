@@ -1844,5 +1844,6 @@
   "featuredIn": "Destacado en",
   "popular": "Popular",
   "exploreAll": "Explorar todo",
+  "exploreNTournaments": "Explorar {count} torneos",
   "thousandsOfOpenQuestions": "10,000+ preguntas abiertas"
 }

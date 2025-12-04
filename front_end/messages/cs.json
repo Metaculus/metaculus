@@ -1844,5 +1844,6 @@
   "featuredIn": "Zmíněno v",
   "popular": "Populární",
   "exploreAll": "Prozkoumat vše",
+  "exploreNTournaments": "Prozkoumat {count} turnajů",
   "thousandsOfOpenQuestions": "10 000+ otevřených otázek"
 }
