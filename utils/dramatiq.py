@@ -7,6 +7,7 @@ from dramatiq.rate_limits import ConcurrentRateLimiter
 from dramatiq.rate_limits.backends import RedisBackend
 
 
+@functools.lru_cache(maxsize=None)
 def get_redis_backend():
     """
     ConcurrentRateLimiter uses the same Redis db index as redis queue
