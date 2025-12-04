@@ -36,7 +36,7 @@ const RegistrationSteps: FC<RegistrationStepsProps> = ({ onRegisterClick }) => {
       >
         {!isStep1Complete && (
           <Button
-            variant="primary"
+            variant="secondary"
             size="md"
             onClick={() => setCurrentModal({ type: "signup" })}
           >
@@ -54,12 +54,7 @@ const RegistrationSteps: FC<RegistrationStepsProps> = ({ onRegisterClick }) => {
         isDisabled={!isStep1Complete}
       >
         {isStep1Complete && !isStep2Complete && onRegisterClick && (
-          <Button
-            variant="primary"
-            size="md"
-            onClick={onRegisterClick}
-            className="mt-3"
-          >
+          <Button variant="secondary" size="md" onClick={onRegisterClick}>
             Register
           </Button>
         )}
@@ -88,40 +83,39 @@ const StepCard: FC<{
 }) => {
   return (
     <div
-      className={`w-full rounded-lg border-2 p-6 transition-all ${
+      className={`flex w-full items-center  rounded-md border-2 p-4 transition-all ${
         isDisabled
-          ? "border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-700"
+          ? "border-gray-300 bg-white/50 dark:border-gray-700 dark:bg-gray-900/50"
           : isActive
-            ? "border-blue-500 bg-white dark:border-blue-400 dark:bg-gray-0-dark"
+            ? "bg-blue-800 text-white dark:bg-blue-800-dark"
             : isComplete
-              ? "bg-olive-50 border-olive-500 dark:border-olive-400 dark:bg-olive-900/20"
-              : "border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-0-dark"
+              ? "border-olive-400 bg-olive-300 dark:border-olive-400-dark/50 dark:bg-olive-300-dark/20"
+              : "bg-white"
       }`}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start items-center gap-4">
         {/* Circle with step number or checkmark */}
         <div
-          className={`flex size-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
+          className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
             isDisabled
-              ? "bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400"
+              ? "border-2 border-gray-300 text-gray-500 dark:border-gray-300-dark dark:text-gray-400"
               : isComplete
-                ? "bg-olive-500 text-white dark:bg-olive-600"
-                : "border-2 border-blue-500 bg-white text-blue-800 dark:border-blue-400 dark:bg-gray-800 dark:text-blue-400"
+                ? "bg-olive-600 text-white dark:bg-olive-600"
+                : "border-2 border-blue-600 bg-transparent text-white dark:border-blue-600-dark dark:text-blue-800"
           }`}
         >
           {isComplete ? "✓" : stepNumber}
         </div>
 
         {/* Content */}
-        <div className="flex-1">
-          <div className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
-            STEP {stepNumber}:
-          </div>
+        <div className="flex flex-1 flex-row items-center justify-between">
           <div
             className={`text-lg font-medium ${
               isDisabled
                 ? "text-gray-500 dark:text-gray-400"
-                : "text-blue-800 dark:text-blue-200"
+                : isComplete
+                  ? "text-olive-900 line-through dark:text-olive-900-dark"
+                  : "text-white dark:text-blue-900"
             }`}
           >
             {title}
