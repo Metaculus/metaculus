@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+import { Suspense } from "react";
+
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
@@ -7,13 +9,13 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
 import EmailConfirmation from "../components/email_confirmation";
+import FutureEvalSection from "./components/future_eval_section";
 import HeroCTAs from "./components/hero_ctas";
 import { FILTERS } from "./components/homepage_filters";
 import HomePageForecasts from "./components/homepage_forecasts";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
-import { Suspense } from "react";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -47,6 +49,9 @@ export default async function Home() {
       </div>
       <Suspense>
         <TournamentsSection className="mt-8 px-4 py-20 lg:px-20" />
+      </Suspense>
+      <Suspense>
+        <FutureEvalSection />
       </Suspense>
     </main>
   );
