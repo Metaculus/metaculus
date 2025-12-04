@@ -14,9 +14,13 @@ import PostVoter from "./post_voter";
 
 type Props = {
   post: Post;
+  withVoter?: boolean;
 };
 
-const BasicPostControls: FC<PropsWithChildren<Props>> = ({ post }) => {
+const BasicPostControls: FC<PropsWithChildren<Props>> = ({
+  post,
+  withVoter = true,
+}) => {
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
 
@@ -30,7 +34,7 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({ post }) => {
   return (
     <div className="mt-3 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
       <div className="flex items-center gap-1.5 md:gap-2">
-        <PostVoter post={post} />
+        {withVoter && <PostVoter post={post} />}
 
         {/* CommentStatus - compact on small screens, full on large screens */}
         <CommentStatus

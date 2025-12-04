@@ -440,6 +440,10 @@ def approve_post(
     # Translate approved post
     trigger_update_post_translations(post, with_comments=False, force=False)
 
+    # Log initial post version
+    if PostVersionService.check_is_enabled():
+        run_post_generate_history_snapshot(post.id, post.author_id)
+
 
 @transaction.atomic
 def reject_post(post: Post):

@@ -107,6 +107,7 @@ def posts_list_api_view(request):
         include_cp_history=include_cp_history,
         include_movements=include_movements,
         include_conditional_cps=include_conditional_cps,
+        include_average_scores=True,
     )
 
     return paginator.get_paginated_response(data)
