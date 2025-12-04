@@ -35,9 +35,14 @@ urlpatterns = [
     path(
         "coherence/links/<int:pk>/needs-update",
         views.get_questions_requiring_update,
-        name="needs-update",
+        name="needs-update-old",
     ),
     # Question-level links
+    path(
+        "coherence/question/links/<int:pk>/needs-update",
+        views.get_questions_requiring_update,
+        name="needs-update",
+    ),
     path(
         "coherence/question/<int:pk>/links/",
         views.get_links_for_question_api_view,
