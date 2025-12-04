@@ -48,5 +48,5 @@ class TestSimpleFunctionality:
         page.get_by_role("link", name="Questions", exact=True).click()
         page.get_by_role("button", name="Filter").click()
         page.get_by_role("button", name="Binary").click()
-        page.get_by_role("button", name="Open").click()
+        page.get_by_role("button", name="Open", exact=True).first.click()
         page.get_by_role("button", name="Done").click()
