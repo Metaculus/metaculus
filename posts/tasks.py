@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dramatiq.actor(max_backoff=180_000, retry_when=concurrency_retries(max_retries=10))
 @task_concurrent_limit(
-    lambda post_id: f"on-post-forecast-{post_id}",
+    lambda post_id: f"mutex:on-post-forecast-{post_id}",
     # We want only one task for the same post id be executed at the same time
     limit=1,
     # This task shouldn't take longer than 3m

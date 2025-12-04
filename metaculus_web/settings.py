@@ -307,10 +307,7 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.DbConnectionsMiddleware",
     ],
 }
-DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
-    # Setting redis db to 1 for the MQ storage
-    "url": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
-}
+
 
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env

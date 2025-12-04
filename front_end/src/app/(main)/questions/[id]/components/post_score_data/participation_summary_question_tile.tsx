@@ -27,6 +27,11 @@ const ParticipationSummaryQuestionTile: FC<PropsWithChildren<Props>> = ({
   }
 
   const { question, nr_forecasters } = post;
+  const userForecasts = question.my_forecasts?.history.length ?? 0;
+
+  if (!userForecasts) {
+    return null;
+  }
 
   return (
     <div className="mt-4">
