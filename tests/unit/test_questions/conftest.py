@@ -28,6 +28,7 @@ def question_multiple_choice():
     return create_question(
         question_type=Question.QuestionType.MULTIPLE_CHOICE,
         options=["a", "b", "c", "d"],
+        options_history=[("0001-01-01T00:00:00", ["a", "b", "c", "d"])],
     )
 
 
