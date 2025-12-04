@@ -1755,5 +1755,20 @@
   "copyQuestionLinkPrivate": "Your links are private, but will contribute to a community aggregate.",
   "questionLinksHint": "Copy this to your question links and get reminders to keep your forecasts consistent.",
   "copyQuestionLinkToAccount": "Copy",
-  "none": "none"
+  "none": "none",
+  "metaculusFutureEval": "Metaculus FutureEval",
+  "futureEvalDescription": "FutureEval measures AI's ability to predict future outcomes. It is guaranteed leak proof.",
+  "futureEvalTagline": "We use forecasting as a way to evaluate reasoning against reality.",
+  "modelLeaderboard": "Model leaderboard",
+  "modelLeaderboardDescription": "We run all major models with a simple prompt on most open Metaculus forecasting questions, and collect their forecasts.",
+  "botsVsHumans": "Bots vs Humans",
+  "botsVsHumansDescription": "We run regular tournaments, open to all builders who compete based on their bot's accuracy against both each other and top human forecasters.",
+  "quarterlyBiweeklyTournaments": "Quarterly and Bi-weekly tournaments",
+  "tournamentsDescriptionPart1": "Join 100+ teams and individual bot builders competing for $50,000 prize pool.",
+  "theFall2025": "The Fall 2025",
+  "tournamentsDescriptionPart2": "tournament is live or join",
+  "miniBench": "MiniBench",
+  "leaderboardDataNotAvailable": "Leaderboard data not currently available, please check back soon!",
+  "viewLess": "View less",
+  "explore": "Explore"
 }
