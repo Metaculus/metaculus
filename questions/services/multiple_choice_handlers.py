@@ -209,6 +209,15 @@ def multiple_choice_delete_options(
 
     build_question_forecasts(question)
 
+    # notify users that about the change
+    from questions.tasks import multiple_choice_delete_option_notificiations
+
+    multiple_choice_delete_option_notificiations(
+        question_id=question.id,
+        timestep=timestep,
+        comment_author_id=4,  # placeholder id
+    )
+
     return question
 
 
@@ -271,5 +280,15 @@ def multiple_choice_add_options(
     from questions.services.forecasts import build_question_forecasts
 
     build_question_forecasts(question)
+
+    # notify users that about the change
+    from questions.tasks import multiple_choice_add_option_notificiations
+
+    multiple_choice_add_option_notificiations(
+        question_id=question.id,
+        grace_period_end=grace_period_end,
+        timestep=timestep,
+        comment_author_id=4,  # placeholder id
+    )
 
     return question
