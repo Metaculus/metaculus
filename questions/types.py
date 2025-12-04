@@ -3,6 +3,8 @@ from typing import TypedDict
 from django.db import models
 from django.db.models import TextChoices
 
+OptionsHistoryType = list[tuple[str, list[str]]]
+
 
 class Direction(TextChoices):
     UNCHANGED = "unchanged"
