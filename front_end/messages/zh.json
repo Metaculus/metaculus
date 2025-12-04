@@ -1846,5 +1846,6 @@
   "featuredIn": "媒体报道",
   "popular": "热门",
   "exploreAll": "探索全部",
+  "exploreNTournaments": "探索 {count} 个锦标赛",
   "thousandsOfOpenQuestions": "10,000+ 开放问题"
 }

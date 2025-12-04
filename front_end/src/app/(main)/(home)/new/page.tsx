@@ -11,7 +11,9 @@ import HeroCTAs from "./components/hero_ctas";
 import { FILTERS } from "./components/homepage_filters";
 import HomePageForecasts from "./components/homepage_forecasts";
 import StaffPicks from "./components/staff_picks";
+import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
+import { Suspense } from "react";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -31,7 +33,7 @@ export default async function Home() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-0 dark:bg-gray-0-dark">
+    <main className=" min-h-screen  bg-gray-0 dark:bg-gray-0-dark ">
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
@@ -43,6 +45,9 @@ export default async function Home() {
           className="mt-16 md:mt-8 lg:mt-16"
         />
       </div>
+      <Suspense>
+        <TournamentsSection className="mt-8 px-4 py-20 lg:px-20" />
+      </Suspense>
     </main>
   );
 }
