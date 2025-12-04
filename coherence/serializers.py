@@ -1,3 +1,4 @@
+from collections import Counter
 from typing import Iterable
 
 from django.db.models import Q
@@ -7,7 +8,12 @@ from rest_framework import serializers
 
 from questions.models import Question
 from questions.serializers.common import serialize_question
-from .models import CoherenceLink, AggregateCoherenceLink
+from users.models import User
+from .models import CoherenceLink, AggregateCoherenceLink, AggregateCoherenceLinkVote
+from .services import (
+    get_votes_for_aggregate_coherence_links,
+    calculate_freshness_aggregate_coherence_link,
+)
 from .utils import (
     get_aggregation_results,
     link_to_question_id_pair,
@@ -38,6 +44,7 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = AggregateCoherenceLink
         fields = [
+            "id",
             "question1_id",
             "question2_id",
             "type",
@@ -92,9 +99,13 @@ def serialize_aggregate_coherence_link(
     question1: Question,
     question2: Question,
     matching_links: list[CoherenceLink],
+    votes: list[AggregateCoherenceLinkVote] = None,
+    user_vote: int = None,
+    current_question: Question = None,
 ):
+    votes = votes or []
+
     serialized_data = AggregateCoherenceLinkSerializer(link).data
-    serialized_data["id"] = link.id
     if question1:
         serialized_data["question1"] = serialize_question(question1)
     if question2:
@@ -104,14 +115,31 @@ def serialize_aggregate_coherence_link(
     serialized_data["direction"] = direction
     serialized_data["strength"] = strength
     serialized_data["rsem"] = rsem if rsem else None
+
+    serialized_data["votes"] = serialize_aggregate_coherence_link_vote(
+        votes, user_vote=user_vote
+    )
+
+    if current_question:
+        serialized_data["freshness"] = calculate_freshness_aggregate_coherence_link(
+            current_question, link, votes
+        )
+
     return serialized_data
 
 
-def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLink]):
+def serialize_aggregate_coherence_link_many(
+    links: Iterable[AggregateCoherenceLink],
+    current_user: User = None,
+    current_question: Question = None,
+):
     ids = [link.pk for link in links]
     qs = AggregateCoherenceLink.objects.filter(
         pk__in=[c.pk for c in links]
     ).select_related("question1", "question2")
+
+    if current_user:
+        qs = qs.annotate_user_vote(current_user)
 
     aggregate_links = list(qs.all())
     aggregate_links.sort(key=lambda obj: ids.index(obj.id))
@@ -137,6 +165,9 @@ def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLi
         key = link_to_question_id_pair(link)
         matching_links_by_pair.add(key, link)
 
+    # Extract user votes
+    votes_map = get_votes_for_aggregate_coherence_links(aggregate_links)
+
     return [
         serialize_aggregate_coherence_link(
             link,
@@ -145,6 +176,24 @@ def serialize_aggregate_coherence_link_many(links: Iterable[AggregateCoherenceLi
             matching_links=matching_links_by_pair.getall(
                 link_to_question_id_pair(link), default=[]
             ),
+            votes=votes_map.get(link.id),
+            user_vote=link.user_vote,
+            current_question=current_question,
         )
         for link in aggregate_links
     ]
+
+
+def serialize_aggregate_coherence_link_vote(
+    vote_scores: list[AggregateCoherenceLinkVote],
+    user_vote: int = None,
+):
+    pivot_votes = Counter([v.score for v in vote_scores])
+
+    return {
+        "aggregated_data": [
+            {"score": score, "count": count} for score, count in pivot_votes.items()
+        ],
+        "user_vote": user_vote,
+        "count": len(vote_scores),
+    }
