@@ -4,6 +4,8 @@ This is the codebase for the open source [Metaculus website](https://metaculus.c
 This readme is a work in progress. Feel free to suggest edits or [open an issue](https://github.com/Metaculus/metaculus/issues) if you have any questions.
 
 
+
+
 # Contributing
 
 **If you make a meaningful contribution to the Metaculus codebase, e.g. [solving an issue](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple) we'll send you a Metaculus hoodie (please email the shipping address to christian@metaculus.com)**
