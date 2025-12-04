@@ -100,7 +100,38 @@ jobs:
             --if-exists \
             --schema=public \
             test_metaculus.sql
-      - name: "Install Node"
+
+      - name: Run migrations and seed test user
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          poetry run ./manage.py migrate --noinput
+
+          poetry run ./manage.py shell << 'PYCODE'
+          from django.contrib.auth import get_user_model
+
+          User = get_user_model()
+          username = "username_1"
+          password = "Test1234"
+
+          user, created = User.objects.get_or_create(
+              username=username,
+              defaults={
+                  "email": "username_1@example.com",
+                  "is_active": True,
+                  "is_onboarding_complete": True,
+              },
+          )
+
+          user.is_active = True
+          user.is_onboarding_complete = True
+          user.set_password(password)
+          user.save()
+
+          print("Seeded test user:", user.username)
+          PYCODE
+
+      - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -125,7 +156,6 @@ jobs:
           PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.PUBLIC_TURNSTILE_SITE_KEY }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
-          poetry run ./manage.py migrate
           PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
         if: ${{ !cancelled() }}
