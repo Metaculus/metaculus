@@ -39,7 +39,7 @@ urlpatterns = [
     ),
     # Question-level links
     path(
-        "coherence/question/links/<int:pk>/needs-update",
+        "coherence/question/links/<int:pk>/needs-update/",
         views.get_questions_requiring_update,
         name="needs-update",
     ),
