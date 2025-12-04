@@ -4,10 +4,13 @@ import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import React, { FC, PropsWithChildren } from "react";
+import React, { FC, PropsWithChildren, useState } from "react";
 
+import { RegistrationForm } from "@/app/(campaigns-registration)/(bridgewater)/bridgewater-2024/components/registration-forms";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
+
+import { CAMPAIGN_KEY } from "../constants";
 
 const HeadingText: FC<{ heading: string; subheading: React.ReactNode }> = ({
   heading,
@@ -15,55 +18,15 @@ const HeadingText: FC<{ heading: string; subheading: React.ReactNode }> = ({
 }) => {
   return (
     <div>
-      <h2 className="my-0 text-xl text-gray-0 dark:text-gray-0-dark md:text-2xl lg:text-3xl xl:text-4xl">
+      <h2 className="my-0 text-xl text-blue-800 dark:text-blue-800-dark md:text-2xl lg:text-3xl">
         {heading}
       </h2>
-      <p className="mb-0 mt-5 text-sm text-gray-0 opacity-70 dark:text-gray-0-dark xs:text-base sm:text-sm md:text-lg lg:text-xl ">
+      <p className="mb-0 mt-5 text-sm text-gray-700 dark:text-gray-700-dark xs:text-base sm:text-sm md:text-lg">
         {subheading}
       </p>
     </div>
   );
 };
-
-const NotLoggedInFragmentBeforeRegister: FC = () => (
-  <>
-    <HeadingText
-      heading={"Registrations are closed"}
-      subheading={
-        <>
-          Check out the{" "}
-          <Link
-            href="/tournament/bridgewater/"
-            className="underline hover:text-blue-600"
-          >
-            tournament page
-          </Link>{" "}
-          to see the tournament questions.
-        </>
-      }
-    />
-  </>
-);
-
-const LoggedInNotRegisteredFragment: FC = () => (
-  <>
-    <HeadingText
-      heading={"Registrations are closed"}
-      subheading={
-        <>
-          Check out the{" "}
-          <Link
-            href="/tournament/bridgewater/"
-            className="underline hover:text-blue-600"
-          >
-            tournament page
-          </Link>{" "}
-          to see the tournament questions.
-        </>
-      }
-    />
-  </>
-);
 
 const EligibilityBox: FC<PropsWithChildren<{ isEligible: boolean }>> = ({
   children,
@@ -112,7 +75,7 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
         </EligibilityBox>
       </div>
 
-      <p className="mb-0 mt-0 text-sm text-gray-0 dark:text-gray-0-dark xs:text-base sm:text-sm md:mt-1 md:text-lg ">
+      <p className="mb-0 mt-0 text-sm text-gray-700 dark:text-gray-700-dark xs:text-base sm:text-sm md:mt-1 md:text-lg">
         Ready to get started? Go to the{" "}
         <Link target="_blank" href="/tournament/bridgewater/">
           Tournament page
@@ -120,7 +83,7 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
         to start forecasting!
       </p>
 
-      <div className="flex items-start gap-1.5 text-xs text-blue-400 dark:text-blue-400-dark">
+      <div className="flex items-start gap-1.5 text-xs text-blue-600 dark:text-blue-400">
         <span className="my-0">*</span>
         <p className="my-0 text-left">
           Displayed prize-pool eligibility is based solely on your undergraduate
@@ -136,39 +99,51 @@ const LoggedInAndRegisteredFragment: FC<{ eligibleBoth: boolean }> = ({
 };
 
 interface RegisterAndStatusProps {
-  className?: string;
   currentUser: CurrentUser | null;
 }
 
 export const RegisterAndStatus: FC<RegisterAndStatusProps> = ({
-  className,
   currentUser,
 }) => {
+  const [isRegistered, setIsRegistered] = useState(false);
+
   const campaigns = currentUser?.registered_campaigns.filter(
-    ({ key }) => key == "bw_q1_2026"
+    ({ key }) => key === CAMPAIGN_KEY
   );
 
-  const registered = campaigns && campaigns.length > 0;
+  const registered = (campaigns && campaigns.length > 0) || isRegistered;
   const campaignDetails =
-    registered && (campaigns[0]?.details as { undergrad: boolean });
+    registered && campaigns?.[0]?.details
+      ? (campaigns[0].details as { undergrad: boolean })
+      : { undergrad: false };
+
+  const handleSuccess = () => {
+    setIsRegistered(true);
+  };
+
+  if (registered) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-5 text-center">
+        <LoggedInAndRegisteredFragment
+          eligibleBoth={campaignDetails.undergrad}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div
-      id="registration"
-      className={cn(
-        "flex flex-col items-center justify-center gap-5 rounded bg-blue-700 px-6 py-7 pb-8 text-center font-medium dark:bg-blue-700-dark md:px-8 md:py-10 md:pb-12",
-        className
-      )}
-    >
-      {!currentUser && <NotLoggedInFragmentBeforeRegister />}
-
-      {currentUser && !registered && <LoggedInNotRegisteredFragment />}
-
-      {registered && (
-        <LoggedInAndRegisteredFragment
-          eligibleBoth={campaignDetails ? campaignDetails.undergrad : false}
-        />
-      )}
+    <div className="flex flex-col items-center justify-center gap-5">
+      <HeadingText
+        heading={"Complete your registration"}
+        subheading={
+          "Fill out the form below to register for the tournament and compete for prizes!"
+        }
+      />
+      <RegistrationForm
+        onSuccess={handleSuccess}
+        campaignKey={CAMPAIGN_KEY}
+        addToProject={undefined}
+      />
     </div>
   );
 };
