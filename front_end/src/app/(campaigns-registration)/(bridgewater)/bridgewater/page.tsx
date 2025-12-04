@@ -3,7 +3,6 @@ import { Metadata } from "next";
 import GlobalHeader from "@/app/(main)/components/headers/global_header";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
-import { BRIDGEWATER_2026 } from "./constants";
 import DescriptionBlock from "./components/description-block";
 import FooterLinks from "./components/footer-links";
 import HeaderBlock from "./components/header-block";

@@ -25,7 +25,7 @@ const EligibilityBox: FC<PropsWithChildren<{ isEligible: boolean }>> = ({
     >
       <FontAwesomeIcon
         icon={isEligible ? faCheckCircle : faXmarkCircle}
-        className="text-xl"
+        className="text-xl text-olive-900 dark:text-olive-900-dark"
       />
       <span className="flex-1 font-normal text-gray-800 dark:text-gray-800-dark">
         {children}
@@ -48,13 +48,14 @@ const EligibilityBox: FC<PropsWithChildren<{ isEligible: boolean }>> = ({
  */
 const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
   return (
-    <div className="rounded-md bg-blue-700 p-6 text-white dark:bg-blue-700-dark sm:p-8">
+    <div className="rounded-md bg-blue-700 px-6 py-2 text-white dark:bg-blue-800-dark sm:px-10 sm:py-4">
       <div className="text-center">
-        <h2 className="mb-2 text-2xl font-bold text-white md:text-3xl">
-          You're all set!
+        <h2 className="mb-2 text-xl font-bold text-white dark:text-blue-50-dark md:text-2xl">
+          You&apos;re all set!
         </h2>
-        <p className="mb-6 text-base text-white/90 md:text-lg">
-          Your registration is confirmed. Here's your leaderboard eligibility:
+        <p className="mb-6 text-base text-white dark:text-blue-50-dark md:text-lg">
+          Your registration is confirmed. Here&apos;s your leaderboard
+          eligibility:
         </p>
       </div>
 
@@ -65,32 +66,32 @@ const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
         </EligibilityBox>
       </div>
 
-      <p className="mb-4 text-center text-base text-white/90">
+      <p className="mb-4 text-balance text-center text-base text-white dark:text-blue-50-dark">
         Ready to get started? Try the{" "}
         <Link
           href="/tournament/bridgewater/"
-          className="font-semibold text-white underline hover:text-white/80"
+          className="font-semibold text-white underline dark:text-blue-50-dark"
         >
           forecasting tutorial
         </Link>{" "}
         or explore some{" "}
         <Link
           href="/tournament/bridgewater/"
-          className="font-semibold text-white underline hover:text-white/80"
+          className="font-semibold text-white underline dark:text-blue-50-dark"
         >
           warmup questions
         </Link>{" "}
         to sharpen your skills!
       </p>
 
-      <div className="flex items-start gap-2 text-xs text-blue-200 dark:text-blue-200">
+      <div className="mb-4 flex items-start gap-2 text-xs text-blue-200 dark:text-blue-200-dark">
         <span className="mt-0.5">*</span>
         <p className="m-0 text-left">
           Displayed prize-pool eligibility is based solely on your undergraduate
           status. For full eligibility details see the{" "}
           <Link
             href="/bridgewater/contest-rules"
-            className="text-blue-200 underline hover:text-blue-100"
+            className="text-blue-200 underline hover:text-blue-100 dark:text-blue-200-dark hover:dark:text-blue-100-dark"
           >
             contest rules
           </Link>

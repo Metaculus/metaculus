@@ -2,6 +2,7 @@ import {
   faCircleQuestion,
   faClipboardList,
   faMugHot,
+  IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -39,20 +40,20 @@ const FooterLinks: FC = () => {
  * Using last year's button style with nice hover states
  */
 const FooterLinkCard: FC<{
-  icon: any;
+  icon: IconDefinition;
   title: string;
   href: string;
 }> = ({ icon, title, href }) => {
   return (
     <Link
       href={href}
-      className="hover:bg-blue-50 group flex items-center justify-center gap-3 rounded-md border-2 border-gray-300 bg-white p-6 text-center no-underline transition-all hover:border-blue-500 hover:shadow-md dark:border-gray-600 dark:bg-gray-0-dark dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
+      className="hover:bg-blue-50 group flex w-full items-center justify-between gap-3 rounded-md bg-white p-6 text-center no-underline transition-all dark:bg-gray-0-dark dark:hover:bg-blue-900"
     >
       <FontAwesomeIcon
         icon={icon}
-        className="text-2xl text-gray-600 transition-colors group-hover:text-blue-700 dark:text-gray-400 dark:group-hover:text-blue-400"
+        className="text-xl text-blue-500 transition-colors group-hover:text-blue-700 dark:text-blue-500-dark dark:group-hover:text-blue-400"
       />
-      <span className="text-base font-medium text-gray-800 transition-colors group-hover:text-blue-800 dark:text-gray-200 dark:group-hover:text-blue-200">
+      <span className="w-full text-center text-base font-medium text-blue-800 transition-colors group-hover:text-blue-900 dark:text-gray-200 dark:group-hover:text-blue-200">
         {title}
       </span>
     </Link>
