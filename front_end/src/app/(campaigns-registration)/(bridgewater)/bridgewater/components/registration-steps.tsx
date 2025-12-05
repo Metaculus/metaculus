@@ -85,7 +85,7 @@ const StepCard: FC<{
     <div
       className={`flex w-full items-center  rounded-md border-2 p-4 transition-all ${
         isDisabled
-          ? "border-gray-300 bg-white/50 dark:border-gray-700 dark:bg-gray-900/50"
+          ? "border-gray-300/50 bg-white/50 dark:border-gray-700/50 dark:bg-gray-900/10 dark:opacity-50"
           : isActive
             ? "bg-blue-800 text-white dark:bg-blue-800-dark"
             : isComplete

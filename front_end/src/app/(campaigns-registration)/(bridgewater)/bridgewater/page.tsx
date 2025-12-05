@@ -24,18 +24,20 @@ export default async function BridgewaterLandingPage() {
   return (
     <>
       <GlobalHeader />
-      <main className="mx-auto mb-16 mt-[48px] flex min-h-min w-full max-w-[780px] flex-auto flex-col gap-4 px-0 sm:mt-[90px]">
+      <main className="mx-auto mb-16 mt-[48px] flex min-h-min w-full max-w-[780px] flex-auto flex-col gap-3 px-0 sm:mt-[90px]">
         {/* Header with hero image and key info */}
         <HeaderBlock />
 
         {/* Registration Steps or Eligibility Status */}
-        <RegistrationContainer currentUser={currentUser} />
+        <div className="flex flex-col gap-3 px-3 sm:px-0">
+          <RegistrationContainer currentUser={currentUser} />
 
-        {/* Description */}
-        <DescriptionBlock />
+          {/* Description */}
+          <DescriptionBlock />
 
-        {/* Footer Links */}
-        <FooterLinks />
+          {/* Footer Links */}
+          <FooterLinks />
+        </div>
       </main>
     </>
   );
