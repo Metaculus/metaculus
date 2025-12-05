@@ -1660,5 +1660,8 @@
   "aibSotaModels": "SOTA models",
   "aibLbThCILower": "95% CI lower",
   "aibLbThCIHigher": "95% CI higher",
+  "privateNote": "Private Note",
+  "privateNoteUpdatedFrom": "from <date></date>",
+  "savedAgo": "saved <date></date>",
   "none": "none"
 }

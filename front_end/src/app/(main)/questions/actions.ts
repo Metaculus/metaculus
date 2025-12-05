@@ -145,6 +145,10 @@ export async function sendBackToReview(postId: number) {
   return await ServerPostsApi.sendBackToReview(postId);
 }
 
+export async function savePrivateNote(postId: number, text: string) {
+  return await ServerPostsApi.savePrivateNote(postId, text);
+}
+
 export async function updateNotebook(
   postId: number,
   markdown: string,
