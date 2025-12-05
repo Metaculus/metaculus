@@ -16,6 +16,8 @@ import HomePageForecasts from "./components/homepage_forecasts";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
+import { NotebookPost } from "@/types/post";
+import ResearchAndUpdates from "./components/research_and_updates";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -25,6 +27,11 @@ export default async function Home() {
   }
 
   const sidebarItems = await serverMiscApi.getSidebarItems();
+  const homepagePosts = await ServerPostsApi.getPostsForHomepage();
+
+  const postNotebooks = homepagePosts.filter(
+    (post) => !!post.notebook
+  ) as unknown as NotebookPost[];
 
   const hotTopics = sidebarItems
     .filter(({ section }) => section === "hot_topics")
@@ -52,6 +59,9 @@ export default async function Home() {
       </Suspense>
       <Suspense>
         <FutureEvalSection />
+      </Suspense>
+      <Suspense>
+        <ResearchAndUpdates posts={postNotebooks} />
       </Suspense>
     </main>
   );
