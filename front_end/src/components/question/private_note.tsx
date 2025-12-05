@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useMemo, useState, useEffect } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { savePrivateNote } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -83,12 +83,14 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
       return;
     }
 
+    setNoteText(value);
+
     setIsLoading(true);
     await savePrivateNote(id, value);
     setIsLoading(false);
 
     setSavedAt(new Date());
-  }, 1000);
+  }, 1500);
 
   return (
     <SectionToggle
