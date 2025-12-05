@@ -1,31 +1,19 @@
 import json
 import logging
 import textwrap
-from typing import Optional, Union, Literal
+from typing import Literal, Optional, Union
 
 from django.conf import settings
 from django.core.validators import URLValidator
 from pydantic import (
-    BaseModel,
-    Field,
-    ValidationError,
-    model_validator,
     field_validator,
     ValidationInfo,
-)
-
-from django.conf import settings
-from pydantic import (
+    ValidationError as PydanticValidationError,
     BaseModel,
     Field,
     model_validator,
-    ValidationError as PydanticValidationError,
 )
 from rest_framework.exceptions import ValidationError
-
-from comments.models import KeyFactor, KeyFactorDriver
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from typing import Optional, Union
 
 from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from posts.models import Post
@@ -424,10 +412,7 @@ def generate_keyfactors(
 
     try:
         data = json.loads(content)
-        # TODO: replace KeyFactorsResponse with plain list
-        parsed = KeyFactorsResponse(**data)
-        return parsed.key_factors
-    except (json.JSONDecodeError, PydanticValidationError):
+    except json.JSONDecodeError:
         return []
 
     # Validate each key factor individually
@@ -448,7 +433,7 @@ def generate_keyfactors(
                     item, context={"comment": comment}
                 )
                 validated_key_factors.append(model_instance)
-        except ValidationError as e:
+        except PydanticValidationError as e:
             logger.debug(f"Validation error for key factor at index: {e}")
 
     return validated_key_factors

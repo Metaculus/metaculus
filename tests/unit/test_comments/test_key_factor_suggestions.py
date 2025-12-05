@@ -2,7 +2,7 @@ import json
 from unittest.mock import Mock, patch
 
 import pytest
-from pydantic import ValidationError
+from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from comments.services.key_factors.suggestions import (
@@ -302,7 +302,7 @@ class TestGenerateKeyFactorsForComment:
 
     def test_validation_error_no_question(self, user1):
         post = factory_post(author=user1)
-        with pytest.raises((ValidationError, TypeError)):
+        with pytest.raises(ValidationError):
             generate_key_factors_for_comment("comment", [], post)
 
     @patch("comments.services.key_factors.suggestions.generate_keyfactors")
