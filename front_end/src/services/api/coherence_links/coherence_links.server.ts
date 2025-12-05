@@ -1,7 +1,13 @@
 import "server-only";
+
 import { ApiService } from "@/services/api/api_service";
-import { FetchedCoherenceLinks } from "@/types/coherence";
+import type {
+  AggregateCoherenceLinkVotesSummary,
+  FetchedCoherenceLinks,
+} from "@/types/coherence";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
+
+import type { AggregateLinkVoteValue } from "./coherence_links.shared";
 
 class ServerCoherenceLinksApiClass extends ApiService {
   /**
@@ -33,7 +39,20 @@ class ServerCoherenceLinksApiClass extends ApiService {
   async deleteCoherenceLink(id: number) {
     return await this.delete(`/coherence/links/${id}/delete/`);
   }
+
+  async voteAggregateCoherenceLink(
+    aggregationId: number,
+    vote: AggregateLinkVoteValue
+  ): Promise<AggregateCoherenceLinkVotesSummary> {
+    return await this.post(
+      `/coherence/aggregate-links/${aggregationId}/votes/`,
+      {
+        vote,
+      }
+    );
+  }
 }
+
 export const CoherenceLinksApiClass = new ServerCoherenceLinksApiClass(
   serverFetcher
 );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
+import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
 import KeyFactorsTileView from "@/app/(main)/questions/[id]/components/key_factors/questions_feed_view/key_factors_tile_view";
 import ParticipationSummaryQuestionTile from "@/app/(main)/questions/[id]/components/post_score_data/participation_summary_question_tile";
 import BasicPostControls from "@/components/post_card/basic_post_card/post_controls";
@@ -84,11 +85,11 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         </Link>
         <div className="mt-auto" />
         <BasicPostControls post={post} withVoter={!minimalistic} />
-        {!minimalistic &&
-          isQuestionPost(post) &&
-          (post.key_factors?.length ?? 0) > 0 && (
+        {!minimalistic && isQuestionPost(post) && (
+          <CoherenceLinksProvider post={post}>
             <KeyFactorsTileView post={post} />
-          )}
+          </CoherenceLinksProvider>
+        )}
         {isQuestionPost(post) && (
           <ParticipationSummaryQuestionTile post={post} />
         )}

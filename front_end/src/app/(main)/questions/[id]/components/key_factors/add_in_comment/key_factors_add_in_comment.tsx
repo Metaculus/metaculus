@@ -48,6 +48,7 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
     resetAll,
     setDrafts,
     loadSuggestions,
+    questionLinkCandidates,
   } = useKeyFactorsCtx();
 
   const { comments, setComments } = useCommentsFeed();
@@ -181,15 +182,23 @@ const KeyFactorsAddInComment: React.FC<Props> = ({
   };
 
   useEffect(() => {
+    const hasAnySuggestions =
+      suggestedKeyFactors.length > 0 || questionLinkCandidates.length > 0;
+
     if (
-      suggestedKeyFactors.length > 0 &&
+      hasAnySuggestions &&
       selectedType === null &&
       !autoOpenedForSuggestions
     ) {
       setSelectedType("ask_llm");
       setAutoOpenedForSuggestions(true);
     }
-  }, [suggestedKeyFactors.length, selectedType, autoOpenedForSuggestions]);
+  }, [
+    suggestedKeyFactors.length,
+    questionLinkCandidates.length,
+    selectedType,
+    autoOpenedForSuggestions,
+  ]);
 
   return (
     <>

@@ -1,9 +1,12 @@
 import { ApiService } from "@/services/api/api_service";
-import {
+import type {
   FetchedAggregateCoherenceLinks,
   FetchedCoherenceLinks,
+  AggregateCoherenceLinkVotesSummary,
 } from "@/types/coherence";
 import { Question } from "@/types/question";
+
+export type AggregateLinkVoteValue = 1 | -1 | null;
 
 class CoherenceLinksApi extends ApiService {
   /**
@@ -15,12 +18,32 @@ class CoherenceLinksApi extends ApiService {
   async getCoherenceLinksForPost(
     question: Question
   ): Promise<FetchedCoherenceLinks> {
-    return await this.get(`/coherence/links/${question.id}/`);
+    return await this.get(`/coherence/question/${question.id}/links/`);
   }
   async getAggregateCoherenceLinksForPost(
     question: Question
   ): Promise<FetchedAggregateCoherenceLinks> {
-    return await this.get(`/coherence/aggregate-links/${question.id}/`);
+    return await this.get(
+      `/coherence/question/${question.id}/aggregate-links/`
+    );
+  }
+
+  async voteAggregateCoherenceLink(
+    aggregationId: number,
+    vote: AggregateLinkVoteValue
+  ): Promise<AggregateCoherenceLinkVotesSummary> {
+    return await this.post(
+      `/coherence/aggregate-links/${aggregationId}/votes/`,
+      {
+        vote,
+      }
+    );
+  }
+
+  async getQuestionsRequiringUpdate(questionId: number) {
+    return await this.get(
+      `/coherence/question/links/${questionId}/needs-update/`
+    );
   }
 }
 

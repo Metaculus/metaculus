@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
@@ -16,6 +17,7 @@ import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { KeyFactorDraft } from "@/types/key_factors";
+import { Question } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import {
   isBaseRateDraft,
@@ -25,6 +27,10 @@ import {
 
 import { coerceBaseForType } from "./item_creation/base_rate/utils";
 import { fetchNewsPreview } from "./utils";
+import {
+  extractQuestionNumbersFromText,
+  fetchQuestionsForIds,
+} from "../../../helpers/question_link_detection";
 
 type UseKeyFactorsProps = {
   user_id: number | undefined;
@@ -43,6 +49,9 @@ export const useKeyFactors = ({
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
 
+  const { coherenceLinks, aggregateCoherenceLinks } =
+    useCoherenceLinksContext();
+
   // The drafts are managed by the caller now
   const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
@@ -52,6 +61,13 @@ export const useKeyFactors = ({
   const inFlightRef = useRef<Record<number, boolean>>({});
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
+
+  const [isDetectingQuestionLinks, setIsDetectingQuestionLinks] =
+    useState(false);
+  const [questionLinkCandidates, setQuestionLinkCandidates] = useState<
+    Question[]
+  >([]);
+  const questionLinksCheckedRef = useRef<Set<number>>(new Set());
 
   const applyTargetForDraft = (
     draft: KeyFactorDraft,
@@ -126,9 +142,73 @@ export const useKeyFactors = ({
 
   useEffect(() => {
     if (!shouldLoadKeyFactors || !commentId) return;
-    if (fetchedOnceRef.current.has(commentId)) return;
-    void fetchSuggestions(commentId);
-  }, [commentId, shouldLoadKeyFactors, fetchSuggestions]);
+    if (questionLinksCheckedRef.current.has(commentId)) return;
+
+    const comment = comments.find((c) => c.id === commentId);
+    if (!comment) return;
+
+    const ids = extractQuestionNumbersFromText(comment.text || "");
+    if (!ids.length) {
+      questionLinksCheckedRef.current.add(commentId);
+      if (!fetchedOnceRef.current.has(commentId)) {
+        void fetchSuggestions(commentId);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      setIsDetectingQuestionLinks(true);
+      try {
+        const questions = await fetchQuestionsForIds(ids);
+        if (cancelled) return;
+
+        const existingLinkedIds = new Set<number>();
+        [...coherenceLinks.data].forEach((link) => {
+          if (link.question1_id) existingLinkedIds.add(link.question1_id);
+          if (link.question2_id) existingLinkedIds.add(link.question2_id);
+        });
+
+        const candidates = questions.filter(
+          (q) => !existingLinkedIds.has(q.id)
+        );
+
+        if (!candidates.length) {
+          setQuestionLinkCandidates([]);
+          questionLinksCheckedRef.current.add(commentId);
+          if (!fetchedOnceRef.current.has(commentId)) {
+            void fetchSuggestions(commentId);
+          }
+          return;
+        }
+
+        setQuestionLinkCandidates(candidates);
+        questionLinksCheckedRef.current.add(commentId);
+
+        if (!fetchedOnceRef.current.has(commentId)) {
+          void fetchSuggestions(commentId);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsDetectingQuestionLinks(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    shouldLoadKeyFactors,
+    commentId,
+    comments,
+    fetchSuggestions,
+    coherenceLinks,
+    aggregateCoherenceLinks,
+  ]);
 
   const reloadSuggestions = useCallback(() => {
     if (!commentId) return;
@@ -271,6 +351,7 @@ export const useKeyFactors = ({
   const clearState = () => {
     setErrors(undefined);
     setSuggestedKeyFactors([]);
+    setQuestionLinkCandidates([]);
   };
 
   return {
@@ -279,6 +360,9 @@ export const useKeyFactors = ({
     suggestedKeyFactors,
     setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
+
+    isDetectingQuestionLinks,
+    questionLinkCandidates,
 
     limitError,
     factorsLimit,

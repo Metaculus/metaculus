@@ -3,12 +3,14 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { AddKeyFactorsButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import KeyFactorItem from "./item_view";
+import QuestionLinkKeyFactorItem from "./item_view/question_link/question_link_key_factor_item";
 
 type Props = {
   post: PostWithForecasts;
@@ -32,7 +34,13 @@ const KeyFactorsEmpty: FC<{ post: PostWithForecasts }> = ({ post }) => {
 
 const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
   const { combinedKeyFactors } = useCommentsFeed();
+  const { aggregateCoherenceLinks } = useCoherenceLinksContext();
   const [order, setOrder] = useState<number[] | null>(null);
+
+  const questionLinkAggregates =
+    aggregateCoherenceLinks?.data.filter(
+      (it) => it.links_nr > 1 && it.strength !== null && it.direction !== null
+    ) ?? [];
 
   useEffect(() => {
     if (!combinedKeyFactors.length) return;
@@ -62,15 +70,13 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
     if (combinedKeyFactors.length > 0) {
       sendAnalyticsEvent("KeyFactorPageview");
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [combinedKeyFactors]);
 
   const items = (order ?? combinedKeyFactors.map((kf) => kf.id))
     .map((id) => combinedKeyFactors.find((kf) => kf.id === id))
     .filter(Boolean) as typeof combinedKeyFactors;
 
-  if (combinedKeyFactors.length === 0) {
+  if (combinedKeyFactors.length === 0 && questionLinkAggregates.length === 0) {
     return <KeyFactorsEmpty post={post} />;
   }
 
@@ -85,6 +91,16 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
           className={keyFactorItemClassName}
         />
       ))}
+
+      {questionLinkAggregates.length > 0 &&
+        questionLinkAggregates.map((link) => (
+          <QuestionLinkKeyFactorItem
+            id={`question-link-kf-${link.id}`}
+            key={`question-link-kf-${link.id}`}
+            link={link}
+            post={post}
+          />
+        ))}
     </div>
   );
 };
