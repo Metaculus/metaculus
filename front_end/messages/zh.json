@@ -1668,5 +1668,11 @@
   "whatIsSpotPeerScore": "什么是即时报同行得分？",
   "whatIsSpotBaselineScore": "什么是即时报基准得分？",
   "chanceBaseline": "机会<secondary>基准</secondary>",
+  "privateNote": "私人笔记",
+  "privateNoteUpdatedFrom": "从<date></date>",
+  "savedAgo": "<date></date>保存",
+  "loadMore": "加载更多",
+  "noPrivateNotes": "未找到私人笔记",
+  "privateNotes": "私人笔记",
   "othersCount": "其他（{count}）"
 }

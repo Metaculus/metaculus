@@ -1666,5 +1666,11 @@
   "whatIsSpotPeerScore": "Co je Spot Peer skóre?",
   "whatIsSpotBaselineScore": "Co je Spot základní skóre?",
   "chanceBaseline": "Náhodná <secondary>základní hodnota</secondary>",
+  "privateNote": "Soukromá poznámka",
+  "privateNoteUpdatedFrom": "z <date></date>",
+  "savedAgo": "uloženo <date></date>",
+  "loadMore": "Načíst více",
+  "noPrivateNotes": "Nebyly nalezeny žádné soukromé poznámky",
+  "privateNotes": "Soukromé poznámky",
   "othersCount": "Ostatní ({count})"
 }
