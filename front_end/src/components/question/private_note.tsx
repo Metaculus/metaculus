@@ -90,7 +90,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
   return (
     <SectionToggle
       title={t("privateNote")}
-      variant="orange"
+      variant={text ? "orange" : "primary"}
       detailElement={(isOpen) => {
         if (isOpen) {
           return <div className="ml-auto text-xs">{noteStatusDetails}</div>;
