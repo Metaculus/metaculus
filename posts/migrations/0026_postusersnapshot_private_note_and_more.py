@@ -63,7 +63,12 @@ def migrate_private_comments(apps, schema_editor):
             # We have a lot of old auto-generated notes
             # Migrated from the old site reminders, so to avoid making things messy,
             # we keep the comment text without an extra title.
-            if comment.text.startswith("Note imported from date reminder"):
+            # Same for cases when user has only one private comment
+            # Creation date is visible in the private note section
+            if (
+                comment.text.startswith("Note imported from date reminder")
+                or len(group_comments) == 1
+            ):
                 note_parts.append(comment.text)
             else:
                 note_parts.append(f"### Note from {date_str}\n{comment.text}")
