@@ -598,7 +598,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           questionId: id,
           forecastEndTime: forecastExpirationToDate(forecastExpiration),
           forecastData: {
-            continuousCdf: latest.forecast_values,
+            continuousCdf: latest.forecast_values.map((v) => {
+              if (v === null) {
+                throw new Error("Forecast values contain null values");
+              }
+              return v;
+            }),
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
