@@ -39,6 +39,9 @@ const CommentsFeedProvider = dynamic(
   () => import("@/app/(main)/components/comments_feed_provider")
 );
 const CommentFeed = dynamic(() => import("@/components/comment_feed"));
+const PrivateNotes = dynamic(
+  () => import("@/app/(main)/accounts/profile/components/private_notes")
+);
 
 type Props = {
   params: Promise<{ id: number }>;
@@ -175,6 +178,7 @@ export default async function Profile(props: Props) {
           </Suspense>
         </div>
       )}
+      {mode === ProfilePageMode.PrivateNotes && <PrivateNotes />}
     </main>
   );
 }

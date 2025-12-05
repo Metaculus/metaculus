@@ -1663,5 +1663,8 @@
   "privateNote": "Private Note",
   "privateNoteUpdatedFrom": "from <date></date>",
   "savedAgo": "saved <date></date>",
+  "loadMore": "Load More",
+  "noPrivateNotes": "No private notes found",
+  "privateNotes": "Private Notes",
   "none": "none"
 }
