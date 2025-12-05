@@ -1,17 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 
-import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 
-import metaculusDarkLogo from "../assets/metaculus-dark.png";
-import metaculusLightLogo from "../assets/metaculus-light.png";
+import EmbedQuestionCard from "./embed_question_card";
 
 type Props = {
   post: PostWithForecasts;
@@ -127,7 +123,7 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
         style={frameStyle}
       >
         <div
-          className="flex flex-col gap-8 p-5 pb-4"
+          className="flex flex-col gap-5 p-5 pb-4"
           style={{
             width: baseWidth,
             height: baseHeight,
@@ -138,38 +134,7 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
             transformOrigin: "center center",
           }}
         >
-          <div className="mb-auto" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ForecastersCounter
-                className="px-1.5 py-1 [&_strong]:font-normal"
-                forecasters={post.nr_forecasters}
-              />
-              <CommentStatus
-                className="!px-1.5 py-1 [&_strong]:font-normal [&_svg]:text-gray-400 [&_svg]:dark:text-gray-400-dark"
-                totalCount={post.comment_count ?? 0}
-                unreadCount={post.unread_comment_count ?? 0}
-                url={""}
-              />
-            </div>
-
-            <div id="id-logo-used-by-screenshot-donot-change">
-              <Image
-                className="dark:hidden"
-                src={metaculusDarkLogo}
-                alt="Metaculus Logo"
-                width={74}
-                height={15}
-              />
-              <Image
-                className="hidden dark:block"
-                src={metaculusLightLogo}
-                alt="Metaculus Logo"
-                width={74}
-                height={15}
-              />
-            </div>
-          </div>
+          <EmbedQuestionCard post={post} />
         </div>
       </div>
     </div>
