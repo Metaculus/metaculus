@@ -66,17 +66,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
     if (savedAt) {
       return <SavedAgo savedAt={savedAt} />;
     }
-
-    if (updated_at) {
-      return t.rich("privateNoteUpdatedFrom", {
-        date: () => (
-          <RelativeTime datetime={updated_at} format="relative">
-            {formatDate(locale, new Date(updated_at))}
-          </RelativeTime>
-        ),
-      });
-    }
-  }, [savedAt, isLoading, locale, t, updated_at]);
+  }, [savedAt, isLoading]);
 
   const saveNoteDebounced = useDebouncedCallback(async (value: string) => {
     if (value === noteText) {
@@ -96,9 +86,23 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
     <SectionToggle
       title={t("privateNote")}
       variant="orange"
-      detailElement={() => (
-        <div className="ml-auto text-xs">{noteStatusDetails}</div>
-      )}
+      detailElement={(isOpen) => {
+        if (isOpen) {
+          return <div className="ml-auto text-xs">{noteStatusDetails}</div>;
+        } else if (updated_at) {
+          return (
+            <div className="ml-auto text-xs">
+              {t.rich("privateNoteUpdatedFrom", {
+                date: () => (
+                  <RelativeTime datetime={updated_at} format="relative">
+                    {formatDate(locale, new Date(updated_at))}
+                  </RelativeTime>
+                ),
+              })}
+            </div>
+          );
+        }
+      }}
     >
       <div className="bg-gray-0 dark:bg-gray-0-dark">
         <MarkdownEditor
