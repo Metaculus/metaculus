@@ -53,7 +53,7 @@ const FooterLinkCard: FC<{
         icon={icon}
         className="text-xl text-blue-500 transition-colors group-hover:text-blue-700 dark:text-blue-500-dark dark:group-hover:text-blue-400"
       />
-      <span className="w-full text-center text-base font-medium text-blue-800 transition-colors group-hover:text-blue-900 dark:text-gray-200 dark:group-hover:text-blue-200">
+      <span className="w-full text-center text-base font-medium text-blue-700 transition-colors group-hover:text-blue-900 dark:text-gray-300 dark:group-hover:text-blue-200">
         {title}
       </span>
     </Link>
