@@ -21,7 +21,7 @@ export default function ContestRules() {
           className="cursor-pointer"
           href="/bridgewater/"
         >
-          View Tournament Page
+          Register for the Tournament
         </Button>
       </div>
 
