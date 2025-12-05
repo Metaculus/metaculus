@@ -14,6 +14,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from posts.models import Post
+from posts.tasks import run_post_generate_history_snapshot
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     AggregateForecast,
@@ -541,6 +542,13 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             insert_after("options_history", "update_mc_options")
         return fields
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        post_id = obj.get_post_id()
+
+        if post_id:
+            run_post_generate_history_snapshot.send(post_id, request.user.id)
+
     def get_actions(self, request):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
@@ -812,6 +820,12 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
                 fields.remove(field)
             fields.insert(0, field)
         return fields
+
+    def save_model(self, request, obj: GroupOfQuestions, form, change):
+        super().save_model(request, obj, form, change)
+
+        if obj.post_id:
+            run_post_generate_history_snapshot.send(obj.post_id, request.user.id)
 
 
 @admin.register(Forecast)

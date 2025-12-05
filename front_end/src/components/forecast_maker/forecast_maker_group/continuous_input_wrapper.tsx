@@ -47,7 +47,6 @@ import {
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
@@ -454,12 +453,6 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
               })}
             </strong>
           </p>
-        </div>
-      )}
-
-      {!isNil(option.question.resolution) && (
-        <div className="my-4 p-4">
-          <ScoreDisplay question={option.question} variant="transparent" />
         </div>
       )}
     </div>

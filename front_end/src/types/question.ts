@@ -236,6 +236,7 @@ export type Question = {
   type: QuestionType;
   // Multiple-choice only
   options?: string[];
+  options_history?: [number, string[]][];
   group_variable?: string;
   group_rank?: number;
   // Continuous only
@@ -267,6 +268,7 @@ export type Question = {
     lifetime_elapsed: number;
     movement: null | CPMovement;
   };
+  average_coverage?: number | null;
 };
 
 export enum MovementDirection {

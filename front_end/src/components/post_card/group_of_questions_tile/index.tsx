@@ -25,9 +25,14 @@ const VISIBLE_CHOICES_COUNT = 3;
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   showChart?: boolean;
+  minimalistic?: boolean;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({ post, showChart }) => {
+const GroupOfQuestionsTile: FC<Props> = ({
+  post,
+  showChart,
+  minimalistic = false,
+}) => {
   const t = useTranslations();
 
   const { hideCP } = useHideCP();
@@ -72,6 +77,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ post, showChart }) => {
           canPredict={canPredict}
           hideCP={hideCP}
           showChart={showChart}
+          minimalistic={minimalistic}
           optionsLimit={10}
         />
       );
@@ -103,6 +109,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ post, showChart }) => {
           canPredict={canPredict}
           hideCP={hideCP}
           showChart={showChart}
+          minimalistic={minimalistic}
         />
       );
     }

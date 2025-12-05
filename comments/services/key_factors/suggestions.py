@@ -3,7 +3,13 @@ import textwrap
 from typing import List, Optional
 
 from django.conf import settings
-from pydantic import BaseModel, Field, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    model_validator,
+    ValidationError as PydanticValidationError,
+)
+from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor, KeyFactorDriver
 from posts.models import Post
@@ -257,7 +263,7 @@ def generate_keyfactors(
         # TODO: replace KeyFactorsResponse with plain list
         parsed = KeyFactorsResponse(**data)
         return parsed.key_factors
-    except (json.JSONDecodeError, ValidationError):
+    except (json.JSONDecodeError, PydanticValidationError):
         return []
 
 
