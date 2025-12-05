@@ -1,0 +1,35 @@
+#key-factors .kf-scroll-highlight-static {
+  box-shadow: inset 0 0 0 6px rgba(79, 104, 130, 0.6);
+  border-radius: 4px;
+}
+
+.dark #key-factors .kf-scroll-highlight-static {
+  box-shadow: inset 0 0 0 6px rgba(191, 212, 236, 0.6);
+}
+
+@keyframes kf-scroll-highlight-fade {
+  from {
+    box-shadow: inset 0 0 0 6px rgba(79, 104, 130, 0.6);
+  }
+  to {
+    box-shadow: inset 0 0 0 6px rgba(79, 104, 130, 0);
+  }
+}
+
+@keyframes kf-scroll-highlight-fade-dark {
+  from {
+    box-shadow: inset 0 0 0 6px rgba(191, 212, 236, 0.6);
+  }
+  to {
+    box-shadow: inset 0 0 0 6px rgba(191, 212, 236, 0);
+  }
+}
+
+#key-factors .kf-scroll-highlight-fade {
+  border-radius: 4px;
+  animation: kf-scroll-highlight-fade 450ms ease-out forwards;
+}
+
+.dark #key-factors .kf-scroll-highlight-fade {
+  animation-name: kf-scroll-highlight-fade-dark;
+}

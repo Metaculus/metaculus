@@ -1665,7 +1665,6 @@
   "whatIsSpotPeerScore": "¿Qué es la Puntuación de Pares Puntual?",
   "whatIsSpotBaselineScore": "¿Qué es la Puntuación Base Puntual?",
   "chanceBaseline": "Línea base <secondary>de azar</secondary>",
-  "baseRate": "Tarifa base",
   "addBaseRate": "Agregar tasa base",
   "pleaseAddAtLeastOneBaseRate": "Por favor, agregue al menos una tasa base válida.",
   "trend": "Tendencia",
@@ -1713,5 +1712,15 @@
   "askAnLLMDescription": "Enviaremos la información de la pregunta y tu comentario a un LLM para generar factores clave en tu nombre.",
   "generatedKeyFactors": "Factores clave generados",
   "noGeneratedKeyFactors": "No pudimos generar automáticamente factores clave de este comentario. Puedes añadirlos manualmente.",
+  "baseRate": "Tarifa base",
+  "addAsKeyFactor": "Agregar como factor clave",
+  "showNMore": "Mostrar {count} más",
+  "pasteUrl": "Pegar URL",
+  "newsMatchCount": "Coincidencia de Noticias ({count})",
+  "chooseUrl": "Elige un artículo existente o pega una nueva URL.",
+  "pasteUrlPlaceholder": "Pegar URL de un artículo de noticias",
+  "sourceMissing": "fuente no encontrada",
+  "invalidNewsUrl": "Esto no parece un artículo de noticias, por favor intenta con otra URL.",
+  "duplicateNewsUrl": "Este artículo ya ha sido añadido como un Factor Clave.",
   "othersCount": "Otros ({count})"
 }

@@ -1662,7 +1662,6 @@
   "whatIsSpotPeerScore": "什麼是Spot同行分數？",
   "whatIsSpotBaselineScore": "什麼是Spot基線分數？",
   "chanceBaseline": "機會<secondary>基線</secondary>",
-  "baseRate": "基本費率",
   "addBaseRate": "新增基本利率",
   "pleaseAddAtLeastOneBaseRate": "請添加至少一個有效的基本利率。",
   "trend": "趨勢",
@@ -1710,5 +1709,15 @@
   "askAnLLMDescription": "我們將發送問題資訊和您的評論給LLM，以便為您生成關鍵因素。",
   "generatedKeyFactors": "生成的關鍵因素",
   "noGeneratedKeyFactors": "我們無法自動從此評論生成關鍵因素。您可以手動添加它們。",
+  "baseRate": "基本費率",
+  "addAsKeyFactor": "新增為關鍵因素",
+  "showNMore": "顯示另外 {count} 項",
+  "pasteUrl": "貼上網址",
+  "newsMatchCount": "新聞匹配 ({count})",
+  "chooseUrl": "從現有文章中選擇，或貼上一個新的網址。",
+  "pasteUrlPlaceholder": "貼上一個新聞文章的網址",
+  "sourceMissing": "缺少來源",
+  "invalidNewsUrl": "這看起來不像是一篇新聞文章，請嘗試其他網址。",
+  "duplicateNewsUrl": "此文章已作為關鍵因素添加過。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
