@@ -232,6 +232,23 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
             "cp_reveal_time",
         )
 
+    def validate(self, data: dict):
+        data = super().validate(data)
+
+        if qid := data.get("id"):
+            question = Question.objects.get(id=qid)
+            if data.get("options") != question.options:
+                # if there are user forecasts, we can't update options this way
+                if question.user_forecasts.exists():
+                    ValidationError(
+                        "Cannot update options through this endpoint while there are "
+                        "user forecasts. "
+                        "Instead, use /api/questions/update-mc-options/ or the UI on "
+                        "the question detail page."
+                    )
+
+        return data
+
     # TODO: add validation for updating continuous question bounds
 
 
