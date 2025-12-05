@@ -34,6 +34,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -43,6 +44,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   forecastAvailability,
   hideTitle,
   isConsumerView: isConsumerViewProp,
+  embedChartHeight,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -183,6 +185,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const isEmbed = useIsEmbedMode();
 
+  const chartHeight = embedChartHeight ?? 150;
+
   return (
     <div
       className={cn(
@@ -242,6 +246,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 }
                 isConsumerView={isConsumerView}
                 isEmbedded={isEmbed}
+                height={chartHeight}
               />
             </div>
           </div>
@@ -286,6 +291,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
               }
               isConsumerView={isConsumerView}
               isEmbedded={isEmbed}
+              height={chartHeight}
             />
           </div>
         </>
@@ -329,6 +335,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             }
             isConsumerView={isConsumerView}
             isEmbedded={isEmbed}
+            height={chartHeight}
           />
         </div>
       )}

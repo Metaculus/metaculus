@@ -135,13 +135,6 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
-
-  const baseHeight = height ?? 170;
-  const chartHeight = useMemo(() => {
-    if (!isEmbedded || !chartWidth) return baseHeight;
-    const target = chartWidth * 0.4;
-    return Math.round(Math.max(120, Math.min(178, target)));
-  }, [isEmbedded, chartWidth, baseHeight]);
   const { line, area, points, yDomain, xDomain, yScale, xScale } = useMemo(
     () => buildChartData(chartWidth, zoom),
     [chartWidth, zoom, buildChartData]
@@ -268,7 +261,7 @@ const NumericChart: FC<Props> = ({
         cursorLabelComponent={
           <VictoryPortal>
             <ChartCursorLabel
-              positionY={chartHeight - 10}
+              positionY={height - 10}
               {...(hasExternalTheme
                 ? {}
                 : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
@@ -291,7 +284,7 @@ const NumericChart: FC<Props> = ({
   }, [
     defaultCursor,
     xScale,
-    chartHeight,
+    height,
     hasExternalTheme,
     getThemeColor,
     handleCursorChange,
@@ -435,7 +428,7 @@ const NumericChart: FC<Props> = ({
 
         <ChartContainer
           ref={chartContainerRef}
-          height={chartHeight}
+          height={height}
           zoom={withZoomPicker ? zoom : undefined}
           onZoomChange={setZoom}
           chartTitle={chartTitle}
@@ -445,7 +438,7 @@ const NumericChart: FC<Props> = ({
             <VictoryChart
               domain={{ y: yDomain, x: adjustedXDomain }}
               width={chartWidth}
-              height={chartHeight}
+              height={height}
               theme={actualTheme}
               padding={{
                 right: isEmbedded ? 10 : maxRightPadding,
