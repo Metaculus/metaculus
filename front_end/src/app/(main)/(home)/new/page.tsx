@@ -18,6 +18,8 @@ import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
 import { NotebookPost } from "@/types/post";
 import ResearchAndUpdates from "./components/research_and_updates";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
+import AllCategoriesSection from "./components/all_categories_section";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -28,6 +30,7 @@ export default async function Home() {
 
   const sidebarItems = await serverMiscApi.getSidebarItems();
   const homepagePosts = await ServerPostsApi.getPostsForHomepage();
+  const categories = await ServerProjectsApi.getHomepageCategories();
 
   const postNotebooks = homepagePosts.filter(
     (post) => !!post.notebook
@@ -62,6 +65,9 @@ export default async function Home() {
       </Suspense>
       <Suspense>
         <ResearchAndUpdates posts={postNotebooks} />
+      </Suspense>
+      <Suspense>
+        <AllCategoriesSection categories={categories} />
       </Suspense>
     </main>
   );
