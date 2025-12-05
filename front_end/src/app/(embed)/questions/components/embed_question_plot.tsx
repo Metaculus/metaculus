@@ -4,10 +4,17 @@ import { isQuestionPost } from "@/utils/questions/helpers";
 
 type Props = {
   post: PostWithForecasts;
+  chartHeight?: number;
 };
 
-const EmbedQuestionPlot: React.FC<Props> = ({ post }) => {
-  return <>{isQuestionPost(post) && <DetailedQuestionCard post={post} />}</>;
+const EmbedQuestionPlot: React.FC<Props> = ({ post, chartHeight }) => {
+  return (
+    <>
+      {isQuestionPost(post) && (
+        <DetailedQuestionCard post={post} embedChartHeight={chartHeight} />
+      )}
+    </>
+  );
 };
 
 export default EmbedQuestionPlot;
