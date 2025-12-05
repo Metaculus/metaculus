@@ -11,7 +11,7 @@ import RegistrationContainer from "./components/registration-container";
 export const metadata: Metadata = {
   title: "Bridgewater x Metaculus Forecasting Contest",
   description:
-    "Register to forecast, explore opportunities with Bridgewater Associates, and compete for $25,000 in prizes!",
+    "Register to forecast, explore opportunities with Bridgewater Associates, and compete for $30,000 in prizes!",
 };
 
 /**
