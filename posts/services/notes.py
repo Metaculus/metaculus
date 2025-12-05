@@ -11,6 +11,9 @@ def update_private_note(user: User, post: Post, text: str):
     if not snapshot:
         raise ValidationError("User post snapshot does not exist")
 
+    if not text and not snapshot.private_note:
+        return
+
     snapshot.private_note = text
     snapshot.private_note_updated_at = timezone.now()
 
