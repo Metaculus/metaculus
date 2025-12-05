@@ -1,8 +1,9 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
@@ -180,6 +181,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.status,
   ]);
 
+  const isEmbed = useIsEmbedMode();
+
   return (
     <div
       className={cn(
@@ -238,6 +241,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                     : cursorTooltip
                 }
                 isConsumerView={isConsumerView}
+                isEmbedded={isEmbed}
               />
             </div>
           </div>
@@ -281,6 +285,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                   : cursorTooltip
               }
               isConsumerView={isConsumerView}
+              isEmbedded={isEmbed}
             />
           </div>
         </>
@@ -323,6 +328,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 : cursorTooltip
             }
             isConsumerView={isConsumerView}
+            isEmbedded={isEmbed}
           />
         </div>
       )}
