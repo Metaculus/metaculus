@@ -40,6 +40,7 @@ from posts.services.common import (
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
+from posts.services.notes import update_private_note
 from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -638,7 +639,7 @@ def random_post_id(request):
 @api_view(["POST"])
 def repost_api_view(request, pk):
     """
-    Boots/Bury post
+    Make a repost into specific project
     """
 
     user = request.user
@@ -660,5 +661,26 @@ def repost_api_view(request, pk):
     ObjectPermission.can_repost_into_project(permission, raise_exception=True)
 
     make_repost(post, project)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def private_note_api_view(request, pk):
+    """
+    Make a private note
+    """
+
+    user = request.user
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    text = serializers.CharField(max_length=10_000, allow_blank=True).run_validation(
+        request.data.get("text") or ""
+    )
+    update_private_note(request.user, post, text)
 
     return Response(status=status.HTTP_204_NO_CONTENT)

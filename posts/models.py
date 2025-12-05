@@ -957,6 +957,9 @@ class PostUserSnapshot(models.Model):
         null=True, blank=True, db_index=True
     )  # Jeffrey's Divergence
 
+    private_note = models.TextField(default="", blank=True)
+    private_note_updated_at = models.DateTimeField(null=True, blank=True)
+
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)
     # divergence_asymmetric = models.FloatField(null=True, blank=True)

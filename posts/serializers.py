@@ -426,6 +426,15 @@ def serialize_post(
             {
                 "unread_comment_count": unread_comment_count,
                 "last_viewed_at": snapshot.viewed_at,
+                # User private notes
+                "private_note": (
+                    {
+                        "text": snapshot.private_note,
+                        "updated_at": snapshot.updated_at,
+                    }
+                    if snapshot.private_note
+                    else None
+                ),
             }
         )
 
