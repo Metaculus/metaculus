@@ -1778,5 +1778,11 @@
   "leaderboardDataNotAvailable": "Údaje o žebříčku nejsou momentálně k dispozici, prosím, zkontrolujte později!",
   "viewLess": "Zobrazit méně",
   "explore": "Prozkoumat",
+  "company": "Společnost",
+  "resources": "Zdroje",
+  "publicBenefitCorporation": "Obecně prospěšná společnost",
+  "tournamentsForAIBots": "Turnaje pro AI roboty",
+  "futureEval": "Budoucí posouzení",
+  "launchATournament": "Spusťte turnaj",
   "thousandsOfOpenQuestions": "10 000+ otevřených otázek"
 }

@@ -1775,5 +1775,11 @@
   "leaderboardDataNotAvailable": "排行榜數據目前不可用，請稍後再檢查！",
   "viewLess": "查看較少",
   "explore": "探索",
+  "company": "公司",
+  "resources": "資源",
+  "publicBenefitCorporation": "公益公司",
+  "tournamentsForAIBots": "AI 機器人比賽",
+  "futureEval": "未來評估",
+  "launchATournament": "發起比賽",
   "thousandsOfOpenQuestions": "10,000+ 開放問題"
 }

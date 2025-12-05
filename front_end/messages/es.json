@@ -1778,5 +1778,11 @@
   "leaderboardDataNotAvailable": "Datos de clasificación actualmente no disponibles, ¡por favor vuelva pronto!",
   "viewLess": "Ver menos",
   "explore": "Explorar",
+  "company": "Empresa",
+  "resources": "Recursos",
+  "publicBenefitCorporation": "Corporación de Beneficio Público",
+  "tournamentsForAIBots": "Torneos para bots de IA",
+  "futureEval": "EvaluaciónFutura",
+  "launchATournament": "Iniciar un Torneo",
   "thousandsOfOpenQuestions": "10,000+ preguntas abiertas"
 }

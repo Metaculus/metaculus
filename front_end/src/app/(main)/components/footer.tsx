@@ -1,192 +1,346 @@
 "use client";
 
-import { faTwitter, faDiscord } from "@fortawesome/free-brands-svg-icons";
+import { faXTwitter, faDiscord } from "@fortawesome/free-brands-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Image from "next/image";
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOptions,
+  ListboxOption,
+} from "@headlessui/react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { FC } from "react";
 
+import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
+import { APP_LANGUAGES } from "@/components/language_menu";
 import { useModal } from "@/contexts/modal_context";
+import useAppTheme from "@/hooks/use_app_theme";
+import useMounted from "@/hooks/use_mounted";
+import { AppTheme } from "@/types/theme";
+import cn from "@/utils/core/cn";
+import { logError } from "@/utils/core/errors";
+
+const MetaculusTextLogo: FC<{ className?: string }> = ({ className }) => (
+  <svg
+    width="91"
+    height="19"
+    viewBox="0 0 91 19"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <g clipPath="url(#clip0_5300_16423)">
+      <path
+        d="M2.12522 18.1733V5.34029L4.25043 18.1733H5.34029L7.46551 5.34029V18.1733H9.64522V0H6.59362L4.79536 9.0458L2.9971 0H0V18.1733H2.12522ZM17.3741 18.3641C19.4993 18.3641 20.6709 17.0562 20.6709 14.6858L20.6705 14.4909C20.6694 14.3063 20.6644 14.1383 20.6437 13.4325H18.3005V14.5768C18.3005 15.6939 18.028 16.1843 17.4014 16.1843C16.8019 16.1843 16.5567 15.7757 16.5567 14.7948V11.7977H20.6437V7.81971C20.6437 5.72174 19.4448 4.44116 17.4558 4.44116C15.2761 4.44116 14.1863 5.69449 14.1863 8.22841V14.5496C14.1863 15.8029 14.377 16.5386 14.9219 17.2197C15.5214 17.9826 16.3387 18.3641 17.3741 18.3641ZM18.2732 9.91768H16.5567V7.62899C16.5567 7.00232 16.8837 6.62087 17.4286 6.62087C17.9735 6.62087 18.2732 6.97507 18.2732 7.62899V9.91768ZM28.5633 18.3641C28.9447 18.3641 29.2444 18.3096 29.9256 18.1733V15.9936L29.4897 16.0209C28.645 16.0209 28.2636 15.6394 28.2636 14.7675V6.81159H29.9256V4.63188H28.2636V0.926377H25.8931V4.63188H24.7488V6.81159H25.8931V15.5849C25.8931 17.4104 26.8195 18.3641 28.5633 18.3641ZM35.9107 18.3641C36.7009 18.3641 37.3548 17.9554 37.9269 17.0835C37.9542 17.4922 38.0087 17.9009 38.0904 18.1733H40.5426C40.3367 17.53 40.301 17.1783 40.2977 16.1772L40.2974 7.68348C40.2974 5.58551 39.2075 4.44116 37.2185 4.44116C35.9925 4.44116 35.0661 4.93159 34.5484 5.88522C34.1942 6.51188 34.058 7.13855 33.9217 8.60986H36.2104C36.3194 6.97507 36.4829 6.62087 37.1913 6.62087C37.818 6.62087 37.9269 6.81159 37.9269 7.84696V9.37275C37.6817 9.53623 37.5183 9.64522 37.4638 9.67247C35.5565 10.9258 35.5565 10.9258 34.9843 11.5525C34.1942 12.4516 33.84 13.487 33.84 14.931C33.84 17.1925 34.5484 18.3641 35.9107 18.3641ZM36.9461 16.1571C36.4556 16.1571 36.2104 15.6667 36.2104 14.7403C36.2104 13.1872 36.6464 12.2881 37.9269 11.2255V15.4487C37.6 15.9391 37.3003 16.1571 36.9461 16.1571ZM47.999 18.3641C50.1515 18.3641 51.3231 17.0562 51.3231 14.6586L51.3228 14.506C51.3214 14.2822 51.3136 14.0923 51.2686 13.2145H48.9254V14.5768C48.9254 15.7757 48.7074 16.1843 48.0263 16.1843C47.4269 16.1843 47.1816 15.7757 47.1816 14.7948V8.01044C47.1816 7.02957 47.4269 6.62087 48.0263 6.62087C48.7074 6.62087 48.9254 7.02957 48.9254 8.22841V9.37275H51.2686C51.3122 8.65345 51.3209 8.45728 51.3227 8.26808L51.3231 8.11942C51.3231 5.74899 50.1242 4.44116 47.999 4.44116C46.9637 4.44116 46.1463 4.82261 45.5469 5.58551C45.0019 6.23942 44.8112 6.97507 44.8112 8.25565V14.5496C44.8112 15.8301 45.0019 16.5658 45.5469 17.2197C46.1463 17.9826 46.9637 18.3641 47.999 18.3641ZM57.4172 18.3641C58.0983 18.3641 58.6433 18.0371 59.6241 17.0017L59.8149 18.1733H61.9946V4.63188H59.6241V15.6394C59.1337 16.0481 58.8885 16.1843 58.5615 16.1843C58.1528 16.1843 57.9621 15.8574 57.9621 15.1762V4.63188H55.5917V15.258C55.5917 16.6203 55.6734 17.138 55.9731 17.6012C56.2456 18.0371 56.845 18.3641 57.4172 18.3641ZM68.9061 18.1733V0H66.5356V18.1733H68.9061ZM75.2454 18.3641C75.9266 18.3641 76.4715 18.0371 77.4524 17.0017L77.6431 18.1733H79.8228V4.63188H77.4524V15.6394C76.9619 16.0481 76.7167 16.1843 76.3897 16.1843C75.9811 16.1843 75.7903 15.8574 75.7903 15.1762V4.63188H73.4199V15.258C73.4199 16.6203 73.5016 17.138 73.8013 17.6012C74.0738 18.0371 74.6732 18.3641 75.2454 18.3641ZM87.0612 18.3641C89.023 18.3641 90.3308 16.9745 90.3308 14.8765C90.3308 13.5142 89.8131 12.5061 88.3691 10.9803L87.4155 9.99942C86.6798 9.20928 86.4346 8.71884 86.4346 7.90145C86.4346 7.00232 86.6798 6.62087 87.2247 6.62087C87.7424 6.62087 88.0149 7.02957 88.0149 7.84696V8.03768L90.2763 7.8742C90.2763 7.00232 90.2218 6.59362 90.0311 6.07594C89.6224 5.04058 88.6688 4.44116 87.3882 4.44116C85.2085 4.44116 84.1186 5.58551 84.1186 7.84696C84.1186 9.26377 84.6363 10.4899 85.6717 11.5797L86.5981 12.5333C87.7152 13.7049 87.9604 14.1681 87.9604 15.0128C87.9604 15.7212 87.6062 16.1843 87.0612 16.1843C86.4891 16.1843 86.1621 15.7484 86.1621 15.0128C86.1621 14.8765 86.1621 14.7948 86.1894 14.5768L83.9007 14.7403C83.8734 14.8765 83.8734 14.931 83.8734 15.0672C83.8734 17.0835 85.0995 18.3641 87.0612 18.3641Z"
+        fill="#F7F7F8"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_5300_16423">
+        <rect width="90.3308" height="18.3641" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const ComputerIcon: FC<{ className?: string }> = ({ className }) => (
+  <svg
+    width="21"
+    height="12"
+    viewBox="0 0 21 12"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path d="M2.625 0C1.17525 0 0 1.175 0 2.625V7.875C0 9.325 1.17525 10.5 2.625 10.5H8.75V11.375H6.125V12H14.875V11.375H12.25V10.5H18.375C19.825 10.5 21 9.325 21 7.875V2.625C21 1.175 19.825 0 18.375 0H2.625ZM2.625 0.875H18.375C19.35 0.875 20.125 1.65 20.125 2.625V7.875C20.125 8.85 19.35 9.625 18.375 9.625H2.625C1.65 9.625 0.875 8.85 0.875 7.875V2.625C0.875 1.65 1.65 0.875 2.625 0.875Z" />
+  </svg>
+);
+
+type FooterLink =
+  | { href: string; labelKey: string; isModal?: false; external?: false }
+  | { labelKey: string; isModal: true; href?: undefined; external?: false }
+  | { href: string; labelKey: string; external: true; isModal?: false };
+
+const FOOTER_LINKS: Record<string, FooterLink[]> = {
+  explore: [
+    { href: "/questions", labelKey: "questions" },
+    { href: "/tournaments", labelKey: "tournaments" },
+    { href: "/aib", labelKey: "tournamentsForAIBots" },
+    { href: "/futureeval", labelKey: "futureEval" },
+  ],
+  services: [
+    { href: "/services#launch-a-tournament", labelKey: "launchATournament" },
+    { href: "/services#private-instances", labelKey: "privateInstances" },
+    { href: "/services#pro-forecasters", labelKey: "proForecasters" },
+  ],
+  company: [
+    { href: "/about/", labelKey: "about" },
+    { labelKey: "contact", isModal: true },
+    {
+      href: "https://apply.workable.com/metaculus",
+      labelKey: "careers",
+      external: true,
+    },
+    { href: "/faq", labelKey: "faq" },
+  ],
+  resources: [
+    { href: "/help/prediction-resources", labelKey: "forecastingResources" },
+    { href: "/press", labelKey: "forJournalists" },
+    { href: "/api", labelKey: "api" },
+  ],
+};
+
+const THEME_OPTIONS: { value: AppTheme; labelKey: string }[] = [
+  { value: AppTheme.System, labelKey: "settingsThemeSystemDefault" },
+  { value: AppTheme.Light, labelKey: "settingsThemeLightMode" },
+  { value: AppTheme.Dark, labelKey: "settingsThemeDarkMode" },
+];
+
+const FooterLinkColumn: FC<{
+  title: string;
+  links: FooterLink[];
+  onContactClick?: () => void;
+}> = ({ title, links, onContactClick }) => {
+  const t = useTranslations();
+
+  return (
+    <div className="flex flex-col gap-3 text-sm">
+      <span className="font-bold leading-4 text-gray-500">{title}</span>
+      {links.map((link, index) => {
+        if (link.isModal) {
+          return (
+            <button
+              key={index}
+              type="button"
+              className="text-left font-medium leading-4 text-gray-300 no-underline hover:text-gray-200"
+              onClick={onContactClick}
+            >
+              {t(link.labelKey as Parameters<typeof t>[0])}
+            </button>
+          );
+        }
+        if (link.external) {
+          return (
+            <a
+              key={index}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium leading-4 text-gray-300 no-underline hover:text-gray-200"
+            >
+              {t(link.labelKey as Parameters<typeof t>[0])}
+            </a>
+          );
+        }
+        return (
+          <Link
+            key={index}
+            href={link.href}
+            className="font-medium leading-4 text-gray-300 no-underline hover:text-gray-200"
+          >
+            {t(link.labelKey as Parameters<typeof t>[0])}
+          </Link>
+        );
+      })}
+    </div>
+  );
+};
+
+const LanguageSelector: FC = () => {
+  const locale = useLocale();
+  const currentLanguage =
+    APP_LANGUAGES.find((l) => l.locale === locale) ?? APP_LANGUAGES[0]!;
+
+  const handleLanguageChange = (newLocale: string) => {
+    updateLanguagePreference(newLocale, false)
+      .then(() => window.location.reload())
+      .catch(logError);
+  };
+
+  return (
+    <Listbox value={locale} onChange={handleLanguageChange}>
+      <div className="relative">
+        <ListboxButton className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
+          <span className="flex items-center text-base font-bold">
+            <span className="text-blue-800">a</span>
+            <span className="text-gray-400">/</span>
+            <span className="text-salmon-600">文</span>
+          </span>
+          <span>{currentLanguage.name}</span>
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className="size-3 text-gray-500"
+          />
+        </ListboxButton>
+        <ListboxOptions className="absolute bottom-full z-50 mb-1 w-full min-w-[160px] overflow-hidden rounded-lg border border-gray-300 bg-white py-1 shadow-lg">
+          {APP_LANGUAGES.map((language) => (
+            <ListboxOption
+              key={language.locale}
+              value={language.locale}
+              className={({ selected }) =>
+                cn(
+                  "cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100",
+                  selected && "bg-gray-100 font-medium"
+                )
+              }
+            >
+              {language.name}
+            </ListboxOption>
+          ))}
+        </ListboxOptions>
+      </div>
+    </Listbox>
+  );
+};
+
+const ThemeSelector: FC = () => {
+  const t = useTranslations();
+  const mounted = useMounted();
+  const { themeChoice, setTheme } = useAppTheme();
+
+  const currentTheme = mounted ? themeChoice : AppTheme.System;
+  const currentOption =
+    THEME_OPTIONS.find((opt) => opt.value === currentTheme) ??
+    THEME_OPTIONS[0]!;
+
+  const handleThemeChange = (value: AppTheme) => {
+    setTheme(value);
+  };
+
+  return (
+    <Listbox value={currentTheme} onChange={handleThemeChange}>
+      <div className="relative">
+        <ListboxButton className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
+          <ComputerIcon className="size-5 text-gray-700" />
+          <span>{t(currentOption.labelKey as Parameters<typeof t>[0])}</span>
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className="size-3 text-gray-500"
+          />
+        </ListboxButton>
+        <ListboxOptions className="absolute bottom-full z-50 mb-1 w-full min-w-[180px] overflow-hidden rounded-lg border border-gray-300 bg-white py-1 shadow-lg">
+          {THEME_OPTIONS.map((option) => (
+            <ListboxOption
+              key={option.value}
+              value={option.value}
+              className={({ selected }) =>
+                cn(
+                  "cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100",
+                  selected && "bg-gray-100 font-medium"
+                )
+              }
+            >
+              {t(option.labelKey as Parameters<typeof t>[0])}
+            </ListboxOption>
+          ))}
+        </ListboxOptions>
+      </div>
+    </Listbox>
+  );
+};
 
 const Footer: FC = () => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
+  const handleContactClick = () => setCurrentModal({ type: "contactUs" });
+
   return (
-    <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-gray-0">
-      <div className="flex min-w-72 max-w-96 flex-1 justify-evenly px-4 pb-0 pt-4">
-        <ul className="mr-3">
-          <li className="my-2">
-            <Link className="capitalize no-underline" href="/about/">
-              {t("about")}
-            </Link>
-          </li>
-          <li className="my-2">
-            <Link className="no-underline" href="/api">
-              {t("api")}
-            </Link>
-          </li>
-        </ul>
-        <ul className="mr-3">
-          <li className="my-2">
-            <Link className="no-underline" href="/faq">
-              {t("faq")}
-            </Link>
-          </li>
-          <li className="my-2">
-            <a
-              className="capitalize no-underline"
-              href="/help/prediction-resources"
-            >
-              {t("forecastingResources")}
-            </a>
-          </li>
-          <li className="my-2">
-            <Link className="capitalize no-underline" href="/press">
-              {t("forJournalists")}
-            </Link>
-          </li>
-        </ul>
-        <ul className="mr-3">
-          <li className="my-2">
-            <button
-              type="button"
-              className="text-left capitalize no-underline"
-              onClick={() => setCurrentModal({ type: "contactUs" })}
-            >
-              {t("contact")}
-            </button>
-          </li>
-          <li className="my-2">
-            <a
-              className="no-underline"
-              href="https://apply.workable.com/metaculus"
-            >
-              {t("careers")}
-            </a>
-          </li>
-          <div className="flex flex-row gap-2">
-            <li className="my-2">
-              <a
-                className="no-underline"
-                href="https://twitter.com/metaculus"
-                aria-label={t("metaculusOnTwitter")}
-                target="_blank"
-              >
-                <FontAwesomeIcon icon={faTwitter} size="lg"></FontAwesomeIcon>
-              </a>
-            </li>
-            <li className="my-2">
-              <a
-                className="no-underline"
-                href="https://discord.gg/7GEKtpnVdJ"
-                aria-label={t("metaculusOnDiscord")}
-                target="_blank"
-              >
-                <FontAwesomeIcon icon={faDiscord} size="lg"></FontAwesomeIcon>
-              </a>
-            </li>
+    <footer className="flex w-full flex-col gap-16 bg-gray-900 px-4 py-20 text-gray-300 lg:items-center lg:px-20">
+      {/* Main content */}
+      <div className="flex w-full max-w-[1352px] flex-col gap-16 lg:flex-row lg:gap-4">
+        {/* Left column - Logo, description, socials, selectors */}
+        <div className="flex w-full max-w-[344px] flex-col gap-8 lg:gap-16">
+          {/* Logo and description */}
+          <div className="flex max-w-[241px] flex-col items-start gap-3">
+            <MetaculusTextLogo className="h-[24px] w-auto text-gray-300" />
+            <p className="my-0 text-sm font-medium leading-5 text-gray-300">
+              {t("publicBenefitCorporation")}
+            </p>
+            <p className="my-0 text-sm font-medium leading-5 text-gray-300">
+              {t("metaculusDescription")}
+            </p>
           </div>
-        </ul>
+
+          {/* Social icons */}
+          <div className="flex items-center gap-6">
+            <a
+              href="https://twitter.com/metaculus"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("metaculusOnTwitter")}
+              className="text-gray-200 no-underline hover:text-white"
+            >
+              <FontAwesomeIcon icon={faXTwitter} className="size-[18px]" />
+            </a>
+            <a
+              href="https://discord.gg/7GEKtpnVdJ"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("metaculusOnDiscord")}
+              className="text-gray-200 no-underline hover:text-white"
+            >
+              <FontAwesomeIcon icon={faDiscord} className="size-6" />
+            </a>
+          </div>
+
+          {/* Language and Theme selectors */}
+          <div className="flex gap-4">
+            <LanguageSelector />
+            <ThemeSelector />
+          </div>
+        </div>
+
+        {/* Right section - Link columns */}
+        <div className="flex flex-col gap-7 lg:flex-row lg:gap-[120px]">
+          {/* First row on mobile / all columns on desktop */}
+          <div className="flex gap-6 sm:gap-[120px]">
+            <FooterLinkColumn
+              title={t("explore")}
+              links={FOOTER_LINKS.explore!}
+            />
+            <FooterLinkColumn
+              title={t("services")}
+              links={FOOTER_LINKS.services!}
+            />
+          </div>
+          {/* Second row on mobile */}
+          <div className="flex gap-[122px] sm:gap-[218px] lg:gap-[120px]">
+            <FooterLinkColumn
+              title={t("company")}
+              links={FOOTER_LINKS.company!}
+              onContactClick={handleContactClick}
+            />
+            <FooterLinkColumn
+              title={t("resources")}
+              links={FOOTER_LINKS.resources!}
+            />
+          </div>
+        </div>
       </div>
 
-      <div id="newsletter-form"></div>
-
-      <div className="w-full px-6 pb-0 pt-1 text-center text-xs text-gray-600-dark lg:w-auto lg:pt-4 lg:text-left">
-        <a
-          className="my-1 inline px-2 no-underline lg:block lg:px-0"
+      {/* Bottom links */}
+      <div className="flex gap-8 text-sm font-medium leading-4 text-gray-300">
+        <Link
           href="/help/guidelines/"
+          className="no-underline hover:text-gray-200"
         >
           {t("guidelines")}
-        </a>
-        <a
-          className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
+        </Link>
+        <Link
           href="/privacy-policy/"
+          className="no-underline hover:text-gray-200"
         >
           {t("privacyPolicy")}
-        </a>
-        <a
-          className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
+        </Link>
+        <Link
           href="/terms-of-use/"
+          className="no-underline hover:text-gray-200"
         >
           {t("termsOfUse")}
-        </a>
-      </div>
-
-      <div className="mt-3 flex w-full items-center justify-around bg-gray-600-dark py-0.5 sm:py-1">
-        <a
-          className="relative flex h-5 w-[92px]"
-          href="https://www.forbes.com/sites/erikbirkeneder/2020/06/01/do-crowdsourced-predictions-show-the-wisdom-of-humans/"
-        >
-          <Image
-            className="object-contain px-2 invert"
-            src="https://cdn.metaculus.com/static/media/Forbes.webp"
-            alt="Forbes"
-            fill
-            sizes="(max-width: 768px) 92px, 20vw"
-          />
-        </a>
-        <a
-          className="relative flex h-5 w-[85px]"
-          href="https://blogs.scientificamerican.com/observations/prediction-tools-can-save-lives-in-the-covid-19-crisis/"
-        >
-          <Image
-            className="object-contain px-2 invert"
-            src="https://cdn.metaculus.com/static/media/Scientific_American.webp"
-            alt="Scientific American"
-            fill
-            sizes="(max-width: 768px) 85px, 20vw"
-          />
-        </a>
-        <a
-          className="relative flex h-5 w-[80px]"
-          href="https://time.com/5848271/superforecasters-covid-19/"
-        >
-          <Image
-            className="w-auto max-w-[80px] object-contain px-2 invert"
-            src="https://cdn.metaculus.com/static/media/time.webp"
-            alt="Time"
-            fill
-            sizes="(max-width: 768px) 80px, 20vw"
-          />
-        </a>
-        <a
-          className="relative flex h-5 w-[60px]"
-          href="https://www.vox.com/future-perfect/2020/4/8/21210193/coronavirus-forecasting-models-predictions"
-        >
-          <Image
-            className="w-auto max-w-[60px] object-contain px-2 invert"
-            src="https://cdn.metaculus.com/static/media/vox.webp"
-            alt="Vox"
-            fill
-            sizes="(max-width: 768px) 60px, 20vw"
-          />
-        </a>
-        <a
-          className="relative flex h-5 w-[125px]"
-          href="https://news.yale.edu/2016/11/02/metaculus-prediction-website-eye-science-and-technology"
-        >
-          <Image
-            className="w-auto max-w-[125px] object-contain px-2 invert"
-            src="https://cdn.metaculus.com/static/media/yale.webp"
-            alt="Yale News"
-            fill
-            sizes="(max-width: 768px) 125px, 20vw"
-          />
-        </a>
-        <a
-          className="relative flex h-5 w-[96px]"
-          href="https://www.nature.com/news/the-power-of-prediction-markets-1.20820"
-        >
-          <Image
-            className="w-auto max-w-[96px] object-contain px-2 invert"
-            src="https://cdn.metaculus.com/static/media/nature.webp"
-            alt="Nature"
-            fill
-            sizes="(max-width: 768px) 96px, 20vw"
-          />
-        </a>
+        </Link>
       </div>
     </footer>
   );
