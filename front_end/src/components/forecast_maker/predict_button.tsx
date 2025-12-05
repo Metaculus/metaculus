@@ -19,6 +19,7 @@ type Props = {
   isDisabled?: boolean;
   predictionExpirationChip?: ReactNode;
   onPredictionExpirationClick?: () => void;
+  useReaffirmAll?: boolean;
 };
 
 const PredictButton: FC<Props> = ({
@@ -31,6 +32,7 @@ const PredictButton: FC<Props> = ({
   isDisabled,
   predictionExpirationChip,
   onPredictionExpirationClick,
+  useReaffirmAll = false,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -61,11 +63,11 @@ const PredictButton: FC<Props> = ({
     }
 
     if (hasUserForecast && !isDirty && isUserForecastActive) {
-      return t("reaffirm");
+      return useReaffirmAll ? t("reaffirmAll") : t("reaffirm");
     }
 
     return predictLabel ?? t("saveChange");
-  }, [hasUserForecast, isDirty, predictLabel, t, user, isUserForecastActive]);
+  }, [hasUserForecast, isDirty, predictLabel, t, user, isUserForecastActive, useReaffirmAll]);
 
   const handleClick = () => {
     if (!user) {

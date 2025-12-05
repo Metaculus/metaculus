@@ -443,6 +443,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               onPredictionExpirationClick={() =>
                 setIsForecastExpirationModalOpen(true)
               }
+              useReaffirmAll={true}
             />
           </div>
 
