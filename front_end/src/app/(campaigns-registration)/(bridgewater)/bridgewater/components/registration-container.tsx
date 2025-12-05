@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { RegistrationForm } from "@/app/(campaigns-registration)/(bridgewater)/bridgewater-2024/components/registration-forms";
 import { CurrentUser } from "@/types/users";
@@ -26,6 +26,8 @@ const RegistrationContainer: FC<RegistrationContainerProps> = ({
   const router = useRouter();
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [shouldScrollToStatus, setShouldScrollToStatus] = useState(false);
+  const eligibilityStatusRef = useRef<HTMLDivElement>(null);
 
   const campaigns = currentUser?.registered_campaigns.filter(
     ({ key }) => key === CAMPAIGN_KEY
@@ -39,9 +41,24 @@ const RegistrationContainer: FC<RegistrationContainerProps> = ({
   const handleRegistrationSuccess = () => {
     setIsRegistered(true);
     setShowRegistrationModal(false);
+    setShouldScrollToStatus(true);
     // Refresh the page to update the user's registered campaigns
     router.refresh();
   };
+
+  // Auto-scroll to eligibility status after registration
+  useEffect(() => {
+    if (shouldScrollToStatus && eligibilityStatusRef.current) {
+      // Small delay to ensure the DOM has updated
+      setTimeout(() => {
+        eligibilityStatusRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        setShouldScrollToStatus(false);
+      }, 100);
+    }
+  }, [shouldScrollToStatus]);
 
   // Show eligibility status if registered
   if (registered) {
@@ -49,7 +66,9 @@ const RegistrationContainer: FC<RegistrationContainerProps> = ({
       | { undergrad: boolean }
       | undefined;
     return (
-      <EligibilityStatus eligibleBoth={campaignDetails?.undergrad ?? false} />
+      <div ref={eligibilityStatusRef}>
+        <EligibilityStatus eligibleBoth={campaignDetails?.undergrad ?? false} />
+      </div>
     );
   }
 
