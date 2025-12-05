@@ -8,6 +8,8 @@ import { FC, PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
 
+import { BRIDGEWATER_2026 } from "../constants";
+
 interface EligibilityStatusProps {
   eligibleBoth: boolean;
 }
@@ -69,14 +71,14 @@ const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
       <p className="mb-4 text-balance text-center text-base text-white dark:text-blue-50-dark">
         Ready to get started? Try the{" "}
         <Link
-          href="/tournament/bridgewater/"
+          href={BRIDGEWATER_2026.practiceQuestionsUrl}
           className="font-semibold text-white underline dark:text-blue-50-dark"
         >
           forecasting tutorial
         </Link>{" "}
         or explore some{" "}
         <Link
-          href="/tournament/bridgewater/"
+          href={BRIDGEWATER_2026.practiceQuestionsUrl}
           className="font-semibold text-white underline dark:text-blue-50-dark"
         >
           warmup questions
@@ -90,7 +92,7 @@ const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
           Displayed prize-pool eligibility is based solely on your undergraduate
           status. For full eligibility details see the{" "}
           <Link
-            href="/bridgewater/contest-rules"
+            href={BRIDGEWATER_2026.contestRulesUrl}
             className="text-blue-200 underline hover:text-blue-100 dark:text-blue-200-dark hover:dark:text-blue-100-dark"
           >
             contest rules
