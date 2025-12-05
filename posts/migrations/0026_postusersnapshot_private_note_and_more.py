@@ -59,7 +59,7 @@ def migrate_private_comments(apps, schema_editor):
 
         for comment in group_comments:
             date_str = comment.created_at.strftime("%Y-%m-%d")
-            note_parts.append(f"# Note from {date_str}\n{comment.text}")
+            note_parts.append(f"### Note from {date_str}\n{comment.text}")
             last_dt = comment.created_at
             snapshot_id = comment.snapshot_id
             comments_id_delete.append(comment.id)
