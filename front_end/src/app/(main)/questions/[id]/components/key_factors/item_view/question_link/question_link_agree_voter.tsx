@@ -10,6 +10,8 @@ import { createCoherenceLink } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useModal } from "@/contexts/modal_context";
+import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
+import type { AggregateLinkVoteValue } from "@/services/api/coherence_links/coherence_links.shared";
 import { QuestionLinkDirection, QuestionLinkStrength } from "@/types/coherence";
 import { StrengthValues } from "@/types/comment";
 import { Question } from "@/types/question";
@@ -18,8 +20,10 @@ import cn from "@/utils/core/cn";
 import ThumbVoteButtons, { ThumbVoteSelection } from "../thumb_vote_buttons";
 
 type Props = {
+  aggregationId?: number;
   initialAgree?: number;
   initialDisagree?: number;
+  initialUserVote?: number | null;
   fromQuestion: Question;
   toQuestion: Question;
   defaultDirection: QuestionLinkDirection;
@@ -29,9 +33,19 @@ type Props = {
   className?: string;
 };
 
+const mapUserVoteToSelection = (
+  v: number | null | undefined
+): ThumbVoteSelection => {
+  if (v === 1) return "up";
+  if (v === -1) return "down";
+  return null;
+};
+
 const QuestionLinkAgreeVoter: FC<Props> = ({
+  aggregationId,
   initialAgree = 0,
   initialDisagree = 0,
+  initialUserVote = null,
   fromQuestion,
   toQuestion,
   defaultDirection,
@@ -46,16 +60,17 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
 
   const [agree, setAgree] = useState(initialAgree);
   const [disagree, setDisagree] = useState(initialDisagree);
-  const [selected, setSelected] = useState<ThumbVoteSelection>(null);
+  const [selected, setSelected] = useState<ThumbVoteSelection>(
+    mapUserVoteToSelection(initialUserVote)
+  );
   const [showCopyHint, setShowCopyHint] = useState(false);
 
   const hasPersonalCopy = useMemo(() => {
-    if (!fromQuestion.id || !toQuestion.id) {
-      return false;
-    }
+    if (!fromQuestion.id || !toQuestion.id) return false;
 
     const normalizePair = (a: number, b: number) => (a < b ? [a, b] : [b, a]);
     const [fromA, fromB] = normalizePair(fromQuestion.id, toQuestion.id);
+
     return coherenceLinks.data.some((link) => {
       const [linkA, linkB] = normalizePair(
         link.question1_id,
@@ -64,6 +79,29 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
       return linkA === fromA && linkB === fromB;
     });
   }, [fromQuestion.id, toQuestion.id, coherenceLinks.data]);
+
+  const pushVote = async (next: "agree" | "disagree" | null) => {
+    if (!aggregationId) return;
+
+    const vote: AggregateLinkVoteValue =
+      next === "agree" ? 1 : next === "disagree" ? -1 : null;
+
+    try {
+      const res = await ClientCoherenceLinksApi.voteAggregateCoherenceLink(
+        aggregationId,
+        vote
+      );
+
+      const up = res.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
+      const down = res.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
+
+      setAgree(up);
+      setDisagree(down);
+      setSelected(mapUserVoteToSelection(res.user_vote));
+    } catch (e) {
+      console.error("Failed to vote aggregate coherence link", e);
+    }
+  };
 
   const handleVote = (value: "agree" | "disagree") => {
     let next: "agree" | "disagree" | null = value;
@@ -90,6 +128,8 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
 
     setShowCopyHint(!hasPersonalCopy && next === "agree");
     onChange?.(next);
+
+    void pushVote(next);
   };
 
   const openCopyModal = () => {

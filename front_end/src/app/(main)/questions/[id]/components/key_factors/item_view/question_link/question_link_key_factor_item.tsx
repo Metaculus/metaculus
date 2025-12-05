@@ -135,6 +135,15 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   const defaultDirection: QuestionLinkDirection =
     link.direction && link.direction < 0 ? "negative" : "positive";
 
+  const votesSummary = link.votes;
+
+  const initialAgree =
+    votesSummary?.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
+  const initialDisagree =
+    votesSummary?.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
+
+  const initialUserVote = votesSummary?.user_vote ?? null;
+
   return (
     <KeyFactorCardContainer
       id={id}
@@ -241,8 +250,10 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
         <>
           <hr className="my-0 bg-gray-500 opacity-20 dark:bg-gray-500-dark" />
           <QuestionLinkAgreeVoter
-            initialAgree={0}
-            initialDisagree={0}
+            aggregationId={link.id}
+            initialAgree={initialAgree}
+            initialDisagree={initialDisagree}
+            initialUserVote={initialUserVote}
             fromQuestion={fromQuestion}
             toQuestion={toQuestion}
             defaultDirection={defaultDirection}
