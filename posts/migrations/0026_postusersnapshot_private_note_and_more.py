@@ -59,7 +59,15 @@ def migrate_private_comments(apps, schema_editor):
 
         for comment in group_comments:
             date_str = comment.created_at.strftime("%Y-%m-%d")
-            note_parts.append(f"### Note from {date_str}\n{comment.text}")
+
+            # We have a lot of old auto-generated notes
+            # Migrated from the old site reminders, so to avoid making things messy,
+            # we keep the comment text without an extra title.
+            if comment.text.startswith("Note imported from date reminder"):
+                note_parts.append(comment.text)
+            else:
+                note_parts.append(f"### Note from {date_str}\n{comment.text}")
+
             last_dt = comment.created_at
             snapshot_id = comment.snapshot_id
             comments_id_delete.append(comment.id)
@@ -106,7 +114,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="postusersnapshot",
             name="private_note_updated_at",
-            field=models.DateTimeField(blank=True, null=True),
+            field=models.DateTimeField(blank=True, null=True, db_index=True),
         ),
         migrations.RunPython(migrate_private_comments, migrations.RunPython.noop),
     ]

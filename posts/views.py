@@ -24,6 +24,7 @@ from posts.serializers import (
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
     PostUpdateSerializer,
+    serialize_private_notes_many,
 )
 from posts.services.common import (
     create_post,
@@ -40,7 +41,7 @@ from posts.services.common import (
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
-from posts.services.notes import update_private_note
+from posts.services.notes import update_private_note, get_private_notes_feed
 from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -666,7 +667,7 @@ def repost_api_view(request, pk):
 
 
 @api_view(["POST"])
-def private_note_api_view(request, pk):
+def post_private_note_api_view(request, pk):
     """
     Make a private note
     """
@@ -684,3 +685,15 @@ def private_note_api_view(request, pk):
     update_private_note(request.user, post, text)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def private_notes_list_api_view(request: Request):
+    notes = get_private_notes_feed(user=request.user)
+
+    paginator = LimitOffsetPagination()
+    paginated_notes = paginator.paginate_queryset(notes, request)
+
+    data = serialize_private_notes_many(paginated_notes)
+
+    return paginator.get_paginated_response(data)

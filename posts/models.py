@@ -958,7 +958,7 @@ class PostUserSnapshot(models.Model):
     )  # Jeffrey's Divergence
 
     private_note = models.TextField(default="", blank=True)
-    private_note_updated_at = models.DateTimeField(null=True, blank=True)
+    private_note_updated_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)

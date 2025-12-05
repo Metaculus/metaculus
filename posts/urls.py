@@ -49,8 +49,13 @@ urlpatterns = [
     ),
     path(
         "posts/<int:pk>/private-note/",
-        views.private_note_api_view,
+        views.post_private_note_api_view,
         name="post-private-note",
+    ),
+    path(
+        "posts/private-notes/",
+        views.private_notes_list_api_view,
+        name="private-notes-list",
     ),
     path(
         "posts/subscriptions/",
