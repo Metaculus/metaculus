@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -71,6 +72,24 @@ def news_categories_list_api_view(request: Request):
             "posts_count": obj.posts_count,
             "is_subscribed": getattr(obj, "is_subscribed", False),
         }
+        for obj in qs.all()
+    ]
+
+    return Response(data)
+
+
+@cache_page(60 * 30)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def homepage_categories_list_api_view(request: Request):
+    qs = (
+        get_projects_qs(user=request.user)
+        .filter_category()
+        .annotate_top_n_post_titles()
+    )
+
+    data = [
+        {**CategorySerializer(obj).data, "posts": obj.top_n_post_titles}
         for obj in qs.all()
     ]
 
