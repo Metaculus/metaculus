@@ -7,13 +7,13 @@ import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import {
-  KeyFactorTileDriverDisplay,
-  KeyFactorTileNewsDisplay,
-  KeyFactorTileBaseRateTrendDisplay,
-  KeyFactorTileBaseRateFreqDisplay,
-  KeyFactorTileQuestionLinkDisplay,
+  KeyFactorTileDriverView,
+  KeyFactorTileNewsView,
+  KeyFactorTileBaseRateTrendView,
+  KeyFactorTileBaseRateFreqView,
+  KeyFactorTileQuestionLinkView,
   type Props as KfDisplayProps,
-} from "./key_factor_tile_display";
+} from "./key_factor_tile_view";
 
 type Props = {
   post: Pick<PostWithForecasts, "id" | "key_factors">;
@@ -22,20 +22,24 @@ type Props = {
 };
 
 const KF_COMPONENTS = {
-  driver: KeyFactorTileDriverDisplay,
-  news: KeyFactorTileNewsDisplay,
-  baseRateTrend: KeyFactorTileBaseRateTrendDisplay,
-  baseRateFreq: KeyFactorTileBaseRateFreqDisplay,
-  questionLink: KeyFactorTileQuestionLinkDisplay,
+  driver: KeyFactorTileDriverView,
+  news: KeyFactorTileNewsView,
+  baseRateTrend: KeyFactorTileBaseRateTrendView,
+  baseRateFreq: KeyFactorTileBaseRateFreqView,
+  questionLink: KeyFactorTileQuestionLinkView,
 } satisfies Record<string, React.FC<KfDisplayProps>>;
 
-function pickKfComponent(_kf: KeyFactor): React.FC<KfDisplayProps> {
+function pickKfComponent(kf: KeyFactor): React.FC<KfDisplayProps> {
+  const brType = kf.base_rate?.type;
+  if (brType === "trend") return KF_COMPONENTS.baseRateTrend;
+  if (brType === "frequency") return KF_COMPONENTS.baseRateFreq;
+
   return KF_COMPONENTS.driver;
 }
 
 const MAX_DEFAULT = 3;
 
-const KeyFactorsTileDisplay: React.FC<Props> = ({
+const KeyFactorsTileView: React.FC<Props> = ({
   post,
   maxItems = MAX_DEFAULT,
   className,
@@ -73,9 +77,6 @@ const KeyFactorsTileDisplay: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => onToggle(idx)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") onToggle(idx);
-                }}
                 aria-expanded={expanded}
                 className="w-full text-left"
               >
@@ -91,4 +92,4 @@ const KeyFactorsTileDisplay: React.FC<Props> = ({
 
 const score = (kf: KeyFactor) => (kf.freshness ?? 0) * 10;
 
-export default KeyFactorsTileDisplay;
+export default KeyFactorsTileView;

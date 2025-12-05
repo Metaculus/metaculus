@@ -62,6 +62,7 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   return (
     <>
       <SectionToggle
+        id="key-factors-section-toggle"
         detailElement={
           showCreateButton ? (
             <AddKeyFactorsButton

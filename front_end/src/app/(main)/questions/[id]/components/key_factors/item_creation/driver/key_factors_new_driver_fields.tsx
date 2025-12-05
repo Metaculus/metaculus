@@ -1,13 +1,11 @@
-import { faCog, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
-import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/add_modal/impact_direction_controls";
-import Button from "@/components/ui/button";
+import ImpactDirectionControls from "@/app/(main)/questions/[id]/components/key_factors/item_creation/driver/impact_direction_controls";
 import { Input } from "@/components/ui/form_field";
 import { ImpactMetadata } from "@/types/comment";
-import { KeyFactorDraft } from "@/types/key_factors";
+import { DriverDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import {
   inferEffectiveQuestionTypeFromPost,
@@ -15,25 +13,29 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
-import OptionTargetPicker from "../option_target_picker";
-import { driverTextSchema } from "../schemas";
+import OptionTargetPicker from "./option_target_picker";
+import { driverTextSchema } from "../../schemas";
+import KeyFactorsNewItemContainer from "../key_factors_new_item_container";
 
 type Props = {
-  draft: KeyFactorDraft;
-  setDraft: (d: KeyFactorDraft) => void;
+  draft: DriverDraft;
+  setDraft: (d: DriverDraft) => void;
   showXButton: boolean;
   onXButtonClick: () => void;
   post: PostWithForecasts;
+  showErrorsSignal?: number;
 };
 
-const DriverCreationForm: FC<Props> = ({
+const KeyFactorsNewDriverFields: FC<Props> = ({
   draft,
   setDraft,
   showXButton,
   onXButtonClick,
   post,
+  showErrorsSignal = 0,
 }) => {
   const t = useTranslations();
+  const [showLocalErrors, setShowLocalErrors] = useState(false);
   const questionTypeBase = inferEffectiveQuestionTypeFromPost(post);
   let questionType = questionTypeBase;
   let effectiveUnit = isQuestionPost(post) ? post.question.unit : undefined;
@@ -52,36 +54,28 @@ const DriverCreationForm: FC<Props> = ({
     return result.error.issues[0]?.message ?? null;
   }, [draft.driver.text]);
 
+  useEffect(() => {
+    if (showErrorsSignal > 0) {
+      setShowLocalErrors(true);
+    }
+  }, [showErrorsSignal]);
+
   return (
-    <div className="flex flex-col gap-3 rounded border border-blue-500 bg-blue-100 px-5 py-4 dark:border-blue-500-dark dark:bg-blue-100-dark">
-      <div className="flex justify-between">
-        <div className="flex items-center gap-2 text-xs text-blue-700 opacity-50 dark:text-blue-700-dark">
-          <FontAwesomeIcon icon={faCog} />
-          <span className="uppercase">{t("driver")}</span>
-        </div>
-        {showXButton && (
-          <Button variant="link" onClick={onXButtonClick}>
-            <FontAwesomeIcon
-              icon={faXmark}
-              className="size-4 text-salmon-600 dark:text-salmon-600-dark"
-            />
-          </Button>
-        )}
-      </div>
+    <KeyFactorsNewItemContainer
+      showDeleteButton={showXButton}
+      onDeleteButtonClick={onXButtonClick}
+      icon={faCog}
+      label={t("driver")}
+    >
       <Input
         value={draft.driver.text}
         placeholder={t("driverInputPlaceholder")}
-        onChange={(e) =>
+        onChange={(e) => {
+          if (!showLocalErrors) setShowLocalErrors(true);
           setDraft({
             ...draft,
             driver: { ...draft.driver, text: e.target.value },
-          })
-        }
-        onKeyDown={(e) => {
-          if (e.key === " ") e.stopPropagation();
-        }}
-        onKeyUp={(e) => {
-          if (e.key === " ") e.stopPropagation();
+          });
         }}
         className="grow rounded-none border-0 border-b border-blue-400 bg-transparent px-0 py-1 text-base text-blue-700 outline-0 placeholder:text-blue-700 placeholder:text-opacity-50 dark:border-blue-400-dark dark:text-blue-700-dark dark:placeholder:text-blue-700-dark"
       />
@@ -128,8 +122,8 @@ const DriverCreationForm: FC<Props> = ({
           }
         />
       </div>
-    </div>
+    </KeyFactorsNewItemContainer>
   );
 };
 
-export default DriverCreationForm;
+export default KeyFactorsNewDriverFields;
