@@ -10,6 +10,8 @@ type TruncatableQuestionTitleProps = HTMLAttributes<HTMLHeadingElement> & {
   revealOnHoverOrTap?: boolean;
 };
 
+const GRADIENT_EXTRA_PX = 12;
+
 const TruncatableQuestionTitle: React.FC<TruncatableQuestionTitleProps> = ({
   children,
   className,
@@ -25,6 +27,8 @@ const TruncatableQuestionTitle: React.FC<TruncatableQuestionTitleProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+  const [clampedHeight, setClampedHeight] = useState<number | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
 
   const hasClamp = maxLines > 0;
@@ -42,20 +46,23 @@ const TruncatableQuestionTitle: React.FC<TruncatableQuestionTitleProps> = ({
     const el = titleRef.current;
     if (!el || !hasClamp) {
       setIsTruncated(false);
+      setContentHeight(null);
+      setClampedHeight(null);
       return;
     }
 
     const checkTruncation = () => {
-      const truncated = el.scrollHeight > el.clientHeight + 1;
-      setIsTruncated(truncated);
+      const client = el.clientHeight;
+      const scroll = el.scrollHeight;
+
+      setClampedHeight(client);
+      setContentHeight(scroll);
+      setIsTruncated(scroll > client + 1);
     };
 
     checkTruncation();
 
-    const observer = new ResizeObserver(() => {
-      checkTruncation();
-    });
-
+    const observer = new ResizeObserver(checkTruncation);
     observer.observe(el);
     return () => observer.disconnect();
   }, [children, maxLines, hasClamp]);
@@ -76,6 +83,10 @@ const TruncatableQuestionTitle: React.FC<TruncatableQuestionTitleProps> = ({
   };
 
   const showOverlay = revealOnHoverOrTap && isTruncated && expanded;
+
+  const baseHeight = showOverlay ? contentHeight : clampedHeight;
+  const gradientHeight =
+    baseHeight != null ? baseHeight + GRADIENT_EXTRA_PX : undefined;
 
   return (
     <div
@@ -105,7 +116,11 @@ const TruncatableQuestionTitle: React.FC<TruncatableQuestionTitleProps> = ({
         {...rest}
         ref={titleRef}
         className={className}
-        style={{ ...clampStyle, ...style }}
+        style={{
+          ...clampStyle,
+          ...style,
+          ...(showOverlay ? { visibility: "hidden" } : {}),
+        }}
       >
         {children}
       </QuestionTitle>
@@ -120,10 +135,11 @@ const TruncatableQuestionTitle: React.FC<TruncatableQuestionTitleProps> = ({
 
           <div
             className={cn(
-              "pointer-events-none absolute inset-x-0 top-full z-10 h-10",
+              "pointer-events-none absolute inset-x-0 top-0 z-10",
               "bg-gradient-to-b from-blue-100/0 via-blue-100/90 to-blue-100",
               "dark:from-blue-100-dark/0 dark:via-blue-100-dark/90 dark:to-blue-100-dark"
             )}
+            style={gradientHeight ? { height: gradientHeight } : undefined}
           />
         </>
       )}
