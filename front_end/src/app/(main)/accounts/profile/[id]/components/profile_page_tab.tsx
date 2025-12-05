@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import { useAuth } from "@/contexts/auth_context";
 import { ProfilePageMode, UserProfile } from "@/types/users";
 
 type Props = {
@@ -12,7 +13,10 @@ type Props = {
 };
 const ProfilePageTabs: FC<Props> = ({ mode, profile }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const id = profile.id;
+  const isCurrentUser = user?.id === id;
+
   const managementModeButtons: GroupButton<ProfilePageMode>[] = [
     {
       label: t("overview"),
@@ -44,6 +48,14 @@ const ProfilePageTabs: FC<Props> = ({ mode, profile }) => {
       label: t("questions"),
       value: ProfilePageMode.Questions,
       href: `/accounts/profile/${id}?mode=${ProfilePageMode.Questions}`,
+    });
+  }
+
+  if (isCurrentUser) {
+    managementModeButtons.push({
+      label: t("privateNotes"),
+      value: ProfilePageMode.PrivateNotes,
+      href: `/accounts/profile/${id}?mode=${ProfilePageMode.PrivateNotes}`,
     });
   }
 

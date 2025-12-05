@@ -73,6 +73,7 @@ export enum ProfilePageMode {
   Medals = "medals",
   Comments = "comments",
   Questions = "questions",
+  PrivateNotes = "private_notes",
 }
 
 export enum InterfaceType {

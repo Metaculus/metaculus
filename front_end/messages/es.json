@@ -1666,5 +1666,11 @@
   "whatIsSpotPeerScore": "¿Qué es la Puntuación de Pares Puntual?",
   "whatIsSpotBaselineScore": "¿Qué es la Puntuación Base Puntual?",
   "chanceBaseline": "Línea base <secondary>de azar</secondary>",
+  "privateNote": "Nota privada",
+  "privateNoteUpdatedFrom": "desde <date></date>",
+  "savedAgo": "guardado <date></date>",
+  "loadMore": "Cargar más",
+  "noPrivateNotes": "No se encontraron notas privadas",
+  "privateNotes": "Notas privadas",
   "othersCount": "Otros ({count})"
 }

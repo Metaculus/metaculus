@@ -1663,5 +1663,11 @@
   "whatIsSpotPeerScore": "什麼是Spot同行分數？",
   "whatIsSpotBaselineScore": "什麼是Spot基線分數？",
   "chanceBaseline": "機會<secondary>基線</secondary>",
+  "privateNote": "私人筆記",
+  "privateNoteUpdatedFrom": "從 <date></date>",
+  "savedAgo": "已儲存 <date></date>",
+  "loadMore": "載入更多",
+  "noPrivateNotes": "未找到私人筆記",
+  "privateNotes": "私人筆記",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
