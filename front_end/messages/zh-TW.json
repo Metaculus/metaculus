@@ -1698,7 +1698,6 @@
   "referenceRequired": "需要參考資料",
   "rateNumeratorGte0": "分子必須 ≥ 0",
   "rateDenominatorGte1": "分母必須 ≥ 1",
-  "rateDenominatorGtNumerator": "分母必須大於分子",
   "yearOutOfRange": "年份必須介於 {min} 和 {max} 之間",
   "extrapolationRequired": "請選擇一種外推方法",
   "addDriverModalDescriptionMobile": "在下面輸入您的推動因素 - 盡量保持簡短明了。",
@@ -1738,5 +1737,6 @@
   "copyQuestionLinkImpactSuffix": "因果影響於：",
   "copyQuestionLinkStrengthLabel": "此影響的強度是：",
   "copyLinkTitle": "我們注意到您添加了一個指向另一個 Metaculus 問題的 URL。如果您願意，您可以在這兩個問題之間創建一個因果鏈接。",
+  "rateDenominatorGteNumerator": "分母必須大於或等於分子",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

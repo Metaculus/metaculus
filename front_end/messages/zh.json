@@ -1703,7 +1703,6 @@
   "referenceRequired": "需要参考",
   "rateNumeratorGte0": "分子必须 ≥ 0",
   "rateDenominatorGte1": "分母必须 ≥ 1",
-  "rateDenominatorGtNumerator": "分母必须大于分子",
   "yearOutOfRange": "年份必须在 {min} 和 {max} 之间",
   "extrapolationRequired": "请选择一个外推方法",
   "addDriverModalDescriptionMobile": "在下面输入您的驱动因素——尽量保持简短和清晰。",
@@ -1743,5 +1742,6 @@
   "copyQuestionLinkImpactSuffix": "因果影响在：",
   "copyQuestionLinkStrengthLabel": "此影响的强度是：",
   "copyLinkTitle": "我们注意到您添加了一个指向另一个 Metaculus 问题的 URL。如果您愿意，您可以在这两个问题之间创建一个因果链接。",
+  "rateDenominatorGteNumerator": "分母必须大于或等于分子",
   "othersCount": "其他（{count}）"
 }

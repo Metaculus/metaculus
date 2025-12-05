@@ -2,6 +2,7 @@
 
 import { fromUnixTime, isValid, parse, parseISO } from "date-fns";
 
+import { FetchedAggregateCoherenceLink } from "@/types/coherence";
 import {
   CommentType,
   ImpactDirectionCategory,
@@ -225,4 +226,10 @@ export function normalizeUrlForComparison(raw: string): string {
   } catch {
     return raw.trim();
   }
+}
+
+export function isDisplayableQuestionLink(it: FetchedAggregateCoherenceLink) {
+  return (
+    (it.links_nr ?? 0) > 1 && it.strength !== null && it.direction !== null
+  );
 }

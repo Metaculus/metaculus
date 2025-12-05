@@ -1701,7 +1701,6 @@
   "referenceRequired": "Je vyžadován odkaz",
   "rateNumeratorGte0": "Čitatel musí být ≥ 0",
   "rateDenominatorGte1": "Jmenovatel musí být ≥ 1",
-  "rateDenominatorGtNumerator": "Jmenovatel musí být větší než čitatel",
   "yearOutOfRange": "Rok musí být mezi {min} a {max}",
   "extrapolationRequired": "Vyberte prosím metodu extrapolace",
   "addDriverModalDescriptionMobile": "Zadejte níže své ovladače - snažte se, aby byly stručné a jasné.",
@@ -1741,5 +1740,6 @@
   "copyQuestionLinkImpactSuffix": "kauzální dopad na:",
   "copyQuestionLinkStrengthLabel": "Síla tohoto dopadu je:",
   "copyLinkTitle": "Všimli jsme si, že jste přidali URL k jiné otázce na Metaculu. Pokud chcete, můžete mezi těmito dvěma otázkami vytvořit příčinný odkaz.",
+  "rateDenominatorGteNumerator": "Jmenovatel musí být větší nebo roven čitateli",
   "othersCount": "Ostatní ({count})"
 }

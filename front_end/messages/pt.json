@@ -1699,7 +1699,6 @@
   "referenceRequired": "Referência é obrigatória",
   "rateNumeratorGte0": "Numerador deve ser ≥ 0",
   "rateDenominatorGte1": "Denominador deve ser ≥ 1",
-  "rateDenominatorGtNumerator": "Denominador deve ser maior que o numerador",
   "yearOutOfRange": "O ano deve estar entre {min} e {max}",
   "extrapolationRequired": "Por favor, selecione um método de extrapolação",
   "addDriverModalDescriptionMobile": "Digite seus drivers abaixo - tente mantê-los curtos e claros.",
@@ -1739,5 +1738,6 @@
   "copyQuestionLinkImpactSuffix": "impacto causal em:",
   "copyQuestionLinkStrengthLabel": "A força deste impacto é:",
   "copyLinkTitle": "Notamos que você adicionou um URL para outra pergunta do Metaculus. Se desejar, você pode criar um link causal entre essas duas perguntas.",
+  "rateDenominatorGteNumerator": "O denominador deve ser maior ou igual ao numerador",
   "othersCount": "Outros ({count})"
 }

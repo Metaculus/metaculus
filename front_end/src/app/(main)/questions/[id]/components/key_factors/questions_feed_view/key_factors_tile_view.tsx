@@ -29,6 +29,7 @@ import {
   KeyFactorTileQuestionLinkView,
   type Props as KfDisplayProps,
 } from "./key_factor_tile_view";
+import { isDisplayableQuestionLink } from "../utils";
 
 type Props = {
   post: Pick<PostWithForecasts, "id" | "key_factors">;
@@ -74,17 +75,22 @@ const KeyFactorsTileView: React.FC<Props> = ({
     return coherenceCtx.aggregateCoherenceLinks.data ?? [];
   }, [coherenceCtx]);
 
-  const primaryQuestionLink = useMemo(() => {
-    if (!aggregateLinks.length) return null;
+  const questionLinkAggregates = useMemo(
+    () => (aggregateLinks ?? []).filter(isDisplayableQuestionLink),
+    [aggregateLinks]
+  );
 
-    const sorted = [...aggregateLinks].sort((a, b) => {
+  const primaryQuestionLink = useMemo(() => {
+    if (!questionLinkAggregates.length) return null;
+
+    const sorted = [...questionLinkAggregates].sort((a, b) => {
       const linksDiff = (b.links_nr ?? 0) - (a.links_nr ?? 0);
       if (linksDiff !== 0) return linksDiff;
       return (b.strength ?? 0) - (a.strength ?? 0);
     });
 
     return sorted[0];
-  }, [aggregateLinks]);
+  }, [questionLinkAggregates]);
 
   const otherQuestion = useMemo<QuestionWithCP | null>(() => {
     if (!primaryQuestionLink) return null;

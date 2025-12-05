@@ -93,11 +93,11 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
           ></Link>
         </div>
 
-        <CoherenceLinksProvider post={post}>
-          {isQuestionPost(post) && (post.key_factors?.length ?? 0) > 0 && (
+        {isQuestionPost(post) && (
+          <CoherenceLinksProvider post={post}>
             <KeyFactorsTileView post={post} className="mt-[28px]" />
-          )}
-        </CoherenceLinksProvider>
+          </CoherenceLinksProvider>
+        )}
         {isQuestionPost(post) && (
           <ParticipationSummaryQuestionTile post={post} />
         )}

@@ -6,11 +6,14 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
-import { createCoherenceLink } from "@/app/(main)/questions/actions";
+import {
+  createCoherenceLink,
+  voteAggregateCoherenceLink,
+} from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
 import type { AggregateLinkVoteValue } from "@/services/api/coherence_links/coherence_links.shared";
 import { QuestionLinkDirection, QuestionLinkStrength } from "@/types/coherence";
 import { StrengthValues } from "@/types/comment";
@@ -63,6 +66,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
   const [selected, setSelected] = useState<ThumbVoteSelection>(
     mapUserVoteToSelection(initialUserVote)
   );
+  const { user } = useAuth();
   const [showCopyHint, setShowCopyHint] = useState(false);
 
   const hasPersonalCopy = useMemo(() => {
@@ -83,21 +87,28 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
   const pushVote = async (next: "agree" | "disagree" | null) => {
     if (!aggregationId) return;
 
+    if (!user) {
+      setCurrentModal({ type: "signin" });
+      return;
+    }
+
     const vote: AggregateLinkVoteValue =
       next === "agree" ? 1 : next === "disagree" ? -1 : null;
 
     try {
-      const res = await ClientCoherenceLinksApi.voteAggregateCoherenceLink(
-        aggregationId,
-        vote
-      );
+      const res = await voteAggregateCoherenceLink(aggregationId, vote);
 
-      const up = res.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
-      const down = res.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
+      if ("errors" in res) return;
+
+      const data = res.data;
+
+      const up = data.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
+      const down =
+        data.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
 
       setAgree(up);
       setDisagree(down);
-      setSelected(mapUserVoteToSelection(res.user_vote));
+      setSelected(mapUserVoteToSelection(data.user_vote));
     } catch (e) {
       console.error("Failed to vote aggregate coherence link", e);
     }
