@@ -102,7 +102,7 @@ const SignInModal: FC<SignInModalType> = ({
       >
         <Input
           autoComplete="username"
-          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           type="text"
           placeholder={t("loginUsernamePlaceholder")}
           {...register("login")}
@@ -110,7 +110,7 @@ const SignInModal: FC<SignInModalType> = ({
         />
         <Input
           autoComplete="current-password"
-          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           type="password"
           placeholder="password"
           {...register("password")}
