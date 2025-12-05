@@ -64,8 +64,6 @@ const QuestionInfo: React.FC<Props> = ({
 
       <BackgroundInfo post={postData} />
 
-      <PrivateNote post={postData} />
-
       <QuestionVariantComposer
         postData={postData}
         consumer={
@@ -112,6 +110,8 @@ const QuestionInfo: React.FC<Props> = ({
         }
       />
       <HistogramDrawer post={postData} />
+
+      <PrivateNote post={postData} />
     </div>
   );
 };
