@@ -165,7 +165,6 @@ const MainFeedFilters: FC<Props> = ({
     if (
       [
         QuestionOrder.ActivityDesc,
-        QuestionOrder.WeeklyMovementDesc,
         QuestionOrder.PublishTimeDesc,
         QuestionOrder.CloseTimeAsc,
         QuestionOrder.NewsHotness,

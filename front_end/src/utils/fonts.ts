@@ -70,7 +70,7 @@ export const interVariable = localFont({
   src: [
     {
       path: "../../public/fonts/inter_variable.ttf",
-      weight: "100 700",
+      weight: "100 800",
       style: "normal",
     },
   ],

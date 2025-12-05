@@ -14,7 +14,7 @@ from utils.translation import (
 
 @dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
-    lambda app_label, model_name, pk: f"update-translations-{app_label}.{model_name}/{pk}",
+    lambda app_label, model_name, pk: f"mutex:update-translations-{app_label}.{model_name}/{pk}",
     limit=1,
     # This task shouldn't take longer than 1m
     # So it's fine to set mutex lock timeout for this duration
