@@ -57,6 +57,11 @@ const nextConfig = {
         destination: "/tournament/:slug",
         permanent: true,
       },
+      {
+        source: "/bridgewater-reg",
+        destination: "/bridgewater",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
