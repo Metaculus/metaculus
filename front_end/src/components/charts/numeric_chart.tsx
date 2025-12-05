@@ -444,7 +444,7 @@ const NumericChart: FC<Props> = ({
                 right: isEmbedded ? 10 : maxRightPadding,
                 top: 10,
                 left: isEmbedded ? maxLeftPadding : 10,
-                bottom: BOTTOM_PADDING,
+                bottom: isEmbedded ? BOTTOM_PADDING + 15 : BOTTOM_PADDING,
               }}
               events={chartEvents}
               containerComponent={containerComponent}
@@ -498,7 +498,7 @@ const NumericChart: FC<Props> = ({
                   ticks: { stroke: "transparent" },
                   axis: { stroke: "transparent" },
                 }}
-                offsetY={isEmbedded ? 0 : BOTTOM_PADDING}
+                offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
                 tickValues={xScale.ticks}
                 tickFormat={
                   hideCP

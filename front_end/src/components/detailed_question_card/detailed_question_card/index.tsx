@@ -16,12 +16,14 @@ type Props = {
   post: QuestionPost<QuestionWithForecasts>;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
   post,
   hideTitle,
   isConsumerView,
+  embedChartHeight,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -54,6 +56,7 @@ const DetailedQuestionCard: FC<Props> = ({
             nrForecasters={nr_forecasters}
             hideTitle={hideTitle}
             isConsumerView={isConsumerView}
+            embedChartHeight={embedChartHeight}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
