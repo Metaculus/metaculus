@@ -19,7 +19,7 @@ export default function ContestRules() {
         <Button
           variant="secondary"
           className="cursor-pointer"
-          href="/tournament/bridgewater/"
+          href="/bridgewater/"
         >
           View Tournament Page
         </Button>
@@ -30,7 +30,7 @@ export default function ContestRules() {
           Official Competition Rules for the Bridgewater Open Forecasting
           Tournament (the `&quot;Tournament`&quot;)
         </h1>
-        <p className="opacity-70">Last modified: January 10, 2025</p>
+        <p className="opacity-70">Last modified: December 5, 2025</p>
 
         <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
@@ -57,7 +57,7 @@ export default function ContestRules() {
             <b>How to Enter and Participate.</b> Any person wishing to
             participate must create a free Metaculus user account, if they do
             not already have one, and register for the tournament via the
-            Tournament landing page, thereby accepting Tournament terms and
+            Tournament landing page, thereby accepting the Tournament terms and
             conditions. To make forecasts in this Tournament, visit the relevant
             forecasting question pages on Metaculus and submit your own
             probabilistic forecasts. To qualify for any of the prizes, you need
@@ -73,7 +73,7 @@ export default function ContestRules() {
           </li>
           <li>
             <b>Eligibility.</b> Participants must be 18 years of age or older as
-            of February 3, 2025. Employees of Metaculus and Bridgewater and
+            of January 12, 2026. Employees of Metaculus and Bridgewater and
             their affiliates, subsidiaries, and agencies, and members of their
             immediate family or persons living in the same household are not
             eligible to participate. In compliance with U.S. laws and
@@ -90,17 +90,18 @@ export default function ContestRules() {
           </li>
           <li>
             <b>Timing.</b> The Tournament webpage will be made available on
-            January 3, 2025. Practice questions will be available from January
-            13, 2025 or earlier to February 3, 2025. Official scored forecasting
-            begins February 3, 2025, with additional questions posted February
-            10, 2025 and February 17, 2025. Final rankings will be determined
-            and winners announced in early April.
+            December 10, 2025. Practice questions will be available on the
+            Metaculus platform from December 10, 2025 or earlier to January 11,
+            2026. Official scored forecasting begins January 12, 2026, with
+            additional questions posted January 19, 2026, January 26, 2026, and
+            February 2, 2026. Final rankings will be determined and winners
+            announced in mid March.
           </li>
           <li>
             <b>Prizes.</b> The Tournament will have a total prize pool of
-            $25,000, which will be awarded to a number of participants based on
-            their performance in the Tournament. The top 125 forecasters in the
-            open category and 125 forecasters in the undergraduate category will
+            $30,000, which will be awarded to a number of participants based on
+            their performance in the Tournament. The top 50 forecasters in the
+            open category and 50 forecasters in the undergraduate category will
             be eligible for prizes.
           </li>
           <li>
@@ -108,15 +109,25 @@ export default function ContestRules() {
             according to Metaculus&apos; Tournament Scoring Rules. Winners will
             receive payouts that depend on their rank and forecasting
             performance, according to their score. A total of $25,000 will be
-            awarded across a maximum of 250 prize disbursements. Payouts may be
-            paid in the form of cash or a cash equivalent, which may include but
-            is not limited to prepaid virtual cards, gift cards, or similar
-            methods, at the discretion of Metaculus. Metaculus reserves the
-            right to determine the specific form of payment, and no alternative
-            form of payment will be offered unless explicitly provided by
-            Metaculus. Participants will be scored using Metaculus Tournament
-            Scoring Rules. The details of these scoring rules are mathematical
-            (you may view the details here), but there are three key features:
+            awarded across a maximum of 100 prize disbursements. An additional
+            $5,000 in bonus prizes will be distributed to the top 10
+            participants in the undergraduate category, who will receive $1,100,
+            $900, $750, $600, $500, $400, $300, $200, $150, and $100,
+            respectively. Payouts may be paid in the form of cash or a cash
+            equivalent, which may include but is not limited to prepaid virtual
+            cards, gift cards, or similar methods, at the discretion of
+            Metaculus. Metaculus reserves the right to determine the specific
+            form of payment, and no alternative form of payment will be offered
+            unless explicitly provided by Metaculus. Participants will be scored
+            using Metaculus Tournament Scoring Rules. The details of these
+            scoring rules are mathematical (you may{" "}
+            <Link
+              href="/help/scores-faq/#tournament-scores"
+              className="text-blue-600 hover:underline"
+            >
+              view the details here
+            </Link>
+            ), but there are three key features:
             <ul className="ml-6 mt-4 list-inside list-disc space-y-4">
               <li>
                 You should expect to receive the highest score if you report
@@ -177,20 +188,29 @@ export default function ContestRules() {
           <p>
             Welcome to Metaculus. Please read on to learn the rules and
             restrictions that govern your use of our website(s), products,
-            services and applications (the `&quot;Services`&quot;). If you have
+            services and applications (the &quot;Services&quot;). If you have
             any questions, comments, or concerns regarding these Terms or the
             Services, please contact Support [at] metaculus [dot] com. These
-            Terms of Use (the `&quot;Terms`&quot;`&quot;) are a binding contract
-            between you and Metaculus Inc. (`&quot;Metaculus,`&quot;
-            `&quot;we`&quot; and `&quot;us`&quot;). You must agree to and accept
-            all of the Terms, or you don&apos;t have the right to use the
-            Services. Your use of the Services in any way means that you agree
-            to all of these Terms, and these Terms will remain in effect while
-            you use the Services. These Terms include the provisions in this
-            document, as well as those in the Privacy Policy. In these Terms,
-            the words `&quot;include`&quot; or `&quot;including`&quot; mean
-            `&quot;including but not limited to,`&quot; and examples are for
-            illustration purposes and are not limiting.
+            Terms and Conditions and the site-wide{" "}
+            <Link
+              href="/terms-of-use"
+              className="text-blue-600 hover:underline"
+            >
+              Terms of Use
+            </Link>{" "}
+            (collectively, the &quot;Terms&quot;) are a binding contract between
+            you and Metaculus Inc. (&quot;Metaculus,&quot; &quot;we&quot; and
+            &quot;us&quot;). In the event of a conflict between these Terms and
+            Conditions and the site-wide Terms of Use, these Terms and
+            Conditions shall control. You must agree to and accept all of the
+            Terms, or you don&apos;t have the right to use the Services. Your
+            use of the Services in any way means that you agree to all of these
+            Terms, and these Terms will remain in effect while you use the
+            Services. These Terms include the provisions in this document, as
+            well as those in the Privacy Policy. In these Terms, the words
+            &quot;include&quot; or &quot;including&quot; mean &quot;including
+            but not limited to,&quot; and examples are for illustration purposes
+            and are not limiting.
           </p>
 
           <ol className="list-inside list-decimal space-y-8">
@@ -222,12 +242,9 @@ export default function ContestRules() {
               >
                 click here
               </Link>
-              .
-            </p>
-            <p className="ml-6">
-              By entering and participating for the duration of the Tournament,
-              you consent to Metaculus sharing your registration, Personal
-              Information and performance information with Bridgewater
+              . By entering and participating for the duration of the
+              Tournament, you consent to Metaculus sharing your registration,
+              Personal Information and performance information with Bridgewater
               Associates, LP (`&quot;<b>Bridgewater</b>`&quot;), and consent to
               Bridgewater contacting you via email following the competition.
             </p>
@@ -345,23 +362,23 @@ export default function ContestRules() {
             </p>
             <p className="ml-6">
               The Services may contain links, information or connections to
-              third party websites or services that are not owned or controlled
-              by Metaculus. When you access third party websites or engage with
-              third party services, you accept that there are risks in doing so,
+              third-party websites or services that are not owned or controlled
+              by Metaculus. When you access third-party websites or engage with
+              third-party services, you accept that there are risks in doing so,
               and that Metaculus is not responsible for such risks. We encourage
               you to be aware when you leave the Services and to read the terms
-              and privacy policy of each third party website or service that you
+              and privacy policy of each third-party website or service that you
               visit or utilize.
             </p>
             <p className="ml-6">
               Metaculus has no control over, and assumes no responsibility for,
               the content, accuracy, privacy policies, or practices of or
-              opinions expressed in any third party websites or by any third
+              opinions expressed in any third-party websites or by any third
               party that you interact with through the Services. In addition,
               Metaculus will not and cannot monitor, verify, censor or edit the
-              content of any third party site or service. By using the Services,
+              content of any third-party site or service. By using the Services,
               you release and hold us and Bridgewater harmless from any and all
-              liability arising from your use of any third party website or
+              liability arising from your use of any third-party website or
               service.
             </p>
             <p className="ml-6">
@@ -380,22 +397,28 @@ export default function ContestRules() {
               What are the rules for competitions on Metaculus?
             </li>
             <p className="ml-6">
-              Competitions are run according to rules that describe
+              The Tournament is run according to rules that describe
               participation guidelines, the criteria used to select a winner of
               the Competition as posted on Metaculus&apos; Web Site. The
               prize(s) awarded to such winner(s), and when such prize(s) will be
               awarded will be posted on our Site. Such rules and selection
-              criteria must comply with all applicable laws and these Terms
-              (collectively, `&quot;Competition Rules`&quot;). Such Competition
-              Rules will also include how and when a Participant User must
-              submit Competition Entries (defined below) and the rights that any
-              third party will be granted in such Competition Entry upon
-              selecting any such Competition Entry as a winner (`&quot;Winning
-              Entry`&quot;). Certain rights granted in the Competition Entries
-              and Winning Entries are described in Section 9 (Do I have to grant
-              any licenses to Metaculus or to other users?) below. The
-              Competition Rules may impose additional restrictions or
-              requirements for Competitions.
+              criteria must comply with all applicable laws, our{" "}
+              <Link
+                href="/tournament-rules"
+                className="text-blue-600 hover:underline"
+              >
+                site-wide competition rules
+              </Link>
+              , and these Terms (collectively, `&quot;Competition Rules`&quot;).
+              Such Competition Rules will also include how and when a
+              Participant User must submit Competition Entries (defined below)
+              and the rights that any third-party will be granted in such
+              Competition Entry upon selecting any such Competition Entry as a
+              winner (`&quot;Winning Entry`&quot;). Certain rights granted in
+              the Competition Entries and Winning Entries are described in
+              Section 9 (Do I have to grant any licenses to Metaculus or to
+              other users?) below. The Competition Rules may impose additional
+              restrictions or requirements for Competitions.
             </p>
             <p className="ml-6">
               Each Participant User will comply with all Competition Rules.
@@ -659,7 +682,7 @@ export default function ContestRules() {
               `&quot;AS IS`&quot; and without any warranty of any kind from
               Metaculus or others (unless, with respect to such others only,
               provided expressly and unambiguously in writing by a designated
-              third party for a specific product). THE SERVICES AND CONTENT ARE
+              third-party for a specific product). THE SERVICES AND CONTENT ARE
               PROVIDED BY METACULUS (AND ITS LICENSORS AND SUPPLIERS) ON AN
               `&quot;AS-IS`&quot; BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER
               EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF
@@ -693,10 +716,10 @@ export default function ContestRules() {
               partners harmless from and against any and all claims,
               liabilities, damages (actual and consequential), losses and
               expenses (including attorneys&apos; fees) arising from or in any
-              way related to any third party claims (including from other users)
+              way related to any third-party claims (including from other users)
               relating to (a) your submissions to the Services including any
               Content, User Submissions or Competitions, (b) your use of the
-              Services (including any actions taken by a third party using your
+              Services (including any actions taken by a third-party using your
               account), and (C) your violation of these Terms.
             </p>
             <p className="ml-6">
@@ -711,7 +734,7 @@ export default function ContestRules() {
             <li className="font-bold">About These Terms</li>
             <p className="ml-6">
               These Terms control the relationship between Metaculus and you.
-              They do not create any third party beneficiary rights.
+              They do not create any third-party beneficiary rights.
             </p>
             <p className="ml-6">
               If you do not comply with these Terms, and we don&apos;t take
