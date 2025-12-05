@@ -135,6 +135,13 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
+
+  const baseHeight = height ?? 170;
+  const chartHeight = useMemo(() => {
+    if (!isEmbedded || !chartWidth) return baseHeight;
+    const target = chartWidth * 0.4;
+    return Math.round(Math.max(120, Math.min(178, target)));
+  }, [isEmbedded, chartWidth, baseHeight]);
   const { line, area, points, yDomain, xDomain, yScale, xScale } = useMemo(
     () => buildChartData(chartWidth, zoom),
     [chartWidth, zoom, buildChartData]
@@ -261,7 +268,7 @@ const NumericChart: FC<Props> = ({
         cursorLabelComponent={
           <VictoryPortal>
             <ChartCursorLabel
-              positionY={height - 10}
+              positionY={chartHeight - 10}
               {...(hasExternalTheme
                 ? {}
                 : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
@@ -284,7 +291,7 @@ const NumericChart: FC<Props> = ({
   }, [
     defaultCursor,
     xScale,
-    height,
+    chartHeight,
     hasExternalTheme,
     getThemeColor,
     handleCursorChange,
@@ -428,7 +435,7 @@ const NumericChart: FC<Props> = ({
 
         <ChartContainer
           ref={chartContainerRef}
-          height={height}
+          height={chartHeight}
           zoom={withZoomPicker ? zoom : undefined}
           onZoomChange={setZoom}
           chartTitle={chartTitle}
@@ -438,13 +445,13 @@ const NumericChart: FC<Props> = ({
             <VictoryChart
               domain={{ y: yDomain, x: adjustedXDomain }}
               width={chartWidth}
-              height={height}
+              height={chartHeight}
               theme={actualTheme}
               padding={{
                 right: isEmbedded ? 10 : maxRightPadding,
                 top: 10,
                 left: isEmbedded ? maxLeftPadding : 10,
-                bottom: BOTTOM_PADDING,
+                bottom: isEmbedded ? BOTTOM_PADDING + 15 : BOTTOM_PADDING,
               }}
               events={chartEvents}
               containerComponent={containerComponent}
@@ -498,7 +505,7 @@ const NumericChart: FC<Props> = ({
                   ticks: { stroke: "transparent" },
                   axis: { stroke: "transparent" },
                 }}
-                offsetY={isEmbedded ? 0 : BOTTOM_PADDING}
+                offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
                 tickValues={xScale.ticks}
                 tickFormat={
                   hideCP

@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useId } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
@@ -18,6 +19,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
   const gradientId = useId();
+  const isEmbed = useIsEmbedMode();
 
   const questionCP =
     question.aggregations[question.default_aggregation_method]?.latest
@@ -34,10 +36,10 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       ? Math.round((questionCP as number) * 1000) / 10
       : null;
 
-  const width = 112;
-  const height = 66;
-  const strokeWidth = 12;
-  const strokeCursorWidth = 17;
+  const width = isEmbed ? 85 : 112;
+  const height = isEmbed ? 50 : 66;
+  const strokeWidth = isEmbed ? 8 : 12;
+  const strokeCursorWidth = isEmbed ? 12 : 17;
   const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
   const center = { x: width / 2, y: height - strokeWidth };
@@ -83,6 +85,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           "scale-100": size === "md",
           "mb-4 scale-[1.25]": size === "lg",
         },
+        isEmbed && "scale-100",
         className
       )}
     >
@@ -160,15 +163,23 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         <span
           className={cn(
             "font-bold",
-            size === "xs" ? "text-[12px] leading-4" : "text-xl leading-8"
+            isEmbed
+              ? "text-[18px] leading-[24px]"
+              : size === "xs"
+                ? "text-[12px] leading-4"
+                : "text-xl leading-8"
           )}
         >
           {cpPercentage != null ? `${cpPercentage}%` : "%"}
         </span>
         <span
           className={cn(
-            "font-normal uppercase",
-            size === "xs" ? "text-[6px] leading-[6px]" : "text-xs leading-none"
+            "font-normal uppercase leading-none",
+            isEmbed
+              ? "text-[9px] leading-[9px]"
+              : size === "xs"
+                ? "text-[6px] leading-[6px]"
+                : "text-xs"
           )}
         >
           {t("chance")}

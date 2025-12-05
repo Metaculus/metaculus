@@ -3,6 +3,7 @@ import { Tab, TabGroup, TabList } from "@headlessui/react";
 import { isNil } from "lodash";
 import { forwardRef, Fragment, PropsWithChildren, useState } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { getChartZoomOptions } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
@@ -31,12 +32,22 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
       }
     };
 
+    const isEmbed = useIsEmbedMode();
+
     return (
       <div className="relative flex w-full flex-col">
         {(!!chartTitle || !!zoom) && (
-          <div className="mb-2.5 flex w-full md:mb-5">
+          <div
+            className={cn("flex w-full", !isEmbed ? "mb-2.5 md:mb-5" : "mb-3")}
+          >
             {!!chartTitle && (
-              <div className="text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
+              <div
+                className={cn(
+                  isEmbed
+                    ? "text-xs text-gray-600 dark:text-gray-600-dark"
+                    : "text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base"
+                )}
+              >
                 {chartTitle}
               </div>
             )}
@@ -60,7 +71,9 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                             {
                               "bg-gray-300 dark:bg-gray-300-dark":
                                 hover || selected,
-                            }
+                            },
+                            isEmbed &&
+                              "uppercase text-gray-600 dark:text-gray-600-dark md:text-xs"
                           )}
                         >
                           {option.label}
