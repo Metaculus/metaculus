@@ -13,8 +13,8 @@ const HeaderBlock: FC = () => {
       {/* Hero Image with Logo Overlay */}
       <div className="relative h-[100px] w-full overflow-hidden rounded-t-md sm:h-[130px]">
         <Image
-          src="https://cdn.metaculus.com/Cover-no-logos-wide-8Ak6wNueS-transformed.webp"
-          alt="Bridgewater Tournament"
+          src="https://cdn.metaculus.com/bw-cover2x.webp"
+          alt="Bridgewater Contest"
           fill
           priority
           className="size-full object-cover object-center"
