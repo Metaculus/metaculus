@@ -430,7 +430,7 @@ def serialize_post(
                 "private_note": (
                     {
                         "text": snapshot.private_note,
-                        "updated_at": snapshot.updated_at,
+                        "updated_at": snapshot.private_note_updated_at,
                     }
                     if snapshot.private_note
                     else None
