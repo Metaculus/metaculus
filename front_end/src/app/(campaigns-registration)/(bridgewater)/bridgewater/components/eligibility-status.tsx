@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
+import { useModal } from "@/contexts/modal_context";
 import cn from "@/utils/core/cn";
 
 import { BRIDGEWATER_2026 } from "../constants";
@@ -49,6 +50,8 @@ const EligibilityBox: FC<PropsWithChildren<{ isEligible: boolean }>> = ({
  * Matches the mockup design
  */
 const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
+  const { setCurrentModal } = useModal();
+
   return (
     <div className="rounded-md bg-blue-700 px-6 py-2 text-white dark:bg-blue-800-dark sm:px-10 sm:py-4">
       <div className="text-center">
@@ -70,12 +73,12 @@ const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
 
       <p className="mb-4 text-balance text-center text-base text-white dark:text-blue-50-dark">
         Ready to get started? Try the{" "}
-        <Link
-          href={BRIDGEWATER_2026.practiceQuestionsUrl}
-          className="font-semibold text-white underline dark:text-blue-50-dark"
+        <button
+          onClick={() => setCurrentModal({ type: "onboarding" })}
+          className="cursor-pointer font-semibold text-white underline hover:text-blue-100 dark:text-blue-50-dark dark:hover:text-blue-100-dark"
         >
           forecasting tutorial
-        </Link>{" "}
+        </button>{" "}
         or explore some{" "}
         <Link
           href={BRIDGEWATER_2026.practiceQuestionsUrl}
