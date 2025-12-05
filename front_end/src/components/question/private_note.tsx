@@ -1,7 +1,9 @@
 "use client";
 
+import { MDXEditorMethods } from "@mdxeditor/editor";
+import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import { savePrivateNote } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -57,6 +59,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
   const [noteText, setNoteText] = useState(text || "");
   const [isLoading, setIsLoading] = useState(false);
   const [savedAt, setSavedAt] = useState<undefined | Date>();
+  const editorRef = useRef<MDXEditorMethods>(null);
 
   const noteStatusDetails = useMemo(() => {
     if (isLoading) {
@@ -68,7 +71,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
     }
   }, [savedAt, isLoading]);
 
-  const saveNoteDebounced = useDebouncedCallback(async (value: string) => {
+  const saveNote = async (value: string) => {
     if (value === noteText) {
       return;
     }
@@ -80,7 +83,9 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
     setIsLoading(false);
 
     setSavedAt(new Date());
-  }, 1500);
+  };
+
+  const saveNoteDebounced = useDebouncedCallback(saveNote, 1500);
 
   return (
     <SectionToggle
@@ -106,10 +111,17 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
     >
       <div className="bg-gray-0 dark:bg-gray-0-dark">
         <MarkdownEditor
+          ref={editorRef}
           markdown={noteText}
           mode="write"
           onChange={(val) => {
             saveNoteDebounced(val);
+          }}
+          onBlur={() => {
+            const val = editorRef.current?.getMarkdown();
+            if (!isNil(val)) {
+              saveNote(val);
+            }
           }}
           withUgcLinks
           withCodeBlocks
