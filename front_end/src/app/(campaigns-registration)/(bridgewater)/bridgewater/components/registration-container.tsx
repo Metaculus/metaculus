@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FC, useEffect, useRef, useState } from "react";
 
-import { RegistrationForm } from "@/app/(campaigns-registration)/(bridgewater)/bridgewater-2024/components/registration-forms";
+import { RegistrationForm } from "@/app/(campaigns-registration)/(bridgewater)/bridgewater/components/registration-forms";
 import { CurrentUser } from "@/types/users";
 
 import { CAMPAIGN_KEY } from "../constants";
@@ -79,7 +79,7 @@ const RegistrationContainer: FC<RegistrationContainerProps> = ({
 
       {/* Registration Modal */}
       {showRegistrationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-[201] flex items-center justify-center bg-black/50 p-4">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white dark:bg-gray-0-dark">
             <div className="relative p-6">
               <button
@@ -89,11 +89,11 @@ const RegistrationContainer: FC<RegistrationContainerProps> = ({
               >
                 ×
               </button>
-              <div className="mb-6">
-                <h2 className="mb-2 text-2xl font-bold text-blue-800 dark:text-blue-800-dark">
+              <div>
+                <h2 className="mb-2 mt-0 text-xl font-bold text-blue-800 dark:text-blue-800-dark sm:text-2xl">
                   Complete your registration
                 </h2>
-                <p className="text-base text-gray-700 dark:text-gray-700-dark">
+                <p className="text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
                   Fill out the form below to register for the tournament and
                   compete for prizes!
                 </p>
