@@ -1864,5 +1864,11 @@
   "leaderboardDataNotAvailable": "排行榜数据暂时不可用，请稍后再来查看！",
   "viewLess": "查看更少",
   "explore": "探索",
+  "company": "公司",
+  "resources": "资源",
+  "publicBenefitCorporation": "公益公司",
+  "tournamentsForAIBots": "AI机器人比赛",
+  "futureEval": "未来评估",
+  "launchATournament": "发起比赛",
   "thousandsOfOpenQuestions": "10,000+ 开放问题"
 }
