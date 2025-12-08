@@ -50,14 +50,14 @@ export default function HowItWorks() {
 
         <div className="relative w-full">
           <Image
-            src="https://cdn.metaculus.com/bw-timeline-light_fAlQRss.webp"
+            src="https://cdn.metaculus.com/bw-timeline-light_T2pzlq5.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
             className="w-full dark:hidden"
           />
           <Image
-            src="https://cdn.metaculus.com/bw-timeline-dark_tjYI58w.webp"
+            src="https://cdn.metaculus.com/bw-timeline-dark_DX2KUxm.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
@@ -65,7 +65,7 @@ export default function HowItWorks() {
           />
         </div>
         <h2 className="mb-4 mt-8 text-2xl font-bold text-gray-700 dark:text-gray-200">
-          Warmup Questions
+          Warm-up Questions
         </h2>
 
         <p className="mb-4">
@@ -74,9 +74,9 @@ export default function HowItWorks() {
             href="https://www.metaculus.com/project/bridgewater-warmup/"
             className="text-blue-600 hover:underline"
           >
-            warmup questions
+            warm-up questions
           </a>{" "}
-          before the contest begins January 12th. Warmup questions won&apos;t
+          before the contest begins January 12th. Warm-up questions won&apos;t
           affect your contest ranking.
         </p>
 
@@ -204,7 +204,7 @@ export default function HowItWorks() {
               href="https://www.metaculus.com/help/scores-faq/#tournament-scores/"
               className="text-blue-600 hover:underline"
             >
-              How prize is distributed in Metaculus tournaments
+              How prizes are distributed in Metaculus tournaments
             </a>
           </li>
           <li>
@@ -300,13 +300,15 @@ export default function HowItWorks() {
           />
         </div>
 
-        <p className="mb-6 text-gray-600 dark:text-gray-300">
-          <b>New this year:</b> Metaculus has launched a prediction expiration
-          feature to help you keep your predictions fresh. Make sure you set
-          your prediction expiration as desired. You&apos;ll receive an email
-          when a prediction is about to expire. You can also change your
-          expiration default in your settings.
-        </p>
+        <div className="mb-8 rounded-md bg-green-100 px-4 pb-4 pt-2 dark:bg-green-900">
+          <h4 className="font-normal text-gray-800 dark:text-white">
+            <b>New this year:</b> Metaculus has launched a prediction expiration
+            feature to help you keep your predictions fresh. Make sure you set
+            your prediction expiration as desired. You&apos;ll receive an email
+            when a prediction is about to expire. You can also change your
+            expiration default in your settings.
+          </h4>
+        </div>
 
         <p className="mb-6">
           <b>Multiple choice</b> questions ask about more than two (Yes/No)
