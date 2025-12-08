@@ -103,6 +103,7 @@ export const SignupForm: FC<{
     } else {
       sendAnalyticsEvent("register", {
         event_category: new URLSearchParams(window.location.search).toString(),
+        signupPath: currentLocation,
       });
       if (response?.is_active) {
         setCurrentModal(null);
