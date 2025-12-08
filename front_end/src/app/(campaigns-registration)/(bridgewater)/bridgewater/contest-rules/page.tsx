@@ -28,7 +28,7 @@ export default function ContestRules() {
       <PageWrapper>
         <h1>
           Official Competition Rules for the Bridgewater Open Forecasting
-          Tournament (the `&quot;Tournament`&quot;)
+          Tournament (the &quot;Tournament&quot;)
         </h1>
         <p className="opacity-70">Last modified: December 5, 2025</p>
 
@@ -37,18 +37,18 @@ export default function ContestRules() {
         <ul className="list-inside list-disc space-y-6">
           <li>
             <b>Description of Tournament.</b> The Tournament, run by Metaculus,
-            Inc. (`&quot;Metaculus`&quot;), will test participants&apos; ability
+            Inc. (&quot;Metaculus&quot;), will test participants&apos; ability
             to make probabilistic forecasts on questions concerning future
             events across a variety of question types (binary, continuous,
             multiple choice, and conditional). Bridgewater Associates, LP
-            (`&quot;Bridgewater`&quot;) may reach out to participants who
+            (&quot;Bridgewater&quot;) may reach out to participants who
             perform well in the Tournament to gauge their interest in beginning
             a recruitment process for employment with Bridgewater. By entering
             and participating for the duration of the Tournament, you consent to
             Metaculus sharing your registration and performance information,
             including all personal information (which is information that can be
             used to identify or contact a specific individual, such as your name
-            and email address) (`&quot;Personal Information`&quot;), with
+            and email address) (&quot;Personal Information&quot;), with
             Bridgewater, and consent to Bridgewater contacting you via email
             following the competition regarding potential employment
             opportunities with Bridgewater.
@@ -245,7 +245,7 @@ export default function ContestRules() {
               . By entering and participating for the duration of the
               Tournament, you consent to Metaculus sharing your registration,
               Personal Information and performance information with Bridgewater
-              Associates, LP (`&quot;<b>Bridgewater</b>`&quot;), and consent to
+              Associates, LP (&quot;<b>Bridgewater</b>&quot;), and consent to
               Bridgewater contacting you via email following the competition.
             </p>
 
@@ -254,7 +254,7 @@ export default function ContestRules() {
             </li>
             <p className="ml-6">
               You are required to sign up for an account and select a password
-              and username (`&quot;<b>Metaculus User ID</b>`&quot;). You promise
+              and username (&quot;<b>Metaculus User ID</b>&quot;). You promise
               to provide us with accurate, complete, and updated registration
               information about yourself. You may not select as your Metaculus
               User ID a name that you don&apos;t have the right to use, or
@@ -280,8 +280,8 @@ export default function ContestRules() {
                 otherwise objectionable;
               </li>
               <li>
-                `&quot;Crawls,`&quot; `&quot;scrapes,`&quot; or
-                `&quot;spiders`&quot; any page, data, or portion of or relating
+                &quot;Crawls,&quot; &quot;scrapes,&quot; or
+                &quot;spiders&quot; any page, data, or portion of or relating
                 to the Services or Content (through use of manual or automated
                 means);
               </li>
@@ -313,7 +313,7 @@ export default function ContestRules() {
               The materials displayed or performed or available on or through
               the Services, including text, graphics, data, articles, photos,
               images, illustrations, and User Submissions (collectively, the
-              `&quot;Content`&quot;), are protected by copyright and other
+              &quot;Content&quot;), are protected by copyright and other
               intellectual property laws. You promise to abide by all copyright
               notices, trademark rules, information, and restrictions contained
               in any Content you access through the Services, and you won&apos;t
@@ -409,12 +409,12 @@ export default function ContestRules() {
               >
                 site-wide competition rules
               </Link>
-              , and these Terms (collectively, `&quot;Competition Rules`&quot;).
+              , and these Terms (collectively, &quot;Competition Rules&quot;).
               Such Competition Rules will also include how and when a
               Participant User must submit Competition Entries (defined below)
               and the rights that any third-party will be granted in such
               Competition Entry upon selecting any such Competition Entry as a
-              winner (`&quot;Winning Entry`&quot;). Certain rights granted in
+              winner (&quot;Winning Entry&quot;). Certain rights granted in
               the Competition Entries and Winning Entries are described in
               Section 9 (Do I have to grant any licenses to Metaculus or to
               other users?) below. The Competition Rules may impose additional
@@ -524,7 +524,7 @@ export default function ContestRules() {
             </li>
             <p className="ml-6">
               Anything you post, upload, share, store, or otherwise provide
-              through the Services is your `&quot;User Submission.`&quot; Some
+              through the Services is your &quot;User Submission.&quot; Some
               User Submissions are viewable or downloadable by other users. To
               display your User Submissions on the Services, and to allow other
               users to enjoy them (where applicable), you grant us certain
@@ -556,8 +556,8 @@ export default function ContestRules() {
               manner that allows more than just you or certain specified users
               to view it (such as a Dataset), or if you provide us with any
               feedback, suggestions, improvements, enhancements, or feature
-              requests relating to the Services (each a `&quot;Public User
-              Submission`&quot;), then you grant Metaculus the license stated in
+              requests relating to the Services (each a &quot;Public User
+              Submission&quot;), then you grant Metaculus the license stated in
               the second paragraph of this Section 8, as well as a license to
               display, perform, and distribute your Public User Submission for
               the purpose of making that Public User Submission accessible to
@@ -571,7 +571,7 @@ export default function ContestRules() {
             </p>
             <p className="ml-6">
               If you are a Participant User and submit an entry to a Competition
-              (`&quot;Competition Entry`&quot;), then you grant Metaculus the
+              (&quot;Competition Entry&quot;), then you grant Metaculus the
               license stated in the second paragraph of this Section 8, as well
               as a license to display, perform, and distribute your Competition
               Entry for the purpose of making that Competition Entry accessible
@@ -596,8 +596,8 @@ export default function ContestRules() {
             </li>
             <p className="ml-6">
               You may have heard of the Digital Millennium Copyright Act (the
-              `&quot;
-              <b>DMCA</b>`&quot;), as it relates to online service providers,
+              &quot;
+              <b>DMCA</b>&quot;), as it relates to online service providers,
               like Metaculus, being asked to remove material that allegedly
               violates someone&apos;s copyright. We respect others&apos;
               intellectual property rights, and we reserve the right to delete
@@ -679,12 +679,12 @@ export default function ContestRules() {
               products offered or purchased through the Services. Products and
               services purchased or offered (whether or not following such
               recommendations and suggestions) through the Services are provided
-              `&quot;AS IS`&quot; and without any warranty of any kind from
+              &quot;AS IS&quot; and without any warranty of any kind from
               Metaculus or others (unless, with respect to such others only,
               provided expressly and unambiguously in writing by a designated
               third-party for a specific product). THE SERVICES AND CONTENT ARE
               PROVIDED BY METACULUS (AND ITS LICENSORS AND SUPPLIERS) ON AN
-              `&quot;AS-IS`&quot; BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER
+              &quot;AS-IS&quot; BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER
               EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF
               MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
               NON-INFRINGEMENT, OR THAT USE OF THE SERVICES WILL BE
