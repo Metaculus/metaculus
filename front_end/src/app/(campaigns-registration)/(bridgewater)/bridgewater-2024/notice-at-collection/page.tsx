@@ -19,7 +19,7 @@ export default function NoticeAtCollection() {
         <Button
           variant="secondary"
           className="cursor-pointer"
-          href="/bridgewater/"
+          href="/tournament/bridgewater/"
         >
           View Tournament Page
         </Button>
