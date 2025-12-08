@@ -30,7 +30,7 @@ const RegistrationSteps: FC<RegistrationStepsProps> = ({ onRegisterClick }) => {
       {/* Step 1: Account Creation/Login */}
       <StepCard
         stepNumber={1}
-        title="Log In or Create a Metaculus Account"
+        title="Log in or create a Metaculus account"
         isComplete={isStep1Complete}
         isActive={!isStep1Complete}
       >
