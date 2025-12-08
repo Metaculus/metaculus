@@ -1,8 +1,13 @@
 import statistics
+from collections import Counter
 
 from scipy.stats import sem
 
-from coherence.models import CoherenceLink, AggregateCoherenceLink
+from coherence.models import (
+    CoherenceLink,
+    AggregateCoherenceLink,
+    AggregateCoherenceLinkVote,
+)
 
 
 def convert_vector_to_direction_strength(
@@ -18,20 +23,28 @@ def convert_vector_to_direction_strength(
 
 def get_aggregation_results(
     links: list[CoherenceLink],
+    votes: list[AggregateCoherenceLinkVote],
 ) -> tuple[int | None, float | None, float | None]:
     if len(links) == 0:
         return None, None, None
-    elif len(links) == 1:
-        link = links[0]
-        return link.direction, link.strength, None
-    else:
-        vectors = [link.direction * link.strength for link in links]
-        mean = statistics.mean(vectors)
-        mean_direction, mean_strength = convert_vector_to_direction_strength(mean)
-        relative_standard_error_mean = (
-            abs(float(sem(vectors) / mean)) if mean != 0 else None
+
+    vectors = [link.direction * link.strength for link in links]
+    mean = statistics.mean(vectors)
+    mean_direction, mean_strength = convert_vector_to_direction_strength(mean)
+
+    # Now enriching mean strength with votes weight
+    pivot_votes = Counter([v.score for v in votes])
+    vote_agrees = pivot_votes.get(1, 0)
+
+    if mean_strength is not None:
+        mean_strength = (mean_strength * (len(links) + vote_agrees)) / (
+            len(links) + len(votes)
         )
-        return mean_direction, mean_strength, relative_standard_error_mean
+
+    relative_standard_error_mean = (
+        abs(float(sem(vectors) / mean)) if mean != 0 and len(vectors) > 1 else None
+    )
+    return mean_direction, mean_strength, relative_standard_error_mean
 
 
 def link_to_question_id_pair(link: CoherenceLink | AggregateCoherenceLink) -> str:

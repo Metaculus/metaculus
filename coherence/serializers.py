@@ -1,6 +1,7 @@
 from collections import Counter
 from typing import Iterable
 
+import numpy as np
 from django.db.models import Q
 from django.db.models.sql import OR
 from multidict import MultiDict
@@ -111,10 +112,10 @@ def serialize_aggregate_coherence_link(
     if question2:
         serialized_data["question2"] = serialize_question(question2)
     serialized_data["links_nr"] = len(matching_links)
-    direction, strength, rsem = get_aggregation_results(list(matching_links))
+    direction, strength, rsem = get_aggregation_results(list(matching_links), votes)
     serialized_data["direction"] = direction
     serialized_data["strength"] = strength
-    serialized_data["rsem"] = rsem if rsem else None
+    serialized_data["rsem"] = rsem if rsem and not np.isnan(rsem) else None
 
     serialized_data["votes"] = serialize_aggregate_coherence_link_vote(
         votes, user_vote=user_vote
