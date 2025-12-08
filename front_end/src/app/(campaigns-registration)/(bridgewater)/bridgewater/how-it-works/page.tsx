@@ -50,14 +50,14 @@ export default function HowItWorks() {
 
         <div className="relative w-full">
           <Image
-            src="https://cdn.metaculus.com/bw-timeline-light_T2pzlq5.webp"
+            src="https://cdn.metaculus.com/bw-timeline-light_5CM93nQ.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
             className="w-full dark:hidden"
           />
           <Image
-            src="https://cdn.metaculus.com/bw-timeline-dark_DX2KUxm.webp"
+            src="https://cdn.metaculus.com/bw-timeline-dark_8xkhnj6.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
