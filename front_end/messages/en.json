@@ -297,7 +297,7 @@
   "loginSignUpHeading": "Don't have an account yet?",
   "createAnAccount": "Sign Up",
   "registrationSuccessHeading": "Activation Email Sent",
-  "registrationSuccess1": "Thanks for creating a Metaculus account <username></username>!",
+  "registrationSuccess1": "Thanks for creating a Metaculus account, <username></username>!",
   "registrationSuccess2": "An activation email has been sent to <email></email>. Please follow the link inside to finish creating your account.",
   "registrationTerms": "By registering, you acknowledge and agree to Metaculus's <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>.",
   "registrationTermsAgreement": "I agree — continue registration",

@@ -50,14 +50,14 @@ export default function HowItWorks() {
 
         <div className="relative w-full">
           <Image
-            src="https://cdn.metaculus.com/bw-timeline-light_5CM93nQ.webp"
+            src="https://cdn.metaculus.com/bw-timeline-light_4.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
             className="w-full dark:hidden"
           />
           <Image
-            src="https://cdn.metaculus.com/bw-timeline-dark_8xkhnj6.webp"
+            src="https://cdn.metaculus.com/bw-timeline-dark_3.webp"
             alt="Contest Timeline"
             width={800}
             height={400}
@@ -65,7 +65,7 @@ export default function HowItWorks() {
           />
         </div>
         <h2 className="mb-4 mt-8 text-2xl font-bold text-gray-700 dark:text-gray-200">
-          Warm-up Questions
+          Warmup Questions
         </h2>
 
         <p className="mb-4">
@@ -74,16 +74,16 @@ export default function HowItWorks() {
             href="https://www.metaculus.com/project/bridgewater-warmup/"
             className="text-blue-600 hover:underline"
           >
-            warm-up questions
+            warmup questions
           </a>{" "}
-          before the contest begins January 12th. Warm-up questions won&apos;t
+          before the contest begins February 3rd. Warmup questions won&apos;t
           affect your contest ranking.
         </p>
 
         <div className="mb-8 rounded-md bg-green-100 px-4 pb-4 pt-2 dark:bg-green-900">
           <h4 className="font-bold text-gray-800 dark:text-white">
-            The Forecasting Contest officially begins at 11:00 AM ET on January
-            12, 2026.
+            The Forecasting Contest officially begins at 11:00 AM ET on February
+            3, 2025.
           </h4>
         </div>
 
@@ -93,42 +93,31 @@ export default function HowItWorks() {
           One Contest, Two Leaderboards for Undergraduate and Open Competitions
         </h2>
 
-        <p className="mb-6 text-gray-600 dark:text-gray-300">
+        <p className="mb-6">
           This contest consists of a single set of 50 forecasting questions,
-          with two separate competitions and leaderboards, one for all
-          competitors under the banner of the Open Competition and one for
+          with two separate competitions and leaderboards that differentiate all
+          competitors under the banner of the Open Competition from
           undergraduate competitors within the Undergraduate Competition.
         </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
-          $30,000 In Prizes
+          $25,000 In Prizes
         </h3>
 
-        <p className="mb-6 text-gray-600 dark:text-gray-300">
-          Each of the two competitions and leaderboards features a $12,500
-          standard prize pool, and new for this year, the undergraduate
-          leaderboard has a bonus prize pool of $5,000, for a total of $30,000.
-          This year the top 50 forecasters within each competition and
-          leaderboard are eligible to win prizes. Competing undergraduate
-          forecasters are eligible to be ranked and receive prizes for their
-          performance on both leaderboards. Prizes will be awarded after contest
-          completion and following identity verification. The bonus prize pool
-          for undergraduates will be awarded to the top performers in the
-          undergraduate competition as follows:
+        <p className="mb-6">
+          Each of the two competitions and leaderboards features a $12,500 prize
+          pool, for a total of $25,000. The top 125 forecasters within each
+          competition and leaderboard are eligible to win prizes. Competing
+          undergraduate forecasters are eligible to be ranked and receive prizes
+          for their performance on both leaderboards. Prizes will be awarded
+          after contest completion and following identity verification.
         </p>
-
-        <ol className="mb-6 ml-6 list-decimal space-y-1 text-gray-700 dark:text-gray-300">
-          <li>$1,100</li>
-          <li>$900</li>
-          <li>$750</li>
-          <li>$600</li>
-          <li>$500</li>
-          <li>$400</li>
-          <li>$300</li>
-          <li>$200</li>
-          <li>$150</li>
-          <li>$100</li>
-        </ol>
+        <p>
+          Unlike last competition, this year there is no $50 minimum prize
+          awarded, which means the top performers are likely to receive a larger
+          share of the prize pool and there may be less than 125 prizes paid out
+          in each category.
+        </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
           Undergraduate Competition and Leaderboard
@@ -140,7 +129,7 @@ export default function HowItWorks() {
           universities. If you enroll in the Undergraduate Competition, you will
           automatically also be included in the Open Competition. This is your
           opportunity to stand out to the Bridgewater recruiting team and
-          compete for a share of the $17,500 Undergraduate Prize Pool!
+          compete for a share of the $12,500 Undergraduate Prize Pool!
         </p>
 
         <h3 className="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-300">
@@ -167,8 +156,8 @@ export default function HowItWorks() {
 
         <ul className="mb-8 list-inside list-disc space-y-2">
           <li>
-            Begin early and try to forecast on all questions. You need volume to
-            beat the noise.
+            Begin early and forecast on many questions. You need volume to beat
+            the noise.
           </li>
           <li>
             Consider base rates: how have similar events gone in the past?
@@ -204,7 +193,7 @@ export default function HowItWorks() {
               href="https://www.metaculus.com/help/scores-faq/#tournament-scores/"
               className="text-blue-600 hover:underline"
             >
-              How prizes are distributed in Metaculus tournaments
+              How prize is distributed in Metaculus tournaments
             </a>
           </li>
           <li>
@@ -300,17 +289,6 @@ export default function HowItWorks() {
           />
         </div>
 
-        <div className="mb-8 rounded-md bg-green-100 px-4 pb-4 pt-2 dark:bg-green-900">
-          <h4 className="font-normal text-gray-800 dark:text-white">
-            <b>New this year:</b> Metaculus has launched a prediction expiration
-            feature to help you keep your predictions fresh. Make sure you set
-            your prediction expiration as desired. You&apos;ll receive an email
-            when a prediction is about to expire. You can also change your
-            expiration default in your settings. Expired predictions are scored
-            only for the time period they were active.
-          </h4>
-        </div>
-
         <p className="mb-6">
           <b>Multiple choice</b> questions ask about more than two (Yes/No)
           possibilities. Predicting works the same, except your predictions
@@ -330,10 +308,10 @@ export default function HowItWorks() {
 
         <p className="mb-8">
           The higher the probability you place on the correct outcome, the
-          better (higher) your score will be. Give the correct outcome a low
-          probability and you&apos;ll receive a bad (negative) score. Under
-          Metaculus scoring, you&apos;ll always get the best score by predicting
-          what you think the actual probability is, rather than trying to
+          better (more positive) your score will be. Give the correct outcome a
+          low probability and you&apos;ll receive a bad (negative) score. Under
+          Metaculus scoring, you&apos;ll get the best score by predicting what
+          you think the actual probability is, rather than trying to
           &quot;game&quot; the scoring.
         </p>
         <hr className="my-8 border-t-2 border-gray-300 dark:border-gray-700" />
@@ -384,8 +362,7 @@ export default function HowItWorks() {
           The higher your distribution is on the value that ultimately occurs,
           the better your score. The lower your distribution on the actual
           value, the worse your score. To get the best score, make your
-          distribution reflect how likely you think each possible value actually
-          is.
+          distribution reflect how likely each possible value actually is.
         </p>
 
         {/* Weighting */}
