@@ -54,7 +54,7 @@ export const tournamentRegistrationSchema = z
         !data.undergrad ||
         (data.graduationYear &&
           data.graduationYear >= currentYear &&
-          data.graduationYear <= currentYear + 5)
+          data.graduationYear <= currentYear + 7)
       );
     },
     {
