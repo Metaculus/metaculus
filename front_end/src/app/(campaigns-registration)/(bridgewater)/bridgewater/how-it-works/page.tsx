@@ -306,7 +306,8 @@ export default function HowItWorks() {
             feature to help you keep your predictions fresh. Make sure you set
             your prediction expiration as desired. You&apos;ll receive an email
             when a prediction is about to expire. You can also change your
-            expiration default in your settings.
+            expiration default in your settings. Expired predictions are scored
+            only for the time period they were active.
           </h4>
         </div>
 
