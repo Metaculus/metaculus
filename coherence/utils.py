@@ -1,6 +1,7 @@
 import statistics
-from collections import Counter
 
+from django.db.models import Q
+from django.db.models.sql import OR
 from scipy.stats import sem
 
 from coherence.models import (
@@ -33,8 +34,7 @@ def get_aggregation_results(
     mean_direction, mean_strength = convert_vector_to_direction_strength(mean)
 
     # Now enriching mean strength with votes weight
-    pivot_votes = Counter([v.score for v in votes])
-    vote_agrees = pivot_votes.get(1, 0)
+    vote_agrees = sum(v.score == 1 for v in votes)
 
     if mean_strength is not None:
         mean_strength = (mean_strength * (len(links) + vote_agrees)) / (
@@ -49,3 +49,17 @@ def get_aggregation_results(
 
 def link_to_question_id_pair(link: CoherenceLink | AggregateCoherenceLink) -> str:
     return f"{link.question1_id}, {link.question2_id}"
+
+
+def get_aggregations_links(aggregations: list[AggregateCoherenceLink]):
+    question_pairs = {(link.question1_id, link.question2_id) for link in aggregations}
+
+    return CoherenceLink.objects.filter(
+        Q(
+            *[
+                Q(question1_id=q1_id, question2_id=q2_id)
+                for q1_id, q2_id in question_pairs
+            ],
+            _connector=OR,
+        )
+    )

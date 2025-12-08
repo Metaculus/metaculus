@@ -1,11 +1,13 @@
 import pytest
 
-from coherence.models import AggregateCoherenceLinkVote
 from coherence.utils import (
     get_aggregation_results,
     convert_vector_to_direction_strength,
 )
-from tests.unit.test_coherence.factories import factory_coherence_link
+from tests.unit.test_coherence.factories import (
+    factory_coherence_link,
+    factory_agg_link_vote,
+)
 
 
 class TestGetAggregationResults:
@@ -69,15 +71,21 @@ class TestGetAggregationResults:
             factory_coherence_link(direction=1, strength=5),
         ]
         # All Agree
-        result = get_aggregation_results(links, [AggregateCoherenceLinkVote(score=1), AggregateCoherenceLinkVote(score=1)])
+        result = get_aggregation_results(
+            links, [factory_agg_link_vote(score=1), factory_agg_link_vote(score=1)]
+        )
         assert result == (1, 5.0, 0.0)
 
         # 50/50
-        result = get_aggregation_results(links, [AggregateCoherenceLinkVote(score=1), AggregateCoherenceLinkVote(score=-1)])
+        result = get_aggregation_results(
+            links, [factory_agg_link_vote(score=1), factory_agg_link_vote(score=-1)]
+        )
         assert result == (1, 3.75, 0.0)
 
         # All disagree
-        result = get_aggregation_results(links, [AggregateCoherenceLinkVote(score=-1), AggregateCoherenceLinkVote(score=-1)])
+        result = get_aggregation_results(
+            links, [factory_agg_link_vote(score=-1), factory_agg_link_vote(score=-1)]
+        )
         assert result == (1, 2.5, 0.0)
 
     def test_convert_vector_to_direction_strength(self):
