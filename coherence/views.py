@@ -26,6 +26,7 @@ from coherence.services import (
     get_links_for_question,
     aggregate_coherence_link_vote,
 )
+from coherence.utils import get_aggregation_results, get_aggregations_links
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -107,10 +108,18 @@ def aggregate_links_vote_view(request: Request, pk: int):
 
     aggregate_coherence_link_vote(aggregation, user=request.user, vote=vote)
 
+    # Calculate strength
+    _, strength, _ = get_aggregation_results(
+        get_aggregations_links([aggregation]), list(aggregation.votes.all())
+    )
+
     return Response(
-        serialize_aggregate_coherence_link_vote(
-            list(aggregation.votes.all()), user_vote=vote
-        )
+        {
+            **serialize_aggregate_coherence_link_vote(
+                list(aggregation.votes.all()), user_vote=vote
+            ),
+            "strength": strength,
+        }
     )
 
 
