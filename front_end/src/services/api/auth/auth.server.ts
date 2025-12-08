@@ -42,7 +42,11 @@ class ServerAuthApiClass extends ApiService {
   }
 
   async verifyToken() {
-    return this.get("/auth/verify_token/", {}, { includeLocale: false });
+    return this.get(
+      "/auth/verify_token/",
+      { cache: "no-store" },
+      { includeLocale: false }
+    );
   }
 
   async exchangeSocialOauthCode(

@@ -41,7 +41,11 @@ export async function middleware(request: NextRequest) {
     } catch (error) {
       const errorResponse = error as ErrorResponse;
 
+      console.log("[Middleware] Token verification failed:", errorResponse);
+
+      // ApiError has response.status directly, not response.response.status
       if (errorResponse?.response?.status === 403) {
+        console.log("[Middleware] Clearing auth token due to 403");
         request.cookies.delete(COOKIE_NAME_TOKEN);
         // A small workaround of deleting cookies.
         // We need to delete cookies from request before generating response
