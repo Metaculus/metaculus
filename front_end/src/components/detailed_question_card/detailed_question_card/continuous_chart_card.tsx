@@ -198,7 +198,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         <>
           {/* Large screens: side-by-side layout */}
           <div className="hidden items-stretch gap-4 md:flex">
-            {isContinuousQuestion(question) && (
+            {isContinuousQuestion(question) && !isEmbed && (
               <QuestionHeaderCPStatus
                 question={question}
                 size="lg"

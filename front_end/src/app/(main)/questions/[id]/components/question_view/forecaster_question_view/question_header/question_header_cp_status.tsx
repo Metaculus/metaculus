@@ -2,6 +2,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_continuous_resolution_chip";
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
@@ -40,6 +41,8 @@ const QuestionHeaderCPStatus: FC<Props> = ({
     question.type === QuestionType.Numeric ||
     question.type === QuestionType.Discrete ||
     question.type === QuestionType.Date;
+
+  const isEmbed = useIsEmbedMode();
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -88,13 +91,19 @@ const QuestionHeaderCPStatus: FC<Props> = ({
               "max-w-[130px]": size === "md",
               "gap-1": !hideLabel && size === "lg",
               "gap-0": size === "md", // Remove gap for mobile (both hideLabel true/false)
-              "-gap-2": size === "md" && hideLabel, // More negative gap for mobile continuous questions
+              "-gap-2": size === "md" && hideLabel, // More negative gap for mobile continuous questions,
+              "border-[0.5px] border-olive-500 p-3 dark:border-olive-500-dark md:p-3":
+                isEmbed,
             }
           )}
         >
           <div>
             {!hideLabel && (
-              <div className="mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block">
+              <div
+                className={cn(
+                  "mb-1 hidden text-center text-sm text-gray-500 dark:text-gray-500-dark lg:block"
+                )}
+              >
                 {question.status === QuestionStatus.CLOSED
                   ? t("closed")
                   : t("communityPredictionLabel")}
@@ -112,12 +121,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             className={cn({
               "flex min-h-0 flex-1 items-center": hideLabel, // Desktop timeline: flex and center
               "": !hideLabel, // Mobile: no special styling
+              "mt-1.5": isEmbed,
             })}
           >
             <MinifiedContinuousAreaChart
               question={question}
               data={continuousAreaChartData}
-              height={hideLabel && size === "lg" ? 120 : 50}
+              height={hideLabel && size === "lg" ? 120 : isEmbed ? 24 : 50}
               forceTickCount={2}
               hideLabels={hideLabel}
               hideCP={hideCP}
