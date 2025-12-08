@@ -28,7 +28,7 @@ const FooterLinks: FC = () => {
       />
       <FooterLinkCard
         icon={faMugHot}
-        title="Practice Questions"
+        title="Warm-up Questions"
         href={BRIDGEWATER_2026.practiceQuestionsUrl}
       />
     </div>

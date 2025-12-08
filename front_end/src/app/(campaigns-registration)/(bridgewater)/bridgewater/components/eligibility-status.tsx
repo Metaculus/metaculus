@@ -84,7 +84,7 @@ const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
           href={BRIDGEWATER_2026.practiceQuestionsUrl}
           className="font-semibold text-white underline dark:text-blue-50-dark"
         >
-          warmup questions
+          warm-up questions
         </Link>{" "}
         to sharpen your skills!
       </p>
