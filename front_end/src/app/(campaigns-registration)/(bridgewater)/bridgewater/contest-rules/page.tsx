@@ -41,10 +41,10 @@ export default function ContestRules() {
             to make probabilistic forecasts on questions concerning future
             events across a variety of question types (binary, continuous,
             multiple choice, and conditional). Bridgewater Associates, LP
-            (&quot;Bridgewater&quot;) may reach out to participants who
-            perform well in the Tournament to gauge their interest in beginning
-            a recruitment process for employment with Bridgewater. By entering
-            and participating for the duration of the Tournament, you consent to
+            (&quot;Bridgewater&quot;) may reach out to participants who perform
+            well in the Tournament to gauge their interest in beginning a
+            recruitment process for employment with Bridgewater. By entering and
+            participating for the duration of the Tournament, you consent to
             Metaculus sharing your registration and performance information,
             including all personal information (which is information that can be
             used to identify or contact a specific individual, such as your name
@@ -62,14 +62,21 @@ export default function ContestRules() {
             forecasting question pages on Metaculus and submit your own
             probabilistic forecasts. To qualify for any of the prizes, you need
             to achieve a sufficiently high Peer Score, as assessed by
-            Metaculus&apos; Tournament Scoring Rules. Note that you may update
-            your forecasts as frequently as you want. No purchase or payment is
-            necessary to enter or win. You may enter only once. Entering more
-            than once will void all entries and result in disqualification. You
-            may not enter more times than indicated by using multiple email
-            addresses, identities, or devices in an attempt to circumvent the
-            rules. Participants are not allowed to share accounts – forecasts
-            must be your own work.
+            Metaculus&apos;{" "}
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="/help/scores-faq/#tournament-scores"
+            >
+              Tournament Scoring Rules
+            </a>
+            . Note that you may update your forecasts as frequently as you want.
+            No purchase or payment is necessary to enter or win. You may enter
+            only once. Entering more than once will void all entries and result
+            in disqualification. You may not enter more times than indicated by
+            using multiple email addresses, identities, or devices in an attempt
+            to circumvent the rules. Participants are not allowed to share
+            accounts – forecasts must be your own work.
           </li>
           <li>
             <b>Eligibility.</b> Participants must be 18 years of age or older as
@@ -280,10 +287,9 @@ export default function ContestRules() {
                 otherwise objectionable;
               </li>
               <li>
-                &quot;Crawls,&quot; &quot;scrapes,&quot; or
-                &quot;spiders&quot; any page, data, or portion of or relating
-                to the Services or Content (through use of manual or automated
-                means);
+                &quot;Crawls,&quot; &quot;scrapes,&quot; or &quot;spiders&quot;
+                any page, data, or portion of or relating to the Services or
+                Content (through use of manual or automated means);
               </li>
               <li>Copies or stores any significant portion of the Content;</li>
               <li>
@@ -414,11 +420,11 @@ export default function ContestRules() {
               Participant User must submit Competition Entries (defined below)
               and the rights that any third-party will be granted in such
               Competition Entry upon selecting any such Competition Entry as a
-              winner (&quot;Winning Entry&quot;). Certain rights granted in
-              the Competition Entries and Winning Entries are described in
-              Section 9 (Do I have to grant any licenses to Metaculus or to
-              other users?) below. The Competition Rules may impose additional
-              restrictions or requirements for Competitions.
+              winner (&quot;Winning Entry&quot;). Certain rights granted in the
+              Competition Entries and Winning Entries are described in Section 9
+              (Do I have to grant any licenses to Metaculus or to other users?)
+              below. The Competition Rules may impose additional restrictions or
+              requirements for Competitions.
             </p>
             <p className="ml-6">
               Each Participant User will comply with all Competition Rules.
