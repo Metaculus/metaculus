@@ -53,6 +53,7 @@ export type AggregateCoherenceLinkVotesSummary = {
   aggregated_data: AggregateCoherenceLinkVoteBucket[];
   user_vote: number | null | undefined;
   count: number;
+  strength?: number | null;
 };
 
 export type FetchedAggregateCoherenceLink = CoherenceLink & {

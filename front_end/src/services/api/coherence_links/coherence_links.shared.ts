@@ -2,7 +2,6 @@ import { ApiService } from "@/services/api/api_service";
 import type {
   FetchedAggregateCoherenceLinks,
   FetchedCoherenceLinks,
-  AggregateCoherenceLinkVotesSummary,
 } from "@/types/coherence";
 import { Question } from "@/types/question";
 
@@ -25,18 +24,6 @@ class CoherenceLinksApi extends ApiService {
   ): Promise<FetchedAggregateCoherenceLinks> {
     return await this.get(
       `/coherence/question/${question.id}/aggregate-links/`
-    );
-  }
-
-  async voteAggregateCoherenceLink(
-    aggregationId: number,
-    vote: AggregateLinkVoteValue
-  ): Promise<AggregateCoherenceLinkVotesSummary> {
-    return await this.post(
-      `/coherence/aggregate-links/${aggregationId}/votes/`,
-      {
-        vote,
-      }
     );
   }
 

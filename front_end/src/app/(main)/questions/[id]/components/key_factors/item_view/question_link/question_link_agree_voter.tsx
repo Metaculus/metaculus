@@ -32,6 +32,7 @@ type Props = {
   defaultDirection: QuestionLinkDirection;
   defaultStrength?: QuestionLinkStrength;
   onChange?: (next: "agree" | "disagree" | null) => void;
+  onStrengthChange?: (strength: number | null) => void;
   targetElementId?: string;
   className?: string;
 };
@@ -54,6 +55,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
   defaultDirection,
   defaultStrength = "medium",
   onChange,
+  onStrengthChange,
   className,
   targetElementId,
 }) => {
@@ -97,7 +99,6 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
 
     try {
       const res = await voteAggregateCoherenceLink(aggregationId, vote);
-
       if ("errors" in res) return;
 
       const data = res.data;
@@ -109,6 +110,12 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
       setAgree(up);
       setDisagree(down);
       setSelected(mapUserVoteToSelection(data.user_vote));
+
+      if ("strength" in data) {
+        onStrengthChange?.(data.strength ?? null);
+      }
+
+      await updateCoherenceLinks();
     } catch (e) {
       console.error("Failed to vote aggregate coherence link", e);
     }

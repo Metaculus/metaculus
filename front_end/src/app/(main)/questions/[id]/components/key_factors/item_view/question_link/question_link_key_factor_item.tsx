@@ -53,6 +53,14 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   const [otherQuestion, setOtherQuestion] =
     useState<QuestionWithForecasts | null>(null);
 
+  const [localStrength, setLocalStrength] = useState<number | null>(
+    link.strength ?? null
+  );
+
+  useEffect(() => {
+    setLocalStrength(link.strength ?? null);
+  }, [link.strength, link.id]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -112,7 +120,8 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   }, [isFirstQuestion, link]);
 
   const votesCount = link.links_nr ?? 0;
-  const rawStrength = link.strength ?? 0;
+
+  const rawStrength = localStrength ?? 0;
   const strengthScore = Math.max(0, Math.min(5, rawStrength));
 
   const questionType: QuestionType | null =
@@ -259,6 +268,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
             defaultDirection={defaultDirection}
             defaultStrength="medium"
             targetElementId={id}
+            onStrengthChange={(s) => setLocalStrength(s)}
           />
         </>
       )}
