@@ -30,6 +30,8 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
+import { bwInitAndTrackRegistrationIfConsent } from "../../utils/pixel-apis";
+
 export interface CampaignRegistrationProps {
   campaignKey: string;
   addToProject?: number;
@@ -458,6 +460,7 @@ export const RegistrationForm: FC<
         }
       }
     } else {
+      bwInitAndTrackRegistrationIfConsent();
       sendAnalyticsEvent(
         watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
       );
