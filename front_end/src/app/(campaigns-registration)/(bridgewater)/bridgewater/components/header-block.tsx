@@ -11,9 +11,9 @@ const HeaderBlock: FC = () => {
   return (
     <div className="rounded-b-md bg-gray-0 dark:bg-gray-0-dark sm:rounded-md">
       {/* Hero Image with Logo Overlay */}
-      <div className="relative h-[100px] w-full overflow-hidden rounded-t-md sm:h-[130px]">
+      <div className="relative h-[100px] w-full overflow-hidden rounded-t-none sm:h-[130px] sm:rounded-t-md">
         <Image
-          src="https://cdn.metaculus.com/bw-cover2x.webp"
+          src="https://cdn.metaculus.com/bw-cover_1.webp"
           alt="Bridgewater Contest"
           fill
           priority
