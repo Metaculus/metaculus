@@ -47,6 +47,8 @@ const FooterLinkCard: FC<{
   return (
     <Link
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className="hover:bg-blue-50 group flex w-full items-center justify-between gap-3 rounded-md bg-white p-6 text-center no-underline transition-all dark:bg-gray-0-dark dark:hover:bg-blue-900"
     >
       <FontAwesomeIcon
