@@ -30,6 +30,8 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
+import { bwInitAndTrackRegistrationIfConsent } from "../../utils/pixel-apis";
+
 export interface CampaignRegistrationProps {
   campaignKey: string;
   addToProject?: number;
@@ -54,7 +56,7 @@ export const tournamentRegistrationSchema = z
         !data.undergrad ||
         (data.graduationYear &&
           data.graduationYear >= currentYear &&
-          data.graduationYear <= currentYear + 5)
+          data.graduationYear <= currentYear + 7)
       );
     },
     {
@@ -135,7 +137,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
       <InputContainer labelText={t("fullName")}>
         <Input
           autoComplete="full-name"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
           type="text"
           errors={errors}
           {...register("fullName")}
@@ -145,7 +147,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
       <InputContainer labelText={t("country")}>
         <Input
           autoComplete="Country"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
           type="text"
           errors={errors}
           {...register("country")}
@@ -153,7 +155,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
       </InputContainer>
 
       <div className="flex w-full flex-col items-center">
-        <p className="text-xs text-gray-900 dark:text-gray-900-dark">
+        <p className="mb-1 text-sm text-gray-900 dark:text-gray-900-dark">
           {t("undergraduateStudentQuestion")}
         </p>
 
@@ -183,7 +185,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
           <InputContainer labelText={t("institution")}>
             <Input
               autoComplete="Institution"
-              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
               type="text"
               errors={errors}
               {...register("institution")}
@@ -193,7 +195,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
           <InputContainer labelText={t("major")}>
             <Input
               autoComplete="Major"
-              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
               type="text"
               errors={errors}
               {...register("major")}
@@ -202,7 +204,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
 
           <InputContainer labelText={t("graduationYear")}>
             <Input
-              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
               type="number"
               errors={errors}
               {...register("graduationYear", {
@@ -458,6 +460,7 @@ export const RegistrationForm: FC<
         }
       }
     } else {
+      bwInitAndTrackRegistrationIfConsent();
       sendAnalyticsEvent(
         watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
       );
@@ -481,7 +484,7 @@ export const RegistrationForm: FC<
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-4 bg-gray-0 p-4 dark:bg-gray-0-dark"
+        className="flex flex-col gap-4 bg-gray-0 dark:bg-gray-0-dark"
       >
         <div className="flex flex-col gap-4">
           <ExtraDataRegistrationFragment errors={errors} />
@@ -522,7 +525,7 @@ export const RegistrationForm: FC<
           </span>
         </Checkbox>
 
-        <div className="mt-7 flex flex-col items-center gap-7">
+        <div className="mt-3 flex flex-col items-center gap-7">
           <Button
             variant="primary"
             className=""

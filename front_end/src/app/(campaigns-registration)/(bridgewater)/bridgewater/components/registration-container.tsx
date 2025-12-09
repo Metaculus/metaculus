@@ -1,0 +1,114 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { FC, useEffect, useRef, useState } from "react";
+
+import { RegistrationForm } from "@/app/(campaigns-registration)/(bridgewater)/bridgewater/components/registration-forms";
+import { CurrentUser } from "@/types/users";
+
+import { CAMPAIGN_KEY } from "../constants";
+import EligibilityStatus from "./eligibility-status";
+import RegistrationSteps from "./registration-steps";
+
+interface RegistrationContainerProps {
+  currentUser: CurrentUser | null;
+}
+
+/**
+ * Container that handles the registration flow:
+ * 1. Show registration steps if not registered
+ * 2. Show registration form in modal when user clicks "Register"
+ * 3. Show eligibility status after successful registration
+ */
+const RegistrationContainer: FC<RegistrationContainerProps> = ({
+  currentUser,
+}) => {
+  const router = useRouter();
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [shouldScrollToStatus, setShouldScrollToStatus] = useState(false);
+  const eligibilityStatusRef = useRef<HTMLDivElement>(null);
+
+  const campaigns = currentUser?.registered_campaigns.filter(
+    ({ key }) => key === CAMPAIGN_KEY
+  );
+  const registered = (campaigns && campaigns.length > 0) || isRegistered;
+
+  const handleRegisterClick = () => {
+    setShowRegistrationModal(true);
+  };
+
+  const handleRegistrationSuccess = () => {
+    setIsRegistered(true);
+    setShowRegistrationModal(false);
+    setShouldScrollToStatus(true);
+    // Refresh the page to update the user's registered campaigns
+    router.refresh();
+  };
+
+  // Auto-scroll to eligibility status after registration
+  useEffect(() => {
+    if (shouldScrollToStatus && eligibilityStatusRef.current) {
+      // Small delay to ensure the DOM has updated
+      setTimeout(() => {
+        eligibilityStatusRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        setShouldScrollToStatus(false);
+      }, 100);
+    }
+  }, [shouldScrollToStatus]);
+
+  // Show eligibility status if registered
+  if (registered) {
+    const campaignDetails = campaigns?.[0]?.details as
+      | { undergrad: boolean }
+      | undefined;
+    return (
+      <div ref={eligibilityStatusRef}>
+        <EligibilityStatus eligibleBoth={campaignDetails?.undergrad ?? false} />
+      </div>
+    );
+  }
+
+  // Show registration steps
+  return (
+    <>
+      <RegistrationSteps onRegisterClick={handleRegisterClick} />
+
+      {/* Registration Modal */}
+      {showRegistrationModal && (
+        <div className="fixed inset-0 z-[201] flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white dark:bg-gray-0-dark">
+            <div className="relative p-6">
+              <button
+                onClick={() => setShowRegistrationModal(false)}
+                className="absolute right-4 top-4 text-2xl text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <div>
+                <h2 className="mb-2 mt-0 text-xl font-bold text-blue-800 dark:text-blue-800-dark sm:text-2xl">
+                  Complete your registration
+                </h2>
+                <p className="text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
+                  Fill out the form below to register for the tournament and
+                  compete for prizes!
+                </p>
+              </div>
+              <RegistrationForm
+                onSuccess={handleRegistrationSuccess}
+                campaignKey={CAMPAIGN_KEY}
+                addToProject={undefined}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default RegistrationContainer;
