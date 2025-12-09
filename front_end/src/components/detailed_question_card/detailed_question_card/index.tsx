@@ -1,6 +1,7 @@
 "use client";
 import React, { FC, useEffect } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, QuestionPost } from "@/types/post";
@@ -29,6 +30,8 @@ const DetailedQuestionCard: FC<Props> = ({
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   const { hideCP } = useHideCP();
+
+  const isEmbed = useIsEmbedMode();
 
   useEffect(() => {
     if (!!question.my_forecasts?.history.length) {
@@ -68,6 +71,8 @@ const DetailedQuestionCard: FC<Props> = ({
             question={question}
             hideCP={hideCP}
             forecastAvailability={forecastAvailability}
+            embedMode={isEmbed}
+            chartHeight={embedChartHeight}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

@@ -33,15 +33,9 @@ function getBinaryContinuousSize(containerWidth: number): EmbedSize {
 }
 
 function getOtherSize(containerWidth: number): EmbedSize {
-  if (containerWidth >= 550) {
-    return { width: 550, height: 270 };
-  }
-  if (containerWidth >= 401) {
-    return { width: 401, height: 270 };
-  }
-  if (containerWidth >= 360) {
-    return { width: 400, height: 360 };
-  }
+  if (containerWidth >= 550) return { width: 550, height: 270 };
+  if (containerWidth >= 440) return { width: 440, height: 270 };
+  if (containerWidth >= 400) return { width: 400, height: 360 };
   return { width: 360, height: 360 };
 }
 
@@ -87,7 +81,14 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
   const baseWidth = size.width || MIN_EMBED_WIDTH;
   const baseHeight = size.height || MIN_EMBED_WIDTH;
 
-  const scale = ogMode && baseHeight > 0 ? targetHeight / baseHeight : 1;
+  const scale = ogMode
+    ? Math.min(targetWidth / baseWidth, targetHeight / baseHeight)
+    : 1;
+
+  const isBinary = post.question?.type === QuestionType.Binary;
+  const isContinuous =
+    post.question &&
+    ContinuousQuestionTypes.some((t) => t === post.question?.type);
 
   const frameStyle: React.CSSProperties = ogMode
     ? {
@@ -123,7 +124,10 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
         style={frameStyle}
       >
         <div
-          className="flex flex-col gap-5 p-5 pb-4"
+          className={cn(
+            "EmbedQuestionCard flex flex-col p-5 pb-4",
+            isBinary || isContinuous ? "gap-5" : "gap-4 pb-5"
+          )}
           style={{
             width: baseWidth,
             height: baseHeight,
@@ -134,7 +138,7 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
             transformOrigin: "center center",
           }}
         >
-          <EmbedQuestionCard post={post} />
+          <EmbedQuestionCard ogMode={ogMode} post={post} />
         </div>
       </div>
     </div>
