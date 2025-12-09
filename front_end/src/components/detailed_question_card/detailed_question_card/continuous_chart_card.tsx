@@ -1,8 +1,9 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
@@ -33,6 +34,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -42,6 +44,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   forecastAvailability,
   hideTitle,
   isConsumerView: isConsumerViewProp,
+  embedChartHeight,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -180,6 +183,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.status,
   ]);
 
+  const isEmbed = useIsEmbedMode();
+
+  const chartHeight = embedChartHeight ?? 150;
+
   return (
     <div
       className={cn(
@@ -191,7 +198,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         <>
           {/* Large screens: side-by-side layout */}
           <div className="hidden items-stretch gap-4 md:flex">
-            {isContinuousQuestion(question) && (
+            {isContinuousQuestion(question) && !isEmbed && (
               <QuestionHeaderCPStatus
                 question={question}
                 size="lg"
@@ -238,6 +245,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
                     : cursorTooltip
                 }
                 isConsumerView={isConsumerView}
+                isEmbedded={isEmbed}
+                height={chartHeight}
               />
             </div>
           </div>
@@ -281,6 +290,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
                   : cursorTooltip
               }
               isConsumerView={isConsumerView}
+              isEmbedded={isEmbed}
+              height={chartHeight}
             />
           </div>
         </>
@@ -323,6 +334,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 : cursorTooltip
             }
             isConsumerView={isConsumerView}
+            isEmbedded={isEmbed}
+            height={chartHeight}
           />
         </div>
       )}

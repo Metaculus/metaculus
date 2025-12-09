@@ -1,6 +1,7 @@
 "use client";
 import React, { FC, useEffect } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, QuestionPost } from "@/types/post";
@@ -16,17 +17,21 @@ type Props = {
   post: QuestionPost<QuestionWithForecasts>;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
   post,
   hideTitle,
   isConsumerView,
+  embedChartHeight,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   const { hideCP } = useHideCP();
+
+  const isEmbed = useIsEmbedMode();
 
   useEffect(() => {
     if (!!question.my_forecasts?.history.length) {
@@ -54,6 +59,7 @@ const DetailedQuestionCard: FC<Props> = ({
             nrForecasters={nr_forecasters}
             hideTitle={hideTitle}
             isConsumerView={isConsumerView}
+            embedChartHeight={embedChartHeight}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
@@ -65,6 +71,8 @@ const DetailedQuestionCard: FC<Props> = ({
             question={question}
             hideCP={hideCP}
             forecastAvailability={forecastAvailability}
+            embedMode={isEmbed}
+            chartHeight={embedChartHeight}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
