@@ -22,7 +22,6 @@ import {
   editComment,
   softDeleteComment,
 } from "@/app/(main)/questions/actions";
-import { CoherenceLinksForm } from "@/app/(main)/questions/components/coherence_links/coherence_links_form";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
@@ -277,12 +276,16 @@ const Comment: FC<CommentProps> = ({
   );
 
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
+  const [hasExhaustedSuggestions, setHasExhaustedSuggestions] = useState(false);
+  const hasAutoOpenedKeyFactorsRef = useRef(false);
 
   const { combinedKeyFactors } = useCommentsFeed();
   const {
     suggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
     factorsLimit,
+    isDetectingQuestionLinks,
+    questionLinkCandidates,
     resetAll,
   } = useKeyFactorsCtx();
   const [showInitialSuggestionsLoader, setShowInitialSuggestionsLoader] =
@@ -290,8 +293,10 @@ const Comment: FC<CommentProps> = ({
   const hasShownInitialSuggestionsLoaderRef = useRef(false);
 
   useEffect(() => {
+    const isLoading = isLoadingSuggestedKeyFactors || isDetectingQuestionLinks;
+
     if (
-      isLoadingSuggestedKeyFactors &&
+      isLoading &&
       !hasShownInitialSuggestionsLoaderRef.current &&
       isCommentJustCreated
     ) {
@@ -299,7 +304,7 @@ const Comment: FC<CommentProps> = ({
     }
 
     if (
-      !isLoadingSuggestedKeyFactors &&
+      !isLoading &&
       showInitialSuggestionsLoader &&
       !hasShownInitialSuggestionsLoaderRef.current
     ) {
@@ -308,6 +313,7 @@ const Comment: FC<CommentProps> = ({
     }
   }, [
     isLoadingSuggestedKeyFactors,
+    isDetectingQuestionLinks,
     showInitialSuggestionsLoader,
     isCommentJustCreated,
   ]);
@@ -319,19 +325,29 @@ const Comment: FC<CommentProps> = ({
     if (!isCommentJustCreated) return;
     if (isCommentEmpty) return;
 
-    if (
-      !isLoadingSuggestedKeyFactors &&
-      suggestedKeyFactors.length > 0 &&
-      !isKeyfactorsFormOpen
-    ) {
+    if (hasAutoOpenedKeyFactorsRef.current) return;
+
+    const isLoading = isLoadingSuggestedKeyFactors || isDetectingQuestionLinks;
+
+    if (isLoading || isKeyfactorsFormOpen) {
+      return;
+    }
+
+    const hasQuestionLinks = questionLinkCandidates?.length > 0;
+    const hasSuggestions = suggestedKeyFactors.length > 0;
+
+    if (hasQuestionLinks || hasSuggestions) {
       setIsKeyfactorsFormOpen(true);
+      hasAutoOpenedKeyFactorsRef.current = true;
     }
   }, [
     shouldSuggestKeyFactors,
     isCommentJustCreated,
     isCommentEmpty,
     isLoadingSuggestedKeyFactors,
+    isDetectingQuestionLinks,
     suggestedKeyFactors.length,
+    questionLinkCandidates?.length,
     isKeyfactorsFormOpen,
   ]);
 
@@ -358,17 +374,22 @@ const Comment: FC<CommentProps> = ({
   const limitNotReached = factorsLimit > 0;
   const isCommentAuthor = comment.author.id === user?.id;
 
-  const canAddKeyFactors =
-    isCommentAuthor &&
-    questionNotClosed &&
-    limitNotReached &&
-    canListKeyFactors;
+  const canShowAddKeyFactorsButton =
+    isCommentAuthor && questionNotClosed && canListKeyFactors;
+
+  const isAddKeyFactorsDisabled = !limitNotReached || hasExhaustedSuggestions;
 
   const onAddKeyFactorClick = () => {
+    if (isAddKeyFactorsDisabled) return;
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
 
     resetAll();
     setIsKeyfactorsFormOpen((prev) => !prev);
+  };
+
+  const handleSuggestionsCompleted = () => {
+    setHasExhaustedSuggestions(true);
+    setIsKeyfactorsFormOpen(false);
   };
 
   const openEdit = useCallback(() => {
@@ -828,15 +849,17 @@ const Comment: FC<CommentProps> = ({
                     }}
                   />
 
-                  {canAddKeyFactors && (
+                  {canShowAddKeyFactorsButton && (
                     <Button
                       size="xxs"
                       variant="tertiary"
                       onClick={onAddKeyFactorClick}
+                      disabled={isAddKeyFactorsDisabled}
                       className={cn(
                         "relative flex items-center justify-center",
                         isKeyfactorsFormOpen &&
-                          "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark"
+                          "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark",
+                        isAddKeyFactorsDisabled && "cursor-default opacity-60"
                       )}
                     >
                       <>
@@ -941,13 +964,8 @@ const Comment: FC<CommentProps> = ({
             }, 500);
           }}
           closeKeyFactorsForm={() => setIsKeyfactorsFormOpen(false)}
+          onSuggestionsCompleted={handleSuggestionsCompleted}
         />
-      )}
-      {isCommentJustCreated && postData && (
-        <CoherenceLinksForm
-          post={postData}
-          comment={comment}
-        ></CoherenceLinksForm>
       )}
       {comment.children?.length > 0 && !isCollapsed && (
         <CommentChildrenTree

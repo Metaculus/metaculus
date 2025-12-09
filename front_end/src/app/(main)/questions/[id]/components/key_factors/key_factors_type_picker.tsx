@@ -1,7 +1,7 @@
 import { faRobot, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import {
   faCog,
-  // faNewspaper,
+  faNewspaper,
   faSquarePollVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -36,7 +36,7 @@ const KeyFactorsTypePicker: React.FC<{
           icon={faRobot}
           title={t("askAnLLMTitle")}
           description={t("askAnLLMDescription")}
-          btnClassName="bg-purple-100 dark:bg-purple-100-dark hover:bg-purple-200 dark:hover:bg-purple-200-dark"
+          btnClassName="bg-purple-100 sm:col-span-3 dark:bg-purple-100-dark hover:bg-purple-200 dark:hover:bg-purple-200-dark"
           iconClassName="text-purple-600 dark:text-purple-600-dark"
           onClick={() => onPick("ask_llm")}
         />
@@ -99,12 +99,12 @@ const ITEMS: {
     value: "driver",
     icon: faCog,
   },
-  // {
-  //   label: "News",
-  //   description: "A recent event or article that could affect the forecast.",
-  //   value: "news",
-  //   icon: faNewspaper,
-  // },
+  {
+    label: "News",
+    description: "A recent event or article that could affect the forecast.",
+    value: "news",
+    icon: faNewspaper,
+  },
 ];
 
 export default KeyFactorsTypePicker;

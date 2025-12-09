@@ -7,8 +7,8 @@ import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import KeyFactorText from "../driver/key_factor_text";
 import KeyFactorHeader from "../key_factor_header";
+import KeyFactorText from "../key_factor_text";
 import KeyFactorBaseRateFrequency from "./key_factor_base_rate_frequency";
 import KeyFactorBaseRateTrend from "./key_factor_base_rate_trend";
 import KeyFactorDirectionVoter from "./key_factor_direction_voter";
@@ -33,6 +33,10 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   if (!keyFactor.base_rate) return null;
   const { base_rate: baseRate } = keyFactor;
   const isConsumer = mode === "consumer";
+
+  const hasSource = !!baseRate.source;
+  const showSourceError = isSuggested && !hasSource;
+
   return (
     <>
       {!isConsumer && (
@@ -84,13 +88,21 @@ const KeyFactorBaseRate: React.FC<Props> = ({
       {(isCompact || isConsumer) && (
         <div
           className={cn(
-            "text-left text-xs text-blue-600 hover:underline dark:text-blue-600-dark",
-            baseRate.type === "trend" && "-mt-2"
+            "text-left text-xs",
+            baseRate.type === "trend" && "-mt-2",
+            showSourceError
+              ? "text-salmon-700 dark:text-salmon-700-dark"
+              : "text-blue-600 hover:underline dark:text-blue-600-dark",
+            { "cursor-pointer": !showSourceError && hasSource }
           )}
-          role="link"
-          onClick={() => router.push(baseRate.source)}
+          role={!showSourceError && hasSource ? "link" : undefined}
+          onClick={() => {
+            if (!showSourceError && hasSource && baseRate.source) {
+              router.push(baseRate.source);
+            }
+          }}
         >
-          (source)
+          {showSourceError ? t("sourceMissing") : hasSource ? "(source)" : ""}{" "}
         </div>
       )}
     </>

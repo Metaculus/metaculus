@@ -13,6 +13,7 @@ import type { BECommentType } from "@/types/comment";
 import type { ErrorResponse } from "@/types/fetch";
 import type { KeyFactorDraft } from "@/types/key_factors";
 import type { PostWithForecasts } from "@/types/post";
+import { Question } from "@/types/question";
 import type { User } from "@/types/users";
 
 import { createEmptyBaseRateDraft } from "./item_creation/base_rate/utils";
@@ -42,6 +43,8 @@ type Ctx = State & {
   isPending: boolean;
   isLoadingSuggestedKeyFactors: boolean;
   suggestedKeyFactors: KeyFactorDraft[];
+  isDetectingQuestionLinks: boolean;
+  questionLinkCandidates: Question[];
   setDrafts: React.Dispatch<React.SetStateAction<KeyFactorDraft[]>>;
   setMarkdown: (m: string) => void;
   setSuggestedKeyFactors: React.Dispatch<
@@ -50,8 +53,9 @@ type Ctx = State & {
   setErrors: (e?: ErrorResponse) => void;
   resetAll: () => void;
   submit: (
-    submitType: "driver" | "base_rate",
-    markdownOverride?: string
+    submitType: "driver" | "base_rate" | "news",
+    markdownOverride?: string,
+    draftsOverride?: KeyFactorDraft[]
   ) => Promise<SubmitResult>;
   loadSuggestions: (force?: boolean) => void;
   addSingleSuggestedKeyFactor: (draft: KeyFactorDraft) => Promise<SubmitResult>;
@@ -59,8 +63,9 @@ type Ctx = State & {
 
 const NOOP = () => {};
 const NOOP_SUBMIT = async (
-  _submitType: "driver" | "base_rate",
-  _markdownOverride?: string
+  _submitType: "driver" | "base_rate" | "news",
+  _markdownOverride?: string,
+  _draftsOverride?: KeyFactorDraft[]
 ): Promise<SubmitResult> => undefined;
 
 const NOOP_ADD_SINGLE = async (_draft: KeyFactorDraft): Promise<SubmitResult> =>
@@ -76,6 +81,8 @@ const DISABLED_CTX: Ctx = {
   isPending: false,
   isLoadingSuggestedKeyFactors: false,
   suggestedKeyFactors: [],
+  isDetectingQuestionLinks: false,
+  questionLinkCandidates: [],
   setDrafts: NOOP as unknown as React.Dispatch<
     React.SetStateAction<KeyFactorDraft[]>
   >,
@@ -158,6 +165,8 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
     isLoadingSuggestedKeyFactors,
     limitError,
     factorsLimit,
+    isDetectingQuestionLinks,
+    questionLinkCandidates,
     submit: submitImpl,
     isPending,
     clearState,
@@ -189,6 +198,8 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       isPending,
       isLoadingSuggestedKeyFactors,
       suggestedKeyFactors,
+      isDetectingQuestionLinks,
+      questionLinkCandidates,
       setDrafts: (updater) =>
         dispatch({
           drafts:
@@ -203,11 +214,12 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       setErrors,
       resetAll,
       submit: async (
-        submitType: "driver" | "base_rate",
-        markdownOverride?: string
+        submitType: "driver" | "base_rate" | "news",
+        markdownOverride?: string,
+        draftsOverride?: KeyFactorDraft[]
       ) =>
         submitImpl(
-          state.drafts,
+          draftsOverride ?? state.drafts,
           suggestedKeyFactors,
           submitType,
           markdownOverride ?? state.markdown
@@ -228,6 +240,8 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       shouldLoadSuggestions,
       isLoadingSuggestedKeyFactors,
       suggestedKeyFactors,
+      isDetectingQuestionLinks,
+      questionLinkCandidates,
       setSuggestedKeyFactors,
       setErrors,
       resetAll,

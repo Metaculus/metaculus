@@ -11,6 +11,7 @@ type ImpactDirectionControlsProps = {
   impact: { impact_direction: 1 | -1 | null; certainty: -1 | null } | null;
   onSelect: (impactMetadata: ImpactMetadata) => void;
   unit?: string;
+  itemClassName?: string;
 };
 
 type ButtonConfig =
@@ -97,44 +98,61 @@ const ImpactDirectionControls: FC<ImpactDirectionControlsProps> = ({
   impact,
   onSelect,
   unit,
+  itemClassName,
 }) => {
-  const certainty = impact?.certainty ?? null;
-  const impact_direction = impact?.impact_direction ?? null;
+  const currentCertainty = impact?.certainty ?? null;
+  const currentDirection = impact?.impact_direction ?? null;
 
   const buttons: ButtonConfig[] = useMemo(
     () => generateButtons(questionType),
     [questionType]
   );
 
+  const clear = () => onSelect({ impact_direction: null, certainty: null });
+
   return (
     <div className="flex flex-col items-start gap-1.5 sm:flex-row">
       {buttons.map(
-        ({ direction, certainty: btnCertainty, impact, variant }) => (
-          <LikelihoodButton
-            key={impact}
-            variant={variant}
-            onClick={() => {
-              if (btnCertainty === -1) {
-                onSelect({ impact_direction: null, certainty: -1 });
-              } else {
-                onSelect({
-                  impact_direction: direction as 1 | -1,
-                  certainty: null,
-                });
-              }
-            }}
-            selected={
-              (direction !== null && impact_direction === direction) ||
-              (btnCertainty === -1 && certainty === -1)
-            }
-          >
-            <KeyFactorImpactDirectionLabel
-              impact={impact}
-              unit={variant !== "neutral" ? unit : undefined}
-              className="!text-inherit [font-size:inherit]"
-            />
-          </LikelihoodButton>
-        )
+        ({
+          direction,
+          certainty: btnCertainty,
+          impact: impactLabel,
+          variant,
+        }) => {
+          const isSelected =
+            (direction !== null && currentDirection === direction) ||
+            (btnCertainty === -1 && currentCertainty === -1);
+
+          return (
+            <LikelihoodButton
+              key={impactLabel}
+              variant={variant}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isSelected) {
+                  clear();
+                } else if (btnCertainty === -1) {
+                  onSelect({ impact_direction: null, certainty: -1 });
+                } else {
+                  onSelect({
+                    impact_direction: direction as 1 | -1,
+                    certainty: null,
+                  });
+                }
+              }}
+              selected={isSelected}
+              className={itemClassName}
+            >
+              <KeyFactorImpactDirectionLabel
+                impact={impactLabel}
+                unit={variant !== "neutral" ? unit : undefined}
+                className="!text-inherit [font-size:inherit]"
+              />
+            </LikelihoodButton>
+          );
+        }
       )}
     </div>
   );

@@ -123,10 +123,19 @@ export type BaseRate = {
   source: string;
 };
 
+export type News = ImpactMetadata & {
+  url: string;
+  title: string;
+  img_url?: string;
+  source: string;
+  published_at?: string;
+};
+
 export type KeyFactor = {
   id: number;
   driver?: Driver | null;
   base_rate?: BaseRate | null;
+  news?: News | null;
   author: AuthorType; // used to set limit per question
   comment_id: number;
   vote: KeyFactorVoteAggregate;

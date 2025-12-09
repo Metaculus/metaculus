@@ -7,13 +7,13 @@ import { BECommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { User } from "@/types/users";
 
-import { KeyFactorsProvider, useKeyFactorsCtx } from "../key_factors_context";
+import { KeyFactorsProvider } from "../key_factors_context";
 import KeyFactorsTypePicker from "../key_factors_type_picker";
 import { KFType } from "../types";
 import KeyFactorsBaseRateCreationBlock from "./creation_blocks/key_factors_base_rate_creation_block";
 import KeyFactorsDriverCreationBlock from "./creation_blocks/key_factors_driver_creation_block";
+import KeyFactorsNewsCreationBlock from "./creation_blocks/key_factors_news_creation_block";
 import KeyFactorsBreadcrumbs from "./key_factors_breadcrumbs";
-import KeyFactorsLoadingSuggested from "./key_factors_loading_suggested";
 
 type Props = {
   isOpen: boolean;
@@ -74,7 +74,6 @@ const KeyFactorsAddModalBody: React.FC<{
   onClose: () => void;
   onSuccess?: (c: BECommentType) => void;
 }> = ({ post, commentId, onClose, onSuccess }) => {
-  const { isLoadingSuggestedKeyFactors } = useKeyFactorsCtx();
   const [selectedType, setSelectedType] = useState<KFType>(null);
 
   return (
@@ -84,28 +83,31 @@ const KeyFactorsAddModalBody: React.FC<{
         onRootClick={() => setSelectedType(null)}
       />
 
-      {isLoadingSuggestedKeyFactors && <KeyFactorsLoadingSuggested />}
-      {!isLoadingSuggestedKeyFactors && (
-        <div className="flex grow flex-col gap-2">
-          {!selectedType ? (
-            <KeyFactorsTypePicker onPick={setSelectedType} />
-          ) : selectedType === "driver" ? (
-            <KeyFactorsDriverCreationBlock
-              post={post}
-              commentId={commentId}
-              onClose={onClose}
-              onSuccess={onSuccess}
-            />
-          ) : selectedType === "base_rate" ? (
-            <KeyFactorsBaseRateCreationBlock
-              post={post}
-              commentId={commentId}
-              onClose={onClose}
-              onSuccess={onSuccess}
-            />
-          ) : null}
-        </div>
-      )}
+      <div className="flex grow flex-col">
+        {!selectedType ? (
+          <KeyFactorsTypePicker onPick={setSelectedType} />
+        ) : selectedType === "driver" ? (
+          <KeyFactorsDriverCreationBlock
+            post={post}
+            commentId={commentId}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          />
+        ) : selectedType === "base_rate" ? (
+          <KeyFactorsBaseRateCreationBlock
+            post={post}
+            commentId={commentId}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          />
+        ) : selectedType === "news" ? (
+          <KeyFactorsNewsCreationBlock
+            post={post}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          />
+        ) : null}
+      </div>
     </>
   );
 };

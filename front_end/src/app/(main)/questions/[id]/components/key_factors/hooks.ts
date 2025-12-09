@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import {
   addKeyFactorsToComment,
@@ -16,10 +17,20 @@ import { KeyFactorWritePayload } from "@/services/api/comments/comments.shared";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { KeyFactorDraft } from "@/types/key_factors";
+import { Question } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { isBaseRateDraft, isDriverDraft } from "@/utils/key_factors";
+import {
+  isBaseRateDraft,
+  isDriverDraft,
+  isNewsDraft,
+} from "@/utils/key_factors";
 
 import { coerceBaseForType } from "./item_creation/base_rate/utils";
+import { fetchNewsPreview } from "./utils";
+import {
+  extractQuestionNumbersFromText,
+  fetchQuestionsForIds,
+} from "../../../helpers/question_link_detection";
 
 type UseKeyFactorsProps = {
   user_id: number | undefined;
@@ -38,6 +49,9 @@ export const useKeyFactors = ({
   const { comments, setComments, combinedKeyFactors, setCombinedKeyFactors } =
     useCommentsFeed();
 
+  const { coherenceLinks, aggregateCoherenceLinks } =
+    useCoherenceLinksContext();
+
   // The drafts are managed by the caller now
   const [errors, setErrors] = useState<ErrorResponse | undefined>();
   const [suggestedKeyFactors, setSuggestedKeyFactors] = useState<
@@ -47,6 +61,13 @@ export const useKeyFactors = ({
   const inFlightRef = useRef<Record<number, boolean>>({});
   const [isLoadingSuggestedKeyFactors, setIsLoadingSuggestedKeyFactors] =
     useState(false);
+
+  const [isDetectingQuestionLinks, setIsDetectingQuestionLinks] =
+    useState(false);
+  const [questionLinkCandidates, setQuestionLinkCandidates] = useState<
+    Question[]
+  >([]);
+  const questionLinksCheckedRef = useRef<Set<number>>(new Set());
 
   const applyTargetForDraft = (
     draft: KeyFactorDraft,
@@ -71,8 +92,42 @@ export const useKeyFactors = ({
     setIsLoadingSuggestedKeyFactors(true);
     try {
       const drafts = await ClientCommentsApi.getSuggestedKeyFactors(cid);
-      setSuggestedKeyFactors(drafts);
-      if (drafts.length > 0) {
+
+      const hydratedDrafts: KeyFactorDraft[] = await Promise.all(
+        drafts.map(async (draft) => {
+          if (!isNewsDraft(draft) || !draft.news?.url) return draft;
+
+          if (draft.news.title && draft.news.source) return draft;
+
+          const preview = await fetchNewsPreview(draft.news.url).catch(
+            () => null
+          );
+          if (!preview) return draft;
+
+          return {
+            ...draft,
+            news: {
+              ...draft.news,
+              url: preview.url,
+              title: preview.title,
+              img_url: preview.favicon_url ?? "",
+              source: preview.media_label,
+              published_at: preview.created_at,
+            },
+          };
+        })
+      );
+
+      const filtered = hydratedDrafts.filter(
+        (d) =>
+          isDriverDraft(d) ||
+          isBaseRateDraft(d) ||
+          (isNewsDraft(d) && d.news?.title && d.news?.source)
+      );
+
+      setSuggestedKeyFactors(filtered);
+
+      if (filtered.length > 0) {
         setTimeout(() => {
           const el = document.getElementById("suggested-key-factors");
           if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -87,9 +142,73 @@ export const useKeyFactors = ({
 
   useEffect(() => {
     if (!shouldLoadKeyFactors || !commentId) return;
-    if (fetchedOnceRef.current.has(commentId)) return;
-    void fetchSuggestions(commentId);
-  }, [commentId, shouldLoadKeyFactors, fetchSuggestions]);
+    if (questionLinksCheckedRef.current.has(commentId)) return;
+
+    const comment = comments.find((c) => c.id === commentId);
+    if (!comment) return;
+
+    const ids = extractQuestionNumbersFromText(comment.text || "");
+    if (!ids.length) {
+      questionLinksCheckedRef.current.add(commentId);
+      if (!fetchedOnceRef.current.has(commentId)) {
+        void fetchSuggestions(commentId);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      setIsDetectingQuestionLinks(true);
+      try {
+        const questions = await fetchQuestionsForIds(ids);
+        if (cancelled) return;
+
+        const existingLinkedIds = new Set<number>();
+        [...coherenceLinks.data].forEach((link) => {
+          if (link.question1_id) existingLinkedIds.add(link.question1_id);
+          if (link.question2_id) existingLinkedIds.add(link.question2_id);
+        });
+
+        const candidates = questions.filter(
+          (q) => !existingLinkedIds.has(q.id)
+        );
+
+        if (!candidates.length) {
+          setQuestionLinkCandidates([]);
+          questionLinksCheckedRef.current.add(commentId);
+          if (!fetchedOnceRef.current.has(commentId)) {
+            void fetchSuggestions(commentId);
+          }
+          return;
+        }
+
+        setQuestionLinkCandidates(candidates);
+        questionLinksCheckedRef.current.add(commentId);
+
+        if (!fetchedOnceRef.current.has(commentId)) {
+          void fetchSuggestions(commentId);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsDetectingQuestionLinks(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    shouldLoadKeyFactors,
+    commentId,
+    comments,
+    fetchSuggestions,
+    coherenceLinks,
+    aggregateCoherenceLinks,
+  ]);
 
   const reloadSuggestions = useCallback(() => {
     if (!commentId) return;
@@ -114,7 +233,7 @@ export const useKeyFactors = ({
   const onSubmit = async (
     submittedDrafts: KeyFactorDraft[],
     suggested: KeyFactorDraft[],
-    submitType: "driver" | "base_rate",
+    submitType: "driver" | "base_rate" | "news",
     markdown?: string
   ): Promise<
     | { errors: ErrorResponse; comment?: never }
@@ -122,8 +241,10 @@ export const useKeyFactors = ({
   > => {
     const driverDrafts = submittedDrafts.filter(isDriverDraft);
     const baseRateDrafts = submittedDrafts.filter(isBaseRateDraft);
+    const newsDrafts = submittedDrafts.filter(isNewsDraft);
     const suggestedDriverDrafts = suggested.filter(isDriverDraft);
     const suggestedBaseRateDrafts = suggested.filter(isBaseRateDraft);
+    const suggestedNewsDrafts = suggested.filter(isNewsDraft);
 
     const finalDrivers =
       submitType === "driver"
@@ -136,6 +257,9 @@ export const useKeyFactors = ({
       submitType === "base_rate"
         ? [...baseRateDrafts, ...suggestedBaseRateDrafts]
         : [];
+
+    const finalNews =
+      submitType === "news" ? [...newsDrafts, ...suggestedNewsDrafts] : [];
 
     const driverPayloads: KeyFactorWritePayload[] = finalDrivers.map((d) =>
       applyTargetForDraft(d, {
@@ -153,7 +277,15 @@ export const useKeyFactors = ({
       })
     );
 
-    const writePayloads = [...driverPayloads, ...baseRatePayloads];
+    const newsPayloads = finalNews.map((d) =>
+      applyTargetForDraft(d, { news: d.news })
+    );
+
+    const writePayloads = [
+      ...driverPayloads,
+      ...baseRatePayloads,
+      ...newsPayloads,
+    ];
 
     const comment = commentId
       ? await addKeyFactorsToComment(commentId, writePayloads)
@@ -193,15 +325,24 @@ export const useKeyFactors = ({
     | { error?: never; comment: BECommentType }
     | undefined
   > => {
-    const submitType: "driver" | "base_rate" = isDriverDraft(draft)
+    const submitType: "driver" | "base_rate" | "news" = isDriverDraft(draft)
       ? "driver"
-      : "base_rate";
+      : isBaseRateDraft(draft)
+        ? "base_rate"
+        : isNewsDraft(draft)
+          ? "news"
+          : (() => {
+              return undefined as never;
+            })();
+
+    if (!submitType) return;
 
     const res = await onSubmit([draft], [], submitType);
 
     if (res && "errors" in res && res.errors) {
       setErrors(res.errors as ErrorResponse);
     }
+
     return res;
   };
 
@@ -210,6 +351,7 @@ export const useKeyFactors = ({
   const clearState = () => {
     setErrors(undefined);
     setSuggestedKeyFactors([]);
+    setQuestionLinkCandidates([]);
   };
 
   return {
@@ -218,6 +360,9 @@ export const useKeyFactors = ({
     suggestedKeyFactors,
     setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
+
+    isDetectingQuestionLinks,
+    questionLinkCandidates,
 
     limitError,
     factorsLimit,
