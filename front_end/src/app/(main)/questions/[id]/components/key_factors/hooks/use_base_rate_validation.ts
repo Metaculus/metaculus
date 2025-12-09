@@ -75,8 +75,8 @@ export default function useBaseRateValidation(
         errs.rate = t("rateNumeratorGte0");
       } else if (den == null || Number.isNaN(den) || den < 1) {
         errs.rate = t("rateDenominatorGte1");
-      } else if (!(den > num)) {
-        errs.rate = t("rateDenominatorGtNumerator");
+      } else if (den < num) {
+        errs.rate = t("rateDenominatorGteNumerator");
       } else {
         errs.rate = undefined;
       }
@@ -84,10 +84,11 @@ export default function useBaseRateValidation(
       const pv = br.projected_value;
       const year = br.projected_by_year;
 
-      if (pv === null || pv === undefined || Number.isNaN(pv)) {
+      if (pv == null || Number.isNaN(pv)) {
         errs.projected_value = t("projectedValueRequired");
       }
-      if (year === null || year === undefined || Number.isNaN(year)) {
+
+      if (year == null || Number.isNaN(year)) {
         errs.projected_by_year = t("yearRequired");
       } else if (year < 1900 || year > 2100) {
         errs.projected_by_year = t("yearOutOfRange", { min: 1900, max: 2100 });
