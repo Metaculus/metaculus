@@ -123,6 +123,7 @@ jobs:
 
       - name: Start Django backend (Gunicorn) in background
         run: |
+          poetry run ./manage.py migrate
           poetry run ./manage.py collectstatic --noinput
           nohup poetry run gunicorn metaculus_web.wsgi:application \
             --log-level=debug --bind 0.0.0.0:8000 \
