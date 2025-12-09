@@ -5,6 +5,11 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
+const DEFAULT_FREQ_NUM = 1;
+const DEFAULT_FREQ_DEN = 10;
+
+const getDefaultTrendYear = () => new Date().getFullYear() + 1;
+
 export const getEffectiveUnit = (
   post: PostWithForecasts,
   draft?: BaseRateDraft
@@ -23,8 +28,8 @@ export const createEmptyBaseRateDraft = (initialUnit = ""): BaseRateDraft => ({
   base_rate: {
     type: "frequency",
     reference_class: "",
-    rate_numerator: null,
-    rate_denominator: null,
+    rate_numerator: DEFAULT_FREQ_NUM,
+    rate_denominator: DEFAULT_FREQ_DEN,
     unit: initialUnit,
     extrapolation: "",
     based_on: "",
@@ -67,10 +72,36 @@ export const switchBaseType = (
   type: "frequency" | "trend",
   unitFallback = ""
 ): BaseRateDraft => {
-  const next = { ...draft };
-  next.base_rate = coerceBaseForType(
+  const nextBase = coerceBaseForType(
     { ...draft, base_rate: { ...draft.base_rate, type } },
     unitFallback
   );
-  return next;
+
+  if (type === "frequency") {
+    return {
+      ...draft,
+      base_rate: {
+        ...nextBase,
+        rate_numerator:
+          "rate_numerator" in nextBase && nextBase.rate_numerator != null
+            ? nextBase.rate_numerator
+            : DEFAULT_FREQ_NUM,
+        rate_denominator:
+          "rate_denominator" in nextBase && nextBase.rate_denominator != null
+            ? nextBase.rate_denominator
+            : DEFAULT_FREQ_DEN,
+      },
+    } as BaseRateDraft;
+  }
+
+  return {
+    ...draft,
+    base_rate: {
+      ...nextBase,
+      projected_by_year:
+        "projected_by_year" in nextBase && nextBase.projected_by_year != null
+          ? nextBase.projected_by_year
+          : getDefaultTrendYear(),
+    },
+  } as BaseRateDraft;
 };
