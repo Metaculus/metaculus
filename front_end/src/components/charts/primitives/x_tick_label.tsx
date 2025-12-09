@@ -5,19 +5,24 @@ type Props = ComponentProps<typeof VictoryLabel> & {
   chartWidth: number;
   withCursor?: boolean;
   fontSize?: number;
+  dx?: number;
 };
 
 const XTickLabel: FC<Props> = ({
   chartWidth,
   withCursor,
   fontSize = 10,
+  dx = 0,
   ...props
 }) => {
-  const estimatedTextWidth =
-    ((props.text?.toString().length ?? 0) * fontSize) / 2;
+  const text = props.text?.toString() ?? "";
+  const estimatedTextWidth = (text.length * fontSize) / 2;
+
+  const x = (props.x ?? 0) + dx;
+
   const overlapsRightEdge = withCursor
-    ? (props.x ?? 0) > chartWidth - estimatedTextWidth
-    : (props.x ?? 0) > chartWidth - 12;
+    ? x > chartWidth - estimatedTextWidth
+    : x > chartWidth - 12;
 
   if (overlapsRightEdge) {
     return null;
@@ -26,9 +31,10 @@ const XTickLabel: FC<Props> = ({
   return (
     <VictoryLabel
       {...props}
+      dx={dx}
       style={{
         ...(props.style ?? {}),
-        fontSize: fontSize,
+        fontSize,
       }}
     />
   );

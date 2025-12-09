@@ -12,14 +12,15 @@ import metaculusLightLogo from "../assets/metaculus-light.png";
 
 type Props = {
   post: PostWithForecasts;
+  ogReady?: boolean;
 };
 
-const EmbedQuestionFooter: React.FC<Props> = ({ post }) => {
+const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <ForecastersCounter
-          className="px-1.5 py-1 [&_strong]:font-normal"
+          className="py-1 pl-0 pr-1.5 [&_strong]:font-normal"
           forecasters={post.nr_forecasters}
         />
         <CommentStatus
@@ -30,22 +31,24 @@ const EmbedQuestionFooter: React.FC<Props> = ({ post }) => {
         />
       </div>
 
-      <div id="id-logo-used-by-screenshot-donot-change">
-        <Image
-          className="dark:hidden"
-          src={metaculusDarkLogo}
-          alt="Metaculus Logo"
-          width={74}
-          height={15}
-        />
-        <Image
-          className="hidden dark:block"
-          src={metaculusLightLogo}
-          alt="Metaculus Logo"
-          width={74}
-          height={15}
-        />
-      </div>
+      {ogReady && (
+        <div id="id-logo-used-by-screenshot-donot-change">
+          <Image
+            className="dark:hidden"
+            src={metaculusDarkLogo}
+            alt="Metaculus Logo"
+            width={74}
+            height={15}
+          />
+          <Image
+            className="hidden dark:block"
+            src={metaculusLightLogo}
+            alt="Metaculus Logo"
+            width={74}
+            height={15}
+          />
+        </div>
+      )}
     </div>
   );
 };
