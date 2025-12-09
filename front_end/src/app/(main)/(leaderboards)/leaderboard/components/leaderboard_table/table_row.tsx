@@ -165,7 +165,7 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
   if (!userEntry) return null;
 
   const userHref = userEntry.medal
-    ? "/medals"
+    ? "/(overview)"
     : `/contributions/${category}/${userEntry.user?.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   return (

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useEffect, useState, useActionState } from "react";
+import { FC, useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -11,6 +11,7 @@ import {
   updateProfileFormAction,
   UpdateProfileState,
 } from "@/app/(main)/accounts/profile/actions";
+import ProfileMenu from "@/app/(main)/accounts/profile/components/profile_menu";
 import {
   UpdateProfileSchema,
   updateProfileSchema,
@@ -25,7 +26,7 @@ import {
 import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
 import useSearchParams from "@/hooks/use_search_params";
-import { ProfilePageMode, UserProfile } from "@/types/users";
+import { UserProfile } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
@@ -34,7 +35,6 @@ import SocialMediaFragment, {
   getSocialMediaArray,
   hasUserSocialMediaLink,
 } from "./social_media_section";
-import ProfilePageTabs from "../[id]/components/profile_page_tab";
 
 export type UserInfoProps = {
   profile: UserProfile;
@@ -115,9 +115,6 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
     "rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark";
   const inputLabelClassNames =
     "text-sm text-blue-900/45  dark:text-blue-100/45";
-
-  const mode = (params.get("mode") ||
-    ProfilePageMode.Overview) as ProfilePageMode;
 
   useEffect(() => {
     if (!state?.user) {
@@ -229,12 +226,12 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
               </Button>
             )}
 
-            <ProfilePageTabs profile={profile} mode={mode} />
+            <ProfileMenu profile={profile} />
           </div>
         </div>
 
         <div className="mx-auto max-w-full overflow-x-auto py-2 text-xs font-medium md:hidden">
-          <ProfilePageTabs profile={profile} mode={mode} />
+          <ProfileMenu profile={profile} />
         </div>
       </>
     );
