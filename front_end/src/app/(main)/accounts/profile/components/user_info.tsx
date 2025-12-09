@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
-import useSearchParams from "@/hooks/use_search_params";
 import { UserProfile } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
@@ -107,7 +106,6 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
   );
   const { pending } = useFormStatus();
 
-  const { params } = useSearchParams();
   const locale = useLocale();
 
   const socialMedia = getSocialMediaArray(profile);
