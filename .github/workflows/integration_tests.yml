@@ -1,4 +1,4 @@
-name: Run Integration Tests (Playright)
+name: Run Integration Tests (Playwright)
 
 on:
   pull_request:
@@ -117,6 +117,32 @@ jobs:
         run: cd front_end && npm ci
       - name: Build the frontend
         run: cd front_end && npm run build
+
+      - name: Install wait-on
+        run: npm install -g wait-on
+
+      - name: Start Django backend (Gunicorn) in background
+        run: |
+          poetry run ./manage.py collectstatic --noinput
+          nohup poetry run gunicorn metaculus_web.wsgi:application \
+            --log-level=debug --bind 0.0.0.0:8000 \
+            > backend.log 2>&1 &
+
+      - name: Start Dramatiq in background
+        run: |
+          nohup poetry run ./manage.py rundramatiq --processes 1 --threads 1 \
+            > dramatiq.log 2>&1 &
+
+      - name: Start Next.js frontend in background
+        run: |
+          cd front_end
+          nohup npm start > ../frontend.log 2>&1 &
+
+      - name: Wait for backend & frontend to be ready
+        run: |
+          wait-on http://localhost:8000
+          wait-on http://localhost:3000
+
       - name: Run the integration tests
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -125,8 +151,9 @@ jobs:
           PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.PUBLIC_TURNSTILE_SITE_KEY }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
-          poetry run ./manage.py migrate
-          PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} scripts/tests/run_integration_tests.sh
+          poetry run pytest -s -p no:django -c - --noconftest \
+            --log-cli-level=INFO tests/integration/*.py
+
       - name: Create trace.zip
         if: ${{ !cancelled() }}
         run: |
