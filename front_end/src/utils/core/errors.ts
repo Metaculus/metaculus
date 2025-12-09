@@ -26,7 +26,16 @@ export class ApiError extends Error {
   // https://github.com/vercel/next.js/discussions/49506#discussioncomment-10120012
   public digest: string;
 
-  public response: Response;
+  /**
+   * Store only serializable response data to avoid circular references.
+   *
+   * The native Response object contains circular references in its internal structure
+   * Storing the full Response object causes stack overflow errors when:
+   * - Logging with console.log() in Next.js
+   * - Serializing with JSON.stringify()
+   * - Sending to Sentry or other error tracking services
+   */
+  public response: Pick<Response, "status" | "ok" | "url" | "headers">;
   public data: ErrorResponse;
 
   constructor(response: Response, apiError: ApiErrorResponse) {
@@ -37,7 +46,17 @@ export class ApiError extends Error {
 
     super(message);
     this.digest = `${API_ERROR_TAG} ${message}`;
-    this.response = response;
+
+    // Extract only serializable data from the Response object.
+    // We cannot store the full Response object because it contains circular references
+    // that cause stack overflow when Next.js tries to format errors for the console
+    this.response = {
+      ok: response.ok,
+      status: response.status,
+      url: response.url,
+      headers: response.headers,
+    };
+
     this.data = normalizeApiErrors(apiError);
 
     this.name = "ApiError";

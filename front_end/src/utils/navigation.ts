@@ -180,3 +180,29 @@ export const getPostEditLink = (post: Post) => {
 
   return `/questions/create/${edit_type}?post_id=${post.id}`;
 };
+
+/**
+ * Ensures a safe, normalized relative redirect path.
+ */
+export function ensureRelativeRedirect(input: string): string {
+  if (!input) return "/";
+
+  let url = input.trim();
+
+  if (url.startsWith("//")) {
+    throw new Error(
+      "Unsafe redirect URL: protocol-relative URLs are not allowed"
+    );
+  }
+
+  url = url.replace(/^\/+/, "");
+
+  if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(url)) {
+    throw new Error(
+      "Unsafe redirect URL: absolute or protocol URLs are not allowed"
+    );
+  }
+
+  // Normalize slashes
+  return "/" + url;
+}
