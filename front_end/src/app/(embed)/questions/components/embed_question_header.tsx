@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   isContinuousQuestion,
@@ -40,14 +40,26 @@ const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
     return () => observer.disconnect();
   }, [onHeightChange]);
 
+  const maxLines = useMemo(() => {
+    if (!isQuestionPost(post)) return 3;
+    const q = post.question;
+    return q.type === QuestionType.Binary || isContinuousQuestion(q) ? 4 : 3;
+  }, [post]);
+
+  const titleMinHeightClass = useMemo(() => {
+    if (!isQuestionPost(post)) return "";
+    const q = post.question;
+    return q.type === QuestionType.MultipleChoice ? "min-h-[2.5em]" : "";
+  }, [post]);
+
   return (
     <div
       ref={containerRef}
       className={cn("flex items-center", isEmbed && "items-start")}
     >
       <TruncatableQuestionTitle
-        className="!text-[20px] !leading-[125%]"
-        maxLines={4}
+        className={cn("!text-[20px] !leading-[125%]", titleMinHeightClass)}
+        maxLines={maxLines}
         revealOnHoverOrTap={true}
       >
         {post.title}

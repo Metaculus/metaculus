@@ -42,7 +42,6 @@ import {
   generateScale,
   generateTimestampXScale,
   generateTimeSeriesYDomain,
-  getAxisLeftPadding,
   getTickLabelFontSize,
   getAxisRightPadding,
 } from "@/utils/charts/axis";
@@ -55,6 +54,7 @@ import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import SvgWrapper from "./primitives/svg_wrapper";
+import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
   x: number;
@@ -181,12 +181,6 @@ const MultipleChoiceChart: FC<Props> = ({
       forFeedPage,
     ]
   );
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-  const maxLeftPadding = useMemo(() => {
-    return Math.max(leftPadding, MIN_LEFT_PADDING);
-  }, [leftPadding, MIN_LEFT_PADDING]);
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
@@ -258,6 +252,14 @@ const MultipleChoiceChart: FC<Props> = ({
     />
   );
 
+  const topPadding = isEmbedded ? 0 : height < 150 ? 5 : 10;
+  const BASE_BOTTOM_PADDING = 20;
+  const EMBED_EXTRA_BOTTOM_PADDING = 6;
+
+  const bottomPadding = isEmbedded
+    ? BASE_BOTTOM_PADDING - EMBED_EXTRA_BOTTOM_PADDING
+    : BASE_BOTTOM_PADDING;
+
   return (
     <div className="relative" ref={chartContainerRef}>
       <ChartContainer
@@ -272,10 +274,10 @@ const MultipleChoiceChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: isEmbedded ? maxLeftPadding : 0,
-              top: height < 150 ? 5 : 10,
-              right: isEmbedded ? 10 : maxRightPadding,
-              bottom: BOTTOM_PADDING,
+              left: 0,
+              top: topPadding,
+              right: maxRightPadding,
+              bottom: bottomPadding,
             }}
             events={[
               {
@@ -343,6 +345,12 @@ const MultipleChoiceChart: FC<Props> = ({
               dependentAxis
               tickValues={yScale.ticks}
               tickFormat={yScale.tickFormat}
+              tickLabelComponent={
+                <YTickLabel
+                  nudgeTop={isEmbedded ? 6 : 0}
+                  nudgeBottom={isEmbedded ? 6 : 0}
+                />
+              }
               style={{
                 ticks: {
                   stroke: "transparent",
@@ -373,11 +381,7 @@ const MultipleChoiceChart: FC<Props> = ({
               }}
               label={yLabel}
               offsetX={
-                isEmbedded
-                  ? maxLeftPadding
-                  : isNil(yLabel)
-                    ? chartWidth + 5
-                    : chartWidth - TICK_FONT_SIZE + 5
+                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
               }
               orientation={"left"}
               axisLabelComponent={<VictoryLabel x={chartWidth} />}
@@ -398,6 +402,7 @@ const MultipleChoiceChart: FC<Props> = ({
                     chartWidth={chartWidth}
                     withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
+                    dx={isEmbedded ? 16 : 0}
                   />
                 </VictoryPortal>
               }

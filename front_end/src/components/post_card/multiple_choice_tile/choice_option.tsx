@@ -1,6 +1,7 @@
 import { isNil } from "lodash";
 import React, { FC } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import ChoiceIcon from "@/components/choice_icon";
 import ChoiceResolutionIcon from "@/components/choice_resolution_icon";
 import { Resolution } from "@/types/post";
@@ -56,6 +57,7 @@ const ChoiceOption: FC<Props> = ({
     : resolution;
 
   const hasValue = !isNil(values.at(-1));
+  const isEmbed = useIsEmbedMode();
 
   return (
     <div
@@ -64,7 +66,8 @@ const ChoiceOption: FC<Props> = ({
         "flex h-auto flex-row items-center self-stretch text-gray-900 dark:text-gray-900-dark",
         {
           "text-gray-800 dark:text-gray-800-dark": !hasValue,
-        }
+        },
+        isEmbed && "pl-0.5"
       )}
     >
       {withIcon && (
@@ -79,6 +82,7 @@ const ChoiceOption: FC<Props> = ({
       <div
         className={cn(
           "resize-label line-clamp-2 min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
+          isEmbed && "line-clamp-1",
           labelClassName
         )}
       >
