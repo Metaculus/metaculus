@@ -4,7 +4,7 @@ export const CAMPAIGN_URL_BASE_PATH = "/bridgewater";
 // Static data for the 2026 campaign
 export const BRIDGEWATER_2026 = {
   title: "Bridgewater x Metaculus Forecasting Contest",
-  startDate: "January 12, 2025",
+  startDate: "January 12, 2026",
   endDate: "March 13, 2026",
   prizePool: "$30,000",
   description: `Metaculus and Bridgewater Associates are partnering again on a unique forecasting competition. Starting January 12, forecasters of all experience levels can share their predictions across a variety of questions.
