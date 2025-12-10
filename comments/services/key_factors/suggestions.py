@@ -3,8 +3,10 @@ import logging
 import textwrap
 from typing import Literal, Optional, Union
 
+from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from django.conf import settings
 from django.core.validators import URLValidator
+from posts.models import Post
 from pydantic import (
     field_validator,
     ValidationInfo,
@@ -13,11 +15,8 @@ from pydantic import (
     Field,
     model_validator,
 )
-from rest_framework.exceptions import ValidationError
-
-from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
-from posts.models import Post
 from questions.models import Question
+from rest_framework.exceptions import ValidationError
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 
 MAX_LENGTH = 50
@@ -364,7 +363,7 @@ def generate_keyfactors(
         - Ensure suggested key factors do not duplicate each other
         - Be conservative and only include clearly relevant factors
         - Do not include any formatting like quotes, numbering or other punctuation
-        - If the comment provides no meaningful forecasting insight, return the literal string "None".
+        - If the comment provides no meaningful forecasting insight, return empty list e.g {"key_factors":[]}.
 
         The question details are:
         <question_summary>
@@ -406,9 +405,6 @@ def generate_keyfactors(
         return []
 
     content = response.choices[0].message.content
-
-    if content is None or content.lower() == "none":
-        return []
 
     try:
         data = json.loads(content)
