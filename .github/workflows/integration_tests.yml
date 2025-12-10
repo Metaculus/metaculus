@@ -141,8 +141,8 @@ jobs:
 
       - name: Wait for backend & frontend to be ready
         run: |
-          wait-on http://localhost:8000
-          wait-on http://localhost:3000
+          wait-on http://localhost:8000/api/healthcheck/ --timeout 30000
+          wait-on http://localhost:3000 --timeout 30000
 
       - name: Run the integration tests
         env:
