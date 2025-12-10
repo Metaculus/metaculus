@@ -126,13 +126,6 @@ export const useKeyFactors = ({
       );
 
       setSuggestedKeyFactors(filtered);
-
-      if (filtered.length > 0) {
-        setTimeout(() => {
-          const el = document.getElementById("suggested-key-factors");
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 50);
-      }
       fetchedOnceRef.current.add(cid);
     } finally {
       setIsLoadingSuggestedKeyFactors(false);
