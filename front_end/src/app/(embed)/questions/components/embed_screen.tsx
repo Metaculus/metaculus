@@ -3,21 +3,18 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { ContinuousQuestionTypes } from "@/constants/questions";
-import { PostWithForecasts } from "@/types/post";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import EmbedQuestionCard from "./embed_question_card";
+import { EmbedSize } from "../helpers/embed_chart_height";
 
 type Props = {
   post: PostWithForecasts;
   targetWidth?: number;
   targetHeight?: number;
-};
-
-type EmbedSize = {
-  width: number;
-  height: number;
 };
 
 const MIN_EMBED_WIDTH = 360;
@@ -45,7 +42,11 @@ function getSizeForPost(post: PostWithForecasts, containerWidth: number) {
     (post.question.type === QuestionType.Binary ||
       ContinuousQuestionTypes.some((t) => t === post.question?.type));
 
-  return isBinaryOrContinuous
+  const isFanChart =
+    isGroupOfQuestionsPost(post) &&
+    post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph;
+
+  return isBinaryOrContinuous || isFanChart
     ? getBinaryContinuousSize(containerWidth)
     : getOtherSize(containerWidth);
 }
@@ -138,7 +139,7 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
             transformOrigin: "center center",
           }}
         >
-          <EmbedQuestionCard ogMode={ogMode} post={post} />
+          <EmbedQuestionCard size={size} ogMode={ogMode} post={post} />
         </div>
       </div>
     </div>

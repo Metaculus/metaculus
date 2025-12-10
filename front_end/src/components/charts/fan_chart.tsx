@@ -77,6 +77,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { FanChartVariant, fanVariants } from "./fan_chart_variants";
+import EmbedFanLegend from "./primitives/embed_fan_legend";
 import IndexValueTooltip from "./primitives/index_value_tooltip";
 
 type Props = {
@@ -221,18 +222,69 @@ const FanChart: FC<Props> = ({
   const v = fanVariants[effectiveVariant];
   const palette = v.palette({ getThemeColor });
 
+  const embedGridTicks = useMemo(() => {
+    if (!isEmbedded) return null;
+    return getEvenTicks(yDomain as Tuple<number>, 5);
+  }, [isEmbedded, yDomain]);
+
+  const embedLabelTicks = useMemo(() => {
+    if (!isEmbedded) return null;
+    return getEvenTicks(yDomain as Tuple<number>, 3);
+  }, [isEmbedded, yDomain]);
+
+  const EMBED_SIDE_PAD = 10;
+
+  const effectiveMaxLeftPadding = isEmbedded ? EMBED_SIDE_PAD : maxLeftPadding;
+  const effectiveMaxRightPadding = isEmbedded
+    ? Math.max(maxRightPadding, rightPadding, MIN_RIGHT_PADDING, 28)
+    : maxRightPadding;
+
+  const baseYAxisStyle = v.yAxisStyle({
+    tickLabelFontSize,
+    maxLeftPadding: effectiveMaxLeftPadding,
+    maxRightPadding: effectiveMaxRightPadding,
+    getThemeColor,
+  });
+
   const shouldDisplayChart = !!chartWidth;
 
-  const variantArgs = {
-    chartWidth,
-    yLabel,
-    tickLabelFontSize,
-    maxLeftPadding: isEmbedded ? maxLeftPadding : maxLeftPadding,
-    maxRightPadding: isEmbedded
-      ? Math.max(10, maxRightPadding)
-      : maxRightPadding,
-    getThemeColor,
-  };
+  const variantArgs = useMemo(
+    () => ({
+      chartWidth,
+      yLabel,
+      tickLabelFontSize,
+      maxLeftPadding: effectiveMaxLeftPadding,
+      maxRightPadding: effectiveMaxRightPadding,
+      isEmbedded,
+      getThemeColor,
+    }),
+    [
+      chartWidth,
+      yLabel,
+      tickLabelFontSize,
+      effectiveMaxLeftPadding,
+      effectiveMaxRightPadding,
+      isEmbedded,
+      getThemeColor,
+    ]
+  );
+
+  const chartPadding = useMemo(() => {
+    const p = v.padding(variantArgs);
+    if (!isEmbedded) return p;
+
+    const safeRight = Math.max(
+      typeof p.right === "number" ? p.right : 0,
+      effectiveMaxRightPadding,
+      MIN_RIGHT_PADDING,
+      28
+    );
+    return {
+      ...p,
+      left: EMBED_SIDE_PAD,
+      right: safeRight,
+    };
+  }, [v, variantArgs, isEmbedded, effectiveMaxRightPadding, MIN_RIGHT_PADDING]);
 
   const bottomPadForPoints = v.padding(variantArgs).bottom;
 
@@ -327,206 +379,274 @@ const FanChart: FC<Props> = ({
     />
   );
 
+  const embedLegendNames = useMemo<string[]>(() => {
+    if (!isEmbedded) return [];
+
+    const names = normOptions.map((o) => o.name).filter(Boolean);
+    const n = names.length;
+
+    if (n <= 3) return names;
+
+    const first = names[0];
+    const mid = names[Math.floor(n / 2)];
+    const last = names[n - 1];
+
+    return Array.from(new Set([first, mid, last])).filter(
+      (v): v is string => typeof v === "string" && v.length > 0
+    );
+  }, [isEmbedded, normOptions]);
+
+  const embedLegendItems = useMemo(() => {
+    if (!isEmbedded || embedLegendNames.length === 0) return [];
+
+    const map = new Map(normOptions.map((o) => [o.name, o]));
+
+    return embedLegendNames.map((name) => {
+      const o = map.get(name);
+
+      const raw =
+        o?.resolved && typeof o.resolvedValue === "number"
+          ? o.resolvedValue
+          : o?.communityQuartiles?.median ?? null;
+
+      const valueText =
+        typeof raw === "number" && Number.isFinite(raw)
+          ? yScale.tickFormat(raw)
+          : "—";
+
+      return { name, valueText };
+    });
+  }, [isEmbedded, embedLegendNames, normOptions, yScale]);
+
   return (
-    <div
-      id="fan-graph-container"
-      ref={chartContainerRef}
-      className="relative w-full"
-      style={{ height }}
-    >
-      {shouldDisplayChart && (
-        <VictoryChart
-          width={chartWidth}
-          height={height}
-          theme={actualTheme}
-          domain={{ y: yDomain }}
-          domainPadding={v.domainPadding(variantArgs)}
-          padding={v.padding(variantArgs)}
-          containerComponent={
-            withTooltip ? (
-              containerWithTooltip
-            ) : (
-              <VictoryContainer
-                style={{
-                  pointerEvents: "auto",
-                  userSelect: "auto",
-                  touchAction: "auto",
-                }}
-              />
-            )
-          }
-          events={[
-            {
-              target: "parent",
-              eventHandlers: {
-                onMouseOutCapture: () => setActivePoint(null),
-              },
-            },
-          ]}
-        >
-          <VictoryAxis
-            dependentAxis
-            label={yLabel}
-            tickValues={yScale.ticks}
-            tickFormat={yScale.tickFormat}
-            style={v.yAxisStyle({
-              tickLabelFontSize,
-              maxLeftPadding,
-              maxRightPadding,
-              getThemeColor,
-            })}
-            offsetX={v.axisLabelOffsetX(variantArgs)}
-            axisLabelComponent={<VictoryLabel x={chartWidth} />}
-          />
+    <div className="w-full">
+      {isEmbedded && <EmbedFanLegend items={embedLegendItems} />}
 
-          <VictoryPortal>
-            <VictoryAxis
-              tickValues={normOptions.map((o) => o.name)}
-              tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
-              style={v.xAxisStyle({
-                tickLabelFontSize,
-                maxLeftPadding,
-                maxRightPadding,
-                getThemeColor,
-              })}
-            />
-          </VictoryPortal>
-
-          {!hideCP &&
-            communityAreas.map((area, idx) => (
-              <VictoryArea
-                key={`c-area-${idx}`}
-                name={`communityFanArea-${idx}`}
-                data={area ?? []}
-                style={{
-                  data: {
-                    opacity: 0.3,
-                    fill: ({ datum }) =>
-                      datum?.resolved
-                        ? getThemeColor(METAC_COLORS.purple["500"])
-                        : palette.communityArea,
-                  },
-                }}
-              />
-            ))}
-          {!hideCP &&
-            communityLines.map((line, idx) => (
-              <VictoryLine
-                key={`c-line-${idx}`}
-                name={`communityFanLine-${idx}`}
-                data={line ?? []}
-                style={{
-                  data: {
-                    stroke: ({ datum }) =>
-                      datum?.resolved
-                        ? getThemeColor(METAC_COLORS.purple["700"])
-                        : palette.communityLine,
-                  },
-                }}
-              />
-            ))}
-
-          <VictoryScatter
-            data={userPoints}
-            dataComponent={<PredictionWithRange />}
-          />
-
-          {!hideCP && !forecastAvailability?.cpRevealsOn && (
-            <VictoryScatter
-              data={communityPoints.map((p) => ({
-                ...p,
-                resolved: false,
-                symbol: "square",
-              }))}
-              style={{
-                data: {
-                  fill: () => palette.communityPoint,
-                  stroke: () => palette.communityPoint,
-                  strokeWidth: 6,
-                  strokeOpacity: ({ datum }) =>
-                    activePoint === datum.x ? 0.3 : 0,
-                },
-              }}
-              dataComponent={
-                <FanPoint
-                  activePoint={activePoint}
-                  pointSize={pointSize}
-                  pointColor={palette.communityPoint}
-                  bottomPadding={bottomPadForPoints}
+      <div
+        id="fan-graph-container"
+        ref={chartContainerRef}
+        className="relative w-full"
+        style={{ height }}
+      >
+        {shouldDisplayChart && (
+          <VictoryChart
+            width={chartWidth}
+            height={height}
+            theme={actualTheme}
+            domain={{ y: yDomain }}
+            domainPadding={v.domainPadding(variantArgs)}
+            padding={chartPadding}
+            containerComponent={
+              withTooltip ? (
+                containerWithTooltip
+              ) : (
+                <VictoryContainer
+                  style={{
+                    pointerEvents: "auto",
+                    userSelect: "auto",
+                    touchAction: "auto",
+                  }}
                 />
+              )
+            }
+            events={[
+              {
+                target: "parent",
+                eventHandlers: {
+                  onMouseOutCapture: () => setActivePoint(null),
+                },
+              },
+            ]}
+          >
+            <VictoryAxis
+              dependentAxis
+              orientation={isEmbedded ? "right" : undefined}
+              label={isEmbedded ? undefined : yLabel}
+              tickValues={
+                isEmbedded && embedLabelTicks ? embedLabelTicks : yScale.ticks
+              }
+              tickFormat={yScale.tickFormat}
+              style={{
+                ...baseYAxisStyle,
+                grid: isEmbedded ? { display: "none" } : baseYAxisStyle?.grid,
+              }}
+              offsetX={isEmbedded ? undefined : v.axisLabelOffsetX(variantArgs)}
+              axisLabelComponent={
+                isEmbedded ? undefined : <VictoryLabel x={chartWidth} />
               }
             />
-          )}
 
-          {resolutionPoints.map((point) => {
-            if (
-              point.placement &&
-              ["below", "above"].includes(point.placement)
-            ) {
-              return (
-                <VictoryPortal key={`res-portal-${point.x}`}>
-                  <VictoryScatter
-                    key={`res-${point.x}`}
-                    data={[
-                      {
-                        ...point,
-                        y: point.placement === "below" ? 0 : 1,
-                      },
-                    ]}
-                    dataComponent={<ResolutionDiamond hoverable={false} />}
-                  />
-                </VictoryPortal>
-              );
-            }
-            return (
+            {isEmbedded && embedGridTicks && (
+              <VictoryAxis
+                dependentAxis
+                tickValues={embedGridTicks}
+                tickFormat={() => ""}
+                orientation="right"
+                style={{
+                  ...baseYAxisStyle,
+                  tickLabels: {
+                    ...baseYAxisStyle?.tickLabels,
+                    display: "none",
+                  },
+                  grid: {
+                    ...baseYAxisStyle?.grid,
+                    strokeDasharray: "2,4",
+                  },
+                }}
+              />
+            )}
+
+            <VictoryPortal>
+              <VictoryAxis
+                tickValues={normOptions.map((o) => o.name)}
+                tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
+                style={v.xAxisStyle({
+                  tickLabelFontSize,
+                  maxLeftPadding: effectiveMaxLeftPadding,
+                  maxRightPadding: effectiveMaxRightPadding,
+                  getThemeColor,
+                })}
+              />
+            </VictoryPortal>
+
+            {!hideCP &&
+              communityAreas.map((area, idx) => (
+                <VictoryArea
+                  key={`c-area-${idx}`}
+                  name={`communityFanArea-${idx}`}
+                  data={area ?? []}
+                  style={{
+                    data: {
+                      opacity: 0.3,
+                      fill: ({ datum }) =>
+                        datum?.resolved
+                          ? getThemeColor(METAC_COLORS.purple["500"])
+                          : palette.communityArea,
+                    },
+                  }}
+                />
+              ))}
+            {!hideCP &&
+              communityLines.map((line, idx) => (
+                <VictoryLine
+                  key={`c-line-${idx}`}
+                  name={`communityFanLine-${idx}`}
+                  data={line ?? []}
+                  style={{
+                    data: {
+                      stroke: ({ datum }) =>
+                        datum?.resolved
+                          ? getThemeColor(METAC_COLORS.purple["700"])
+                          : palette.communityLine,
+                    },
+                  }}
+                />
+              ))}
+
+            <VictoryScatter
+              data={userPoints}
+              dataComponent={<PredictionWithRange />}
+            />
+
+            {!hideCP && !forecastAvailability?.cpRevealsOn && (
               <VictoryScatter
-                key={`res-${point.x}`}
-                data={[{ ...point, symbol: "diamond" }]}
+                data={communityPoints.map((p) => ({
+                  ...p,
+                  resolved: false,
+                  symbol: "square",
+                }))}
                 style={{
                   data: {
-                    fill: v.resolutionPoint.fill({ getThemeColor }),
-                    stroke: () => palette.resolutionStroke,
-                    strokeWidth: 2,
-                    strokeOpacity: 1,
+                    fill: () => palette.communityPoint,
+                    stroke: () => palette.communityPoint,
+                    strokeWidth: 6,
+                    strokeOpacity: ({ datum }) =>
+                      activePoint === datum.x ? 0.3 : 0,
                   },
                 }}
                 dataComponent={
                   <FanPoint
-                    activePoint={null}
-                    pointSize={v.resolutionPoint.size}
-                    strokeWidth={v.resolutionPoint.strokeWidth}
+                    activePoint={activePoint}
+                    pointSize={isEmbedded ? 8 : pointSize}
+                    pointColor={palette.communityPoint}
+                    bottomPadding={bottomPadForPoints}
                   />
                 }
               />
-            );
-          })}
-          {emptyPoints.map((point) => (
-            <VictoryScatter
-              key={`empty-${point.x}`}
-              data={[{ ...point, symbol: "diamond" }]}
-              dataComponent={
-                <FanPoint
-                  activePoint={activePoint}
-                  pointSize={v.resolutionPoint.size}
-                  strokeWidth={v.resolutionPoint.strokeWidth}
-                  unsuccessfullyResolved={point.unsuccessfullyResolved}
-                  bgColor={v.resolutionPoint.fill({ getThemeColor })}
-                  bottomPadding={bottomPadForPoints}
-                  isClosed
-                />
-              }
-            />
-          ))}
-        </VictoryChart>
-      )}
+            )}
 
-      {!withTooltip && (
-        <ForecastAvailabilityChartOverflow
-          forecastAvailability={forecastAvailability}
-          className="text-xs lg:text-sm"
-          textClassName="!max-w-[300px]"
-        />
-      )}
+            {resolutionPoints.map((point) => {
+              if (
+                point.placement &&
+                (point.placement === "below" || point.placement === "above")
+              ) {
+                return (
+                  <VictoryPortal key={`res-portal-${point.x}`}>
+                    <VictoryScatter
+                      data={[
+                        {
+                          ...point,
+                          // anchor diamond to bottom/top band
+                          y: point.placement === "below" ? 0 : 1,
+                        },
+                      ]}
+                      dataComponent={<ResolutionDiamond hoverable={false} />}
+                    />
+                  </VictoryPortal>
+                );
+              }
+
+              return (
+                <VictoryScatter
+                  key={`res-${point.x}`}
+                  data={[{ ...point, symbol: "diamond" }]}
+                  style={{
+                    data: {
+                      fill: v.resolutionPoint.fill({ getThemeColor }),
+                      stroke: () => palette.resolutionStroke,
+                      strokeWidth: 2,
+                      strokeOpacity: 1,
+                    },
+                  }}
+                  dataComponent={
+                    <FanPoint
+                      activePoint={null}
+                      pointSize={v.resolutionPoint.size}
+                      strokeWidth={v.resolutionPoint.strokeWidth}
+                    />
+                  }
+                />
+              );
+            })}
+
+            {emptyPoints.map((point) => (
+              <VictoryScatter
+                key={`empty-${point.x}`}
+                data={[{ ...point, symbol: "diamond" }]}
+                dataComponent={
+                  <FanPoint
+                    activePoint={activePoint}
+                    pointSize={v.resolutionPoint.size}
+                    strokeWidth={v.resolutionPoint.strokeWidth}
+                    unsuccessfullyResolved={point.unsuccessfullyResolved}
+                    bgColor={v.resolutionPoint.fill({ getThemeColor })}
+                    bottomPadding={bottomPadForPoints}
+                    isClosed
+                  />
+                }
+              />
+            ))}
+          </VictoryChart>
+        )}
+
+        {!withTooltip && (
+          <ForecastAvailabilityChartOverflow
+            forecastAvailability={forecastAvailability}
+            className="text-xs lg:text-sm"
+            textClassName="!max-w-[300px]"
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -1053,6 +1173,18 @@ function getFanOptionsFromBinaryGroup(
       question: q,
     };
   });
+}
+
+function getEvenTicks(domain: Tuple<number>, count: number): number[] {
+  const [lo, hi] = domain;
+  if (count <= 1) return [lo];
+  const step = (hi - lo) / (count - 1);
+  const out: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const v = lo + step * i;
+    out.push(Math.abs(v) < 1e-9 ? 0 : v);
+  }
+  return out;
 }
 
 export default FanChart;
