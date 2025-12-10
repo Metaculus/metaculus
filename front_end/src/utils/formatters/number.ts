@@ -145,7 +145,10 @@ export function formatNumberBipm(
   const [integerPart = "0", fractionalPart] = fixed.split(".");
 
   // Insert narrow non-breaking spaces (U+202F) as thousands separators
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, "\u202F");
+  const formattedInteger = integerPart.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    "\u202F"
+  );
 
   // Build the final string
   let result = formattedInteger;

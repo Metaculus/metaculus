@@ -28,9 +28,9 @@ type Props = {
 };
 
 const SCORE_DECIMALS: Partial<Record<LeaderboardType, number>> = {
-  "baseline_global": 0,
-  "peer_global": 1,
-}
+  baseline_global: 0,
+  peer_global: 1,
+};
 
 const LeaderboardRow: FC<Props> = ({
   rowEntry,
@@ -113,7 +113,7 @@ const LeaderboardRow: FC<Props> = ({
           </span>
         </Link>
       </td>
-      <td className="hidden w-24 p-0 tabular-nums font-[425] text-base leading-4 @md:!table-cell">
+      <td className="@md:!table-cell hidden w-24 p-0 text-base font-[425] tabular-nums leading-4">
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
@@ -123,7 +123,7 @@ const LeaderboardRow: FC<Props> = ({
         </Link>
       </td>
       {scoreType == "peer_global" && (
-        <td className="hidden w-24 p-0 tabular-nums font-[425] text-base leading-4 @md:!table-cell">
+        <td className="@md:!table-cell hidden w-24 p-0 text-base font-[425] tabular-nums leading-4">
           <Link
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
@@ -135,7 +135,7 @@ const LeaderboardRow: FC<Props> = ({
       )}
       <td
         className={cn(
-          "w-20 p-0 tabular-nums font-[425] text-base leading-4",
+          "w-20 p-0 text-base font-[425] tabular-nums leading-4",
           !isUserRow && "text-gray-600 dark:text-gray-600-dark"
         )}
       >
