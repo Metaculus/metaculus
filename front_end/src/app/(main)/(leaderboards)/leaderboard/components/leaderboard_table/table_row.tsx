@@ -9,7 +9,7 @@ import {
   LeaderboardType,
 } from "@/types/scoring";
 import cn from "@/utils/core/cn";
-import { abbreviatedNumber } from "@/utils/formatters/number";
+import { formatNumberBipm } from "@/utils/formatters/number";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
@@ -26,6 +26,11 @@ type Props = {
   href: Href;
   isUserRow?: boolean;
 };
+
+const SCORE_DECIMALS: Partial<Record<LeaderboardType, number>> = {
+  "baseline_global": 0,
+  "peer_global": 1,
+}
 
 const LeaderboardRow: FC<Props> = ({
   rowEntry,
@@ -108,29 +113,29 @@ const LeaderboardRow: FC<Props> = ({
           </span>
         </Link>
       </td>
-      <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
+      <td className="hidden w-24 p-0 tabular-nums font-[425] text-base leading-4 @md:!table-cell">
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {abbreviatedNumber(contribution_count, 3, false)}
+          {formatNumberBipm(contribution_count, 0)}
         </Link>
       </td>
       {scoreType == "peer_global" && (
-        <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
+        <td className="hidden w-24 p-0 tabular-nums font-[425] text-base leading-4 @md:!table-cell">
           <Link
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
             prefetch={false}
           >
-            {abbreviatedNumber(coverage, 3, false)}
+            {formatNumberBipm(coverage, 1)}
           </Link>
         </td>
       )}
       <td
         className={cn(
-          "w-20 p-0 font-mono text-base leading-4",
+          "w-20 p-0 tabular-nums font-[425] text-base leading-4",
           !isUserRow && "text-gray-600 dark:text-gray-600-dark"
         )}
       >
@@ -139,7 +144,7 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {abbreviatedNumber(score, 3, false)}
+          {formatNumberBipm(score, SCORE_DECIMALS[scoreType])}
         </Link>
       </td>
     </tr>

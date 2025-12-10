@@ -120,3 +120,38 @@ export function formatNumberWithUnit(
   }
   return `${formattedNumber} ${unit}`;
 }
+
+/**
+ * Format a number using BIPM-style thousands separation with narrow non-breaking spaces (U+202F)
+ * and a dot as the decimal separator.
+ */
+export function formatNumberBipm(
+  val: number | string,
+  decimals: number = 2
+): string {
+  const num = Number(val);
+
+  if (isNil(val) || isNaN(num)) {
+    return decimals > 0 ? `0.${"0".repeat(decimals)}` : "0";
+  }
+
+  const isNegative = num < 0;
+  const absVal = Math.abs(num);
+
+  // Format to the specified decimal places
+  const fixed = absVal.toFixed(decimals);
+
+  // Split into integer and fractional parts
+  const [integerPart = "0", fractionalPart] = fixed.split(".");
+
+  // Insert narrow non-breaking spaces (U+202F) as thousands separators
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, "\u202F");
+
+  // Build the final string
+  let result = formattedInteger;
+  if (decimals > 0 && fractionalPart) {
+    result += `.${fractionalPart}`;
+  }
+
+  return isNegative ? `-${result}` : result;
+}
