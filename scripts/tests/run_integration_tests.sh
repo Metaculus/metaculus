@@ -22,7 +22,30 @@ poetry run  ./manage.py collectstatic --noinput
 (poetry run ./manage.py rundramatiq --processes 1 --threads 1 2>&1 | sed 's/^/[Dramatiq]: /') &
 (npm run --prefix front_end start 2>&1 | sed 's/^/[Frontend]: /') &
 
-sleep 2
+# wait for Django
+timeout=15
+echo "Waiting for Django on localhost:8000…"
+while [ $timeout -gt 0 ] && ! nc -z localhost 8000; do
+  sleep 1
+  timeout=$((timeout - 1))
+done
+if ! nc -z localhost 8000; then
+  echo "Django never started; aborting."
+  exit 1
+fi
+
+# wait for Next.js
+timeout=15
+echo "Waiting for Next.js on localhost:3000…"
+while [ $timeout -gt 0 ] && ! nc -z localhost 3000; do
+  sleep 1
+  timeout=$((timeout - 1))
+done
+if ! nc -z localhost 3000; then
+  echo "Next.js never started; aborting."
+  exit 1
+fi
+
 # Run pytest without Django plugins or the conf test, as the global DB setup/parmas
 # interfere with running the backend in prod "mode"
 poetry run pytest -s -p no:django -c - --noconftest --log-cli-level=INFO tests/integration/*.py | sed 's/^/[Tests] /'
