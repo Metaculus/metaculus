@@ -19,15 +19,11 @@ type Props = {
 const QuestionCarousel: FC<Props> = ({ posts }) => {
   const t = useTranslations();
 
-  // Randomize posts on each render using Fisher-Yates shuffle
-  const shuffledPosts = useMemo(() => {
-    const array = [...posts];
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }, [posts]);
+  // Randomize posts on each render
+  const shuffledPosts = useMemo(
+    () => [...posts].sort(() => Math.random() - 0.5),
+    [posts]
+  );
 
   return (
     <Carousel
