@@ -11,7 +11,6 @@ import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import Button from "@/components/ui/button";
 import { defaultDescription } from "@/constants/metadata";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { SearchParams } from "@/types/navigation";
 import { UserProfile } from "@/types/users";
 import cn from "@/utils/core/cn";
 
@@ -21,7 +20,6 @@ const SoftDeleteButton = dynamic(
 
 type Props = {
   params: Promise<{ id: number }>;
-  searchParams: Promise<SearchParams>;
   children: React.ReactNode;
 };
 
