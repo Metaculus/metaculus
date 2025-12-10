@@ -19,13 +19,13 @@ const SoftDeleteButton = dynamic(
 );
 
 type Props = {
-  params: Promise<{ id: number }>;
+  params: Promise<{ id: string }>;
   children: React.ReactNode;
 };
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const profile = await ServerProfileApi.getProfileById(params.id);
+  const profile = await ServerProfileApi.getProfileById(+params.id);
 
   if (!profile) {
     return {};
