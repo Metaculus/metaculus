@@ -15,6 +15,7 @@ from rest_framework.response import Response
 
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast
+from utils.tasks import get_email_subject_with_env_prefix
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
     ContactSerializer,
@@ -32,7 +33,7 @@ def contact_api_view(request: Request):
     serializer.is_valid(raise_exception=True)
 
     EmailMessage(
-        subject=serializer.data["subject"] or "Contact Form",
+        subject=get_email_subject_with_env_prefix(serializer.data["subject"] or "Contact Form"),
         body=serializer.data["message"],
         from_email=settings.EMAIL_SENDER_NO_REPLY,
         to=[settings.EMAIL_FEEDBACK],
@@ -49,7 +50,7 @@ def contact_service_api_view(request: Request):
     serializer.is_valid(raise_exception=True)
 
     EmailMessage(
-        subject="New form submission via Services page",
+        subject=get_email_subject_with_env_prefix("New form submission via Services page"),
         body=(
             f"Your name: {serializer.data.get('name')}\n"
             f"Email address: {serializer.data['email']}\n"

@@ -12,6 +12,13 @@ from utils.translation import (
 )
 
 
+def get_email_subject_with_env_prefix(subject: str) -> str:
+    """Add environment prefix to email subject for dev/play environments."""
+    if settings.METACULUS_ENV in ["dev", "play"]:
+        return f"[{settings.METACULUS_ENV}] {subject}"
+    return subject
+
+
 @dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
     lambda app_label, model_name, pk: f"mutex:update-translations-{app_label}.{model_name}/{pk}",
@@ -59,7 +66,7 @@ def email_all_data_for_questions_task(
         assert data is not None, "No data generated"
 
         email = EmailMessage(
-            subject="Your Metaculus Data",
+            subject=get_email_subject_with_env_prefix("Your Metaculus Data"),
             body="Attached is your Metaculus data.",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[email_address],
@@ -69,7 +76,7 @@ def email_all_data_for_questions_task(
 
     except Exception as e:
         email = EmailMessage(
-            subject="Error generating Metaculus data",
+            subject=get_email_subject_with_env_prefix("Error generating Metaculus data"),
             body="Error generating Metaculus data. Please contact an adminstrator "
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
@@ -118,7 +125,7 @@ def email_data_task(
         assert data is not None, "No data generated"
 
         email = EmailMessage(
-            subject="Your Metaculus Data",
+            subject=get_email_subject_with_env_prefix("Your Metaculus Data"),
             body="Attached is your Metaculus data.",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[user_email],
@@ -128,7 +135,7 @@ def email_data_task(
 
     except Exception as e:
         email = EmailMessage(
-            subject="Error generating Metaculus data",
+            subject=get_email_subject_with_env_prefix("Error generating Metaculus data"),
             body="Error generating Metaculus data. Please contact an adminstrator "
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
@@ -153,7 +160,7 @@ def email_user_their_data_task(user_id: int):
         assert data is not None, "No data generated"
 
         email = EmailMessage(
-            subject="Your User Data",
+            subject=get_email_subject_with_env_prefix("Your User Data"),
             body="Attached is your User Data on Metaculus.",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[user_email],
@@ -163,7 +170,7 @@ def email_user_their_data_task(user_id: int):
 
     except Exception as e:
         email = EmailMessage(
-            subject="Error generating Metaculus data",
+            subject=get_email_subject_with_env_prefix("Error generating Metaculus data"),
             body="Error generating Metaculus data. Please contact an adminstrator "
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,

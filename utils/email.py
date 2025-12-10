@@ -18,6 +18,10 @@ def send_email_with_template(
     use_async: bool = True,
     from_email=None,
 ):
+    # Add environment prefix to subject for dev/play environments
+    if settings.METACULUS_ENV in ["dev", "play"]:
+        subject = f"[{settings.METACULUS_ENV}] {subject}"
+
     # Add subject to context so it can be displayed in email header
     if context is None:
         context = {}
