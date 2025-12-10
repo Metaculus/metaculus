@@ -40,11 +40,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ProfileLayout(props: Props) {
   const params = await props.params;
-  const { id } = params;
+  const id = +params.id;
   const { children } = props;
 
   const currentUser = await ServerProfileApi.getMyProfile();
-  const isCurrentUser = currentUser?.id === +id;
+  const isCurrentUser = currentUser?.id === id;
 
   let profile: UserProfile = await ServerProfileApi.getProfileById(id);
 
