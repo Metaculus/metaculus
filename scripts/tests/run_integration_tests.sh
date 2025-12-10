@@ -22,8 +22,8 @@ poetry run  ./manage.py collectstatic --noinput
 (poetry run ./manage.py rundramatiq --processes 1 --threads 1 2>&1 | sed 's/^/[Dramatiq]: /') &
 (npm run --prefix front_end start 2>&1 | sed 's/^/[Frontend]: /') &
 
-wait-on http://localhost:8000/api/healthcheck/ --timeout 30000
-wait-on http://localhost:3000 --timeout 30000
+npx wait-on http://localhost:8000/api/healthcheck/ --timeout 30000
+npx wait-on http://localhost:3000 --timeout 30000
 
 # Run pytest without Django plugins or the conf test, as the global DB setup/parmas
 # interfere with running the backend in prod "mode"
