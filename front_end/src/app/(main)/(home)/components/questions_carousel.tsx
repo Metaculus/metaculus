@@ -4,7 +4,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 
 import Carousel, { CarouselItem } from "@/components/carousel";
 import ForecastCard from "@/components/forecast_card";
@@ -18,6 +18,16 @@ type Props = {
 
 const QuestionCarousel: FC<Props> = ({ posts }) => {
   const t = useTranslations();
+
+  // Randomize posts on each render using Fisher-Yates shuffle
+  const shuffledPosts = useMemo(() => {
+    const array = [...posts];
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }, [posts]);
 
   return (
     <Carousel
@@ -34,7 +44,7 @@ const QuestionCarousel: FC<Props> = ({ posts }) => {
         </div>
       }
     >
-      {posts.map((p) => (
+      {shuffledPosts.map((p) => (
         <CarouselItem key={p.id}>
           <ForecastCard
             post={p}

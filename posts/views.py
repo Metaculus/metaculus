@@ -123,9 +123,6 @@ def posts_list_homeage_api_view(request):
 
     qs = get_posts_feed(Post.objects.all(), show_on_homepage=True)
 
-    # Randomize the order of posts
-    qs = qs.order_by('?')
-
     return Response(
         serialize_post_many(qs, with_cp=True, include_cp_history=True, group_cutoff=3)
     )
