@@ -3,10 +3,8 @@ import logging
 import textwrap
 from typing import Literal, Optional, Union
 
-from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from django.conf import settings
 from django.core.validators import URLValidator
-from posts.models import Post
 from pydantic import (
     field_validator,
     ValidationInfo,
@@ -15,8 +13,11 @@ from pydantic import (
     Field,
     model_validator,
 )
-from questions.models import Question
 from rest_framework.exceptions import ValidationError
+
+from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
+from posts.models import Post
+from questions.models import Question
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 
 MAX_LENGTH = 50
