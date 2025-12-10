@@ -125,19 +125,19 @@ jobs:
         run: |
           poetry run ./manage.py migrate
           poetry run ./manage.py collectstatic --noinput
-          nohup poetry run gunicorn metaculus_web.wsgi:application \
+          (poetry run gunicorn metaculus_web.wsgi:application \
             --log-level=debug --bind 0.0.0.0:8000 \
-            > backend.log 2>&1 &
+            2>&1 | sed 's/^/[Backend] /') &
 
       - name: Start Dramatiq in background
         run: |
-          nohup poetry run ./manage.py rundramatiq --processes 1 --threads 1 \
-            > dramatiq.log 2>&1 &
+          (poetry run ./manage.py rundramatiq --processes 1 --threads 1 \
+            2>&1 | sed 's/^/[Dramatiq] /') &
 
       - name: Start Next.js frontend in background
         run: |
           cd front_end
-          nohup npm start > ../frontend.log 2>&1 &
+          (npm start 2>&1 | sed 's/^/[Frontend] /') &
 
       - name: Wait for backend & frontend to be ready
         run: |
