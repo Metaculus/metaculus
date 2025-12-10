@@ -101,6 +101,7 @@
     "ts-invariant": "^0.10.3",
     "ts-node": "^10.9.2",
     "victory": "^37.0.2",
+    "wait-on": "^9.0.3",
     "whatwg-fetch": "^3.6.20",
     "zod": "^3.23.8"
   },
