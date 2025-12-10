@@ -6,6 +6,7 @@ import {
   FC,
   PropsWithChildren,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -45,32 +46,54 @@ export const CoherenceLinksProvider: FC<
     useState<FetchedAggregateCoherenceLinks>({
       data: [],
     });
+
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
-  const updateCoherenceLinks = async () => {
-    if (isLoggedIn && post.question) {
-      ClientCoherenceLinksApi.getCoherenceLinksForPost(post.question)
-        .then((links) => setCoherenceLinks(links))
-        .catch(logError);
-      ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(post.question)
-        .then((links) => setAggregateCoherenceLinks(links))
-        .catch(logError);
-    } else {
+  const fetchLinks = async () => {
+    if (!isLoggedIn || !post.question) {
       setCoherenceLinks({ data: [] });
       setAggregateCoherenceLinks({ data: [] });
+      return;
     }
+
+    try {
+      const [links, aggregate] = await Promise.all([
+        ClientCoherenceLinksApi.getCoherenceLinksForPost(post.question),
+        ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(
+          post.question
+        ),
+      ]);
+
+      setCoherenceLinks(links);
+      setAggregateCoherenceLinks(aggregate);
+    } catch (err) {
+      logError(err);
+    }
+  };
+
+  useEffect(() => {
+    void fetchLinks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, post.question?.id]);
+
+  const updateCoherenceLinks = async () => {
+    await fetchLinks();
   };
 
   const getOtherQuestions = () => {
     const questionData = new Map<number, Question>();
     const questionID = post.question?.id;
     if (!questionID) return questionData;
+
     for (const link of coherenceLinks.data) {
       const otherQuestion =
         questionID === link.question1_id ? link.question2 : link.question1;
-      questionData.set(link.id, otherQuestion);
+      if (otherQuestion) {
+        questionData.set(link.id, otherQuestion);
+      }
     }
+
     return questionData;
   };
 
