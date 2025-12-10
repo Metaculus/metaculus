@@ -113,7 +113,7 @@ function reducer(state: State, action: Partial<State>): State {
 export const KeyFactorsProvider: React.FC<
   React.PropsWithChildren<InitOpts>
 > = ({ children, user, post, commentId, suggest = false }) => {
-  const enabled = !!user && !!post;
+  const enabled = !!user && !!post && !post?.notebook;
 
   if (!enabled) {
     return (
