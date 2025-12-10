@@ -2,6 +2,7 @@
 
 import React, { FC, useEffect } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
@@ -26,6 +27,7 @@ type Props = {
   groupPresentationOverride?: GroupOfQuestionsGraphType;
   className?: string;
   prioritizeOpenSubquestions?: boolean;
+  embedChartHeight?: number;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -34,6 +36,7 @@ const DetailedGroupCard: FC<Props> = ({
   groupPresentationOverride,
   className,
   prioritizeOpenSubquestions = false,
+  embedChartHeight,
 }) => {
   const {
     open_time,
@@ -64,6 +67,8 @@ const DetailedGroupCard: FC<Props> = ({
       });
     }
   }, [groupPresentationOverride, hasUserForecast]);
+
+  const isEmbed = useIsEmbedMode();
 
   const forecastAvailability = getGroupForecastAvailability(questions);
   if (
@@ -99,6 +104,8 @@ const DetailedGroupCard: FC<Props> = ({
             group={post.group_of_questions}
             hideCP={hideCP}
             withTooltip
+            height={embedChartHeight}
+            isEmbedded={isEmbed}
           />
           {hideCP && <RevealCPButton />}
         </>
