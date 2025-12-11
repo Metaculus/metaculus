@@ -50,6 +50,16 @@ function getChartRange(args: {
   }
 
   if (isGroup) {
+    const firstType = post.group_of_questions.questions[0]?.type;
+    const isBinaryGroup = firstType === QuestionType.Binary;
+
+    if (isBinaryGroup) {
+      min = ogMode ? 120 : 73;
+      max = 124;
+      fudge = 0;
+      return { min, max, fudge };
+    }
+
     min = ogMode ? 120 : 73;
     max = size.width <= 440 ? 120 : size.width < 400 ? 120 : 162;
     return { min, max, fudge };

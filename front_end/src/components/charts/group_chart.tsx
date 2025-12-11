@@ -42,7 +42,6 @@ import {
   generateScale,
   generateTimeSeriesYDomain,
   generateTimestampXScale,
-  getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
@@ -75,7 +74,6 @@ type Props = {
   isEmptyDomain?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
-  isEmbedded?: boolean;
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
@@ -109,7 +107,6 @@ const GroupChart: FC<Props> = ({
   isEmptyDomain,
   openTime,
   forceAutoZoom,
-  isEmbedded,
   cursorTimestamp,
   forecastAvailability,
   forceShowLinePoints = false,
@@ -198,13 +195,6 @@ const GroupChart: FC<Props> = ({
       return filteredLine;
     });
   }, [graphs, cursorTimestamp]);
-
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-  const maxLeftPadding = useMemo(() => {
-    return Math.max(leftPadding, MIN_LEFT_PADDING);
-  }, [leftPadding, MIN_LEFT_PADDING]);
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
@@ -296,8 +286,8 @@ const GroupChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: isEmbedded ? maxLeftPadding : 0,
-              right: isEmbedded ? 10 : maxRightPadding,
+              left: 0,
+              right: maxRightPadding,
               top: 10,
               bottom: BOTTOM_PADDING,
             }}
@@ -366,11 +356,7 @@ const GroupChart: FC<Props> = ({
               }}
               label={yLabel}
               offsetX={
-                isEmbedded
-                  ? maxLeftPadding
-                  : isNil(yLabel)
-                    ? chartWidth + 5
-                    : chartWidth - TICK_FONT_SIZE + 5
+                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
               }
               orientation={"left"}
               axisLabelComponent={<VictoryLabel x={chartWidth} />}
