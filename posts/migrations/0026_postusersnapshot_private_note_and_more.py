@@ -77,7 +77,7 @@ def migrate_private_comments(apps, schema_editor):
             snapshot_id = comment.snapshot_id
             comments_id_delete.append(comment.id)
 
-        full_note = "\n\n".join(note_parts)
+        full_note = "\n\n***\n\n".join(note_parts)
 
         snapshot = snapshots.get(snapshot_id)
 
