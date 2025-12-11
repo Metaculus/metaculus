@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, useState, useTransition } from "react";
 
 import PostCard from "@/components/post_card";
@@ -39,7 +39,7 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
     setActiveTab(tabId);
 
     if (cachedPosts[tabId]) {
-      setPosts(cachedPosts[tabId]!);
+      setPosts(cachedPosts[tabId] ?? []);
       return;
     }
 
