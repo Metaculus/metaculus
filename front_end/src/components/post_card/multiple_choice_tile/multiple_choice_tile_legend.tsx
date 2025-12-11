@@ -88,11 +88,19 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           )}
         >
           <div className="flex flex-row items-center">
-            <div className="self-center py-0 pr-3.5 text-center leading-none">
+            <div
+              className={cn(
+                "self-center py-0 pr-3.5 text-center leading-none",
+                layout === "wrap" && "h-4 pr-3"
+              )}
+            >
               <FontAwesomeIcon
                 icon={faEllipsis}
                 size="xs"
-                className="resize-ellipsis w-[10px]"
+                className={cn(
+                  "resize-ellipsis w-[10px]",
+                  layout === "wrap" && "h-4"
+                )}
               />
             </div>
             <div className="resize-label whitespace-nowrap pr-1.5 text-left text-sm font-normal leading-4">
