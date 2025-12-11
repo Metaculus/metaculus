@@ -122,9 +122,4 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.RunPython(migrate_private_comments, migrations.RunPython.noop),
-        migrations.AlterField(
-            model_name="postusersnapshot",
-            name="private_note_updated_at",
-            field=models.DateTimeField(blank=True, db_index=True, null=True),
-        ),
     ]
