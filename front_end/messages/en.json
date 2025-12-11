@@ -1419,7 +1419,7 @@
   "participationSummaryScoreOutperformance": "Congrats, you <strong>outperformed the Community Prediction</strong> in {scoreTypes}.",
   "peer": "Peer",
   "bothPeerAndBaseline": "both Peer and Baseline Scores",
-  "bothSpotPeerAndBaseline": "both Sport Peer and Spot Baseline Scores",
+  "bothSpotPeerAndBaseline": "both Spot Peer and Spot Baseline Scores",
   "otherTournaments": "Other tournaments",
   "createPrivateInstance": "Create a Private Instance of <span>Metaculus</span>",
   "metaculusProForecasters": "Metaculus <span>Pro Forecasters</span>",

@@ -111,7 +111,6 @@
   "metaculusRelativeLogScore": "Metaculus 相對對數分數：",
   "myBaselineScore": "我的基準分數",
   "myPeerScore": "我的同儕分數",
-  "mySpotBaselineScore": "我的即時基準分數",
   "myRelativeLegacyScore": "我的相對遺產分數",
   "myRelativeLegacyArchivedScore": "我的相對遺產存檔分數",
   "communityBaselineScore": "社群基準分數",
@@ -1645,10 +1644,9 @@
   "learnMoreAboutScores": "了解更多關於分數",
   "here": "這裡",
   "averageOfPeers": "同行的<secondary>平均值</secondary>",
-  "mySpotPeerScore": "我的 Spot 同行評分",
-  "spotPeerScore": "Spot 同行評分",
+  "spotPeerScore": "Spot 同儕分數",
   "participationSummaryScoreOutperformance": "恭喜，您在{scoreTypes}方面<strong>超越了社群預測</strong>。",
-  "bothSpotPeerAndBaseline": "包含運動同行和 Spot 基準評分",
+  "bothSpotPeerAndBaseline": "同時具備 Spot 同儕分數和 Spot 基準分數",
   "spotPeerScoreExplanation": "即時同行分數將預測者在某個特定時間點的預測與其他人在同一時間點的預測進行比較。如果是正數，表示該預測比其他預測平均來說要好，反之亦然。即時評分時間通常是社群預測揭示的時間。",
   "spotBaselineScoreExplanation": "即時基準分數將預測者在某個特定時間點的預測與固定的「機會」基準（例如，二元問題的50%）進行比較。如果是正數，表示該預測優於機會，反之亦然。即時評分時間通常是社群預測揭示的時間。",
   "whatIsBaselineScore": "什麼是基線分數？",
@@ -1737,5 +1735,7 @@
   "copyQuestionLinkPrivate": "您的連結是私人且僅供您查看，但會貢獻至社群彙總。",
   "questionLinksHint": "將此複製到您的問題連結中，並獲得提醒以保持預測一致。",
   "copyQuestionLinkToAccount": "複製",
+  "mySpotBaselineScore": "我的地點基準分數",
+  "mySpotPeerScore": "我的地點同儕分數",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

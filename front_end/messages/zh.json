@@ -835,7 +835,6 @@
   "overlayCurrentForecast": "覆盖当前预测",
   "myBaselineScore": "我的基线分数",
   "myPeerScore": "我的同伴分数",
-  "mySpotBaselineScore": "我的即时基线分数",
   "myRelativeLegacyScore": "我的相对遗留分数",
   "myRelativeLegacyArchivedScore": "我的相对遗留存档分数",
   "communityBaselineScore": "社区基线分数",
@@ -1650,10 +1649,9 @@
   "learnMoreAboutScores": "了解更多关于得分的信息",
   "here": "这里",
   "averageOfPeers": "同行的<secondary>平均值</secondary>",
-  "mySpotPeerScore": "我的 Sport Peer 分数",
-  "spotPeerScore": "Sport Peer 分数",
+  "spotPeerScore": "Spot Peer 评分",
   "participationSummaryScoreOutperformance": "恭喜，你在{scoreTypes}中<strong>超越了社区预测</strong>。",
-  "bothSpotPeerAndBaseline": "同时 Sport Peer 和 Sport 基准分数",
+  "bothSpotPeerAndBaseline": "Spot Peer 评分和 Spot 基准评分两者",
   "spotPeerScoreExplanation": "Spot同行评分将预测者在某一时刻的预测与其他人在同一时间的预测进行比较。如果是正数，说明预测（平均而言）比其他人好，反之亦然。Spot评分时间通常是社区预测揭晓的时间。",
   "spotBaselineScoreExplanation": "Spot基线评分将预测者在某一时刻的预测与固定的“机会”基线（例如二元问题的50%）进行比较。如果是正数，说明预测比机会好，反之亦然。Spot评分时间通常是社区预测揭晓的时间。",
   "whatIsBaselineScore": "什么是基准得分？",
@@ -1742,5 +1740,7 @@
   "copyQuestionLinkPrivate": "您的链接是私密的，但将为社区汇总做出贡献。",
   "questionLinksHint": "将此复制到您的问题链接中，并获得提醒以保持预测一致性。",
   "copyQuestionLinkToAccount": "复制",
+  "mySpotBaselineScore": "我的标准分数",
+  "mySpotPeerScore": "我的同伴分数",
   "othersCount": "其他（{count}）"
 }
