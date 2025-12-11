@@ -3,18 +3,21 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
+import MedalRankInfoTooltip from "@/app/(main)/(leaderboards)/medals/components/medal_rank_info_tooltip";
+import { getMedalCategories } from "@/app/(main)/(leaderboards)/medals/helpers/medal_categories";
+import { RANKING_CATEGORIES } from "@/app/(main)/(leaderboards)/ranking_categories";
+import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import { SearchParams } from "@/types/navigation";
 import { MedalCategory, MedalProjectType, MedalType } from "@/types/scoring";
 import cn from "@/utils/core/cn";
-
-import MedalRankInfoTooltip from "./medal_rank_info_tooltip";
-import MedalIcon from "../../components/medal_icon";
-import { RANKING_CATEGORIES } from "../../ranking_categories";
-import { getMedalCategories } from "../helpers/medal_categories";
+import { formatUsername } from "@/utils/formatters/users";
 
 type Props = {
-  profileId: number;
+  params: Promise<{ id: number }>;
+  searchParams: Promise<SearchParams>;
 };
 
 type StatsEntry = {
@@ -116,11 +119,15 @@ const PerformanceCard: FC<{
     </Link>
   );
 };
-export const MedalsWidget: FC<Props> = async ({ profileId }) => {
+
+export default async function MedalsPage(props: Props) {
+  const params = await props.params;
+  const profile = await ServerProfileApi.getProfileById(params.id);
+
   const t = await getTranslations();
   const [userMedals, userMedalRanks] = await Promise.all([
-    ServerLeaderboardApi.getUserMedals(profileId),
-    ServerLeaderboardApi.getUserMedalRanks(profileId),
+    ServerLeaderboardApi.getUserMedals(params.id),
+    ServerLeaderboardApi.getUserMedalRanks(params.id),
   ]);
   const categories = getMedalCategories(userMedals, true);
 
@@ -231,65 +238,73 @@ export const MedalsWidget: FC<Props> = async ({ profileId }) => {
   ];
 
   return (
-    <section className="flex flex-col gap-4 rounded md:gap-6 lg:flex-row">
-      {/* Forecasting Performance */}
-      <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[2]">
-        <div className="flex items-center justify-between">
+    <>
+      <section className="flex flex-col gap-4 rounded md:gap-6 lg:flex-row">
+        {/* Forecasting Performance */}
+        <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[2]">
+          <div className="flex items-center justify-between">
+            <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+              {t("forecastingPerformance")}
+            </h3>
+            <MedalRankInfoTooltip />
+          </div>
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Tournaments */}
+            <div className="flex-1">
+              <PerformanceCard
+                /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+                medalCategory={tournamentMedals!}
+                stats={tournamentStats}
+              />
+            </div>
+
+            {/* Baseline and Peer */}
+            <div className="flex w-full flex-1 flex-col gap-3 sm:gap-4 md:flex-row">
+              <PerformanceCard
+                /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+                medalCategory={baselineMedals!}
+                stats={baselineStats}
+                className="flex-1 grow"
+              />
+              <PerformanceCard
+                /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+                medalCategory={peerMedals!}
+                stats={peerStats}
+                className="flex-1 grow"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Insight */}
+        <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[1]">
           <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-            {t("forecastingPerformance")}
+            {t("insight")}
           </h3>
-          <MedalRankInfoTooltip />
-        </div>
-        <div className="flex flex-col gap-3 sm:gap-4">
-          {/* Tournaments */}
-          <div className="flex-1">
+          <div className="flex grow flex-col gap-3 sm:gap-4 md:max-lg:flex-row">
             <PerformanceCard
               /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-              medalCategory={tournamentMedals!}
-              stats={tournamentStats}
-            />
-          </div>
-
-          {/* Baseline and Peer */}
-          <div className="flex w-full flex-1 flex-col gap-3 sm:gap-4 md:flex-row">
-            <PerformanceCard
-              /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-              medalCategory={baselineMedals!}
-              stats={baselineStats}
+              medalCategory={commentsMedals!}
+              stats={commentsStats}
               className="flex-1 grow"
             />
             <PerformanceCard
               /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-              medalCategory={peerMedals!}
-              stats={peerStats}
+              medalCategory={questionsMedals!}
+              stats={questionsStats}
               className="flex-1 grow"
             />
           </div>
         </div>
-      </div>
-
-      {/* Insight */}
-      <div className="flex flex-col items-stretch gap-5 bg-white p-4 dark:bg-blue-900 md:p-6 lg:grow-[1]">
-        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-          {t("insight")}
-        </h3>
-        <div className="flex grow flex-col gap-3 sm:gap-4 md:max-lg:flex-row">
-          <PerformanceCard
-            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-            medalCategory={commentsMedals!}
-            stats={commentsStats}
-            className="flex-1 grow"
+      </section>
+      <section className="flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
+        {profile.calibration_curve && (
+          <CalibrationChart
+            calibrationData={profile.calibration_curve}
+            username={formatUsername(profile)}
           />
-          <PerformanceCard
-            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-            medalCategory={questionsMedals!}
-            stats={questionsStats}
-            className="flex-1 grow"
-          />
-        </div>
-      </div>
-    </section>
+        )}
+      </section>
+    </>
   );
-};
-
-export default WithServerComponentErrorBoundary(MedalsWidget);
+}

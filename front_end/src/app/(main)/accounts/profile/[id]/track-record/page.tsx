@@ -1,12 +1,17 @@
-"use client";
-
-import { FC } from "react";
-
 import TrackRecordCharts from "@/app/(main)/questions/track-record/components/track_record_charts";
-import { UserProfile } from "@/types/users";
+import ServerProfileApi from "@/services/api/profile/profile.server";
+import { SearchParams } from "@/types/navigation";
 import { formatUsername } from "@/utils/formatters/users";
 
-const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
+type Props = {
+  params: Promise<{ id: number }>;
+  searchParams: Promise<SearchParams>;
+};
+
+export default async function TrackRecord(props: Props) {
+  const params = await props.params;
+  const profile = await ServerProfileApi.getProfileById(params.id);
+
   const keyStatStyles =
     "flex w-full md:w-1/3 flex-col min-h-[100px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
 
@@ -109,6 +114,4 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
       </div>
     </div>
   );
-};
-
-export default TrackRecord;
+}
