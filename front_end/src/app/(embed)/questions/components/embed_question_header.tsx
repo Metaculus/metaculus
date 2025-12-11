@@ -6,6 +6,7 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   isContinuousQuestion,
+  isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
@@ -41,8 +42,14 @@ const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
   }, [onHeightChange]);
 
   const maxLines = useMemo(() => {
+    if (isGroupOfQuestionsPost(post)) {
+      const firstType = post.group_of_questions.questions[0]?.type;
+      if (firstType === QuestionType.Binary) return 2;
+      return 3;
+    }
     if (!isQuestionPost(post)) return 3;
     const q = post.question;
+    if (q.type === QuestionType.MultipleChoice) return 2;
     return q.type === QuestionType.Binary || isContinuousQuestion(q) ? 4 : 3;
   }, [post]);
 
