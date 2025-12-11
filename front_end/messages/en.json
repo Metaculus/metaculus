@@ -133,6 +133,8 @@
   "metaculusRelativeLogScore": "Metaculus relative log score:",
   "myBaselineScore": "My Baseline Score",
   "myPeerScore": "My Peer Score",
+  "mySpotBaselineScore": "My Spot Baseline Score",
+  "mySpotPeerScore": "My Spot Peer Score",
   "myRelativeLegacyScore": "My Relative Legacy Score",
   "myRelativeLegacyArchivedScore": "My Relative Legacy Archived Score",
   "communityBaselineScore": "Community Baseline Score",

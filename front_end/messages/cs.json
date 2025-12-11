@@ -1738,5 +1738,7 @@
   "copyQuestionLinkPrivate": "Vaše odkazy jsou soukromé, ale přispějí k agregaci komunity.",
   "questionLinksHint": "Zkopírujte to do svých odkazů na otázky a dostávejte připomínky, abyste udrželi své předpovědi konzistentní.",
   "copyQuestionLinkToAccount": "Kopírovat",
+  "mySpotBaselineScore": "Moje základní skóre pro My Spot",
+  "mySpotPeerScore": "Moje skóre podle spolužáků pro My Spot",
   "othersCount": "Ostatní ({count})"
 }

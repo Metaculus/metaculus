@@ -1740,5 +1740,7 @@
   "copyQuestionLinkPrivate": "您的链接是私密的，但将为社区汇总做出贡献。",
   "questionLinksHint": "将此复制到您的问题链接中，并获得提醒以保持预测一致性。",
   "copyQuestionLinkToAccount": "复制",
+  "mySpotBaselineScore": "我的标准分数",
+  "mySpotPeerScore": "我的同伴分数",
   "othersCount": "其他（{count}）"
 }

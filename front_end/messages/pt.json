@@ -1736,5 +1736,7 @@
   "copyQuestionLinkPrivate": "Seus links são privados, mas contribuirão para um agregado comunitário.",
   "questionLinksHint": "Copie isto para os links das suas perguntas e receba lembretes para manter suas previsões consistentes.",
   "copyQuestionLinkToAccount": "Copiar",
+  "mySpotBaselineScore": "Minha Pontuação de Referência Spot",
+  "mySpotPeerScore": "Minha Pontuação de Comparação com Pares Spot",
   "othersCount": "Outros ({count})"
 }
