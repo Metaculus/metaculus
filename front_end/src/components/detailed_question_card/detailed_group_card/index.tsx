@@ -1,21 +1,27 @@
 "use client";
 
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useMemo } from "react";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
+import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
 import { useHideCP } from "@/contexts/cp_context";
+import useContainerSize from "@/hooks/use_container_size";
 import {
   GroupOfQuestionsGraphType,
   GroupOfQuestionsPost,
   PostStatus,
 } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { getGroupQuestionsTimestamps } from "@/utils/charts/timestamps";
+import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
+
+import { getMaxVisibleCheckboxes } from "../embeds";
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
@@ -70,6 +76,14 @@ const DetailedGroupCard: FC<Props> = ({
 
   const isEmbed = useIsEmbedMode();
 
+  const { ref: containerRef, width: containerWidth } =
+    useContainerSize<HTMLDivElement>();
+
+  const maxVisibleCheckboxes = useMemo(
+    () => getMaxVisibleCheckboxes(isEmbed, containerWidth),
+    [isEmbed, containerWidth]
+  );
+
   const forecastAvailability = getGroupForecastAvailability(questions);
   if (
     forecastAvailability.isEmpty &&
@@ -79,8 +93,49 @@ const DetailedGroupCard: FC<Props> = ({
     return null;
   }
 
+  const groupType = questions[0]?.type;
+
   switch (presentationType) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
+      if (isEmbed && groupType === QuestionType.Binary) {
+        const timestamps = getGroupQuestionsTimestamps(questions, {
+          withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+        });
+
+        const choiceItems = generateChoiceItemsFromGroupQuestions(
+          post.group_of_questions,
+          {
+            activeCount: maxVisibleCheckboxes,
+            preselectedQuestionId,
+          }
+        );
+
+        return (
+          <>
+            <div ref={containerRef}>
+              <MultipleChoiceTile
+                group={post.group_of_questions}
+                groupType={QuestionType.Binary}
+                choices={choiceItems}
+                visibleChoicesCount={Math.min(
+                  maxVisibleCheckboxes,
+                  choiceItems.length
+                )}
+                hideCP={hideCP}
+                timestamps={timestamps}
+                actualCloseTime={getPostDrivenTime(refCloseTime)}
+                openTime={getPostDrivenTime(open_time)}
+                forecastAvailability={forecastAvailability}
+                canPredict={false}
+                showChart
+                chartHeight={embedChartHeight}
+              />
+            </div>
+            {hideCP && <RevealCPButton />}
+          </>
+        );
+      }
+
       return (
         <>
           <GroupTimeline
@@ -92,6 +147,8 @@ const DetailedGroupCard: FC<Props> = ({
             hideCP={hideCP}
             className={className}
             prioritizeOpen={prioritizeOpenSubquestions}
+            embedMode={isEmbed}
+            chartHeight={embedChartHeight}
           />
           {hideCP && <RevealCPButton />}
         </>
