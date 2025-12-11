@@ -89,7 +89,7 @@ const HeroCTAs: FC<Props> = ({
 }) => {
   const t = useTranslations();
   return (
-    <div className="flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <section className="flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <HeroCTACard
         href={individualsHref}
         topTitle={t("forIndividuals")}
@@ -144,7 +144,7 @@ const HeroCTAs: FC<Props> = ({
           </div>
         </div>
       </HeroCTACard>
-    </div>
+    </section>
   );
 };
 
