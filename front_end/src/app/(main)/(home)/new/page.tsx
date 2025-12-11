@@ -20,6 +20,7 @@ import { NotebookPost } from "@/types/post";
 import ResearchAndUpdates from "./components/research_and_updates";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import AllCategoriesSection from "./components/all_categories_section";
+import cn from "@/utils/core/cn";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -44,12 +45,15 @@ export default async function Home() {
     FILTERS.popular
   );
 
+  const contentWidthClassNames =
+    "2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-4";
+
   return (
     <main className=" min-h-screen  bg-gray-0 dark:bg-gray-0-dark ">
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
-      <div className="px-4 lg:px-20">
+      <div className={contentWidthClassNames}>
         <HeroCTAs />
         <WhyMetaculus className="mt-4 md:mt-8" />
         <HomePageForecasts
@@ -58,16 +62,26 @@ export default async function Home() {
         />
       </div>
       <Suspense>
-        <TournamentsSection className="mt-8 px-4 py-20 lg:px-20" />
+        <div className="mt-8 w-full border-y border-gray-300  bg-gray-100 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark md:mt-16 ">
+          <TournamentsSection className={contentWidthClassNames} />
+        </div>
       </Suspense>
       <Suspense>
-        <FutureEvalSection />
+        <FutureEvalSection className={contentWidthClassNames} />
       </Suspense>
       <Suspense>
-        <ResearchAndUpdates posts={postNotebooks} />
+        <div className="border-y border-gray-300 bg-gray-100  py-20 dark:border-gray-300-dark dark:bg-gray-100-dark">
+          <ResearchAndUpdates
+            posts={postNotebooks}
+            className={contentWidthClassNames}
+          />
+        </div>
       </Suspense>
       <Suspense>
-        <AllCategoriesSection categories={categories} />
+        <AllCategoriesSection
+          categories={categories}
+          className={contentWidthClassNames}
+        />
       </Suspense>
     </main>
   );

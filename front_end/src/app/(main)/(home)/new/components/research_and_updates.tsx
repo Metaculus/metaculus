@@ -21,14 +21,15 @@ const CARD_GRADIENTS = [
 
 type Props = {
   posts: NotebookPost[];
+  className?: string;
 };
 
-const ResearchAndUpdates: FC<Props> = async ({ posts }) => {
+const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
   const t = await getTranslations();
   const locale = await getLocale();
 
   return (
-    <section className="border-y border-gray-300 bg-gray-100 px-4 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark lg:px-20">
+    <section className={className}>
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-1 text-gray-1000 dark:text-gray-1000-dark">
           <h2 className="m-0 text-xl font-bold leading-7">

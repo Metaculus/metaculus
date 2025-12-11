@@ -83,7 +83,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
   }, []);
 
   return (
-    <div
+    <section
       className={cn(
         "flex flex-col gap-3 rounded-lg bg-gray-200 px-6 py-5 dark:bg-gray-200-dark md:gap-4 lg:flex-row lg:items-center lg:gap-6",
         className
@@ -149,7 +149,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

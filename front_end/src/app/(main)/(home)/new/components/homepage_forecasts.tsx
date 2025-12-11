@@ -52,7 +52,7 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
   };
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <section className={cn("flex flex-col gap-3", className)}>
       <h2 className="m-0 text-xl font-bold leading-7 text-gray-1000 dark:text-gray-1000-dark">
         {t("forecasts")}
       </h2>
@@ -88,7 +88,7 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
 
         <ExploreAllCard />
       </div>
-    </div>
+    </section>
   );
 };
 
