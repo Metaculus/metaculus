@@ -1,16 +1,16 @@
 "use server";
 import { intlFormat } from "date-fns";
+import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import Button from "@/components/ui/button";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import Button from "@/components/ui/button";
 import { NotebookPost } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { estimateReadingTime, getMarkdownSummary } from "@/utils/markdown";
 import { getPostLink } from "@/utils/navigation";
-import Image from "next/image";
 
 const CARD_GRADIENTS = [
   "radial-gradient(ellipse at center, #ede28f 0%, #c5b3c2 50%, #9d83f5 100%)",
@@ -51,13 +51,7 @@ const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {posts.slice(0, 4).map((post, index) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            index={index}
-            locale={locale}
-            t={t}
-          />
+          <PostCard key={post.id} post={post} index={index} locale={locale} />
         ))}
       </div>
     </section>
@@ -68,10 +62,10 @@ type PostCardProps = {
   post: NotebookPost;
   index: number;
   locale: string;
-  t: (key: string, values?: Record<string, unknown>) => string;
 };
 
-const PostCard: FC<PostCardProps> = ({ post, index, locale, t }) => {
+const PostCard: FC<PostCardProps> = async ({ post, index, locale }) => {
+  const t = await getTranslations();
   const {
     title,
     created_at,
@@ -81,6 +75,7 @@ const PostCard: FC<PostCardProps> = ({ post, index, locale, t }) => {
     author_username,
     comment_count = 0,
   } = post;
+
   const readingTime = estimateReadingTime(notebook.markdown);
   const summary =
     notebook.markdown_summary ||
