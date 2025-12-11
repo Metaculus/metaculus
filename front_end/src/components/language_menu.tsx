@@ -47,7 +47,7 @@ export const APP_LANGUAGES = [
 const LanguageMenu: FC<Props> = ({ className }) => {
   const locale = useLocale();
 
-  const languageMenuItems =APP_LANGUAGES;
+  const languageMenuItems = APP_LANGUAGES;
 
   return (
     <Menu>

@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useState } from "react";
 
-import cn from "@/utils/core/cn";
 import ClientMiscApi from "@/services/api/misc/misc.client";
+import cn from "@/utils/core/cn";
 
 const AeiLogo: FC<{ className?: string }> = ({ className }) => (
   <svg

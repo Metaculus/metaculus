@@ -63,7 +63,7 @@ type FooterLink =
   | { labelKey: string; isModal: true; href?: undefined; external?: false }
   | { href: string; labelKey: string; external: true; isModal?: false };
 
-const FOOTER_LINKS: Record<string, FooterLink[]> = {
+const FOOTER_LINKS = {
   explore: [
     { href: "/questions", labelKey: "questions" },
     { href: "/tournaments", labelKey: "tournaments" },
@@ -90,17 +90,17 @@ const FOOTER_LINKS: Record<string, FooterLink[]> = {
     { href: "/press", labelKey: "forJournalists" },
     { href: "/api", labelKey: "api" },
   ],
-};
+} as const satisfies Record<string, readonly FooterLink[]>;
 
-const THEME_OPTIONS: { value: AppTheme; labelKey: string }[] = [
+const THEME_OPTIONS = [
   { value: AppTheme.System, labelKey: "settingsThemeSystemDefault" },
   { value: AppTheme.Light, labelKey: "settingsThemeLightMode" },
   { value: AppTheme.Dark, labelKey: "settingsThemeDarkMode" },
-];
+] as const satisfies readonly { value: AppTheme; labelKey: string }[];
 
 const FooterLinkColumn: FC<{
   title: string;
-  links: FooterLink[];
+  links: readonly FooterLink[];
   onContactClick?: () => void;
 }> = ({ title, links, onContactClick }) => {
   const t = useTranslations();
@@ -151,7 +151,12 @@ const FooterLinkColumn: FC<{
 const LanguageSelector: FC = () => {
   const locale = useLocale();
   const currentLanguage =
-    APP_LANGUAGES.find((l) => l.locale === locale) ?? APP_LANGUAGES[0]!;
+    APP_LANGUAGES.find((l) => l.locale === locale) ??
+    APP_LANGUAGES[APP_LANGUAGES.length - 1];
+
+  if (!currentLanguage) {
+    return null;
+  }
 
   const handleLanguageChange = (newLocale: string) => {
     updateLanguagePreference(newLocale, false)
@@ -162,7 +167,7 @@ const LanguageSelector: FC = () => {
   return (
     <Listbox value={locale} onChange={handleLanguageChange}>
       <div className="relative">
-        <ListboxButton className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
+        <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
           <span className="flex items-center text-base font-bold">
             <span className="text-blue-800">a</span>
             <span className="text-gray-400">/</span>
@@ -202,8 +207,7 @@ const ThemeSelector: FC = () => {
 
   const currentTheme = mounted ? themeChoice : AppTheme.System;
   const currentOption =
-    THEME_OPTIONS.find((opt) => opt.value === currentTheme) ??
-    THEME_OPTIONS[0]!;
+    THEME_OPTIONS.find((opt) => opt.value === currentTheme) ?? THEME_OPTIONS[0];
 
   const handleThemeChange = (value: AppTheme) => {
     setTheme(value);
@@ -212,7 +216,7 @@ const ThemeSelector: FC = () => {
   return (
     <Listbox value={currentTheme} onChange={handleThemeChange}>
       <div className="relative">
-        <ListboxButton className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
+        <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
           <ComputerIcon className="size-5 text-gray-700" />
           <span>{t(currentOption.labelKey as Parameters<typeof t>[0])}</span>
           <FontAwesomeIcon
@@ -227,7 +231,7 @@ const ThemeSelector: FC = () => {
               value={option.value}
               className={({ selected }) =>
                 cn(
-                  "cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100",
+                  "cursor-pointer text-nowrap px-3 py-2 text-sm text-gray-900 hover:bg-gray-100",
                   selected && "bg-gray-100 font-medium"
                 )
               }
@@ -299,23 +303,23 @@ const Footer: FC = () => {
           <div className="flex gap-6 sm:gap-[120px]">
             <FooterLinkColumn
               title={t("explore")}
-              links={FOOTER_LINKS.explore!}
+              links={FOOTER_LINKS.explore}
             />
             <FooterLinkColumn
               title={t("services")}
-              links={FOOTER_LINKS.services!}
+              links={FOOTER_LINKS.services}
             />
           </div>
           {/* Second row on mobile */}
           <div className="flex gap-[122px] sm:gap-[218px] lg:gap-[120px]">
             <FooterLinkColumn
               title={t("company")}
-              links={FOOTER_LINKS.company!}
+              links={FOOTER_LINKS.company}
               onContactClick={handleContactClick}
             />
             <FooterLinkColumn
               title={t("resources")}
-              links={FOOTER_LINKS.resources!}
+              links={FOOTER_LINKS.resources}
             />
           </div>
         </div>
