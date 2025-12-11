@@ -1823,5 +1823,12 @@
   "tournamentsInfoTitle": "Nosotros <predmarket>no somos un mercado de predicciones</predmarket>. Puedes participar gratis y ganar premios en efectivo por ser preciso.",
   "tournamentsInfoScoringLink": "¿Qué son las puntuaciones de predicción?",
   "tournamentsInfoPrizesLink": "¿Cómo se distribuyen los premios?",
+  "dismiss": "Descartar",
+  "gracePeriodTooltip": "Si no actualiza sus pronósticos antes de que termine el período de gracia, sus pronósticos existentes se retirarán automáticamente.",
+  "newOptionsAddedPlural": "Estas opciones se añadieron recientemente, por favor ajuste su(s) pronóstico(s) en consecuencia.",
+  "newOptionsAddedSingular": "Se añadió una nueva opción recientemente, por favor ajuste sus pronósticos en consecuencia.",
+  "showNewOptions": "Mostrar nuevas opciones",
+  "showNewOption": "Mostrar nueva opción",
+  "timeRemaining": "Tiempo restante",
   "othersCount": "Otros ({count})"
 }
