@@ -4,14 +4,16 @@ import { FC } from "react";
 
 import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { Category } from "@/types/projects";
+import cn from "@/utils/core/cn";
 
 type CategoryWithPosts = Category & { posts: string[] };
 
 type Props = {
   categories: CategoryWithPosts[];
+  className?: string;
 };
 
-const AllCategoriesSection: FC<Props> = async ({ categories }) => {
+const AllCategoriesSection: FC<Props> = async ({ categories, className }) => {
   const t = await getTranslations();
 
   if (!categories || categories.length === 0) {
@@ -23,7 +25,7 @@ const AllCategoriesSection: FC<Props> = async ({ categories }) => {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <section className="px-4 py-20 lg:px-20">
+    <section className={cn("py-20", className)}>
       <h2 className="m-0 mb-10 text-xl font-bold leading-7 text-gray-1000 dark:text-gray-1000-dark">
         {t("allCategories")}
       </h2>

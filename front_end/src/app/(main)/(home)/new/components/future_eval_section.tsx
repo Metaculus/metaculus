@@ -139,9 +139,9 @@ const FutureEvalSection: FC<{ className?: string }> = async ({ className }) => {
   }
 
   return (
-    <div
+    <section
       className={cn(
-        "flex flex-col gap-10 border-y border-gray-300 bg-gray-0 px-4 py-20 dark:border-gray-300-dark dark:bg-gray-0-dark lg:px-20",
+        "flex flex-col gap-10 bg-gray-0 py-20 dark:border-gray-300-dark dark:bg-gray-0-dark",
         className
       )}
     >
@@ -213,7 +213,7 @@ const FutureEvalSection: FC<{ className?: string }> = async ({ className }) => {
           />
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
