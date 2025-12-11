@@ -27,9 +27,15 @@ type Props = {
   isUserRow?: boolean;
 };
 
-const SCORE_DECIMALS: Partial<Record<LeaderboardType, number>> = {
-  baseline_global: 0,
-  peer_global: 1,
+const DEFAULT_SCORE_FORMAT_OPTIONS: Intl.NumberFormatOptions = {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+};
+const SCORE_FORMAT_OPTIONS: Partial<
+  Record<LeaderboardType, Intl.NumberFormatOptions>
+> = {
+  baseline_global: { minimumFractionDigits: 0, maximumFractionDigits: 0 },
+  peer_global: { minimumFractionDigits: 1, maximumFractionDigits: 1 },
 };
 
 const LeaderboardRow: FC<Props> = ({
@@ -119,7 +125,10 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {formatNumberBipm(contribution_count, 0)}
+          {formatNumberBipm(contribution_count, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          })}
         </Link>
       </td>
       {scoreType == "peer_global" && (
@@ -129,7 +138,10 @@ const LeaderboardRow: FC<Props> = ({
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
             prefetch={false}
           >
-            {formatNumberBipm(coverage, 1)}
+            {formatNumberBipm(coverage, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            })}
           </Link>
         </td>
       )}
@@ -144,7 +156,10 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {formatNumberBipm(score, SCORE_DECIMALS[scoreType])}
+          {formatNumberBipm(
+            score,
+            SCORE_FORMAT_OPTIONS[scoreType] ?? DEFAULT_SCORE_FORMAT_OPTIONS
+          )}
         </Link>
       </td>
     </tr>
