@@ -20,12 +20,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
   );
 
   return (
-    <div
-      className={cn(
-        "border-y border-gray-300 bg-gray-100 dark:border-gray-300-dark  dark:bg-gray-100-dark md:mt-16",
-        className
-      )}
-    >
+    <section className={cn(className)}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1 text-gray-1000 dark:text-gray-1000-dark">
           <h2 className="m-0 text-xl font-bold leading-7">
@@ -64,7 +59,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
