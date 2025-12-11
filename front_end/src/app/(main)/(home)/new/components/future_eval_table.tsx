@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import {
   entryIconPair,
   entryLabel,
   shouldDisplayEntry,
 } from "@/app/(main)/aib/components/aib/leaderboard/utils";
 import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
-import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import type { LeaderboardDetails, MedalType } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 
@@ -18,6 +18,18 @@ type Props = { details: LeaderboardDetails; className?: string };
 
 const INITIAL_ROWS = 5;
 
+const MedalRow = ({ rank }: { rank: number }) => {
+  const medalType: MedalType =
+    rank === 1 ? "gold" : rank === 2 ? "silver" : "bronze";
+
+  return rank <= 3 ? (
+    <MedalIcon type={medalType} className="size-8" />
+  ) : (
+    <span className="text-sm font-normal text-gray-1000 dark:text-gray-1000-dark">
+      {rank}
+    </span>
+  );
+};
 const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
@@ -45,13 +57,6 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
   }, [details.entries, t]);
 
   const visibleRows = expanded ? rows : rows.slice(0, INITIAL_ROWS);
-
-  const getMedalType = (rank: number): MedalType | null => {
-    if (rank === 1) return "gold";
-    if (rank === 2) return "silver";
-    if (rank === 3) return "bronze";
-    return null;
-  };
 
   return (
     <div className={cn("flex max-h-full w-full flex-col gap-2", className)}>
@@ -86,16 +91,7 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
               >
                 <Td className="pl-6">
                   <div className="flex items-center justify-center">
-                    {getMedalType(r.rank) ? (
-                      <MedalIcon
-                        type={getMedalType(r.rank)!}
-                        className="size-8"
-                      />
-                    ) : (
-                      <span className="text-sm font-normal text-gray-1000 dark:text-gray-1000-dark">
-                        {r.rank}
-                      </span>
-                    )}
+                    <MedalRow rank={r.rank} />
                   </div>
                 </Td>
 
