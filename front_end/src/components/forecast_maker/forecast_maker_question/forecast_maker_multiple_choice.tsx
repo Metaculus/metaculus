@@ -136,6 +136,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const [isDirty, setIsDirty] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [dismissedOverlay, setDismissedOverlay] = useState(false);
+  const [interactedOptions, setInteractedOptions] = useState<Set<string>>(
+    new Set()
+  );
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
@@ -173,6 +177,71 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     activeUserForecast.forecast_values.filter((value) => value !== null)
       .length < question.options.length;
 
+  const getNewOptions = useCallback(() => {
+    if (!activeUserForecast) return [];
+
+    return choicesForecasts
+      .filter((choice, index) => {
+        const isCurrentOption = question.options.includes(choice.name);
+        const hasForecast = activeUserForecast.forecast_values[index] !== null;
+        return isCurrentOption && !hasForecast;
+      })
+      .map((c) => c.name);
+  }, [activeUserForecast, choicesForecasts, question.options]);
+
+  const newOptions = getNewOptions();
+  const showOverlay =
+    showUserMustForecast && !dismissedOverlay && newOptions.length > 0;
+
+  const firstNewOptionRef = React.useRef<HTMLTableRowElement | null>(null);
+
+  const scrollToNewOptions = () => {
+    if (firstNewOptionRef.current) {
+      firstNewOptionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  };
+
+  const NewOptionCallout: FC = () => {
+    const isPlural = newOptions.length > 1;
+    return (
+      <div className="mb-3 w-full rounded-lg bg-blue-900 p-4 shadow-lg dark:bg-blue-900-dark">
+        <p className="mb-2 mt-0 text-sm text-gray-0 dark:text-gray-0-dark">
+          {isPlural
+            ? "These options were recently added, please adjust your forecast(s) accordingly."
+            : "This option was recently added, please adjust your forecast(s) accordingly."}
+        </p>
+        {isPlural && newOptions.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {newOptions.map((optionName) => (
+              <span
+                key={optionName}
+                className="inline-flex items-center rounded-full bg-blue-700 px-2 py-0.5 text-xs text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark"
+              >
+                {optionName}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={scrollToNewOptions}>
+            Show New Options
+          </Button>
+          <Button
+            variant="text"
+            size="sm"
+            className="text-gray-0 hover:text-gray-100 dark:text-gray-0-dark dark:hover:text-gray-100-dark"
+            onClick={() => setDismissedOverlay(true)}
+          >
+            Dismiss
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
@@ -205,7 +274,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
           const isInitialChange = prev.some((el) => el.forecast === null);
 
-          if (isInitialChange) {
+          if (isInitialChange && prevChoice.forecast === null) {
             // User is predicting for the first time. Show default non-null values
             // for remaining options after first interaction with the inputs.
             return { ...prevChoice, forecast: equalizedForecast };
@@ -356,6 +425,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         isSubmissionDisabled={!isForecastValid}
         onSubmit={submit}
       />
+      {showOverlay && <NewOptionCallout />}
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
@@ -383,6 +453,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <tbody>
           {choicesForecasts.map((choice) => {
             if (question.options.includes(choice.name)) {
+              const isFirstNewOption =
+                newOptions.length > 0 && choice.name === newOptions[0];
               return (
                 <ForecastChoiceOption
                   key={choice.name}
@@ -403,6 +475,17 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                     type: "question",
                     resolution: question.resolution,
                   }}
+                  isNewOption={newOptions.includes(choice.name)}
+                  showHighlight={
+                    newOptions.includes(choice.name) &&
+                    !interactedOptions.has(choice.name)
+                  }
+                  onInteraction={() => {
+                    setInteractedOptions((prev) =>
+                      new Set(prev).add(choice.name)
+                    );
+                  }}
+                  rowRef={isFirstNewOption ? firstNewOptionRef : undefined}
                 />
               );
             }
@@ -419,11 +502,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <div className="flex flex-col pb-5">
           <div className="mt-5 flex flex-wrap items-center justify-center gap-4 ">
             <div className="mx-auto text-center sm:ml-0 sm:text-left">
-              {showUserMustForecast && (
-                <div className="mb-1 text-sm font-semibold text-red-600">
-                  PLACEHOLDER: User must forecast (a new option).
-                </div>
-              )}
               <div>
                 <span className="text-2xl font-bold">
                   Total: {getForecastPctString(forecastsSum)}

@@ -52,6 +52,10 @@ type Props<T> = {
   onOptionClick?: (id: T) => void;
   withdrawn?: boolean;
   withdrawnEndTimeSec?: number | null;
+  isNewOption?: boolean;
+  showHighlight?: boolean;
+  onInteraction?: () => void;
+  rowRef?: React.RefObject<HTMLTableRowElement | null>;
 };
 
 const ForecastChoiceOption = <T = string,>({
@@ -73,6 +77,10 @@ const ForecastChoiceOption = <T = string,>({
   onOptionClick,
   withdrawn = false,
   withdrawnEndTimeSec = null,
+  isNewOption = false,
+  showHighlight = false,
+  onInteraction,
+  rowRef,
 }: Props<T>) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -124,8 +132,11 @@ const ForecastChoiceOption = <T = string,>({
   const handleSliderForecastChange = useCallback(
     (value: number) => {
       onChange(id, value);
+      if (isNewOption) {
+        onInteraction?.();
+      }
     },
-    [id, onChange]
+    [id, onChange, isNewOption, onInteraction]
   );
   const handleInputChange = useCallback((value: string) => {
     setInputValue(value);
@@ -184,6 +195,7 @@ const ForecastChoiceOption = <T = string,>({
   return (
     <>
       <tr
+        ref={rowRef}
         className={cn({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
           "bg-blue-200  dark:bg-blue-200-dark": highlightedOptionId === id,
@@ -191,6 +203,14 @@ const ForecastChoiceOption = <T = string,>({
             isQuestionResolved || isGroupResolutionHighlighted,
         })}
         onClick={() => onOptionClick?.(id)}
+        style={
+          showHighlight
+            ? {
+                outline: `8px solid ${getThemeColor(choiceColor)}80`,
+                outlineOffset: "0px",
+              }
+            : undefined
+        }
       >
         <th className="w-full border-t border-gray-300 px-3 py-2 text-left text-sm font-medium leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
           <div className="flex gap-2">
@@ -228,6 +248,9 @@ const ForecastChoiceOption = <T = string,>({
                     onFocus={() => {
                       setIsInputFocused(true);
                       onChange(id, defaultSliderValue);
+                      if (isNewOption) {
+                        onInteraction?.();
+                      }
                     }}
                     onBlur={() => setIsInputFocused(false)}
                     disabled={disabled}
@@ -249,7 +272,12 @@ const ForecastChoiceOption = <T = string,>({
               minValue={inputMin}
               maxValue={inputMax}
               value={inputValue}
-              onFocus={() => setIsInputFocused(true)}
+              onFocus={() => {
+                setIsInputFocused(true);
+                if (isNewOption) {
+                  onInteraction?.();
+                }
+              }}
               onBlur={() => setIsInputFocused(false)}
               disabled={disabled}
             />
@@ -267,6 +295,14 @@ const ForecastChoiceOption = <T = string,>({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
         })}
         onClick={() => onOptionClick?.(id)}
+        style={
+          showHighlight
+            ? {
+                outline: `8px solid ${getThemeColor(choiceColor)}80`,
+                outlineOffset: "0px",
+              }
+            : undefined
+        }
       >
         <td
           className={cn(
