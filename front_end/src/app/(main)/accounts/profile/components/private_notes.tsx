@@ -53,7 +53,10 @@ const PrivateNotes: FC = () => {
         limit: 10,
         offset: currentOffset,
       });
-      setNotes((prev) => [...prev, ...response.results]);
+      setNotes((prev) => [
+        ...(currentOffset > 0 ? prev : []),
+        ...response.results,
+      ]);
       setTotalCount(response.count);
       setOffset(currentOffset + 10);
     } catch (e) {
@@ -68,33 +71,25 @@ const PrivateNotes: FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-col gap-6 rounded bg-white p-6 dark:bg-blue-900 ">
-        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-          {t("privateNotes")}
-        </h3>
-
-        <div className="flex flex-col gap-2 md:gap-4">
-          {notes.map((note, index) => (
-            <PrivateNoteCard key={`${note.post.id}-${index}`} note={note} />
-          ))}
-          {isLoading && <LoadingIndicator className="mx-auto my-4" />}
-          {!isLoading && totalCount !== null && notes.length < totalCount && (
-            <Button
-              variant="secondary"
-              onClick={() => fetchNotes(offset)}
-              className="self-center"
-            >
-              {t("loadMore")}
-            </Button>
-          )}
-          {!isLoading && notes.length === 0 && (
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              {t("noPrivateNotes")}
-            </div>
-          )}
+    <div className="flex flex-col gap-2 md:gap-4">
+      {notes.map((note, index) => (
+        <PrivateNoteCard key={`${note.post.id}-${index}`} note={note} />
+      ))}
+      {isLoading && <LoadingIndicator className="mx-auto my-4" />}
+      {!isLoading && totalCount !== null && notes.length < totalCount && (
+        <Button
+          variant="secondary"
+          onClick={() => fetchNotes(offset)}
+          className="self-center"
+        >
+          {t("loadMore")}
+        </Button>
+      )}
+      {!isLoading && notes.length === 0 && (
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          {t("noPrivateNotes")}
         </div>
-      </div>
+      )}
     </div>
   );
 };
