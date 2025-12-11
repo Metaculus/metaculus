@@ -67,15 +67,6 @@ export type CurrentUser = User & {
   language?: string | null;
 };
 
-export enum ProfilePageMode {
-  Overview = "overview",
-  TrackRecord = "track_record",
-  Medals = "medals",
-  Comments = "comments",
-  Questions = "questions",
-  PrivateNotes = "private_notes",
-}
-
 export enum InterfaceType {
   ConsumerView = "consumer_view",
   ForecasterView = "forecaster_view",

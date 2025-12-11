@@ -74,8 +74,7 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     existing_keyfactors = (
         KeyFactor.objects.for_posts([comment.on_post])
         .filter_active()
-        .filter(driver__isnull=False)
-        .select_related("driver")
+        .select_related("driver", "base_rate", "news")
     )
 
     suggested_key_factors = generate_key_factors_for_comment(
