@@ -401,9 +401,9 @@ export function getUserPredictionDisplayValue({
     return "...";
   }
 
-  let center: number | undefined;
-  let lower: number | undefined = undefined;
-  let upper: number | undefined = undefined;
+  let center: number | null | undefined;
+  let lower: number | null | undefined = undefined;
+  let upper: number | null | undefined = undefined;
   if (questionType === QuestionType.Binary) {
     center = closestUserForecast.forecast_values[1];
   } else {
