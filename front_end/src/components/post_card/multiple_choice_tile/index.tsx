@@ -208,6 +208,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forceShowLinePoints={true}
               openTime={openTime}
               hideCP={hideCP}
+              isEmbedded={isEmbed}
               forFeedPage
             />
           )}

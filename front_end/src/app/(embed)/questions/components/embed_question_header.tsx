@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -44,11 +45,18 @@ const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
   const maxLines = useMemo(() => {
     if (isGroupOfQuestionsPost(post)) {
       const firstType = post.group_of_questions.questions[0]?.type;
-      if (firstType === QuestionType.Binary) return 2;
+      const isBinaryGroup = firstType === QuestionType.Binary;
+      const isContinuousGroup = ContinuousQuestionTypes.some(
+        (t) => t === firstType
+      );
+
+      if (isBinaryGroup || isContinuousGroup) return 2;
       return 3;
     }
+
     if (!isQuestionPost(post)) return 3;
     const q = post.question;
+
     if (q.type === QuestionType.MultipleChoice) return 2;
     return q.type === QuestionType.Binary || isContinuousQuestion(q) ? 4 : 3;
   }, [post]);
