@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 
 from tests.unit.test_questions.conftest import *  # noqa
-from .factories import factory_aggregate_coherence_link
+from .factories import factory_aggregate_coherence_link, factory_coherence_link
 
 
 def test_aggregate_question_link_vote(
@@ -11,6 +11,9 @@ def test_aggregate_question_link_vote(
     aggregation = factory_aggregate_coherence_link(
         question1=question_binary, question2=question_numeric
     )
+    factory_coherence_link(
+        question1=question_binary, question2=question_numeric, direction=1, strength=5
+    )
 
     url = reverse("aggregate-links-votes", kwargs={"pk": aggregation.pk})
 
@@ -18,11 +21,13 @@ def test_aggregate_question_link_vote(
     response = user2_client.post(url, data={"vote": 1}, format="json")
     assert response.status_code == 200
     assert response.data["count"] == 1
+    assert response.data["strength"] == 5.0
 
     # User1 votes with -1
     response = user1_client.post(url, data={"vote": -1}, format="json")
     assert response.status_code == 200
     assert response.data["count"] == 2
+    assert response.data["strength"] == pytest.approx(3.33, rel=0.1)
 
     # Check votes response
     url = reverse(

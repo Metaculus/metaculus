@@ -103,6 +103,7 @@ export const SignupForm: FC<{
     } else {
       sendAnalyticsEvent("register", {
         event_category: new URLSearchParams(window.location.search).toString(),
+        signupPath: currentLocation,
       });
       if (response?.is_active) {
         setCurrentModal(null);
@@ -340,7 +341,7 @@ const SignUpFormFragment: FC<{
     <>
       <Input
         autoComplete="username"
-        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
         placeholder={t("registrationUsernamePlaceholder")}
         type="text"
         errors={errors}
@@ -349,14 +350,14 @@ const SignUpFormFragment: FC<{
       <div>
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("passwordPlaceholder")}
           type="password"
           {...register("password")}
         />
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("registrationVerifyPasswordPlaceholder")}
           type="password"
           {...register("passwordAgain")}
@@ -364,7 +365,7 @@ const SignUpFormFragment: FC<{
         <FormError errors={errors} name={"password"} />
       </div>
       <Input
-        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
         placeholder={t("registrationEmailPlaceholder")}
         type="email"
         errors={errors}
@@ -390,7 +391,6 @@ const SignUpFormFragment: FC<{
             setValue("newsletterOptin", newsletterOptin);
           }}
           label={t("signUpNewsletterOptin")}
-          className="p-1.5"
         />
       )}
     </>
