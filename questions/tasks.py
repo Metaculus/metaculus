@@ -183,6 +183,10 @@ def check_and_schedule_forecast_widrawal_due_notifications():
             )
             continue
 
+        # Skip deleted posts
+        if post.curation_status == Post.CurationStatus.DELETED:
+            continue
+
         if user.email not in user_notifications:
             user_notifications[user.email] = {
                 "user": user,
