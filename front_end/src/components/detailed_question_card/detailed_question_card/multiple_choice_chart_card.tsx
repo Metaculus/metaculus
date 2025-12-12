@@ -33,6 +33,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
   forecastAvailability?: ForecastAvailability;
+  onLegendHeightChange?: (height: number) => void;
 };
 
 const DetailedMultipleChoiceChartCard: FC<Props> = ({
@@ -43,6 +44,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   chartTheme,
   hideCP,
   forecastAvailability,
+  onLegendHeightChange,
 }) => {
   const t = useTranslations();
   const { ref: containerRef, width: containerWidth } =
@@ -210,6 +212,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
           canPredict={false}
           showChart
           chartHeight={chartHeight}
+          onLegendHeightChange={onLegendHeightChange}
         />
       </div>
     );

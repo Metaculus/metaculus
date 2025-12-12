@@ -16,6 +16,7 @@ type Props = {
 
 const EmbedQuestionCard: React.FC<Props> = ({ post, ogMode, size }) => {
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [legendHeight, setLegendHeight] = useState(0);
   const [ogReady, setOgReady] = useState(!ogMode);
 
   const chartHeight = useMemo(
@@ -25,8 +26,9 @@ const EmbedQuestionCard: React.FC<Props> = ({ post, ogMode, size }) => {
         ogMode,
         size,
         headerHeight,
+        legendHeight,
       }),
-    [post, ogMode, size, headerHeight]
+    [post, ogMode, size, headerHeight, legendHeight]
   );
 
   useEffect(() => {
@@ -56,7 +58,11 @@ const EmbedQuestionCard: React.FC<Props> = ({ post, ogMode, size }) => {
     <QuestionViewModeProvider mode="embed">
       <Fragment>
         <EmbedQuestionHeader post={post} onHeightChange={setHeaderHeight} />
-        <EmbedQuestionPlot post={post} chartHeight={chartHeight} />
+        <EmbedQuestionPlot
+          post={post}
+          chartHeight={chartHeight}
+          onLegendHeightChange={setLegendHeight}
+        />
         <EmbedQuestionFooter ogReady={ogReady} post={post} />
       </Fragment>
     </QuestionViewModeProvider>

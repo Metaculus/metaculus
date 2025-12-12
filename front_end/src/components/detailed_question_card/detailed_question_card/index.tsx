@@ -18,6 +18,7 @@ type Props = {
   hideTitle?: boolean;
   isConsumerView?: boolean;
   embedChartHeight?: number;
+  onLegendHeightChange?: (height: number) => void;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
@@ -25,6 +26,7 @@ const DetailedQuestionCard: FC<Props> = ({
   hideTitle,
   isConsumerView,
   embedChartHeight,
+  onLegendHeightChange,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -73,6 +75,7 @@ const DetailedQuestionCard: FC<Props> = ({
             forecastAvailability={forecastAvailability}
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
+            onLegendHeightChange={onLegendHeightChange}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

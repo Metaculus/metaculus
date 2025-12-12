@@ -1,7 +1,7 @@
 "use client";
 
 import { isNil, merge } from "lodash";
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -94,6 +94,7 @@ type Props = {
   isEmbedded?: boolean;
   optionsLimit?: number;
   forFeedPage?: boolean;
+  onLegendHeightChange?: (height: number) => void;
 };
 
 type NormalizedFanDatum = {
@@ -123,9 +124,18 @@ const FanChart: FC<Props> = ({
   isEmbedded = false,
   optionsLimit,
   forFeedPage,
+  onLegendHeightChange,
 }) => {
   const effectiveVariant: FanChartVariant = variant ?? "default";
 
+  const { ref: embedLegendRef, height: embedLegendHeight } =
+    useContainerSize<HTMLDivElement>();
+
+  useEffect(() => {
+    if (!isEmbedded) return;
+    if (!onLegendHeightChange) return;
+    onLegendHeightChange(embedLegendHeight);
+  }, [isEmbedded, embedLegendHeight, onLegendHeightChange]);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();
@@ -420,7 +430,11 @@ const FanChart: FC<Props> = ({
 
   return (
     <div className="w-full">
-      {isEmbedded && <EmbedFanLegend items={embedLegendItems} />}
+      {isEmbedded && (
+        <div ref={embedLegendRef}>
+          <EmbedFanLegend items={embedLegendItems} />
+        </div>
+      )}
 
       <div
         id="fan-graph-container"

@@ -1,5 +1,5 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
-import { PostWithForecasts } from "@/types/post";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
@@ -33,8 +33,9 @@ function getChartRange(args: {
   post: PostWithForecasts;
   ogMode?: boolean;
   size: EmbedSize;
+  legendHeight?: number;
 }): ChartRange {
-  const { post, ogMode, size } = args;
+  const { post, ogMode, size, legendHeight } = args;
 
   const isMC = post.question?.type === QuestionType.MultipleChoice;
   const isGroup = isGroupOfQuestionsPost(post);
@@ -45,7 +46,7 @@ function getChartRange(args: {
 
   if (isMC) {
     min = ogMode ? 120 : 73;
-    max = 124;
+    max = size.width <= 400 ? 202 - (legendHeight ?? 0) : 124;
     fudge = 0;
     return { min, max, fudge };
   }
@@ -57,15 +58,18 @@ function getChartRange(args: {
       (t) => t === firstType
     );
 
-    if (isBinaryGroup || isContinuousGroup) {
+    if (
+      (isBinaryGroup || isContinuousGroup) &&
+      post.group_of_questions.graph_type !== GroupOfQuestionsGraphType.FanGraph
+    ) {
       min = ogMode ? 120 : 73;
-      max = 124;
+      max = size.width <= 400 ? 202 - (legendHeight ?? 0) : 124;
       fudge = 0;
       return { min, max, fudge };
     }
 
     min = ogMode ? 120 : 73;
-    max = size.width <= 440 ? 120 : size.width < 400 ? 120 : 162;
+    max = 196 - (legendHeight ?? 0);
     return { min, max, fudge };
   }
 
@@ -77,10 +81,16 @@ export function getEmbedChartHeight(args: {
   ogMode?: boolean;
   size: EmbedSize;
   headerHeight: number;
+  legendHeight?: number;
 }): number {
-  const { headerHeight, post, ogMode, size } = args;
+  const { headerHeight, post, ogMode, size, legendHeight } = args;
 
-  const { min, max, fudge } = getChartRange({ post, ogMode, size });
+  const { min, max, fudge } = getChartRange({
+    post,
+    ogMode,
+    size,
+    legendHeight,
+  });
 
   const t = headerT(headerHeight);
   if (t === null) return max;

@@ -1,7 +1,7 @@
 "use client";
 
 import { isNil } from "lodash";
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
@@ -70,6 +70,7 @@ type ContinuousMultipleChoiceTileProps = BaseProps &
     question?: QuestionWithMultipleChoiceForecasts;
     scaling?: Scaling | undefined;
     forecastAvailability?: ForecastAvailability;
+    onLegendHeightChange?: (height: number) => void;
   };
 
 const CHART_HEIGHT = 100;
@@ -93,6 +94,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   canPredict,
   showChart = true,
   minimalistic = false,
+  onLegendHeightChange,
 }) => {
   const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
@@ -120,6 +122,11 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
       }),
     [group?.questions, groupType, question, user]
   );
+
+  useEffect(() => {
+    if (!onLegendHeightChange) return;
+    onLegendHeightChange(height);
+  }, [height, groupType, onLegendHeightChange]);
 
   const handleReaffirmClick = useCallback(() => {
     if (!onReaffirm || !canReaffirm) return;
