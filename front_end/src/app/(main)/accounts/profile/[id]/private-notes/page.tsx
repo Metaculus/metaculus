@@ -15,8 +15,6 @@ export default async function Page(props: Props) {
   const params = await props.params;
   const user = await ServerProfileApi.getMyProfile();
 
-  console.log(user, params);
-
   if (+params.id !== user?.id) {
     return notFound();
   }
