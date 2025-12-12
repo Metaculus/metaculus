@@ -10,6 +10,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import RelativeTime from "@/components/ui/relative_time";
 import SectionToggle from "@/components/ui/section_toggle";
+import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { Post } from "@/types/post";
 import { formatDate } from "@/utils/formatters/date";
@@ -60,6 +61,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
   const [noteText, setNoteText] = useState(text || "");
   const [isLoading, setIsLoading] = useState(false);
   const [savedAt, setSavedAt] = useState<undefined | Date>();
+  const { user } = useAuth();
   const editorRef = useRef<MDXEditorMethods>(null);
 
   const noteStatusDetails = useMemo(() => {
@@ -87,6 +89,10 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
   };
 
   const saveNoteDebounced = useDebouncedCallback(saveNote, 1500);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <SectionToggle
