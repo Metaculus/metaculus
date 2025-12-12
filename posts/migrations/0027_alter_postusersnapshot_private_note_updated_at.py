@@ -15,4 +15,12 @@ class Migration(migrations.Migration):
             name="private_note_updated_at",
             field=models.DateTimeField(blank=True, db_index=True, null=True),
         ),
+        migrations.AddIndex(
+            model_name="postusersnapshot",
+            index=models.Index(
+                condition=models.Q(("private_note", ""), _negated=True),
+                fields=["user", "-private_note_updated_at"],
+                name="posts_postuser_notes_idx",
+            ),
+        ),
     ]

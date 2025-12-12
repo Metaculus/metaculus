@@ -970,6 +970,13 @@ class PostUserSnapshot(models.Model):
                 name="postusersnapshot_unique_user_post", fields=["user_id", "post_id"]
             )
         ]
+        indexes = [
+            models.Index(
+                fields=["user", "-private_note_updated_at"],
+                name="posts_postuser_notes_idx",
+                condition=~Q(private_note=""),
+            )
+        ]
 
     @classmethod
     def update_last_forecast_date(cls, post: Post, user: User):
