@@ -7,6 +7,7 @@ import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
+import { ContinuousQuestionTypes } from "@/constants/questions"; // ⬅️ NEW
 import { useHideCP } from "@/contexts/cp_context";
 import useContainerSize from "@/hooks/use_container_size";
 import {
@@ -19,7 +20,10 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getGroupQuestionsTimestamps } from "@/utils/charts/timestamps";
 import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
-import { getPostDrivenTime } from "@/utils/questions/helpers";
+import {
+  getContinuousGroupScaling,
+  getPostDrivenTime,
+} from "@/utils/questions/helpers";
 
 import { getMaxVisibleCheckboxes } from "../embeds";
 
@@ -85,6 +89,16 @@ const DetailedGroupCard: FC<Props> = ({
   );
 
   const forecastAvailability = getGroupForecastAvailability(questions);
+
+  const groupType = questions[0]?.type;
+  const isContinuousGroup =
+    !!groupType && ContinuousQuestionTypes.some((t) => t === groupType);
+
+  const groupScaling = useMemo(
+    () =>
+      isContinuousGroup ? getContinuousGroupScaling(questions) : undefined,
+    [isContinuousGroup, questions]
+  );
   if (
     forecastAvailability.isEmpty &&
     forecastAvailability.cpRevealsOn &&
@@ -93,11 +107,9 @@ const DetailedGroupCard: FC<Props> = ({
     return null;
   }
 
-  const groupType = questions[0]?.type;
-
   switch (presentationType) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
-      if (isEmbed && groupType === QuestionType.Binary) {
+      if (isEmbed && (groupType === QuestionType.Binary || isContinuousGroup)) {
         const timestamps = getGroupQuestionsTimestamps(questions, {
           withUserTimestamps: !!forecastAvailability.cpRevealsOn,
         });
@@ -115,7 +127,7 @@ const DetailedGroupCard: FC<Props> = ({
             <div ref={containerRef}>
               <MultipleChoiceTile
                 group={post.group_of_questions}
-                groupType={QuestionType.Binary}
+                groupType={groupType}
                 choices={choiceItems}
                 visibleChoicesCount={Math.min(
                   maxVisibleCheckboxes,
@@ -129,6 +141,7 @@ const DetailedGroupCard: FC<Props> = ({
                 canPredict={false}
                 showChart
                 chartHeight={embedChartHeight}
+                scaling={groupScaling}
               />
             </div>
             {hideCP && <RevealCPButton />}

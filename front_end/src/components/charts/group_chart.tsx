@@ -79,6 +79,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
   forFeedPage?: boolean;
+  isEmbedded?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -112,6 +113,7 @@ const GroupChart: FC<Props> = ({
   forecastAvailability,
   forceShowLinePoints = false,
   forFeedPage,
+  isEmbedded = false,
 }) => {
   const t = useTranslations();
   const {
@@ -288,9 +290,9 @@ const GroupChart: FC<Props> = ({
             theme={actualTheme}
             padding={{
               left: 0,
-              right: maxRightPadding,
               top: 10,
-              bottom: BOTTOM_PADDING,
+              right: maxRightPadding,
+              bottom: isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING,
             }}
             events={[
               {
@@ -362,7 +364,6 @@ const GroupChart: FC<Props> = ({
               orientation={"left"}
               axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
-
             {/* X axis */}
             <VictoryPortal>
               <VictoryAxis
@@ -375,6 +376,7 @@ const GroupChart: FC<Props> = ({
                     chartWidth={chartWidth}
                     withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
+                    dx={isEmbedded ? 16 : 0}
                   />
                 }
                 style={{
@@ -560,7 +562,6 @@ const GroupChart: FC<Props> = ({
                 />
               );
             })}
-
             {/* User predictions */}
             {graphs.map(({ active, scatter, color, highlighted }, index) =>
               active && (!isHighlightActive || highlighted) ? (
@@ -635,6 +636,7 @@ function buildChartData({
   openTime,
   forceAutoZoom,
   forFeedPage,
+  isEmbedded,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -651,6 +653,7 @@ function buildChartData({
   openTime?: number | null;
   forceAutoZoom?: boolean;
   forFeedPage?: boolean;
+  isEmbedded?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -922,7 +925,7 @@ function buildChartData({
     scaling: scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
-    forceTickCount: forFeedPage ? 3 : 5,
+    forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 5,
     alwaysShowTicks: true,
   });
 
