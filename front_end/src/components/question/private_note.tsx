@@ -44,7 +44,7 @@ const SavedAgo: FC<{ savedAt: Date }> = ({ savedAt }) => {
   return t.rich("savedAgo", {
     date: () =>
       isJustNow ? (
-        t('justNow')
+        t("justNow")
       ) : (
         <RelativeTime datetime={savedAt.toISOString()} format="relative">
           {formatDate(locale, savedAt)}
