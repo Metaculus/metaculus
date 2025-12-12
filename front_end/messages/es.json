@@ -1740,5 +1740,12 @@
   "copyQuestionLinkToAccount": "Copiar",
   "mySpotBaselineScore": "Mi Puntaje de Referencia de Spot",
   "mySpotPeerScore": "Mi Puntaje de Comparación de Spot",
+  "privateNote": "Nota privada",
+  "privateNoteUpdatedFrom": "de <date></date>",
+  "savedAgo": "guardado <date></date>",
+  "loadMore": "Cargar más",
+  "noPrivateNotes": "Aún no hay notas privadas",
+  "privateNotes": "Notas privadas",
+  "justNow": "justo ahora",
   "othersCount": "Otros ({count})"
 }

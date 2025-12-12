@@ -1740,5 +1740,12 @@
   "copyQuestionLinkToAccount": "Kopírovat",
   "mySpotBaselineScore": "Moje základní skóre pro My Spot",
   "mySpotPeerScore": "Moje skóre podle spolužáků pro My Spot",
+  "privateNote": "Soukromá poznámka",
+  "privateNoteUpdatedFrom": "z <date></date>",
+  "savedAgo": "uloženo <date></date>",
+  "loadMore": "Načíst více",
+  "noPrivateNotes": "Žádné soukromé poznámky",
+  "privateNotes": "Soukromé poznámky",
+  "justNow": "právě teď",
   "othersCount": "Ostatní ({count})"
 }

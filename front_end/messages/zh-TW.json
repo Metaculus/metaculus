@@ -1737,5 +1737,12 @@
   "copyQuestionLinkToAccount": "複製",
   "mySpotBaselineScore": "我的地點基準分數",
   "mySpotPeerScore": "我的地點同儕分數",
+  "privateNote": "私人筆記",
+  "privateNoteUpdatedFrom": "從 <date></date>",
+  "savedAgo": "已儲存 <date></date>",
+  "loadMore": "載入更多",
+  "noPrivateNotes": "尚無私人筆記",
+  "privateNotes": "私人筆記",
+  "justNow": "剛剛",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
