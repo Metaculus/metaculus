@@ -153,10 +153,14 @@ class PostAdmin(CustomTranslationAdmin):
                 build_question_forecasts(question)
 
     def mark_as_deleted(self, request, queryset: QuerySet[Post]):
+        from notifications.services import delete_scheduled_post_notifications
+
         updated = 0
         for post in queryset:
             post.curation_status = Post.CurationStatus.DELETED
             post.save()
+            # Delete any unsent notifications for this post
+            delete_scheduled_post_notifications(post)
             updated += 1
         self.message_user(request, f"Marked {updated} post(s) as DELETED.")
 
