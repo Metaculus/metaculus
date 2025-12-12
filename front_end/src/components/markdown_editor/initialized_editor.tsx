@@ -73,8 +73,21 @@ const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
     theme === "dark" ? prismThemes.dracula : prismThemes.github;
 
   const raw = (language as string | undefined) ?? "ts";
-  const prismLang = CANONICAL_TO_PRISM[normalizeLang(raw)] ?? "tsx";
+  const normalizedLang = normalizeLang(raw);
   const codeTrimmed = (code ?? "").replace(/^\n+|\n+$/g, "");
+
+  // Handle plain text without syntax highlighting
+  if (normalizedLang === "text") {
+    return (
+      <div className="my-4">
+        <pre className="overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark">
+          {codeTrimmed}
+        </pre>
+      </div>
+    );
+  }
+
+  const prismLang = CANONICAL_TO_PRISM[normalizedLang] ?? "tsx";
 
   return (
     <div className="my-4">
