@@ -62,9 +62,25 @@ const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
   }, [post]);
 
   const titleMinHeightClass = useMemo(() => {
+    if (isGroupOfQuestionsPost(post)) {
+      const firstType = post.group_of_questions.questions[0]?.type;
+      const isBinaryGroup = firstType === QuestionType.Binary;
+      const isContinuousGroup = ContinuousQuestionTypes.some(
+        (t) => t === firstType
+      );
+
+      return isBinaryGroup || isContinuousGroup ? "min-h-[2.5em]" : "";
+    }
+
     if (!isQuestionPost(post)) return "";
     const q = post.question;
-    return q.type === QuestionType.MultipleChoice ? "min-h-[2.5em]" : "";
+
+    const needsMinHeight =
+      q.type === QuestionType.MultipleChoice ||
+      q.type === QuestionType.Binary ||
+      isContinuousQuestion(q);
+
+    return needsMinHeight ? "min-h-[2.5em]" : "";
   }, [post]);
 
   return (

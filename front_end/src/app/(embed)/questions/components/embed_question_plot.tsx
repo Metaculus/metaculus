@@ -9,17 +9,30 @@ import {
 type Props = {
   post: PostWithForecasts;
   chartHeight?: number;
+  onLegendHeightChange?: (height: number) => void;
 };
 
-const EmbedQuestionPlot: React.FC<Props> = ({ post, chartHeight }) => {
+const EmbedQuestionPlot: React.FC<Props> = ({
+  post,
+  chartHeight,
+  onLegendHeightChange,
+}) => {
   const isGroup = isGroupOfQuestionsPost(post);
   return (
     <>
       {isQuestionPost(post) && (
-        <DetailedQuestionCard post={post} embedChartHeight={chartHeight} />
+        <DetailedQuestionCard
+          post={post}
+          embedChartHeight={chartHeight}
+          onLegendHeightChange={onLegendHeightChange}
+        />
       )}
       {isGroup && (
-        <DetailedGroupCard post={post} embedChartHeight={chartHeight} />
+        <DetailedGroupCard
+          post={post}
+          embedChartHeight={chartHeight}
+          onLegendHeightChange={onLegendHeightChange}
+        />
       )}
     </>
   );
