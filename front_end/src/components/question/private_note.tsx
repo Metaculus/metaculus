@@ -18,37 +18,38 @@ type Props = {
   post: Post;
 };
 
-const SavedAgo: FC<{
-  savedAt: Date;
-}> = ({ savedAt }) => {
-  const [now, setNow] = useState(Date.now());
-  const diff = now - savedAt.getTime();
+const SavedAgo: FC<{ savedAt: Date }> = ({ savedAt }) => {
   const t = useTranslations();
   const locale = useLocale();
 
+  const savedAtMs = savedAt.getTime();
+  const [isJustNow, setIsJustNow] = useState(
+    () => Date.now() - savedAtMs < 60_000
+  );
+
   useEffect(() => {
-    if (diff < 60_000) {
-      // Schedule an update exactly when it crosses 60s
-      const timeout = setTimeout(() => {
-        setNow(Date.now());
-      }, 60_000 - diff);
+    const elapsed = Date.now() - savedAtMs;
+    const remaining = 60_000 - elapsed;
 
-      return () => clearTimeout(timeout);
+    if (remaining <= 0) {
+      setIsJustNow(false);
+      return;
     }
-  }, [diff]);
 
-  if (diff < 60_000) {
-    return t.rich("savedAgo", {
-      date: () => "just now",
-    });
-  }
+    setIsJustNow(true);
+    const id = window.setTimeout(() => setIsJustNow(false), remaining);
+    return () => window.clearTimeout(id);
+  }, [savedAtMs]);
 
   return t.rich("savedAgo", {
-    date: () => (
-      <RelativeTime datetime={savedAt.toString()} format="relative">
-        {formatDate(locale, savedAt)}
-      </RelativeTime>
-    ),
+    date: () =>
+      isJustNow ? (
+        t('justNow')
+      ) : (
+        <RelativeTime datetime={savedAt.toISOString()} format="relative">
+          {formatDate(locale, savedAt)}
+        </RelativeTime>
+      ),
   });
 };
 
