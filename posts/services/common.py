@@ -479,6 +479,17 @@ def send_back_to_review(post: Post):
     post.save(update_fields=["curation_status", "open_time"])
 
 
+def soft_delete_post(post: Post):
+    """
+    Soft deletes a post by marking it as DELETED and cleaning up any scheduled notifications.
+    """
+    from notifications.services import delete_scheduled_post_notifications
+
+    post.curation_status = Post.CurationStatus.DELETED
+    post.save(update_fields=["curation_status"])
+    delete_scheduled_post_notifications(post)
+
+
 def get_posts_staff_users(
     posts: Iterable[Post],
 ) -> dict[Post, dict[int, ObjectPermission]]:

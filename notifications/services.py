@@ -18,7 +18,7 @@ from notifications.utils import (
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from questions.models import Question
+from questions.models import Question, UserForecastNotification
 from questions.utils import get_question_group_title
 from users.models import User
 from utils.dtypes import dataclass_from_dict
@@ -936,16 +936,12 @@ def delete_scheduled_post_notifications(post: Post):
     )
 
     count = qs.count()
-
-    if count > 0:
-        logger.info(
-            f"Deleting {count} scheduled post notifications for post id {post.id}"
-        )
-        qs.delete()
+    logger.info(
+        f"Deleting {count} scheduled post notifications for post id {post.id}"
+    )
+    qs.delete()
 
     # Also delete UserForecastNotification entries for auto-withdrawal emails
-    from questions.models import UserForecastNotification
-
     # Get all questions associated with this post
     questions = post.get_questions()
     if questions:

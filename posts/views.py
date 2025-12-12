@@ -35,6 +35,7 @@ from posts.services.common import (
     reject_post,
     post_make_draft,
     send_back_to_review,
+    soft_delete_post,
     trigger_update_post_translations,
     make_repost,
     vote_post,
@@ -270,12 +271,7 @@ def post_create_api_view(request):
     should_delete = not is_user_admin and check_and_handle_post_spam(request.user, post)
 
     if should_delete:
-        from notifications.services import delete_scheduled_post_notifications
-
-        post.curation_status = Post.CurationStatus.DELETED
-        post.save(update_fields=["curation_status"])
-        # Delete any unsent notifications for this post
-        delete_scheduled_post_notifications(post)
+        soft_delete_post(post)
         raise spam_error
 
     return Response(
@@ -323,12 +319,7 @@ def post_update_api_view(request, pk):
     should_delete = check_and_handle_post_spam(request.user, post)
 
     if should_delete:
-        from notifications.services import delete_scheduled_post_notifications
-
-        post.curation_status = Post.CurationStatus.DELETED
-        post.save(update_fields=["curation_status"])
-        # Delete any unsent notifications for this post
-        delete_scheduled_post_notifications(post)
+        soft_delete_post(post)
         raise spam_error
 
     trigger_update_post_translations(post, with_comments=False, force=False)
@@ -398,19 +389,13 @@ def post_send_back_to_review_api_view(request, pk):
 
 @api_view(["DELETE"])
 def post_delete_api_view(request, pk):
-    from notifications.services import delete_scheduled_post_notifications
-
     post = get_object_or_404(Post, pk=pk)
 
     # Check permissions
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    post.update_curation_status(Post.CurationStatus.DELETED)
-    post.save(update_fields=["curation_status"])
-
-    # Delete any unsent notifications for this post
-    delete_scheduled_post_notifications(post)
+    soft_delete_post(post)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
