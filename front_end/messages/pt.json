@@ -1747,7 +1747,6 @@
   "noPrivateNotes": "Ainda não há notas privadas",
   "privateNotes": "Notas Privadas",
   "staffPicks": "Escolhas da Equipe",
-  "othersCount": "Outros ({count})",
   "forIndividuals": "Para indivíduos",
   "heroIndividualsTitle": "Tome decisões com base em previsões comunitárias confiáveis",
   "exploreQuestions": "Explorar perguntas",
@@ -1788,5 +1787,7 @@
   "tournamentsForAIBots": "Torneios para Bots de IA",
   "futureEval": "FutureEval",
   "launchATournament": "Lançar um Torneio",
-  "thousandsOfOpenQuestions": "10.000+ perguntas abertas"
+  "thousandsOfOpenQuestions": "10.000+ perguntas abertas",
+  "justNow": "agora mesmo",
+  "othersCount": "Outros ({count})"
 }
