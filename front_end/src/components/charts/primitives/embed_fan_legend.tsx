@@ -10,7 +10,7 @@ const EmbedFanLegend: React.FC<Props> = ({ items }) => {
       {items.map((i) => (
         <div
           key={i.name}
-          className="flex items-center gap-2.5 rounded-[4px] border-[1px] border-olive-400 px-3 py-2 text-sm font-medium leading-[16px] text-olive-800 dark:border-olive-400-dark dark:text-olive-800-dark"
+          className="flex items-center gap-2.5 rounded-[4px] border border-olive-400 px-3 py-2 text-xs font-medium leading-[16px] text-olive-800 dark:border-olive-400-dark dark:text-olive-800-dark min-[440px]:text-sm"
         >
           <span>{i.name}</span>
           <span className="font-normal text-gray-800 dark:text-gray-800-dark">

@@ -38,6 +38,7 @@ type Props = {
   className?: string;
   prioritizeOpenSubquestions?: boolean;
   embedChartHeight?: number;
+  onLegendHeightChange?: (height: number) => void;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -47,6 +48,7 @@ const DetailedGroupCard: FC<Props> = ({
   className,
   prioritizeOpenSubquestions = false,
   embedChartHeight,
+  onLegendHeightChange,
 }) => {
   const {
     open_time,
@@ -142,6 +144,7 @@ const DetailedGroupCard: FC<Props> = ({
                 showChart
                 chartHeight={embedChartHeight}
                 scaling={groupScaling}
+                onLegendHeightChange={onLegendHeightChange}
               />
             </div>
             {hideCP && <RevealCPButton />}
@@ -176,6 +179,7 @@ const DetailedGroupCard: FC<Props> = ({
             withTooltip
             height={embedChartHeight}
             isEmbedded={isEmbed}
+            onLegendHeightChange={onLegendHeightChange}
           />
           {hideCP && <RevealCPButton />}
         </>
