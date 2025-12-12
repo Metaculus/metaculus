@@ -936,9 +936,7 @@ def delete_scheduled_post_notifications(post: Post):
     )
 
     count = qs.count()
-    logger.info(
-        f"Deleting {count} scheduled post notifications for post id {post.id}"
-    )
+    logger.info(f"Deleting {count} scheduled post notifications for post id {post.id}")
     qs.delete()
 
     # Also delete UserForecastNotification entries for auto-withdrawal emails
