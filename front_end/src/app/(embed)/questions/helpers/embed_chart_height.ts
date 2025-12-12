@@ -1,3 +1,4 @@
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
@@ -52,8 +53,11 @@ function getChartRange(args: {
   if (isGroup) {
     const firstType = post.group_of_questions.questions[0]?.type;
     const isBinaryGroup = firstType === QuestionType.Binary;
+    const isContinuousGroup = ContinuousQuestionTypes.some(
+      (t) => t === firstType
+    );
 
-    if (isBinaryGroup) {
+    if (isBinaryGroup || isContinuousGroup) {
       min = ogMode ? 120 : 73;
       max = 124;
       fudge = 0;
