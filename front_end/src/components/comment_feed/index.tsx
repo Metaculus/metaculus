@@ -391,6 +391,9 @@ const CommentFeed: FC<Props> = ({
               )}
               {!profileId &&
                 user &&
+                // Private comments were deprecated in favor of Private Notes
+                // Leaving for bots for backward compatibility
+                user.is_bot &&
                 (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
                   <ButtonGroup
                     value={feedFilters.is_private ? "private" : "public"}
