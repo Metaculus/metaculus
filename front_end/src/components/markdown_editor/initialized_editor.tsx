@@ -269,7 +269,7 @@ const InitializedMarkdownEditor: FC<
     }
     return [
       ...common,
-      codeBlockPlugin({ defaultCodeBlockLanguage: "ts" }),
+      codeBlockPlugin({ defaultCodeBlockLanguage: "text" }),
       codeMirrorPlugin({
         codeBlockLanguages: CANONICAL_TO_LABEL,
       }),
