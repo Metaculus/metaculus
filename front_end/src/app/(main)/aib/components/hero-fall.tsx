@@ -24,4 +24,3 @@ function HeroFall() {
 }
 
 export default HeroFall;
-

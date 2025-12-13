@@ -24,7 +24,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
             <HeroQ2 />
-          </div>  
+          </div>
           <div className="flex h-auto w-full flex-row gap-3 md:w-1/3 md:flex-col">
             <Prize />
             <Dates />
