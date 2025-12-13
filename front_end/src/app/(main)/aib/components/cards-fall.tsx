@@ -57,4 +57,3 @@ const Card: FC<{ className: string; heading1: string; heading2: string }> = ({
 };
 
 export { DatesFall, PrizeFall };
-
