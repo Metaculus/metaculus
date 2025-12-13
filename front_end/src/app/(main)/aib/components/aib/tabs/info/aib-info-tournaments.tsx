@@ -63,7 +63,7 @@ const AIBInfoTournaments: React.FC = () => {
         <p className="m-0 text-center text-sm font-medium text-blue-800 antialiased dark:text-blue-800-dark md:text-lg">
           {t.rich("aibMiniBenchBanner", {
             link: (chunks) => (
-              <Link href="/tournament/minibench/">{chunks}</Link>
+              <Link href="/aib/minibench">{chunks}</Link>
             ),
           })}
         </p>

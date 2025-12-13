@@ -10,7 +10,7 @@ function Dates() {
     <Card
       className="rounded-md bg-blue-500/50 py-4 text-blue-800 hover:cursor-default dark:bg-blue-500-dark/50 dark:text-blue-800-dark "
       heading1={t("FABStartDate")}
-      heading2={t("FABStartDateSep1")}
+      heading2={t("FABStartDateJan5")}
     />
   );
 }
