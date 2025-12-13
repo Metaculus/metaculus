@@ -116,41 +116,41 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 </div>
               </div>
             )}
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-col gap-3">
               <Link
                 href="/notebooks/38928/ai-benchmark-resources/"
-                className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+                className="flex w-full items-center gap-4 rounded bg-white p-4 no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 min-[1920px]:p-6"
               >
                 <FontAwesomeIcon
                   icon={faInfoCircle}
-                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
+                  className="text-2xl text-blue-700 dark:text-blue-700-dark md:text-3xl min-[1920px]:text-4xl"
                 />
-                <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
-                  {t("FABInfoPage")}
+                <span className="text-lg font-medium md:text-xl min-[1920px]:text-2xl">
+                  {t("FABReadMore")}
                 </span>
               </Link>
               <Link
-                href="/tournament/fall-aib-2025/"
-                className="flex size-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+                href="/tournament/spring-aib-2026/"
+                className="flex w-full items-center gap-4 rounded bg-white p-4 no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 min-[1920px]:p-6"
               >
                 <FontAwesomeIcon
                   icon={faTrophy}
-                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
+                  className="text-2xl text-blue-700 dark:text-blue-700-dark md:text-3xl min-[1920px]:text-4xl"
                 />
-                <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
-                  {"Fall 2025"}
+                <span className="text-lg font-medium md:text-xl min-[1920px]:text-2xl">
+                  Spring 2026 Bot Tournament
                 </span>
               </Link>
               <Link
-                href="/tournament/minibench/"
-                className="flex size-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+                href="/aib/minibench"
+                className="flex w-full items-center gap-4 rounded bg-white p-4 no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 min-[1920px]:p-6"
               >
                 <FontAwesomeIcon
                   icon={faChartBar}
-                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-4xl"
+                  className="text-2xl text-blue-700 dark:text-blue-700-dark md:text-3xl min-[1920px]:text-4xl"
                 />
-                <span className="block self-center text-center text-base no-underline md:text-lg lg:self-start lg:text-left min-[1920px]:text-2xl">
-                  {"MiniBench"}
+                <span className="text-lg font-medium md:text-xl min-[1920px]:text-2xl">
+                  MiniBench Tournaments
                 </span>
               </Link>
             </div>
@@ -169,7 +169,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 The project ID to add the user to is hardcoded here - the FAB project is changed once every quarter, and it doesn't
                 make sense to build infrastructure to manage the ID from the UI. When the new FAB tournament starts, we'll just change the ID here.
               */}
-              <SignupForm forceIsBot={true} addToProject={32813} />
+              <SignupForm forceIsBot={true} addToProject={32916} />
             </div>
             <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {
