@@ -59,7 +59,10 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-0 z-10;
+  @apply sticky top-12 flex-wrap;
+  & [class*="toolbarTitleMode"] {
+    display: none; /* We render our custom source mode title instead */
+  }
 }
 
 .markdown-editor.dark-theme {
