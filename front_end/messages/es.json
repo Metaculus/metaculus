@@ -1637,6 +1637,7 @@
   "minibenchAboutP1": "MiniBench es nuestra serie de torneos experimentales quincenales diseñados para iteración y retroalimentación rápida. Cada MiniBench dura aproximadamente dos semanas, con un conjunto seleccionado de preguntas de pronóstico que se resuelven rápidamente.",
   "minibenchAboutP2": "A diferencia de nuestros torneos de temporada más largos, MiniBench permite a los desarrolladores de bots probar rápidamente nuevas estrategias, recibir puntuaciones e iterar en sus enfoques. Es el terreno de pruebas perfecto para nuevas ideas antes del torneo principal.",
   "minibenchNoTournaments": "No hay torneos MiniBench disponibles actualmente. ¡Vuelve pronto!",
+  "minibenchActiveLink": "MiniBench Activo",
   "aibShowMore": "Mostrar más ({count})",
   "aibShowMoreAria": "Mostrar más modelos ({count})",
   "aibSOTALinearTrend": "Tendencia Lineal SOTA",

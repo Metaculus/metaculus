@@ -1666,6 +1666,7 @@
   "minibenchAboutP1": "MiniBench is our bi-weekly experimental tournament series designed for rapid iteration and feedback. Each MiniBench runs for approximately two weeks, and uses automated questions.",
   "minibenchAboutP2": "Unlike our longer seasonal tournaments, MiniBench allows bot developers to test new strategies, receive scores, and iterate on their approaches quickly at the cost of some question quality (length, diversity, and quantity).",
   "minibenchNoTournaments": "No MiniBench tournaments are currently available. Check back soon!",
+  "minibenchActiveLink": "Active MiniBench",
   "baseRate": "Base Rate",
   "addBaseRate": "Add Base Rate",
   "pleaseAddAtLeastOneBaseRate": "Please add at least one valid base rate.",
