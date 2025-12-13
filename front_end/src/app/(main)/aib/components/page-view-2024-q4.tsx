@@ -50,7 +50,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
         <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
           <BotLeaderboard />
           <Link
-            href="/aib/2025/fall"
+            href="/aib/2026/spring"
             className="group flex w-full no-underline"
           >
             <div className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 text-balance rounded-md bg-gradient-to-r from-purple-500/35 to-purple-700/35 p-3 text-center text-lg text-purple-800 transition-colors dark:text-gray-1000-dark md:gap-4 md:p-6 md:text-2xl">
@@ -58,7 +58,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 icon={faArrowRight}
                 className="text-4xl opacity-20 transition-all group-hover:opacity-80 md:text-6xl xl:text-8xl"
               />{" "}
-              Fall 2025 tournament is underway!
+              Spring 2026 tournament is underway!
               <Button
                 size="lg"
                 variant="primary"

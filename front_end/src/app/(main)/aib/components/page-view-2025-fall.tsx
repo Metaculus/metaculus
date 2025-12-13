@@ -9,9 +9,9 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 
-import { Dates, Prize } from "./cards-q1";
-import HeroQ1 from "./hero-q1";
-import BotLeaderboard from "./leaderboard-q1";
+import { DatesFall, PrizeFall } from "./cards-fall";
+import HeroFall from "./hero-fall";
+import FallBotLeaderboard from "./leaderboard-fall";
 import TournamentPager, { TOURNAMENT_ITEMS } from "./tournament-pager";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
@@ -23,15 +23,15 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
       <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
-            <HeroQ1 />
+            <HeroFall />
           </div>
           <div className="flex h-auto w-full flex-row gap-3 md:w-1/3 md:flex-col">
-            <Prize />
-            <Dates />
+            <PrizeFall />
+            <DatesFall />
           </div>
           <div className="relative flex h-auto min-h-[8rem] w-full flex-row overflow-hidden rounded md:w-1/3 lg:h-auto">
             <Image
-              src="https://cdn.metaculus.com/2025-q1.webp"
+              src="https://cdn.metaculus.com/aib-q3.webp"
               alt=""
               fill
               priority
@@ -42,7 +42,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
           </div>
         </div>
         <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
-          <BotLeaderboard />
+          <FallBotLeaderboard />
           <Link
             href="/aib/2026/spring"
             className="group flex w-full no-underline"
