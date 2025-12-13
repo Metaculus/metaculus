@@ -1639,6 +1639,7 @@
   "minibenchAboutP1": "MiniBench 是我们的双周实验性比赛系列，专为快速迭代和反馈设计。每个 MiniBench 运行约两周，精选快速解决的预测问题。",
   "minibenchAboutP2": "与我们较长的季节性比赛不同，MiniBench 允许机器人开发者快速测试新策略、获得分数并迭代方法。这是在主比赛前测试新想法的完美场所。",
   "minibenchNoTournaments": "目前没有可用的 MiniBench 比赛。请稍后再查看！",
+  "minibenchActiveLink": "活跃的 MiniBench",
   "aibShowMore": "显示更多 ({count})",
   "aibShowMoreAria": "显示更多模型 ({count})",
   "aibSOTALinearTrend": "SOTA线性趋势",

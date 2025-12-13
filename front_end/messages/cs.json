@@ -1637,6 +1637,7 @@
   "minibenchAboutP1": "MiniBench je naše dvoutýdenní experimentální turnajová série navržená pro rychlou iteraci a zpětnou vazbu. Každý MiniBench trvá přibližně dva týdny a obsahuje vybraný soubor prognostických otázek, které se rychle vyřeší.",
   "minibenchAboutP2": "Na rozdíl od našich delších sezónních turnajů umožňuje MiniBench vývojářům botů rychle testovat nové strategie, získávat skóre a iterovat své přístupy. Je to ideální místo pro testování nových nápadů před hlavním turnajem.",
   "minibenchNoTournaments": "V současné době nejsou k dispozici žádné turnaje MiniBench. Vraťte se brzy!",
+  "minibenchActiveLink": "Aktivní MiniBench",
   "aibShowMore": "Zobrazit více ({count})",
   "aibShowMoreAria": "Zobrazit více modelů ({count})",
   "aibSOTALinearTrend": "SOTA lineární trend",
