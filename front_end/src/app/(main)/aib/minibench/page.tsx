@@ -57,12 +57,12 @@ export default async function MiniBenchPage() {
             <p className="m-0 leading-relaxed">{t("minibenchAboutP1")}</p>
             <p className="m-0 leading-relaxed">{t("minibenchAboutP2")}</p>
             <p className="m-0 leading-relaxed">
-              <a
+              <Link
                 href="/notebooks/38928/ai-benchmark-resources/#what-do-the-tournaments-look-like"
                 className="text-blue-700 dark:text-blue-700-dark"
               >
                 {t("FABReadMore")}
-              </a>
+              </Link>
             </p>
           </div>
         </div>
