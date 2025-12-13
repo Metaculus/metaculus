@@ -1,11 +1,13 @@
 # create a leaderboard that re-evaluates all questions as if they opened
 # at some specific time or average scores across given some spot times
 
-from datetime import datetime
+import logging
+from datetime import datetime, timezone as dt_timezone
 from collections import defaultdict
 
-from django.utils import timezone
+from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 
 from posts.models import Post
 from scoring.constants import LeaderboardScoreTypes, ScoreTypes
@@ -21,6 +23,8 @@ from scoring.utils import (
     assign_prizes,
     assign_medals,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def update_minimum_time_leaderboard(
@@ -44,7 +48,11 @@ def update_minimum_time_leaderboard(
 
     scores: list[Score] = []
 
+    c = questions.count()
+    i = 0
     for question in questions:
+        i += 1
+        logger.info(f"Processing question {i}/{c} (ID: {question.id})")
         if question.open_time >= minimum_time:
             scores.extend(question.scores.filter(score_type=ScoreTypes.PEER))
             continue
@@ -57,7 +65,7 @@ def update_minimum_time_leaderboard(
         )
         scores.extend(new_scores)
 
-    ########### copied code from `generate_scoring_leaderboard_entries`
+    # copied code from `generate_scoring_leaderboard_entries`
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
 
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
@@ -80,7 +88,7 @@ def update_minimum_time_leaderboard(
         entry.take = max(entry.score, 0) ** 2
     new_entries = sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
 
-    ########### copied code from `update_project_leaderboard`
+    # copied code from `update_project_leaderboard`
     force_finalize = False
     # assign ranks - also applies exclusions
     bot_status = leaderboard.bot_status or project.bot_leaderboard_status
@@ -168,15 +176,19 @@ def update_spot_time_leaderboard(
 
     scores: list[Score] = []
 
+    c = questions.count()
+    i = 0
     for question in questions:
+        i += 1
+        logger.info(f"Processing question {i}/{c} (ID: {question.id})")
         question_scores: list[Score] = []
         for spot_time in spot_times:
             # simulate scores as if question spot_scoring_time was spot_time
-            question.spot_scoring_time = spot_time
             new_scores = evaluate_question(
                 question=question,
                 resolution=question.resolution,
                 score_types=[ScoreTypes.SPOT_PEER],
+                spot_forecast_time=spot_time,
             )
             question_scores.extend(new_scores)
         user_score_map = defaultdict(list)
@@ -196,7 +208,7 @@ def update_spot_time_leaderboard(
                 )
             )
 
-    ########### copied code from `generate_scoring_leaderboard_entries`
+    # copied code from `generate_scoring_leaderboard_entries`
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
 
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
@@ -219,7 +231,7 @@ def update_spot_time_leaderboard(
         entry.take = max(entry.score, 0) ** 2
     new_entries = sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
 
-    ########### copied code from `update_project_leaderboard`
+    # copied code from `update_project_leaderboard`
     force_finalize = False
     # assign ranks - also applies exclusions
     bot_status = leaderboard.bot_status or project.bot_leaderboard_status
@@ -292,12 +304,12 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_arguement(
+        parser.add_argument(
             "--project_id",
             type=int,
             required=True,
         )
-        parser.add_arguement(
+        parser.add_argument(
             "--minimum_time",
             type=str,
             required=False,
@@ -306,7 +318,7 @@ class Command(BaseCommand):
             "Cannot be used with --spot_times."
             "Example: 2024-01-01T00:00:00",
         )
-        parser.add_arguement(
+        parser.add_argument(
             "--spot_times",
             type=str,
             required=False,
@@ -339,13 +351,15 @@ class Command(BaseCommand):
 
         if minimum_time_raw:
             minimum_time = datetime.fromisoformat(minimum_time_raw).replace(
-                tzinfo=timezone.utc
+                tzinfo=dt_timezone.utc
             )
-            update_minimum_time_leaderboard(project, minimum_time)
+            leaderboard = update_minimum_time_leaderboard(project, minimum_time)
 
         if spot_times_raw:
             spot_times = [
-                datetime.fromisoformat(t).replace(tzinfo=timezone.utc)
+                datetime.fromisoformat(t).replace(tzinfo=dt_timezone.utc)
                 for t in spot_times_raw.split(",")
             ]
-            update_spot_time_leaderboard(project, spot_times)
+            leaderboard = update_spot_time_leaderboard(project, spot_times)
+
+        logger.info(f"Updated leaderboard: {leaderboard.name} with id {leaderboard.id}")
