@@ -6,7 +6,24 @@ from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 
+from scoring.management.commands.update_global_bot_leaderboard import (
+    run_update_global_bot_leaderboard,
+)
+
 logger = logging.getLogger(__name__)
+
+
+def update_gobal_bot_leaderboard():
+    global_bot_leaderboard = Leaderboard.objects.filter(
+        name="Global Bot Leaderboard",
+    ).first()
+    if not global_bot_leaderboard:
+        logger.warning("Global Bot Leaderboard not found.")
+        return
+    try:
+        run_update_global_bot_leaderboard()
+    except Exception as e:
+        logger.error(f"Error updating Global Bot Leaderboard: {e}")
 
 
 def update_global_comment_and_question_leaderboards():

@@ -604,302 +604,302 @@ def bootstrap_skills(
     return ci_lower, ci_upper
 
 
+def run_update_global_bot_leaderboard() -> None:
+    baseline_player: int | str = 236038  # metac-gpt-4o+asknews
+    bootstrap_iterations = 30
+
+    # SETUP: users to evaluate & questions
+    print("Initializing...")
+    users: QuerySet[User] = User.objects.filter(
+        metadata__bot_details__metac_bot=True,
+        metadata__bot_details__include_in_calculations=True,
+        metadata__bot_details__display_in_leaderboard=True,
+        is_active=True,
+    ).order_by("id")
+    user_forecast_exists = Forecast.objects.filter(
+        question_id=OuterRef("pk"), author__in=users
+    )
+    questions: QuerySet[Question] = (
+        Question.objects.filter(
+            Q(
+                related_posts__post__default_project__default_permission__in=[
+                    "viewer",
+                    "forecaster",
+                ]
+            )
+            | Q(
+                related_posts__post__default_project_id__in=[
+                    3349,  # aib q3 2024
+                    32506,  # aib q4 2024
+                    32627,  # aib q1 2025
+                    32721,  # aib q2 2025
+                    32813,  # aib fall 2025
+                ]
+            ),
+            related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+            resolution__isnull=False,
+            scheduled_close_time__lte=timezone.now(),
+        )
+        .exclude(related_posts__post__default_project__slug__startswith="minibench")
+        .exclude(resolution__in=UnsuccessfulResolutionType)
+        .filter(Exists(user_forecast_exists))
+        .prefetch_related(  # only prefetch forecasts from those users
+            Prefetch(
+                "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
+            )
+        )
+        .order_by("id")
+        .distinct("id")
+    )
+    ###############
+    # make sure they have at least 100 resolved questions
+    print("initialize list")
+    question_list = list(questions)
+    print("Filtering users.")
+    scored_question_counts: dict[int, int] = defaultdict(int)
+    c = users.count()
+    i = 0
+    for user in users:
+        i += 1
+        print(i, "/", c, end="\r")
+        scored_question_counts[user.id] = (
+            Score.objects.filter(user=user, question__in=question_list)
+            .distinct("question_id")
+            .count()
+        )
+    excluded_ids = [uid for uid, count in scored_question_counts.items() if count < 100]
+    users = users.exclude(id__in=excluded_ids)
+    ###############
+    print("Initializing... DONE")
+
+    # Gather head to head scores
+    user1_ids, user2_ids, question_ids, scores, weights = gather_data(users, questions)
+
+    # choose baseline player if not already chosen
+    if not baseline_player:
+        baseline_player = max(
+            set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
+        )
+    # get variance of average scores (used in rescaling)
+    avg_scores = get_avg_scores(user1_ids, user2_ids, scores, weights)
+    var_avg_scores = (
+        np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
+    )
+
+    # compute skills initially
+    skills = get_skills(
+        user1_ids=user1_ids,
+        user2_ids=user2_ids,
+        question_ids=question_ids,
+        scores=scores,
+        weights=weights,
+        baseline_player=baseline_player,
+        var_avg_scores=var_avg_scores,
+        verbose=False,
+    )
+
+    # Compute bootstrap confidence intervals
+    ci_lower, ci_upper = bootstrap_skills(
+        user1_ids,
+        user2_ids,
+        question_ids,
+        scores,
+        weights,
+        var_avg_scores,
+        baseline_player=baseline_player,
+        bootstrap_iterations=bootstrap_iterations,
+    )
+    print()
+
+    ordered_skills = sorted(
+        [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
+    )
+    player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
+    for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
+        player_stats[u1id][0] += 1
+        player_stats[u1id][1].add(qid)
+        player_stats[u2id][0] += 1
+        player_stats[u2id][1].add(qid)
+
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    # UPDATE Leaderboard
+    print("Updating leaderboard...", end="\r")
+    leaderboard, _ = Leaderboard.objects.get_or_create(
+        name="Global Bot Leaderboard",
+        project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
+        score_type=LeaderboardScoreTypes.MANUAL,
+        bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+    )
+    entry_dict = {
+        entry.user_id or entry.aggregation_method: entry
+        for entry in list(leaderboard.entries.all())
+    }
+    rank = 1
+    question_count = len(set(question_ids))
+    seen = set()
+    for uid, skill in ordered_skills:
+        contribution_count = len(player_stats[uid][1])
+
+        excluded = False
+        if isinstance(uid, int):
+            user = User.objects.get(id=uid)
+            bot_details = user.metadata["bot_details"]
+            if not bot_details.get("display_in_leaderboard"):
+                excluded = True
+
+        entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
+        entry.user_id = uid if isinstance(uid, int) else None
+        entry.aggregation_method = uid if isinstance(uid, str) else None
+        entry.leaderboard = leaderboard
+        entry.score = skill
+        entry.rank = rank
+        entry.excluded = excluded
+        entry.show_when_excluded = False
+        entry.contribution_count = contribution_count
+        entry.coverage = contribution_count / question_count
+        entry.calculated_on = timezone.now()
+        entry.ci_lower = ci_lower.get(uid, None)
+        entry.ci_upper = ci_upper.get(uid, None)
+        # TODO: support for more efficient saving once this is implemented
+        # for leaderboards with more than 100 entries
+        entry.save()
+        seen.add(entry.id)
+
+        if not excluded:
+            rank += 1
+    print("Updating leaderboard... DONE")
+    # delete unseen entries
+    leaderboard.entries.exclude(id__in=seen).delete()
+    print()
+
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    # DISPLAY
+    print("Results:")
+    print(
+        "|  2.5%  "
+        "| Skill  "
+        "| 97.5%  "
+        "| Match  "
+        "| Quest. "
+        "|   ID   "
+        "| Username "
+    )
+    print(
+        "| Match  "
+        "|        "
+        "| Match  "
+        "| Count  "
+        "| Count  "
+        "|        "
+        "|          "
+    )
+    print(
+        "=========================================="
+        "=========================================="
+    )
+    unevaluated = (
+        set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
+    )
+    for uid, skill in ordered_skills:
+        if isinstance(uid, str):
+            username = uid
+        else:
+            username = User.objects.get(id=uid).username
+        unevaluated.remove(uid)
+        lower = ci_lower.get(uid, 0)
+        upper = ci_upper.get(uid, 0)
+        print(
+            f"| {round(lower, 2):>6} "
+            f"| {round(skill, 2):>6} "
+            f"| {round(upper, 2):>6} "
+            f"| {player_stats[uid][0]:>6} "
+            f"| {len(player_stats[uid][1]):>6} "
+            f"| {uid if isinstance(uid, int) else '':>6} "
+            f"| {username}"
+        )
+    for uid in unevaluated:
+        if isinstance(uid, str):
+            username = uid
+        else:
+            username = User.objects.get(id=uid).username
+        print(
+            "| ------ "
+            "| ------ "
+            "| ------ "
+            "| ------ "
+            "| ------ "
+            f"| {uid if isinstance(uid, int) else '':>5} "
+            f"| {username}"
+        )
+    print()
+
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    # TESTS
+    skills_array = np.array(list(skills.values()))
+
+    # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
+    x = []
+    y = []
+    for uid in user1_ids:
+        x.append(skills.get(uid, 0))
+        y.append(avg_scores.get(uid, 0))
+    correlation = np.corrcoef(x, y)
+    print(f"\nCorrelation between skill and avg_score: {correlation[0][1]}")
+
+    # 2. Shapiro-Wilk test (good for small to medium samples)
+    if len(skills_array) >= 3:
+        shapiro_stat, shapiro_p = stats.shapiro(skills_array)
+        print(
+            f"  Shapiro-Wilk test: statistic={shapiro_stat:.4f}, p-value={shapiro_p:.4f}"
+        )
+        if shapiro_p > 0.05:
+            print("    → Skills appear normally distributed (p > 0.05)")
+        else:
+            print("    → Skills may not be normally distributed (p ≤ 0.05)")
+
+    # 3. Anderson-Darling test (more sensitive to tails)
+    anderson_result = stats.anderson(skills_array, dist="norm")
+    print(f"  Anderson-Darling test: statistic={anderson_result.statistic:.4f}")
+    # Check at 5% significance level
+    critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
+    print(f"    Critical value at 5%: {critical_5pct:.4f}")
+    if anderson_result.statistic < critical_5pct:
+        print("    → Skills appear normally distributed (stat < critical)")
+    else:
+        print("    → Skills may not be normally distributed (stat ≥ critical)")
+
+    # 4. Kolmogorov-Smirnov test (compare to normal distribution)
+    ks_stat, ks_p = stats.kstest(
+        skills_array, "norm", args=(skills_array.mean(), skills_array.std())
+    )
+    print(f"  Kolmogorov-Smirnov test: statistic={ks_stat:.4f}, p-value={ks_p:.4f}")
+    if ks_p > 0.05:
+        print("    → Skills appear normally distributed (p > 0.05)")
+    else:
+        print("    → Skills may not be normally distributed (p ≤ 0.05)")
+
+    # 5. Summary statistics
+    print("\nSkill distribution summary:")
+    print(f"  Mean: {skills_array.mean():.2f}")
+    print(f"  Std: {skills_array.std():.2f}")
+    print(f"  Skewness: {stats.skew(skills_array):.4f}")
+    print(f"  Kurtosis: {stats.kurtosis(skills_array):.4f}")
+    print()
+
+
 class Command(BaseCommand):
     help = """
     Update the global bots leaderboard
     """
 
     def handle(self, *args, **options) -> None:
-        baseline_player: int | str = 236038  # metac-gpt-4o+asknews
-        bootstrap_iterations = 30
-
-        # SETUP: users to evaluate & questions
-        print("Initializing...")
-        users: QuerySet[User] = User.objects.filter(
-            metadata__bot_details__metac_bot=True,
-            metadata__bot_details__include_in_calculations=True,
-            metadata__bot_details__display_in_leaderboard=True,
-            is_active=True,
-        ).order_by("id")
-        user_forecast_exists = Forecast.objects.filter(
-            question_id=OuterRef("pk"), author__in=users
-        )
-        questions: QuerySet[Question] = (
-            Question.objects.filter(
-                Q(
-                    related_posts__post__default_project__default_permission__in=[
-                        "viewer",
-                        "forecaster",
-                    ]
-                )
-                | Q(
-                    related_posts__post__default_project_id__in=[
-                        3349,  # aib q3 2024
-                        32506,  # aib q4 2024
-                        32627,  # aib q1 2025
-                        32721,  # aib q2 2025
-                        32813,  # aib fall 2025
-                    ]
-                ),
-                related_posts__post__curation_status=Post.CurationStatus.APPROVED,
-                resolution__isnull=False,
-                scheduled_close_time__lte=timezone.now(),
-            )
-            .exclude(related_posts__post__default_project__slug__startswith="minibench")
-            .exclude(resolution__in=UnsuccessfulResolutionType)
-            .filter(Exists(user_forecast_exists))
-            .prefetch_related(  # only prefetch forecasts from those users
-                Prefetch(
-                    "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
-                )
-            )
-            .order_by("id")
-            .distinct("id")
-        )
-        ###############
-        # make sure they have at least 100 resolved questions
-        print("initialize list")
-        question_list = list(questions)
-        print("Filtering users.")
-        scored_question_counts: dict[int, int] = defaultdict(int)
-        c = users.count()
-        i = 0
-        for user in users:
-            i += 1
-            print(i, "/", c, end="\r")
-            scored_question_counts[user.id] = (
-                Score.objects.filter(user=user, question__in=question_list)
-                .distinct("question_id")
-                .count()
-            )
-        excluded_ids = [
-            uid for uid, count in scored_question_counts.items() if count < 100
-        ]
-        users = users.exclude(id__in=excluded_ids)
-        ###############
-        print("Initializing... DONE")
-
-        # Gather head to head scores
-        user1_ids, user2_ids, question_ids, scores, weights = gather_data(
-            users, questions
-        )
-
-        # choose baseline player if not already chosen
-        if not baseline_player:
-            baseline_player = max(
-                set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
-            )
-        # get variance of average scores (used in rescaling)
-        avg_scores = get_avg_scores(user1_ids, user2_ids, scores, weights)
-        var_avg_scores = (
-            np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
-        )
-
-        # compute skills initially
-        skills = get_skills(
-            user1_ids=user1_ids,
-            user2_ids=user2_ids,
-            question_ids=question_ids,
-            scores=scores,
-            weights=weights,
-            baseline_player=baseline_player,
-            var_avg_scores=var_avg_scores,
-            verbose=False,
-        )
-
-        # Compute bootstrap confidence intervals
-        ci_lower, ci_upper = bootstrap_skills(
-            user1_ids,
-            user2_ids,
-            question_ids,
-            scores,
-            weights,
-            var_avg_scores,
-            baseline_player=baseline_player,
-            bootstrap_iterations=bootstrap_iterations,
-        )
-        print()
-
-        ordered_skills = sorted(
-            [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
-        )
-        player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
-        for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
-            player_stats[u1id][0] += 1
-            player_stats[u1id][1].add(qid)
-            player_stats[u2id][0] += 1
-            player_stats[u2id][1].add(qid)
-
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # UPDATE Leaderboard
-        print("Updating leaderboard...", end="\r")
-        leaderboard, _ = Leaderboard.objects.get_or_create(
-            name="Global Bot Leaderboard",
-            project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
-            score_type=LeaderboardScoreTypes.MANUAL,
-            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-        )
-        entry_dict = {
-            entry.user_id or entry.aggregation_method: entry
-            for entry in list(leaderboard.entries.all())
-        }
-        rank = 1
-        question_count = len(set(question_ids))
-        seen = set()
-        for uid, skill in ordered_skills:
-            contribution_count = len(player_stats[uid][1])
-
-            excluded = False
-            if isinstance(uid, int):
-                user = User.objects.get(id=uid)
-                bot_details = user.metadata["bot_details"]
-                if not bot_details.get("display_in_leaderboard"):
-                    excluded = True
-
-            entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
-            entry.user_id = uid if isinstance(uid, int) else None
-            entry.aggregation_method = uid if isinstance(uid, str) else None
-            entry.leaderboard = leaderboard
-            entry.score = skill
-            entry.rank = rank
-            entry.excluded = excluded
-            entry.show_when_excluded = False
-            entry.contribution_count = contribution_count
-            entry.coverage = contribution_count / question_count
-            entry.calculated_on = timezone.now()
-            entry.ci_lower = ci_lower.get(uid, None)
-            entry.ci_upper = ci_upper.get(uid, None)
-            # TODO: support for more efficient saving once this is implemented
-            # for leaderboards with more than 100 entries
-            entry.save()
-            seen.add(entry.id)
-
-            if not excluded:
-                rank += 1
-        print("Updating leaderboard... DONE")
-        # delete unseen entries
-        leaderboard.entries.exclude(id__in=seen).delete()
-        print()
-
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # DISPLAY
-        print("Results:")
-        print(
-            "|  2.5%  "
-            "| Skill  "
-            "| 97.5%  "
-            "| Match  "
-            "| Quest. "
-            "|   ID   "
-            "| Username "
-        )
-        print(
-            "| Match  "
-            "|        "
-            "| Match  "
-            "| Count  "
-            "| Count  "
-            "|        "
-            "|          "
-        )
-        print(
-            "=========================================="
-            "=========================================="
-        )
-        unevaluated = (
-            set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
-        )
-        for uid, skill in ordered_skills:
-            if isinstance(uid, str):
-                username = uid
-            else:
-                username = User.objects.get(id=uid).username
-            unevaluated.remove(uid)
-            lower = ci_lower.get(uid, 0)
-            upper = ci_upper.get(uid, 0)
-            print(
-                f"| {round(lower, 2):>6} "
-                f"| {round(skill, 2):>6} "
-                f"| {round(upper, 2):>6} "
-                f"| {player_stats[uid][0]:>6} "
-                f"| {len(player_stats[uid][1]):>6} "
-                f"| {uid if isinstance(uid, int) else '':>6} "
-                f"| {username}"
-            )
-        for uid in unevaluated:
-            if isinstance(uid, str):
-                username = uid
-            else:
-                username = User.objects.get(id=uid).username
-            print(
-                "| ------ "
-                "| ------ "
-                "| ------ "
-                "| ------ "
-                "| ------ "
-                f"| {uid if isinstance(uid, int) else '':>5} "
-                f"| {username}"
-            )
-        print()
-
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # TESTS
-        skills_array = np.array(list(skills.values()))
-
-        # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
-        x = []
-        y = []
-        for uid in user1_ids:
-            x.append(skills.get(uid, 0))
-            y.append(avg_scores.get(uid, 0))
-        correlation = np.corrcoef(x, y)
-        print(f"\nCorrelation between skill and avg_score: {correlation[0][1]}")
-
-        # 2. Shapiro-Wilk test (good for small to medium samples)
-        if len(skills_array) >= 3:
-            shapiro_stat, shapiro_p = stats.shapiro(skills_array)
-            print(
-                f"  Shapiro-Wilk test: statistic={shapiro_stat:.4f}, p-value={shapiro_p:.4f}"
-            )
-            if shapiro_p > 0.05:
-                print("    → Skills appear normally distributed (p > 0.05)")
-            else:
-                print("    → Skills may not be normally distributed (p ≤ 0.05)")
-
-        # 3. Anderson-Darling test (more sensitive to tails)
-        anderson_result = stats.anderson(skills_array, dist="norm")
-        print(f"  Anderson-Darling test: statistic={anderson_result.statistic:.4f}")
-        # Check at 5% significance level
-        critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
-        print(f"    Critical value at 5%: {critical_5pct:.4f}")
-        if anderson_result.statistic < critical_5pct:
-            print("    → Skills appear normally distributed (stat < critical)")
-        else:
-            print("    → Skills may not be normally distributed (stat ≥ critical)")
-
-        # 4. Kolmogorov-Smirnov test (compare to normal distribution)
-        ks_stat, ks_p = stats.kstest(
-            skills_array, "norm", args=(skills_array.mean(), skills_array.std())
-        )
-        print(f"  Kolmogorov-Smirnov test: statistic={ks_stat:.4f}, p-value={ks_p:.4f}")
-        if ks_p > 0.05:
-            print("    → Skills appear normally distributed (p > 0.05)")
-        else:
-            print("    → Skills may not be normally distributed (p ≤ 0.05)")
-
-        # 5. Summary statistics
-        print("\nSkill distribution summary:")
-        print(f"  Mean: {skills_array.mean():.2f}")
-        print(f"  Std: {skills_array.std():.2f}")
-        print(f"  Skewness: {stats.skew(skills_array):.4f}")
-        print(f"  Kurtosis: {stats.kurtosis(skills_array):.4f}")
-        print()
+        run_update_global_bot_leaderboard()
