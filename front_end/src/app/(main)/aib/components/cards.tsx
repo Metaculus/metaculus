@@ -21,7 +21,7 @@ function Prize() {
     <Card
       className="rounded-md border-olive-700 bg-olive-500/50 text-olive-800 dark:bg-olive-500/30 dark:text-olive-900-dark"
       heading1={t("FABPrizePool")}
-      heading2={t("FABPrizeValue58k")}
+      heading2={"$58,000"}
     />
   );
 }

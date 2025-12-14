@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import cn from "@/utils/core/cn";
 
-function DatesFall() {
+function DatesFall2025() {
   const t = useTranslations();
 
   return (
@@ -15,13 +15,13 @@ function DatesFall() {
   );
 }
 
-function PrizeFall() {
+function PrizeFall2025() {
   const t = useTranslations();
   return (
     <Card
       className="rounded-md border-gray-700 bg-gray-500/20 text-gray-800 dark:bg-gray-500/20 dark:text-gray-900-dark"
       heading1={t("FABPrizePool")}
-      heading2={t("FABPrizeValue58k")}
+      heading2={"$58,000"}
     />
   );
 }
@@ -56,4 +56,4 @@ const Card: FC<{ className: string; heading1: string; heading2: string }> = ({
   );
 };
 
-export { DatesFall, PrizeFall };
+export { DatesFall2025, PrizeFall2025 };

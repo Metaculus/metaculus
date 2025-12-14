@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import Button from "@/components/ui/button";
 
-function FallBotLeaderboard() {
+function FallBotLeaderboard2025() {
   return (
     <Link
       href="/tournament/fall-aib-2025/"
@@ -29,4 +29,4 @@ function FallBotLeaderboard() {
   );
 }
 
-export default FallBotLeaderboard;
+export default FallBotLeaderboard2025;

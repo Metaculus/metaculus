@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-function HeroFall() {
+function HeroFall2025() {
   const t = useTranslations();
 
   return (
@@ -23,4 +23,4 @@ function HeroFall() {
   );
 }
 
-export default HeroFall;
+export default HeroFall2025;

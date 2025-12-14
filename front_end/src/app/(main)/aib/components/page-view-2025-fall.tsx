@@ -9,9 +9,9 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 
-import { DatesFall, PrizeFall } from "./cards-fall";
-import HeroFall from "./hero-fall";
-import FallBotLeaderboard from "./leaderboard-fall";
+import { DatesFall2025, PrizeFall2025 } from "./cards-2025-fall";
+import HeroFall2025 from "./hero-2025-fall";
+import FallBotLeaderboard2025 from "./leaderboard-2025-fall";
 import TournamentPager, { TOURNAMENT_ITEMS } from "./tournament-pager";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
@@ -23,11 +23,11 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
       <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
-            <HeroFall />
+            <HeroFall2025 />
           </div>
           <div className="flex h-auto w-full flex-row gap-3 md:w-1/3 md:flex-col">
-            <PrizeFall />
-            <DatesFall />
+            <PrizeFall2025 />
+            <DatesFall2025 />
           </div>
           <div className="relative flex h-auto min-h-[8rem] w-full flex-row overflow-hidden rounded md:w-1/3 lg:h-auto">
             <Image
@@ -42,7 +42,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
           </div>
         </div>
         <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
-          <FallBotLeaderboard />
+          <FallBotLeaderboard2025 />
           <Link
             href="/aib/2026/spring"
             className="group flex w-full no-underline"
