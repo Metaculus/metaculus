@@ -16,7 +16,6 @@ from projects.serializers.common import (
     CategorySerializer,
     TournamentSerializer,
     ProjectUserSerializer,
-    TournamentShortSerializer,
     NewsCategorySerialize,
     LeaderboardTagSerializer,
     serialize_index_data,
