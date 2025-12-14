@@ -657,6 +657,28 @@ class LogOddsMeanAggregatorMixin(MeanAggregatorMixin):
         return average
 
 
+class LogOddsMedianAggregatorMixin(MedianAggregatorMixin):
+    """Takes the median of the natural log of odds of forecast values"""
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        if self.question.type != Question.QuestionType.BINARY:
+            raise NotImplementedError(
+                "LogOddsMedian only implemented for binary at this time"
+            )
+        log_odds = np.log(
+            np.array(forecast_set.forecasts_values)
+            / (1 - np.array(forecast_set.forecasts_values))
+        )
+        median_log_odds = np.array(
+            compute_discrete_forecast_values(log_odds, weights, 50.0)[0]
+        )
+        median_odds = np.exp(median_log_odds)
+        median = median_odds / (1 + median_odds)
+        return median
+
+
 # Aggregations ##########################################
 
 
@@ -797,6 +819,21 @@ class JoinedBeforeDateAggregation(MedianAggregatorMixin, Aggregation):
     weighting_classes = [RecencyWeighted, JoinedBeforeFiltered]
 
 
+class MeanAggregation(MeanAggregatorMixin, Aggregation):
+    method = "mean"
+    weighting_classes = [RecencyWeighted]
+
+
+class LogOddsMeanAggregation(LogOddsMeanAggregatorMixin, Aggregation):
+    method = "log_odds_mean"
+    weighting_classes = [RecencyWeighted]
+
+
+class LogOddsMedianAggregation(LogOddsMedianAggregatorMixin, Aggregation):
+    method = "log_odds_median"
+    weighting_classes = [RecencyWeighted]
+
+
 AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
@@ -806,6 +843,9 @@ AGGREGATIONS: list[type[Aggregation]] = [
     GoldMedalistsAggregation,
     ProAggregation,
     JoinedBeforeDateAggregation,
+    MeanAggregation,
+    LogOddsMeanAggregation,
+    LogOddsMedianAggregation,
 ]
 
 
