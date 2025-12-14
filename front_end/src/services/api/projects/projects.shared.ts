@@ -68,7 +68,7 @@ class ProjectsApi extends ApiService {
 
   async getMinibenchTournaments(): Promise<TournamentPreview[]> {
     return await this.get<TournamentPreview[]>(
-      "/projects/tournaments/minibench/"
+      "/projects/minibenches/"
     );
   }
 
