@@ -5,6 +5,7 @@ from django.utils import timezone
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
+from scoring.tasks import update_custom_leaderboard
 
 logger = logging.getLogger(__name__)
 
@@ -30,3 +31,11 @@ def finalize_leaderboards():
         if finalize_time and finalize_time <= timezone.now():
             logger.info(f"Finalizing leaderboard: {leaderboard}")
             update_project_leaderboard(leaderboard=leaderboard)
+
+
+def update_custom_leaderboards():
+    update_custom_leaderboard(
+        project_id=1,
+        minimum_time=None,
+        spot_times=None,
+    )
