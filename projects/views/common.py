@@ -135,7 +135,9 @@ def tournaments_list_api_view(request: Request):
         .prefetch_related("primary_leaderboard")
     )
 
-    data = serialize_tournaments_with_counts(qs, sort_key=lambda x: x["questions_count"])
+    data = serialize_tournaments_with_counts(
+        qs, sort_key=lambda x: x["questions_count"]
+    )
     return Response(data)
 
 
