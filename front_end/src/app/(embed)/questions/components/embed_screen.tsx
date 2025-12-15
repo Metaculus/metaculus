@@ -9,12 +9,15 @@ import cn from "@/utils/core/cn";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import EmbedQuestionCard from "./embed_question_card";
+import { EmbedTheme } from "../constants/embed_theme";
 import { EmbedSize } from "../helpers/embed_chart_height";
 
 type Props = {
   post: PostWithForecasts;
   targetWidth?: number;
   targetHeight?: number;
+  theme?: EmbedTheme;
+  titleOverride?: string;
 };
 
 const MIN_EMBED_WIDTH = 360;
@@ -51,7 +54,13 @@ function getSizeForPost(post: PostWithForecasts, containerWidth: number) {
     : getOtherSize(containerWidth);
 }
 
-const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
+const EmbedScreen: React.FC<Props> = ({
+  post,
+  targetWidth,
+  targetHeight,
+  theme,
+  titleOverride,
+}) => {
   const frameRef = useRef<HTMLDivElement | null>(null);
 
   const [size, setSize] = useState<EmbedSize>(() =>
@@ -122,7 +131,10 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
           "bg-blue-100 text-gray-900",
           "dark:bg-blue-100-dark dark:text-gray-900-dark"
         )}
-        style={frameStyle}
+        style={{
+          ...frameStyle,
+          ...theme?.card,
+        }}
       >
         <div
           className={cn(
@@ -139,7 +151,13 @@ const EmbedScreen: React.FC<Props> = ({ post, targetWidth, targetHeight }) => {
             transformOrigin: "center center",
           }}
         >
-          <EmbedQuestionCard size={size} ogMode={ogMode} post={post} />
+          <EmbedQuestionCard
+            size={size}
+            ogMode={ogMode}
+            post={post}
+            theme={theme}
+            titleOverride={titleOverride}
+          />
         </div>
       </div>
     </div>

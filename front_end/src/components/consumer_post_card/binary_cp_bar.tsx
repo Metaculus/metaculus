@@ -1,3 +1,5 @@
+"use client";
+
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useId } from "react";
@@ -13,9 +15,15 @@ type Props = {
   question: QuestionWithNumericForecasts;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
+  colorOverride?: string;
 };
 
-const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
+const BinaryCPBar: FC<Props> = ({
+  question,
+  size = "md",
+  className,
+  colorOverride,
+}) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
   const gradientId = useId();
@@ -63,10 +71,16 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         })
       : null;
 
-  const { textClass, strokeClass, hex } = getBinaryGaugeColors(
+  const {
+    textClass,
+    strokeClass,
+    hex: defaultHex,
+  } = getBinaryGaugeColors(
     cpPercentage ?? 0,
     isClosed || isNil(questionCP) || hideCP
   );
+
+  const hex = colorOverride ?? defaultHex;
 
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
   const endAngle = startAngle + ((cpPercentage ?? 0) / 100) * arcAngle;
@@ -115,7 +129,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           stroke={hex}
           strokeOpacity={0.15}
           strokeWidth={strokeWidth}
-          className={strokeClass}
+          className={!colorOverride ? strokeClass : undefined}
         />
 
         {/* Progress arc */}
@@ -148,17 +162,18 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
             stroke={hex}
-            className={strokeClass}
+            className={!colorOverride ? strokeClass : undefined}
             strokeWidth={strokeCursorWidth}
           />
         )}
       </svg>
       <div
         className={cn(
-          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center",
-          textClass,
+          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
+          !colorOverride && textClass,
           size === "xs" && "bottom-[10px] scale-[200%]"
         )}
+        style={{ color: colorOverride }}
       >
         <span
           className={cn(
