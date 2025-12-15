@@ -1,11 +1,13 @@
 "use client";
 import React, { FC, useEffect } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
@@ -19,6 +21,8 @@ type Props = {
   isConsumerView?: boolean;
   embedChartHeight?: number;
   onLegendHeightChange?: (height: number) => void;
+  chartTheme?: VictoryThemeDefinition;
+  colorOverride?: ThemeColor | string;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
@@ -27,6 +31,8 @@ const DetailedQuestionCard: FC<Props> = ({
   isConsumerView,
   embedChartHeight,
   onLegendHeightChange,
+  chartTheme,
+  colorOverride,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -62,6 +68,8 @@ const DetailedQuestionCard: FC<Props> = ({
             hideTitle={hideTitle}
             isConsumerView={isConsumerView}
             embedChartHeight={embedChartHeight}
+            extraTheme={chartTheme}
+            colorOverride={colorOverride}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
@@ -76,6 +84,7 @@ const DetailedQuestionCard: FC<Props> = ({
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
             onLegendHeightChange={onLegendHeightChange}
+            chartTheme={chartTheme}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

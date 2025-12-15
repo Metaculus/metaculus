@@ -2,6 +2,7 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
@@ -14,6 +15,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -35,6 +37,8 @@ type Props = {
   hideTitle?: boolean;
   isConsumerView?: boolean;
   embedChartHeight?: number;
+  extraTheme?: VictoryThemeDefinition;
+  colorOverride?: ThemeColor | string;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -45,6 +49,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
   hideTitle,
   isConsumerView: isConsumerViewProp,
   embedChartHeight,
+  extraTheme,
+  colorOverride,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -247,6 +253,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 isConsumerView={isConsumerView}
                 isEmbedded={isEmbed}
                 height={chartHeight}
+                extraTheme={extraTheme}
+                colorOverride={colorOverride}
               />
             </div>
           </div>
@@ -292,6 +300,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
               isConsumerView={isConsumerView}
               isEmbedded={isEmbed}
               height={chartHeight}
+              extraTheme={extraTheme}
+              colorOverride={colorOverride}
             />
           </div>
         </>
@@ -336,6 +346,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
             isConsumerView={isConsumerView}
             isEmbedded={isEmbed}
             height={chartHeight}
+            extraTheme={extraTheme}
+            colorOverride={colorOverride}
           />
         </div>
       )}

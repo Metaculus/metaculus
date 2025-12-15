@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { CSSProperties, useEffect, useMemo, useRef } from "react";
 
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import { ContinuousQuestionTypes } from "@/constants/questions";
@@ -13,13 +13,24 @@ import {
 
 import { useIsEmbedMode } from "./question_view_mode_context";
 import TruncatableQuestionTitle from "./truncatable_question_title";
+import { EmbedTheme } from "../constants/embed_theme";
+import { getEmbedAccentColor } from "../helpers/embed_theme";
 
 type Props = {
   post: PostWithForecasts;
   onHeightChange?: (height: number) => void;
+  titleStyle?: CSSProperties;
+  titleOverride?: string;
+  theme?: EmbedTheme;
 };
 
-const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
+const EmbedQuestionHeader: React.FC<Props> = ({
+  post,
+  onHeightChange,
+  titleStyle,
+  titleOverride,
+  theme,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isEmbed = useIsEmbedMode();
 
@@ -83,6 +94,8 @@ const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
     return needsMinHeight ? "min-h-[2.5em]" : "";
   }, [post]);
 
+  const predictionColor = getEmbedAccentColor(theme);
+
   return (
     <div
       ref={containerRef}
@@ -92,14 +105,17 @@ const EmbedQuestionHeader: React.FC<Props> = ({ post, onHeightChange }) => {
         className={cn("!text-[20px] !leading-[125%]", titleMinHeightClass)}
         maxLines={maxLines}
         revealOnHoverOrTap={true}
+        style={titleStyle}
       >
-        {post.title}
+        {titleOverride ?? post.title}
       </TruncatableQuestionTitle>
       {isQuestionPost(post) && (
         <QuestionHeaderCPStatus
           question={post.question as QuestionWithForecasts}
           size="md"
           hideLabel={isContinuousQuestion(post.question)}
+          colorOverride={predictionColor}
+          chartTheme={theme?.chart}
         />
       )}
     </div>
