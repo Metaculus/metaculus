@@ -1,10 +1,13 @@
 import { faArrowRight, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import Button from "@/components/ui/button";
 
 function FallBotLeaderboard2025() {
+  const t = useTranslations();
+
   return (
     <Link
       href="/tournament/fall-aib-2025/"
@@ -14,15 +17,15 @@ function FallBotLeaderboard2025() {
         icon={faTrophy}
         className="text-4xl opacity-20 transition-all group-hover:opacity-80 md:text-6xl xl:text-8xl"
       />
-      <p className="m-0 text-lg text-blue-700 dark:text-blue-700-dark md:text-2xl">
-        View the leaderboard and questions.
+      <p className="m-0 text-center text-lg text-blue-700 dark:text-blue-700-dark md:text-2xl">
+        {t("FABViewLeaderboardAndQuestions")}
       </p>
       <Button
         size="lg"
         variant="secondary"
         className="mb-3 mt-2 gap-2 opacity-70 transition-all group-hover:opacity-100 md:mb-0 lg:mt-4"
       >
-        View Tournament
+        {t("FABViewTournament")}
         <FontAwesomeIcon icon={faArrowRight} />
       </Button>
     </Link>
