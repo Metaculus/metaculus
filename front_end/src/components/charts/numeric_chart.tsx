@@ -55,6 +55,7 @@ import {
 } from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
+import { resolveToCssColor } from "@/utils/resolve_color";
 
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartValueBox from "./primitives/chart_value_box";
@@ -421,7 +422,7 @@ const NumericChart: FC<Props> = ({
     typeof v === "string" && v.trim().length ? v : undefined;
 
   const cpLineStroke = useMemo(() => {
-    const overrideCss = resolveToCss(getThemeColor, colorOverride);
+    const overrideCss = resolveToCssColor(getThemeColor, colorOverride);
     if (overrideCss) return overrideCss;
 
     if (hasExternalTheme) {
@@ -438,7 +439,7 @@ const NumericChart: FC<Props> = ({
   ]);
 
   const cpRangeFill = useMemo(() => {
-    const overrideCss = resolveToCss(getThemeColor, colorOverride);
+    const overrideCss = resolveToCssColor(getThemeColor, colorOverride);
     if (overrideCss) return overrideCss;
 
     if (hasExternalTheme) {
@@ -703,14 +704,10 @@ const NumericChart: FC<Props> = ({
                           }
                           chartWidth={chartWidth}
                           rightPadding={maxRightPadding}
-                          colorOverride={
-                            isThemeColor(colorOverride)
-                              ? colorOverride
-                              : colorPalette.chip
-                          }
                           getCursorValue={getCursorValue}
                           resolution={resolution}
                           questionType={questionType}
+                          colorOverride={colorOverride ?? colorPalette.chip}
                         />
                       )}
                     </VictoryPortal>
@@ -748,22 +745,6 @@ const NumericChart: FC<Props> = ({
   );
 };
 
-type ThemeOrCss = ThemeColor | string;
-
-const isThemeColor = (v: unknown): v is ThemeColor =>
-  !!v && typeof v === "object" && "DEFAULT" in v && "dark" in v;
-const asCssColor = (v: unknown): string | undefined =>
-  typeof v === "string" && v.trim().length ? v : undefined;
-const resolveToCss = (
-  getThemeColor: (c: ThemeColor) => string,
-  v?: ThemeOrCss
-) => {
-  const css = asCssColor(v);
-  if (css) return css;
-  if (isThemeColor(v)) return getThemeColor(v);
-  return undefined;
-};
-
 const CursorChip: FC<{
   x?: number;
   y?: number;
@@ -775,7 +756,7 @@ const CursorChip: FC<{
   if (isNil(x) || isNil(y) || !shouldRender) return null;
 
   const fill =
-    resolveToCss(getThemeColor, colorOverride) ??
+    resolveToCssColor(getThemeColor, colorOverride) ??
     getThemeColor(METAC_COLORS.olive["700"]);
 
   return <circle cx={x} cy={y} r={isEmbedded ? 5 : 4} fill={fill} />;
