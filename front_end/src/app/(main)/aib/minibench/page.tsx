@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
+import Button from "@/components/ui/button";
 import TournamentCard from "@/components/tournament_card";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentType } from "@/types/projects";
@@ -33,20 +34,14 @@ export default async function MiniBenchPage() {
             {t("minibenchDescription")}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/aib"
-              className="hover:bg-blue-50 inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-medium text-blue-700 no-underline transition-all dark:bg-blue-100-dark dark:text-blue-700-dark dark:hover:bg-blue-200-dark"
-            >
+            <Button href="/aib" variant="tertiary" size="md">
               <FontAwesomeIcon icon={faArrowLeft} />
               {t("minibenchBackToAIB")}
-            </Link>
-            <Link
-              href="/notebooks/38928/ai-benchmark-resources/"
-              className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-5 py-2.5 text-sm font-medium text-white no-underline transition-all hover:bg-blue-800 dark:bg-blue-700-dark dark:hover:bg-blue-600-dark"
-            >
+            </Button>
+            <Button href="/notebooks/38928/ai-benchmark-resources/" variant="primary" size="md">
               <FontAwesomeIcon icon={faInfoCircle} />
               {t("minibenchResources")}
-            </Link>
+            </Button>
           </div>
         </div>
         <div className="mb-10 rounded-lg bg-white p-6 dark:bg-blue-100-dark">
@@ -72,13 +67,10 @@ export default async function MiniBenchPage() {
               <h2 className="m-0 text-xl font-bold text-blue-800 dark:text-blue-800-dark sm:text-2xl">
                 {t("aibTournamentsHeading")}
               </h2>
-              <Link
-                href="/tournament/minibench/"
-                className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white no-underline transition-all hover:bg-blue-800 dark:bg-blue-700-dark dark:hover:bg-blue-600-dark"
-              >
+              <Button href="/tournament/minibench/" variant="primary">
                 <FontAwesomeIcon icon={faTrophy} />
                 {t("minibenchActiveLink")}
-              </Link>
+              </Button>
             </div>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {sortedTournaments.map((tournament) => (

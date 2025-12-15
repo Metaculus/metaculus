@@ -59,7 +59,7 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12 flex-wrap @container;
+  @apply sticky top-12 flex-wrap;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
   }
