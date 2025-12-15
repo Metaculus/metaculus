@@ -6,18 +6,24 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
+import { EmbedTheme } from "../constants/embed_theme";
+import { getEmbedAccentColor } from "../helpers/embed_theme";
+
 type Props = {
   post: PostWithForecasts;
   chartHeight?: number;
   onLegendHeightChange?: (height: number) => void;
+  theme?: EmbedTheme;
 };
 
 const EmbedQuestionPlot: React.FC<Props> = ({
   post,
   chartHeight,
   onLegendHeightChange,
+  theme,
 }) => {
   const isGroup = isGroupOfQuestionsPost(post);
+  const accent = getEmbedAccentColor(theme);
   return (
     <>
       {isQuestionPost(post) && (
@@ -25,6 +31,8 @@ const EmbedQuestionPlot: React.FC<Props> = ({
           post={post}
           embedChartHeight={chartHeight}
           onLegendHeightChange={onLegendHeightChange}
+          chartTheme={theme?.chart}
+          colorOverride={accent}
         />
       )}
       {isGroup && (
@@ -32,6 +40,7 @@ const EmbedQuestionPlot: React.FC<Props> = ({
           post={post}
           embedChartHeight={chartHeight}
           onLegendHeightChange={onLegendHeightChange}
+          chartTheme={theme?.chart}
         />
       )}
     </>

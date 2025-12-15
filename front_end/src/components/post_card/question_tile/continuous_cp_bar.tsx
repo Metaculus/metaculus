@@ -14,12 +14,14 @@ type Props = {
   question: QuestionWithForecasts;
   size?: "md" | "lg";
   variant?: "feed" | "question";
+  colorOverride?: string;
 };
 
 const ContinuousCPBar: FC<Props> = ({
   question,
   size = "md",
   variant = "feed",
+  colorOverride,
 }) => {
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
@@ -52,14 +54,19 @@ const ContinuousCPBar: FC<Props> = ({
   );
   const displayValueChunks = displayValue.split("\n");
   const [centerLabel, intervalLabel] = displayValueChunks;
+  const isClosed = question.status === QuestionStatus.CLOSED;
+  const accentStyle =
+    !isClosed && colorOverride
+      ? ({ color: colorOverride } as const)
+      : undefined;
 
   return (
     <div
       className={cn(
-        "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums text-olive-900 dark:text-olive-900-dark md:gap-0.5 md:pt-1",
+        "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums md:gap-0.5 md:pt-1",
         {
-          "text-gray-800 dark:text-gray-800-dark":
-            question.status === QuestionStatus.CLOSED,
+          "text-olive-900 dark:text-olive-900-dark": !isClosed && !accentStyle,
+          "text-gray-800 dark:text-gray-800-dark": isClosed,
           // Feed variant: center on mobile, left on desktop
           "text-center md:text-left": variant === "feed",
           // Question variant: always center
@@ -69,16 +76,18 @@ const ContinuousCPBar: FC<Props> = ({
       )}
     >
       <div
+        style={accentStyle}
         className={cn("text-sm font-bold md:text-base", {
           "mb-1 text-base": size === "lg",
-          "mb-0 truncate text-sm text-olive-800 dark:text-olive-800-dark md:text-sm":
-            isEmbed,
+          "mb-0 truncate text-sm md:text-sm": isEmbed,
+          "text-olive-800 dark:text-olive-800-dark": isEmbed && !accentStyle,
         })}
       >
         {centerLabel}
       </div>
       {!isNil(intervalLabel) && (
         <div
+          style={accentStyle}
           className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
             "text-sm": size === "lg",
             "truncate text-xs md:text-xs": isEmbed,

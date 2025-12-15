@@ -85,7 +85,7 @@ type Props = {
   cursorTimestamp?: number | null;
   onCursorChange?: (value: number | null) => void;
   getCursorValue?: (value: number) => string;
-  colorOverride?: ThemeColor;
+  colorOverride?: ThemeColor | string;
   nonInteractive?: boolean;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
@@ -405,6 +405,61 @@ const NumericChart: FC<Props> = ({
     }));
   }, [points, yMin, yMax]);
 
+  const themeLineData = (
+    actualTheme?.line as
+      | { style?: { data?: Record<string, unknown> } }
+      | undefined
+  )?.style?.data as Record<string, unknown> | undefined;
+
+  const themeAreaData = (
+    actualTheme?.area as
+      | { style?: { data?: Record<string, unknown> } }
+      | undefined
+  )?.style?.data as Record<string, unknown> | undefined;
+
+  const asCssColor = (v: unknown): string | undefined =>
+    typeof v === "string" && v.trim().length ? v : undefined;
+
+  const cpLineStroke = useMemo(() => {
+    const overrideCss = resolveToCss(getThemeColor, colorOverride);
+    if (overrideCss) return overrideCss;
+
+    if (hasExternalTheme) {
+      const fromTheme = asCssColor(themeLineData?.stroke);
+      if (fromTheme) return fromTheme;
+    }
+    return getThemeColor(colorPalette.lineStroke);
+  }, [
+    colorOverride,
+    hasExternalTheme,
+    themeLineData?.stroke,
+    getThemeColor,
+    colorPalette.lineStroke,
+  ]);
+
+  const cpRangeFill = useMemo(() => {
+    const overrideCss = resolveToCss(getThemeColor, colorOverride);
+    if (overrideCss) return overrideCss;
+
+    if (hasExternalTheme) {
+      const fromTheme = asCssColor(themeAreaData?.fill);
+      if (fromTheme) return fromTheme;
+    }
+    return getThemeColor(colorPalette.cpRange);
+  }, [
+    colorOverride,
+    hasExternalTheme,
+    themeAreaData?.fill,
+    getThemeColor,
+    colorPalette.cpRange,
+  ]);
+
+  const cpRangeOpacity = useMemo(() => {
+    if (!hasExternalTheme) return 0.3;
+    const fromTheme = themeAreaData?.opacity;
+    return typeof fromTheme === "number" ? fromTheme : 0.3;
+  }, [hasExternalTheme, themeAreaData?.opacity]);
+
   return (
     <>
       <div
@@ -471,9 +526,7 @@ const NumericChart: FC<Props> = ({
                   },
                   axis: { stroke: "transparent" },
                   grid: {
-                    ...(hasExternalTheme
-                      ? {}
-                      : { stroke: getThemeColor(METAC_COLORS.gray["400"]) }),
+                    stroke: getThemeColor(METAC_COLORS.gray["400"]),
                     strokeWidth: 1,
                     strokeDasharray: "3, 2",
                   },
@@ -530,10 +583,8 @@ const NumericChart: FC<Props> = ({
                   data={area}
                   style={{
                     data: {
-                      opacity: 0.3,
-                      fill: isNil(colorOverride)
-                        ? getThemeColor(colorPalette.cpRange)
-                        : getThemeColor(colorOverride),
+                      opacity: cpRangeOpacity,
+                      fill: cpRangeFill,
                     },
                   }}
                   interpolation="stepAfter"
@@ -547,9 +598,7 @@ const NumericChart: FC<Props> = ({
                   style={{
                     data: {
                       strokeWidth: 2.5,
-                      stroke: isNil(colorOverride)
-                        ? getThemeColor(colorPalette.lineStroke)
-                        : getThemeColor(colorOverride),
+                      stroke: cpLineStroke,
                       opacity: 0.2,
                     },
                   }}
@@ -564,9 +613,7 @@ const NumericChart: FC<Props> = ({
                   style={{
                     data: {
                       strokeWidth: simplifiedCursor ? 2.5 : 1.5,
-                      stroke: isNil(colorOverride)
-                        ? getThemeColor(colorPalette.lineStroke)
-                        : getThemeColor(colorOverride),
+                      stroke: cpLineStroke,
                     },
                   }}
                   interpolation="stepAfter"
@@ -577,7 +624,11 @@ const NumericChart: FC<Props> = ({
               <VictoryPortal>
                 <VictoryScatter
                   data={clampedPoints}
-                  dataComponent={<PredictionWithRange />}
+                  dataComponent={
+                    <PredictionWithRange
+                      colorOverride={colorOverride ?? colorPalette.chip}
+                    />
+                  }
                 />
               </VictoryPortal>
 
@@ -652,7 +703,11 @@ const NumericChart: FC<Props> = ({
                           }
                           chartWidth={chartWidth}
                           rightPadding={maxRightPadding}
-                          colorOverride={colorOverride ?? colorPalette.chip}
+                          colorOverride={
+                            isThemeColor(colorOverride)
+                              ? colorOverride
+                              : colorPalette.chip
+                          }
                           getCursorValue={getCursorValue}
                           resolution={resolution}
                           questionType={questionType}
@@ -693,33 +748,37 @@ const NumericChart: FC<Props> = ({
   );
 };
 
+type ThemeOrCss = ThemeColor | string;
+
+const isThemeColor = (v: unknown): v is ThemeColor =>
+  !!v && typeof v === "object" && "DEFAULT" in v && "dark" in v;
+const asCssColor = (v: unknown): string | undefined =>
+  typeof v === "string" && v.trim().length ? v : undefined;
+const resolveToCss = (
+  getThemeColor: (c: ThemeColor) => string,
+  v?: ThemeOrCss
+) => {
+  const css = asCssColor(v);
+  if (css) return css;
+  if (isThemeColor(v)) return getThemeColor(v);
+  return undefined;
+};
+
 const CursorChip: FC<{
   x?: number;
   y?: number;
-  colorOverride?: ThemeColor;
+  colorOverride?: ThemeColor | string;
   shouldRender?: boolean;
   isEmbedded?: boolean;
-}> = (props) => {
+}> = ({ x, y, colorOverride, shouldRender, isEmbedded }) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, colorOverride, shouldRender, isEmbedded } = props;
-  const innerCircleRadius = isEmbedded ? 5 : 4;
-
   if (isNil(x) || isNil(y) || !shouldRender) return null;
 
-  return (
-    <g>
-      <circle
-        cx={x}
-        cy={y}
-        r={innerCircleRadius}
-        fill={
-          isNil(colorOverride)
-            ? getThemeColor(METAC_COLORS.olive["700"])
-            : getThemeColor(colorOverride)
-        }
-      />
-    </g>
-  );
+  const fill =
+    resolveToCss(getThemeColor, colorOverride) ??
+    getThemeColor(METAC_COLORS.olive["700"]);
+
+  return <circle cx={x} cy={y} r={isEmbedded ? 5 : 4} fill={fill} />;
 };
 
 export default memo(NumericChart);

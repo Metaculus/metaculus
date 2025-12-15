@@ -1,6 +1,7 @@
 "use client";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_continuous_resolution_chip";
@@ -22,12 +23,16 @@ type Props = {
   question: QuestionWithForecasts;
   size: "md" | "lg";
   hideLabel?: boolean;
+  colorOverride?: string;
+  chartTheme?: VictoryThemeDefinition;
 };
 
 const QuestionHeaderCPStatus: FC<Props> = ({
   question,
   size,
   hideLabel = false,
+  colorOverride,
+  chartTheme,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -79,10 +84,15 @@ const QuestionHeaderCPStatus: FC<Props> = ({
     );
   }
 
+  const borderStyle = colorOverride
+    ? { borderColor: `${colorOverride}33` }
+    : undefined;
+
   if (isContinuous) {
     return (
       !forecastAvailability.isEmpty && (
         <div
+          style={borderStyle}
           className={cn(
             "flex min-w-[110px] flex-col rounded-md border border-olive-800/20 p-2 dark:border-olive-800 md:px-3 md:py-2.5",
             {
@@ -114,6 +124,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
                 question={question as QuestionWithForecasts}
                 size={size}
                 variant="question"
+                colorOverride={colorOverride}
               />
             )}
           </div>
@@ -131,6 +142,8 @@ const QuestionHeaderCPStatus: FC<Props> = ({
               forceTickCount={2}
               hideLabels={hideLabel}
               hideCP={hideCP}
+              extraTheme={chartTheme}
+              colorOverride={colorOverride}
             />
           </div>
           {!hideCP && (
@@ -160,7 +173,11 @@ const QuestionHeaderCPStatus: FC<Props> = ({
         })}
       >
         {!hideCP && (
-          <BinaryCPBar question={question} size={size === "lg" ? "lg" : "sm"} />
+          <BinaryCPBar
+            question={question}
+            size={size === "lg" ? "lg" : "sm"}
+            colorOverride={colorOverride}
+          />
         )}
         {!hideCP && (
           <QuestionCPMovement

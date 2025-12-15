@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FC, useEffect, useMemo } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline";
@@ -39,6 +40,7 @@ type Props = {
   prioritizeOpenSubquestions?: boolean;
   embedChartHeight?: number;
   onLegendHeightChange?: (height: number) => void;
+  chartTheme?: VictoryThemeDefinition;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -49,6 +51,7 @@ const DetailedGroupCard: FC<Props> = ({
   prioritizeOpenSubquestions = false,
   embedChartHeight,
   onLegendHeightChange,
+  chartTheme,
 }) => {
   const {
     open_time,
@@ -145,6 +148,7 @@ const DetailedGroupCard: FC<Props> = ({
                 chartHeight={embedChartHeight}
                 scaling={groupScaling}
                 onLegendHeightChange={onLegendHeightChange}
+                chartTheme={chartTheme}
               />
             </div>
             {hideCP && <RevealCPButton />}
@@ -165,6 +169,7 @@ const DetailedGroupCard: FC<Props> = ({
             prioritizeOpen={prioritizeOpenSubquestions}
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
+            chartTheme={chartTheme}
           />
           {hideCP && <RevealCPButton />}
         </>
