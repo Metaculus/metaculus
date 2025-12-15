@@ -38,7 +38,11 @@ export default async function MiniBenchPage() {
               <FontAwesomeIcon icon={faArrowLeft} />
               {t("minibenchBackToAIB")}
             </Button>
-            <Button href="/notebooks/38928/ai-benchmark-resources/" variant="primary" size="md">
+            <Button
+              href="/notebooks/38928/ai-benchmark-resources/"
+              variant="primary"
+              size="md"
+            >
               <FontAwesomeIcon icon={faInfoCircle} />
               {t("minibenchResources")}
             </Button>

@@ -32,4 +32,3 @@ const NextTournamentCard: FC = () => {
 };
 
 export default NextTournamentCard;
-

@@ -12,7 +12,8 @@ function HeroFall2025() {
         <span className="font-light text-blue-600 dark:text-blue-600-dark">
           {t("FABHeroSubtitle")}{" "}
           <span className="font-light text-blue-700 dark:text-blue-700-dark">
-            {t("FABSeasonFall")} <span className="font-thin opacity-50">(2025)</span>
+            {t("FABSeasonFall")}{" "}
+            <span className="font-thin opacity-50">(2025)</span>
           </span>
         </span>
       </h1>
