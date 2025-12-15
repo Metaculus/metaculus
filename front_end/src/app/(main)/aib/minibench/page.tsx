@@ -7,10 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import Button from "@/components/ui/button";
 import TournamentCard from "@/components/tournament_card";
+import Button from "@/components/ui/button";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentType } from "@/types/projects";
+import { getProjectLink } from "@/utils/navigation";
 
 export const metadata = {
   title: "MiniBench | AI Forecasting Benchmark | Metaculus",
@@ -80,11 +81,7 @@ export default async function MiniBenchPage() {
               {sortedTournaments.map((tournament) => (
                 <TournamentCard
                   key={tournament.id}
-                  href={
-                    tournament.slug
-                      ? `/tournament/${tournament.slug}`
-                      : `/tournament/${tournament.id}`
-                  }
+                  href={getProjectLink(tournament)}
                   headerImageSrc={tournament.header_image}
                   name={tournament.name}
                   questionsCount={tournament.questions_count}

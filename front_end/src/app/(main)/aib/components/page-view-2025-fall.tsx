@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { DatesFall2025, PrizeFall2025 } from "./cards-2025-fall";
@@ -11,8 +10,6 @@ import NextTournamentCard from "./next-tournament-card";
 import TournamentPager, { TOURNAMENT_ITEMS } from "./tournament-pager";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = () => {
-  const t = useTranslations();
-
   return (
     <div className="mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4 text-blue-700 dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 dark:text-blue-700-dark">
       <TournamentPager items={TOURNAMENT_ITEMS} />
