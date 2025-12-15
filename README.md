@@ -132,10 +132,10 @@ Install nvm with:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ```
-Then, install node 18.18.0:
+Then, install node 20.18.0:
 ```bash
-nvm install 18.18.0
-nvm use 18.18.0
+nvm install 20.18.0
+nvm use 20.18.0
 ```
 To install the frontend dependencies, run:
 ```bash
