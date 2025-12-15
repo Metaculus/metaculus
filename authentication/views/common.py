@@ -76,7 +76,6 @@ def signup_api_view(request):
     email = serializer.validated_data["email"]
     username = serializer.validated_data["username"]
     password = serializer.validated_data["password"]
-    is_bot = serializer.validated_data.get("is_bot", False)
 
     project = serializer.validated_data.get("add_to_project", None)
     campaign_key = serializer.validated_data.get("campaign_key", None)
@@ -106,7 +105,7 @@ def signup_api_view(request):
             email=email,
             password=password,
             is_active=is_active,
-            is_bot=is_bot,
+            is_bot=False,
             language=language,
             app_theme=app_theme,
             newsletter_optin=newsletter_optin,
