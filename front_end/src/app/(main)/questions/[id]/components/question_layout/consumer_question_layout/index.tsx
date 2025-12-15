@@ -39,7 +39,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
 
   return (
     <div className="relative z-10 flex w-full flex-col gap-4">
-      <QuestionSection compact>
+      <QuestionSection>
         {children}
         <div className="sm:hidden">
           <ConsumerTabs>
