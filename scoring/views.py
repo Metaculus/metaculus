@@ -196,6 +196,15 @@ def user_medal_ranks(
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    # Validate userId is a valid integer
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return Response(
+            {"error": "userId must be a valid integer"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     ranks_qs = LeaderboardsRanksEntry.objects.filter(user=user_id)
     ranks = []
     for entry in ranks_qs:
@@ -219,6 +228,15 @@ def user_medals(
     user_id = request.GET.get("userId", None)
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate userId is a valid integer
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return Response(
+            {"error": "userId must be a valid integer"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     entries_with_medals = LeaderboardEntry.objects.filter(
         user_id=user_id,

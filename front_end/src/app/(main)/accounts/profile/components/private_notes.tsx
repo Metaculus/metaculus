@@ -33,7 +33,12 @@ const PrivateNoteCard: FC<{ note: PrivateNoteWithPost }> = ({ note }) => {
         </RelativeTime>
       </div>
       <div>
-        <MarkdownEditor markdown={text} mode="read" withUgcLinks />
+        <MarkdownEditor
+          markdown={text}
+          mode="read"
+          withUgcLinks
+          withCodeBlocks
+        />
       </div>
     </div>
   );
