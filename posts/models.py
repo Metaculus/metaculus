@@ -990,7 +990,7 @@ class PostUserSnapshot(models.Model):
 
     @classmethod
     def update_viewed_at(cls, post: Post, user: User):
-        cls.objects.update_or_create(
+        return cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={

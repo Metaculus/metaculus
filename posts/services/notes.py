@@ -1,5 +1,4 @@
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
 
 from posts.models import Post, PostUserSnapshot
 from users.models import User
@@ -9,7 +8,7 @@ def update_private_note(user: User, post: Post, text: str):
     snapshot = post.snapshots.filter(user=user).first()
 
     if not snapshot:
-        raise ValidationError("User post snapshot does not exist")
+        snapshot, _ = PostUserSnapshot.update_viewed_at(post, user)
 
     if not text and not snapshot.private_note:
         return
