@@ -13,7 +13,6 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
-from questions.models import AggregationMethod
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard, LeaderboardEntry, LeaderboardsRanksEntry
 from scoring.serializers import (
@@ -24,7 +23,7 @@ from scoring.serializers import (
 )
 from scoring.utils import get_contributions, update_project_leaderboard
 from users.models import User
-from users.services.profile_stats import serialize_profile
+from users.services.profile_stats import serialize_metaculus_stats
 
 
 @api_view(["GET"])
@@ -352,13 +351,9 @@ def medal_contributions(
     return Response(return_data)
 
 
-@cache_page(60 * 60 * 24)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def metaculus_track_record(
     request: Request,
 ):
-    # TODO: make it "default"
-    return Response(
-        serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED)
-    )
+    return Response(serialize_metaculus_stats())

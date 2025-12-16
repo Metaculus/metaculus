@@ -12,8 +12,8 @@ from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes
 from scoring.models import Score
-from users.models import User, UserSpamActivity
-from users.serializers import UserPublicSerializer
+from users.models import User
+from utils.cache import cache_get_or_set
 
 
 @dataclass(frozen=True)
@@ -376,57 +376,66 @@ def get_authoring_stats_data(
     }
 
 
-def get_user_profile_data(
-    user: User,
-) -> dict:
-    return UserPublicSerializer(user).data
+def _serialize_user_stats(user: User):
+    score_qs = Score.objects.filter(
+        question__related_posts__post__default_project__default_permission__isnull=False,
+        score_type=ScoreTypes.PEER,
+    )
+    score_qs = score_qs.filter(user=user)
+
+    scores = generate_question_scores(score_qs)
+    data = {}
+
+    data.update(get_score_scatter_plot_data(scores=scores, user=user))
+    data.update(get_score_histogram_data(scores=scores, user=user))
+    data.update(get_calibration_curve_data(user=user))
+    data.update(get_forecasting_stats_data(scores=scores, user=user))
+    data.update(get_authoring_stats_data(user))
+
+    return data
 
 
-def serialize_profile(
-    user: User | None = None,
-    aggregation_method: AggregationMethod | None = None,
-    score_type: ScoreTypes | None = None,
-    current_user: User | None = None,
-) -> dict:
-    if (user is None and aggregation_method is None) or (
-        user is not None and aggregation_method is not None
-    ):
-        raise ValueError("Either user or aggregation_method must be provided only")
-    if user is not None and score_type is None:
-        score_type = ScoreTypes.PEER
-    if aggregation_method is not None and score_type is None:
-        score_type = ScoreTypes.BASELINE
+def serialize_user_stats(user: User):
+    return cache_get_or_set(
+        f"serialize_user_stats:{user.id}",
+        lambda: _serialize_user_stats(user),
+        # 1h
+        timeout=3600,
+    )
+
+
+def _serialize_metaculus_stats() -> dict:
+    aggregation_method = AggregationMethod.RECENCY_WEIGHTED
+
     # TODO: support archived scores
     score_qs = Score.objects.filter(
         question__related_posts__post__default_project__default_permission__isnull=False,
-        score_type=score_type,
+        score_type=ScoreTypes.BASELINE,
     )
-    if user is not None:
-        score_qs = score_qs.filter(user=user)
-    else:
-        score_qs = score_qs.filter(aggregation_method=aggregation_method)
+    score_qs = score_qs.filter(aggregation_method=aggregation_method)
 
     scores = generate_question_scores(score_qs)
     data = {}
     data.update(
         get_score_scatter_plot_data(
-            scores=scores, user=user, aggregation_method=aggregation_method
+            scores=scores, aggregation_method=aggregation_method
         )
     )
     data.update(
-        get_score_histogram_data(
-            scores=scores, user=user, aggregation_method=aggregation_method
-        )
+        get_score_histogram_data(scores=scores, aggregation_method=aggregation_method)
     )
-    data.update(get_calibration_curve_data(user, aggregation_method))
+    data.update(get_calibration_curve_data(aggregation_method=aggregation_method))
     data.update(
-        get_forecasting_stats_data(
-            scores=scores, user=user, aggregation_method=aggregation_method
-        )
+        get_forecasting_stats_data(scores=scores, aggregation_method=aggregation_method)
     )
-    if user is not None:
-        data.update(get_user_profile_data(user))
-        data.update(get_authoring_stats_data(user))
-    if current_user is not None and current_user.is_staff:
-        data.update({"spam_count": UserSpamActivity.objects.filter(user=user).count()})
+
     return data
+
+
+def serialize_metaculus_stats():
+    return cache_get_or_set(
+        f"serialize_metaculus_stats",
+        lambda: _serialize_metaculus_stats(),
+        # 24h
+        timeout=60 * 60 * 24,
+    )
