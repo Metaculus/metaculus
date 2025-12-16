@@ -5,6 +5,7 @@ import { VictoryThemeDefinition } from "victory";
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
@@ -23,6 +24,8 @@ type Props = {
   onLegendHeightChange?: (height: number) => void;
   chartTheme?: VictoryThemeDefinition;
   colorOverride?: ThemeColor | string;
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
@@ -33,6 +36,8 @@ const DetailedQuestionCard: FC<Props> = ({
   onLegendHeightChange,
   chartTheme,
   colorOverride,
+  defaultZoom,
+  withZoomPicker,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -70,6 +75,8 @@ const DetailedQuestionCard: FC<Props> = ({
             embedChartHeight={embedChartHeight}
             extraTheme={chartTheme}
             colorOverride={colorOverride}
+            defaultZoom={defaultZoom}
+            withZoomPicker={withZoomPicker}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
@@ -85,6 +92,7 @@ const DetailedQuestionCard: FC<Props> = ({
             chartHeight={embedChartHeight}
             onLegendHeightChange={onLegendHeightChange}
             chartTheme={chartTheme}
+            defaultZoom={defaultZoom}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

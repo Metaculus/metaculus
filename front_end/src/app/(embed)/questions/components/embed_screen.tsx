@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -18,6 +19,8 @@ type Props = {
   targetHeight?: number;
   theme?: EmbedTheme;
   titleOverride?: string;
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
 };
 
 const MIN_EMBED_WIDTH = 360;
@@ -60,6 +63,8 @@ const EmbedScreen: React.FC<Props> = ({
   targetHeight,
   theme,
   titleOverride,
+  defaultZoom,
+  withZoomPicker,
 }) => {
   const frameRef = useRef<HTMLDivElement | null>(null);
 
@@ -157,6 +162,8 @@ const EmbedScreen: React.FC<Props> = ({
             post={post}
             theme={theme}
             titleOverride={titleOverride}
+            defaultZoom={defaultZoom}
+            withZoomPicker={withZoomPicker}
           />
         </div>
       </div>

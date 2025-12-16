@@ -39,6 +39,8 @@ type Props = {
   embedChartHeight?: number;
   extraTheme?: VictoryThemeDefinition;
   colorOverride?: ThemeColor | string;
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -51,9 +53,16 @@ const DetailedContinuousChartCard: FC<Props> = ({
   embedChartHeight,
   extraTheme,
   colorOverride,
+  defaultZoom,
+  withZoomPicker,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const effectiveDefaultZoom =
+    defaultZoom ??
+    (user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths);
+
+  const effectiveWithZoomPicker = withZoomPicker ?? true;
   const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
 
@@ -226,12 +235,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 questionStatus={question.status}
                 actualCloseTime={getPostDrivenTime(question.actual_close_time)}
                 scaling={question.scaling}
-                defaultZoom={
-                  user
-                    ? TimelineChartZoomOption.All
-                    : TimelineChartZoomOption.TwoMonths
-                }
-                withZoomPicker
+                defaultZoom={effectiveDefaultZoom}
+                withZoomPicker={effectiveWithZoomPicker}
                 hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
                 isEmptyDomain={
                   !!forecastAvailability?.isEmpty ||
@@ -275,12 +280,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
               questionStatus={question.status}
               actualCloseTime={getPostDrivenTime(question.actual_close_time)}
               scaling={question.scaling}
-              defaultZoom={
-                user
-                  ? TimelineChartZoomOption.All
-                  : TimelineChartZoomOption.TwoMonths
-              }
-              withZoomPicker
+              defaultZoom={effectiveDefaultZoom}
+              withZoomPicker={effectiveWithZoomPicker}
               hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
               isEmptyDomain={
                 !!forecastAvailability?.isEmpty ||
@@ -321,12 +322,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
             questionStatus={question.status}
             actualCloseTime={getPostDrivenTime(question.actual_close_time)}
             scaling={question.scaling}
-            defaultZoom={
-              user
-                ? TimelineChartZoomOption.All
-                : TimelineChartZoomOption.TwoMonths
-            }
-            withZoomPicker
+            defaultZoom={effectiveDefaultZoom}
+            withZoomPicker={effectiveWithZoomPicker}
             hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
             isEmptyDomain={
               !!forecastAvailability?.isEmpty ||
