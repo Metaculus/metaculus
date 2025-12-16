@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -10,7 +10,7 @@ function Dates() {
     <Card
       className="rounded-md bg-gray-500/20 py-4 text-gray-800 hover:cursor-default dark:bg-gray-500-dark/20 dark:text-gray-800-dark"
       heading1={t("FABStartDate")}
-      heading2={t("FABStartDateJan20")}
+      heading2={t.rich("DayOfJanuary", { day: 20 })}
     />
   );
 }
@@ -26,11 +26,11 @@ function Prize() {
   );
 }
 
-const Card: FC<{ className: string; heading1: string; heading2: string }> = ({
-  className,
-  heading1,
-  heading2,
-}) => {
+const Card: FC<{
+  className: string;
+  heading1: string;
+  heading2: ReactNode;
+}> = ({ className, heading1, heading2 }) => {
   return (
     <div
       className={cn(
