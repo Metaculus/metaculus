@@ -1,6 +1,7 @@
 import {
   GRAPH_ZOOM_PARAM,
   HIDE_ZOOM_PICKER,
+  EMBED_QUESTION_TITLE,
 } from "@/constants/global_search_params";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -14,56 +15,59 @@ import "./styles.scss";
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 
+function parseDefaultZoom(
+  searchParams: SearchParams
+): TimelineChartZoomOption | undefined {
+  const raw = searchParams[GRAPH_ZOOM_PARAM];
+  if (typeof raw !== "string") return undefined;
+  return (raw as TimelineChartZoomOption) ?? TimelineChartZoomOption.TwoMonths;
+}
+
+function parseWithZoomPicker(searchParams: SearchParams): boolean {
+  return searchParams[HIDE_ZOOM_PICKER] !== "true";
+}
+
 export default async function GenerateQuestionPreview(props: {
   params: Promise<{ id: number }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const searchParams = await props.searchParams;
-  const params = await props.params;
-  const post = await ServerPostsApi.getPostAnonymous(params.id);
+  const [searchParams, params] = await Promise.all([
+    props.searchParams,
+    props.params,
+  ]);
 
-  if (!post) {
-    return null;
-  }
+  const post = await ServerPostsApi.getPostAnonymous(params.id);
+  if (!post) return null;
 
   const embedTheme = getEmbedTheme(
     searchParams["embed_theme"],
     searchParams["css_variables"]
   );
-  const chartZoomParam = searchParams[GRAPH_ZOOM_PARAM];
-  const defaultZoom =
-    typeof chartZoomParam === "string"
-      ? (chartZoomParam as TimelineChartZoomOption) ??
-        TimelineChartZoomOption.TwoMonths
-      : undefined;
 
-  const withZoomPicker = searchParams[HIDE_ZOOM_PICKER] !== "true";
+  const titleOverride = searchParams[EMBED_QUESTION_TITLE] as
+    | string
+    | undefined;
 
-  const titleOverride = searchParams["embedTitle"] as string | undefined;
+  const defaultZoom = parseDefaultZoom(searchParams);
+  const withZoomPicker = parseWithZoomPicker(searchParams);
 
   const isOgCapture = searchParams["og"] === "1";
 
-  if (isOgCapture) {
-    return (
-      <EmbedScreen
-        post={post}
-        targetWidth={OG_WIDTH}
-        targetHeight={OG_HEIGHT}
-        theme={embedTheme}
-        titleOverride={titleOverride}
-        defaultZoom={defaultZoom}
-        withZoomPicker={withZoomPicker}
-      />
-    );
-  }
+  const commonProps = {
+    post,
+    theme: embedTheme,
+    titleOverride,
+    defaultZoom,
+    withZoomPicker,
+  };
 
-  return (
+  return isOgCapture ? (
     <EmbedScreen
-      post={post}
-      theme={embedTheme}
-      titleOverride={titleOverride}
-      defaultZoom={defaultZoom}
-      withZoomPicker={withZoomPicker}
+      {...commonProps}
+      targetWidth={OG_WIDTH}
+      targetHeight={OG_HEIGHT}
     />
+  ) : (
+    <EmbedScreen {...commonProps} />
   );
 }
