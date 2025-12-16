@@ -1,4 +1,9 @@
+import {
+  GRAPH_ZOOM_PARAM,
+  HIDE_ZOOM_PICKER,
+} from "@/constants/global_search_params";
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 
 import EmbedScreen from "../../components/embed_screen";
@@ -25,6 +30,14 @@ export default async function GenerateQuestionPreview(props: {
     searchParams["embed_theme"],
     searchParams["css_variables"]
   );
+  const chartZoomParam = searchParams[GRAPH_ZOOM_PARAM];
+  const defaultZoom =
+    typeof chartZoomParam === "string"
+      ? (chartZoomParam as TimelineChartZoomOption) ??
+        TimelineChartZoomOption.TwoMonths
+      : undefined;
+
+  const withZoomPicker = searchParams[HIDE_ZOOM_PICKER] !== "true";
 
   const titleOverride = searchParams["embedTitle"] as string | undefined;
 
@@ -38,11 +51,19 @@ export default async function GenerateQuestionPreview(props: {
         targetHeight={OG_HEIGHT}
         theme={embedTheme}
         titleOverride={titleOverride}
+        defaultZoom={defaultZoom}
+        withZoomPicker={withZoomPicker}
       />
     );
   }
 
   return (
-    <EmbedScreen post={post} theme={embedTheme} titleOverride={titleOverride} />
+    <EmbedScreen
+      post={post}
+      theme={embedTheme}
+      titleOverride={titleOverride}
+      defaultZoom={defaultZoom}
+      withZoomPicker={withZoomPicker}
+    />
   );
 }
