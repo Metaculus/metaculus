@@ -135,7 +135,12 @@ class Comment(TimeStampedModel, TranslatedModel):
                 name="comment_check_pinned_comment_is_root",
             )
         ]
-        indexes = [models.Index(fields=["author", "is_private", "on_post"])]
+        indexes = [
+            models.Index(
+                fields=["author", "is_private", "on_post"],
+                name="comment_user_private_post_idx",
+            )
+        ]
 
     def __str__(self):
         return f"Comment by {self.author.username} on {self.on_post or self.on_project}"
