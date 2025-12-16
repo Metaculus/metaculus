@@ -1,12 +1,13 @@
 from collections import defaultdict
-from typing import Any
+from typing import Any, Callable
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission, ProjectIndex
 from projects.serializers.communities import CommunitySerializer
+from projects.services.cache import get_projects_questions_count_cached
 from projects.services.indexes import get_multi_year_index_data, get_default_index_data
 from users.serializers import UserPublicSerializer
 
@@ -249,3 +250,21 @@ def serialize_index_data(index: ProjectIndex):
         "increasing_is_good": index.increasing_is_good,
         **data,
     }
+
+
+def serialize_tournaments_with_counts(
+    qs: QuerySet[Project], sort_key: Callable[[Project], Any]
+) -> list[dict]:
+    projects: list[Project] = list(qs.all())
+    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
+
+    data = []
+    for obj in projects:
+        serialized_tournament = TournamentShortSerializer(obj).data
+        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
+        serialized_tournament["forecasts_count"] = obj.forecasts_count
+        serialized_tournament["forecasters_count"] = obj.forecasters_count
+        data.append(serialized_tournament)
+
+    data.sort(key=sort_key, reverse=True)
+    return data

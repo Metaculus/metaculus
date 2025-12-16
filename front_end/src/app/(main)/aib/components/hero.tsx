@@ -12,7 +12,7 @@ function Hero() {
         <span className="font-light text-blue-600 dark:text-blue-600-dark">
           {t("FABHeroSubtitle")}{" "}
           <span className="font-light text-purple-700 dark:text-purple-700-dark">
-            Fall 2025
+            {t("FABSeasonSpring")} 2026
           </span>
         </span>
       </h1>
