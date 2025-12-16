@@ -99,7 +99,7 @@ const EmbedQuestionHeader: React.FC<Props> = ({
   return (
     <div
       ref={containerRef}
-      className={cn("flex items-center", isEmbed && "items-start")}
+      className={cn("flex items-center gap-3", isEmbed && "items-start")}
     >
       <TruncatableQuestionTitle
         className={cn("!text-[20px] !leading-[125%]", titleMinHeightClass)}
