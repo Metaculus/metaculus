@@ -15,6 +15,7 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import { useAuth } from "@/contexts/auth_context";
 import { extractError } from "@/utils/core/errors";
 
 type Props = {
@@ -26,6 +27,7 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successToken, setSuccessToken] = useState<string | null>();
+  const { user } = useAuth();
 
   const schema = z.object({
     username: z.string().min(1, t("errorRequired")),
@@ -86,7 +88,8 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
             <Input
               {...register("username")}
               errors={errors}
-              className="w-full"
+              placeholder={`${user?.username}-bot`}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
           </InputContainer>
 
@@ -129,7 +132,7 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
         withCloseButton
       >
         <div className="space-y-4">
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
             {t("botCreatedDescription")}
           </p>
 

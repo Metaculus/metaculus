@@ -1749,9 +1749,9 @@
   "createBotDescription": "This will create a bot linked to your user, enabling you to manage its settings and activity from here",
   "botUsername": "Bot username",
   "botCreated": "Bot created",
-  "botCreatedDescription": "This is your bot’s API key. Copy and store it securely. You can reveal it later in the bot management settings.",
+  "botCreatedDescription": "This is your bot’s API key — copy it and store it securely. You can reveal it later in the forecasting bots settings.",
   "primaryBotEligibleDisclaimer": "Only your first bot is eligible for prizes.",
-  "editBotDescription": "Update your bot’s details. All changes will be reflected on the bot’s profile page.",
+  "editBotDescription": "Update your bot’s details. All changes will be reflected on its profile page.",
   "revealApiKey": "Reveal API Key",
   "none": "none"
 }

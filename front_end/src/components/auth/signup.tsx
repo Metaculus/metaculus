@@ -350,14 +350,14 @@ const SignUpFormFragment: FC<{
       <div>
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
+          className="block w-full !rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("passwordPlaceholder")}
           type="password"
           {...register("password")}
         />
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
+          className="block w-full !rounded-t-none rounded-b border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("registrationVerifyPasswordPlaceholder")}
           type="password"
           {...register("passwordAgain")}

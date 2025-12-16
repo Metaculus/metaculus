@@ -12,7 +12,7 @@ import { z } from "zod";
 import { updateBot } from "@/app/(main)/accounts/settings/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/form_field";
+import { MarkdownEditorField, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { CurrentBot } from "@/types/users";
 import { extractError } from "@/utils/core/errors";
@@ -35,6 +35,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
   type FormData = z.infer<typeof schema>;
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -83,16 +84,16 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
             <Input
               {...register("username")}
               errors={errors}
-              className="w-full"
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
           </InputContainer>
 
           <InputContainer labelText={t("bio")}>
-            <Textarea
-              {...register("bio")}
+            <MarkdownEditorField
+              control={control}
+              name="bio"
               errors={errors}
-              className="w-full"
-              rows={3}
+              className="max-h-[200px]"
             />
           </InputContainer>
 
@@ -100,7 +101,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
             <Input
               {...register("website")}
               errors={errors}
-              className="w-full"
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
           </InputContainer>
 
