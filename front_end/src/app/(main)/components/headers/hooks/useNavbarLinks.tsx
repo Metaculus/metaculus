@@ -59,6 +59,10 @@ const useNavbarLinks = ({
           label: t("news"),
           href: "/news/",
         },
+        communities: {
+          label: t("communities"),
+          href: "/questions/?feed=communities",
+        },
         about: {
           label: t("aboutMetaculus"),
           href: "/about/",
@@ -165,6 +169,7 @@ const useNavbarLinks = ({
   const menuLinks = useMemo(() => {
     // common links that are always shown
     const links: NavbarLinkDefinition[] = [
+      LINKS.communities,
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
@@ -219,6 +224,7 @@ const useNavbarLinks = ({
             },
             LINKS.services,
             LINKS.news,
+            LINKS.communities,
             { href: null, label: t("more"), isTitle: true },
             LINKS.leaderboards,
             LINKS.about,

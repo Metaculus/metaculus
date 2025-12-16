@@ -1,29 +1,29 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { FC } from "react";
 
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
-import cn from "@/utils/core/cn";
-
-import MedalIcon from "../../components/medal_icon";
-import { RANKING_CATEGORIES } from "../../ranking_categories";
+import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
+import { getMedalCategories } from "@/app/(main)/(leaderboards)/medals/helpers/medal_categories";
+import { getMedalDisplayTitle } from "@/app/(main)/(leaderboards)/medals/helpers/medal_title";
+import { RANKING_CATEGORIES } from "@/app/(main)/(leaderboards)/ranking_categories";
 import {
   SCORING_CATEGORY_FILTER,
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
-} from "../../search_params";
-import { getMedalCategories } from "../helpers/medal_categories";
-import { getMedalDisplayTitle } from "../helpers/medal_title";
+} from "@/app/(main)/(leaderboards)/search_params";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import { SearchParams } from "@/types/navigation";
+import cn from "@/utils/core/cn";
 
 type Props = {
-  profileId: number;
+  params: Promise<{ id: number }>;
+  searchParams: Promise<SearchParams>;
 };
 
-const MedalsPage: FC<Props> = async ({ profileId }) => {
+export default async function MedalsPage(props: Props) {
   const t = await getTranslations();
+  const params = await props.params;
 
-  const userMedals = await ServerLeaderboardApi.getUserMedals(profileId);
+  const userMedals = await ServerLeaderboardApi.getUserMedals(params.id);
   const categories = getMedalCategories(userMedals, true);
   type MedalType = "gold" | "silver" | "bronze";
 
@@ -103,6 +103,4 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
       </div>
     </section>
   );
-};
-
-export default WithServerComponentErrorBoundary(MedalsPage);
+}
