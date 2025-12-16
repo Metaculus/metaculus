@@ -434,7 +434,7 @@ def _serialize_metaculus_stats() -> dict:
 
 def serialize_metaculus_stats():
     return cache_get_or_set(
-        f"serialize_metaculus_stats",
+        "serialize_metaculus_stats",
         lambda: _serialize_metaculus_stats(),
         # 24h
         timeout=60 * 60 * 24,
