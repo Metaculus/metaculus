@@ -13,12 +13,17 @@ import {
 import {
   faChevronLeft,
   faChevronRight,
-  faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { useState, forwardRef, FC } from "react";
+import React, {
+  useState,
+  forwardRef,
+  FC,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import ForecastTextInput from "@/components/forecast_maker/forecast_text_input";
@@ -292,6 +297,55 @@ const CmmOverlay = ({
   );
 };
 
+type LabelVariant = "full" | "mid" | "tiny";
+
+function useFittingLabel<
+  TContainer extends HTMLElement,
+  TFull extends HTMLElement,
+  TMid extends HTMLElement,
+  TTiny extends HTMLElement,
+>(params: {
+  containerRef: React.RefObject<TContainer | null>;
+  fullRef: React.RefObject<TFull | null>;
+  midRef: React.RefObject<TMid | null>;
+  tinyRef: React.RefObject<TTiny | null>;
+}) {
+  const [variant, setVariant] = useState<LabelVariant>("full");
+
+  const recompute = useCallback(() => {
+    const container = params.containerRef.current;
+    if (!container) return;
+
+    const available = container.clientWidth;
+    const wFull = params.fullRef.current?.offsetWidth ?? 0;
+    const wMid = params.midRef.current?.offsetWidth ?? 0;
+    const wTiny = params.tinyRef.current?.offsetWidth ?? 0;
+
+    const next =
+      wFull <= available
+        ? "full"
+        : wMid <= available
+          ? "mid"
+          : wTiny <= available
+            ? "tiny"
+            : "tiny";
+
+    setVariant((prev) => (prev === next ? prev : next));
+  }, [params.containerRef, params.fullRef, params.midRef, params.tinyRef]);
+
+  useLayoutEffect(() => {
+    recompute();
+    const el = params.containerRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver(recompute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [recompute, params.containerRef]);
+
+  return variant;
+}
+
 interface CmmToggleButtonProps {
   comment_id: number;
   disabled?: boolean;
@@ -320,34 +374,72 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
       }
     };
 
+    const isDisabled = isLoading || !!disabled;
+
+    const count = cmmContext.count;
+
+    const fullLabel = `${t("cmmButton")} (${count})`;
+    const midLabel = `${t("cmmButtonShort")} (${count})`;
+    const tinyLabel = `(${count})`;
+
+    const labelBoxRef = React.useRef<HTMLSpanElement>(null);
+    const fullMeasureRef = React.useRef<HTMLSpanElement>(null);
+    const midMeasureRef = React.useRef<HTMLSpanElement>(null);
+    const tinyMeasureRef = React.useRef<HTMLSpanElement>(null);
+
+    const variant = useFittingLabel({
+      containerRef: labelBoxRef,
+      fullRef: fullMeasureRef,
+      midRef: midMeasureRef,
+      tinyRef: tinyMeasureRef,
+    });
+
     return (
       <Button
         size="xxs"
         variant="tertiary"
         onClick={onChangedMyMind}
-        aria-label="Changed my mind"
-        className="whitespace-nowrap border border-blue-400 hover:bg-gray-100 dark:hover:bg-gray-100-dark"
-        disabled={isLoading || disabled}
+        aria-label={t("cmmButton")}
+        disabled={isDisabled}
         ref={ref}
         {...cmmContext.getReferenceProps()}
+        className={cn(
+          "group relative inline-flex min-w-0 items-center gap-1 whitespace-nowrap rounded-sm border px-2 py-1 text-sm font-normal leading-[16px] tracking-tight transition-colors disabled:cursor-not-allowed",
+          !isDisabled &&
+            (cmmContext.cmmEnabled
+              ? "hover:bg-olive-50 dark:hover:bg-olive-400/10"
+              : "hover:bg-blue-50 dark:hover:bg-blue-600/20"),
+          isDisabled &&
+            "border-gray-300 bg-gray-100 text-gray-400 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-500"
+        )}
       >
-        <FontAwesomeIcon
-          icon={faCaretUp}
-          className={cn(
-            "size-4 rounded-full",
-            {
-              "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":
-                !cmmContext.cmmEnabled,
-            },
-            {
-              "bg-gradient-to-b from-olive-400 to-blue-100 p-1 text-olive-700 group-hover:from-olive-500 group-hover:to-blue-100 dark:from-olive-300-dark dark:to-blue-100-dark dark:text-olive-700-dark dark:group-hover:from-olive-500-dark dark:group-hover:to-blue-100-dark":
-                cmmContext.cmmEnabled,
-            }
-          )}
-        />
+        <DeltaBadge enabled={cmmContext.cmmEnabled} disabled={isDisabled} />
 
-        <span className="text-blue-700 dark:text-blue-700-dark">
-          {t("cmmButton")} ({cmmContext.count})
+        <span
+          ref={labelBoxRef}
+          className={cn(
+            "min-w-0 flex-1 overflow-hidden whitespace-nowrap",
+            "text-blue-700 dark:text-blue-700-dark",
+            isDisabled && "text-current"
+          )}
+        >
+          {variant === "full"
+            ? fullLabel
+            : variant === "mid"
+              ? midLabel
+              : tinyLabel}
+        </span>
+
+        <span className="pointer-events-none absolute -z-10 opacity-0">
+          <span ref={fullMeasureRef} className="whitespace-nowrap">
+            {fullLabel}
+          </span>
+          <span ref={midMeasureRef} className="whitespace-nowrap">
+            {midLabel}
+          </span>
+          <span ref={tinyMeasureRef} className="whitespace-nowrap">
+            {tinyLabel}
+          </span>
         </span>
       </Button>
       // <button
@@ -380,6 +472,27 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
     );
   }
 );
+
+const DeltaBadge: FC<{ enabled: boolean; disabled?: boolean }> = ({
+  enabled,
+  disabled,
+}) => {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex size-4 items-center justify-center rounded-full font-semibold leading-none",
+        "text-[12px] transition-colors",
+        disabled && "opacity-60",
+        !enabled && "bg-transparent text-blue-700 dark:text-blue-700-dark",
+        enabled &&
+          "bg-gradient-to-b from-olive-400 to-blue-100 p-1 text-olive-700 dark:from-olive-300-dark dark:to-blue-100-dark dark:text-olive-700-dark"
+      )}
+    >
+      ∆
+    </span>
+  );
+};
 
 CmmToggleButton.displayName = "CmmToggleButton";
 
