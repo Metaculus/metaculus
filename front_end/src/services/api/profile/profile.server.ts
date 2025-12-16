@@ -2,10 +2,34 @@ import "server-only";
 import { getServerSession } from "@/services/session";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
-import { CurrentUser } from "@/types/users";
+import { CurrentBot, CurrentUser } from "@/types/users";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 import ProfileApi from "./profile.shared";
+
+type CreateBotRequest = {
+  username: string;
+};
+
+type CreatBotResponse = {
+  user: CurrentBot;
+  token: string;
+};
+
+type UpdateProfileRequest = {
+  bio?: string;
+  website?: string;
+  unsubscribed_mailing_tags?: SubscriptionEmailType[];
+  unsubscribed_preference_tags?: ProfilePreferencesType[];
+  is_onboarding_complete?: boolean;
+  language?: string | null;
+};
+
+type UpdateBotRequest = {
+  username?: string;
+  bio?: string;
+  website?: string;
+};
 
 class ServerProfileApiClass extends ProfileApi {
   // We make getMyProfile server-only, as it depends on the session
@@ -33,14 +57,7 @@ class ServerProfileApiClass extends ProfileApi {
     );
   }
 
-  async updateProfile(props: {
-    bio?: string;
-    website?: string;
-    unsubscribed_mailing_tags?: SubscriptionEmailType[];
-    unsubscribed_preference_tags?: ProfilePreferencesType[];
-    is_onboarding_complete?: boolean;
-    language?: string | null;
-  }) {
+  async updateProfile(props: UpdateProfileRequest) {
     return await this.patch<CurrentUser, typeof props>(
       "/users/me/update/",
       props
@@ -81,6 +98,17 @@ class ServerProfileApiClass extends ProfileApi {
       details,
       add_to_project,
     });
+  }
+
+  async createBot(data: CreateBotRequest) {
+    return this.post<CreatBotResponse>("/users/me/bots/create/", data);
+  }
+
+  async updateBot(botId: number, props: UpdateBotRequest) {
+    return await this.patch<CurrentBot, typeof props>(
+      `/users/me/bots/${botId}/update/`,
+      props
+    );
   }
 }
 

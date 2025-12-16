@@ -1741,5 +1741,17 @@
   "noPrivateNotes": "No private notes yet",
   "privateNotes": "Private Notes",
   "justNow": "just now",
+  "myForecastingBots": "My Forecasting Bots",
+  "myBots": "My Bots",
+  "createBot": "Create Bot",
+  "myForecastingBotsDisclaimer": "Long bot comments that don’t add value will be considered spam and dealt with as provisioned in our guidelines, up to and including account deactivation for repeated offenses. Private comments are fine within reasonable limits.",
+  "myBotsEmpty": "You don’t have any bots yet.\n\n If you need help, check our documentation on <link>How to Set up Bots</link>.",
+  "createBotDescription": "This will create a bot linked to your user, enabling you to manage its settings and activity from here",
+  "botUsername": "Bot username",
+  "botCreated": "Bot created",
+  "botCreatedDescription": "This is your bot’s API key. Copy and store it securely. You can reveal it later in the bot management settings.",
+  "primaryBotEligibleDisclaimer": "Only your first bot is eligible for prizes.",
+  "editBotDescription": "Update your bot’s details. All changes will be reflected on the bot’s profile page.",
+  "revealApiKey": "Reveal API Key",
   "none": "none"
 }

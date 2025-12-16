@@ -3,6 +3,7 @@
 import {
   faBell,
   faGear,
+  faRobot,
   faUser,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
@@ -27,6 +28,11 @@ const SettingsHeader: FC = ({}) => {
       value: "notifications",
       label: <TabItem icon={faBell} label={t("settingsNotifications")} />,
       href: "/accounts/settings/notifications/",
+    },
+    {
+      value: "bots",
+      label: <TabItem icon={faRobot} label={t("myForecastingBots")} />,
+      href: "/accounts/settings/bots/",
     },
     {
       value: "account",
