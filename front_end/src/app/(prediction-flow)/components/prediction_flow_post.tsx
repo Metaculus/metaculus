@@ -8,6 +8,7 @@ import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
+import PrivateNote from "@/components/question/private_note";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -148,6 +149,8 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
                   className="my-0 gap-2"
                 />
                 <BackgroundInfo post={detailedPost} defaultOpen={false} />
+
+                <PrivateNote post={detailedPost} />
 
                 <CommentsFeedProvider
                   postData={detailedPost}
