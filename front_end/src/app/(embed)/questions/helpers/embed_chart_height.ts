@@ -1,7 +1,10 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isContinuousQuestion,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 export type EmbedSize = {
   width: number;
@@ -34,14 +37,25 @@ function getChartRange(args: {
   ogMode?: boolean;
   size: EmbedSize;
   legendHeight?: number;
+  headerHeight?: number;
 }): ChartRange {
-  const { post, ogMode, size, legendHeight } = args;
+  const { post, ogMode, size, legendHeight, headerHeight } = args;
 
   const isMC = post.question?.type === QuestionType.MultipleChoice;
+  const isContinuous = post.question && isContinuousQuestion(post.question);
   const isGroup = isGroupOfQuestionsPost(post);
 
-  let min = 120;
-  let max = 170;
+  const header = headerHeight ?? 0;
+  let min = !ogMode
+    ? 120
+    : header >= 175 || (header > 80 && header < 90)
+      ? 120
+      : 146;
+
+  if (isContinuous) {
+    min = 120;
+  }
+  let max = ogMode ? 320 : 170;
   let fudge = 8;
 
   if (isMC) {
@@ -90,6 +104,7 @@ export function getEmbedChartHeight(args: {
     ogMode,
     size,
     legendHeight,
+    headerHeight,
   });
 
   const t = headerT(headerHeight);
