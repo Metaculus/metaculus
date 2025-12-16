@@ -19,15 +19,17 @@ import CommentFeed from "@/components/comment_feed";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
+import Chip from "@/components/ui/chip";
 import CircleDivider from "@/components/ui/circle_divider";
 import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostStatus } from "@/types/post";
-import { TournamentType } from "@/types/projects";
+import { TaxonomyProjectType, TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
 import { estimateReadingTime } from "@/utils/markdown";
+import { getProjectLink } from "@/utils/navigation";
 import { getPostTitle, isNotebookPost } from "@/utils/questions/helpers";
 
 const IndividualNotebookPage: FC<{
@@ -153,25 +155,39 @@ const IndividualNotebookPage: FC<{
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
             <div className="flex flex-col gap-2">
-              {!!postData.projects.category?.length && (
-                <div>
-                  <span className="font-medium">{t("Categories") + ":"}</span>
-                  {postData.projects.category?.map((category, index) => (
-                    <span key={category.id}>
-                      {" "}
-                      <Link
-                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
-                        href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
+              {/* Project chips (tournaments, question series, communities, etc.) */}
+              {(() => {
+                const allProjects = [
+                  ...(postData.projects.index ?? []),
+                  ...(postData.projects.tournament ?? []),
+                  ...(postData.projects.question_series ?? []),
+                  ...(postData.projects.community ?? []),
+                  ...(postData.projects.category ?? []),
+                  ...(postData.projects.leaderboard_tag ?? []),
+                ];
+                const getChipText = (name: string, type?: string) =>
+                  type === "leaderboard_tag" ? `🏆 ${name}` : name;
+
+                return allProjects.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {allProjects.map((element) => (
+                      <Chip
+                        color={
+                          Object.values(TaxonomyProjectType).includes(
+                            element.type as TaxonomyProjectType
+                          )
+                            ? "olive"
+                            : "orange"
+                        }
+                        key={element.id}
+                        href={getProjectLink(element)}
                       >
-                        {category.name}
-                      </Link>
-                      {index < (postData.projects.category?.length ?? 0) - 1
-                        ? ","
-                        : "."}
-                    </span>
-                  ))}
-                </div>
-              )}
+                        {getChipText(element.name, element.type)}
+                      </Chip>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
             <CommentsFeedProvider
               postData={postData}
