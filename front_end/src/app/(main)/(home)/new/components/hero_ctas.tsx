@@ -6,6 +6,26 @@ import { FC, PropsWithChildren } from "react";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
+type HeroCTACardVariant = "blue" | "purple";
+
+const variantStyles: Record<
+  HeroCTACardVariant,
+  { bg: string; text: string; button: string }
+> = {
+  blue: {
+    bg: "bg-blue-300 dark:bg-blue-300-dark",
+    text: "text-blue-800 dark:text-blue-800-dark",
+    button:
+      "border-blue-500 bg-gray-0 text-blue-700 hover:border-blue-600 hover:bg-blue-100 dark:border-blue-500-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:border-blue-600-dark dark:hover:bg-blue-100-dark",
+  },
+  purple: {
+    bg: "bg-purple-100 dark:bg-purple-100-dark",
+    text: "text-purple-800 dark:text-purple-800-dark",
+    button:
+      "border-purple-200 bg-purple-200 text-purple-700 hover:border-purple-300 hover:bg-purple-300 dark:border-purple-200-dark dark:bg-purple-200-dark dark:text-purple-700-dark dark:hover:border-purple-300-dark dark:hover:bg-purple-300-dark",
+  },
+};
+
 type HeroCTACardProps = {
   href: string;
   topTitle: string;
@@ -13,9 +33,7 @@ type HeroCTACardProps = {
   imageAlt: string;
   title: string;
   buttonText: string;
-  bgColorClasses: string;
-  textColorClasses: string;
-  buttonClassName: string;
+  variant: HeroCTACardVariant;
 };
 
 const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
@@ -26,10 +44,13 @@ const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
   title,
   children,
   buttonText,
-  bgColorClasses,
-  textColorClasses,
-  buttonClassName,
+  variant,
 }) => {
+  const {
+    bg: bgColorClasses,
+    text: textColorClasses,
+    button: buttonClassName,
+  } = variantStyles[variant];
   return (
     <div
       className={cn(
@@ -97,9 +118,7 @@ const HeroCTAs: FC<Props> = ({
         imageAlt="Pie chart"
         title={t("heroIndividualsTitle")}
         buttonText={t("exploreQuestions")}
-        bgColorClasses="bg-blue-300 dark:bg-blue-300-dark"
-        textColorClasses="text-blue-800 dark:text-blue-800-dark"
-        buttonClassName="border-blue-500 bg-gray-0 text-blue-700 hover:border-blue-600 hover:bg-blue-100 dark:border-blue-500-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:border-blue-600-dark dark:hover:bg-blue-100-dark"
+        variant="blue"
       >
         <p className="m-0 mt-3 text-sm font-medium leading-4 text-blue-800 dark:text-blue-800-dark ">
           {t("heroIndividualsDescription")}
@@ -113,9 +132,7 @@ const HeroCTAs: FC<Props> = ({
         imageAlt="Puzzle"
         title={t("partnerWithMetaculus")}
         buttonText={t("learnMore")}
-        bgColorClasses="bg-purple-100 dark:bg-purple-100-dark"
-        textColorClasses="text-purple-800 dark:text-purple-800-dark"
-        buttonClassName="border-purple-200 bg-purple-200 text-purple-700 hover:border-purple-300 hover:bg-purple-300 dark:border-purple-200-dark dark:bg-purple-200-dark dark:text-purple-700-dark dark:hover:border-purple-300-dark dark:hover:bg-purple-300-dark"
+        variant="purple"
       >
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="flex flex-col gap-1">
