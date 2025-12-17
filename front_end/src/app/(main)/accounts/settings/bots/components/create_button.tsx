@@ -107,12 +107,7 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
             >
               {t("cancel")}
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="min-w-[100px]"
-              variant="primary"
-            >
+            <Button type="submit" disabled={isSubmitting} variant="primary">
               {isSubmitting ? (
                 <FontAwesomeIcon icon={faSpinner} spin />
               ) : (
