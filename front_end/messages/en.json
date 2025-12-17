@@ -1767,5 +1767,8 @@
   "primaryBotEligibleDisclaimer": "Only your first bot is eligible for prizes.",
   "editBotDescription": "Update your bot’s details. All changes will be reflected on its profile page.",
   "revealApiKey": "Reveal API Key",
+  "hideApiKey": "Hide API Key",
+  "accessToken": "Access Token",
+  "copy": "copy",
   "none": "none"
 }

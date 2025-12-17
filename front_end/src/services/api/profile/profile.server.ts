@@ -110,6 +110,10 @@ class ServerProfileApiClass extends ProfileApi {
       props
     );
   }
+
+  async getBotToken(botId: number) {
+    return await this.get<{ token: string }>(`/users/me/bots/${botId}/token/`);
+  }
 }
 
 const ServerProfileApi = new ServerProfileApiClass(serverFetcher);

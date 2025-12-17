@@ -1,12 +1,10 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import Button from "@/components/ui/button";
+import BotControls from "@/app/(main)/accounts/settings/bots/components/bot_controls";
 import { CurrentBot } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
-
-import BotUpdateButton from "./update_button";
 
 type Props = {
   bot: CurrentBot;
@@ -14,7 +12,7 @@ type Props = {
 
 const BotCard: FC<Props> = ({ bot }) => {
   const t = useTranslations();
-  const { id, is_primary_bot } = bot;
+  const { is_primary_bot } = bot;
 
   return (
     <div
@@ -34,13 +32,7 @@ const BotCard: FC<Props> = ({ bot }) => {
       <div className="font-medium text-blue-800 dark:text-blue-800-dark">
         {formatUsername(bot)}
       </div>
-      <div className="flex gap-2">
-        <BotUpdateButton bot={bot} />
-        <Button size="xs" href={`/accounts/profile/${id}/`}>
-          {t("viewProfile")}
-        </Button>
-        <Button size="xs">{t("revealApiKey")}</Button>
-      </div>
+      <BotControls bot={bot} />
     </div>
   );
 };

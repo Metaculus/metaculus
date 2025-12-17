@@ -89,3 +89,21 @@ export async function updateBot(
     };
   }
 }
+
+export async function getBotTokenAction(botId: number) {
+  try {
+    const data = await ServerProfileApi.getBotToken(botId);
+
+    return {
+      token: data.token,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
