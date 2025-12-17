@@ -200,6 +200,9 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const isEmbed = useIsEmbedMode();
 
+  const timelineTitle =
+    !isEmbed && !hideTitle ? t("forecastTimelineHeading") : undefined;
+
   const chartHeight = embedChartHeight ?? 150;
 
   return (
@@ -248,7 +251,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 simplifiedCursor={
                   question.type !== QuestionType.Binary || !user
                 }
-                title={hideTitle ? undefined : t("forecastTimelineHeading")}
+                title={timelineTitle}
                 forecastAvailability={forecastAvailability}
                 cursorTooltip={
                   question.type === QuestionType.Binary && !user
@@ -291,7 +294,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
               unit={question.unit}
               inboundOutcomeCount={question.inbound_outcome_count}
               simplifiedCursor={question.type !== QuestionType.Binary || !user}
-              title={hideTitle ? undefined : t("forecastTimelineHeading")}
+              title={timelineTitle}
               forecastAvailability={forecastAvailability}
               cursorTooltip={
                 question.type === QuestionType.Binary && !user
@@ -333,7 +336,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             unit={question.unit}
             inboundOutcomeCount={question.inbound_outcome_count}
             simplifiedCursor={question.type !== QuestionType.Binary || !user}
-            title={hideTitle ? undefined : t("forecastTimelineHeading")}
+            title={timelineTitle}
             forecastAvailability={forecastAvailability}
             cursorTooltip={
               question.type === QuestionType.Binary && !user
