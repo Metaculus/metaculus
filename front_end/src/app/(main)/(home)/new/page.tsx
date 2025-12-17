@@ -28,9 +28,13 @@ export default async function Home() {
     return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
-  const sidebarItems = await serverMiscApi.getSidebarItems();
-  const homepagePosts = await ServerPostsApi.getPostsForHomepage();
-  const categories = await ServerProjectsApi.getHomepageCategories();
+  const [sidebarItems, homepagePosts, categories, initialPopularPosts] =
+    await Promise.all([
+      serverMiscApi.getSidebarItems(),
+      ServerPostsApi.getPostsForHomepage(),
+      ServerProjectsApi.getHomepageCategories(),
+      ServerPostsApi.getPostsWithCP(FILTERS.popular),
+    ]);
 
   const postNotebooks = homepagePosts.filter(
     (post) => !!post.notebook
@@ -39,10 +43,6 @@ export default async function Home() {
   const hotTopics = sidebarItems
     .filter(({ section }) => section === "hot_topics")
     .map((item) => convertSidebarItem(item));
-
-  const initialPopularPosts = await ServerPostsApi.getPostsWithCP(
-    FILTERS.popular
-  );
 
   const contentWidthClassNames =
     "2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-4";
