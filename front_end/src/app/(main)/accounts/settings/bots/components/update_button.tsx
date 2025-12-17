@@ -9,6 +9,7 @@ import React, { FC, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import { updateBot } from "@/app/(main)/accounts/settings/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -53,6 +54,13 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
     const response = await updateBot(bot.id, data);
 
     if (response.errors) {
+      if (response.errors.error_code === "SPAM_DETECTED") {
+        alert(
+          "Your account has been deactivated for detected spam. Please note that we set our links so that Google doesn't pick them up for SEO. Adding spam to the site does nothing to help your rankings. Please contact support@metaculus.com if you believe the spam detection was a mistake."
+        );
+        LogOut();
+      }
+
       setError("root", {
         type: "manual",
         message: extractError(response.errors),

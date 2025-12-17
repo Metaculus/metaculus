@@ -10,6 +10,10 @@ import { getServerSession } from "@/services/session";
 
 import PreferencesSection from "../components/preferences_section";
 
+export const metadata = {
+  title: "My Forecasting Bots",
+};
+
 export default async function Bots() {
   const token = await getServerSession();
   invariant(token);
