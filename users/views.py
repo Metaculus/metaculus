@@ -229,11 +229,27 @@ def create_bot_api_view(request: Request):
 
 @api_view(["PATCH"])
 def update_bot_profile_api_view(request: Request, pk: int):
+    user: User = request.user
     # Check user bot permissions
-    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    bot = get_object_or_404(get_user_bots(user), pk=pk)
 
     serializer = BotUpdateProfileSerializer(bot, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
+
+    is_spam, _ = check_profile_update_for_spam(bot, serializer)
+
+    if is_spam:
+        user.mark_as_spam()
+        send_deactivation_email(user.email)
+
+        return Response(
+            data={
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     username = serializer.validated_data.pop("username", None)
 
