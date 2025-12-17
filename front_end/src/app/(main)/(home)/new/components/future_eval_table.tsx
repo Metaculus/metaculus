@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 
 import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import {
@@ -18,11 +18,16 @@ type Props = { details: LeaderboardDetails; className?: string };
 
 const INITIAL_ROWS = 5;
 
-const MedalRow = ({ rank }: { rank: number }) => {
-  const medalType: MedalType =
-    rank === 1 ? "gold" : rank === 2 ? "silver" : "bronze";
+const MEDALS: Record<number, MedalType> = {
+  1: "gold",
+  2: "silver",
+  3: "bronze",
+};
 
-  return rank <= 3 ? (
+const MedalRow: FC<{ rank: number }> = ({ rank }) => {
+  const medalType = MEDALS[rank];
+
+  return medalType ? (
     <MedalIcon type={medalType} className="size-8" />
   ) : (
     <span className="text-sm font-normal text-gray-1000 dark:text-gray-1000-dark">
@@ -30,6 +35,7 @@ const MedalRow = ({ rank }: { rank: number }) => {
     </span>
   );
 };
+
 const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
