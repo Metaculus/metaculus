@@ -43,6 +43,7 @@ type BaseProps = {
   showChart?: boolean;
   minimalistic?: boolean;
   optionsLimit?: number;
+  yLabel?: string;
 };
 
 type QuestionProps = {
@@ -89,6 +90,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   groupType,
   group,
   scaling,
+  yLabel,
   hideCP,
   forecastAvailability,
   canPredict,
@@ -197,6 +199,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forecastAvailability={forecastAvailability}
               openTime={openTime}
               hideCP={hideCP}
+              yLabel={yLabel}
               isEmbedded={isEmbed}
               forFeedPage
             />
@@ -215,6 +218,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forceShowLinePoints={true}
               openTime={openTime}
               hideCP={hideCP}
+              yLabel={yLabel}
               isEmbedded={isEmbed}
               forFeedPage
             />

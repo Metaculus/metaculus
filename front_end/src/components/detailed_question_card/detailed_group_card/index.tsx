@@ -25,6 +25,7 @@ import {
   getContinuousGroupScaling,
   getPostDrivenTime,
 } from "@/utils/questions/helpers";
+import { getCommonUnit } from "@/utils/questions/units";
 
 import { getMaxVisibleCheckboxes } from "../embeds";
 
@@ -99,6 +100,16 @@ const DetailedGroupCard: FC<Props> = ({
   const isContinuousGroup =
     !!groupType && ContinuousQuestionTypes.some((t) => t === groupType);
 
+  const commonUnit = useMemo(() => {
+    if (!isContinuousGroup) return null;
+    return getCommonUnit(
+      questions.map((q) => ({
+        unit: q.unit,
+        scaling: q.scaling ? { unit: q.unit } : null,
+      }))
+    );
+  }, [isContinuousGroup, questions]);
+
   const groupScaling = useMemo(
     () =>
       isContinuousGroup ? getContinuousGroupScaling(questions) : undefined,
@@ -149,6 +160,7 @@ const DetailedGroupCard: FC<Props> = ({
                 scaling={groupScaling}
                 onLegendHeightChange={onLegendHeightChange}
                 chartTheme={chartTheme}
+                yLabel={commonUnit ?? undefined}
               />
             </div>
             {hideCP && <RevealCPButton />}
