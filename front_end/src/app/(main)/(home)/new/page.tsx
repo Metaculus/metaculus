@@ -19,6 +19,7 @@ import ResearchAndUpdates from "./components/research_and_updates";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -59,15 +60,15 @@ export default async function Home() {
           className="mt-16 md:mt-8 lg:mt-16"
         />
       </div>
-      <Suspense>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
         <div className="mt-8 w-full border-y border-gray-300  bg-gray-100 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark md:mt-16 ">
           <TournamentsSection className={contentWidthClassNames} />
         </div>
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
         <FutureEvalSection className={contentWidthClassNames} />
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
         <div className="border-y border-gray-300 bg-gray-100  py-20 dark:border-gray-300-dark dark:bg-gray-100-dark">
           <ResearchAndUpdates
             posts={postNotebooks}
@@ -75,7 +76,7 @@ export default async function Home() {
           />
         </div>
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
         <AllCategoriesSection
           categories={categories}
           className={contentWidthClassNames}
