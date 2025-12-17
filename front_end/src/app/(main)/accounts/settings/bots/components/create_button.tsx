@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -28,6 +28,12 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successToken, setSuccessToken] = useState<string | null>();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (window.location.hash === "#create" && !disabled) {
+      setIsModalOpen(true);
+    }
+  }, []);
 
   const schema = z.object({
     username: z.string().min(1, t("errorRequired")),
