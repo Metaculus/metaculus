@@ -1,11 +1,11 @@
 import logging
-from rest_framework.authtoken.models import Token
 from datetime import timedelta
 
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
