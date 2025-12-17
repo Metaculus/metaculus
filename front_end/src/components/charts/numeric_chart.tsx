@@ -19,7 +19,6 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
-  VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
   VictoryPortal,
@@ -212,9 +211,6 @@ const NumericChart: FC<Props> = ({
     return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
-  const maxLeftPadding = useMemo(() => {
-    return Math.max(leftPadding, MIN_LEFT_PADDING);
-  }, [leftPadding, MIN_LEFT_PADDING]);
   const maxRightPadding = useMemo(() => {
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
@@ -461,6 +457,18 @@ const NumericChart: FC<Props> = ({
     return typeof fromTheme === "number" ? fromTheme : 0.3;
   }, [hasExternalTheme, themeAreaData?.opacity]);
 
+  const showRightYAxis = isEmbedded;
+
+  const chartPadding = {
+    top: 10,
+    bottom: isEmbedded ? BOTTOM_PADDING + 15 : BOTTOM_PADDING,
+
+    left: showRightYAxis ? 10 : Math.max(leftPadding, MIN_LEFT_PADDING),
+    right: showRightYAxis
+      ? Math.max(rightPadding, MIN_RIGHT_PADDING)
+      : Math.max(rightPadding, MIN_RIGHT_PADDING),
+  };
+
   return (
     <>
       <div
@@ -476,8 +484,8 @@ const NumericChart: FC<Props> = ({
           className="text-xs text-gray-700 dark:text-gray-700-dark"
           textClassName="pl-0"
           style={{
-            paddingRight: isEmbedded ? 10 : maxRightPadding,
-            paddingLeft: isEmbedded ? maxLeftPadding : 0,
+            paddingRight: isEmbedded ? maxRightPadding : maxRightPadding,
+            paddingLeft: isEmbedded ? 0 : 0,
             paddingTop: withZoomPicker ? 24 : 0,
           }}
         />
@@ -496,20 +504,36 @@ const NumericChart: FC<Props> = ({
               width={chartWidth}
               height={height}
               theme={actualTheme}
-              padding={{
-                right: isEmbedded ? 10 : maxRightPadding,
-                top: 10,
-                left: isEmbedded ? maxLeftPadding : 10,
-                bottom: isEmbedded ? BOTTOM_PADDING + 15 : BOTTOM_PADDING,
-              }}
+              padding={chartPadding}
               events={chartEvents}
               containerComponent={containerComponent}
             >
-              {/* Y axis */}
+              {/* Y axis used for GRIDLINES */}
               <VictoryAxis
                 dependentAxis
+                orientation="left"
                 style={{
                   ticks: { stroke: "transparent" },
+                  tickLabels: { fill: "transparent" }, // hide labels
+                  axis: { stroke: "transparent" },
+                  grid: {
+                    stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                    strokeWidth: 1,
+                    strokeDasharray: "3, 2",
+                  },
+                }}
+                tickValues={yScaleTicks}
+                tickFormat={yScale.tickFormat}
+              />
+
+              {/* Y axis used for LABELS */}
+              <VictoryAxis
+                dependentAxis
+                orientation={showRightYAxis ? "right" : "left"}
+                style={{
+                  ticks: { stroke: "transparent" },
+                  axis: { stroke: "transparent" },
+                  grid: { stroke: "transparent" },
                   axisLabel: {
                     fontFamily: LABEL_FONT_FAMILY,
                     fontSize: tickLabelFontSize,
@@ -525,25 +549,10 @@ const NumericChart: FC<Props> = ({
                       ? {}
                       : { fill: getThemeColor(METAC_COLORS.gray["700"]) }),
                   },
-                  axis: { stroke: "transparent" },
-                  grid: {
-                    stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                    strokeWidth: 1,
-                    strokeDasharray: "3, 2",
-                  },
                 }}
                 tickValues={yScaleTicks}
                 tickFormat={yScale.tickFormat}
                 label={!isNil(yLabel) ? `(${yLabel})` : undefined}
-                orientation={"left"}
-                offsetX={
-                  isEmbedded
-                    ? maxLeftPadding
-                    : isNil(yLabel)
-                      ? chartWidth + 5
-                      : chartWidth - tickLabelFontSize + 5
-                }
-                axisLabelComponent={<VictoryLabel x={chartWidth} />}
               />
 
               {/* X axis */}
