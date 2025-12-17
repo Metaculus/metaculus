@@ -47,8 +47,6 @@ export const APP_LANGUAGES = [
 const LanguageMenu: FC<Props> = ({ className }) => {
   const locale = useLocale();
 
-  const languageMenuItems = APP_LANGUAGES;
-
   return (
     <Menu>
       <MenuButton
@@ -65,7 +63,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
         anchor="bottom"
         className="z-[200] border border-blue-200-dark bg-blue-900 text-sm text-gray-0 md:z-100 md:mt-2"
       >
-        {languageMenuItems.map((item) => {
+        {APP_LANGUAGES.map((item) => {
           return (
             <MenuItem
               key={item.locale}
