@@ -20,7 +20,7 @@ export default async function Bots() {
   return (
     <div className="flex flex-col gap-6">
       <BotsDisclaimer />
-      <PreferencesSection className="bg-blue-200 px-6 py-[18px] dark:bg-blue-200-dark">
+      <PreferencesSection className="bg-blue-200 p-5 dark:bg-blue-200-dark sm:px-6 sm:py-[18px]">
         <div className="flex items-center justify-between">
           <h3 className="my-0 text-blue-900 dark:text-blue-900-dark">
             {t("myBots")}

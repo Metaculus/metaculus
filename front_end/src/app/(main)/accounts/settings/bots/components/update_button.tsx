@@ -73,7 +73,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         label={t("editProfile")}
-        className="max-w-md"
+        className="mx-3 max-w-md"
         withCloseButton
       >
         <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">

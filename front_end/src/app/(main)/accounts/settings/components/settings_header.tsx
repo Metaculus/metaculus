@@ -52,12 +52,15 @@ const SettingsHeader: FC = ({}) => {
       <div className="text-sm text-gray-600 dark:text-gray-600-dark">
         {t("settingsDescription")}
       </div>
-      <ButtonGroup
-        value={currentPage}
-        buttons={tabsOptions}
-        onChange={() => {}}
-        variant="tertiary"
-      />
+      <div className="-ml-4 w-[calc(100%+32px)] overflow-scroll px-4 no-scrollbar sm:ml-0 sm:w-full sm:px-0">
+        <ButtonGroup
+          value={currentPage}
+          buttons={tabsOptions}
+          onChange={() => {}}
+          variant="tertiary"
+          containerClassName="w-max"
+        />
+      </div>
     </div>
   );
 };
@@ -68,7 +71,7 @@ const TabItem: FC<{ icon: IconDefinition; label: string }> = ({
 }) => {
   return (
     <div className="flex gap-2">
-      <FontAwesomeIcon icon={icon} className="hidden xxs:block" />
+      <FontAwesomeIcon icon={icon} />
       <span>{label}</span>
     </div>
   );

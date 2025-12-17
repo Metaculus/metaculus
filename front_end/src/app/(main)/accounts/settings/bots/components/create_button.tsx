@@ -77,7 +77,7 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
         isOpen={isModalOpen && !successToken}
         onClose={handleClose}
         label={t("createBot")}
-        className="max-w-md"
+        className="mx-3 max-w-md"
         withCloseButton
       >
         <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
@@ -128,7 +128,7 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
         isOpen={isModalOpen && !!successToken}
         onClose={handleClose}
         label={t("createBot")}
-        className="max-w-md"
+        className="mx-3 max-w-md"
         withCloseButton
       >
         <div className="space-y-4">
