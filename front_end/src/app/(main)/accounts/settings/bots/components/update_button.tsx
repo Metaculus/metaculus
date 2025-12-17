@@ -106,7 +106,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
           </InputContainer>
 
           {errors.root && (
-            <div className="mt-2 text-sm text-red-500">
+            <div className="mt-2 text-sm text-red-500 dark:text-red-500-dark">
               {errors.root.message}
             </div>
           )}
