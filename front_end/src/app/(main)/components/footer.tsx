@@ -17,12 +17,14 @@ import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions"
 import { APP_LANGUAGES } from "@/components/language_menu";
 import { useModal } from "@/contexts/modal_context";
 import useAppTheme from "@/hooks/use_app_theme";
+import { useServerAction } from "@/hooks/use_server_action";
 import useMounted from "@/hooks/use_mounted";
 import { AppTheme } from "@/types/theme";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 import { MetaculusTextLogo } from "./MetaculusTextLogo";
 import { useAuth } from "@/contexts/auth_context";
+import { useRouter } from "next/navigation";
 
 const ComputerIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -128,23 +130,21 @@ const FooterLinkColumn: FC<{
 };
 
 const LanguageSelector: FC = () => {
-  const locale = useLocale();
-  const currentLanguage =
-    APP_LANGUAGES.find((l) => l.locale === locale) ??
-    APP_LANGUAGES[APP_LANGUAGES.length - 1];
+  const { user } = useAuth();
+  const currentLocale = useLocale();
+  const router = useRouter();
 
-  if (!currentLanguage) {
-    return null;
-  }
-
-  const handleLanguageChange = (newLocale: string) => {
-    updateLanguagePreference(newLocale, false)
-      .then(() => window.location.reload())
+  const updateLanguage = (language: string) => {
+    updateLanguagePreference(language, false)
+      .then(() => router.refresh())
       .catch(logError);
   };
 
+  // Use user's language preference, fallback to current locale if not set
+  const selectedLanguage = user?.language || currentLocale;
+
   return (
-    <Listbox value={locale} onChange={handleLanguageChange}>
+    <Listbox value={selectedLanguage} onChange={updateLanguage}>
       <div className="relative">
         <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900">
           <span className="flex items-center text-base font-bold">
@@ -152,7 +152,9 @@ const LanguageSelector: FC = () => {
             <span className="text-gray-400">/</span>
             <span className="text-salmon-600">文</span>
           </span>
-          <span>{currentLanguage.name}</span>
+          <span>
+            {APP_LANGUAGES.find((opt) => opt.locale === selectedLanguage)?.name}
+          </span>
           <FontAwesomeIcon
             icon={faChevronDown}
             className="size-3 text-gray-500"
