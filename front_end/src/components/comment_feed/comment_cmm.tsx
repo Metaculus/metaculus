@@ -319,19 +319,12 @@ function useFittingLabel<
     const available = container.clientWidth;
     const wFull = params.fullRef.current?.offsetWidth ?? 0;
     const wMid = params.midRef.current?.offsetWidth ?? 0;
-    const wTiny = params.tinyRef.current?.offsetWidth ?? 0;
 
     const next =
-      wFull <= available
-        ? "full"
-        : wMid <= available
-          ? "mid"
-          : wTiny <= available
-            ? "tiny"
-            : "tiny";
+      wFull <= available ? "full" : wMid <= available ? "mid" : "tiny";
 
     setVariant((prev) => (prev === next ? prev : next));
-  }, [params.containerRef, params.fullRef, params.midRef, params.tinyRef]);
+  }, [params.containerRef, params.fullRef, params.midRef]);
 
   useLayoutEffect(() => {
     recompute();
