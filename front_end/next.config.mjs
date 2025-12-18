@@ -70,6 +70,10 @@ const nextConfig = {
         source: "/index/:slug",
         destination: "/tournament/:slug",
       },
+      {
+        source: "/aib",
+        destination: "/aib/2026/spring/",
+      },
     ];
   },
   eslint: {
