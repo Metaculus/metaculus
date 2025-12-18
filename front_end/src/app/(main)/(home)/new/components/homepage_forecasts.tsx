@@ -44,7 +44,9 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
     }
 
     startTransition(async () => {
-      const response = await ClientPostsApi.getPostsWithCP(FILTERS[tabId]);
+      const response = await ClientPostsApi.getPostsWithCPForHomepage(
+        FILTERS[tabId]
+      );
       const newPosts = response.results;
       setCachedPosts((prev) => ({ ...prev, [tabId]: newPosts }));
       setPosts(newPosts);
