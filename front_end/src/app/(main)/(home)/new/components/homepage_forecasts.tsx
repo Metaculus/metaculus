@@ -9,8 +9,8 @@ import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import { FILTERS, TABS, TabId } from "./homepage_filters";
 import { ExploreImagesGrid } from "./ExploreImagesGrid";
+import { FILTERS, TABS, TabId } from "./homepage_filters";
 
 type Props = {
   initialPopularPosts: PostWithForecasts[];

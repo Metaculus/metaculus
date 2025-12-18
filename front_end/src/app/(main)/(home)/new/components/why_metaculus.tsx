@@ -5,6 +5,7 @@ import React, { FC, useEffect, useState } from "react";
 
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import cn from "@/utils/core/cn";
+
 import {
   NasdaqLogo,
   ForbesLogo,
@@ -60,7 +61,7 @@ const FEATURED_IN = [
 const fetchSiteStats = async () => {
   try {
     return await ClientMiscApi.getSiteStats();
-  } catch (error) {
+  } catch {
     // silenty fail
     return null;
   }
