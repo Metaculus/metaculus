@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
@@ -19,7 +20,6 @@ import ResearchAndUpdates from "./components/research_and_updates";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();

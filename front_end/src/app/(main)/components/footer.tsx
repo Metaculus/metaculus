@@ -10,21 +10,21 @@ import {
   ListboxOption,
 } from "@headlessui/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { FC } from "react";
 
 import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
 import { APP_LANGUAGES } from "@/components/language_menu";
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useAppTheme from "@/hooks/use_app_theme";
-import { useServerAction } from "@/hooks/use_server_action";
 import useMounted from "@/hooks/use_mounted";
 import { AppTheme } from "@/types/theme";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+
 import { MetaculusTextLogo } from "./MetaculusTextLogo";
-import { useAuth } from "@/contexts/auth_context";
-import { useRouter } from "next/navigation";
 
 const ComputerIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
