@@ -36,7 +36,7 @@ const StaffPicks: FC<Props> = ({ items }) => {
               item.emoji
             )}
           </span>
-          <span className="whitespace-nowrap">{item.name}</span>
+          <span className="whitespace-nowrap text-gray-800 dark:text-gray-800-dark">{item.name}</span>
         </Link>
       ))}
     </div>
