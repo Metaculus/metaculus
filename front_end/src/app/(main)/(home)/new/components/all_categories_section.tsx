@@ -2,7 +2,10 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
+import {
+  POST_CATEGORIES_FILTER,
+  POST_FOR_MAIN_FEED,
+} from "@/constants/posts_feed";
 import { Category } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
@@ -43,7 +46,7 @@ type CategoryCardProps = {
 };
 
 const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
-  const categoryUrl = `/questions/?${POST_CATEGORIES_FILTER}=${category.slug}&for_main_feed=false`;
+  const categoryUrl = `/questions/?${POST_CATEGORIES_FILTER}=${category.slug}&${POST_FOR_MAIN_FEED}=false`;
 
   return (
     <div className="flex flex-col gap-3.5 rounded-lg border border-gray-300 bg-gray-0 p-4 dark:border-gray-300-dark dark:bg-gray-0-dark">
