@@ -57,7 +57,7 @@ const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
         "relative flex shrink-0 flex-col justify-between overflow-hidden rounded-lg p-6",
         bgColorClasses,
         textColorClasses,
-        "w-[80%] sm:flex-1"
+        "w-[80%] md:flex-1"
       )}
     >
       <div className="absolute right-3 top-3 z-0 size-32 opacity-60">
@@ -102,15 +102,17 @@ const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
 type Props = {
   individualsHref?: string;
   businessesHref?: string;
+  className?: string;
 };
 
 const HeroCTAs: FC<Props> = ({
   individualsHref = "/questions/",
   businessesHref = "/services/",
+  className,
 }) => {
   const t = useTranslations();
   return (
-    <section className="flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <section className={cn("flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)}>
       <HeroCTACard
         href={individualsHref}
         topTitle={t("forIndividuals")}
