@@ -12,12 +12,10 @@ const TournamentsSection: FC<{ className?: string }> = async ({
   className,
 }) => {
   const t = await getTranslations();
-  const tournaments = await ServerProjectsApi.getTournaments({
-    show_on_homepage: true,
-  });
   const allTournaments = (await ServerProjectsApi.getTournaments()).filter(
     (t) => t.is_ongoing
   );
+  const tournaments = allTournaments.filter((t) => t.show_on_homepage);
 
   return (
     <section className={cn(className)}>
