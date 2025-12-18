@@ -68,7 +68,7 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
             className={cn(
               "rounded-full px-3.5 py-2.5 text-sm font-semibold leading-none transition-colors",
               activeTab === tab.id
-                ? "bg-gray-300 text-gray-700 dark:bg-gray-300-dark dark:text-gray-700-dark"
+                ? "bg-gray-300 text-gray-800 dark:bg-gray-300-dark dark:text-gray-800-dark"
                 : "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-200 dark:border-gray-300-dark dark:text-gray-700-dark dark:hover:bg-gray-200-dark"
             )}
           >
