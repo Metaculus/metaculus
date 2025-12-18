@@ -16,7 +16,7 @@ import { getProjectLink } from "@/utils/navigation";
 import {
   TOURNAMENTS_SEARCH,
   TOURNAMENTS_SORT,
-} from "../constants/query_params";
+} from "../../constants/query_params";
 
 type Props = {
   items: TournamentPreview[];
