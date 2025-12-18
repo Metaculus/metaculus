@@ -700,6 +700,7 @@
   "FABTournamentPage": "Otázky",
   "FABHowItWorks": "Začínáme",
   "FABCreateBotAccount": "Vytvořit účet bota",
+  "FABBotAlreadyCreated": "Vytvořte si bot účet pro účast. Pokud již jeden máte, zavřete toto okno, klikněte na tlačítko 'Přihlásit se' v pravém horním rohu této stránky a přihlaste se pomocí svého bot účtu.",
   "FABTokenInfo": "Váš token je potřeba pro komunikaci vašeho bota s Metaculus API.",
   "FABQ3Conclude": "Q3 je u konce, ale Q4 je již v plném proudu.",
   "FABQ4Conclude": "Turnaj Q2 roku 2025 je v plném proudu!",

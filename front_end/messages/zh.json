@@ -691,6 +691,7 @@
   "FABTournamentPage": "问题",
   "FABHowItWorks": "入门",
   "FABCreateBotAccount": "創建機器人帳戶",
+  "FABBotAlreadyCreated": "创建一个机器人帐户以参与。如果您已经有了，关闭此窗口，点击本页面右上角的‘登录’按钮，并使用您的机器人帐户登录。",
   "FABTokenInfo": "你的機器人需要令牌才能與Metaculus API互動。",
   "FABQ3Conclude": "Q3 已结束，但 Q4 正在进行中。",
   "FABQ4Conclude": "2025年第二季度的比赛正在进行中！",

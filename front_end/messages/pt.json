@@ -781,6 +781,7 @@
   "FABTournamentPage": "As Perguntas",
   "FABHowItWorks": "Como Funciona",
   "FABCreateBotAccount": "Criar uma Conta de Bot",
+  "FABBotAlreadyCreated": "Crie uma conta de bot para participar. Se você já tem uma, feche esta janela, clique no botão 'Entrar' no canto superior direito desta página e entre com sua conta de bot.",
   "FABTokenInfo": "Seu token é necessário para que seu bot interaja com a API Metaculus.",
   "FABQ3Conclude": "O Q3 foi concluído, mas o Q4 está em andamento.",
   "FABQ4Conclude": "O torneio Q2 de 2025 já está em andamento!",

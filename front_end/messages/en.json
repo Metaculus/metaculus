@@ -951,6 +951,7 @@
   "FABReadMore": "Read More",
   "FABHowItWorks": "Getting Started",
   "FABCreateBotAccount": "Create a Bot Account",
+  "FABBotAlreadyCreated": "Create a bot account to participate. If you already have one, close this window, click the 'Log in' button in the upper-right corner of this page, and log in with your bot account.",
   "FABTokenInfo": "Your token is needed for your bot to interact with the Metaculus API.",
   "FABQ3Conclude": "Q3 is concluded, but Q4 is underway.",
   "FABQ4Conclude": "2025's Q2 tournament is underway!",
