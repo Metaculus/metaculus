@@ -3,7 +3,6 @@ from datetime import timedelta
 
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
-from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -13,7 +12,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from users.models import User
+from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
@@ -36,7 +35,7 @@ from users.services.common import (
 from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
 from .services.bots_management import get_user_bots, create_bot
-from .services.profile_stats import serialize_profile
+from .services.profile_stats import serialize_user_stats
 from .services.spam_detection import (
     check_profile_update_for_spam,
     send_deactivation_email,
@@ -63,16 +62,29 @@ def current_user_api_view(request):
     return Response(UserPrivateSerializer(request.user).data)
 
 
-@cache_page(60 * 60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
+    current_user = request.user
+
     qs = User.objects.all()
-    if not request.user.is_staff:
+    if not current_user.is_staff:
         qs = qs.filter(is_active=True, is_spam=False)
+
     user = get_object_or_404(qs, pk=pk)
 
-    return Response(serialize_profile(user, current_user=request.user))
+    # Basic profile data
+    profile = UserPublicSerializer(user).data
+
+    if current_user and current_user.is_staff:
+        profile.update(
+            {"spam_count": UserSpamActivity.objects.filter(user=user).count()}
+        )
+
+    # Performing slow but cached profile request
+    profile.update(serialize_user_stats(user))
+
+    return Response(profile)
 
 
 @api_view(["GET"])
