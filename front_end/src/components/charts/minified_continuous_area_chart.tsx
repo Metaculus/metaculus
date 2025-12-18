@@ -56,7 +56,7 @@ const HORIZONTAL_PADDING = 10;
 
 type Props = {
   question: Question | GraphingQuestionProps;
-  data: ContinuousAreaGraphInput;
+  data: ContinuousAreaGraphInput | null;
   height?: number;
   width?: number;
   extraTheme?: VictoryThemeDefinition;
@@ -81,6 +81,9 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   forceTickCount,
   variant = "feed",
 }) => {
+  if (data === null) {
+    throw new Error("Data for MinifiedContinuousAreaChart is null");
+  }
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
@@ -607,7 +610,12 @@ export function getContinuousAreaChartData({
   if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
-      cdf: latest.forecast_values,
+      cdf: latest.forecast_values.map((v) => {
+        if (v === null) {
+          throw new Error("Forecast values contain null values");
+        }
+        return v;
+      }),
       type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
     });
   }

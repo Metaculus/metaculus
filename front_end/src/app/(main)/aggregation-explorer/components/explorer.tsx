@@ -23,7 +23,10 @@ import { SearchParams } from "@/types/navigation";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
-import { parseQuestionId } from "@/utils/questions/helpers";
+import {
+  getAllOptionsHistory,
+  parseQuestionId,
+} from "@/utils/questions/helpers";
 
 import { AggregationWrapper } from "./aggregation_wrapper";
 import { AggregationExtraMethod } from "../types";
@@ -417,8 +420,9 @@ function parseSubQuestions(
       },
     ];
   } else if (data.question?.type === QuestionType.MultipleChoice) {
+    const allOptions = getAllOptionsHistory(data.question);
     return (
-      data.question.options?.map((option) => ({
+      allOptions?.map((option) => ({
         value: option,
         label: option,
       })) || []

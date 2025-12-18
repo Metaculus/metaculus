@@ -1,0 +1,182 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ media }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  › <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_label|capfirst }}</a>
+  › <a href="{% url 'admin:questions_question_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  › <a href="{{ change_url }}">{{ original }}</a>
+  › Update options
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+  .disabled-catch-all {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
+<div id="content-main">
+  <p><strong>Current options:</strong></p>
+  <ul>
+    {% for opt in current_options %}
+      <li>{{ opt }}</li>
+    {% endfor %}
+  </ul>
+  <p><strong>All options ever used:</strong></p>
+  <ul>
+    {% for opt in all_history_options %}
+      <li>{{ opt }}</li>
+    {% endfor %}
+  </ul>
+
+  {% if in_grace_period %}
+    <div class="help" style="font-size: 13px;">
+      This question is in an active grace period until {{ grace_period_end|date:"DATETIME_FORMAT" }}.
+      You can rename options, change the grace period end, but adding or deleting options is temporarily disabled.
+    </div>
+  {% endif %}
+  
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="module aligned">
+      {% for field in form %}
+      <div class="form-row form-row-{{ field.name }}" data-field-name="{{ field.name }}">
+        {{ field.errors }}
+        <div>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  <div class="help delete-disclaimer" style="font-size: 13px; display: none;">
+    <div>Deleting options will perform the following:</div>
+    <ul>
+      <li>Remove the selected options from the question.</li>
+      <li>Add a new entry to options history at the deletion time.</li>
+      <li>Slice existing user forecasts at the deletion timestamp.</li>
+      <li>Recalculate aggregate forecasts.</li>
+      <li>Post a comment as YOU on the Post tagging forecasters and informing them of the change.</li>
+      <li>Send an email to forecasters to this effect.</li>
+    </ul>
+    <p>
+      <strong style="color: #c00;">Warning:</strong>
+      When deleting options, the checkboxes will let you select most options, but you must leave at least one option plus the catch-all.
+    </p>
+  </div>
+  <div class="help add-disclaimer" style="font-size: 13px; display: none;">
+    <div>Adding options will perform the following:</div>
+    <ul>
+      <li>Append the new options before the catch-all option.</li>
+      <li>Add a new entry to options history at the grace period end.</li>
+      <li>End all user forecasts at the grace period end.</li>
+      <li>Recalculate aggregate forecasts.</li>
+      <li>Post a comment as YOU on the Post tagging forecasters and informing them of the change.</li>
+      <li>Send an email to forecasters to this effect.</li>
+      <li>Set a "call to action" banner on the Post page.</li>
+    </ul>
+    <p>
+      <strong style="color: #c00;">Warning:</strong>
+      When adding options, if you intend to also delete options, please do that action first as you cannot delete options when in a grace period which starts when you add options.
+    </p>
+  </div>
+    <div class="submit-row">
+      <a class="button cancel-link" href="{{ change_url }}">{% trans "Cancel" %}</a>
+      <input type="submit" value="{% trans 'Submit' %}" id="mc-options-submit" disabled>
+    </div>
+  </form>
+</div>
+<script>
+(function() {
+  const ACTION_RENAME = "rename_options";
+  const ACTION_DELETE = "delete_options";
+  const ACTION_ADD = "add_options";
+  const ACTION_CHANGE_GRACE = "change_grace_period_end";
+  const ACTION_REORDER = "reorder_options";
+  const actionSelect = document.querySelector('[name="{{ form.action.html_name }}"]');
+  const actionRow = document.querySelector('.form-row-action');
+  const rows = {
+    old_option: document.querySelector('.form-row-old_option'),
+    new_option: document.querySelector('.form-row-new_option'),
+    options_to_delete: document.querySelector('.form-row-options_to_delete'),
+    new_options: document.querySelector('.form-row-new_options'),
+    grace_period_end: document.querySelector('.form-row-grace_period_end'),
+    delete_comment: document.querySelector('.form-row-delete_comment'),
+    add_comment: document.querySelector('.form-row-add_comment'),
+  };
+  const reorderRows = Array.from(
+    document.querySelectorAll('[data-field-name^="reorder_position_"]')
+  );
+  const deleteDisclaimer = document.querySelector('.delete-disclaimer');
+  const addDisclaimer = document.querySelector('.add-disclaimer');
+  const submitButton = document.querySelector('#mc-options-submit');
+  const visibilityByAction = {
+    [ACTION_RENAME]: ["old_option", "new_option"],
+    [ACTION_DELETE]: ["options_to_delete", "delete_comment"],
+    [ACTION_ADD]: ["new_options", "grace_period_end", "add_comment"],
+    [ACTION_CHANGE_GRACE]: ["grace_period_end"],
+    [ACTION_REORDER]: [],
+  };
+
+  function disableCatchAllOption() {
+    const container = rows.options_to_delete;
+    if (!container) return;
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    if (!checkboxes.length) return;
+
+    const datasetValue = Array.from(checkboxes).find(
+      (input) => input.dataset && input.dataset.catchAll
+    )?.dataset.catchAll;
+    const catchAllValue =
+      datasetValue || CATCH_ALL_OPTION || checkboxes[checkboxes.length - 1].value;
+
+    checkboxes.forEach((input, idx) => {
+      const isCatchAll = catchAllValue && input.value === catchAllValue;
+      const isFallbackLast = !catchAllValue && idx === checkboxes.length - 1;
+      if (isCatchAll || isFallbackLast) {
+        input.disabled = true;
+        input.closest('label')?.classList.add('disabled-catch-all');
+      }
+    });
+  }
+
+  function updateVisibility() {
+    const action = actionSelect ? actionSelect.value : "";
+    if (actionRow) actionRow.style.display = "";
+    Object.entries(rows).forEach(([key, row]) => {
+      if (!row) return;
+      const shouldShow = visibilityByAction[action]?.includes(key) || false;
+      row.style.display = shouldShow ? "" : "none";
+    });
+    reorderRows.forEach((row) => {
+      row.style.display = action === ACTION_REORDER ? "" : "none";
+    });
+    if (deleteDisclaimer) {
+      deleteDisclaimer.style.display = action === ACTION_DELETE ? "" : "none";
+    }
+    if (addDisclaimer) {
+      addDisclaimer.style.display = action === ACTION_ADD ? "" : "none";
+    }
+    if (submitButton) {
+      submitButton.disabled = !action || !visibilityByAction[action];
+    }
+    disableCatchAllOption();
+  }
+
+  if (actionSelect) {
+    actionSelect.addEventListener("change", updateVisibility);
+    updateVisibility();
+  }
+})();
+</script>
+{% endblock %}

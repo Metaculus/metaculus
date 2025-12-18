@@ -87,10 +87,10 @@ export type Forecast = {
   question_id: number;
   start_time: number;
   end_time: number | null;
-  forecast_values: number[];
-  interval_lower_bounds: number[] | null;
-  centers: number[] | null;
-  interval_upper_bounds: number[] | null;
+  forecast_values: (number | null)[];
+  interval_lower_bounds: (number | null)[] | null;
+  centers: (number | null)[] | null;
+  interval_upper_bounds: (number | null)[] | null;
 };
 
 export type ScoreData = {
@@ -155,9 +155,9 @@ export type UserForecastHistory = {
 export type AggregateForecast = Forecast & {
   method: AggregationMethod;
   forecaster_count: number;
-  means: number[] | null;
+  means: (number | null)[] | null;
   histogram: number[][] | null;
-  forecast_values: number[] | null;
+  forecast_values: (number | null)[] | null;
 };
 
 export type AggregateForecastHistory = {
@@ -236,6 +236,7 @@ export type Question = {
   type: QuestionType;
   // Multiple-choice only
   options?: string[];
+  options_history?: [number, string[]][];
   group_variable?: string;
   group_rank?: number;
   // Continuous only

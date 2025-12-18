@@ -30,6 +30,7 @@ import {
   isForecastActive,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
+import { getAllOptionsHistory } from "@/utils/questions/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -78,6 +79,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+
+  const allOptions = getAllOptionsHistory(question);
 
   const activeUserForecast =
     question.my_forecasts?.latest &&
@@ -133,6 +136,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const [isDirty, setIsDirty] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [dismissedOverlay, setDismissedOverlay] = useState(false);
+  const [interactedOptions, setInteractedOptions] = useState<Set<string>>(
+    new Set()
+  );
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
@@ -150,19 +157,96 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     [choicesForecasts]
   );
   const forecastsSum = useMemo(
-    () => (forecastHasValues ? sumForecasts(choicesForecasts) : null),
-    [choicesForecasts, forecastHasValues]
+    () =>
+      forecastHasValues
+        ? sumForecasts(
+            choicesForecasts.filter((choice) =>
+              question.options.includes(choice.name)
+            )
+          )
+        : null,
+    [question.options, choicesForecasts, forecastHasValues]
   );
   const remainingSum = forecastsSum ? 100 - forecastsSum : null;
   const isForecastValid = forecastHasValues && forecastsSum === 100;
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
+  const showUserMustForecast =
+    !!activeUserForecast &&
+    activeUserForecast.forecast_values.filter((value) => value !== null)
+      .length < question.options.length;
+
+  const getNewOptions = useCallback(() => {
+    if (!activeUserForecast) return [];
+
+    return choicesForecasts
+      .filter((choice, index) => {
+        const isCurrentOption = question.options.includes(choice.name);
+        const hasForecast = activeUserForecast.forecast_values[index] !== null;
+        return isCurrentOption && !hasForecast;
+      })
+      .map((c) => c.name);
+  }, [activeUserForecast, choicesForecasts, question.options]);
+
+  const newOptions = getNewOptions();
+  const showOverlay =
+    showUserMustForecast && !dismissedOverlay && newOptions.length > 0;
+
+  const firstNewOptionRef = React.useRef<HTMLTableRowElement | null>(null);
+
+  const scrollToNewOptions = () => {
+    if (firstNewOptionRef.current) {
+      firstNewOptionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  };
+
+  const NewOptionCallout: FC = () => {
+    const isPlural = newOptions.length > 1;
+    return (
+      <div className="mb-3 w-full rounded-lg bg-blue-900 p-4 shadow-lg dark:bg-blue-900-dark">
+        <p className="mb-2 mt-0 text-sm text-gray-0 dark:text-gray-0-dark">
+          {isPlural
+            ? "These options were recently added, please adjust your forecast(s) accordingly."
+            : "This option was recently added, please adjust your forecast(s) accordingly."}
+        </p>
+        {isPlural && newOptions.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {newOptions.map((optionName) => (
+              <span
+                key={optionName}
+                className="inline-flex items-center rounded-full bg-blue-700 px-2 py-0.5 text-xs text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark"
+              >
+                {optionName}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={scrollToNewOptions}>
+            Show New Options
+          </Button>
+          <Button
+            variant="text"
+            size="sm"
+            className="text-gray-0 hover:text-gray-100 dark:text-gray-0-dark dark:hover:text-gray-100-dark"
+            onClick={() => setDismissedOverlay(true)}
+          >
+            Dismiss
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      question.options.map((_, index) => {
-        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on question.options
+      allOptions.map((_, index) => {
+        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on allOptions
         // so there won't be a case where arrays are not of the same length
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const choiceOption = prev[index]!;
@@ -177,7 +261,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
+  }, [allOptions, question.my_forecasts?.latest?.forecast_values]);
 
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
@@ -190,7 +274,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
           const isInitialChange = prev.some((el) => el.forecast === null);
 
-          if (isInitialChange) {
+          if (isInitialChange && prevChoice.forecast === null) {
             // User is predicting for the first time. Show default non-null values
             // for remaining options after first interaction with the inputs.
             return { ...prevChoice, forecast: equalizedForecast };
@@ -213,6 +297,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     const newForecasts = choicesForecasts.map((choice, index) => {
       if (isNil(choice.forecast) || isNil(forecastsSum)) {
         return null;
+      }
+      if (!question.options.includes(choice.name)) {
+        return 0.0;
       }
 
       const value = round(
@@ -255,6 +342,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
       const forecastValue: Record<string, number> = {};
       choicesForecasts.forEach((el) => {
+        if (!question.options.includes(el.name)) {
+          return; // only submit forecasts for current options
+        }
         const forecast = el.forecast;
         if (!isNil(forecast)) {
           forecastValue[el.name] = round(
@@ -335,6 +425,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         isSubmissionDisabled={!isForecastValid}
         onSubmit={submit}
       />
+      {showOverlay && <NewOptionCallout />}
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
@@ -360,28 +451,45 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {choicesForecasts.map((choice) => (
-            <ForecastChoiceOption
-              key={choice.name}
-              id={choice.name}
-              forecastValue={choice.forecast}
-              defaultSliderValue={equalizedForecast}
-              choiceName={choice.name}
-              choiceColor={choice.color}
-              communityForecast={
-                !user || !hideCP ? choice.communityForecast : null
-              }
-              inputMin={BINARY_MIN_VALUE}
-              inputMax={BINARY_MAX_VALUE}
-              onChange={handleForecastChange}
-              isDirty={isDirty}
-              disabled={!canPredict}
-              optionResolution={{
-                type: "question",
-                resolution: question.resolution,
-              }}
-            />
-          ))}
+          {choicesForecasts.map((choice) => {
+            if (question.options.includes(choice.name)) {
+              const isFirstNewOption =
+                newOptions.length > 0 && choice.name === newOptions[0];
+              return (
+                <ForecastChoiceOption
+                  key={choice.name}
+                  id={choice.name}
+                  forecastValue={choice.forecast}
+                  defaultSliderValue={equalizedForecast}
+                  choiceName={choice.name}
+                  choiceColor={choice.color}
+                  communityForecast={
+                    !user || !hideCP ? choice.communityForecast : null
+                  }
+                  inputMin={BINARY_MIN_VALUE}
+                  inputMax={BINARY_MAX_VALUE}
+                  onChange={handleForecastChange}
+                  isDirty={isDirty}
+                  disabled={!canPredict}
+                  optionResolution={{
+                    type: "question",
+                    resolution: question.resolution,
+                  }}
+                  isNewOption={newOptions.includes(choice.name)}
+                  showHighlight={
+                    newOptions.includes(choice.name) &&
+                    !interactedOptions.has(choice.name)
+                  }
+                  onInteraction={() => {
+                    setInteractedOptions((prev) =>
+                      new Set(prev).add(choice.name)
+                    );
+                  }}
+                  rowRef={isFirstNewOption ? firstNewOptionRef : undefined}
+                />
+              );
+            }
+          })}
         </tbody>
       </table>
       {predictionMessage && (
@@ -501,8 +609,9 @@ function generateChoiceOptions(
   userLastForecast: UserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
+  const allOptions = getAllOptionsHistory(question);
 
-  const choiceItems = question.options.map((option, index) => {
+  const choiceItems = allOptions.map((option, index) => {
     const communityForecastValue = latest?.forecast_values[index];
     const userForecastValue = userLastForecast?.forecast_values[index];
 
@@ -518,8 +627,8 @@ function generateChoiceOptions(
         : null,
     };
   });
-  const resolutionIndex = question.options.findIndex(
-    (_, index) => question.options[index] === question.resolution
+  const resolutionIndex = allOptions.findIndex(
+    (_, index) => allOptions[index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);

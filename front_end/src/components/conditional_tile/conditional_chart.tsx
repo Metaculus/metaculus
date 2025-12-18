@@ -146,7 +146,12 @@ const ConditionalChart: FC<Props> = ({
           ? [
               {
                 pmf: cdfToPmf(aggregateLatest.forecast_values),
-                cdf: aggregateLatest.forecast_values,
+                cdf: aggregateLatest.forecast_values.map((v) => {
+                  if (v === null) {
+                    throw new Error("Forecast values contain null values");
+                  }
+                  return v;
+                }),
                 type: "community" as ContinuousAreaType,
               },
             ]
