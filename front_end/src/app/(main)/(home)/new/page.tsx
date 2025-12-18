@@ -20,6 +20,7 @@ import ResearchAndUpdates from "./components/research_and_updates";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
+import cn from "@/utils/core/cn";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -52,8 +53,10 @@ export default async function Home() {
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
+      <div className={cn(contentWidthClassNames, "pr-0")}>
+        <HeroCTAs className="pr-4" />
+      </div>
       <div className={contentWidthClassNames}>
-        <HeroCTAs />
         <WhyMetaculus className="mt-4 md:mt-8" />
         <HomePageForecasts
           initialPopularPosts={initialPopularPosts.results}
