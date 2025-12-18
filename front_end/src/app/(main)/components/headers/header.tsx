@@ -9,9 +9,7 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import NavUserButton from "@/components/auth";
-import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
-import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
@@ -100,12 +98,6 @@ const Header: FC = () => {
           )}
           <li className="z-10 flex h-full items-center justify-center">
             <NavUserButton />
-          </li>
-          <li className="z-10 flex h-full items-center p-2 hover:bg-blue-700">
-            <LanguageMenu />
-          </li>
-          <li className="z-10 flex items-center p-4">
-            <ThemeToggle />
           </li>
         </ul>
 
