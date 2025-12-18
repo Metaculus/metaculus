@@ -132,10 +132,10 @@ Install nvm with:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ```
-Then, install node 18.18.0:
+Then, install node 20.18.0:
 ```bash
-nvm install 18.18.0
-nvm use 18.18.0
+nvm install 20.18.0
+nvm use 20.18.0
 ```
 To install the frontend dependencies, run:
 ```bash
@@ -163,6 +163,7 @@ poetry run python manage.py runserver
 Running the front end is pretty easy. Note that you'll have to navigate to the `front_end` directory first.
 ```bash
 cd front_end
+nvm use 20.18.0 # If node 20.18.0 is not already being used
 npm run dev
 ```
 

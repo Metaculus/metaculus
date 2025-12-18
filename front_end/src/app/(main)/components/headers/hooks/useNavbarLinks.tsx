@@ -87,6 +87,10 @@ const useNavbarLinks = ({
           label: t("aggregationExplorer"),
           href: "/aggregation-explorer",
         },
+        aiBenchmark: {
+          label: t("aiBenchmark"),
+          href: "/aib",
+        },
         createQuestion: {
           label: <CreateQuestionButton />,
           href: "/questions/create/",
@@ -173,6 +177,7 @@ const useNavbarLinks = ({
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
+      LINKS.aiBenchmark,
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -194,6 +199,7 @@ const useNavbarLinks = ({
   }, [
     LINKS.about,
     LINKS.aggregationExplorer,
+    LINKS.aiBenchmark,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
@@ -233,6 +239,7 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
+            LINKS.aiBenchmark,
           ]),
     ];
 
@@ -305,6 +312,7 @@ const useNavbarLinks = ({
     LINKS.about,
     LINKS.services,
     LINKS.aggregationExplorer,
+    LINKS.aiBenchmark,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
