@@ -13,10 +13,12 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import { useAuth } from "@/contexts/auth_context";
 import { isPathEqual } from "@/utils/navigation";
 
 const SettingsHeader: FC = ({}) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const pathname = usePathname();
   const tabsOptions: GroupButton<string>[] = [
     {
@@ -29,11 +31,15 @@ const SettingsHeader: FC = ({}) => {
       label: <TabItem icon={faBell} label={t("settingsNotifications")} />,
       href: "/accounts/settings/notifications/",
     },
-    {
-      value: "bots",
-      label: <TabItem icon={faRobot} label={t("myForecastingBots")} />,
-      href: "/accounts/settings/bots/",
-    },
+    ...(!user?.is_bot
+      ? [
+          {
+            value: "bots",
+            label: <TabItem icon={faRobot} label={t("myForecastingBots")} />,
+            href: "/accounts/settings/bots/",
+          },
+        ]
+      : []),
     {
       value: "account",
       label: <TabItem icon={faUser} label={t("settingsAccount")} />,
