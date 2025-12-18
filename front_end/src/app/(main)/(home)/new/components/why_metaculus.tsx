@@ -282,7 +282,8 @@ const fetchSiteStats = async () => {
   try {
     return await ClientMiscApi.getSiteStats();
   } catch (error) {
-    console.error(error);
+    // silenty fail
+    return null;
   }
 };
 
