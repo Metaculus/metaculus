@@ -1,8 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import {
+  deleteImpersonatorSession,
+  getImpersonatorSession,
+  getServerSession,
+  setImpersonatorSession,
+  setServerSession,
+} from "@/services/session";
 import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
@@ -97,6 +105,40 @@ export async function getBotTokenAction(botId: number) {
     return {
       token: data.token,
     };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function stopImpersonatingAction() {
+  const impersonatorToken = await getImpersonatorSession();
+
+  if (impersonatorToken) {
+    await setServerSession(impersonatorToken);
+    await deleteImpersonatorSession();
+  }
+
+  redirect("/accounts/settings/bots/");
+}
+
+export async function impersonateBotAction(botId: number) {
+  try {
+    const userToken = await getServerSession();
+    const { token: botToken } = await ServerProfileApi.getBotToken(botId);
+
+    if (userToken) {
+      await setImpersonatorSession(userToken);
+    }
+
+    await setServerSession(botToken);
+
+    redirect("/");
   } catch (err) {
     if (!ApiError.isApiError(err)) {
       throw err;

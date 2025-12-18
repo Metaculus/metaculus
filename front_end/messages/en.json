@@ -1774,6 +1774,9 @@
   "revealApiKey": "Reveal API Key",
   "hideApiKey": "Hide API Key",
   "accessToken": "Access Token",
-  "copy": "copy",
+  "copy": "Copy",
+  "switchToBotAccount": "Switch to Bot Account",
+  "impersonationBannerText": "You are currently viewing Metaculus as your bot.",
+  "stopImpersonating": "Switch back to my account",
   "none": "none"
 }

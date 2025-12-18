@@ -1781,5 +1781,8 @@
   "hideApiKey": "Skrýt API klíč",
   "accessToken": "Přístupový token",
   "copy": "kopírovat",
+  "switchToBotAccount": "Přepnout na účet bota",
+  "impersonationBannerText": "Momentálně si prohlížíte Metaculus jako váš bot.",
+  "stopImpersonating": "Přepnout zpět na můj účet",
   "othersCount": "Ostatní ({count})"
 }

@@ -1783,5 +1783,8 @@
   "hideApiKey": "隐藏 API 密钥",
   "accessToken": "访问令牌",
   "copy": "复制",
+  "switchToBotAccount": "切换到机器人账户",
+  "impersonationBannerText": "您当前正在以机器人身份查看 Metaculus。",
+  "stopImpersonating": "切换回我的账户",
   "othersCount": "其他（{count}）"
 }

@@ -6,7 +6,10 @@ import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 import toast from "react-hot-toast";
 
-import { getBotTokenAction } from "@/app/(main)/accounts/settings/actions";
+import {
+  getBotTokenAction,
+  impersonateBotAction,
+} from "@/app/(main)/accounts/settings/actions";
 import Button from "@/components/ui/button";
 import { CurrentBot } from "@/types/users";
 import { extractError } from "@/utils/core/errors";
@@ -42,6 +45,18 @@ const BotControls: FC<Props> = ({ bot }) => {
     }
   };
 
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
+  const handleImpersonate = async () => {
+    setIsImpersonating(true);
+    const response = await impersonateBotAction(id);
+
+    if (response?.errors) {
+      setIsImpersonating(false);
+      toast.error(extractError(response.errors));
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
@@ -52,6 +67,16 @@ const BotControls: FC<Props> = ({ bot }) => {
         <Button size="xs" onClick={handleRevealKey} disabled={isLoading}>
           {apiToken ? t("hideApiKey") : t("revealApiKey")}
           {isLoading && (
+            <FontAwesomeIcon icon={faSpinner} spin className="ml-1" />
+          )}
+        </Button>
+        <Button
+          size="xs"
+          onClick={handleImpersonate}
+          disabled={isImpersonating}
+        >
+          {t("switchToBotAccount")}
+          {isImpersonating && (
             <FontAwesomeIcon icon={faSpinner} spin className="ml-1" />
           )}
         </Button>

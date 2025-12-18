@@ -1781,5 +1781,8 @@
   "hideApiKey": "Ocultar Clave API",
   "accessToken": "Token de Acceso",
   "copy": "copiar",
+  "switchToBotAccount": "Cambiar a cuenta de bot",
+  "impersonationBannerText": "Actualmente estás viendo Metaculus como tu bot.",
+  "stopImpersonating": "Volver a mi cuenta",
   "othersCount": "Otros ({count})"
 }
