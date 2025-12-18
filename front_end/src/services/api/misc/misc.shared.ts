@@ -40,7 +40,11 @@ class MiscApi extends ApiService {
   }
 
   async getSiteStats() {
-    return await this.get<SiteStats>("/get-site-stats/");
+    return await this.get<SiteStats>("/get-site-stats/", {
+      next: {
+        revalidate: 60 * 60 * 24, // 24 hours
+      },
+    });
   }
 }
 
