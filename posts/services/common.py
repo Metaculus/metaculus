@@ -12,6 +12,7 @@ from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
+from notifications.services import delete_scheduled_post_notifications
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -477,6 +478,15 @@ def send_back_to_review(post: Post):
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None
     post.save(update_fields=["curation_status", "open_time"])
+
+
+def soft_delete_post(post: Post):
+    """
+    Soft deletes a post by marking it as DELETED and cleaning up any scheduled notifications.
+    """
+    post.curation_status = Post.CurationStatus.DELETED
+    post.save(update_fields=["curation_status"])
+    delete_scheduled_post_notifications(post)
 
 
 def get_posts_staff_users(

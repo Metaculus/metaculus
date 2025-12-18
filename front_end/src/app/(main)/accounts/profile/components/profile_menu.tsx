@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
 import { isPathEqual } from "@/utils/navigation";
 
@@ -16,7 +17,10 @@ const ProfileMenu: FC<Props> = ({
   profile: { id, comments_count, posts_authored_count },
 }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const pathname = usePathname();
+  const isCurrentUser = user?.id === id;
+
   const tabsOptions: GroupButton<string>[] = [
     {
       value: "overview",
@@ -48,6 +52,15 @@ const ProfileMenu: FC<Props> = ({
             value: "questions",
             label: t("questions"),
             href: `/accounts/profile/${id}/questions/`,
+          },
+        ]
+      : []),
+    ...(isCurrentUser
+      ? [
+          {
+            value: "privateNotes",
+            label: t("privateNotes"),
+            href: `/accounts/profile/${id}/private-notes/`,
           },
         ]
       : []),
