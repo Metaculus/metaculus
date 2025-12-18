@@ -1,0 +1,59 @@
+"use client";
+
+import React, { ChangeEvent, useEffect, useState } from "react";
+
+import ExpandableSearchInput from "@/components/expandable_search_input";
+import useSearchInputState from "@/hooks/use_search_input_state";
+
+import TournamentsTabs from "./tournament_tabs";
+import TournamentsFilter from "./tournaments_filter";
+import { TOURNAMENTS_SEARCH } from "../../constants/query_params";
+import { TournamentsSection } from "../../types";
+
+type Props = { current: TournamentsSection };
+
+const TournamentsHeader: React.FC<Props> = ({ current }) => {
+  const [searchQuery, setSearchQuery] = useSearchInputState(
+    TOURNAMENTS_SEARCH,
+    {
+      mode: "client",
+      debounceTime: 300,
+      modifySearchParams: true,
+    }
+  );
+
+  const [draftQuery, setDraftQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    setDraftQuery(searchQuery);
+  }, [searchQuery]);
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = event.target.value;
+    setDraftQuery(next);
+    setSearchQuery(next);
+  };
+
+  const handleSearchErase = () => {
+    setDraftQuery("");
+    setSearchQuery("");
+  };
+
+  return (
+    <div className="flex items-center justify-between">
+      <TournamentsTabs current={current} />
+      <div className="flex items-center gap-3">
+        <TournamentsFilter />
+        <ExpandableSearchInput
+          value={draftQuery}
+          onChange={handleSearchChange}
+          onErase={handleSearchErase}
+          placeholder="search..."
+          expandedWidthClassName="w-[176px]"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default TournamentsHeader;
