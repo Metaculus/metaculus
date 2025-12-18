@@ -1,5 +1,11 @@
 import { useTheme } from "next-themes";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { useAuth } from "@/contexts/auth_context";
@@ -15,6 +21,10 @@ const useAppTheme = () => {
   } = useTheme();
   const [isSyncing, setIsSyncing] = useState<boolean>();
   const { user, setUser } = useAuth();
+
+  const theme = useMemo(() => {
+    return (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
+  }, [forcedTheme, resolvedTheme]);
 
   const setTheme = useCallback(
     async (newTheme: AppTheme) => {
@@ -35,20 +45,12 @@ const useAppTheme = () => {
   );
 
   const getThemeColor = useCallback(
-    (color: ThemeColor) => {
-      if (resolvedTheme === "dark") {
-        return color.dark;
-      }
-
-      return color.DEFAULT;
-    },
-    [resolvedTheme]
+    (color: ThemeColor) => (theme === "dark" ? color.dark : color.DEFAULT),
+    [theme]
   );
 
   return {
-    // Currently active theme respecting Forced selection
-    // Could be dark or light
-    theme: (forcedTheme ?? resolvedTheme) as AppTheme,
+    theme,
     // Currently selected theme. Could be dark, light or system
     themeChoice: themeChoice ?? AppTheme.System,
     isSyncing,
