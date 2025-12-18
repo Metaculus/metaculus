@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
+import { getProjectLink } from "@/utils/navigation";
 
 const TournamentsSection: FC<{ className?: string }> = async ({
   className,
@@ -41,11 +42,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
         {tournaments.map((tournament) => (
           <TournamentCard
             key={tournament.id}
-            href={
-              tournament.slug
-                ? `/tournament/${tournament.slug}`
-                : `/tournament/${tournament.id}`
-            }
+            href={getProjectLink(tournament)}
             headerImageSrc={tournament.header_image}
             name={tournament.name}
             questionsCount={tournament.questions_count}
