@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { CoherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
+import { AggregateLinkVoteValue } from "@/services/api/coherence_links/coherence_links.shared";
 import ServerCommentsApi from "@/services/api/comments/comments.server";
 import {
   CommentReportReason,
@@ -23,7 +24,10 @@ import ServerQuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/api/questions/questions.server";
-import { CoherenceLink } from "@/types/coherence";
+import {
+  AggregateCoherenceLinkVotesSummary,
+  CoherenceLink,
+} from "@/types/coherence";
 import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
 import { Tournament, TournamentType } from "@/types/projects";
@@ -143,6 +147,10 @@ export async function deletePost(postId: number) {
 
 export async function sendBackToReview(postId: number) {
   return await ServerPostsApi.sendBackToReview(postId);
+}
+
+export async function savePrivateNote(postId: number, text: string) {
+  return await ServerPostsApi.savePrivateNote(postId, text);
 }
 
 export async function updateNotebook(
@@ -397,4 +405,25 @@ export async function replyToComment(
     text,
     is_private: false,
   });
+}
+
+export type VoteAggregateCoherenceLinkResult =
+  | { data: AggregateCoherenceLinkVotesSummary }
+  | { errors: ErrorResponse };
+
+export async function voteAggregateCoherenceLink(
+  aggregationId: number,
+  vote: AggregateLinkVoteValue
+): Promise<VoteAggregateCoherenceLinkResult> {
+  try {
+    const data = await CoherenceLinksApiClass.voteAggregateCoherenceLink(
+      aggregationId,
+      vote
+    );
+    return { data };
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : {},
+    };
+  }
 }

@@ -1,6 +1,6 @@
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useId } from "react";
 
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
@@ -10,13 +10,14 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 };
 
 const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+  const gradientId = useId();
 
   const questionCP =
     question.aggregations[question.default_aggregation_method]?.latest
@@ -77,6 +78,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       className={cn(
         "relative flex origin-top items-center justify-center",
         {
+          "scale-[0.5]": size === "xs",
           "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
           "mb-4 scale-[1.25]": size === "lg",
@@ -87,7 +89,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
-            id={`progressGradient-${question.id}-${size}`}
+            id={gradientId}
             x1={gradientStartX}
             y1={gradientStartY}
             x2={gradientEndX}
@@ -118,7 +120,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           <path
             d={progressArc.path}
             fill="none"
-            stroke={`url(#progressGradient-${question.id}-${size})`}
+            stroke={`url(#${gradientId})`}
             strokeWidth={strokeWidth}
           />
         )}
@@ -150,14 +152,25 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       </svg>
       <div
         className={cn(
-          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
-          textClass
+          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center",
+          textClass,
+          size === "xs" && "bottom-[10px] scale-[200%]"
         )}
       >
-        <span className="text-xl font-bold leading-8">
+        <span
+          className={cn(
+            "font-bold",
+            size === "xs" ? "text-[12px] leading-4" : "text-xl leading-8"
+          )}
+        >
           {cpPercentage != null ? `${cpPercentage}%` : "%"}
         </span>
-        <span className="text-xs font-normal uppercase leading-none">
+        <span
+          className={cn(
+            "font-normal uppercase",
+            size === "xs" ? "text-[6px] leading-[6px]" : "text-xs leading-none"
+          )}
+        >
           {t("chance")}
         </span>
       </div>

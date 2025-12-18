@@ -10,8 +10,8 @@ import {
   getAlphaTokenSession,
   getServerSession,
 } from "@/services/session";
-import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
+import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function middleware(request: NextRequest) {
@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
     try {
       await ServerAuthApi.verifyToken();
     } catch (error) {
-      const errorResponse = error as ErrorResponse;
+      const errorResponse = error as ApiError;
 
       if (errorResponse?.response?.status === 403) {
         request.cookies.delete(COOKIE_NAME_TOKEN);

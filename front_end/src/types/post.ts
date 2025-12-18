@@ -115,6 +115,11 @@ export type Notebook = {
   markdown_summary: string;
 };
 
+export type PostPrivateNote = {
+  text: string;
+  updated_at: string;
+};
+
 type BasePost = {
   id: number;
   projects: {
@@ -155,6 +160,7 @@ type BasePost = {
   unread_comment_count?: number;
   last_viewed_at?: string;
   is_current_content_translated?: boolean;
+  private_note?: PostPrivateNote | null;
   key_factors?: KeyFactor[];
   html_metadata_json?: {
     title: string;

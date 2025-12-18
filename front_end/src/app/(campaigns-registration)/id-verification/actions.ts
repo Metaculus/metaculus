@@ -56,7 +56,7 @@ export async function initiateStripeVerification(
 ): Promise<StripeVerificationResponse> {
   try {
     const bw_registation_data = user.registered_campaigns.find(
-      (c) => c.key === "bw_q4_2024"
+      (c) => c.key === "bw_q1_2026"
     ) as { details: { full_name: string } } | undefined;
 
     const bw_reg_full_name = bw_registation_data?.details?.full_name;

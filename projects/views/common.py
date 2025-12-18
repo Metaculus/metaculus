@@ -16,10 +16,10 @@ from projects.serializers.common import (
     CategorySerializer,
     TournamentSerializer,
     ProjectUserSerializer,
-    TournamentShortSerializer,
     NewsCategorySerialize,
     LeaderboardTagSerializer,
     serialize_index_data,
+    serialize_tournaments_with_counts,
 )
 from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import (
@@ -135,24 +135,23 @@ def tournaments_list_api_view(request: Request):
         .prefetch_related("primary_leaderboard")
     )
 
-    # Get all projects without the expensive annotation
-    projects: list[Project] = list(qs.all())
+    data = serialize_tournaments_with_counts(
+        qs, sort_key=lambda x: x["questions_count"]
+    )
+    return Response(data)
 
-    # Get questions count using cached bulk operation
-    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
 
-    data = []
-    for obj in projects:
-        serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
-        serialized_tournament["forecasts_count"] = obj.forecasts_count
-        serialized_tournament["forecasters_count"] = obj.forecasters_count
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def minibench_tournaments_api_view(request: Request):
+    qs = (
+        get_projects_qs(user=request.user)
+        .filter_tournament()
+        .filter(slug__icontains="minibench")
+        .prefetch_related("primary_leaderboard")
+    )
 
-        data.append(serialized_tournament)
-
-    # Sort by questions_count descending
-    data.sort(key=lambda x: x["questions_count"], reverse=True)
-
+    data = serialize_tournaments_with_counts(qs, sort_key=lambda x: x["start_date"])
     return Response(data)
 
 

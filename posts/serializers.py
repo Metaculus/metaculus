@@ -3,6 +3,7 @@ from typing import Union, Iterable
 
 from django.db import models
 from django.db.models import QuerySet
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -43,7 +44,7 @@ from questions.services.movement import (
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
-from .models import Notebook, Post, PostSubscription
+from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
 
 logger = logging.getLogger(__name__)
@@ -426,6 +427,15 @@ def serialize_post(
             {
                 "unread_comment_count": unread_comment_count,
                 "last_viewed_at": snapshot.viewed_at,
+                # User private notes
+                "private_note": (
+                    {
+                        "text": snapshot.private_note,
+                        "updated_at": snapshot.private_note_updated_at,
+                    }
+                    if snapshot.private_note
+                    else None
+                ),
             }
         )
 
@@ -696,4 +706,27 @@ def serialize_posts_many_forecast_flow(
             ),
         }
         for post in posts
+    ]
+
+
+def serialize_private_notes_many(entries: Iterable[PostUserSnapshot]):
+    # Get original ordering of the comments
+    ids = [p.pk for p in entries]
+    qs = PostUserSnapshot.objects.filter(pk__in=ids).select_related("post")
+
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    return [
+        {
+            "post": {
+                "id": obj.post_id,
+                "title": obj.post.title,
+                "slug": slugify(obj.post.get_short_title()),
+            },
+            "text": obj.private_note,
+            "updated_at": obj.private_note_updated_at,
+        }
+        for obj in objects
     ]

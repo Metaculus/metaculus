@@ -200,6 +200,7 @@ class UserAdmin(admin.ModelAdmin):
         ProFilter,
         BotFilter,
     ]
+    readonly_fields = ["old_usernames"]
 
     def get_actions(self, request):
         actions = super().get_actions(request)

@@ -15,6 +15,7 @@ export type SectionVariant =
   | "primary"
   | "light"
   | "gold"
+  | "orange"
   | "transparent"
   | "dark";
 
@@ -58,6 +59,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
             ),
             "bg-gray-0 dark:bg-gray-0-dark": variant === "light",
             "bg-gold-200 dark:bg-gold-200-dark": variant === "gold",
+            "bg-orange-100 dark:bg-orange-100-dark": variant === "orange",
             "bg-transparent dark:bg-transparent": variant === "transparent",
             "bg-opacity-50": !open,
           })}
@@ -88,6 +90,14 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
                     "hover:text-gray-800 hover:dark:text-gray-800-dark": true,
                     "text-gray-800 dark:text-gray-800-dark": open,
                     "text-gray-600 dark:text-gray-600-dark": !open,
+                  }),
+
+                  // Orange variant
+                  ...(variant === "orange" && {
+                    "hover:text-orange-900 hover:dark:text-orange-900-dark":
+                      true,
+                    "text-orange-900 dark:text-orange-900-dark": open,
+                    "text-orange-800 dark:text-orange-800-dark": !open,
                   }),
 
                   // Dark variant

@@ -112,17 +112,6 @@ const FeedSidebar: FC<Props> = ({ items }) => {
                   },
                 ]
               : []),
-            {
-              name: t("communities"),
-              emoji: "👥",
-              onClick: () => {
-                sendAnalyticsEvent("sidebarClick", {
-                  event_category: "Communities",
-                });
-              },
-              url: getFeedUrl(FeedType.COMMUNITIES),
-              isActive: currentFeed == FeedType.COMMUNITIES,
-            },
           ]
         : []),
       ...items.map((obj) => convertSidebarItem(obj, fullPathname)),

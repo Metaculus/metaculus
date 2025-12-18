@@ -59,6 +59,10 @@ const useNavbarLinks = ({
           label: t("news"),
           href: "/news/",
         },
+        communities: {
+          label: t("communities"),
+          href: "/questions/?feed=communities",
+        },
         about: {
           label: t("aboutMetaculus"),
           href: "/about/",
@@ -82,6 +86,10 @@ const useNavbarLinks = ({
         aggregationExplorer: {
           label: t("aggregationExplorer"),
           href: "/aggregation-explorer",
+        },
+        aiBenchmark: {
+          label: t("aiBenchmark"),
+          href: "/aib",
         },
         createQuestion: {
           label: <CreateQuestionButton />,
@@ -165,9 +173,11 @@ const useNavbarLinks = ({
   const menuLinks = useMemo(() => {
     // common links that are always shown
     const links: NavbarLinkDefinition[] = [
+      LINKS.communities,
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
+      LINKS.aiBenchmark,
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -189,6 +199,7 @@ const useNavbarLinks = ({
   }, [
     LINKS.about,
     LINKS.aggregationExplorer,
+    LINKS.aiBenchmark,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
@@ -219,6 +230,7 @@ const useNavbarLinks = ({
             },
             LINKS.services,
             LINKS.news,
+            LINKS.communities,
             { href: null, label: t("more"), isTitle: true },
             LINKS.leaderboards,
             LINKS.about,
@@ -227,6 +239,7 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
+            LINKS.aiBenchmark,
           ]),
     ];
 
@@ -299,6 +312,7 @@ const useNavbarLinks = ({
     LINKS.about,
     LINKS.services,
     LINKS.aggregationExplorer,
+    LINKS.aiBenchmark,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,

@@ -29,6 +29,7 @@ def send_activation_email(user: User, redirect_url: str | None):
             "username": user.username,
             "activation_link": activation_link,
             "redirect_url": redirect_url,
+            "public_app_url": settings.PUBLIC_APP_URL,
         },
         from_email=settings.EMAIL_HOST_USER,
     )

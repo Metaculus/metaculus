@@ -2,6 +2,7 @@
 
 import { faFacebook } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useState } from "react";
 
@@ -10,6 +11,7 @@ import { Google } from "@/components/icons/google";
 import Button from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { SocialProvider } from "@/types/auth";
+import { addUrlParams } from "@/utils/navigation";
 
 type SocialButtonsType = {
   type: "signin" | "signup";
@@ -18,12 +20,21 @@ type SocialButtonsType = {
 const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
   const t = useTranslations();
   const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
+  const pathname = usePathname();
 
   useEffect(() => {
     getSocialProviders()
       .then(setSocialProviders)
       .catch(() => setSocialProviders([]));
   }, []);
+
+  const constructSocialUrl = (originalUrl: string) =>
+    addUrlParams(originalUrl, [
+      {
+        paramName: "state",
+        paramValue: JSON.stringify({ redirect: pathname }),
+      },
+    ]);
 
   return (
     <>
@@ -35,7 +46,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
               return (
                 <Button
                   key={provider.name}
-                  href={provider.auth_url}
+                  href={constructSocialUrl(provider.auth_url)}
                   variant="tertiary"
                   size="sm"
                   className="w-full"
@@ -52,7 +63,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
               return (
                 <Button
                   key={provider.name}
-                  href={provider.auth_url}
+                  href={constructSocialUrl(provider.auth_url)}
                   variant="tertiary"
                   size="sm"
                   className="w-full"

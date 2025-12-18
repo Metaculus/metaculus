@@ -163,15 +163,15 @@ export const redditPixelTrack = (eventName = "PageVisit") => {
 };
 
 export const bwInitAndTrackRegistrationIfConsent = () => {
+  // Save tot he local storage that the user has registed to this campaign
+  window.localStorage.setItem("bw_registration_campaign", "true");
+
   const consent =
     typeof window !== "undefined"
       ? getAnalyticsCookieConsentGiven()
       : "undecided";
 
   if (consent !== "yes") return;
-
-  // Save tot he local storage that the user has registed to this campaign
-  window.localStorage.setItem("bw_registration_campaign", "true");
 
   // Facebook Pixel
   if (PIXEL_CONSTANTS.FACEBOOK) {

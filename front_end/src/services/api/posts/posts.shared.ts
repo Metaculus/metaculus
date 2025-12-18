@@ -53,6 +53,12 @@ export type ApprovePostParams = {
   scheduled_resolve_time: string | undefined;
 };
 
+export type PrivateNoteWithPost = {
+  post: { id: number; title: string; slug: string };
+  text: string;
+  updated_at: string;
+};
+
 export type BoostDirection = 1 | -1;
 
 class PostsApi extends ApiService {
@@ -219,6 +225,15 @@ class PostsApi extends ApiService {
     const queryParams = encodeQueryParams(params);
     return await this.get<WhitelistStatus>(
       `/get-whitelist-status/${queryParams}`
+    );
+  }
+
+  async getPrivateNotes(
+    params?: PaginationParams
+  ): Promise<PaginatedPayload<PrivateNoteWithPost>> {
+    const queryParams = encodeQueryParams(params ?? {});
+    return await this.get<PaginatedPayload<PrivateNoteWithPost>>(
+      `/posts/private-notes/${queryParams}`
     );
   }
 }

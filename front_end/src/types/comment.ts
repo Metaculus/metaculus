@@ -64,6 +64,7 @@ export type ForecastType = {
 
 export enum KeyFactorVoteTypes {
   STRENGTH = "strength",
+  DIRECTION = "direction",
 }
 
 export enum StrengthValues {
@@ -78,10 +79,7 @@ export type KeyFactorVoteType =
 
 export type StrengthVoteOption = 0 | 1 | 2 | 5;
 
-// TODO: drop Legacy AB-test scores
-type KeyFactorVoteA = -1 | 1 | null;
-type KeyFactorVoteBAndC = -5 | -3 | -2 | 0 | 2 | 3 | 5;
-export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
+export type KeyFactorVoteScore = -5 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 5 | null;
 
 export type KeyFactorVote = {
   vote_type: KeyFactorVoteType;
@@ -109,9 +107,35 @@ export type Driver = ImpactMetadata & {
   text: string;
 };
 
+export type BaseRate = {
+  type: "frequency" | "trend";
+  reference_class: string;
+
+  rate_numerator?: number | null;
+  rate_denominator?: number | null;
+
+  projected_value?: number | null;
+  projected_by_year?: number | null;
+
+  unit: string;
+  extrapolation?: "" | "linear" | "exponential" | "other";
+  based_on?: string;
+  source: string;
+};
+
+export type News = ImpactMetadata & {
+  url: string;
+  title: string;
+  img_url?: string;
+  source: string;
+  published_at?: string;
+};
+
 export type KeyFactor = {
   id: number;
-  driver: Driver;
+  driver?: Driver | null;
+  base_rate?: BaseRate | null;
+  news?: News | null;
   author: AuthorType; // used to set limit per question
   comment_id: number;
   vote: KeyFactorVoteAggregate;
@@ -135,9 +159,10 @@ export type KeyFactorVoteAggregate = {
   // Aggregated strength score
   score: number;
   // Current user's vote
-  user_vote: StrengthVoteOption | null;
+  user_vote: KeyFactorVoteScore;
   // Total number of votes
   count: number;
+  aggregated_data: { score: number; count: number }[];
 };
 
 type DraftBase = {

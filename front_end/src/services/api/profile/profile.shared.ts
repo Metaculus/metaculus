@@ -1,10 +1,10 @@
 import { ApiService } from "@/services/api/api_service";
 import { PaginatedPayload } from "@/types/fetch";
-import { CurrentUser, UserProfile } from "@/types/users";
+import { UserProfile } from "@/types/users";
 
 class ProfileApi extends ApiService {
-  async getProfileById(id: number): Promise<CurrentUser> {
-    return await this.get<CurrentUser>(`/users/${id}/`);
+  async getProfileById(id: number): Promise<UserProfile> {
+    return await this.get<UserProfile>(`/users/${id}/`);
   }
 
   async searchUsers(query: string) {
