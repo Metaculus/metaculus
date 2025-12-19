@@ -5,13 +5,13 @@ import { useTranslations } from "next-intl";
 import { FC, useState, useTransition } from "react";
 
 import PostCard from "@/components/post_card";
+import { useBreakpoint } from "@/hooks/tailwind";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import { ExploreImagesGrid } from "./ExploreImagesGrid";
 import { FILTERS, TABS, TabId } from "./homepage_filters";
-import { useBreakpoint } from "@/hooks/tailwind";
 
 type Props = {
   initialPopularPosts: PostWithForecasts[];
