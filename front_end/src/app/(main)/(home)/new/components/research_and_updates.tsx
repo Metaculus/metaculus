@@ -51,7 +51,7 @@ const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {posts.slice(0, 4).map((post, index) => (
-          <PostCard key={post.id} post={post} index={index} locale={locale} />
+          <NotebookCard key={post.id} post={post} index={index} locale={locale} />
         ))}
       </div>
     </section>
@@ -64,7 +64,7 @@ type PostCardProps = {
   locale: string;
 };
 
-const PostCard: FC<PostCardProps> = async ({ post, index, locale }) => {
+const NotebookCard: FC<PostCardProps> = async ({ post, index, locale }) => {
   const t = await getTranslations();
   const {
     title,
@@ -97,7 +97,7 @@ const PostCard: FC<PostCardProps> = async ({ post, index, locale }) => {
       )}
     >
       <div className="p-3 pb-0">
-        {notebook.image_url && false ? (
+        {notebook.image_url ? (
           <Image
             src={notebook.image_url}
             alt=""
@@ -115,7 +115,7 @@ const PostCard: FC<PostCardProps> = async ({ post, index, locale }) => {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col justify-between gap-2 p-4">
+      <div className="flex flex-1 flex-col justify-between gap-8 p-4">
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium leading-3 text-gray-500 dark:text-gray-500-dark">
             {intlFormat(
@@ -136,11 +136,11 @@ const PostCard: FC<PostCardProps> = async ({ post, index, locale }) => {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium leading-5 text-gray-900 dark:text-gray-900-dark">
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-normal leading-5 text-gray-900 dark:text-gray-900-dark">
             {author_username}
           </span>
-          <div className="flex items-center gap-1 text-sm font-medium leading-5">
+          <div className="flex items-center gap-1 text-sm font-normal leading-5">
             <span className="text-gray-500 dark:text-gray-500-dark">
               {comment_count} {t("commentsWithCount", { count: comment_count })}
             </span>
