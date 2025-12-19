@@ -112,7 +112,12 @@ const HeroCTAs: FC<Props> = ({
 }) => {
   const t = useTranslations();
   return (
-    <section className={cn("flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)}>
+    <section
+      className={cn(
+        "flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        className
+      )}
+    >
       <HeroCTACard
         href={individualsHref}
         topTitle={t("forIndividuals")}
