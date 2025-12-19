@@ -38,18 +38,14 @@ export const APP_LANGUAGES = [
     name: "繁體中文",
     locale: "zh-TW",
   },
+  {
+    name: "Untranslated",
+    locale: "original", // Check the translations documentation why this is the case
+  },
 ];
 
 const LanguageMenu: FC<Props> = ({ className }) => {
   const locale = useLocale();
-
-  const languageMenuItems = [
-    ...APP_LANGUAGES,
-    {
-      name: "Untranslated",
-      locale: "original", // Check the translations documentation why this is the case
-    },
-  ];
 
   return (
     <Menu>
@@ -67,7 +63,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
         anchor="bottom"
         className="z-[200] border border-blue-200-dark bg-blue-900 text-sm text-gray-0 md:z-100 md:mt-2"
       >
-        {languageMenuItems.map((item) => {
+        {APP_LANGUAGES.map((item) => {
           return (
             <MenuItem
               key={item.locale}
