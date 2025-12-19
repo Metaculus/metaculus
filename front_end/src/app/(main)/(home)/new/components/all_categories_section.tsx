@@ -6,9 +6,9 @@ import {
   POST_CATEGORIES_FILTER,
   POST_FOR_MAIN_FEED,
 } from "@/constants/posts_feed";
+import { Post } from "@/types/post";
 import { Category } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { Post } from "@/types/post";
 
 type CategoryWithPosts = Category & { posts: Post[] };
 

@@ -7,6 +7,7 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { NotebookPost } from "@/types/post";
+import cn from "@/utils/core/cn";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
@@ -20,7 +21,6 @@ import ResearchAndUpdates from "./components/research_and_updates";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
 import WhyMetaculus from "./components/why_metaculus";
-import cn from "@/utils/core/cn";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
