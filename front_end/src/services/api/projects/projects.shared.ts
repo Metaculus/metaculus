@@ -1,6 +1,6 @@
 import { ApiService } from "@/services/api/api_service";
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
-import { ProjectPermissions } from "@/types/post";
+import { Post, ProjectPermissions } from "@/types/post";
 import {
   Category,
   Community,
@@ -38,8 +38,8 @@ class ProjectsApi extends ApiService {
     return await this.get<Category[]>("/projects/categories/");
   }
 
-  async getHomepageCategories(): Promise<(Category & { posts: string[] })[]> {
-    return await this.get<(Category & { posts: string[] })[]>(
+  async getHomepageCategories(): Promise<(Category & { posts: Post[] })[]> {
+    return await this.get<(Category & { posts: Post[] })[]>(
       `/projects/homepage_categories/`
     );
   }

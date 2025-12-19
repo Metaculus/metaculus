@@ -8,7 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from posts.models import Post
-from posts.serializers import serialize_posts_many_forecast_flow
+from posts.serializers import serialize_posts_many_forecast_flow, serialize_post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -87,12 +87,25 @@ def homepage_categories_list_api_view(request: Request):
     qs = (
         get_projects_qs(user=request.user)
         .filter_category()
-        .annotate_top_n_post_titles()
+        .annotate_categories_with_top_n_posts_ids()
     )
 
+    categories = list(qs.all())
+    all_post_ids = set()
+    for cat in categories:
+        all_post_ids.update(cat.top_n_post_ids or [])
+
+    posts = Post.objects.filter(id__in=all_post_ids)
+    posts_map = {p.id: serialize_post(p) for p in posts}
+
     data = [
-        {**CategorySerializer(obj).data, "posts": obj.top_n_post_titles}
-        for obj in qs.all()
+        {
+            **CategorySerializer(obj).data,
+            "posts": [
+                posts_map[pid] for pid in (obj.top_n_post_ids or []) if pid in posts_map
+            ],
+        }
+        for obj in categories
     ]
 
     return Response(data)
