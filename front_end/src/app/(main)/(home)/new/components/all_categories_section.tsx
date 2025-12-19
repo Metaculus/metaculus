@@ -9,7 +9,7 @@ import {
 import { Category } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
-type CategoryWithPosts = Category & { post_titles: string[] };
+type CategoryWithPosts = Category & { posts: string[] };
 
 type Props = {
   categories: CategoryWithPosts[];
@@ -60,9 +60,9 @@ const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
         </span>
       </Link>
 
-      {category.post_titles && category.post_titles.length > 0 && (
+      {category.posts && category.posts.length > 0 && (
         <div className="hidden flex-col gap-2.5 md:flex">
-          {category.post_titles.slice(0, 3).map((title, index) => (
+          {category.posts.slice(0, 3).map((title, index) => (
             <div key={index}>
               <div className="flex text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
                 <span className="mr-1 shrink-0 text-gray-500 dark:text-gray-500-dark">
@@ -70,7 +70,7 @@ const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
                 </span>
                 <span>{title}</span>
               </div>
-              {index < Math.min(category.post_titles.length, 3) - 1 && (
+              {index < Math.min(category.posts.length, 3) - 1 && (
                 <hr className="my-2.5 border-t border-gray-300 dark:border-gray-300-dark" />
               )}
             </div>
