@@ -151,7 +151,7 @@ const FutureEvalSection: FC<{ className?: string }> = async ({ className }) => {
           <h2 className="m-0 text-xl font-bold leading-7 text-gray-1000 dark:text-gray-1000-dark">
             {t("metaculusFutureEval")}
           </h2>
-          <p className="m-0 text-base font-medium leading-6 text-gray-1000 dark:text-gray-1000-dark">
+          <p className="m-0 text-base font-normal leading-6 text-gray-1000 dark:text-gray-1000-dark">
             {t("futureEvalDescription")}
           </p>
         </div>
@@ -159,7 +159,7 @@ const FutureEvalSection: FC<{ className?: string }> = async ({ className }) => {
           href="/futureeval/"
           variant="secondary"
           size="md"
-          className="shrink-0 whitespace-nowrap"
+          className="shrink-0 whitespace-nowrap font-normal"
         >
           {t("explore")} →
         </Button>
