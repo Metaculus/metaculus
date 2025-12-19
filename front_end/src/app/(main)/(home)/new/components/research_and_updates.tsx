@@ -51,7 +51,12 @@ const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {posts.slice(0, 4).map((post, index) => (
-          <NotebookCard key={post.id} post={post} index={index} locale={locale} />
+          <NotebookCard
+            key={post.id}
+            post={post}
+            index={index}
+            locale={locale}
+          />
         ))}
       </div>
     </section>
