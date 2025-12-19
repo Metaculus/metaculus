@@ -22,16 +22,19 @@ type Props = {
   bot: CurrentBot;
 };
 
+const getZodSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    username: z.string().min(1, t("errorRequired")),
+    bio: z.string().optional(),
+    website: z.string().optional(),
+  });
+
 const BotUpdateButton: FC<Props> = ({ bot }) => {
   const t = useTranslations();
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const schema = z.object({
-    username: z.string().min(1, t("errorRequired")),
-    bio: z.string().optional(),
-    website: z.string().optional(),
-  });
+  const schema = getZodSchema(t);
 
   type FormData = z.infer<typeof schema>;
 
@@ -41,6 +44,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
+    reset,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -71,6 +75,11 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
     }
   };
 
+  const handleClose = () => {
+    setIsEditModalOpen(false);
+    reset();
+  };
+
   return (
     <>
       <Button size="xs" onClick={() => setIsEditModalOpen(true)}>
@@ -79,7 +88,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
 
       <BaseModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={handleClose}
         label={t("editProfile")}
         className="mx-3 max-w-md"
         withCloseButton
@@ -121,7 +130,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button
-              onClick={() => setIsEditModalOpen(false)}
+              onClick={handleClose}
               disabled={isSubmitting}
               variant="secondary"
             >

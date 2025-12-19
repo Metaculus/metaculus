@@ -49,11 +49,15 @@ const BotControls: FC<Props> = ({ bot }) => {
 
   const handleImpersonate = async () => {
     setIsImpersonating(true);
-    const response = await impersonateBotAction(id);
 
-    if (response?.errors) {
+    try {
+      const response = await impersonateBotAction(id);
+
+      if (response?.errors) {
+        toast.error(extractError(response.errors));
+      }
+    } finally {
       setIsImpersonating(false);
-      toast.error(extractError(response.errors));
     }
   };
 

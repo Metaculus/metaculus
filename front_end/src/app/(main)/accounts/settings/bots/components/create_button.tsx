@@ -22,22 +22,25 @@ type Props = {
   disabled?: boolean;
 };
 
+const getZodSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    username: z.string().min(1, t("errorRequired")),
+  });
+
 const BotCreateButton: FC<Props> = ({ disabled }) => {
   const t = useTranslations();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [successToken, setSuccessToken] = useState<string | null>();
+  const [successToken, setSuccessToken] = useState<string | null | undefined>();
   const { user } = useAuth();
 
   useEffect(() => {
     if (window.location.hash === "#create" && !disabled) {
       setIsModalOpen(true);
     }
-  }, []);
+  }, [disabled]);
 
-  const schema = z.object({
-    username: z.string().min(1, t("errorRequired")),
-  });
+  const schema = getZodSchema(t);
 
   type FormData = z.infer<typeof schema>;
 
@@ -69,6 +72,13 @@ const BotCreateButton: FC<Props> = ({ disabled }) => {
     setIsModalOpen(false);
     setSuccessToken(null);
     reset();
+    if (window.location.hash === "#create") {
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search
+      );
+    }
   };
 
   return (
