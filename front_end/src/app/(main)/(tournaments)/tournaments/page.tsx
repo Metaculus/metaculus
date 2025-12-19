@@ -30,8 +30,8 @@ const LiveTournamentsPage: React.FC = async () => {
   }
 
   return (
-    <TournamentsScreen current="live">
-      <LiveTournamentsGrid tournaments={tournaments} />
+    <TournamentsScreen current="live" tournaments={tournaments}>
+      <LiveTournamentsGrid />
     </TournamentsScreen>
   );
 };

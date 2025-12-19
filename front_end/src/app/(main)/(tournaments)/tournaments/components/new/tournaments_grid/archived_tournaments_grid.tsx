@@ -1,22 +1,18 @@
 "use client";
-import { TournamentPreview } from "@/types/projects";
+
+import React from "react";
 
 import TournamentsGrid from "./tournaments_grid";
-import { selectTournamentsForSection } from "../../../helpers";
+import { useTournamentsSection } from "../tournaments_provider";
 
-type Props = {
-  tournaments: TournamentPreview[];
-};
+const ArchivedTournamentsGrid: React.FC = () => {
+  const { items } = useTournamentsSection();
 
-const ArchivedTournamentsGrid: React.FC<Props> = ({ tournaments }) => {
-  const list = selectTournamentsForSection(tournaments, "archived");
   return (
-    <TournamentsGrid
-      items={list}
-      render={(filtered) => (
-        <div className="text-lg">Archived Tournaments ({filtered.length})</div>
-      )}
-    />
+    <div>
+      <div className="text-lg">Archived Tournaments ({items.length})</div>
+      <TournamentsGrid items={items} />
+    </div>
   );
 };
 

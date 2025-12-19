@@ -7,8 +7,8 @@ const IndexesPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();
 
   return (
-    <TournamentsScreen current="indexes">
-      <IndexTournamentsGrid tournaments={tournaments} />
+    <TournamentsScreen current="indexes" tournaments={tournaments}>
+      <IndexTournamentsGrid />
     </TournamentsScreen>
   );
 };

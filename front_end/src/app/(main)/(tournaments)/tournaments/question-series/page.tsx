@@ -7,8 +7,8 @@ const QuestionSeriesPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();
 
   return (
-    <TournamentsScreen current="series">
-      <SeriesTournamentsGrid tournaments={tournaments} />
+    <TournamentsScreen current="series" tournaments={tournaments}>
+      <SeriesTournamentsGrid />
     </TournamentsScreen>
   );
 };

@@ -1,17 +1,13 @@
 "use client";
 
+import React from "react";
+
 import { TournamentPreview } from "@/types/projects";
 
-import { useTournamentFilters } from "../../../hooks/use_tournament_filters";
+type Props = { items: TournamentPreview[] };
 
-type Props = {
-  items: TournamentPreview[];
-  render: (items: TournamentPreview[]) => React.ReactNode;
-};
-
-const TournamentsGrid: React.FC<Props> = ({ items, render }) => {
-  const { filtered } = useTournamentFilters(items);
-  return <div>{render(filtered)}</div>;
+const TournamentsGrid: React.FC<Props> = ({ items }) => {
+  return <div className="grid gap-4">{items.length}</div>;
 };
 
 export default TournamentsGrid;
