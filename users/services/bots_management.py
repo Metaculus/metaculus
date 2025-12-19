@@ -17,7 +17,6 @@ def create_bot(*, bot_owner: User, username: str, **kwargs) -> User:
 
     bot = User.objects.create_user(
         username=username,
-        # TODO: what happens if we send email to empty string? Double-check + exclude!
         email="",
         is_active=True,
         is_bot=True,
