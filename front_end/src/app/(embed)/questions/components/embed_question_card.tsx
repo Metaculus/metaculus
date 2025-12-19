@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
@@ -70,24 +70,22 @@ const EmbedQuestionCard: React.FC<Props> = ({
 
   return (
     <QuestionViewModeProvider mode="embed">
-      <Fragment>
-        <EmbedQuestionHeader
-          post={post}
-          onHeightChange={setHeaderHeight}
-          titleStyle={theme?.title}
-          titleOverride={titleOverride}
-          theme={theme}
-        />
-        <EmbedQuestionPlot
-          post={post}
-          chartHeight={chartHeight}
-          onLegendHeightChange={setLegendHeight}
-          theme={theme}
-          defaultZoom={defaultZoom}
-          withZoomPicker={withZoomPicker}
-        />
-        <EmbedQuestionFooter ogReady={ogReady} post={post} />
-      </Fragment>
+      <EmbedQuestionHeader
+        post={post}
+        onHeightChange={setHeaderHeight}
+        titleStyle={theme?.title}
+        titleOverride={titleOverride}
+        theme={theme}
+      />
+      <EmbedQuestionPlot
+        post={post}
+        chartHeight={chartHeight}
+        onLegendHeightChange={setLegendHeight}
+        theme={theme}
+        defaultZoom={defaultZoom}
+        withZoomPicker={withZoomPicker}
+      />
+      <EmbedQuestionFooter ogReady={ogReady} post={post} />
     </QuestionViewModeProvider>
   );
 };
