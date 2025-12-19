@@ -45,7 +45,7 @@ class TestSimpleFunctionality:
         page.get_by_placeholder("password").fill("Test1234")
         page.get_by_role("button", name="Log in", exact=True).last.click()
         time.sleep(1)
-        page.get_by_role("link", name="Questions", exact=True).click()
+        page.get_by_role("banner").get_by_role("link", name="Questions").click()
         page.get_by_role("button", name="Filter").click()
         page.get_by_role("button", name="Binary").click()
         page.get_by_role("button", name="Open").click()
