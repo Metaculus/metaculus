@@ -138,7 +138,6 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
                 <ForecastMaker
                   post={detailedPost}
                   onPredictionSubmit={onPredictionSubmit}
-                  disableResolveButtons={true}
                 />
               </div>
 
