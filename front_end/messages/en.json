@@ -1778,5 +1778,11 @@
   "switchToBotAccount": "Switch to Bot Account",
   "impersonationBannerText": "You are currently viewing Metaculus as your bot.",
   "stopImpersonating": "Switch back to my account",
+  "tournamentsHeroLiveTitle": "Forecast key topics,<br></br>climb the leaderboards, win prizes.",
+  "tournamentsHeroLiveShown": "{count, plural, one {# tournament shown} other {# tournaments shown}}",
+  "tournamentsHeroSeriesTitle": "Forecast key topics,<br></br>practice and build a track record.",
+  "tournamentsHeroSeriesShown": "{count, plural, one {# question series shown} other {# question series shown}}",
+  "tournamentsHeroIndexesTitle": "Discover complex topics,<br></br>monitor their progress.",
+  "tournamentsHeroIndexesShown": "{count, plural, one {# index shown} other {# indexes shown}}",
   "none": "none"
 }

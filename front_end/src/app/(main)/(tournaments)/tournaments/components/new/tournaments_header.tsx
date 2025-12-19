@@ -7,6 +7,7 @@ import useSearchInputState from "@/hooks/use_search_input_state";
 
 import TournamentsTabs from "./tournament_tabs";
 import TournamentsFilter from "./tournaments_filter";
+import TournamentsHero from "./tournaments_hero";
 import { useTournamentsSection } from "./tournaments_provider";
 import { TOURNAMENTS_SEARCH } from "../../constants/query_params";
 
@@ -38,18 +39,22 @@ const TournamentsHeader: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <TournamentsTabs current={current} />
-      <div className="flex items-center gap-3">
-        <TournamentsFilter />
-        <ExpandableSearchInput
-          value={draftQuery}
-          onChange={handleSearchChange}
-          onErase={handleSearchErase}
-          placeholder="search..."
-          expandedWidthClassName="w-[176px]"
-        />
+    <div className="flex flex-col gap-8">
+      <div className="flex items-center justify-between">
+        <TournamentsTabs current={current} />
+        <div className="flex items-center gap-3">
+          <TournamentsFilter />
+          <ExpandableSearchInput
+            value={draftQuery}
+            onChange={handleSearchChange}
+            onErase={handleSearchErase}
+            placeholder="search..."
+            expandedWidthClassName="w-[176px]"
+          />
+        </div>
       </div>
+
+      <TournamentsHero />
     </div>
   );
 };

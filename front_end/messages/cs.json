@@ -1784,5 +1784,11 @@
   "switchToBotAccount": "Přepnout na účet bota",
   "impersonationBannerText": "Momentálně si prohlížíte Metaculus jako váš bot.",
   "stopImpersonating": "Přepnout zpět na můj účet",
+  "tournamentsHeroLiveTitle": "Předpovídejte klíčová témata,<br></br>šplhejte po žebříčku, vyhrajte ceny.",
+  "tournamentsHeroLiveShown": "{count, plural, one {# turnaj zobrazen} other {# turnajů zobrazeno}}",
+  "tournamentsHeroSeriesTitle": "Předpovídejte klíčová témata,<br></br>procvičujte a budujte si záznamy.",
+  "tournamentsHeroSeriesShown": "{count, plural, one {# série otázek zobrazena} other {# sérií otázek zobrazeno}}",
+  "tournamentsHeroIndexesTitle": "Objevte složitá témata,<br></br>sledujte jejich vývoj.",
+  "tournamentsHeroIndexesShown": "{count, plural, one {# index zobrazen} other {# indexů zobrazeno}}",
   "othersCount": "Ostatní ({count})"
 }
