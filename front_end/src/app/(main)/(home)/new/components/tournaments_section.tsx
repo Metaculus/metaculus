@@ -25,7 +25,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
           <h2 className="m-0 text-xl font-bold leading-7">
             {t("forecasting")} {t("tournaments")}
           </h2>
-          <p className="m-0 max-w-[420px] text-base font-medium leading-6">
+          <p className="m-0 max-w-[420px] text-base font-normal leading-6">
             {t("joinTournaments")}
           </p>
         </div>
@@ -33,7 +33,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
           href="/tournaments/"
           variant="secondary"
           size="md"
-          className="whitespace-nowrap"
+          className="whitespace-nowrap font-normal"
         >
           {t("exploreNTournaments", { count: allTournaments.length })} →
         </Button>
