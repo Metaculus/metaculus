@@ -38,10 +38,8 @@ class ProjectsApi extends ApiService {
     return await this.get<Category[]>("/projects/categories/");
   }
 
-  async getHomepageCategories(): Promise<
-    (Category & { post_titles: string[] })[]
-  > {
-    return await this.get<(Category & { post_titles: string[] })[]>(
+  async getHomepageCategories(): Promise<(Category & { posts: string[] })[]> {
+    return await this.get<(Category & { posts: string[] })[]>(
       `/projects/homepage_categories/`
     );
   }
