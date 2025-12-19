@@ -117,7 +117,7 @@ const ExploreAllCard: FC = () => {
       </div>
 
       <div className="mt-auto hidden flex-col items-center self-stretch overflow-hidden md:flex">
-        <ExploreImagesGrid className="w-[91%]" />
+        <ExploreImagesGrid className="w-full" />
       </div>
     </Link>
   );
