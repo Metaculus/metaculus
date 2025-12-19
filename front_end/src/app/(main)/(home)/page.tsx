@@ -6,6 +6,7 @@ import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { NotebookPost, PostWithForecasts } from "@/types/post";
+import { getFeatureFlag } from "@/utils/posthog.server";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
@@ -27,6 +28,15 @@ export default async function Home() {
 
   if (PUBLIC_LANDING_PAGE_URL !== "/") {
     return redirect(PUBLIC_LANDING_PAGE_URL);
+  }
+
+  const homepageFlag = await getFeatureFlag("homepage_experiment", "control");
+  const useNewHomepage = homepageFlag === "new_page";
+
+  if (useNewHomepage) {
+    // Import and render the new homepage content
+    const NewHome = (await import("./new/page")).default;
+    return <NewHome />;
   }
 
   const t = await getTranslations();
