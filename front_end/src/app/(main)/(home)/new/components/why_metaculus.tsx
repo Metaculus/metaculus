@@ -92,7 +92,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
   return (
     <section
       className={cn(
-        "flex flex-col gap-3 rounded-lg bg-gray-200 px-6 py-5 dark:bg-gray-200-dark md:gap-4 lg:flex-row lg:items-center lg:gap-6",
+        "flex flex-col gap-3 rounded-lg bg-gray-200 px-6 py-5 dark:bg-gray-200-dark md:gap-4 xl:flex-row xl:items-center xl:gap-6",
         className
       )}
     >
@@ -101,16 +101,16 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
       </h2>
 
       {/* Divider */}
-      <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark lg:h-16 lg:w-px lg:shrink-0" />
+      <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark xl:h-16 xl:w-px xl:shrink-0" />
 
-      <div className="flex flex-1 flex-col gap-3 md:gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+      <div className="flex flex-1 flex-col gap-3 md:gap-4 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
         {/* Description & Stats */}
-        <div className="flex flex-col gap-3 lg:flex-1">
+        <div className="flex flex-col gap-3 xl:flex-1">
           <p className="m-0 text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
             {t("metaculusDescription")}
           </p>
 
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between lg:justify-start lg:gap-8">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between xl:justify-start xl:gap-8">
             <Stat
               number={siteStats.questions.toLocaleString()}
               label={t("openQuestions")}
@@ -127,25 +127,29 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
         </div>
 
         {/* Divider 2 */}
-        <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark lg:h-16 lg:w-px lg:shrink-0" />
+        <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark xl:h-16 xl:w-px xl:shrink-0" />
 
         {/* Featured In */}
         <div className="flex flex-col gap-2">
           <span className="text-sm font-bold text-gray-700 dark:text-gray-700-dark">
             {t("featuredIn")}
           </span>
-          <div className="flex flex-wrap items-center gap-6">
-            {FEATURED_IN.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={item.label}
-                className="block transition-opacity hover:opacity-80"
-              >
-                {item.component}
-              </a>
+          <div className="flex flex-wrap items-center gap-x-12 gap-y-8 md:gap-x-6">
+            {[0, 3].map((startIdx) => (
+              <div key={startIdx} className="flex items-center gap-12 md:gap-6">
+                {FEATURED_IN.slice(startIdx, startIdx + 3).map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.label}
+                    className="block transition-opacity hover:opacity-80"
+                  >
+                    {item.component}
+                  </a>
+                ))}
+              </div>
             ))}
           </div>
         </div>
@@ -157,7 +161,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
 const Stat: FC<{ number: string; label: string }> = ({ number, label }) => (
   <div className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-700-dark">
     <span>{number}</span>
-    <span>{label}</span>
+    <span className="text-nowrap">{label}</span>
   </div>
 );
 
