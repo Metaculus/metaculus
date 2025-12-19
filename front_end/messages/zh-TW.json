@@ -1782,5 +1782,11 @@
   "impersonationBannerText": "您目前正在以您的機器人帳戶查看 Metaculus。",
   "stopImpersonating": "切換回我的帳戶",
   "editedOnDate": "編輯於 {date}",
+  "tournamentsHeroLiveTitle": "預測關鍵議題，<br></br>攀登排行榜，贏得獎品。",
+  "tournamentsHeroLiveShown": "{count, plural, one {顯示 # 個錦標賽} other {顯示 # 個錦標賽}}",
+  "tournamentsHeroSeriesTitle": "預測關鍵議題，<br></br>練習並建立成果紀錄。",
+  "tournamentsHeroSeriesShown": "{count, plural, one {顯示 # 個問題系列} other {顯示 # 個問題系列}}",
+  "tournamentsHeroIndexesTitle": "探索複雜議題，<br></br>監控其進展。",
+  "tournamentsHeroIndexesShown": "{count, plural, one {顯示 # 個指數} other {顯示 # 個指數}}",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
