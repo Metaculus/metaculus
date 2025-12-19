@@ -91,7 +91,7 @@ def homepage_categories_list_api_view(request: Request):
     )
 
     data = [
-        {**CategorySerializer(obj).data, "post_titles": obj.top_n_post_titles}
+        {**CategorySerializer(obj).data, "posts": obj.top_n_post_titles}
         for obj in qs.all()
     ]
 
