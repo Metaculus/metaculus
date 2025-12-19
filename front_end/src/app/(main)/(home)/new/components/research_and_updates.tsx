@@ -35,7 +35,7 @@ const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
           <h2 className="m-0 text-xl font-bold leading-7">
             {t("researchAndUpdates")}
           </h2>
-          <p className="m-0 max-w-[420px] text-base font-medium leading-6 text-gray-1000 dark:text-gray-1000-dark">
+          <p className="m-0 max-w-[420px] text-base font-normal leading-6 text-gray-1000 dark:text-gray-1000-dark">
             {t("partnersUseForecasts")}
           </p>
         </div>
@@ -43,7 +43,7 @@ const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
           href="/notebooks/"
           variant="secondary"
           size="md"
-          className="w-fit whitespace-nowrap"
+          className="w-fit whitespace-nowrap font-normal"
         >
           {t("seeMore")} →
         </Button>
