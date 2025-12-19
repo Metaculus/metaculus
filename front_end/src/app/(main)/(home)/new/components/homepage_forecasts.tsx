@@ -11,6 +11,7 @@ import cn from "@/utils/core/cn";
 
 import { ExploreImagesGrid } from "./ExploreImagesGrid";
 import { FILTERS, TABS, TabId } from "./homepage_filters";
+import { useBreakpoint } from "@/hooks/tailwind";
 
 type Props = {
   initialPopularPosts: PostWithForecasts[];
@@ -54,6 +55,9 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
     });
   };
 
+  const isSmallScreen = !useBreakpoint("md");
+  const visiblePosts = isSmallScreen ? posts.slice(0, 3) : posts;
+
   return (
     <section className={cn("flex flex-col gap-3", className)}>
       <h2 className="m-0 text-xl font-bold leading-7 text-gray-1000 dark:text-gray-1000-dark">
@@ -83,7 +87,7 @@ const HomePageForecasts: FC<Props> = ({ initialPopularPosts, className }) => {
           isPending && "opacity-50"
         )}
       >
-        {posts.map((post) => (
+        {visiblePosts.map((post) => (
           <div key={post.id} className="[&>*>div]:h-full [&>*]:h-full">
             <PostCard post={post} minimalistic={true} />
           </div>
