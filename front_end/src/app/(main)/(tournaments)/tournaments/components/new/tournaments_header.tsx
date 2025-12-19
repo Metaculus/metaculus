@@ -7,12 +7,12 @@ import useSearchInputState from "@/hooks/use_search_input_state";
 
 import TournamentsTabs from "./tournament_tabs";
 import TournamentsFilter from "./tournaments_filter";
+import { useTournamentsSection } from "./tournaments_provider";
 import { TOURNAMENTS_SEARCH } from "../../constants/query_params";
-import { TournamentsSection } from "../../types";
 
-type Props = { current: TournamentsSection };
+const TournamentsHeader: React.FC = () => {
+  const { current } = useTournamentsSection();
 
-const TournamentsHeader: React.FC<Props> = ({ current }) => {
   const [searchQuery, setSearchQuery] = useSearchInputState(
     TOURNAMENTS_SEARCH,
     {
@@ -24,9 +24,7 @@ const TournamentsHeader: React.FC<Props> = ({ current }) => {
 
   const [draftQuery, setDraftQuery] = useState(searchQuery);
 
-  useEffect(() => {
-    setDraftQuery(searchQuery);
-  }, [searchQuery]);
+  useEffect(() => setDraftQuery(searchQuery), [searchQuery]);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.value;
