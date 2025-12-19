@@ -54,7 +54,7 @@ const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
         href={categoryUrl}
         className="flex flex-row items-center gap-2 no-underline"
       >
-        <span className="text-2xl">{category.emoji}</span>
+        <span className="text-xl">{category.emoji}</span>
         <span className="text-base font-bold leading-5 text-gray-800 dark:text-gray-800-dark">
           {category.name}
         </span>
