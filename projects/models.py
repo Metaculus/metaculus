@@ -46,7 +46,7 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_communities(self):
         return self.filter(type=Project.ProjectTypes.COMMUNITY)
 
-    def annotate_top_n_post_titles(self, n: int = 3):
+    def annotate_categories_with_top_n_posts_ids(self, n: int = 3):
         from posts.models import Post
 
         now = django_timezone.now()
@@ -67,9 +67,9 @@ class ProjectsQuerySet(models.QuerySet):
                 | Q(post__actual_close_time__gt=now)
             )
             .order_by("-post__hotness")
-            .values("post__title")[:n]
+            .values("post_id")[:n]
         )
-        return self.annotate(top_n_post_titles=ArraySubquery(subquery))
+        return self.annotate(top_n_post_ids=ArraySubquery(subquery))
 
     def annotate_posts_count(self):
         from posts.models import Post

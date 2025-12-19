@@ -8,8 +8,9 @@ import {
 } from "@/constants/posts_feed";
 import { Category } from "@/types/projects";
 import cn from "@/utils/core/cn";
+import { Post } from "@/types/post";
 
-type CategoryWithPosts = Category & { posts: string[] };
+type CategoryWithPosts = Category & { posts: Post[] };
 
 type Props = {
   categories: CategoryWithPosts[];
@@ -62,13 +63,18 @@ const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
 
       {category.posts && category.posts.length > 0 && (
         <div className="hidden flex-col gap-2.5 md:flex">
-          {category.posts.slice(0, 3).map((title, index) => (
+          {category.posts.slice(0, 3).map(({ title, slug, id }, index) => (
             <div key={index}>
               <div className="flex text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
                 <span className="mr-1 shrink-0 text-gray-500 dark:text-gray-500-dark">
                   {index + 1}.
                 </span>
-                <span>{title}</span>
+                <Link
+                  href={`/questions/${id}/${slug}`}
+                  className="no-underline hover:underline"
+                >
+                  {title}
+                </Link>
               </div>
               {index < Math.min(category.posts.length, 3) - 1 && (
                 <hr className="my-2.5 border-t border-gray-300 dark:border-gray-300-dark" />
