@@ -99,7 +99,7 @@ def update_custom_leaderboard(
     if not project:
         logger.error(f"Project with id {project_id} does not exist.")
         return
-    if (not minimum_time and not spot_times) or (minimum_time and spot_times):
+    if bool(minimum_time) == bool(spot_times):
         logger.error("minimum_time or spot_times must be provided, but not both.")
         return
 
@@ -123,14 +123,19 @@ def update_custom_leaderboard(
         )
         .exclude(resolution__in=UnsuccessfulResolutionType)
     )
+    if not questions.exists():
+        logger.info(f"No resolved questions found for project {project.name}.")
+        return
     # detect if any questions actually resolved since last evaluation
     existing_entries = leaderboard.entries.all()
     if existing_entries.exists():
         last_evaluation_time = max(
             entry.calculated_on for entry in existing_entries if entry.calculated_on
         )
-        questions = questions.filter(resolution_set_time__gt=last_evaluation_time)
-        if not questions.exists():
+        newly_resolved_questions = questions.filter(
+            resolution_set_time__gt=last_evaluation_time
+        )
+        if not newly_resolved_questions.exists():
             logger.info(
                 "No questions resolved since last evaluation "
                 f"at {last_evaluation_time}, skipping leaderboard update."
