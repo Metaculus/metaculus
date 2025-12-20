@@ -102,14 +102,13 @@ class User(TimeStampedModel, AbstractUser):
     )
 
     class ApiAccessTier(models.TextChoices):
-        FREE = "free", "Free"
-        PRO = "pro", "Pro"
-        ENTERPRISE = "enterprise", "Enterprise"
+        RESTRICTED = "restricted", "Restricted"
+        UNRESTRICTED = "unrestricted", "Unrestricted"
 
     api_access_tier = models.CharField(
         max_length=32,
         choices=ApiAccessTier.choices,
-        default=ApiAccessTier.FREE,
+        default=ApiAccessTier.RESTRICTED,
         help_text="Indicates the API access tier for the user.",
     )
 

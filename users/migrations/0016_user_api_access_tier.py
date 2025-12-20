@@ -15,11 +15,10 @@ class Migration(migrations.Migration):
             name="api_access_tier",
             field=models.CharField(
                 choices=[
-                    ("free", "Free"),
-                    ("pro", "Pro"),
-                    ("enterprise", "Enterprise"),
+                    ("restricted", "Restricted"),
+                    ("unrestricted", "Unrestricted"),
                 ],
-                default="free",
+                default="restricted",
                 max_length=32,
                 help_text="Indicates the API access tier for the user.",
             ),
