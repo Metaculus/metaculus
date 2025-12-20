@@ -1,10 +1,13 @@
 import logging
 
 from django.utils import timezone
+from datetime import datetime, timezone as dt_timezone
 
+from projects.models import Project
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
+from scoring.tasks import update_custom_leaderboard
 
 logger = logging.getLogger(__name__)
 
@@ -30,3 +33,40 @@ def finalize_leaderboards():
         if finalize_time and finalize_time <= timezone.now():
             logger.info(f"Finalizing leaderboard: {leaderboard}")
             update_project_leaderboard(leaderboard=leaderboard)
+
+
+def update_custom_leaderboards():
+    """
+    Trigger the custom leaderboard updates.
+
+    Leaderboards to update are hardcoded here.
+    If adding more, be sure failures are handled gracefully.
+    """
+
+    # US Democracy Threat Index
+    project = Project.objects.filter(
+        slug="us-democracy-threat",
+        type=Project.ProjectTypes.INDEX,
+    ).first()
+    if project:
+        try:
+            update_custom_leaderboard(
+                project_id=project.id,
+                minimum_time=datetime(2025, 12, 12, tzinfo=dt_timezone.utc),
+                spot_times=None,
+            )
+            # TODO: add spot times as they become determined
+            # update_custom_leaderboard(
+            #     project_id=project.id,
+            #     minimum_time=None,
+            #     spot_times=[datetime(2026, 1, 1, tzinfo=dt_timezone.utc)],
+            # )
+        except Exception as e:
+            logger.error(
+                f"Error updating custom leaderboard for project "
+                f"'{project.name}': {e}"
+            )
+    else:
+        # don't warn or error because this project doesn't necessarily exist
+        # in all environments
+        logger.info("Index 'us-democracy-threat' not found.")
