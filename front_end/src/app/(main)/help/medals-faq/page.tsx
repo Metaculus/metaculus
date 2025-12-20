@@ -7,7 +7,7 @@ import PageWrapper from "../../components/pagewrapper";
 export const metadata = {
   title: "Medals FAQ | Metaculus",
   description:
-    "Learn about Metaculus medals, how they are awarded for forecasting accuracy, comment quality, and question writing. Understand the h-index, medal tiers, and eligibility criteria.",
+    "Learn about Metaculus (overview), how they are awarded for forecasting accuracy, comment quality, and question writing. Understand the h-index, medal tiers, and eligibility criteria.",
 };
 
 export default function MedalsFAQ() {

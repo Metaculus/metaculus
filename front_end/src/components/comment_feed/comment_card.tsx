@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
-import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/key_factor_item";
+import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
