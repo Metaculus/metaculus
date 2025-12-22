@@ -25,15 +25,17 @@ export const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
 
     if (isNativeFormControl) {
       return (
-        <label
-          className={cn(
-            "flex flex-col gap-1.5 text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark",
-            labelClassName
-          )}
-        >
-          {labelText}
+        <>
+          <label
+            className={cn(
+              "flex flex-col gap-1.5 text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark",
+              labelClassName
+            )}
+          >
+            {labelText}
+          </label>
           {children}
-        </label>
+        </>
       );
     }
 

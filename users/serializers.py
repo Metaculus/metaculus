@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor
 from projects.models import Project
@@ -101,6 +105,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "interface_type",
             "language",
             "api_access_tier",
+            "is_primary_bot",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -155,6 +160,11 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
         )
 
 
+class BotUpdateProfileSerializer(UserUpdateProfileSerializer):
+    class Meta(UserUpdateProfileSerializer.Meta):
+        fields = UserUpdateProfileSerializer.Meta.fields + ("username",)
+
+
 def validate_username(value: str):
     value = serializers.RegexField(
         r"^\w([\w.@+-]*\w)?$",
@@ -173,6 +183,18 @@ def validate_username(value: str):
         raise serializers.ValidationError("The username is already taken")
 
     return value
+
+
+def validate_username_change(user: User, username: str):
+    username = validate_username(username)
+
+    if old_usernames := user.get_old_usernames():
+        _, change_date = old_usernames[0]
+
+        if (timezone.now() - change_date) < timedelta(days=180):
+            raise ValidationError("can only change username once every 180 days")
+
+    return username
 
 
 class UserFilterSerializer(serializers.Serializer):
