@@ -13,8 +13,6 @@ from social_django.models import UserSocialAuth
 
 from utils.models import TimeStampedModel
 
-# TODO: disallow bots signup!
-
 if TYPE_CHECKING:
     from comments.models import Comment
     from posts.models import Post
@@ -125,8 +123,6 @@ class User(TimeStampedModel, AbstractUser):
 
     # Bot properties
     is_bot = models.BooleanField(default=False, db_index=True)
-    # TODO: make existing bots primary one,
-    #  so all non-migrated yet bots have access to the existing functionalities!
     is_primary_bot = models.BooleanField(
         default=False,
         db_index=True,
