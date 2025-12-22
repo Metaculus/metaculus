@@ -8,7 +8,15 @@ const EmptyPlaceholder: FC = () => {
   return (
     <div className="whitespace-pre-line">
       {t.rich("myBotsEmpty", {
-        link: (chunks) => <Link href="/">{chunks}</Link>,
+        link: (chunks) => (
+          <Link
+            href="https://www.metaculus.com/notebooks/38928/ai-benchmark-resources/#want-to-join-the-ai-forecasting-benchmark"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {chunks}
+          </Link>
+        ),
       })}
     </div>
   );
