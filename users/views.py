@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -21,6 +22,8 @@ from users.serializers import (
     PasswordChangeSerializer,
     EmailChangeSerializer,
     UserCampaignRegistrationSerializer,
+    BotUpdateProfileSerializer,
+    validate_username_change,
 )
 from users.services.common import (
     get_users,
@@ -31,6 +34,7 @@ from users.services.common import (
 )
 from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
+from .services.bots_management import get_user_bots, create_bot
 from .services.profile_stats import serialize_user_stats
 from .services.spam_detection import (
     check_profile_update_for_spam,
@@ -217,3 +221,69 @@ def register_campaign(request):
     )
 
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def create_bot_api_view(request: Request):
+    user: User = request.user
+
+    if user.is_bot:
+        raise ValidationError("Sorry, we’re not ready yet for bots to create bots")
+
+    username = serializers.CharField().run_validation(request.data.get("username"))
+    username = validate_username(username)
+
+    bot = create_bot(bot_owner=user, username=username)
+    token, _ = Token.objects.get_or_create(user=bot)
+
+    return Response({"token": token.key, "user": UserPrivateSerializer(bot).data})
+
+
+@api_view(["PATCH"])
+def update_bot_profile_api_view(request: Request, pk: int):
+    user: User = request.user
+    # Check user bot permissions
+    bot = get_object_or_404(get_user_bots(user), pk=pk)
+
+    serializer = BotUpdateProfileSerializer(bot, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+
+    is_spam, _ = check_profile_update_for_spam(bot, serializer)
+
+    if is_spam:
+        user.mark_as_spam()
+        send_deactivation_email(user.email)
+
+        return Response(
+            data={
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    username = serializer.validated_data.pop("username", None)
+
+    if username and username != bot.username:
+        username = validate_username_change(bot, username)
+        bot.update_username(username)
+        bot.save()
+
+    serializer.save()
+    return Response(UserPrivateSerializer(bot).data)
+
+
+@api_view(["GET"])
+def my_bots_api_view(request: Request):
+    bots = get_user_bots(request.user)
+
+    return Response(UserPrivateSerializer(bots, many=True).data)
+
+
+@api_view(["GET"])
+def bot_token_api_view(request: Request, pk: int):
+    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    token, _ = Token.objects.get_or_create(user=bot)
+
+    return Response({"token": token.key})

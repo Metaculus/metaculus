@@ -42,12 +42,14 @@ export const SignupForm: FC<{
   email?: string;
   inviteToken?: string;
   withNewsletterOptin?: boolean;
+  redirectLocation?: string;
 }> = ({
   forceIsBot,
   addToProject,
   email,
   inviteToken,
   withNewsletterOptin,
+  redirectLocation,
 }) => {
   const t = useTranslations();
   const { themeChoice } = useAppTheme();
@@ -72,6 +74,10 @@ export const SignupForm: FC<{
 
   const currentLocation = usePathname();
 
+  if (!redirectLocation) {
+    redirectLocation = currentLocation;
+  }
+
   const { watch, setValue, formState, handleSubmit, setError, clearErrors } =
     methods;
 
@@ -80,7 +86,7 @@ export const SignupForm: FC<{
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
       ...data,
-      redirectUrl: currentLocation,
+      redirectUrl: redirectLocation,
       newsletterOptin: watch("newsletterOptin"),
       appTheme: (Object.values(AppTheme) as string[]).includes(
         themeChoice ?? ""
@@ -103,7 +109,7 @@ export const SignupForm: FC<{
     } else {
       sendAnalyticsEvent("register", {
         event_category: new URLSearchParams(window.location.search).toString(),
-        signupPath: currentLocation,
+        signupPath: redirectLocation,
       });
       if (response?.is_active) {
         setCurrentModal(null);
@@ -350,14 +356,14 @@ const SignUpFormFragment: FC<{
       <div>
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
+          className="block w-full !rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("passwordPlaceholder")}
           type="password"
           {...register("password")}
         />
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
+          className="block w-full !rounded-t-none rounded-b border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("registrationVerifyPasswordPlaceholder")}
           type="password"
           {...register("passwordAgain")}
