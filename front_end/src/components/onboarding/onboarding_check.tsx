@@ -19,7 +19,7 @@ const OnboardingCheck: React.FC = () => {
       checkOnboardingAllowed() &&
       user?.id &&
       !user?.is_onboarding_complete &&
-      !user.is_bot
+      !user?.is_bot
     ) {
       // Start the onboarding process
       setCurrentModal({ type: "onboarding" });
