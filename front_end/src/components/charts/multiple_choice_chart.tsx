@@ -859,7 +859,9 @@ const ResolutionChip: FC<{
   const { getThemeColor } = useAppTheme();
   const { x, y, compact, datum, chartHeight, text, color, scale } = props;
   const adjustedText =
-    compact && text.length > RESOLUTION_TEXT_LIMIT ? "Yes" : text;
+    compact && text.length > RESOLUTION_TEXT_LIMIT
+      ? text.slice(0, RESOLUTION_TEXT_LIMIT) + "..."
+      : text;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 
