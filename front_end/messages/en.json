@@ -1784,5 +1784,10 @@
   "tournamentsHeroSeriesShown": "{count, plural, one {# question series shown} other {# question series shown}}",
   "tournamentsHeroIndexesTitle": "Discover complex topics,<br></br>monitor their progress.",
   "tournamentsHeroIndexesShown": "{count, plural, one {# index shown} other {# indexes shown}}",
+  "tournamentsInfoAria": "Tournament info",
+  "tournamentsInfoTitle": "Free to participate; get paid cash prizes and practice forecasting.",
+  "tournamentsInfoScoringLink": "How does scoring work?",
+  "tournamentsInfoPrizesLink": "How are prizes distributed?",
+  "tournamentsInfoCta": "Sign up to compete",
   "none": "none"
 }

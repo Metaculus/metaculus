@@ -1788,5 +1788,10 @@
   "tournamentsHeroSeriesShown": "{count, plural, one {# série de perguntas mostrada} other {# séries de perguntas mostradas}}",
   "tournamentsHeroIndexesTitle": "Descubra tópicos complexos,<br></br>monitore o progresso deles.",
   "tournamentsHeroIndexesShown": "{count, plural, one {# índice mostrado} other {# índices mostrados}}",
+  "tournamentsInfoAria": "Informações do Torneio",
+  "tournamentsInfoTitle": "Participe gratuitamente; receba prêmios em dinheiro e pratique previsões.",
+  "tournamentsInfoScoringLink": "Como a pontuação funciona?",
+  "tournamentsInfoPrizesLink": "Como são distribuídos os prêmios?",
+  "tournamentsInfoCta": "Inscreva-se para competir",
   "othersCount": "Outros ({count})"
 }

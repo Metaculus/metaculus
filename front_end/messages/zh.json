@@ -1792,5 +1792,10 @@
   "tournamentsHeroSeriesShown": "{count, plural, one {显示#个问题系列} other {显示#个问题系列}}",
   "tournamentsHeroIndexesTitle": "发现复杂话题,<br></br>监控其进展。",
   "tournamentsHeroIndexesShown": "{count, plural, one {显示#个指数} other {显示#个指数}}",
+  "tournamentsInfoAria": "比赛信息",
+  "tournamentsInfoTitle": "免费参加；赢取现金奖励并提高预测技能。",
+  "tournamentsInfoScoringLink": "评分机制如何运作？",
+  "tournamentsInfoPrizesLink": "奖品如何分发？",
+  "tournamentsInfoCta": "注册参赛",
   "othersCount": "其他（{count}）"
 }

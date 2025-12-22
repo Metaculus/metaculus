@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 
 import { TournamentPreview } from "@/types/projects";
 
@@ -12,6 +12,9 @@ type TournamentsSectionCtxValue = {
   current: TournamentsSection;
   items: TournamentPreview[];
   count: number;
+  infoOpen: boolean;
+  toggleInfo: () => void;
+  closeInfo: () => void;
 };
 
 const TournamentsSectionCtx = createContext<TournamentsSectionCtxValue | null>(
@@ -24,6 +27,7 @@ export function TournamentsSectionProvider(props: {
   children: React.ReactNode;
 }) {
   const { tournaments, current, children } = props;
+  const [infoOpen, setInfoOpen] = useState(true);
 
   const sectionItems = useMemo(
     () => selectTournamentsForSection(tournaments, current),
@@ -33,8 +37,15 @@ export function TournamentsSectionProvider(props: {
   const { filtered } = useTournamentFilters(sectionItems);
 
   const value = useMemo<TournamentsSectionCtxValue>(
-    () => ({ current, items: filtered, count: filtered.length }),
-    [current, filtered]
+    () => ({
+      current,
+      items: filtered,
+      count: filtered.length,
+      infoOpen,
+      toggleInfo: () => setInfoOpen((v) => !v),
+      closeInfo: () => setInfoOpen(false),
+    }),
+    [current, filtered, infoOpen]
   );
 
   return (

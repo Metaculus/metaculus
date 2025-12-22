@@ -25,6 +25,7 @@ type Props = {
   keepOpenWhenHasValue?: boolean;
   collapseOnBlur?: boolean;
   className?: string;
+  buttonClassName?: string;
   inputClassName?: string;
 };
 
@@ -38,6 +39,7 @@ const ExpandableSearchInput: FC<Props> = ({
   keepOpenWhenHasValue = true,
   collapseOnBlur = true,
   className,
+  buttonClassName,
   inputClassName,
 }) => {
   const [open, setOpen] = useState(false);
@@ -95,7 +97,8 @@ const ExpandableSearchInput: FC<Props> = ({
           aria-label="Open search"
           className={cn(
             "h-9 w-9 rounded-full border border-gray-300 bg-gray-0",
-            "dark:border-gray-500-dark dark:bg-gray-0-dark"
+            "dark:border-gray-500-dark dark:bg-gray-0-dark",
+            buttonClassName
           )}
           onClick={() => {
             setOpen(true);
