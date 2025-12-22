@@ -1791,5 +1791,10 @@
   "tournamentsHeroSeriesShown": "{count, plural, one {# série otázek zobrazena} other {# sérií otázek zobrazeno}}",
   "tournamentsHeroIndexesTitle": "Objevte složitá témata,<br></br>sledujte jejich vývoj.",
   "tournamentsHeroIndexesShown": "{count, plural, one {# index zobrazen} other {# indexů zobrazeno}}",
+  "tournamentsInfoAria": "Informace o turnaji",
+  "tournamentsInfoTitle": "Účast zdarma; získejte peněžní ceny a zlepšete své předpovědi.",
+  "tournamentsInfoScoringLink": "Jak funguje bodování?",
+  "tournamentsInfoPrizesLink": "Jak jsou rozdělovány ceny?",
+  "tournamentsInfoCta": "Přihlaste se k soutěži",
   "othersCount": "Ostatní ({count})"
 }
