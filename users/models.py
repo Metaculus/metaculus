@@ -101,6 +101,17 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
+    class ApiAccessTier(models.TextChoices):
+        RESTRICTED = "restricted", "Restricted"
+        UNRESTRICTED = "unrestricted", "Unrestricted"
+
+    api_access_tier = models.CharField(
+        max_length=32,
+        choices=ApiAccessTier.choices,
+        default=ApiAccessTier.RESTRICTED,
+        help_text="Indicates the API access tier for the user.",
+    )
+
     # Metadata - to update the intended use of this field, update description in Admin
     metadata = models.JSONField(
         null=True,
