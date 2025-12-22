@@ -16,12 +16,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from "react";
+import React from "react";
 
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
@@ -32,127 +27,50 @@ type Props = {
   open: boolean;
   onOpenChange: (next: boolean) => void;
   disabled?: boolean;
-};
-
-const PINNED_TOP = 72;
-const STABLE_FRAMES_REQUIRED = 2;
-const MAX_STABILIZE_FRAMES = 20;
-
-type RectSnapshot = {
-  top: number;
-  left: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
+  offsetPx?: number;
+  stickyTopPx?: number;
 };
 
 const TournamentsInfoPopover: React.FC<Props> = ({
   open,
   onOpenChange,
   disabled,
+  offsetPx = 12,
+  stickyTopPx = 0,
 }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
-
   const { user } = useAuth();
   const isLoggedOut = !user;
 
-  const [referenceNode, setReferenceNode] = useState<HTMLElement | null>(null);
-  const { refs, floatingStyles, context, update, isPositioned } = useFloating({
+  const { refs, floatingStyles, context, isPositioned } = useFloating({
     open,
     onOpenChange,
     placement: "bottom-end",
     strategy: "fixed",
     whileElementsMounted: autoUpdate,
-    middleware: [offset(10), flip(), shift({ padding: 12 })],
+    middleware: [
+      offset(({ rects }) => {
+        const header = document.getElementById("tournamentsStickyHeader");
+        if (!header) return offsetPx;
+
+        const headerBottom = header.getBoundingClientRect().bottom;
+
+        const referenceBottom = rects.reference.y + rects.reference.height;
+        const needed = headerBottom + offsetPx - referenceBottom;
+        return Math.max(offsetPx, needed);
+      }),
+      flip({ padding: 12 }),
+      shift({
+        padding: {
+          top: stickyTopPx + 8,
+          left: 12,
+          right: 12,
+          bottom: 12,
+        },
+      }),
+    ],
   });
-
-  const setReference = useCallback(
-    (node: HTMLElement | null) => {
-      refs.setReference(node);
-      setReferenceNode(node);
-    },
-    [refs]
-  );
-
-  const [ready, setReady] = useState(false);
-  const [pinned, setPinned] = useState(false);
-  const [pinnedRight, setPinnedRight] = useState(0);
-
-  // wait until the reference element's rect stabilizes before showing.
-  useLayoutEffect(() => {
-    if (!open || !referenceNode) {
-      setReady(false);
-      return;
-    }
-
-    let cancelled = false;
-    let rafId = 0;
-    let last: RectSnapshot | null = null;
-    let stableCount = 0;
-    let frames = 0;
-
-    const measure = () => {
-      if (cancelled) return;
-
-      const r = referenceNode.getBoundingClientRect();
-      const next: RectSnapshot = {
-        top: r.top,
-        left: r.left,
-        right: r.right,
-        bottom: r.bottom,
-        width: r.width,
-        height: r.height,
-      };
-
-      if (last && rectCloseEnough(last, next)) stableCount += 1;
-      else stableCount = 0;
-
-      last = next;
-      frames += 1;
-
-      if (
-        stableCount >= STABLE_FRAMES_REQUIRED - 1 ||
-        frames >= MAX_STABILIZE_FRAMES
-      ) {
-        recomputePinned(referenceNode, setPinned, setPinnedRight);
-        update();
-
-        rafId = requestAnimationFrame(() => {
-          if (cancelled) return;
-          update();
-          setReady(true);
-        });
-
-        return;
-      }
-
-      rafId = requestAnimationFrame(measure);
-    };
-
-    rafId = requestAnimationFrame(measure);
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(rafId);
-    };
-  }, [open, referenceNode, update]);
-
-  // keep pin state/right offset in sync on scroll/resize.
-  useEffect(() => {
-    if (!open || !referenceNode) return;
-
-    const handler = () =>
-      recomputePinned(referenceNode, setPinned, setPinnedRight);
-
-    window.addEventListener("scroll", handler, { passive: true });
-    window.addEventListener("resize", handler, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handler);
-      window.removeEventListener("resize", handler);
-    };
-  }, [open, referenceNode]);
 
   const click = useClick(context, { enabled: !disabled });
   const dismiss = useDismiss(context, { outsidePress: false });
@@ -164,25 +82,12 @@ const TournamentsInfoPopover: React.FC<Props> = ({
     role,
   ]);
 
-  const pinnedStyles: React.CSSProperties = pinned
-    ? {
-        position: "fixed",
-        top: PINNED_TOP,
-        right: pinnedRight,
-        left: "auto",
-        bottom: "auto",
-        transform: "none",
-      }
-    : {};
-
-  const handleSignup = () => {
-    setCurrentModal({ type: "signup", data: {} });
-  };
+  const handleSignup = () => setCurrentModal({ type: "signup", data: {} });
 
   return (
     <>
       <Button
-        ref={setReference}
+        ref={refs.setReference}
         presentationType="icon"
         size="md"
         variant={open ? "primary" : "tertiary"}
@@ -195,18 +100,17 @@ const TournamentsInfoPopover: React.FC<Props> = ({
         ?
       </Button>
 
-      {open && referenceNode && ready ? (
+      {open ? (
         <FloatingPortal>
           <div
             ref={refs.setFloating}
             {...getFloatingProps()}
             style={{
-              ...(pinned ? pinnedStyles : floatingStyles),
-              visibility: isPositioned || pinned ? "visible" : "hidden",
+              ...floatingStyles,
+              visibility: isPositioned ? "visible" : "hidden",
             }}
             className={cn(
-              "relative z-50 w-[365px] rounded-[6px] bg-blue-400 p-5",
-              "dark:bg-blue-400-dark"
+              "relative z-[60] w-[365px] rounded-[6px] bg-blue-400 p-5 dark:bg-blue-400-dark"
             )}
           >
             <h6 className="my-0 text-base font-medium text-blue-900 dark:text-blue-900-dark">
@@ -254,52 +158,5 @@ const TournamentsInfoPopover: React.FC<Props> = ({
     </>
   );
 };
-
-function rectCloseEnough(a: RectSnapshot, b: RectSnapshot) {
-  const eps = 0.5;
-  return (
-    Math.abs(a.top - b.top) < eps &&
-    Math.abs(a.left - b.left) < eps &&
-    Math.abs(a.right - b.right) < eps &&
-    Math.abs(a.bottom - b.bottom) < eps &&
-    Math.abs(a.width - b.width) < eps &&
-    Math.abs(a.height - b.height) < eps
-  );
-}
-
-function isElementVisible(el: HTMLElement) {
-  const r = el.getBoundingClientRect();
-  return (
-    r.bottom > 0 &&
-    r.top < window.innerHeight &&
-    r.right > 0 &&
-    r.left < window.innerWidth
-  );
-}
-
-function recomputePinned(
-  referenceNode: HTMLElement,
-  setPinned: React.Dispatch<React.SetStateAction<boolean>>,
-  setPinnedRight: React.Dispatch<React.SetStateAction<number>>
-) {
-  const nextPinned = !isElementVisible(referenceNode);
-  setPinned(nextPinned);
-
-  if (nextPinned) {
-    setPinnedRight(getPinnedRightOffset("tournamentsContainer"));
-  }
-}
-
-function getPinnedRightOffset(containerId: string) {
-  const el = document.getElementById(containerId);
-  if (!el) return 0;
-
-  const rect = el.getBoundingClientRect();
-  const styles = window.getComputedStyle(el);
-  const paddingRight = parseFloat(styles.paddingRight || "0");
-  const innerRight = rect.right - paddingRight;
-
-  return Math.max(0, window.innerWidth - innerRight);
-}
 
 export default TournamentsInfoPopover;

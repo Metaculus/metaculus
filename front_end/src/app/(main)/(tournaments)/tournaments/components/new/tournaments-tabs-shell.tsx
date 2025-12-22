@@ -14,8 +14,8 @@ type Props = {
 
 const TournamentsTabsShell: React.FC<Props> = ({ current, sections }) => {
   return (
-    <Tabs defaultValue={current}>
-      <TabsList className="justify-center gap-3 py-0 lg:justify-start">
+    <Tabs defaultValue={current} className="bg-transparent dark:bg-transparent">
+      <TabsList className="justify-center gap-3 bg-transparent py-0 dark:bg-transparent lg:justify-start">
         {sections.map((tab) => (
           <TabsTab
             className={cn("no-underline")}
