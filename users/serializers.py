@@ -104,6 +104,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "app_theme",
             "interface_type",
             "language",
+            "api_access_tier",
             "is_primary_bot",
         )
 
