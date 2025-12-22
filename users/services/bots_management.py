@@ -10,7 +10,7 @@ def get_user_bots(user: User):
 def create_bot(*, bot_owner: User, username: str, **kwargs) -> User:
     user_bots = list(get_user_bots(bot_owner))
 
-    if len(user_bots) > 5:
+    if not bot_owner.is_superuser and len(user_bots) > 5:
         raise ValidationError("User can have only 5 bots")
 
     is_primary_bot = not any(b.is_primary_bot for b in user_bots)
