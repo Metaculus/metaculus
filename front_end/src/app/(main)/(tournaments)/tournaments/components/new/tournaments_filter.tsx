@@ -2,6 +2,7 @@
 import { useTranslations } from "next-intl";
 
 import Listbox, { SelectOption } from "@/components/ui/listbox";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import { TournamentsSortBy } from "@/types/projects";
 
@@ -33,12 +34,15 @@ const TournamentsFilter: React.FC = () => {
     shallowNavigateToSearchParams();
   };
 
+  const isLg = useBreakpoint("lg");
+
   return (
     <Listbox
       className="h-9 rounded-full bg-gray-0 px-[14px] text-base dark:bg-gray-0-dark"
       onChange={handleSortByChange}
       options={sortOptions}
       value={sortBy}
+      menuPosition={isLg ? "right" : "left"}
     />
   );
 };
