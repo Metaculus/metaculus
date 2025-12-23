@@ -116,7 +116,6 @@ export async function signUpAction(
         email: validatedSignupData.email,
         username: validatedSignupData.username,
         password: validatedSignupData.password,
-        is_bot: validatedSignupData.isBot,
         add_to_project: validatedSignupData.addToProject,
         campaign_key: validatedSignupData.campaignKey,
         campaign_data: validatedSignupData.campaignData,
