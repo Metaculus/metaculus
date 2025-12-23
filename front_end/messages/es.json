@@ -1784,5 +1784,6 @@
   "switchToBotAccount": "Cambiar a cuenta de bot",
   "impersonationBannerText": "Actualmente estás viendo Metaculus como tu bot.",
   "stopImpersonating": "Volver a mi cuenta",
+  "editedOnDate": "Editado el {date}",
   "othersCount": "Otros ({count})"
 }

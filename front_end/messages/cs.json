@@ -1784,5 +1784,6 @@
   "switchToBotAccount": "Přepnout na účet bota",
   "impersonationBannerText": "Momentálně si prohlížíte Metaculus jako váš bot.",
   "stopImpersonating": "Přepnout zpět na můj účet",
+  "editedOnDate": "Upraveno dne {date}",
   "othersCount": "Ostatní ({count})"
 }

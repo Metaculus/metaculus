@@ -224,13 +224,15 @@ def update_conditional(
 
 
 def update_notebook(notebook: Notebook, **kwargs):
+    post = getattr(notebook, "post", None)
+
+    # We want to update edited at for approved notebooks only
+    if post and post.status == post.CurationStatus.APPROVED:
+        kwargs["edited_at"] = timezone.now()
+
     notebook, _ = model_update(
         instance=notebook,
-        fields=[
-            "markdown",
-            "type",
-            "image_url",
-        ],
+        fields=["markdown", "type", "image_url", "edited_at"],
         data=kwargs,
     )
 

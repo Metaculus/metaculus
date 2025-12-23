@@ -1786,5 +1786,6 @@
   "switchToBotAccount": "切换到机器人账户",
   "impersonationBannerText": "您当前正在以机器人身份查看 Metaculus。",
   "stopImpersonating": "切换回我的账户",
+  "editedOnDate": "编辑于 {date}",
   "othersCount": "其他（{count}）"
 }

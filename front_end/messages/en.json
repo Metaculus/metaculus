@@ -1034,6 +1034,7 @@
   "CPIsHidden": "Community Prediction is hidden",
   "createdByUserOnDate": "Created by {user} on {date}",
   "edited": "edited",
+  "editedOnDate": "Edited on {date}",
   "tournamentHidePostsToMainFeed": "Hide tournament posts in main feed",
   "me": "me",
   "forecastDisclaimer": "Based on {predictionCount} predictions by {forecasterCount} forecasters",
