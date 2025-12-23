@@ -57,10 +57,7 @@ function getEmbeddedChartTheme(
   theme: VictoryThemeDefinition | undefined,
   cssVariables: Record<string, string>
 ): VictoryThemeDefinition {
-  const baseTheme: VictoryThemeDefinition = {
-    axis: { style: { tickLabels: { fontSize: 16 } } },
-    line: { style: { data: { strokeWidth: 2 } } },
-  };
+  const baseTheme: VictoryThemeDefinition = {};
 
   if (theme) {
     return merge(baseTheme, theme);
@@ -112,3 +109,12 @@ function getEmbeddedChipTheme(
 
   return {};
 }
+
+export const getEmbedAccentColor = (theme?: EmbedTheme): string | undefined => {
+  const stroke = theme?.chart?.line?.style?.data?.stroke as unknown as
+    | string
+    | undefined;
+  return (
+    stroke ?? (theme?.predictionChip?.backgroundColor as string | undefined)
+  );
+};

@@ -42,7 +42,6 @@ import {
   generateScale,
   generateTimeSeriesYDomain,
   generateTimestampXScale,
-  getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
@@ -75,11 +74,11 @@ type Props = {
   isEmptyDomain?: boolean;
   openTime?: number | null;
   forceAutoZoom?: boolean;
-  isEmbedded?: boolean;
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
   forFeedPage?: boolean;
+  isEmbedded?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -109,11 +108,11 @@ const GroupChart: FC<Props> = ({
   isEmptyDomain,
   openTime,
   forceAutoZoom,
-  isEmbedded,
   cursorTimestamp,
   forecastAvailability,
   forceShowLinePoints = false,
   forFeedPage,
+  isEmbedded = false,
 }) => {
   const t = useTranslations();
   const {
@@ -198,13 +197,6 @@ const GroupChart: FC<Props> = ({
       return filteredLine;
     });
   }, [graphs, cursorTimestamp]);
-
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-  const maxLeftPadding = useMemo(() => {
-    return Math.max(leftPadding, MIN_LEFT_PADDING);
-  }, [leftPadding, MIN_LEFT_PADDING]);
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
@@ -296,10 +288,10 @@ const GroupChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: isEmbedded ? maxLeftPadding : 0,
-              right: isEmbedded ? 10 : maxRightPadding,
+              left: 0,
               top: 10,
-              bottom: BOTTOM_PADDING,
+              right: maxRightPadding,
+              bottom: isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING,
             }}
             events={[
               {
@@ -366,16 +358,11 @@ const GroupChart: FC<Props> = ({
               }}
               label={yLabel}
               offsetX={
-                isEmbedded
-                  ? maxLeftPadding
-                  : isNil(yLabel)
-                    ? chartWidth + 5
-                    : chartWidth - TICK_FONT_SIZE + 5
+                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
               }
               orientation={"left"}
               axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
-
             {/* X axis */}
             <VictoryPortal>
               <VictoryAxis
@@ -388,6 +375,7 @@ const GroupChart: FC<Props> = ({
                     chartWidth={chartWidth}
                     withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
+                    dx={isEmbedded ? 16 : 0}
                   />
                 }
                 style={{
@@ -548,7 +536,6 @@ const GroupChart: FC<Props> = ({
                 />
               );
             })}
-
             {/* User predictions */}
             {graphs.map(({ active, scatter, color, highlighted }, index) =>
               active && (!isHighlightActive || highlighted) ? (
@@ -622,6 +609,7 @@ function buildChartData({
   openTime,
   forceAutoZoom,
   forFeedPage,
+  isEmbedded,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -638,6 +626,7 @@ function buildChartData({
   openTime?: number | null;
   forceAutoZoom?: boolean;
   forFeedPage?: boolean;
+  isEmbedded?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -898,7 +887,7 @@ function buildChartData({
     scaling: scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
-    forceTickCount: forFeedPage ? 3 : 5,
+    forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 5,
     alwaysShowTicks: true,
   });
 

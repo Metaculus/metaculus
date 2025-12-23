@@ -66,6 +66,7 @@ type Props = {
   alignChartTabs?: boolean;
   forceTickCount?: number;
   variant?: "feed" | "question";
+  colorOverride?: string;
 };
 
 const MinifiedContinuousAreaChart: FC<Props> = ({
@@ -80,6 +81,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   alignChartTabs,
   forceTickCount,
   variant = "feed",
+  colorOverride,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -268,6 +270,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (colorOverride) return colorOverride;
                           if (extraTheme?.area?.style?.data?.fill) {
                             return extraTheme.area.style.data.fill;
                           }
@@ -336,6 +339,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke: (() => {
+                      if (colorOverride) return colorOverride;
                       switch (chart.color) {
                         case "orange":
                           return getThemeColor(METAC_COLORS.orange["600"]);
@@ -393,6 +397,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (colorOverride) return colorOverride;
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["500"]);
@@ -417,6 +422,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       fill: (() => {
+                        if (colorOverride) return colorOverride;
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["600"]);
@@ -425,6 +431,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                         }
                       })(),
                       stroke: (() => {
+                        if (colorOverride) return colorOverride;
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["600"]);

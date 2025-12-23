@@ -1,8 +1,10 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
@@ -13,6 +15,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -33,6 +36,11 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
+  extraTheme?: VictoryThemeDefinition;
+  colorOverride?: ThemeColor | string;
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -42,9 +50,19 @@ const DetailedContinuousChartCard: FC<Props> = ({
   forecastAvailability,
   hideTitle,
   isConsumerView: isConsumerViewProp,
+  embedChartHeight,
+  extraTheme,
+  colorOverride,
+  defaultZoom,
+  withZoomPicker,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const effectiveDefaultZoom =
+    defaultZoom ??
+    (user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths);
+
+  const effectiveWithZoomPicker = withZoomPicker ?? true;
   const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
 
@@ -180,6 +198,13 @@ const DetailedContinuousChartCard: FC<Props> = ({
     question.status,
   ]);
 
+  const isEmbed = useIsEmbedMode();
+
+  const timelineTitle =
+    !isEmbed && !hideTitle ? t("forecastTimelineHeading") : undefined;
+
+  const chartHeight = embedChartHeight ?? 150;
+
   return (
     <div
       className={cn(
@@ -191,7 +216,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         <>
           {/* Large screens: side-by-side layout */}
           <div className="hidden items-stretch gap-4 md:flex">
-            {isContinuousQuestion(question) && (
+            {isContinuousQuestion(question) && !isEmbed && (
               <QuestionHeaderCPStatus
                 question={question}
                 size="lg"
@@ -213,12 +238,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 questionStatus={question.status}
                 actualCloseTime={getPostDrivenTime(question.actual_close_time)}
                 scaling={question.scaling}
-                defaultZoom={
-                  user
-                    ? TimelineChartZoomOption.All
-                    : TimelineChartZoomOption.TwoMonths
-                }
-                withZoomPicker
+                defaultZoom={effectiveDefaultZoom}
+                withZoomPicker={effectiveWithZoomPicker}
                 hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
                 isEmptyDomain={
                   !!forecastAvailability?.isEmpty ||
@@ -230,7 +251,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 simplifiedCursor={
                   question.type !== QuestionType.Binary || !user
                 }
-                title={hideTitle ? undefined : t("forecastTimelineHeading")}
+                title={timelineTitle}
                 forecastAvailability={forecastAvailability}
                 cursorTooltip={
                   question.type === QuestionType.Binary && !user
@@ -238,6 +259,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
                     : cursorTooltip
                 }
                 isConsumerView={isConsumerView}
+                isEmbedded={isEmbed}
+                height={chartHeight}
+                extraTheme={extraTheme}
+                colorOverride={colorOverride}
               />
             </div>
           </div>
@@ -258,12 +283,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
               questionStatus={question.status}
               actualCloseTime={getPostDrivenTime(question.actual_close_time)}
               scaling={question.scaling}
-              defaultZoom={
-                user
-                  ? TimelineChartZoomOption.All
-                  : TimelineChartZoomOption.TwoMonths
-              }
-              withZoomPicker
+              defaultZoom={effectiveDefaultZoom}
+              withZoomPicker={effectiveWithZoomPicker}
               hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
               isEmptyDomain={
                 !!forecastAvailability?.isEmpty ||
@@ -273,7 +294,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
               unit={question.unit}
               inboundOutcomeCount={question.inbound_outcome_count}
               simplifiedCursor={question.type !== QuestionType.Binary || !user}
-              title={hideTitle ? undefined : t("forecastTimelineHeading")}
+              title={timelineTitle}
               forecastAvailability={forecastAvailability}
               cursorTooltip={
                 question.type === QuestionType.Binary && !user
@@ -281,6 +302,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
                   : cursorTooltip
               }
               isConsumerView={isConsumerView}
+              isEmbedded={isEmbed}
+              height={chartHeight}
+              extraTheme={extraTheme}
+              colorOverride={colorOverride}
             />
           </div>
         </>
@@ -300,12 +325,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
             questionStatus={question.status}
             actualCloseTime={getPostDrivenTime(question.actual_close_time)}
             scaling={question.scaling}
-            defaultZoom={
-              user
-                ? TimelineChartZoomOption.All
-                : TimelineChartZoomOption.TwoMonths
-            }
-            withZoomPicker
+            defaultZoom={effectiveDefaultZoom}
+            withZoomPicker={effectiveWithZoomPicker}
             hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
             isEmptyDomain={
               !!forecastAvailability?.isEmpty ||
@@ -315,7 +336,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             unit={question.unit}
             inboundOutcomeCount={question.inbound_outcome_count}
             simplifiedCursor={question.type !== QuestionType.Binary || !user}
-            title={hideTitle ? undefined : t("forecastTimelineHeading")}
+            title={timelineTitle}
             forecastAvailability={forecastAvailability}
             cursorTooltip={
               question.type === QuestionType.Binary && !user
@@ -323,6 +344,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 : cursorTooltip
             }
             isConsumerView={isConsumerView}
+            isEmbedded={isEmbed}
+            height={chartHeight}
+            extraTheme={extraTheme}
+            colorOverride={colorOverride}
           />
         </div>
       )}
