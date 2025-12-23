@@ -36,7 +36,7 @@ const TournamentsHero: React.FC = () => {
   type PlainKey = Parameters<typeof t>[0];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="hidden flex-col gap-5 lg:flex">
       <h1 className="my-0 text-[28px] font-bold leading-[34px] text-blue-800 dark:text-blue-800-dark">
         {t.rich(keys.titleKey as RichKey, {
           br: () => <br />,
