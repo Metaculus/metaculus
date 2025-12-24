@@ -23,6 +23,7 @@ export async function setAuthTokens(tokens: AuthTokens): Promise<void> {
   cookieStorage.set(COOKIE_NAME_ACCESS_TOKEN, tokens.accessToken, {
     httpOnly: true,
     secure: true,
+    // TODO: confirm it's LAX
     sameSite: "lax",
     maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
     path: "/",
