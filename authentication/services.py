@@ -3,6 +3,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.signing import TimestampSigner
 from django.utils.crypto import get_random_string
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import User
 from utils.email import send_email_with_template
@@ -123,3 +125,15 @@ class SignupInviteService:
             },
             from_email=settings.EMAIL_HOST_USER,
         )
+
+
+def get_tokens_for_user(user):
+    if not user.is_active:
+        raise AuthenticationFailed("User is not active")
+
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        "refresh_token": str(refresh),
+        "access_token": str(refresh.access_token),
+    }

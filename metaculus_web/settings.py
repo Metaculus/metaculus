@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 import re
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -147,6 +148,9 @@ DATABASES = {
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
+        # Primary auth mechanism for web users
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # Auth Token: should be used for bots only!
         "authentication.auth.FallbackTokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -156,6 +160,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 20,
     "MAX_LIMIT": 100,
+}
+
+# Simple JWT
+# https://django-rest-framework-simplejwt.readthedocs.io/
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=45),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "CHECK_REVOKE_TOKEN": True,
+    "REVOKE_TOKEN_CLAIM": "hash",
 }
 
 # Password validation
@@ -307,7 +322,6 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.DbConnectionsMiddleware",
     ],
 }
-
 
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
