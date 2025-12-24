@@ -3,7 +3,6 @@ import "server-only";
 import {
   getRefreshToken,
   setAuthTokens,
-  clearAuthTokens,
   AuthTokens,
 } from "@/services/auth_tokens";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -34,7 +33,7 @@ export function refreshWithSingleFlight(
   const promise = fetch(`${PUBLIC_API_BASE_URL}/api/auth/refresh/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token: refreshToken }),
+    body: JSON.stringify({ refresh: refreshToken }),
   })
     .then(async (response) => {
       if (!response.ok) return null;
@@ -71,9 +70,13 @@ export async function refreshAccessToken(): Promise<AuthTokens | null> {
 
   const tokens = await refreshWithSingleFlight(refreshToken);
   if (tokens) {
-    await setAuthTokens(tokens);
-  } else {
-    await clearAuthTokens();
+    // Try to persist new tokens, but don't fail if we can't (e.g., during SSR)
+    try {
+      await setAuthTokens(tokens);
+    } catch {
+      // Cookie modification not allowed in this context (SSR)
+      // Tokens will still be returned and used for this request
+    }
   }
   return tokens;
 }
