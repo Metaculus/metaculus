@@ -137,6 +137,25 @@ def get_last_user_forecasts_for_questions(
     return forecasts_map
 
 
+def get_users_with_active_forecasts_for_questions(
+    question_ids: Iterable[int],
+) -> set[int]:
+    """
+    Returns set of user IDs who have at least one active forecast
+    on any of the given questions.
+
+    An active forecast has end_time IS NULL or end_time > now().
+    """
+    return set(
+        Forecast.objects.filter(
+            question_id__in=question_ids,
+        )
+        .filter(Q(end_time__isnull=True) | Q(end_time__gt=timezone.now()))
+        .values_list("author_id", flat=True)
+        .distinct()
+    )
+
+
 def notify_post_cp_change(post: Post):
     """
     TODO: write description and check over
@@ -167,7 +186,16 @@ def notify_post_cp_change(post: Post):
         [q.pk for q in questions]
     )
 
+    # Get users who still have active forecasts on any question
+    users_with_active_forecasts = get_users_with_active_forecasts_for_questions(
+        [q.pk for q in questions]
+    )
+
     for subscription in subscriptions:
+        # Skip users who have withdrawn from all questions in the post
+        if subscription.user_id not in users_with_active_forecasts:
+            continue
+
         last_sent = subscription.last_sent_at
         max_sorting_diff = None
         question_data: list[CPChangeData] = []
