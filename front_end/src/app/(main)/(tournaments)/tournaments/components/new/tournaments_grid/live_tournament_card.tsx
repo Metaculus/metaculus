@@ -29,13 +29,13 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
       href={href}
       className={cn(
         "group block no-underline",
-        "rounded border border-blue-400 dark:border-blue-400-dark",
+        "rounded-lg border border-blue-400 dark:border-blue-400-dark lg:rounded",
         "bg-gray-0/50 dark:bg-gray-0-dark/50",
         "shadow-sm transition-shadow hover:shadow-md",
         "overflow-hidden"
       )}
     >
-      <div className="relative h-[80px] w-full bg-blue-100/40 dark:bg-blue-100-dark/20">
+      <div className="relative h-[64px] w-full bg-blue-100/40 dark:bg-blue-100-dark/20 lg:h-[80px]">
         {item.header_image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -48,7 +48,7 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between gap-2 px-4 pb-[5px] pt-3 text-xs">
+      <div className="flex items-center justify-center gap-2 px-3 pb-0 pt-3 text-xs lg:justify-between lg:px-4 lg:pb-[5px]">
         <div className="text-olive-900 dark:text-olive-900-dark">
           {prize && (
             <span
@@ -63,7 +63,7 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
           {prize ? ` ${t("tournamentPrizePool")}` : t("tournamentNoPrizePool")}
         </div>
 
-        <div className="flex items-center gap-1 font-medium text-gray-800 dark:text-gray-800-dark">
+        <div className="hidden items-center gap-1 font-medium text-gray-800 dark:text-gray-800-dark lg:flex">
           {item.forecasters_count ?? 0}
           <FontAwesomeIcon
             className="text-[8px] text-gray-400 dark:text-gray-400-dark"
@@ -72,8 +72,8 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
         </div>
       </div>
 
-      <div className="flex h-[120px] flex-col justify-between px-4 pb-5 pt-2">
-        <h6 className="my-0 text-lg font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark">
+      <div className="flex h-[80px] flex-col justify-between px-3 pb-3 pt-1.5 lg:h-[120px] lg:px-4 lg:pb-5 lg:pt-2">
+        <h6 className="my-0 text-center text-sm font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-left lg:text-lg">
           {item.name}
         </h6>
 
@@ -168,7 +168,7 @@ function ActiveMiniBar({
 
   return (
     <div>
-      <p className="my-0 text-[10px] font-normal text-blue-700 dark:text-blue-700-dark">
+      <p className="my-0 hidden text-[10px] font-normal text-blue-700 dark:text-blue-700-dark lg:block">
         {label}
       </p>
 
@@ -231,7 +231,7 @@ function ClosedMiniBar({
 
   return (
     <div>
-      <p className="my-0 text-[10px] font-normal text-blue-700 dark:text-blue-700-dark">
+      <p className="my-0 hidden text-[10px] font-normal text-blue-700 dark:text-blue-700-dark lg:block">
         {label}
       </p>
 
