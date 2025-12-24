@@ -4,15 +4,18 @@ import React from "react";
 
 import TournamentsGrid from "./tournaments_grid";
 import { useTournamentsSection } from "../tournaments_provider";
+import LiveTournamentCard from "./live_tournament_card";
 
 const LiveTournamentsGrid: React.FC = () => {
-  const { items } = useTournamentsSection();
+  const { items, nowTs } = useTournamentsSection();
 
   return (
-    <div>
-      <div className="text-lg">Live Tournaments ({items.length})</div>
-      <TournamentsGrid items={items} />
-    </div>
+    <TournamentsGrid
+      items={items}
+      renderItem={(item) => (
+        <LiveTournamentCard key={item.id} item={item} nowTs={nowTs} />
+      )}
+    />
   );
 };
 

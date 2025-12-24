@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 from django.db.models import Q, QuerySet
 from rest_framework import serializers
@@ -253,12 +253,12 @@ def serialize_index_data(index: ProjectIndex):
 
 
 def serialize_tournaments_with_counts(
-    qs: QuerySet[Project], sort_key: Callable[[Project], Any]
+    projects: Iterable[Project], sort_key: Callable[[dict], Any]
 ) -> list[dict]:
-    projects: list[Project] = list(qs.all())
+    projects = list(projects)
     questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
 
-    data = []
+    data: list[dict] = []
     for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
         serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0

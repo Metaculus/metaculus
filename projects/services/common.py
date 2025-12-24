@@ -5,6 +5,7 @@ from typing import Iterable
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from django.core.cache import cache
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
@@ -210,6 +211,18 @@ def get_project_timeline_data(project: Project):
         "all_questions_closed": all_questions_closed,
     }
 
+PROJECT_TIMELINE_TTL_SECONDS = 5 * 360
+
+def get_project_timeline_data_cached(project: Project):
+    key = f"project_timeline:v1:{project.id}"
+    return cache.get_or_set(
+        key,
+        lambda: get_project_timeline_data(project),
+        PROJECT_TIMELINE_TTL_SECONDS,
+    )
+
+def get_projects_timeline_cached(projects: list[Project]) -> dict[int, dict]:
+    return {p.id: get_project_timeline_data_cached(p) for p in projects}
 
 def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
     """
