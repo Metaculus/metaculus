@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import ServerAuthApi from "@/services/api/auth/auth.server";
 import {
   COOKIE_NAME_ACCESS_TOKEN,
   COOKIE_NAME_REFRESH_TOKEN,
@@ -11,7 +10,6 @@ import {
 } from "@/services/language_service";
 import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
-import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 function hasAuthSession(request: NextRequest): boolean {
@@ -25,7 +23,8 @@ export async function middleware(request: NextRequest) {
   const hasSession = hasAuthSession(request);
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
-  // if authentication is required, check for token
+
+  // If authentication is required, redirect unauthenticated users
   if (PUBLIC_AUTHENTICATION_REQUIRED) {
     if (
       !pathname.startsWith("/not-found/") &&
@@ -37,20 +36,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  let clearAuthCookies = false;
-
+  // Check restricted alpha access
   if (hasSession) {
-    try {
-      await ServerAuthApi.verifyToken();
-    } catch (error) {
-      if ((error as ApiError)?.response?.status === 403) {
-        request.cookies.delete(COOKIE_NAME_ACCESS_TOKEN);
-        request.cookies.delete(COOKIE_NAME_REFRESH_TOKEN);
-        clearAuthCookies = true;
-      }
-    }
-
-    // Check restricted access token
     const alphaAccessToken = await getAlphaAccessToken();
     const alphaAuthUrl = "/alpha-auth";
 
@@ -75,11 +62,6 @@ export async function middleware(request: NextRequest) {
   const locale_in_cookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
-  }
-
-  if (clearAuthCookies) {
-    response.cookies.delete(COOKIE_NAME_ACCESS_TOKEN);
-    response.cookies.delete(COOKIE_NAME_REFRESH_TOKEN);
   }
 
   return response;
