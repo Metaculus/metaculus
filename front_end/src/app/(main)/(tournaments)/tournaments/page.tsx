@@ -17,6 +17,7 @@ const LiveTournamentsPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();
   const { activeTournaments, archivedTournaments, questionSeries, indexes } =
     extractTournamentLists(tournaments);
+  const nowTs = Date.now();
 
   if (isOldScreen) {
     return (
@@ -30,7 +31,7 @@ const LiveTournamentsPage: React.FC = async () => {
   }
 
   return (
-    <TournamentsScreen current="live" tournaments={tournaments}>
+    <TournamentsScreen current="live" tournaments={tournaments} nowTs={nowTs}>
       <LiveTournamentsGrid />
     </TournamentsScreen>
   );

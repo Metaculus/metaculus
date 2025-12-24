@@ -13,16 +13,22 @@ type Props = {
   current: TournamentsSection;
   tournaments: TournamentPreview[];
   children: React.ReactNode;
+  nowTs?: number;
 };
 
 const TournamentsScreen: React.FC<Props> = ({
   current,
   tournaments,
   children,
+  nowTs,
 }) => {
   return (
     <TournamentsContainer>
-      <TournamentsSectionProvider tournaments={tournaments} current={current}>
+      <TournamentsSectionProvider
+        nowTs={nowTs}
+        tournaments={tournaments}
+        current={current}
+      >
         <TournamentsHeader />
         <div className="mt-8">
           <TournamentsHero />

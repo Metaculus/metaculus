@@ -12,6 +12,7 @@ type TournamentsSectionCtxValue = {
   current: TournamentsSection;
   items: TournamentPreview[];
   count: number;
+  nowTs?: number;
   infoOpen: boolean;
   toggleInfo: () => void;
   closeInfo: () => void;
@@ -25,8 +26,9 @@ export function TournamentsSectionProvider(props: {
   tournaments: TournamentPreview[];
   current: TournamentsSection;
   children: React.ReactNode;
+  nowTs?: number;
 }) {
-  const { tournaments, current, children } = props;
+  const { tournaments, current, children, nowTs } = props;
   const [infoOpen, setInfoOpen] = useState(true);
 
   const sectionItems = useMemo(
@@ -42,10 +44,11 @@ export function TournamentsSectionProvider(props: {
       items: filtered,
       count: filtered.length,
       infoOpen,
+      nowTs,
       toggleInfo: () => setInfoOpen((v) => !v),
       closeInfo: () => setInfoOpen(false),
     }),
-    [current, filtered, infoOpen]
+    [current, filtered, infoOpen, nowTs]
   );
 
   return (

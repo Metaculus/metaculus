@@ -28,6 +28,7 @@ from projects.services.common import (
     invite_user_to_project,
     get_site_main_project,
     get_project_timeline_data,
+    get_projects_timeline_cached,
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
@@ -132,12 +133,17 @@ def tournaments_list_api_view(request: Request):
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
-        .prefetch_related("primary_leaderboard")
+        .select_related("primary_leaderboard")
+    )
+    projects = list(qs)
+    data = serialize_tournaments_with_counts(
+        projects, sort_key=lambda r: r["questions_count"]
     )
 
-    data = serialize_tournaments_with_counts(
-        qs, sort_key=lambda x: x["questions_count"]
-    )
+    timeline_map = get_projects_timeline_cached(projects)
+    for row in data:
+        row["timeline"] = timeline_map.get(row["id"])
+
     return Response(data)
 
 
