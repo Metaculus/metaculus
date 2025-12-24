@@ -5,9 +5,12 @@ export type AuthContextType = {
   setUser: (user: CurrentUser | null) => void;
 };
 
-export type SocialAuthResponse = {
-  token: string;
+type AuthTokenCredentials = {
+  access_token: string;
+  refresh_token: string;
 };
+
+export type SocialAuthResponse = AuthTokenCredentials;
 
 export type SocialProviderType = "facebook" | "google-oauth2";
 
@@ -16,12 +19,11 @@ export type SocialProvider = {
   auth_url: string;
 };
 
-export type AuthResponse = {
-  token: string;
+export type AuthResponse = AuthTokenCredentials & {
   user: CurrentUser;
 };
 
-export type SignUpResponse = AuthResponse & {
+export type SignUpResponse = AuthTokenCredentials & {
+  user: CurrentUser;
   is_active: boolean;
-  token: string | null;
 };

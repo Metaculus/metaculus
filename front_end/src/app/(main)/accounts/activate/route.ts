@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   try {
     const response = await ServerAuthApi.activateAccount(userId, token);
-    await setServerSession(response.token);
+    await setServerSession(response);
   } catch (err) {
     logError(err);
   }

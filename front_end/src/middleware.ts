@@ -2,54 +2,51 @@ import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import {
+  COOKIE_NAME_ACCESS_TOKEN,
+  COOKIE_NAME_REFRESH_TOKEN,
+} from "@/services/auth_tokens";
+import {
   LanguageService,
   LOCALE_COOKIE_NAME,
 } from "@/services/language_service";
-import {
-  COOKIE_NAME_TOKEN,
-  getAlphaTokenSession,
-  getServerSession,
-} from "@/services/session";
+import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+function hasAuthSession(request: NextRequest): boolean {
+  const accessToken = request.cookies.get(COOKIE_NAME_ACCESS_TOKEN)?.value;
+  const refreshToken = request.cookies.get(COOKIE_NAME_REFRESH_TOKEN)?.value;
+  return !!(accessToken || refreshToken);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  const serverSession = await getServerSession();
+  const hasSession = hasAuthSession(request);
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
   // if authentication is required, check for token
   if (PUBLIC_AUTHENTICATION_REQUIRED) {
     if (
-      !request.nextUrl.pathname.startsWith("/not-found/") &&
-      !request.nextUrl.pathname.startsWith("/accounts/") &&
-      !serverSession
+      !pathname.startsWith("/not-found/") &&
+      !pathname.startsWith("/accounts/") &&
+      !hasSession
     ) {
       // return a not found page
       return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
   }
 
-  let deleteCookieToken = false;
+  let clearAuthCookies = false;
 
-  if (serverSession) {
-    // Verify auth token
+  if (hasSession) {
     try {
       await ServerAuthApi.verifyToken();
     } catch (error) {
-      const errorResponse = error as ApiError;
-
-      if (errorResponse?.response?.status === 403) {
-        request.cookies.delete(COOKIE_NAME_TOKEN);
-        // A small workaround of deleting cookies.
-        // We need to delete cookies from request before generating response
-        // to let other services know we've eliminated the auth token.
-        // But Nextjs does not apply such cookies deletion to the response
-        // automatically, so we have to do it for both req and res
-        // https://github.com/vercel/next.js/issues/40146
-        deleteCookieToken = true;
+      if ((error as ApiError)?.response?.status === 403) {
+        request.cookies.delete(COOKIE_NAME_ACCESS_TOKEN);
+        request.cookies.delete(COOKIE_NAME_REFRESH_TOKEN);
+        clearAuthCookies = true;
       }
     }
 
@@ -72,22 +69,17 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
 
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
   const locale_in_url = request.nextUrl.searchParams.get("locale");
   const locale_in_cookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
-
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-
-  // Handle explicit locale parameter in URL
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
 
-  if (deleteCookieToken) {
-    response.cookies.delete(COOKIE_NAME_TOKEN);
+  if (clearAuthCookies) {
+    response.cookies.delete(COOKIE_NAME_ACCESS_TOKEN);
+    response.cookies.delete(COOKIE_NAME_REFRESH_TOKEN);
   }
 
   return response;

@@ -71,7 +71,7 @@ export default async function loginAction(
     };
   }
 
-  await setServerSession(response.token);
+  await setServerSession(response);
 
   // Set user's language preference as the active locale
   if (response.user.language) {
@@ -135,8 +135,8 @@ export async function signUpAction(
 
     const signUpActionState: SignUpActionState = { ...response };
 
-    if (response.is_active && response.token) {
-      await setServerSession(response.token);
+    if (response.is_active && response.access_token && response.refresh_token) {
+      await setServerSession(response);
 
       // Set user's language preference as the active locale
       if (response.user?.language) {
@@ -216,8 +216,8 @@ export async function simplifiedSignUpAction(
   try {
     const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
 
-    if (response?.token) {
-      await setServerSession(response.token);
+    if (response) {
+      await setServerSession(response);
     }
     return response;
   } catch (err: unknown) {

@@ -66,7 +66,7 @@ export async function passwordResetConfirmAction(
       validatedFields.data.password
     );
 
-    await setServerSession(response.token);
+    await setServerSession(response);
 
     return {
       data: response,
