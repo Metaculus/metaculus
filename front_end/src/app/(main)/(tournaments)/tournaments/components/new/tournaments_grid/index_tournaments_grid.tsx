@@ -4,15 +4,17 @@ import React from "react";
 
 import TournamentsGrid from "./tournaments_grid";
 import { useTournamentsSection } from "../tournaments_provider";
+import IndexTournamentCard from "./index_tournament_card";
 
 const IndexTournamentsGrid: React.FC = () => {
   const { items } = useTournamentsSection();
 
   return (
-    <div>
-      <div className="text-lg">Indexes ({items.length})</div>
-      <TournamentsGrid items={items} />
-    </div>
+    <TournamentsGrid
+      items={items}
+      renderItem={(item) => <IndexTournamentCard key={item.id} item={item} />}
+      className="grid-cols-1 md:grid-cols-3 xl:grid-cols-3"
+    />
   );
 };
 
