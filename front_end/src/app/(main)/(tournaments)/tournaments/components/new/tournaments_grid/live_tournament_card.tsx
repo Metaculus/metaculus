@@ -2,13 +2,13 @@
 
 import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
 import { TournamentPreview, TournamentTimeline } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { getProjectLink } from "@/utils/navigation";
+
+import TournamentCardShell from "./tournament_card_shell";
 
 type Props = {
   item: TournamentPreview;
@@ -22,19 +22,8 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
     [item.prize_pool]
   );
 
-  const href = getProjectLink(item);
-
   return (
-    <Link
-      href={href}
-      className={cn(
-        "group block no-underline",
-        "rounded-lg border border-blue-400 dark:border-blue-400-dark lg:rounded",
-        "bg-gray-0/50 dark:bg-gray-0-dark/50",
-        "shadow-sm transition-shadow hover:shadow-md",
-        "overflow-hidden"
-      )}
-    >
+    <TournamentCardShell item={item}>
       <div className="relative h-[64px] w-full bg-blue-100/40 dark:bg-blue-100-dark/20 lg:h-[80px]">
         {item.header_image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -86,7 +75,7 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
           isOngoing={Boolean(item.is_ongoing)}
         />
       </div>
-    </Link>
+    </TournamentCardShell>
   );
 };
 
