@@ -1808,5 +1808,6 @@
   "tournamentUnit": "{unit, select, minute {minuto} hour {hora} day {dia} week {semana} month {mês} year {ano} other {dia}}",
   "tournamentUnitPlural": "{unit, select, minute {minutos} hour {horas} day {dias} week {semanas} month {meses} year {anos} other {dias}}",
   "tournamentQuestionsCount": "{count, plural, one {<num>#</num> pergunta} other {<num>#</num> perguntas}}",
+  "tournamentQuestionsCountUpper": "<n>{count}</n> PERGUNTAS",
   "othersCount": "Outros ({count})"
 }

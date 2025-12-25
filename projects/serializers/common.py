@@ -74,6 +74,7 @@ class TopicSerializer(serializers.ModelSerializer):
 class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
     is_current_content_translated = serializers.SerializerMethodField(read_only=True)
+    description_preview = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
@@ -97,7 +98,15 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "visibility",
             "is_current_content_translated",
             "bot_leaderboard_status",
+            "description_preview",
         )
+
+    
+    def get_description_preview(self, project: Project) -> str:
+        raw = (project.description or "").strip()
+        if not raw:
+            return ""
+        return raw[:140].rstrip()
 
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard_id:

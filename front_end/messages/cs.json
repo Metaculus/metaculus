@@ -1810,5 +1810,6 @@
   "tournamentUnit": "{unit, select, minute {minuta} hour {hodina} day {den} week {týden} month {měsíc} year {rok} other {den}}",
   "tournamentUnitPlural": "{unit, select, minute {minut} hour {hodin} day {dní} week {týdnů} month {měsíců} year {let} other {dní}}",
   "tournamentQuestionsCount": "{count, plural, one {<num>#</num> otázka} other {<num>#</num> otázek}}",
+  "tournamentQuestionsCountUpper": "<n>{count}</n> OTÁZKY",
   "othersCount": "Ostatní ({count})"
 }

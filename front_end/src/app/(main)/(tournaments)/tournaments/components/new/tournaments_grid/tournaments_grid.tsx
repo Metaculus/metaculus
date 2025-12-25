@@ -3,16 +3,19 @@
 import React from "react";
 
 import { TournamentPreview } from "@/types/projects";
+import cn from "@/utils/core/cn";
 
 type Props = {
   items: TournamentPreview[];
   renderItem?: (item: TournamentPreview) => React.ReactNode;
+  className?: string;
 };
 
-const TournamentsGrid: React.FC<Props> = ({ items, renderItem }) => {
+const TournamentsGrid: React.FC<Props> = ({ items, renderItem, className }) => {
   return (
     <div
-      className="
+      className={cn(
+        `
         grid
         grid-cols-2
         gap-3
@@ -20,7 +23,9 @@ const TournamentsGrid: React.FC<Props> = ({ items, renderItem }) => {
         sm:gap-5 md:grid-cols-4
         lg:grid-cols-3
         xl:grid-cols-4
-      "
+      `,
+        className
+      )}
     >
       {items.map((item) =>
         renderItem ? (

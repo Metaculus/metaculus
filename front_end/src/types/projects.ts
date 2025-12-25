@@ -70,6 +70,7 @@ export type TournamentPreview = Project & {
   score_type: string;
   followers_count?: number;
   timeline: TournamentTimeline;
+  description_preview?: string;
 };
 
 export type TournamentTimeline = {
