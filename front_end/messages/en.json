@@ -1792,20 +1792,18 @@
   "tournamentsInfoCta": "Sign up to compete",
   "tournamentPrizePool": "PRIZE POOL",
   "tournamentNoPrizePool": "NO PRIZE POOL",
-
   "tournamentTimelineOngoing": "Ongoing",
   "tournamentTimelineJustStarted": "Just started",
   "tournamentTimelineStarts": "Starts {when}",
   "tournamentTimelineEnds": "Ends {when}",
   "tournamentTimelineClosed": "Closed",
   "tournamentTimelineAllResolved": "All questions resolved",
-
   "tournamentRelativeSoon": "soon",
   "tournamentRelativeUnderMinute": "in under a minute",
   "tournamentRelativeFarFuture": "in the far future",
-
   "tournamentRelativeFromNow": "{n} {unit} from now",
   "tournamentUnit": "{unit, select, minute {minute} hour {hour} day {day} week {week} month {month} year {year} other {day}}",
   "tournamentUnitPlural": "{unit, select, minute {minutes} hour {hours} day {days} week {weeks} month {months} year {years} other {days}}",
+  "tournamentQuestionsCount": "{count, plural, one {<num>#</num> question} other {<num>#</num> questions}}",
   "none": "none"
 }

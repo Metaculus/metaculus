@@ -73,7 +73,7 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
       </div>
 
       <div className="flex h-[80px] flex-col justify-between px-3 pb-3 pt-1.5 lg:h-[120px] lg:px-4 lg:pb-5 lg:pt-2">
-        <h6 className="my-0 text-center text-sm font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-left lg:text-lg">
+        <h6 className="my-0 text-center text-sm font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-left lg:text-lg lg:leading-[125%]">
           {item.name}
         </h6>
 
