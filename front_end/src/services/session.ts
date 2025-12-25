@@ -25,10 +25,7 @@ async function setServerCookie(name: string, value: string) {
 }
 
 export async function setServerSession(response: AuthResponse): Promise<void> {
-  await setAuthTokens({
-    accessToken: response.access_token,
-    refreshToken: response.refresh_token,
-  });
+  await setAuthTokens(response.tokens);
 }
 
 export async function setServerSessionWithTokens(

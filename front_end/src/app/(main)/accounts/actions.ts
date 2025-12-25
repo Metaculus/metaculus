@@ -135,7 +135,7 @@ export async function signUpAction(
 
     const signUpActionState: SignUpActionState = { ...response };
 
-    if (response.is_active && response.access_token && response.refresh_token) {
+    if (response.is_active && response.tokens) {
       await setServerSession(response);
 
       // Set user's language preference as the active locale

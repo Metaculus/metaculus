@@ -1,5 +1,7 @@
 import "server-only";
+
 import { ApiService } from "@/services/api/api_service";
+import { AuthTokens } from "@/types/auth";
 import {
   AuthResponse,
   SignUpResponse,
@@ -24,6 +26,15 @@ export type SignUpProps = {
 };
 
 class ServerAuthApiClass extends ApiService {
+  async refreshTokens(refreshToken: string) {
+    return this.post<AuthTokens>(
+      "/auth/refresh/",
+      { refresh: refreshToken },
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
   async getSocialProviders(redirect_uri: string): Promise<SocialProvider[]> {
     try {
       return await this.get<SocialProvider[]>(

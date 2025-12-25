@@ -16,10 +16,7 @@ export async function exchangeSocialOauthCode(
     `${PUBLIC_APP_URL}/accounts/social/${provider}`
   );
 
-  if (response) {
-    await setAuthTokens({
-      accessToken: response.access_token,
-      refreshToken: response.refresh_token,
-    });
+  if (response?.tokens) {
+    await setAuthTokens(response.tokens);
   }
 }

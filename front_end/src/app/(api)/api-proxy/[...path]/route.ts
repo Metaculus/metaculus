@@ -99,7 +99,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     }
   }
 
-  let headers = await buildHeaders(refreshedTokens?.accessToken);
+  let headers = await buildHeaders(refreshedTokens?.access);
   let response = await fetch(targetUrl, { method, headers });
 
   // Fallback: retry on 401 (in case proactive check missed edge cases)
@@ -109,7 +109,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
       const newTokens = await refreshWithSingleFlight(refreshToken);
       if (newTokens) {
         refreshedTokens = newTokens;
-        headers = await buildHeaders(newTokens.accessToken);
+        headers = await buildHeaders(newTokens.access);
         response = await fetch(targetUrl, { method, headers });
       }
     }
