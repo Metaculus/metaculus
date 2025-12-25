@@ -38,7 +38,7 @@ export function refreshWithSingleFlight(
       if (inFlightRefreshes.get(refreshToken) === promise) {
         inFlightRefreshes.delete(refreshToken);
       }
-    }, 100);
+    }, 10_000);
   });
 
   return promise;
