@@ -1,6 +1,6 @@
 "use client";
 
-import { faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faList, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
@@ -34,7 +34,14 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
             decoding="async"
             className="h-full w-full object-cover"
           />
-        ) : null}
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-blue-400 dark:bg-blue-400-dark">
+            <FontAwesomeIcon
+              icon={faList}
+              className="text-[20px] text-blue-600/30 dark:text-blue-600-dark/30 lg:text-[24px]"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-center gap-2 px-3 pb-0 pt-3 text-xs lg:justify-between lg:px-4 lg:pb-[5px]">
