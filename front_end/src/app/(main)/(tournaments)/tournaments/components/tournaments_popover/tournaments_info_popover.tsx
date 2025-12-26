@@ -18,6 +18,7 @@ import cn from "@/utils/core/cn";
 
 import TournamentsInfo from "./tournaments_info";
 import TournamentsInfoButton from "./tournaments_info_button";
+import { useTournamentsSection } from "../tournaments_provider";
 
 type Props = {
   open: boolean;
@@ -34,6 +35,7 @@ const TournamentsInfoPopover: React.FC<Props> = ({
   offsetPx = 12,
   stickyTopPx = 0,
 }) => {
+  const { current } = useTournamentsSection();
   const { refs, floatingStyles, context, isPositioned } = useFloating({
     open,
     onOpenChange,
@@ -72,6 +74,10 @@ const TournamentsInfoPopover: React.FC<Props> = ({
     dismiss,
     role,
   ]);
+
+  if (current === "series" || current === "indexes") {
+    return null;
+  }
 
   return (
     <>

@@ -21,7 +21,10 @@ from projects.serializers.common import (
     serialize_index_data,
     serialize_tournaments_with_counts,
 )
-from projects.services.cache import get_projects_questions_count_cached, get_projects_timeline_cached
+from projects.services.cache import (
+    get_projects_questions_count_cached,
+    get_projects_timeline_cached,
+)
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,

@@ -48,6 +48,7 @@ def invalidate_projects_questions_count_cache(projects: list[Project]) -> None:
     ]
     cache.delete_many(cache_keys)
 
+
 def get_project_timeline_data_cached(project: Project):
     key = f"project_timeline:v1:{project.id}"
     return cache.get_or_set(
@@ -55,6 +56,7 @@ def get_project_timeline_data_cached(project: Project):
         lambda: get_project_timeline_data(project),
         PROJECT_TIMELINE_TTL_SECONDS,
     )
+
 
 def get_projects_timeline_cached(projects: list[Project]) -> dict[int, dict]:
     return {p.id: get_project_timeline_data_cached(p) for p in projects}
