@@ -8,6 +8,7 @@ import TournamentsHero from "./tournaments_hero";
 import TournamentsMobileCtrl from "./tournaments_mobile_ctrl";
 import { TournamentsSectionProvider } from "./tournaments_provider";
 import { TournamentsSection } from "../types";
+import TournamentsResults from "./tournaments_results";
 
 type Props = {
   current: TournamentsSection;
@@ -33,7 +34,9 @@ const TournamentsScreen: React.FC<Props> = ({
         <div className="mt-8">
           <TournamentsHero />
           <TournamentsMobileCtrl />
-          <div className="mt-8 lg:mt-[50px]">{children}</div>
+          <TournamentsResults className="mt-8 lg:mt-[50px]">
+            {children}
+          </TournamentsResults>
         </div>
       </TournamentsSectionProvider>
     </TournamentsContainer>

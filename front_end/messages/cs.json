@@ -1812,5 +1812,9 @@
   "tournamentUnitPlural": "{unit, select, minute {minut} hour {hodin} day {dní} week {týdnů} month {měsíců} year {let} other {dní}}",
   "tournamentQuestionsCount": "{count, plural, one {<num>#</num> otázka} other {<num>#</num> otázek}}",
   "tournamentQuestionsCountUpper": "<n>{count}</n> OTÁZKY",
+  "tournamentsEmptySearchTitle": "Nebyly nalezeny žádné výsledky",
+  "tournamentsEmptySearchBody": "Zkuste jiný vyhledávací výraz nebo vymažte vyhledávání.",
+  "tournamentsEmptyDefaultTitle": "Zobrazeno {count} turnajů",
+  "tournamentsEmptyDefaultBody": "Zkontrolujte později nebo vyzkoušejte jinou kartu.",
   "othersCount": "Ostatní ({count})"
 }

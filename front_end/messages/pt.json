@@ -1810,5 +1810,9 @@
   "tournamentUnitPlural": "{unit, select, minute {minutos} hour {horas} day {dias} week {semanas} month {meses} year {anos} other {dias}}",
   "tournamentQuestionsCount": "{count, plural, one {<num>#</num> pergunta} other {<num>#</num> perguntas}}",
   "tournamentQuestionsCountUpper": "<n>{count}</n> PERGUNTAS",
+  "tournamentsEmptySearchTitle": "Nenhum resultado encontrado",
+  "tournamentsEmptySearchBody": "Tente um termo de pesquisa diferente ou limpe a pesquisa.",
+  "tournamentsEmptyDefaultTitle": "{count} torneios mostrados",
+  "tournamentsEmptyDefaultBody": "Volte mais tarde ou tente outra aba.",
   "othersCount": "Outros ({count})"
 }
