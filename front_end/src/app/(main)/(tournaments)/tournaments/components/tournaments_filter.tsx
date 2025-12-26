@@ -8,7 +8,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import { TournamentsSortBy } from "@/types/projects";
 
 import { useTournamentsSection } from "./tournaments_provider";
-import { TOURNAMENTS_SORT } from "../../constants/query_params";
+import { TOURNAMENTS_SORT } from "../constants/query_params";
 
 const TournamentsFilter: React.FC = () => {
   const t = useTranslations();

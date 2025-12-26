@@ -1,7 +1,7 @@
 import React from "react";
 
 import TournamentsTabsShell from "./tournaments-tabs-shell";
-import { Section, TournamentsSection } from "../../types";
+import { Section, TournamentsSection } from "../types";
 
 type Props = { current: TournamentsSection };
 

@@ -5,7 +5,7 @@ import React from "react";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import cn from "@/utils/core/cn";
 
-import { Section, TournamentsSection } from "../../types";
+import { Section, TournamentsSection } from "../types";
 
 type Props = {
   current: TournamentsSection;

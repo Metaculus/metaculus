@@ -1,7 +1,7 @@
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 
-import ArchivedTournamentsGrid from "../components/new/tournaments_grid/archived_tournaments_grid";
-import TournamentsScreen from "../components/new/tournaments_screen";
+import ArchivedTournamentsGrid from "../components/tournaments_grid/archived_tournaments_grid";
+import TournamentsScreen from "../components/tournaments_screen";
 
 const ArchivedPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();

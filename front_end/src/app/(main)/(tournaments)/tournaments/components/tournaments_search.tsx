@@ -3,7 +3,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import ExpandableSearchInput from "@/components/expandable_search_input";
 import useSearchInputState from "@/hooks/use_search_input_state";
 
-import { TOURNAMENTS_SEARCH } from "../../constants/query_params";
+import { TOURNAMENTS_SEARCH } from "../constants/query_params";
 
 const TournamentsSearch: React.FC = () => {
   const [searchQuery, setSearchQuery] = useSearchInputState(
