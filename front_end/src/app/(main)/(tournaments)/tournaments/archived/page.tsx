@@ -5,8 +5,13 @@ import TournamentsScreen from "../components/new/tournaments_screen";
 
 const ArchivedPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();
+  const nowTs = Date.now();
   return (
-    <TournamentsScreen current="archived" tournaments={tournaments}>
+    <TournamentsScreen
+      current="archived"
+      tournaments={tournaments}
+      nowTs={nowTs}
+    >
       <ArchivedTournamentsGrid />
     </TournamentsScreen>
   );

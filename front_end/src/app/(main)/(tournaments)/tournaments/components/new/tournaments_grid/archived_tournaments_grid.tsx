@@ -2,17 +2,27 @@
 
 import React from "react";
 
-import TournamentsGrid from "./tournaments_grid";
+import { TournamentType } from "@/types/projects";
+
 import { useTournamentsSection } from "../tournaments_provider";
+import LiveTournamentCard from "./live_tournament_card";
+import QuestionSeriesCard from "./question_series_card";
+import TournamentsGrid from "./tournaments_grid";
 
 const ArchivedTournamentsGrid: React.FC = () => {
-  const { items } = useTournamentsSection();
+  const { items, nowTs } = useTournamentsSection();
 
   return (
-    <div>
-      <div className="text-lg">Archived Tournaments ({items.length})</div>
-      <TournamentsGrid items={items} />
-    </div>
+    <TournamentsGrid
+      items={items}
+      renderItem={(item) => {
+        if (item.type === TournamentType.QuestionSeries) {
+          return <QuestionSeriesCard key={item.id} item={item} />;
+        }
+
+        return <LiveTournamentCard key={item.id} item={item} nowTs={nowTs} />;
+      }}
+    />
   );
 };
 
