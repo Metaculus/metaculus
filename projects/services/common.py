@@ -211,19 +211,6 @@ def get_project_timeline_data(project: Project):
         "all_questions_closed": all_questions_closed,
     }
 
-PROJECT_TIMELINE_TTL_SECONDS = 5 * 360
-
-def get_project_timeline_data_cached(project: Project):
-    key = f"project_timeline:v1:{project.id}"
-    return cache.get_or_set(
-        key,
-        lambda: get_project_timeline_data(project),
-        PROJECT_TIMELINE_TTL_SECONDS,
-    )
-
-def get_projects_timeline_cached(projects: list[Project]) -> dict[int, dict]:
-    return {p.id: get_project_timeline_data_cached(p) for p in projects}
-
 def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
     """
     Returns a dict mapping each project_id to its questions_count

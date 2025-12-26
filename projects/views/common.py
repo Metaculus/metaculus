@@ -21,14 +21,13 @@ from projects.serializers.common import (
     serialize_index_data,
     serialize_tournaments_with_counts,
 )
-from projects.services.cache import get_projects_questions_count_cached
+from projects.services.cache import get_projects_questions_count_cached, get_projects_timeline_cached
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,
     get_site_main_project,
     get_project_timeline_data,
-    get_projects_timeline_cached,
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
