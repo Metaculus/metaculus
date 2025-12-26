@@ -11,30 +11,6 @@ const archiveEndTs = (t: TournamentPreview) =>
     .find((d) => d && isValid(d))
     ?.getTime() ?? 0;
 
-export function extractTournamentLists(tournaments: TournamentPreview[]) {
-  const activeTournaments: TournamentPreview[] = [];
-  const archivedTournaments: TournamentPreview[] = [];
-  const questionSeries: TournamentPreview[] = [];
-  const indexes: TournamentPreview[] = [];
-
-  for (const t of tournaments) {
-    if (t.is_ongoing) {
-      if (t.type === TournamentType.QuestionSeries) {
-        questionSeries.push(t);
-      } else if (t.type === TournamentType.Index) {
-        indexes.push(t);
-      } else {
-        activeTournaments.push(t);
-      }
-    } else {
-      archivedTournaments.push(t);
-    }
-  }
-
-  archivedTournaments.sort((a, b) => archiveEndTs(b) - archiveEndTs(a));
-  return { activeTournaments, archivedTournaments, questionSeries, indexes };
-}
-
 export function selectTournamentsForSection(
   tournaments: TournamentPreview[],
   section: TournamentsSection

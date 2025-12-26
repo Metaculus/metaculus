@@ -4,9 +4,9 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 
 import { TournamentPreview } from "@/types/projects";
 
-import { selectTournamentsForSection } from "../../helpers";
-import { useTournamentFilters } from "../../hooks/use_tournament_filters";
-import { TournamentsSection } from "../../types";
+import { selectTournamentsForSection } from "../helpers";
+import { useTournamentFilters } from "../hooks/use_tournament_filters";
+import { TournamentsSection } from "../types";
 
 type TournamentsSectionCtxValue = {
   current: TournamentsSection;

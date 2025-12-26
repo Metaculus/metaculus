@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import React from "react";
 
 import { useTournamentsSection } from "./tournaments_provider";
-import { TournamentsSection } from "../../types";
+import { TournamentsSection } from "../types";
 
 const HERO_KEYS = {
   live: {
