@@ -49,6 +49,7 @@ type Props<T> = {
   renderInPortal?: boolean;
   preventParentScroll?: boolean;
   menuMinWidthMatchesButton?: boolean;
+  onOpenChange?: (open: boolean) => void;
 } & (SingleSelectProps<T> | MultiSelectProps<T>);
 
 const Listbox = <T extends string>(props: Props<T>) => {
@@ -95,6 +96,7 @@ const Listbox = <T extends string>(props: Props<T>) => {
     >
       {({ open }) => (
         <>
+          <OpenStateReporter open={open} onOpenChange={props.onOpenChange} />
           <ListboxButton
             as={Button}
             ref={buttonRef}
@@ -281,6 +283,20 @@ function FloatingMenu<T extends string>({
   if (!renderInPortal) return menu;
   if (!open || !rect) return null;
   return <Portal>{menu}</Portal>;
+}
+
+function OpenStateReporter({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
+
+  return null;
 }
 
 export default Listbox;

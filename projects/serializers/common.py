@@ -1,7 +1,7 @@
 from collections import defaultdict
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -74,6 +74,7 @@ class TopicSerializer(serializers.ModelSerializer):
 class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
     is_current_content_translated = serializers.SerializerMethodField(read_only=True)
+    description_preview = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
@@ -97,7 +98,14 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "visibility",
             "is_current_content_translated",
             "bot_leaderboard_status",
+            "description_preview",
         )
+
+    def get_description_preview(self, project: Project) -> str:
+        raw = (project.description or "").strip()
+        if not raw:
+            return ""
+        return raw[:140].rstrip()
 
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard_id:
@@ -253,12 +261,12 @@ def serialize_index_data(index: ProjectIndex):
 
 
 def serialize_tournaments_with_counts(
-    qs: QuerySet[Project], sort_key: Callable[[Project], Any]
+    projects: Iterable[Project], sort_key: Callable[[dict], Any]
 ) -> list[dict]:
-    projects: list[Project] = list(qs.all())
+    projects = list(projects)
     questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
 
-    data = []
+    data: list[dict] = []
     for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
         serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0

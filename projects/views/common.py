@@ -21,7 +21,10 @@ from projects.serializers.common import (
     serialize_index_data,
     serialize_tournaments_with_counts,
 )
-from projects.services.cache import get_projects_questions_count_cached
+from projects.services.cache import (
+    get_projects_questions_count_cached,
+    get_projects_timeline_cached,
+)
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
@@ -132,12 +135,17 @@ def tournaments_list_api_view(request: Request):
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
-        .prefetch_related("primary_leaderboard")
+        .select_related("primary_leaderboard")
+    )
+    projects = list(qs)
+    data = serialize_tournaments_with_counts(
+        projects, sort_key=lambda r: r["questions_count"]
     )
 
-    data = serialize_tournaments_with_counts(
-        qs, sort_key=lambda x: x["questions_count"]
-    )
+    timeline_map = get_projects_timeline_cached(projects)
+    for row in data:
+        row["timeline"] = timeline_map.get(row["id"])
+
     return Response(data)
 
 
