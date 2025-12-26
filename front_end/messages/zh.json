@@ -1813,5 +1813,9 @@
   "tournamentUnitPlural": "{unit, select, minute {分钟} hour {小时} day {天} week {周} month {个月} year {年} other {天}}",
   "tournamentQuestionsCount": "{count, plural, one {<num>#</num> 个问题} other {<num>#</num> 个问题}}",
   "tournamentQuestionsCountUpper": "<n>{count}</n> 题目",
+  "tournamentsEmptySearchTitle": "未找到结果",
+  "tournamentsEmptySearchBody": "尝试不同的搜索词，或清除搜索。",
+  "tournamentsEmptyDefaultTitle": "显示了 {count} 场比赛",
+  "tournamentsEmptyDefaultBody": "稍后再查看或尝试其他选项卡。",
   "othersCount": "其他（{count}）"
 }

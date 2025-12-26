@@ -1808,5 +1808,9 @@
   "tournamentUnitPlural": "{unit, select, minute {分鐘} hour {小時} day {天} week {週} month {月} year {年} other {天}}",
   "tournamentQuestionsCount": "{count, plural, one {<num>#</num> 個問題} other {<num>#</num> 個問題}}",
   "tournamentQuestionsCountUpper": "<n>{count}</n> 題問題",
+  "tournamentsEmptySearchTitle": "找不到結果",
+  "tournamentsEmptySearchBody": "嘗試使用不同的搜索詞，或清除搜索。",
+  "tournamentsEmptyDefaultTitle": "顯示 {count} 個比賽",
+  "tournamentsEmptyDefaultBody": "稍後再查看或嘗試其他標籤。",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
