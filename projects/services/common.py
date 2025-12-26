@@ -5,7 +5,6 @@ from typing import Iterable
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.timezone import make_aware
-from django.core.cache import cache
 
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
@@ -210,6 +209,7 @@ def get_project_timeline_data(project: Project):
         "all_questions_resolved": all_questions_resolved,
         "all_questions_closed": all_questions_closed,
     }
+
 
 def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
     """

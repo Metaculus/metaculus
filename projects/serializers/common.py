@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Any, Callable, Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -101,7 +101,6 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "description_preview",
         )
 
-    
     def get_description_preview(self, project: Project) -> str:
         raw = (project.description or "").strip()
         if not raw:

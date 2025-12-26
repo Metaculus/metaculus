@@ -60,19 +60,21 @@ const TournamentsHeader: React.FC = () => {
               <TournamentsTabs current={current} />
             </div>
 
-            <div className="hidden items-center gap-3 lg:flex">
-              <TournamentsFilter />
-              <TournamentsSearch />
+            {current !== "indexes" && (
+              <div className="hidden items-center gap-3 lg:flex">
+                <TournamentsFilter />
+                <TournamentsSearch />
 
-              {showInfo && isLg ? (
-                <TournamentsInfoPopover
-                  open={infoOpen}
-                  onOpenChange={(next) => (next ? toggleInfo() : closeInfo())}
-                  offsetPx={POPOVER_GAP}
-                  stickyTopPx={STICKY_TOP}
-                />
-              ) : null}
-            </div>
+                {showInfo && isLg ? (
+                  <TournamentsInfoPopover
+                    open={infoOpen}
+                    onOpenChange={(next) => (next ? toggleInfo() : closeInfo())}
+                    offsetPx={POPOVER_GAP}
+                    stickyTopPx={STICKY_TOP}
+                  />
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </div>
