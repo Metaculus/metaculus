@@ -1,5 +1,7 @@
 "use client";
 
+import { faList } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React from "react";
 
@@ -23,9 +25,16 @@ const QuestionSeriesCard: React.FC<Props> = ({ item }) => {
             alt={item.name}
             loading="lazy"
             decoding="async"
-            className="h-full w-full rounded object-cover"
+            className="h-full w-full object-cover"
           />
-        ) : null}
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-blue-400 dark:bg-blue-400-dark">
+            <FontAwesomeIcon
+              icon={faList}
+              className="text-[20px] text-blue-600/30 dark:text-blue-600-dark/30 lg:text-[24px]"
+            />
+          </div>
+        )}
       </div>
 
       <div className="px-3 pb-3 pt-3 lg:px-4 lg:pb-5">
