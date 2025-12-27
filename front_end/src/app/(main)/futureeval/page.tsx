@@ -1,6 +1,6 @@
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 
-import AIBScreen from "../aib/components/aib/aib-screen";
+import FutureEvalScreen from "./components/futureeval-screen";
 
 export const metadata = {
   title: "AI Forecasting Benchmark Tournament | Metaculus",
@@ -15,5 +15,5 @@ export default async function FutureEvalPage() {
     "manual",
     "Global Bot Leaderboard"
   );
-  return <AIBScreen leaderboard={leaderboard} current="benchmark" />;
+  return <FutureEvalScreen leaderboard={leaderboard} current="benchmark" />;
 }
