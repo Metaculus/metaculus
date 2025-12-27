@@ -19,12 +19,8 @@ type Props = {
 
 const FutureEvalTabsShell: React.FC<Props> = ({ current, sections }) => {
   return (
-    <Tabs
-      variant="group"
-      defaultValue={current}
-      className="bg-violet-100 dark:bg-violet-100-dark"
-    >
-      <TabsList className="mt-8 justify-center bg-violet-100 py-0 dark:bg-violet-100-dark lg:justify-start">
+    <Tabs variant="group" defaultValue={current}>
+      <TabsList className="mt-8 justify-center bg-gray-0 py-0 dark:bg-gray-950 lg:justify-start">
         {sections.map((tab) => (
           <TabsTab
             key={tab.value}
@@ -39,7 +35,7 @@ const FutureEvalTabsShell: React.FC<Props> = ({ current, sections }) => {
       </TabsList>
       {sections.map((tab) => (
         <TabsSection
-          className="mt-[60px] space-y-[60px] 2xl:mt-[120px] 2xl:space-y-[120px]"
+          className="mt-0 space-y-[60px] bg-gray-0 pt-[60px] dark:bg-gray-950 2xl:space-y-[120px] 2xl:pt-[120px]"
           key={tab.value}
           value={tab.value}
           suppress={false}

@@ -29,11 +29,17 @@ const config: Config = {
           "0%": { transform: "rotate(0deg)" },
           "90%, 100%": { transform: "rotate(360deg)" },
         },
+        "highlight-flash": {
+          "0%": { backgroundColor: "rgb(196 180 255 / 0.5)" },
+          "50%": { backgroundColor: "rgb(196 180 255 / 0.8)" },
+          "100%": { backgroundColor: "transparent" },
+        },
       },
       animation: {
         "loading-slide":
           "loading-slide cubic-bezier(0.3, 1, 0.7, 0) 1.7s infinite",
         spin: "spin 1s infinite",
+        "highlight-flash": "highlight-flash 2s ease-out forwards",
       },
       fontFamily: {
         sans: [

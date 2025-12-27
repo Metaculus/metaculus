@@ -4,8 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 import React from "react";
 
+import FutureEvalBenchmarkTab from "./benchmark/futureeval-benchmark-tab";
 import FutureEvalTabsShell, { Section } from "./futureeval-tabs-shell";
-import AIBBenchmarkTab from "../../aib/components/aib/tabs/benchmark/aib-benchmark-tab";
 import AIBInfoTab from "../../aib/components/aib/tabs/info/aib-info-tab";
 import AIBNewsTab from "../../aib/components/aib/tabs/news/aib-news-tab";
 
@@ -27,7 +27,7 @@ const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
         />
       ),
       label: t("aibTabsBenchmark"),
-      content: <AIBBenchmarkTab />,
+      content: <FutureEvalBenchmarkTab />,
     },
     {
       value: "info",

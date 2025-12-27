@@ -12,7 +12,7 @@ type Props = { leaderboard: LeaderboardDetails; current: Section["value"] };
 const FutureEvalScreen: React.FC<Props> = ({ leaderboard, current }) => {
   return (
     <AIBLeaderboardProvider leaderboard={leaderboard}>
-      <div className="flex flex-1 flex-col bg-violet-100 dark:bg-violet-100-dark">
+      <div className="flex flex-1 flex-col bg-gray-0 dark:bg-gray-950">
         <FutureEvalBulletin />
         <FutureEvalContainer>
           <FutureEvalHero />

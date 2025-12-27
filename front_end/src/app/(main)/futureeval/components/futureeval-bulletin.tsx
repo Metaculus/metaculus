@@ -7,7 +7,7 @@ const FutureEvalBulletin: React.FC = () => {
   const { setCurrentModal } = useModal();
   return (
     <Bulletin
-      className="mx-auto [&>div]:bg-violet-50 [&>div]:dark:bg-violet-50-dark"
+      className="mx-auto"
       text={
         <p>
           Congratulations for finding this page! It&apos;s still a Work In
