@@ -1781,5 +1781,6 @@
   "switchToBotAccount": "切換到機器人帳戶",
   "impersonationBannerText": "您目前正在以您的機器人帳戶查看 Metaculus。",
   "stopImpersonating": "切換回我的帳戶",
+  "editedOnDate": "編輯於 {date}",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
