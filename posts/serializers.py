@@ -354,6 +354,8 @@ def serialize_post(
     serialized_data = PostReadSerializer(post).data
     question_movements = question_movements or {}
     question_average_coverages = question_average_coverages or {}
+    coherence_links = coherence_links or {}
+    coherence_link_aggregations = coherence_link_aggregations or {}
 
     # Appending projects
     projects = projects or []
