@@ -1816,5 +1816,9 @@
   "tournamentsEmptySearchBody": "Prueba un término de búsqueda diferente o borra la búsqueda.",
   "tournamentsEmptyDefaultTitle": "{count} torneos mostrados",
   "tournamentsEmptyDefaultBody": "Vuelve más tarde o prueba otra pestaña.",
+  "tournamentsTabLive": "Torneos en Vivo",
+  "tournamentsTabSeries": "Series de Preguntas",
+  "tournamentsTabIndexes": "Índices",
+  "tournamentsTabArchived": "Archivado",
   "othersCount": "Otros ({count})"
 }

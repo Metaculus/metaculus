@@ -1818,5 +1818,9 @@
   "tournamentsEmptySearchBody": "尝试不同的搜索词，或清除搜索。",
   "tournamentsEmptyDefaultTitle": "显示了 {count} 场比赛",
   "tournamentsEmptyDefaultBody": "稍后再查看或尝试其他选项卡。",
+  "tournamentsTabLive": "直播锦标赛",
+  "tournamentsTabSeries": "问题系列",
+  "tournamentsTabIndexes": "索引",
+  "tournamentsTabArchived": "已归档",
   "othersCount": "其他（{count}）"
 }
