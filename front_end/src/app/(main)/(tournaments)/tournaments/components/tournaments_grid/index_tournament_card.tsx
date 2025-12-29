@@ -74,7 +74,7 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
       </div>
 
       <div className="hidden sm:block">
-        <div className="relative h-[110px] w-full bg-blue-100/40 dark:bg-blue-100-dark/20 lg:h-[144px]">
+        <div className="relative h-[110px] w-full bg-blue-100/40 dark:bg-blue-100-dark/20 lg:h-36">
           {item.header_image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

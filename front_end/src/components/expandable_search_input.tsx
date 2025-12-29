@@ -5,8 +5,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   ChangeEventHandler,
   FC,
-  useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -24,6 +24,7 @@ type Props = {
   expandedWidthClassName?: string;
   keepOpenWhenHasValue?: boolean;
   collapseOnBlur?: boolean;
+  collapseOnErase?: boolean;
   className?: string;
   buttonClassName?: string;
   inputClassName?: string;
@@ -38,36 +39,34 @@ const ExpandableSearchInput: FC<Props> = ({
   expandedWidthClassName = "w-[220px]",
   keepOpenWhenHasValue = true,
   collapseOnBlur = true,
+  collapseOnErase = true,
   className,
   buttonClassName,
   inputClassName,
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const isExpanded = open || (keepOpenWhenHasValue && !!value);
-
-  const getInputEl = useCallback(
-    () =>
-      rootRef.current?.querySelector<HTMLInputElement>('input[type="search"]'),
-    []
-  );
-
-  const focusInput = useCallback(() => {
-    requestAnimationFrame(() => getInputEl()?.focus());
-  }, [getInputEl]);
-
-  const blurInput = useCallback(() => {
-    requestAnimationFrame(() => getInputEl()?.blur());
-  }, [getInputEl]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isExpanded = useMemo(() => {
+    if (open) return true;
+    if (keepOpenWhenHasValue && value) return true;
+    return false;
+  }, [open, keepOpenWhenHasValue, value]);
 
   useEffect(() => {
-    if (isExpanded) focusInput();
-  }, [isExpanded, focusInput]);
+    if (isExpanded) inputRef.current?.focus();
+  }, [isExpanded]);
 
   const collapseIfAllowed = () => {
     if (!collapseOnBlur) return;
     if (keepOpenWhenHasValue && value) return;
     setOpen(false);
+  };
+
+  const handleErase = () => {
+    onErase();
+    if (collapseOnErase) setOpen(false);
+    inputRef.current?.blur();
   };
 
   return (
@@ -85,7 +84,7 @@ const ExpandableSearchInput: FC<Props> = ({
       }}
       onKeyDownCapture={(e) => {
         if (e.key === "Escape") {
-          if (!value) setOpen(false);
+          if (!(keepOpenWhenHasValue && value)) setOpen(false);
           (e.target as HTMLElement)?.blur?.();
         }
       }}
@@ -100,10 +99,7 @@ const ExpandableSearchInput: FC<Props> = ({
             "dark:border-gray-500-dark dark:bg-gray-0-dark",
             buttonClassName
           )}
-          onClick={() => {
-            setOpen(true);
-            focusInput();
-          }}
+          onClick={() => setOpen(true)}
         >
           <FontAwesomeIcon
             icon={faMagnifyingGlass}
@@ -112,13 +108,10 @@ const ExpandableSearchInput: FC<Props> = ({
         </Button>
       ) : (
         <SearchInput
+          inputRef={inputRef}
           value={value}
           onChange={onChange}
-          onErase={() => {
-            onErase();
-            if (keepOpenWhenHasValue) setOpen(false);
-            blurInput();
-          }}
+          onErase={handleErase}
           placeholder={placeholder}
           className="h-9 w-full"
           iconPosition="left"

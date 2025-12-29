@@ -1812,5 +1812,9 @@
   "tournamentsEmptySearchBody": "嘗試使用不同的搜索詞，或清除搜索。",
   "tournamentsEmptyDefaultTitle": "顯示 {count} 個比賽",
   "tournamentsEmptyDefaultBody": "稍後再查看或嘗試其他標籤。",
+  "tournamentsTabLive": "現場錦標賽",
+  "tournamentsTabSeries": "問答系列",
+  "tournamentsTabIndexes": "指數",
+  "tournamentsTabArchived": "已存檔",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

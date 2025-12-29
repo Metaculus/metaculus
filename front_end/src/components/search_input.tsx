@@ -1,7 +1,7 @@
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, Input } from "@headlessui/react";
-import { ChangeEventHandler, FC, FormEvent } from "react";
+import React, { ChangeEventHandler, FC, FormEvent } from "react";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
@@ -24,6 +24,7 @@ type Props = {
   iconPosition?: IconPosition;
   rightControlsClassName?: string;
   rightButtonClassName?: string;
+  inputRef?: React.Ref<HTMLInputElement>;
 };
 
 const SearchInput: FC<Props> = ({
@@ -41,6 +42,7 @@ const SearchInput: FC<Props> = ({
   iconPosition = "right",
   rightControlsClassName,
   rightButtonClassName,
+  inputRef,
 }) => {
   const isForm = !!onSubmit;
   const isLeft = iconPosition === "left";
@@ -72,6 +74,7 @@ const SearchInput: FC<Props> = ({
       )}
 
       <Input
+        ref={inputRef}
         name="search"
         type="search"
         value={value}

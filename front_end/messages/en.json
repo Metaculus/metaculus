@@ -1809,5 +1809,9 @@
   "tournamentsEmptySearchBody": "Try a different search term, or clear the search.",
   "tournamentsEmptyDefaultTitle": "{count} tournaments shown",
   "tournamentsEmptyDefaultBody": "Check back later or try another tab.",
+  "tournamentsTabLive": "Live Tournaments",
+  "tournamentsTabSeries": "Question Series",
+  "tournamentsTabIndexes": "Indexes",
+  "tournamentsTabArchived": "Archived",
   "none": "none"
 }

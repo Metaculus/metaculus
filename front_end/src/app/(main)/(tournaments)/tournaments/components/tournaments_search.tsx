@@ -1,4 +1,7 @@
-import { ChangeEvent, useEffect, useState } from "react";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { ChangeEvent } from "react";
 
 import ExpandableSearchInput from "@/components/expandable_search_input";
 import useSearchInputState from "@/hooks/use_search_input_state";
@@ -6,6 +9,7 @@ import useSearchInputState from "@/hooks/use_search_input_state";
 import { TOURNAMENTS_SEARCH } from "../constants/query_params";
 
 const TournamentsSearch: React.FC = () => {
+  const t = useTranslations();
   const [searchQuery, setSearchQuery] = useSearchInputState(
     TOURNAMENTS_SEARCH,
     {
@@ -15,27 +19,21 @@ const TournamentsSearch: React.FC = () => {
     }
   );
 
-  const [draftQuery, setDraftQuery] = useState(searchQuery);
-  useEffect(() => setDraftQuery(searchQuery), [searchQuery]);
-
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value;
-    setDraftQuery(next);
-    setSearchQuery(next);
+    setSearchQuery(event.target.value);
   };
 
   const handleSearchErase = () => {
-    setDraftQuery("");
     setSearchQuery("");
   };
 
   return (
     <div className="flex min-w-0 flex-1 justify-end sm:min-w-[unset] sm:flex-none">
       <ExpandableSearchInput
-        value={draftQuery}
+        value={searchQuery}
         onChange={handleSearchChange}
         onErase={handleSearchErase}
-        placeholder="search..."
+        placeholder={`${t("search")}...`}
         expandedWidthClassName="w-full sm:w-[176px]"
         buttonClassName="h-9 w-9 border-[1px] [&_svg]:text-blue-700 [&_svg]:dark:text-blue-700-dark border-blue-400 dark:border-blue-400-dark"
       />

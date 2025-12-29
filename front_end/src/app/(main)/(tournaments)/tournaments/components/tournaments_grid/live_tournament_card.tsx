@@ -7,6 +7,7 @@ import React, { useMemo } from "react";
 
 import { TournamentPreview, TournamentTimeline } from "@/types/projects";
 import cn from "@/utils/core/cn";
+import { bucketRelativeMs } from "@/utils/formatters/date";
 
 import TournamentCardShell from "./tournament_card_shell";
 
@@ -18,13 +19,13 @@ type Props = {
 const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
   const t = useTranslations();
   const prize = useMemo(
-    () => formatMoneyUSD(item.prize_pool ?? null),
+    () => formatMoneyUSD(item.prize_pool),
     [item.prize_pool]
   );
 
   return (
     <TournamentCardShell item={item}>
-      <div className="relative h-[64px] w-full bg-blue-100/40 dark:bg-blue-100-dark/20 lg:h-[80px]">
+      <div className="relative h-16 w-full bg-blue-100/40 dark:bg-blue-100-dark/20 lg:h-20">
         {item.header_image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -68,7 +69,7 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
         </div>
       </div>
 
-      <div className="flex h-[80px] flex-col justify-between px-3 pb-3 pt-1.5 lg:h-[120px] lg:px-4 lg:pb-5 lg:pt-2">
+      <div className="flex h-20 flex-col justify-between px-3 pb-3 pt-1.5 lg:h-[120px] lg:px-4 lg:pb-5 lg:pt-2">
         <h6 className="my-0 text-center text-sm font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-left lg:text-lg lg:leading-[125%]">
           {item.name}
         </h6>
@@ -141,12 +142,10 @@ function ActiveMiniBar({
 
   if (nowTs == null) {
     label = t("tournamentTimelineOngoing");
-    p = 0;
   } else if (nowTs < startTs) {
     label = t("tournamentTimelineStarts", {
       when: formatRelative(t, startTs - nowTs),
     });
-    p = 0;
   } else {
     const sinceStart = nowTs - startTs;
     label =
@@ -168,7 +167,7 @@ function ActiveMiniBar({
         {label}
       </p>
 
-      <div className="relative mt-2 h-[4px] w-full rounded-full bg-blue-400 dark:bg-blue-400-dark">
+      <div className="relative mt-2 h-1 w-full rounded-full bg-blue-400 dark:bg-blue-400-dark">
         <div
           className={cn(
             "h-full rounded-full",
@@ -231,7 +230,7 @@ function ClosedMiniBar({
         {label}
       </p>
 
-      <div className="relative mt-2 h-[4px] w-full rounded-full bg-blue-400 dark:bg-blue-400-dark">
+      <div className="relative mt-2 h-1 w-full rounded-full bg-blue-400 dark:bg-blue-400-dark">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-blue-700 dark:bg-blue-700-dark"
           style={{ width: `${progress}%` }}
@@ -255,7 +254,7 @@ function ClosedChip({
   return (
     <div
       className={cn(
-        "absolute top-1/2 z-10 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full p-[3px]",
+        "absolute top-1/2 z-10 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full p-[3px]",
         active
           ? "bg-blue-700 dark:bg-blue-700-dark"
           : "bg-blue-400 dark:bg-blue-400-dark"
@@ -291,35 +290,12 @@ function formatRelative(
   t: ReturnType<typeof useTranslations>,
   deltaMs: number
 ) {
-  if (!Number.isFinite(deltaMs) || deltaMs <= 0)
-    return t("tournamentRelativeSoon");
+  const r = bucketRelativeMs(deltaMs);
+  if (r.kind === "soon") return t("tournamentRelativeSoon");
+  if (r.kind === "farFuture") return t("tournamentRelativeFarFuture");
+  if (r.kind === "underMinute") return t("tournamentRelativeUnderMinute");
+  const { n, unit } = r.value;
 
-  const sec = 1000;
-  const min = 60 * sec;
-  const hour = 60 * min;
-  const day = 24 * hour;
-  const week = 7 * day;
-  const month = 30 * day;
-  const year = 365 * day;
-
-  if (deltaMs > 20 * year) return t("tournamentRelativeFarFuture");
-  if (deltaMs < min) return t("tournamentRelativeUnderMinute");
-
-  const pick = () => {
-    if (deltaMs < hour)
-      return { n: Math.round(deltaMs / min), unit: "minute" as const };
-    if (deltaMs < day)
-      return { n: Math.round(deltaMs / hour), unit: "hour" as const };
-    if (deltaMs < week)
-      return { n: Math.round(deltaMs / day), unit: "day" as const };
-    if (deltaMs < month)
-      return { n: Math.round(deltaMs / week), unit: "week" as const };
-    if (deltaMs < year)
-      return { n: Math.round(deltaMs / month), unit: "month" as const };
-    return { n: Math.round(deltaMs / year), unit: "year" as const };
-  };
-
-  const { n, unit } = pick();
   const unitLabel =
     n === 1
       ? t("tournamentUnit", { unit })

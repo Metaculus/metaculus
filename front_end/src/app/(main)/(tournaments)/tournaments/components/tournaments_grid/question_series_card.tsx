@@ -17,7 +17,7 @@ const QuestionSeriesCard: React.FC<Props> = ({ item }) => {
 
   return (
     <TournamentCardShell item={item}>
-      <div className="relative h-[64px] w-full overflow-hidden  bg-blue-100/40 p-3 pb-0 dark:bg-blue-100-dark/20 lg:h-[80px] lg:p-4">
+      <div className="relative h-16 w-full overflow-hidden  bg-blue-100/40 p-3 pb-0 dark:bg-blue-100-dark/20 lg:h-20 lg:p-4">
         {item.header_image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

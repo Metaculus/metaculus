@@ -1815,5 +1815,9 @@
   "tournamentsEmptySearchBody": "Zkuste jiný vyhledávací výraz nebo vymažte vyhledávání.",
   "tournamentsEmptyDefaultTitle": "Zobrazeno {count} turnajů",
   "tournamentsEmptyDefaultBody": "Zkontrolujte později nebo vyzkoušejte jinou kartu.",
+  "tournamentsTabLive": "Živé turnaje",
+  "tournamentsTabSeries": "Série otázek",
+  "tournamentsTabIndexes": "Indexy",
+  "tournamentsTabArchived": "Archivováno",
   "othersCount": "Ostatní ({count})"
 }

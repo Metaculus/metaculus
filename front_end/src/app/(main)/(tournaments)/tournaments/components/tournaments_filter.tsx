@@ -48,7 +48,7 @@ const TournamentsFilter: React.FC = () => {
 
   return (
     <Listbox
-      className="h-9 rounded-full bg-gray-0 px-[14px] text-base dark:bg-gray-0-dark"
+      className="h-9 rounded-full bg-gray-0 px-3.5 text-base dark:bg-gray-0-dark"
       onChange={handleSortByChange}
       onOpenChange={handleOpenChange}
       options={sortOptions}
