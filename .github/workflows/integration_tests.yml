@@ -118,12 +118,6 @@ jobs:
       - name: Build the frontend
         run: cd front_end && npm run build
       - name: Run the integration tests
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
-          PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.PUBLIC_TURNSTILE_SITE_KEY }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           poetry run ./manage.py migrate
           PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} scripts/tests/run_integration_tests.sh
