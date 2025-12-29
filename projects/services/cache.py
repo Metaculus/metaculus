@@ -1,7 +1,7 @@
 from django.core.cache import cache
 
 from projects.models import Project
-from .common import get_questions_count_for_projects, get_project_timeline_data
+from .common import get_questions_count_for_projects
 
 QUESTIONS_COUNT_CACHE_PREFIX = "project_questions_count:v1"
 QUESTIONS_COUNT_CACHE_TIMEOUT = 1 * 3600  # 3 hour
@@ -47,16 +47,3 @@ def invalidate_projects_questions_count_cache(projects: list[Project]) -> None:
         get_projects_questions_count_cache_key(project.id) for project in projects
     ]
     cache.delete_many(cache_keys)
-
-
-def get_project_timeline_data_cached(project: Project):
-    key = f"project_timeline:v1:{project.id}"
-    return cache.get_or_set(
-        key,
-        lambda: get_project_timeline_data(project),
-        PROJECT_TIMELINE_TTL_SECONDS,
-    )
-
-
-def get_projects_timeline_cached(projects: list[Project]) -> dict[int, dict]:
-    return {p.id: get_project_timeline_data_cached(p) for p in projects}

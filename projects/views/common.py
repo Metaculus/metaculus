@@ -23,7 +23,6 @@ from projects.serializers.common import (
 )
 from projects.services.cache import (
     get_projects_questions_count_cached,
-    get_projects_timeline_cached,
 )
 from projects.services.common import (
     get_projects_qs,
@@ -139,12 +138,8 @@ def tournaments_list_api_view(request: Request):
     )
     projects = list(qs)
     data = serialize_tournaments_with_counts(
-        projects, sort_key=lambda r: r["questions_count"]
+        projects, sort_key=lambda r: r["questions_count"], with_timeline=True
     )
-
-    timeline_map = get_projects_timeline_cached(projects)
-    for row in data:
-        row["timeline"] = timeline_map.get(row["id"])
 
     return Response(data)
 
