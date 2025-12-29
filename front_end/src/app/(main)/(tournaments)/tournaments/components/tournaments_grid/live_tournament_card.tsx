@@ -14,9 +14,14 @@ import TournamentCardShell from "./tournament_card_shell";
 type Props = {
   item: TournamentPreview;
   nowTs?: number;
+  hideTimeline?: boolean;
 };
 
-const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
+const LiveTournamentCard: React.FC<Props> = ({
+  item,
+  nowTs = 0,
+  hideTimeline = false,
+}) => {
   const t = useTranslations();
   const prize = useMemo(
     () => formatMoneyUSD(item.prize_pool),
@@ -74,14 +79,16 @@ const LiveTournamentCard: React.FC<Props> = ({ item, nowTs = 0 }) => {
           {item.name}
         </h6>
 
-        <TournamentTimelineBar
-          nowTs={nowTs}
-          timeline={item.timeline ?? null}
-          startDate={item.start_date ?? null}
-          forecastingEndDate={item.forecasting_end_date ?? null}
-          closeDate={item.close_date ?? null}
-          isOngoing={Boolean(item.is_ongoing)}
-        />
+        {!hideTimeline && (
+          <TournamentTimelineBar
+            nowTs={nowTs}
+            timeline={item.timeline ?? null}
+            startDate={item.start_date ?? null}
+            forecastingEndDate={item.forecasting_end_date ?? null}
+            closeDate={item.close_date ?? null}
+            isOngoing={Boolean(item.is_ongoing)}
+          />
+        )}
       </div>
     </TournamentCardShell>
   );

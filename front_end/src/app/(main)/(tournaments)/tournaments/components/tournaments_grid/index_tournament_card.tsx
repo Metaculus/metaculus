@@ -57,7 +57,7 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
                 "my-0",
                 "text-[18px] font-semibold leading-[125%]",
                 "text-blue-800 dark:text-blue-800-dark",
-                "line-clamp-2"
+                "line-clamp-2 text-balance"
               )}
             >
               {item.name}
@@ -106,7 +106,7 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
             })}
           </p>
 
-          <h6 className="mt-3 text-center text-[22px] font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-[28px]">
+          <h6 className="mt-3 text-balance text-center text-[22px] font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-[28px]">
             {item.name}
           </h6>
 
