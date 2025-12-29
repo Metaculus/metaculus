@@ -28,6 +28,14 @@ import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
 import ForecastTextInput from "./forecast_text_input";
 import Tooltip from "../ui/tooltip";
 
+// ============================================
+// ANIMATION & OPACITY SETTINGS - ADJUST HERE
+// ============================================
+const GRADIENT_OPACITY_NORMAL = "1A"; // Normal state: ~10% (hex)
+const GRADIENT_OPACITY_HOVER = "2D"; // Hover state: ~18% (hex)
+const BORDER_WIDTH = "4px"; // Border width when animating
+export const ANIMATION_DURATION_MS = 1500; // Total animation duration in milliseconds
+
 type OptionResolution = {
   resolution: Resolution | null;
   type: "question" | "group_question";
@@ -54,6 +62,7 @@ type Props<T> = {
   withdrawnEndTimeSec?: number | null;
   isNewOption?: boolean;
   showHighlight?: boolean;
+  isAnimating?: boolean;
   onInteraction?: () => void;
   rowRef?: React.RefObject<HTMLTableRowElement | null>;
 };
@@ -79,11 +88,18 @@ const ForecastChoiceOption = <T = string,>({
   withdrawnEndTimeSec = null,
   isNewOption = false,
   showHighlight = false,
+  isAnimating = false,
   onInteraction,
   rowRef,
 }: Props<T>) => {
   const t = useTranslations();
   const locale = useLocale();
+  const [isHovered, setIsHovered] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const inputDisplayValue =
     withdrawn && !isDirty
@@ -192,25 +208,35 @@ const ForecastChoiceOption = <T = string,>({
     </div>
   );
 
+  const gradientColor = getThemeColor(choiceColor);
+
   return (
     <>
       <tr
         ref={rowRef}
-        className={cn({
+        className={cn("relative transition-all duration-300 ease-in-out", {
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
           "bg-blue-200  dark:bg-blue-200-dark": highlightedOptionId === id,
           "bg-gradient-to-r from-purple-200 to-gray-0 dark:from-purple-200-dark dark:to-gray-0-dark":
             isQuestionResolved || isGroupResolutionHighlighted,
         })}
         onClick={() => onOptionClick?.(id)}
-        style={
-          showHighlight
-            ? {
-                outline: `8px solid ${getThemeColor(choiceColor)}80`,
-                outlineOffset: "0px",
-              }
-            : undefined
-        }
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          ...(mounted &&
+            showHighlight && {
+              backgroundImage: `linear-gradient(to right, ${gradientColor}${isHovered ? GRADIENT_OPACITY_HOVER : GRADIENT_OPACITY_NORMAL} 0%, transparent 100%)`,
+            }),
+          ...(mounted &&
+            isNewOption && {
+              outline: isAnimating
+                ? `${BORDER_WIDTH} solid ${gradientColor}`
+                : "0px solid transparent",
+              outlineOffset: "-4px",
+              transition: `outline ${ANIMATION_DURATION_MS * 0.2}ms ease-in-out`,
+            }),
+        }}
       >
         <th className="w-full border-t border-gray-300 px-3 py-2 text-left text-sm font-medium leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
           <div className="flex gap-2">
@@ -291,15 +317,19 @@ const ForecastChoiceOption = <T = string,>({
         </td>
       </tr>
       <tr
-        className={cn("sm:hidden", {
-          "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
-        })}
+        className={cn(
+          "relative transition-all duration-300 ease-in-out sm:hidden",
+          {
+            "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
+          }
+        )}
         onClick={() => onOptionClick?.(id)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         style={
-          showHighlight
+          mounted && showHighlight
             ? {
-                outline: `8px solid ${getThemeColor(choiceColor)}80`,
-                outlineOffset: "0px",
+                backgroundImage: `linear-gradient(to right, ${gradientColor}${isHovered ? GRADIENT_OPACITY_HOVER : GRADIENT_OPACITY_NORMAL} 0%, transparent 100%)`,
               }
             : undefined
         }

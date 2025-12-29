@@ -15,6 +15,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
+import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -37,7 +38,9 @@ import {
   BINARY_MAX_VALUE,
   BINARY_MIN_VALUE,
 } from "../binary_slider";
-import ForecastChoiceOption from "../forecast_choice_option";
+import ForecastChoiceOption, {
+  ANIMATION_DURATION_MS,
+} from "../forecast_choice_option";
 import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
@@ -79,6 +82,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+  const { getThemeColor } = useAppTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const allOptions = getAllOptionsHistory(question);
 
@@ -140,6 +149,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const [interactedOptions, setInteractedOptions] = useState<Set<string>>(
     new Set()
   );
+  const [isAnimatingHighlight, setIsAnimatingHighlight] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
@@ -186,7 +196,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         const hasForecast = activeUserForecast.forecast_values[index] !== null;
         return isCurrentOption && !hasForecast;
       })
-      .map((c) => c.name);
+      .map((c) => ({ name: c.name, color: c.color }));
   }, [activeUserForecast, choicesForecasts, question.options]);
 
   const newOptions = getNewOptions();
@@ -197,10 +207,18 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const scrollToNewOptions = () => {
     if (firstNewOptionRef.current) {
+      // Trigger animation immediately
+      setIsAnimatingHighlight(true);
+
       firstNewOptionRef.current.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
+
+      // Reset animation after duration
+      setTimeout(() => {
+        setIsAnimatingHighlight(false);
+      }, ANIMATION_DURATION_MS);
     }
   };
 
@@ -211,23 +229,26 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <p className="mb-2 mt-0 text-sm text-gray-0 dark:text-gray-0-dark">
           {isPlural
             ? "These options were recently added, please adjust your forecast(s) accordingly."
-            : "This option was recently added, please adjust your forecast(s) accordingly."}
+            : "A new option was recently added, please adjust your forecasts accordingly."}
         </p>
-        {isPlural && newOptions.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-1.5">
-            {newOptions.map((optionName) => (
-              <span
-                key={optionName}
-                className="inline-flex items-center rounded-full bg-blue-700 px-2 py-0.5 text-xs text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark"
-              >
-                {optionName}
-              </span>
+        {isPlural && newOptions.length > 0 && mounted && (
+          <div className="mb-3 flex flex-wrap gap-4">
+            {newOptions.map((option) => (
+              <div key={option.name} className="flex items-center gap-1.5">
+                <div
+                  className="h-3 w-3 shrink-0 rounded-sm"
+                  style={{ backgroundColor: getThemeColor(option.color) }}
+                />
+                <span className="text-xs text-gray-0 dark:text-gray-0-dark">
+                  {option.name}
+                </span>
+              </div>
             ))}
           </div>
         )}
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={scrollToNewOptions}>
-            Show New Options
+            {isPlural ? "Show New Options" : "Show New Option"}
           </Button>
           <Button
             variant="text"
@@ -454,7 +475,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           {choicesForecasts.map((choice) => {
             if (question.options.includes(choice.name)) {
               const isFirstNewOption =
-                newOptions.length > 0 && choice.name === newOptions[0];
+                newOptions.length > 0 && choice.name === newOptions[0]?.name;
+              const isNewOption = newOptions.some(
+                (opt) => opt.name === choice.name
+              );
               return (
                 <ForecastChoiceOption
                   key={choice.name}
@@ -475,11 +499,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                     type: "question",
                     resolution: question.resolution,
                   }}
-                  isNewOption={newOptions.includes(choice.name)}
+                  isNewOption={isNewOption}
                   showHighlight={
-                    newOptions.includes(choice.name) &&
-                    !interactedOptions.has(choice.name)
+                    isNewOption && !interactedOptions.has(choice.name)
                   }
+                  isAnimating={isAnimatingHighlight}
                   onInteraction={() => {
                     setInteractedOptions((prev) =>
                       new Set(prev).add(choice.name)
