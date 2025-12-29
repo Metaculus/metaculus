@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from typing import Any, Callable, Iterable
 
@@ -11,6 +12,8 @@ from projects.services.cache import get_projects_questions_count_cached
 from projects.services.common import get_timeline_data_for_projects
 from projects.services.indexes import get_multi_year_index_data, get_default_index_data
 from users.serializers import UserPublicSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -269,11 +272,15 @@ def serialize_tournaments_with_counts(
     projects = list(projects)
     questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
 
-    projects_timeline_map = (
-        get_timeline_data_for_projects([x.id for x in projects])
-        if with_timeline
-        else {}
-    )
+    projects_timeline_map = {}
+
+    if with_timeline:
+        try:
+            projects_timeline_map = get_timeline_data_for_projects(
+                [x.id for x in projects]
+            )
+        except Exception:
+            logger.exception("Failed to get projects timeline data")
 
     data: list[dict] = []
     for obj in projects:
