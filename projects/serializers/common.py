@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from projects.models import Project, ProjectUserPermission, ProjectIndex
 from projects.serializers.communities import CommunitySerializer
 from projects.services.cache import get_projects_questions_count_cached
+from projects.services.common import get_timeline_data_for_projects
 from projects.services.indexes import get_multi_year_index_data, get_default_index_data
 from users.serializers import UserPublicSerializer
 
@@ -261,18 +262,35 @@ def serialize_index_data(index: ProjectIndex):
 
 
 def serialize_tournaments_with_counts(
-    projects: Iterable[Project], sort_key: Callable[[dict], Any]
+    projects: Iterable[Project],
+    sort_key: Callable[[dict], Any] = None,
+    with_timeline: bool = False,
 ) -> list[dict]:
     projects = list(projects)
     questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
 
+    projects_timeline_map = (
+        get_timeline_data_for_projects([x.id for x in projects])
+        if with_timeline
+        else {}
+    )
+
     data: list[dict] = []
     for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
-        serialized_tournament["forecasts_count"] = obj.forecasts_count
-        serialized_tournament["forecasters_count"] = obj.forecasters_count
+
+        serialized_tournament.update(
+            {
+                "questions_count": questions_count_map.get(obj.id) or 0,
+                "forecasts_count": obj.forecasts_count,
+                "forecasters_count": obj.forecasters_count,
+                "timeline": projects_timeline_map.get(obj.id),
+            }
+        )
+
         data.append(serialized_tournament)
 
-    data.sort(key=sort_key, reverse=True)
+    if sort_key:
+        data.sort(key=sort_key, reverse=True)
+
     return data
