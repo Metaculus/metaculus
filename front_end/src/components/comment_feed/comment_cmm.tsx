@@ -474,15 +474,27 @@ const DeltaBadge: FC<{ enabled: boolean; disabled?: boolean }> = ({
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-4 items-center justify-center rounded-full font-semibold leading-none",
-        "text-[12px] transition-colors",
+        "flex size-4 items-center justify-center rounded-full transition-colors",
         disabled && "opacity-60",
         !enabled && "bg-transparent text-blue-700 dark:text-blue-700-dark",
         enabled &&
-          "bg-gradient-to-b from-olive-400 to-blue-100 p-1 text-olive-700 dark:from-olive-300-dark dark:to-blue-100-dark dark:text-olive-700-dark"
+          "bg-gradient-to-b from-olive-400 to-blue-100 text-olive-700 dark:from-olive-300-dark dark:to-blue-100-dark dark:text-olive-700-dark"
       )}
     >
-      ∆
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        className="size-4"
+        role="img"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 350 512 512"
+      >
+        <path
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          d="M43 797c0 -5 2 -8 11 -24l216 -393c5 -9 12 -25 28 -25c19 0 28 25 36 39l211 384c5 9 8 15 8 19c0 8 -10 9 -18 9h-471c-8 0 -21 1 -21 -9zM107 730h332l-166 -303z"
+        />
+      </svg>
     </span>
   );
 };
