@@ -60,7 +60,7 @@ def test_get_timeline_data_for_projects(user1, django_assert_num_queries):
     now = timezone.now()
 
     # Project 1: One resolved question
-    post1 = factory_post(
+    factory_post(
         author=user1,
         default_project=project1,
         curation_status=Post.CurationStatus.APPROVED,
@@ -72,7 +72,7 @@ def test_get_timeline_data_for_projects(user1, django_assert_num_queries):
     )
 
     # Project 2: One open question
-    post2 = factory_post(
+    factory_post(
         author=user1,
         default_project=project2,
         curation_status=Post.CurationStatus.APPROVED,
