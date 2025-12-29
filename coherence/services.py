@@ -12,6 +12,7 @@ from coherence.models import (
     LinkType,
     AggregateCoherenceLinkVote,
 )
+from posts.models import Post
 from questions.models import Question
 from questions.services.forecasts import get_user_last_forecasts_map
 from users.models import User

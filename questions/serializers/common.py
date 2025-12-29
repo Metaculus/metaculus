@@ -585,12 +585,21 @@ def serialize_question(
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
     question_average_coverage: float = None,
+    coherence_links: list[dict] = None,
+    coherence_link_aggregations: list[dict] = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+
+    serialized_data.update(
+        {
+            "coherence_links": coherence_links,
+            "coherence_link_aggregations": coherence_link_aggregations,
+        }
+    )
 
     if include_descriptions:
         serialized_data.update(
