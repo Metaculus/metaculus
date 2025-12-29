@@ -236,7 +236,6 @@ export const RegistrationAndSignupForm: FC<
       )
     ),
     defaultValues: {
-      isBot: false,
       undergrad: false,
       addToProject,
       campaignKey,
