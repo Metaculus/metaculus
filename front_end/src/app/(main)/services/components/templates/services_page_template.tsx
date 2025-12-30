@@ -84,7 +84,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
       });
       const curated = all.filter(({ id, slug }) =>
         mainPageTournamentsList.some(
-          ({ id: want }) => want === slug || want === String(id)
+          ({ id: want }) => String(want) === slug || want === id
         )
       );
       tournamentsData = sortServiceTournaments(curated);

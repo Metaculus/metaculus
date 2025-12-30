@@ -241,15 +241,12 @@ const Comment: FC<CommentProps> = ({
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
+  const isCommentAuthor = comment.author.id === user?.id;
   const isCmmButtonVisible =
-    user?.id !== comment.author.id &&
-    (!!postData?.question ||
-      !!postData?.group_of_questions ||
-      !!postData?.conditional);
-  const isCmmButtonDisabled = !user || !userCanPredict;
-  // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
-  // too and can't use tw classes
-  const isMobileScreen = window.innerWidth < 640;
+    !!postData?.question ||
+    !!postData?.group_of_questions ||
+    !!postData?.conditional;
+  const isCmmButtonDisabled = !user || !userCanPredict || isCommentAuthor;
 
   const {
     draftReady: editDraftReady,
@@ -372,8 +369,6 @@ const Comment: FC<CommentProps> = ({
   ].includes(postData?.status ?? PostStatus.CLOSED);
 
   const limitNotReached = factorsLimit > 0;
-  const isCommentAuthor = comment.author.id === user?.id;
-
   const canShowAddKeyFactorsButton =
     isCommentAuthor && questionNotClosed && canListKeyFactors;
 
@@ -497,22 +492,6 @@ const Comment: FC<CommentProps> = ({
   }, [comment.id]);
 
   const menuItems: MenuItemProps[] = [
-    {
-      hidden: !isMobileScreen || !isCmmButtonVisible,
-      id: "cmm",
-      element: (
-        <div>
-          <CmmToggleButton
-            cmmContext={cmmContext}
-            comment_id={comment.id}
-            disabled={isCmmButtonDisabled}
-          />
-        </div>
-      ),
-      onClick: () => {
-        return null; // handled by the button element
-      },
-    },
     {
       hidden: !(user?.id === comment.author.id),
       id: "edit",
@@ -839,7 +818,7 @@ const Comment: FC<CommentProps> = ({
 
             <div className="mb-2 mt-1 h-7 overflow-visible">
               <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-                <div className="inline-flex items-center gap-2.5">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <CommentVoter
                     voteData={{
                       commentAuthorId: comment.author.id,
@@ -883,19 +862,13 @@ const Comment: FC<CommentProps> = ({
                             icon={isKeyfactorsFormOpen ? faXmark : faPlus}
                             className="size-4 p-1"
                           />
-                          {t("addKeyFactor")}
+                          <span className="hidden sm:inline">
+                            {t("addKeyFactor")}
+                          </span>
+                          <span className="sm:hidden">{t("add")}</span>
                         </div>
                       </>
                     </Button>
-                  )}
-
-                  {isCmmButtonVisible && !isMobileScreen && (
-                    <CmmToggleButton
-                      cmmContext={cmmContext}
-                      comment_id={comment.id}
-                      disabled={isCmmButtonDisabled}
-                      ref={cmmContext.setAnchorRef}
-                    />
                   )}
 
                   {!onProfile &&
@@ -928,12 +901,18 @@ const Comment: FC<CommentProps> = ({
                         {t("reply")}
                       </Button>
                     ))}
+
+                  {isCmmButtonVisible && (
+                    <CmmToggleButton
+                      cmmContext={cmmContext}
+                      comment_id={comment.id}
+                      disabled={isCmmButtonDisabled}
+                      ref={cmmContext.setAnchorRef}
+                    />
+                  )}
                 </div>
 
-                <div
-                  ref={isMobileScreen ? cmmContext.setAnchorRef : null}
-                  className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}
-                >
+                <div className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}>
                   <DropdownMenu items={menuItems} />
                 </div>
               </div>

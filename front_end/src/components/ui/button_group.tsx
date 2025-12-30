@@ -18,6 +18,7 @@ type Props<T> = {
   activeVariant?: ButtonVariant;
   className?: string;
   activeClassName?: string;
+  containerClassName?: string;
 };
 
 const ButtonGroup = <T extends string>({
@@ -28,10 +29,11 @@ const ButtonGroup = <T extends string>({
   variant,
   activeVariant = "primary",
   className,
+  containerClassName,
   activeClassName,
 }: Props<T>) => {
   return (
-    <div className="flex">
+    <div className={cn("flex", containerClassName)}>
       {buttons.map((button, index) => (
         <Button
           key={button.value}

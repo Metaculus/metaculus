@@ -16,7 +16,7 @@ import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
@@ -57,16 +57,12 @@ import {
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
-import QuestionResolutionButton from "../resolution";
-import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
-  permission?: ProjectPermissions;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -74,9 +70,7 @@ type Props = {
 const ForecastMakerContinuous: FC<Props> = ({
   post,
   question,
-  permission,
   canPredict,
-  canResolve,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -528,16 +522,6 @@ const ForecastMakerContinuous: FC<Props> = ({
         disabled={!canPredict}
         predictionMessage={predictionMessage}
       />
-
-      <div className="flex flex-col items-center justify-center">
-        <QuestionUnresolveButton question={question} permission={permission} />
-        {canResolve && (
-          <QuestionResolutionButton
-            question={question}
-            permission={permission}
-          />
-        )}
-      </div>
     </>
   );
 };

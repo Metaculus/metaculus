@@ -29,7 +29,6 @@ class SignupSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
-            "is_bot",
             "add_to_project",
             "campaign_key",
             "campaign_data",

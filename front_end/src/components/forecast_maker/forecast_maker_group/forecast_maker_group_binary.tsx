@@ -83,7 +83,6 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };

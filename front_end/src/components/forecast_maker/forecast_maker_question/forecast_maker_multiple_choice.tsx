@@ -18,7 +18,7 @@ import { useHideCP } from "@/contexts/cp_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import {
   AggregateForecastHistory,
   QuestionWithMultipleChoiceForecasts,
@@ -49,8 +49,6 @@ import {
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
-import QuestionResolutionButton from "../resolution";
-import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type ChoiceOption = {
@@ -63,9 +61,7 @@ type ChoiceOption = {
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithMultipleChoiceForecasts;
-  permission?: ProjectPermissions;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -73,9 +69,7 @@ type Props = {
 const ForecastMakerMultipleChoice: FC<Props> = ({
   post,
   question,
-  permission,
   canPredict,
-  canResolve,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -613,16 +607,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           <LoadingIndicator />
         </div>
       )}
-      <div className="mt-2 flex flex-col items-center justify-center">
-        <QuestionUnresolveButton question={question} permission={permission} />
-
-        {canResolve && (
-          <QuestionResolutionButton
-            question={question}
-            permission={permission}
-          />
-        )}
-      </div>
     </>
   );
 };

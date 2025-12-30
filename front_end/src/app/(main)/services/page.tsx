@@ -25,7 +25,7 @@ export default async function ServicesPage() {
   ]);
   const mainPageTournaments = tournaments.filter((tournament) =>
     mainPageTournamentsList.find(
-      ({ id }) => id === tournament.slug || id === String(tournament.id)
+      ({ id }) => String(id) === tournament.slug || id === tournament.id
     )
   );
   const sortedTournaments = sortServiceTournaments(mainPageTournaments);

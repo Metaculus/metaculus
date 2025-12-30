@@ -9,6 +9,10 @@ import ChangePassword from "./components/change_password";
 import EmailEdit from "./components/email_edit";
 import PreferencesSection from "../components/preferences_section";
 
+export const metadata = {
+  title: "Account Settings",
+};
+
 export default async function Settings() {
   const currentUser = await ServerProfileApi.getMyProfile();
   const token = await getServerSession();

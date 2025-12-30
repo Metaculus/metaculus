@@ -1,6 +1,6 @@
 import { ApiService } from "@/services/api/api_service";
 import { PaginatedPayload } from "@/types/fetch";
-import { UserProfile } from "@/types/users";
+import { CurrentBot, UserProfile } from "@/types/users";
 
 class ProfileApi extends ApiService {
   async getProfileById(id: number): Promise<UserProfile> {
@@ -11,6 +11,10 @@ class ProfileApi extends ApiService {
     return await this.get<PaginatedPayload<UserProfile>>(
       `/users/?search=${query}`
     );
+  }
+
+  async getMyBots() {
+    return await this.get<CurrentBot[]>(`/users/me/bots/`);
   }
 }
 

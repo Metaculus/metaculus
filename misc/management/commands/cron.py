@@ -26,6 +26,7 @@ from questions.tasks import check_and_schedule_forecast_widrawal_due_notificatio
 from scoring.jobs import (
     finalize_leaderboards,
     update_global_comment_and_question_leaderboards,
+    update_custom_leaderboards,
 )
 from scoring.utils import update_medal_points_and_ranks
 
@@ -197,6 +198,13 @@ class Command(BaseCommand):
             close_old_connections(update_medal_points_and_ranks),
             trigger=CronTrigger.from_crontab("0 4 * * *"),  # Every day at 04:00 UTC
             id="update_medal_points_and_ranks",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(update_custom_leaderboards),
+            trigger=CronTrigger.from_crontab("0 5 * * *"),  # Every day at 05:00 UTC
+            id="update_custom_leaderboards",
             max_instances=1,
             replace_existing=True,
         )

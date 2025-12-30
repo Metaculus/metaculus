@@ -2,14 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import videoThumbnail from "@/app/(main)/aib/assets/video-thumbnail.png";
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 
 const AIBInfoSubmitSteps: React.FC = () => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const submitSteps = [
     t.rich("aibSubmitStep1", {
@@ -17,9 +21,13 @@ const AIBInfoSubmitSteps: React.FC = () => {
         <button
           type="button"
           className="text-blue-700 underline dark:text-blue-700-dark"
-          onClick={() =>
-            setCurrentModal({ type: "signup", data: { forceIsBot: true } })
-          }
+          onClick={() => {
+            if (user) {
+              router.push("/accounts/settings/bots/#create");
+            } else {
+              setCurrentModal({ type: "signup" });
+            }
+          }}
         >
           {chunks}
         </button>

@@ -11,6 +11,8 @@ import PostDestructiveActionModal, {
   PostDestructiveActionModalProps,
 } from "@/app/(main)/questions/[id]/components/post_destructive_action_modal";
 import { changePostActivityBoost } from "@/app/(main)/questions/actions";
+import QuestionResolutionModal from "@/components/forecast_maker/resolution/resolution_modal";
+import QuestionUnresolveModal from "@/components/forecast_maker/resolution/unresolve_modal";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -21,6 +23,8 @@ import { useShareMenuItems } from "@/hooks/use_share_menu_items";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
 import { getPostEditLink } from "@/utils/navigation";
+import { isQuestionPost } from "@/utils/questions/helpers";
+import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 type Props = {
   post: Post;
@@ -33,10 +37,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
   const router = useRouter();
   const { updateIsOpen: openEmbedModal } = useEmbedModalContext();
 
+  const { user_permission } = post;
   const isUpcoming = new Date(post.open_time).getTime() > Date.now();
-  const isAdmin = [ProjectPermissions.ADMIN].includes(post.user_permission);
-  const isCurator = [ProjectPermissions.CURATOR].includes(post.user_permission);
-  const isCreator = post.user_permission === ProjectPermissions.CREATOR;
+  const isAdmin = [ProjectPermissions.ADMIN].includes(user_permission);
+  const isCurator = [ProjectPermissions.CURATOR].includes(user_permission);
+  const isCreator = user_permission === ProjectPermissions.CREATOR;
   const isApproved = post.curation_status === PostStatus.APPROVED;
 
   const allowEdit =
@@ -48,6 +53,13 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     (isCurator && isApproved && isUpcoming);
 
   const isLargeScreen = useBreakpoint("lg");
+
+  const canResolve =
+    isQuestionPost(post) &&
+    canChangeQuestionResolution(post.question, user_permission);
+  const canUnresolve =
+    isQuestionPost(post) &&
+    canChangeQuestionResolution(post.question, user_permission, false);
 
   const shareMenuItems = useShareMenuItems({
     questionTitle: post.title,
@@ -87,6 +99,9 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     },
     [post.id, t]
   );
+
+  const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
+  const [isUnresolveModalOpen, setIsUnresolveModalOpen] = useState(false);
 
   const createDuplicateLink = (post: Post) => {
     if (post.question) {
@@ -129,6 +144,27 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
             name: t("embed"),
             className: "capitalize",
             onClick: () => openEmbedModal(true),
+          },
+        ]
+      : []),
+
+    // Resolution actions
+    ...(canResolve
+      ? [
+          {
+            id: "resolve",
+            name: t("resolve"),
+            onClick: () => setIsResolutionModalOpen(true),
+          },
+        ]
+      : []),
+
+    ...(canUnresolve
+      ? [
+          {
+            id: "unresolve",
+            name: t("unresolve"),
+            onClick: () => setIsUnresolveModalOpen(true),
           },
         ]
       : []),
@@ -242,6 +278,20 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
         onClose={closeDownloadModal}
         post={post}
       />
+      {isQuestionPost(post) && (
+        <>
+          <QuestionResolutionModal
+            question={post.question}
+            isOpen={isResolutionModalOpen}
+            onClose={() => setIsResolutionModalOpen(false)}
+          />
+          <QuestionUnresolveModal
+            question={post.question}
+            isOpen={isUnresolveModalOpen}
+            onClose={() => setIsUnresolveModalOpen(false)}
+          />
+        </>
+      )}
       <DropdownMenu
         items={menuItems}
         className="divide-y divide-gray-300 border-gray-300 dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark"

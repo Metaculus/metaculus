@@ -10,7 +10,11 @@ import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { LanguageService } from "@/services/language_service";
-import { deleteServerSession, setServerSession } from "@/services/session";
+import {
+  deleteImpersonatorSession,
+  deleteServerSession,
+  setServerSession,
+} from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
@@ -112,7 +116,6 @@ export async function signUpAction(
         email: validatedSignupData.email,
         username: validatedSignupData.username,
         password: validatedSignupData.password,
-        is_bot: validatedSignupData.isBot,
         add_to_project: validatedSignupData.addToProject,
         campaign_key: validatedSignupData.campaignKey,
         campaign_data: validatedSignupData.campaignData,
@@ -165,6 +168,7 @@ export async function signUpAction(
 
 export async function LogOut() {
   await deleteServerSession();
+  await deleteImpersonatorSession();
   return redirect("/");
 }
 

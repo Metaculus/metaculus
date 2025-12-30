@@ -84,7 +84,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           {children}
         </Link>
         <div className="mt-auto" />
-        <BasicPostControls post={post} withVoter={!minimalistic} />
+        <BasicPostControls post={post} minimalistic={minimalistic} />
         {!minimalistic && isQuestionPost(post) && (
           <CoherenceLinksProvider post={post}>
             <KeyFactorsTileView post={post} />

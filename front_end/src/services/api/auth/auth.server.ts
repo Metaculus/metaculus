@@ -13,7 +13,6 @@ export type SignUpProps = {
   email: string;
   username: string;
   password: string;
-  is_bot: boolean;
   add_to_project?: number;
   campaign_key?: string;
   campaign_data?: object;

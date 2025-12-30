@@ -24,7 +24,13 @@ const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
         </Suspense>
       );
     case TournamentType.Index:
-      return <IndexHeaderBlock tournament={tournament} />;
+      return (
+        <Suspense fallback={<Skeleton />}>
+          <IndexHeaderBlock tournament={tournament}>
+            <TournamentTimeline tournament={tournament} />
+          </IndexHeaderBlock>
+        </Suspense>
+      );
     default:
       return (
         <div className="flex flex-wrap gap-x-9 gap-y-4 py-4">

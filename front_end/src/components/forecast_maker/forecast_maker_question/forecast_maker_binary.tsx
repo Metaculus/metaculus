@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -26,22 +26,18 @@ import PredictionSuccessBox from "./prediction_success_box";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import {
   ForecastExpirationModal,
-  ForecastExpirationValue,
   forecastExpirationToDate,
+  ForecastExpirationValue,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
-import QuestionResolutionButton from "../resolution";
-import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
   prevForecast?: number | null;
-  permission?: ProjectPermissions;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -49,9 +45,7 @@ type Props = {
 const ForecastMakerBinary: FC<Props> = ({
   post,
   question,
-  permission,
   canPredict,
-  canResolve,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -256,15 +250,6 @@ const ForecastMakerBinary: FC<Props> = ({
               router.push(`${pathname}?action=comment-with-forecast`);
             }}
             className="mb-4 w-full justify-center"
-          />
-        )}
-
-        <QuestionUnresolveButton question={question} permission={permission} />
-
-        {canResolve && (
-          <QuestionResolutionButton
-            question={question}
-            permission={permission}
           />
         )}
       </div>

@@ -38,4 +38,25 @@ urlpatterns = [
         views.register_campaign,
         name="user-register-campaign",
     ),
+    # Bots management
+    path(
+        "users/me/bots/",
+        views.my_bots_api_view,
+        name="my-bots-list",
+    ),
+    path(
+        "users/me/bots/create/",
+        views.create_bot_api_view,
+        name="create-bot",
+    ),
+    path(
+        "users/me/bots/<int:pk>/update/",
+        views.update_bot_profile_api_view,
+        name="update-bot",
+    ),
+    path(
+        "users/me/bots/<int:pk>/token/",
+        views.bot_token_api_view,
+        name="reveal-bot-token",
+    ),
 ]

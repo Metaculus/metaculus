@@ -15,7 +15,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from comments.models import (
     ChangedMyMindEntry,
@@ -89,6 +89,9 @@ def create_comment(
     # Inherit root comment privacy
     if root:
         is_private = root.is_private
+
+    if not is_private and user.is_bot and not user.is_primary_bot:
+        raise PermissionDenied("Only your primary bot can post public comments.")
 
     with transaction.atomic():
         obj = Comment(

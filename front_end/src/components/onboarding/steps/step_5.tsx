@@ -160,7 +160,7 @@ const Step5: React.FC<OnboardingStep> = ({
         false
       );
 
-      if (!!response && !response.errors) {
+      if (!response?.errors) {
         updateForecastedPostState(post.id, { isSubmitted: true });
       }
     } finally {

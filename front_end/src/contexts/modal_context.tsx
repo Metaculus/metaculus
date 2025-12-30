@@ -26,9 +26,7 @@ export type ModalType =
 
 type ModalDataByType = {
   signin: Record<string, never>;
-  signup: {
-    forceIsBot?: boolean;
-  };
+  signup: Record<string, never>;
   signupSuccess: { username: string; email: string };
   resetPassword: Record<string, never>;
   resetPasswordConfirm: Record<string, never>;

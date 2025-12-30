@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { LogOut } from "@/app/(main)/accounts/actions";
 import { SignupForm } from "@/components/auth/signup";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -19,12 +18,13 @@ import Description from "./description";
 import Hero from "./hero";
 import TournamentPager, { TOURNAMENT_ITEMS } from "./tournament-pager";
 
-const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
-  token,
-}) => {
+type Props = {
+  primaryBotToken?: string | null;
+};
+
+const AiBenchmarkingTournamentPage: FC<Props> = ({ primaryBotToken }) => {
   const { user } = useAuth();
   const isUserAuthenticated = !!user;
-  const isUserBot = isUserAuthenticated && user.is_bot;
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenmodalOpen, setTokenModalOpen] = useState(false);
   const t = useTranslations();
@@ -72,32 +72,34 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                   size="lg"
                   className="border-none"
                 >
-                  {t("FABCreateBot")}
+                  {t("FABCreateAccount")}
                 </Button>
+                <div>{t("FABRegisterBotSecondary")}</div>
               </div>
             )}
-            {isUserAuthenticated && !isUserBot && (
-              <div className="flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded bg-blue-800 p-8 text-white dark:bg-blue-800-dark dark:text-blue-900 lg:px-12">
+            {isUserAuthenticated && !primaryBotToken && (
+              <div className="flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded bg-blue-800 p-8 text-white dark:bg-blue-800-dark dark:text-blue-900 lg:px-9">
                 <span className="text-center text-xl uppercase tracking-wide opacity-50 min-[1920px]:text-2xl">
                   {t("FABGettingStarted")}
                 </span>
-                <span className="mb-2 text-center text-xl min-[1920px]:text-2xl">
-                  {t("FABSeparateBotAccount")}
+                <span className="mb-2 text-center text-3xl min-[1920px]:text-2xl">
+                  {t("FABCreateBotTitle")}
                 </span>
                 <Button
                   variant="secondary"
                   type="submit"
                   size="lg"
                   className="border-none"
-                  onClick={() => {
-                    void LogOut();
-                  }}
+                  href="/accounts/settings/bots/#create"
                 >
-                  {t("logOut")}
+                  {t("createBot")}
                 </Button>
+                <div className="text-center">
+                  {t("FABCreateBotDescription")}
+                </div>
               </div>
             )}
-            {isUserAuthenticated && isUserBot && (
+            {isUserAuthenticated && primaryBotToken && (
               <div className="flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded bg-blue-800 p-8 text-white dark:bg-blue-800-dark dark:text-blue-900 lg:px-12 min-[1920px]:gap-6">
                 <span className="mb-4 text-center text-2xl min-[1920px]:text-3xl">
                   {t("FABBotRegistered")}
@@ -159,17 +161,17 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
         <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
           <div className="flex max-h-full max-w-xl flex-col items-center">
             <h1 className="mx-auto mt-2 text-center text-blue-800 dark:text-blue-800-dark">
-              {t("FABCreateBotAccount")}
+              {t("registrationHeadingSite")}
             </h1>
-            <p className="mx-auto text-center leading-normal opacity-75">
-              {t("FABBotAlreadyCreated")}
+            <p className="mx-auto whitespace-pre-wrap text-center leading-normal opacity-75">
+              {t("FABCreatePopupDescription")}
             </p>
             <div className="sm:w-80 sm:pr-4">
               {/*
                 The project ID to add the user to is hardcoded here - the FAB project is changed once every quarter, and it doesn't
                 make sense to build infrastructure to manage the ID from the UI. When the new FAB tournament starts, we'll just change the ID here.
               */}
-              <SignupForm forceIsBot={true} addToProject={32916} />
+              <SignupForm redirectLocation="/accounts/settings/bots/#create" />
             </div>
             <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {
@@ -194,7 +196,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
           <div className="flex w-full flex-col items-center gap-3 p-4">
             <span className="text-center text-lg">{t("FABTokenInfo")}</span>
             <div className="flex flex-row gap-2 rounded border border-blue-500 bg-blue-400 p-2 text-base dark:border-blue-500-dark dark:bg-blue-400-dark">
-              <span>{token}</span>
+              <span>{primaryBotToken}</span>
             </div>
           </div>
         </BaseModal>
