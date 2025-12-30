@@ -21,8 +21,8 @@ const useSearchParams = () => {
 
   // allows pushing search params to the url without page reload
   const shallowNavigateToSearchParams = useCallback(() => {
-    window.history.pushState(null, "", `?${params.toString()}`);
-  }, [params]);
+    router.replace(pathname + "?" + params.toString(), { scroll: false });
+  }, [params, pathname, router]);
 
   const setParam = useCallback(
     (name: string, val: string | string[], withNavigation = true) => {
