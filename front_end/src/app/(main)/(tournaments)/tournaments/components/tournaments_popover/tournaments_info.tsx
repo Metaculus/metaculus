@@ -21,10 +21,21 @@ const TournamentsInfo: React.FC<Props> = ({ onClose }) => {
   const { setCurrentModal } = useModal();
   const handleSignup = () => setCurrentModal({ type: "signup", data: {} });
 
+  const title = t.rich("tournamentsInfoTitle", {
+    predmarket: (chunks) => (
+      <Link
+        href="/faq/#predmarket"
+        className="text-blue-700 no-underline hover:underline dark:text-blue-700-dark"
+      >
+        {chunks}
+      </Link>
+    ),
+  });
+
   return (
     <div className="relative rounded-[6px] bg-blue-400 p-5 dark:bg-blue-400-dark">
       <h6 className="my-0 text-base font-medium text-blue-900 dark:text-blue-900-dark">
-        {t("tournamentsInfoTitle")}
+        {title}
       </h6>
 
       <div className="mt-2.5 flex flex-wrap gap-2.5 text-xs font-medium text-blue-900 dark:text-blue-900-dark">

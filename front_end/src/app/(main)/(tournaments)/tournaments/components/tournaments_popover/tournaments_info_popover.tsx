@@ -97,7 +97,7 @@ const TournamentsInfoPopover: React.FC<Props> = ({
               ...floatingStyles,
               visibility: isPositioned ? "visible" : "hidden",
             }}
-            className={cn("z-[60] w-[365px]")}
+            className={cn("z-[60] w-[390px]")}
           >
             <TournamentsInfo
               onClose={() => {
