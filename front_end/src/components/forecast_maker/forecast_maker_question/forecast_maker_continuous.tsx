@@ -125,7 +125,12 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   const overlayPreviousCdf =
     overlayPreviousForecast && previousForecast?.forecast_values
-      ? previousForecast.forecast_values
+      ? previousForecast.forecast_values.map((v) => {
+          if (v === null) {
+            throw new Error("Forecast values contain null values");
+          }
+          return v;
+        })
       : undefined;
 
   // Update states of forecast maker after new forecast is made
@@ -204,12 +209,24 @@ const ForecastMakerContinuous: FC<Props> = ({
   const userCdf: number[] = dataset.cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
-      ? previousForecast.forecast_values
+      ? previousForecast.forecast_values.map((v) => {
+          if (v === null) {
+            throw new Error("Forecast values contain null values");
+          }
+          return v;
+        })
       : undefined;
   const latest =
     question.aggregations[question.default_aggregation_method].latest;
   const communityCdf: number[] | undefined =
-    latest && isForecastActive(latest) ? latest?.forecast_values : undefined;
+    latest && isForecastActive(latest)
+      ? latest?.forecast_values.map((v) => {
+          if (v === null) {
+            throw new Error("Forecast values contain null values");
+          }
+          return v;
+        })
+      : undefined;
 
   const handleAddComponent = () => {
     setSliderDistributionComponents([

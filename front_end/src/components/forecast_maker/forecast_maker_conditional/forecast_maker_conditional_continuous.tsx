@@ -675,7 +675,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
-      ? previousForecast.forecast_values
+      ? previousForecast.forecast_values.map((v) => {
+          if (v === null) {
+            throw new Error("Forecast values contain null values");
+          }
+          return v;
+        })
       : undefined;
   const aggregateLatest =
     activeOptionData?.question.aggregations[
@@ -683,7 +688,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     ].latest;
   const communityCdf: number[] | undefined =
     aggregateLatest && isForecastActive(aggregateLatest)
-      ? aggregateLatest.forecast_values
+      ? aggregateLatest.forecast_values.map((v) => {
+          if (v === null) {
+            throw new Error("Forecast values contain null values");
+          }
+          return v;
+        })
       : undefined;
 
   const predictButtonIsDisabled =

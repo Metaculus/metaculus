@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
@@ -8,7 +9,7 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, OptionsHistoryType
 from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -18,6 +19,27 @@ if TYPE_CHECKING:
     from scoring.models import Score, ArchivedScore
 
 DEFAULT_INBOUND_OUTCOME_COUNT = 200
+
+
+def validate_options_history(value):
+    # Expect: [ (float, [str, ...]), ... ] or equivalent
+    if not isinstance(value, list):
+        raise ValidationError("Must be a list.")
+    for i, item in enumerate(value):
+        if (
+            not isinstance(item, (list, tuple))
+            or len(item) != 2
+            or not isinstance(item[0], str)
+            or not isinstance(item[1], list)
+            or not all(isinstance(s, str) for s in item[1])
+        ):
+            raise ValidationError(f"Bad item at index {i}: {item!r}")
+        try:
+            datetime.fromisoformat(item[0])
+        except ValueError:
+            raise ValidationError(
+                f"Bad datetime format at index {i}: {item[0]!r}, must be isoformat string"
+            )
 
 
 class QuestionQuerySet(QuerySet):
@@ -197,8 +219,20 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     unit = models.CharField(max_length=25, blank=True)
 
-    # list of multiple choice option labels
-    options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    # multiple choice fields
+    options: list[str] | None = ArrayField(
+        models.CharField(max_length=200), blank=True, null=True
+    )
+    options_history: OptionsHistoryType | None = models.JSONField(
+        null=True,
+        blank=True,
+        validators=[validate_options_history],
+        help_text="""For Multiple Choice only.
+        <br>list of tuples: (isoformat_datetime, options_list). (json stores them as lists)
+        <br>Records the history of options over time.
+        <br>Initialized with (datetime.min.isoformat(), self.options) upon question creation.
+        <br>Updated whenever options are changed.""",
+    )
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
@@ -251,6 +285,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.zero_point = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
+        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+            # initialize options history on first save
+            self.options_history = [(datetime.min.isoformat(), self.options or [])]
 
         return super().save(**kwargs)
 
@@ -512,20 +549,20 @@ class Forecast(models.Model):
 
     # CDF of a continuous forecast
     # evaluated at [0.0, 0.005, 0.010, ..., 0.995, 1.0] (internal representation)
-    continuous_cdf = ArrayField(
+    continuous_cdf: list[float] = ArrayField(
         models.FloatField(),
         null=True,
         max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1,
         blank=True,
     )
     # binary prediction
-    probability_yes = models.FloatField(
+    probability_yes: float = models.FloatField(
         null=True,
         blank=True,
     )
     # multiple choice prediction
-    probability_yes_per_category = ArrayField(
-        models.FloatField(),
+    probability_yes_per_category: list[float | None] = ArrayField(
+        models.FloatField(null=True),
         null=True,
         blank=True,
     )
@@ -545,8 +582,11 @@ class Forecast(models.Model):
     )
 
     class SourceChoices(models.TextChoices):
-        API = "api"
-        UI = "ui"
+        API = "api"  # made via the api
+        UI = "ui"  # made using the api
+        # an automatically assigned forecast
+        # usually this means a regular forecast was split
+        AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
     source = models.CharField(
@@ -555,6 +595,7 @@ class Forecast(models.Model):
         null=True,
         choices=SourceChoices.choices,
         default="",
+        db_index=True,
     )
 
     distribution_input = models.JSONField(
@@ -589,18 +630,26 @@ class Forecast(models.Model):
             f"by {self.author.username} on {self.question.id}: {pvs}"
         )
 
-    def get_prediction_values(self) -> list[float]:
+    def get_prediction_values(self) -> list[float | None]:
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
             return self.probability_yes_per_category
         return self.continuous_cdf
 
-    def get_pmf(self) -> list[float]:
+    def get_pmf(self, replace_none: bool = False) -> list[float]:
+        """
+        gets the PMF for this forecast
+        replaces None values with 0.0 if replace_none is True
+        """
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
-            return self.probability_yes_per_category
+            if not replace_none:
+                return self.probability_yes_per_category
+            return [
+                v or 0.0 for v in self.probability_yes_per_category
+            ]  # replace None with 0.0
         cdf = self.continuous_cdf
         pmf = [cdf[0]]
         for i in range(1, len(cdf)):
@@ -633,10 +682,10 @@ class AggregateForecast(models.Model):
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField(null=True, db_index=True)
-    forecast_values = ArrayField(
-        models.FloatField(), max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1
+    forecast_values: list[float | None] = ArrayField(
+        models.FloatField(null=True), max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1
     )
-    forecaster_count = models.IntegerField(null=True)
+    forecaster_count: int | None = models.IntegerField(null=True)
     interval_lower_bounds = ArrayField(models.FloatField(), null=True)
     centers = ArrayField(models.FloatField(), null=True)
     interval_upper_bounds = ArrayField(models.FloatField(), null=True)
@@ -665,25 +714,35 @@ class AggregateForecast(models.Model):
             f"by {self.method} on {self.question_id}: {pvs}>"
         )
 
-    def get_cdf(self) -> list[float] | None:
+    def get_cdf(self) -> list[float | None] | None:
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
         if question_type in QUESTION_CONTINUOUS_TYPES:
             return self.forecast_values
+        return None
 
-    def get_pmf(self) -> list[float]:
+    def get_pmf(self, replace_none: bool = False) -> list[float | None]:
+        """
+        gets the PMF for this forecast
+        replacing None values with 0.0 if replace_none is True
+        """
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
+        forecast_values = self.forecast_values
+        if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+            if not replace_none:
+                return forecast_values
+            return [v or 0.0 for v in forecast_values]  # replace None with 0.0
         if question_type in QUESTION_CONTINUOUS_TYPES:
-            cdf = self.forecast_values
+            cdf: list[float] = forecast_values  # type: ignore
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
                 pmf.append(cdf[i] - cdf[i - 1])
             pmf.append(1 - cdf[-1])
             return pmf
-        return self.forecast_values
+        return forecast_values
 
-    def get_prediction_values(self) -> list[float]:
+    def get_prediction_values(self) -> list[float | None]:
         return self.forecast_values
 
 
