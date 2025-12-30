@@ -1799,7 +1799,6 @@
   "tournamentTimelineJustStarted": "剛剛開始",
   "tournamentTimelineStarts": "{when} 開始",
   "tournamentTimelineEnds": "{when} 結束",
-  "tournamentTimelineClosed": "已結束",
   "tournamentTimelineAllResolved": "所有問題已解決",
   "tournamentRelativeSoon": "即將",
   "tournamentRelativeUnderMinute": "在不到一分鐘內",
@@ -1817,5 +1816,6 @@
   "tournamentsTabSeries": "問答系列",
   "tournamentsTabIndexes": "指數",
   "tournamentsTabArchived": "已存檔",
+  "tournamentTimelineClosed": "等待裁定",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

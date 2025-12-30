@@ -31,10 +31,10 @@ const TournamentsScreen: React.FC<Props> = ({
         current={current}
       >
         <TournamentsHeader />
-        <div className="mt-8">
+        <div className="mt-3 sm:mt-8">
           <TournamentsHero />
           <TournamentsMobileCtrl />
-          <TournamentsResults className="mt-8 lg:mt-[50px]">
+          <TournamentsResults className="mt-3 sm:mt-8 lg:mt-[50px]">
             {children}
           </TournamentsResults>
         </div>

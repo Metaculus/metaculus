@@ -1804,7 +1804,6 @@
   "tournamentTimelineJustStarted": "刚刚开始",
   "tournamentTimelineStarts": "开始于{when}",
   "tournamentTimelineEnds": "结束于{when}",
-  "tournamentTimelineClosed": "已关闭",
   "tournamentTimelineAllResolved": "所有问题已解决",
   "tournamentRelativeSoon": "很快",
   "tournamentRelativeUnderMinute": "不到一分钟",
@@ -1822,5 +1821,6 @@
   "tournamentsTabSeries": "问题系列",
   "tournamentsTabIndexes": "索引",
   "tournamentsTabArchived": "已归档",
+  "tournamentTimelineClosed": "等待解决",
   "othersCount": "其他（{count}）"
 }

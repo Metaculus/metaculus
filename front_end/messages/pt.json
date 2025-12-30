@@ -1800,7 +1800,6 @@
   "tournamentTimelineJustStarted": "Acabou de começar",
   "tournamentTimelineStarts": "Começa {when}",
   "tournamentTimelineEnds": "Termina {when}",
-  "tournamentTimelineClosed": "Encerrado",
   "tournamentTimelineAllResolved": "Todas as perguntas resolvidas",
   "tournamentRelativeSoon": "em breve",
   "tournamentRelativeUnderMinute": "em menos de um minuto",
@@ -1818,5 +1817,6 @@
   "tournamentsTabSeries": "Série de Perguntas",
   "tournamentsTabIndexes": "Índices",
   "tournamentsTabArchived": "Arquivado",
+  "tournamentTimelineClosed": "Aguardando resoluções",
   "othersCount": "Outros ({count})"
 }

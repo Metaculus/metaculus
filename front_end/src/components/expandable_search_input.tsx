@@ -116,7 +116,7 @@ const ExpandableSearchInput: FC<Props> = ({
           className="h-9 w-full"
           iconPosition="left"
           inputClassName={cn(
-            "h-9 border border-gray-300 bg-gray-0 text-sm font-medium",
+            "h-9 border border-gray-300 bg-gray-0 sm:text-base font-medium",
             "placeholder:text-gray-600 dark:placeholder:text-gray-600-dark",
             "focus:outline-none focus:border-blue-500",
             "dark:border-gray-500-dark dark:bg-gray-0-dark",

@@ -1,18 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import TournamentsFilter from "./tournaments_filter";
 import TournamentsInfo from "./tournaments_popover/tournaments_info";
 import TournamentsInfoButton from "./tournaments_popover/tournaments_info_button";
+import { useTournamentsSection } from "./tournaments_provider";
 import TournamentsSearch from "./tournaments_search";
+import { useTournamentsInfoDismissed } from "../hooks/use_tournaments_info_dismissed";
 
 const TournamentsMobileCtrl: React.FC = () => {
-  const [isInfoOpen, setIsInfoOpen] = useState(true);
+  const { current } = useTournamentsSection();
+  const { dismissed, dismiss, ready } = useTournamentsInfoDismissed();
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+
+  const showInfo = current === "live";
+
+  useEffect(() => {
+    if (!ready) return;
+    setIsInfoOpen(showInfo && !dismissed);
+  }, [ready, dismissed, showInfo]);
 
   return (
     <div className="flex flex-col gap-5 lg:hidden">
-      {isInfoOpen && <TournamentsInfo onClose={() => setIsInfoOpen(false)} />}
+      {showInfo && isInfoOpen && (
+        <TournamentsInfo
+          onClose={() => {
+            dismiss();
+            setIsInfoOpen(false);
+          }}
+        />
+      )}
       <div className="flex items-center gap-2">
         <TournamentsFilter />
 
@@ -20,10 +38,15 @@ const TournamentsMobileCtrl: React.FC = () => {
           <TournamentsSearch />
         </div>
 
-        <TournamentsInfoButton
-          isOpen={isInfoOpen}
-          onClick={() => setIsInfoOpen((p) => !p)}
-        />
+        {showInfo && (
+          <TournamentsInfoButton
+            isOpen={isInfoOpen}
+            onClick={() => {
+              dismiss();
+              setIsInfoOpen((p) => !p);
+            }}
+          />
+        )}
       </div>
     </div>
   );

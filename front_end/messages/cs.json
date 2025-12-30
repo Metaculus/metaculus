@@ -1802,7 +1802,6 @@
   "tournamentTimelineJustStarted": "Právě začalo",
   "tournamentTimelineStarts": "Začíná {when}",
   "tournamentTimelineEnds": "Končí {when}",
-  "tournamentTimelineClosed": "Ukončeno",
   "tournamentTimelineAllResolved": "Všechny otázky vyřešeny",
   "tournamentRelativeSoon": "brzy",
   "tournamentRelativeUnderMinute": "za méně než minutu",
@@ -1820,5 +1819,6 @@
   "tournamentsTabSeries": "Série otázek",
   "tournamentsTabIndexes": "Indexy",
   "tournamentsTabArchived": "Archivováno",
+  "tournamentTimelineClosed": "Čekání na vyřešení",
   "othersCount": "Ostatní ({count})"
 }

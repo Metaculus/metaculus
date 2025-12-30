@@ -10,12 +10,27 @@ import TournamentsFilter from "./tournaments_filter";
 import TournamentsInfoPopover from "./tournaments_popover/tournaments_info_popover";
 import { useTournamentsSection } from "./tournaments_provider";
 import TournamentsSearch from "./tournaments_search";
+import { useTournamentsInfoDismissed } from "../hooks/use_tournaments_info_dismissed";
 
 const STICKY_TOP = 48;
 const POPOVER_GAP = 10;
 
 const TournamentsHeader: React.FC = () => {
   const { current, infoOpen, toggleInfo, closeInfo } = useTournamentsSection();
+  const {
+    dismissed,
+    dismiss: infoDismiss,
+    ready,
+  } = useTournamentsInfoDismissed();
+
+  const didInitDismissCheck = useRef(false);
+  useEffect(() => {
+    if (!ready) return;
+    if (didInitDismissCheck.current) return;
+    didInitDismissCheck.current = true;
+
+    if (dismissed && infoOpen) closeInfo();
+  }, [ready, dismissed, infoOpen, closeInfo]);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const isLg = useBreakpoint("lg");
@@ -54,7 +69,7 @@ const TournamentsHeader: React.FC = () => {
         )}
         style={{ top: STICKY_TOP }}
       >
-        <div className="mx-auto max-w-[1150px] px-6 py-2 sm:px-8 md:py-3">
+        <div className="mx-auto max-w-[1150px] px-3 py-2 sm:px-8 md:py-3">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <TournamentsTabs current={current} />
@@ -68,7 +83,15 @@ const TournamentsHeader: React.FC = () => {
                 {showInfo && isLg ? (
                   <TournamentsInfoPopover
                     open={infoOpen}
-                    onOpenChange={(next) => (next ? toggleInfo() : closeInfo())}
+                    onOpenChange={(next) => {
+                      if (next) {
+                        toggleInfo();
+                        return;
+                      }
+
+                      infoDismiss();
+                      closeInfo();
+                    }}
                     offsetPx={POPOVER_GAP}
                     stickyTopPx={STICKY_TOP}
                   />

@@ -1796,7 +1796,7 @@
   "tournamentTimelineJustStarted": "Just started",
   "tournamentTimelineStarts": "Starts {when}",
   "tournamentTimelineEnds": "Ends {when}",
-  "tournamentTimelineClosed": "Closed",
+  "tournamentTimelineClosed": "Waiting resolutions",
   "tournamentTimelineAllResolved": "All questions resolved",
   "tournamentRelativeSoon": "soon",
   "tournamentRelativeUnderMinute": "in under a minute",

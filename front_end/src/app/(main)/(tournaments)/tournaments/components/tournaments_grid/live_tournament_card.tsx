@@ -10,6 +10,7 @@ import cn from "@/utils/core/cn";
 import { bucketRelativeMs } from "@/utils/formatters/date";
 
 import TournamentCardShell from "./tournament_card_shell";
+import GradientProgressLine from "../../../tournament/components/gradient_progress_line";
 
 type Props = {
   item: TournamentPreview;
@@ -75,7 +76,7 @@ const LiveTournamentCard: React.FC<Props> = ({
       </div>
 
       <div className="flex h-20 flex-col justify-between px-3 pb-3 pt-1.5 lg:h-[120px] lg:px-4 lg:pb-5 lg:pt-2">
-        <h6 className="my-0 text-center text-sm font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-left lg:text-lg lg:leading-[125%]">
+        <h6 className="my-0 line-clamp-2 text-center text-sm font-semibold leading-[125%] text-blue-800 dark:text-blue-800-dark lg:text-left lg:text-lg lg:leading-[125%]">
           {item.name}
         </h6>
 
@@ -173,35 +174,10 @@ function ActiveMiniBar({
       <p className="my-0 hidden text-[10px] font-normal text-blue-700 dark:text-blue-700-dark lg:block">
         {label}
       </p>
-
-      <div className="relative mt-2 h-1 w-full rounded-full bg-blue-400 dark:bg-blue-400-dark">
-        <div
-          className={cn(
-            "h-full rounded-full",
-            "bg-gradient-to-r from-blue-200 to-blue-700 dark:from-blue-200-dark dark:to-blue-700-dark"
-          )}
-          style={{ width: `${pct}%` }}
-        />
-
-        <Marker pct={+pct} />
+      <div className="mt-2">
+        <GradientProgressLine pct={+pct} />
       </div>
     </div>
-  );
-}
-
-function Marker({ pct }: { pct: number }) {
-  const clamped = Math.max(0, Math.min(100, pct));
-  const left = `${clamped}%`;
-  const thumbLeft = `clamp(5px, ${left}, calc(100% - 5px))`;
-
-  return (
-    <div
-      className={cn(
-        "absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full",
-        "bg-blue-700 dark:bg-blue-700-dark"
-      )}
-      style={{ left: thumbLeft }}
-    />
   );
 }
 

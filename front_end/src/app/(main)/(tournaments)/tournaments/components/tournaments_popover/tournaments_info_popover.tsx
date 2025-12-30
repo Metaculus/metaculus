@@ -16,9 +16,9 @@ import React from "react";
 
 import cn from "@/utils/core/cn";
 
+import { useTournamentsSection } from "../tournaments_provider";
 import TournamentsInfo from "./tournaments_info";
 import TournamentsInfoButton from "./tournaments_info_button";
-import { useTournamentsSection } from "../tournaments_provider";
 
 type Props = {
   open: boolean;
@@ -75,7 +75,7 @@ const TournamentsInfoPopover: React.FC<Props> = ({
     role,
   ]);
 
-  if (current === "series" || current === "indexes") {
+  if (current !== "live") {
     return null;
   }
 
@@ -99,7 +99,11 @@ const TournamentsInfoPopover: React.FC<Props> = ({
             }}
             className={cn("z-[60] w-[365px]")}
           >
-            <TournamentsInfo onClose={() => onOpenChange(false)} />
+            <TournamentsInfo
+              onClose={() => {
+                onOpenChange(false);
+              }}
+            />
           </div>
         </FloatingPortal>
       ) : null}
