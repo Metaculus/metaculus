@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
@@ -8,9 +8,8 @@ import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
-import { ContinuousQuestionTypes } from "@/constants/questions"; // ⬅️ NEW
+import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
-import useContainerSize from "@/hooks/use_container_size";
 import {
   GroupOfQuestionsGraphType,
   GroupOfQuestionsPost,
@@ -86,12 +85,9 @@ const DetailedGroupCard: FC<Props> = ({
 
   const isEmbed = useIsEmbedMode();
 
-  const { ref: containerRef, width: containerWidth } =
-    useContainerSize<HTMLDivElement>();
-
   const maxVisibleCheckboxes = useMemo(
-    () => getMaxVisibleCheckboxes(isEmbed, containerWidth),
-    [isEmbed, containerWidth]
+    () => getMaxVisibleCheckboxes(isEmbed),
+    [isEmbed]
   );
 
   const forecastAvailability = getGroupForecastAvailability(questions);
@@ -140,29 +136,27 @@ const DetailedGroupCard: FC<Props> = ({
 
         return (
           <>
-            <div ref={containerRef}>
-              <MultipleChoiceTile
-                group={post.group_of_questions}
-                groupType={groupType}
-                choices={choiceItems}
-                visibleChoicesCount={Math.min(
-                  maxVisibleCheckboxes,
-                  choiceItems.length
-                )}
-                hideCP={hideCP}
-                timestamps={timestamps}
-                actualCloseTime={getPostDrivenTime(refCloseTime)}
-                openTime={getPostDrivenTime(open_time)}
-                forecastAvailability={forecastAvailability}
-                canPredict={false}
-                showChart
-                chartHeight={embedChartHeight}
-                scaling={groupScaling}
-                onLegendHeightChange={onLegendHeightChange}
-                chartTheme={chartTheme}
-                yLabel={commonUnit ?? undefined}
-              />
-            </div>
+            <MultipleChoiceTile
+              group={post.group_of_questions}
+              groupType={groupType}
+              choices={choiceItems}
+              visibleChoicesCount={Math.min(
+                maxVisibleCheckboxes,
+                choiceItems.length
+              )}
+              hideCP={hideCP}
+              timestamps={timestamps}
+              actualCloseTime={getPostDrivenTime(refCloseTime)}
+              openTime={getPostDrivenTime(open_time)}
+              forecastAvailability={forecastAvailability}
+              canPredict={false}
+              showChart
+              chartHeight={embedChartHeight}
+              scaling={groupScaling}
+              onLegendHeightChange={onLegendHeightChange}
+              chartTheme={chartTheme}
+              yLabel={commonUnit ?? undefined}
+            />
             {hideCP && <RevealCPButton />}
           </>
         );
