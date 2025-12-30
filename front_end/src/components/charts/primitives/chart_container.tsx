@@ -36,7 +36,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
 
     return (
       <div className="relative flex w-full flex-col">
-        {(!!chartTitle || !!zoom) && (
+        {(!!chartTitle || !!zoom) && !isEmbed && (
           <div
             className={cn("flex w-full", !isEmbed ? "mb-2.5 md:mb-5" : "mb-3")}
           >

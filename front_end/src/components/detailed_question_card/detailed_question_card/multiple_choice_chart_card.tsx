@@ -7,7 +7,6 @@ import { VictoryThemeDefinition } from "victory";
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
-import useContainerSize from "@/hooks/use_container_size";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
@@ -47,16 +46,14 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   onLegendHeightChange,
 }) => {
   const t = useTranslations();
-  const { ref: containerRef, width: containerWidth } =
-    useContainerSize<HTMLDivElement>();
 
   const actualCloseTime = getPostDrivenTime(question.actual_close_time);
   const openTime = getPostDrivenTime(question.open_time);
   const isClosed = actualCloseTime ? actualCloseTime < Date.now() : false;
 
   const maxVisibleCheckboxes = useMemo(
-    () => getMaxVisibleCheckboxes(embedMode, containerWidth),
-    [embedMode, containerWidth]
+    () => getMaxVisibleCheckboxes(embedMode),
+    [embedMode]
   );
 
   const generateList = useCallback(
@@ -199,49 +196,45 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
   if (embedMode) {
     return (
-      <div ref={containerRef}>
-        <MultipleChoiceTile
-          timestamps={timestamps}
-          choices={embedChoiceItems}
-          visibleChoicesCount={embedChoiceItems.length}
-          question={question}
-          hideCP={hideCP}
-          actualCloseTime={actualCloseTime}
-          openTime={openTime}
-          forecastAvailability={forecastAvailability}
-          canPredict={false}
-          showChart
-          chartHeight={chartHeight}
-          onLegendHeightChange={onLegendHeightChange}
-        />
-      </div>
+      <MultipleChoiceTile
+        timestamps={timestamps}
+        choices={embedChoiceItems}
+        visibleChoicesCount={embedChoiceItems.length}
+        question={question}
+        hideCP={hideCP}
+        actualCloseTime={actualCloseTime}
+        openTime={openTime}
+        forecastAvailability={forecastAvailability}
+        canPredict={false}
+        showChart
+        chartHeight={chartHeight}
+        onLegendHeightChange={onLegendHeightChange}
+      />
     );
   }
 
   return (
-    <div ref={containerRef}>
-      <MultiChoicesChartView
-        questionType={question.type}
-        tooltipTitle={question.group_variable}
-        tooltipChoices={tooltipChoices}
-        tooltipUserChoices={tooltipUserChoices}
-        choiceItems={choiceItems}
-        hideCP={hideCP}
-        timestamps={timestamps}
-        forecastersCount={forecastersCount}
-        onCursorChange={handleCursorChange}
-        onChoiceItemsUpdate={setChoiceItems}
-        isClosed={isClosed}
-        actualCloseTime={actualCloseTime}
-        title={t("forecastTimelineHeading")}
-        chartTheme={chartTheme}
-        embedMode={embedMode}
-        chartHeight={chartHeight}
-        defaultZoom={defaultZoom}
-        forecastAvailability={forecastAvailability}
-        openTime={openTime}
-      />
-    </div>
+    <MultiChoicesChartView
+      questionType={question.type}
+      tooltipTitle={question.group_variable}
+      tooltipChoices={tooltipChoices}
+      tooltipUserChoices={tooltipUserChoices}
+      choiceItems={choiceItems}
+      hideCP={hideCP}
+      timestamps={timestamps}
+      forecastersCount={forecastersCount}
+      onCursorChange={handleCursorChange}
+      onChoiceItemsUpdate={setChoiceItems}
+      isClosed={isClosed}
+      actualCloseTime={actualCloseTime}
+      title={t("forecastTimelineHeading")}
+      chartTheme={chartTheme}
+      embedMode={embedMode}
+      chartHeight={chartHeight}
+      defaultZoom={defaultZoom}
+      forecastAvailability={forecastAvailability}
+      openTime={openTime}
+    />
   );
 };
 

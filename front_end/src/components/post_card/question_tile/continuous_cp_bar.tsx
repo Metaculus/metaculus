@@ -4,6 +4,7 @@ import React, { FC } from "react";
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getDiscreteValueOptions,
@@ -27,6 +28,7 @@ const ContinuousCPBar: FC<Props> = ({
     question.aggregations[question.default_aggregation_method]?.latest;
 
   const isEmbed = useIsEmbedMode();
+  const isDate = question.type === QuestionType.Date;
 
   if (!latest) {
     return null;
@@ -46,7 +48,7 @@ const ContinuousCPBar: FC<Props> = ({
               latest?.interval_upper_bounds?.[0] as number,
             ]
           : [],
-      unit: question.unit,
+      unit: isEmbed ? "" : question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
     },
@@ -90,7 +92,9 @@ const ContinuousCPBar: FC<Props> = ({
           style={accentStyle}
           className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
             "text-sm": size === "lg",
-            "truncate text-xs md:text-xs": isEmbed,
+            "mb-0 text-sm md:text-sm": isEmbed,
+            "whitespace-normal break-words": isEmbed && isDate,
+            truncate: isEmbed && !isDate,
           })}
         >
           {intervalLabel}

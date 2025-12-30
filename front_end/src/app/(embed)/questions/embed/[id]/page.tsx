@@ -1,10 +1,5 @@
-import {
-  GRAPH_ZOOM_PARAM,
-  HIDE_ZOOM_PICKER,
-  EMBED_QUESTION_TITLE,
-} from "@/constants/global_search_params";
+import { EMBED_QUESTION_TITLE } from "@/constants/global_search_params";
 import ServerPostsApi from "@/services/api/posts/posts.server";
-import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 
 import EmbedScreen from "../../components/embed_screen";
@@ -14,18 +9,6 @@ import "./styles.scss";
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-
-function parseDefaultZoom(
-  searchParams: SearchParams
-): TimelineChartZoomOption | undefined {
-  const raw = searchParams[GRAPH_ZOOM_PARAM];
-  if (typeof raw !== "string") return undefined;
-  return (raw as TimelineChartZoomOption) ?? TimelineChartZoomOption.TwoMonths;
-}
-
-function parseWithZoomPicker(searchParams: SearchParams): boolean {
-  return searchParams[HIDE_ZOOM_PICKER] !== "true";
-}
 
 export default async function GenerateQuestionPreview(props: {
   params: Promise<{ id: number }>;
@@ -48,17 +31,12 @@ export default async function GenerateQuestionPreview(props: {
     | string
     | undefined;
 
-  const defaultZoom = parseDefaultZoom(searchParams);
-  const withZoomPicker = parseWithZoomPicker(searchParams);
-
   const isOgCapture = searchParams["og"] === "1";
 
   const commonProps = {
     post,
     theme: embedTheme,
     titleOverride,
-    defaultZoom,
-    withZoomPicker,
   };
 
   return isOgCapture ? (
