@@ -39,10 +39,16 @@ const TournamentsInfo: React.FC<Props> = ({ onClose }) => {
       </h6>
 
       <div className="mt-2.5 flex flex-wrap gap-2.5 text-xs font-medium text-blue-900 dark:text-blue-900-dark">
-        <Link className="no-underline hover:underline" href="/help/scoring">
+        <Link
+          className="no-underline hover:underline"
+          href="/help/scores-faq/#scores-section"
+        >
           {t("tournamentsInfoScoringLink")}
         </Link>
-        <Link className="no-underline hover:underline" href="/help/prizes">
+        <Link
+          className="no-underline hover:underline"
+          href="/help/scores-faq/#tournaments-section"
+        >
           {t("tournamentsInfoPrizesLink")}
         </Link>
       </div>
