@@ -94,6 +94,7 @@ type Props = {
   withTodayLine?: boolean;
   globalScaling?: Scaling;
   outlineUser?: boolean;
+  centerOOBResolution?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -113,6 +114,7 @@ const ContinuousAreaChart: FC<Props> = ({
   withTodayLine = true,
   globalScaling,
   outlineUser = false,
+  centerOOBResolution = false,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -875,6 +877,39 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             )}
 
+          {/* Resolution chip for out of bounds resolution */}
+          {resX != null &&
+            resPlacement !== "in" &&
+            withResolutionChip &&
+            (question.type === QuestionType.Discrete ||
+              question.type === QuestionType.Numeric) && (
+              <VictoryScatter
+                data={[
+                  {
+                    x:
+                      resPlacement === "left"
+                        ? Math.min(...xDomain)
+                        : Math.max(...xDomain),
+                    y: centerOOBResolution ? Math.max(...yDomain) / 2 : 0,
+                    placement: resPlacement,
+                  },
+                ]}
+                dataComponent={
+                  <VictoryPortal>
+                    <ChartValueBox
+                      rightPadding={0}
+                      chartWidth={chartWidth}
+                      isCursorActive={false}
+                      isDistributionChip
+                      colorOverride={METAC_COLORS.purple["800"]}
+                      resolution={formattedResolution}
+                      textAlignToSide={centerOOBResolution}
+                    />
+                  </VictoryPortal>
+                }
+              />
+            )}
+
           {resX != null && resPlacement && resPlacement !== "in" && (
             <VictoryPortal>
               <VictoryScatter
@@ -884,20 +919,13 @@ const ContinuousAreaChart: FC<Props> = ({
                       resPlacement === "left"
                         ? Math.min(...xDomain)
                         : Math.max(...xDomain),
-                    y: yDomain[1] - (yDomain[1] - yDomain[0]) * 0.04,
-                    placement: resPlacement === "left" ? "above" : "below",
+                    y: centerOOBResolution ? Math.max(...yDomain) / 2 : 0,
+                    placement: resPlacement,
                     primary: METAC_COLORS.purple["800"],
                     secondary: METAC_COLORS.purple["500"],
                   },
                 ]}
-                dataComponent={
-                  <ResolutionDiamond
-                    hoverable={false}
-                    axisPadPx={3}
-                    rotateDeg={resPlacement === "left" ? 90 : -90}
-                    refProps={{}}
-                  />
-                }
+                dataComponent={<ResolutionDiamond hoverable={false} />}
               />
             </VictoryPortal>
           )}

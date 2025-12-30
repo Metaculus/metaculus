@@ -7,7 +7,7 @@ import { ThemeColor } from "@/types/theme";
 import cn from "@/utils/core/cn";
 
 export type DiamondDatum = {
-  placement: "in" | "below" | "above";
+  placement: "in" | "below" | "above" | "left" | "right";
   primary?: ThemeColor;
   secondary?: ThemeColor;
 };
@@ -20,36 +20,71 @@ type Props = {
   hoverable?: boolean;
   isHovered?: boolean;
   refProps?: React.SVGProps<SVGGElement>;
-  rotateDeg?: number;
 };
 
+function getRotationDeg(placement: DiamondDatum["placement"]) {
+  switch (placement) {
+    case "left":
+      return 90;
+    case "right":
+      return -90;
+    case "below":
+      return 0;
+    case "above":
+      return 180;
+    default:
+      return 0;
+  }
+}
+
+function getAnchorX(
+  placement: DiamondDatum["placement"],
+  x: number,
+  axisPadPx: number
+) {
+  switch (placement) {
+    case "left":
+      return x - axisPadPx;
+    case "right":
+      return x + axisPadPx;
+    default:
+      return x;
+  }
+}
+
+function getAnchorY(
+  placement: DiamondDatum["placement"],
+  y: number,
+  axisPadPx: number
+) {
+  switch (placement) {
+    case "above":
+      return y - axisPadPx;
+    case "below":
+      return y + axisPadPx;
+    // case "left":
+    //   return y + axisPadPx;
+    // case "right":
+    //   return y + axisPadPx;
+    default:
+      return y;
+  }
+}
+
 const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
-  {
-    x,
-    y,
-    datum,
-    axisPadPx = 2,
-    hoverable = true,
-    isHovered = false,
-    refProps,
-    rotateDeg = 0,
-  },
+  { x, y, datum, axisPadPx = 5, hoverable = true, isHovered = false, refProps },
   ref
 ) {
   const { getThemeColor } = useAppTheme();
   const d = (datum as DiamondDatum | undefined) ?? { placement: "in" };
   const { placement } = d;
-
   if (x == null || y == null) return null;
 
-  const anchorY =
-    placement === "above"
-      ? y - axisPadPx
-      : placement === "below"
-        ? y + axisPadPx
-        : y;
+  const rotateDeg = getRotationDeg(placement);
+  const anchorY = getAnchorY(placement, y, axisPadPx);
+  const anchorX = getAnchorX(placement, x, axisPadPx);
 
-  const baseTransform = `translate(${x}, ${anchorY}) rotate(${rotateDeg})`;
+  const baseTransform = `translate(${anchorX}, ${anchorY}) rotate(${rotateDeg})`;
 
   // Arrow color animation values
   const lightColor = getThemeColor(METAC_COLORS.purple[500]);
@@ -74,7 +109,6 @@ const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
     <g
       ref={ref}
       transform={baseTransform}
-      className={cn(hoverable && "res-diamond--hover")}
       style={{
         cursor: hoverable ? "pointer" : "default",
         pointerEvents: "all",
