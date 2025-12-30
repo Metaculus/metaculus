@@ -61,7 +61,7 @@ const useNavbarLinks = ({
         },
         communities: {
           label: t("communities"),
-          href: "/questions/?feed=communities",
+          href: "/questions/?communities=true",
         },
         about: {
           label: t("aboutMetaculus"),
