@@ -2,13 +2,8 @@ import { METAC_COLORS } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
 import { ThemeColor } from "@/types/theme";
 
-export const getMaxVisibleCheckboxes = (
-  embedMode: boolean,
-  containerWidth?: number | null
-): number => {
+export const getMaxVisibleCheckboxes = (embedMode: boolean): number => {
   if (!embedMode) return 3;
-  if (!containerWidth) return 4;
-  if (containerWidth < 510) return 3;
   return 4;
 };
 

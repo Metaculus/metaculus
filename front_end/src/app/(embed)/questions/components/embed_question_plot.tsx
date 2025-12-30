@@ -1,6 +1,5 @@
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
-import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
 import {
   isGroupOfQuestionsPost,
@@ -15,8 +14,6 @@ type Props = {
   chartHeight?: number;
   onLegendHeightChange?: (height: number) => void;
   theme?: EmbedTheme;
-  defaultZoom?: TimelineChartZoomOption;
-  withZoomPicker?: boolean;
 };
 
 const EmbedQuestionPlot: React.FC<Props> = ({
@@ -24,8 +21,6 @@ const EmbedQuestionPlot: React.FC<Props> = ({
   chartHeight,
   onLegendHeightChange,
   theme,
-  defaultZoom,
-  withZoomPicker,
 }) => {
   const isGroup = isGroupOfQuestionsPost(post);
   const accent = getEmbedAccentColor(theme);
@@ -38,8 +33,6 @@ const EmbedQuestionPlot: React.FC<Props> = ({
           onLegendHeightChange={onLegendHeightChange}
           chartTheme={theme?.chart}
           colorOverride={accent}
-          defaultZoom={defaultZoom}
-          withZoomPicker={withZoomPicker}
         />
       )}
       {isGroup && (
