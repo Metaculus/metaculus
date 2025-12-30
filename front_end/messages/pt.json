@@ -1783,5 +1783,6 @@
   "impersonationBannerText": "Você está visualizando o Metaculus atualmente como seu bot.",
   "stopImpersonating": "Voltar para minha conta",
   "editedOnDate": "Editado em {date}",
+  "questionsPreviouslyPredicted": "{count, plural, =1 {# pergunta} other {# perguntas}} previamente previstas",
   "othersCount": "Outros ({count})"
 }

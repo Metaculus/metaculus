@@ -1785,5 +1785,6 @@
   "impersonationBannerText": "Momentálně si prohlížíte Metaculus jako váš bot.",
   "stopImpersonating": "Přepnout zpět na můj účet",
   "editedOnDate": "Upraveno dne {date}",
+  "questionsPreviouslyPredicted": "{count, plural, =1 {# otázka} other {# otázek}} dříve předpovězených",
   "othersCount": "Ostatní ({count})"
 }

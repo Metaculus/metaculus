@@ -1782,5 +1782,6 @@
   "impersonationBannerText": "您目前正在以您的機器人帳戶查看 Metaculus。",
   "stopImpersonating": "切換回我的帳戶",
   "editedOnDate": "編輯於 {date}",
+  "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }
