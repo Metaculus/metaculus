@@ -253,6 +253,7 @@ const Comment: FC<CommentProps> = ({
     initialMarkdown: editInitialMarkdown,
     saveDraftDebounced: saveEditDraftDebounced,
     deleteDraft: deleteEditDraft,
+    setInitialMarkdown: setEditInitialMarkdown,
   } = useCommentDraft({
     text: comment.text,
     userId: user?.id,
@@ -451,6 +452,13 @@ const Comment: FC<CommentProps> = ({
         setErrorMessage(response.errors as ErrorResponse);
       } else {
         setCommentMarkdown(parsedMarkdown);
+        setComments((prev) =>
+          updateCommentTextInTree(prev, comment.id, parsedMarkdown)
+        );
+
+        originalTextRef.current = parsedMarkdown;
+        setTempCommentMarkdown(parsedMarkdown);
+        setEditInitialMarkdown(parsedMarkdown);
         setIsEditing(false);
         deleteEditDraft();
       }
@@ -465,6 +473,8 @@ const Comment: FC<CommentProps> = ({
     PUBLIC_MINIMAL_UI,
     t,
     setCommentMarkdown,
+    setComments,
+    setEditInitialMarkdown,
     setIsEditing,
     deleteEditDraft,
   ]);
@@ -975,6 +985,18 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   }
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
+  });
+}
+
+function updateCommentTextInTree(
+  list: CommentType[],
+  id: number,
+  text: string
+): CommentType[] {
+  return list.map((c) => {
+    if (c.id === id) return { ...c, text };
+    if (!c.children?.length) return c;
+    return { ...c, children: updateCommentTextInTree(c.children, id, text) };
   });
 }
 
