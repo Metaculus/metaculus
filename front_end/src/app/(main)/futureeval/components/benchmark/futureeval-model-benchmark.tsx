@@ -131,8 +131,9 @@ const FutureEvalModelBenchmark: React.FC = () => {
           arrowClassName="w-8 h-8 sm:w-10 sm:h-10 text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark rounded-full shadow-md border border-blue-700 dark:border-blue-700-dark"
           slideBy={{ mode: "items", count: 3 }}
           showArrows={true}
+          wheelToHorizontal={false}
           className="h-full"
-          viewportClassName="h-full"
+          viewportClassName="h-full overflow-y-hidden"
           listClassName="h-full items-stretch -ml-2"
         />
       </div>

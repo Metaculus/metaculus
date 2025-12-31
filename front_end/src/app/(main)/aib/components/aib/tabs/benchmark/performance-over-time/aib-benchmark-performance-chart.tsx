@@ -452,7 +452,7 @@ const LegendDot: FC<{ color: string; label: string }> = ({ color, label }) => (
     <span
       aria-hidden
       className="inline-block h-[14px] w-[14px] rounded-full"
-      style={{ background: color }}
+      style={{ backgroundColor: color }}
     />
     <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
       {label}
