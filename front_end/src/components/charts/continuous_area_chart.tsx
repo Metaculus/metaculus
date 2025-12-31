@@ -827,6 +827,47 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             ))
           )}
+
+          {/* Today's date dot for date questions */}
+          {question.type === QuestionType.Date && withTodayLine && (
+            <VictoryScatter
+              data={[
+                {
+                  x: unscaleNominalLocation(
+                    Math.floor(Date.now() / 1000),
+                    question.scaling
+                  ),
+                  y: yDomain[0], // Bottom of the chart
+                  symbol: "circle",
+                  size: 3,
+                },
+              ]}
+              style={{
+                data: {
+                  fill: getThemeColor(METAC_COLORS.blue["700"]),
+                  stroke: "none",
+                },
+              }}
+            />
+          )}
+
+          {question.type === QuestionType.Date &&
+            todayLabelPosition &&
+            withTodayLine && (
+              <VictoryPortal>
+                <VictoryLabel
+                  x={todayLabelPosition.x}
+                  y={height - BOTTOM_PADDING - 12} // Position above the dot
+                  text="Today"
+                  style={{
+                    fill: getThemeColor(METAC_COLORS.blue["700"]),
+                    fontSize: 12,
+                  }}
+                  textAnchor="middle"
+                />
+              </VictoryPortal>
+            )}
+
           {/* Resolution point */}
           {resX != null && resPlacement === "in" && (
             <VictoryScatter
@@ -851,8 +892,11 @@ const ContinuousAreaChart: FC<Props> = ({
           {resX != null &&
             resPlacement === "in" &&
             withResolutionChip &&
-            (question.type === QuestionType.Discrete ||
-              question.type === QuestionType.Numeric) && (
+            [
+              QuestionType.Numeric,
+              QuestionType.Discrete,
+              QuestionType.Date,
+            ].includes(question.type) && (
               <VictoryScatter
                 data={[
                   {
@@ -881,8 +925,11 @@ const ContinuousAreaChart: FC<Props> = ({
           {resX != null &&
             resPlacement !== "in" &&
             withResolutionChip &&
-            (question.type === QuestionType.Discrete ||
-              question.type === QuestionType.Numeric) && (
+            [
+              QuestionType.Numeric,
+              QuestionType.Discrete,
+              QuestionType.Date,
+            ].includes(question.type) && (
               <VictoryScatter
                 data={[
                   {
@@ -929,45 +976,6 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             </VictoryPortal>
           )}
-          {/* Today's date dot for date questions */}
-          {question.type === QuestionType.Date && withTodayLine && (
-            <VictoryScatter
-              data={[
-                {
-                  x: unscaleNominalLocation(
-                    Math.floor(Date.now() / 1000),
-                    question.scaling
-                  ),
-                  y: yDomain[0], // Bottom of the chart
-                  symbol: "circle",
-                  size: 3,
-                },
-              ]}
-              style={{
-                data: {
-                  fill: getThemeColor(METAC_COLORS.blue["700"]),
-                  stroke: "none",
-                },
-              }}
-            />
-          )}
-
-          {question.type === QuestionType.Date &&
-            todayLabelPosition &&
-            withTodayLine && (
-              <VictoryPortal>
-                <VictoryLabel
-                  x={todayLabelPosition.x}
-                  y={height - BOTTOM_PADDING - 12} // Position above the dot
-                  text="Today"
-                  style={{
-                    fill: getThemeColor(METAC_COLORS.blue["700"]),
-                    fontSize: 12,
-                  }}
-                  textAnchor="middle"
-                />
-              </VictoryPortal>
-            )}
 
           {/* Manually render cursor component when cursor is on edge */}
           {!isNil(cursorEdge) && (
