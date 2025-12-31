@@ -43,7 +43,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const smUp = useBreakpoint("sm");
-  const REF_STROKE = getThemeColor(METAC_COLORS.gray[700]);
+  const REF_STROKE = getThemeColor(METAC_COLORS.purple[700]);
 
   const referenceLines = useMemo(() => {
     const byKey = new Map<string, { y: number; label: string }>();
@@ -171,6 +171,9 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     fontWeight: 400,
     fill: (args: CallbackArgs) =>
       colorForName((args.datum as { name?: string })?.name || ""),
+    pointerEvents: "none" as const,
+    userSelect: "none" as const,
+    cursor: "default",
   };
   const edgePadLeft = smUp ? 50 : 30;
   const edgePadRight = rightPad;
@@ -217,6 +220,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 "refLabel",
                 "sotaStars",
               ]}
+              radius={30}
               activateData
               style={{ touchAction: "pan-y" }}
               labels={({
@@ -248,20 +252,20 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             tickFormat={smUp ? (d: number) => Math.round(d) : () => ""}
             style={{
               grid: {
-                stroke: getThemeColor(METAC_COLORS.gray[400]),
-                strokeWidth: 1,
-                strokeDasharray: "2,5",
+                stroke: getThemeColor(METAC_COLORS.gray[900]),
+                strokeWidth: 0.1,
               },
               axis: { stroke: "transparent" },
               ticks: { stroke: "transparent" },
               tickLabels: {
                 fill: getThemeColor(METAC_COLORS.gray[500]),
-                fontSize: smUp ? 16 : 12,
+                fontSize: smUp ? 12 : 12,
                 fontWeight: 400,
+                fontFeatureSettings: '"tnum"',
               },
               axisLabel: {
                 fill: getThemeColor(METAC_COLORS.gray[700]),
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: 400,
               },
             }}
@@ -286,7 +290,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               ticks: { stroke: "transparent" },
               tickLabels: {
                 fill: getThemeColor(METAC_COLORS.gray[500]),
-                fontSize: smUp ? 16 : 10,
+                fontSize: smUp ? 12 : 10,
               },
               axisLabel: {
                 fill: getThemeColor(METAC_COLORS.gray[700]),
@@ -307,8 +311,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 data: {
                   stroke: REF_STROKE,
                   strokeWidth: 1.5,
-                  strokeDasharray: "4,8",
-                  opacity: 0.7,
+                  opacity: 1,
+                  strokeDasharray: "6,5",
                 },
               }}
             />
@@ -324,8 +328,10 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                   dx={-65}
                   textAnchor="start"
                   style={{
+                    fontFamily:
+                      'interVariable, "interVariable Fallback", inter',
                     fontWeight: 600,
-                    fill: getThemeColor(METAC_COLORS.gray[900]),
+                    fill: getThemeColor(METAC_COLORS.purple[700]),
                   }}
                 />
               }
@@ -347,8 +353,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               data={trend}
               style={{
                 data: {
-                  stroke: getThemeColor(METAC_COLORS.blue[800]),
-                  strokeWidth: 2,
+                  stroke: getThemeColor(METAC_COLORS["mc-option"][3]),
+                  strokeWidth: 1.5,
                   strokeDasharray: "6,5",
                 },
               }}
@@ -374,6 +380,11 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               data: {
                 fill: ({ datum }) =>
                   colorForName((datum as { name: string }).name),
+                opacity: ({ datum }) => {
+                  const d = datum as { x: Date; y: number; name: string };
+                  const isSota = labeledKeySet.has(pointKey(d));
+                  return isSota ? 1 : 0.35;
+                },
               },
             }}
           />
@@ -434,7 +445,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             ) : "trend" in item ? (
               <LegendTrend
                 key={`legend-trend-${i}`}
-                color={getThemeColor(METAC_COLORS.blue[800])}
+                color={getThemeColor(METAC_COLORS["mc-option"][3])}
                 label={item.label}
               />
             ) : (

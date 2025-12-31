@@ -21,20 +21,20 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
     if (!firstIdxByGroup.has(group)) firstIdxByGroup.set(group, i);
   });
 
+  // Only show these specific groups in the legend
+  const allowedGroups = ["OpenAI", "Claude", "DeepSeek", "Gemini"];
   const legend = [
-    ...Array.from(firstIdxByGroup.entries()).map(([label, pointIndex]) => ({
-      label,
-      pointIndex,
-    })),
+    ...Array.from(firstIdxByGroup.entries())
+      .filter(([label]) => allowedGroups.includes(label))
+      .map(([label, pointIndex]) => ({
+        label,
+        pointIndex,
+      })),
     { label: t("aibSOTALinearTrend"), trend: true as const },
-    {
-      label: t("aibSotaModels"),
-      sota: true as const,
-    },
   ];
 
   return (
-    <div className="mt-8 rounded-[12px] bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
+    <div className="mt-4">
       <AIBBenchmarkPerformanceChart data={models} legend={legend} />
     </div>
   );
