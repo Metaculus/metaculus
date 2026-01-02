@@ -1,8 +1,15 @@
+/**
+ * Truncates a string to a maximum length with ellipsis.
+ */
 export function truncateLabel(label: string, maxLength: number): string {
-  if (label.length <= maxLength) {
+  if (!label || label.length <= maxLength) {
     return label;
   }
-  return label.slice(0, maxLength).trim() + "...";
+
+  // Reserve space for ellipsis (2 characters)
+  const truncateAt = Math.max(1, maxLength - 2); // min 1 character
+
+  return label.slice(0, truncateAt).trimEnd() + "…";
 }
 
 export function getValidString(
