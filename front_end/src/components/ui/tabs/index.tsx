@@ -129,19 +129,19 @@ export const TabsTab = ({
     "whitespace-nowrap px-3 py-1 text-sm transition-colors sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
     ctx.variant === "separated"
       ? [
-        // pill-style tabs
-        "rounded-full",
-        isActive
-          ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark",
-      ]
+          // pill-style tabs
+          "rounded-full",
+          isActive
+            ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
+            : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark",
+        ]
       : [
-        // grouped / segmented control style
-        "border font-[500] items-center flex no-underline leading-[16px] first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
-        isActive
-          ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark border-transparent"
-          : "bg-gray-0 dark:bg-gray-0-dark border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
-      ],
+          // grouped / segmented control style
+          "border font-[500] items-center flex no-underline leading-[16px] first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
+          isActive
+            ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark border-transparent"
+            : "bg-gray-0 dark:bg-gray-0-dark border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
+        ],
     dynamicClassName?.(isActive),
     className
   );
