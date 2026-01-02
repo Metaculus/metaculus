@@ -53,6 +53,7 @@ import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import GroupResolutionPoint from "./primitives/group_resolution_point";
+import ResolutionDiamond from "./primitives/resolution_diamond";
 import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
@@ -515,6 +516,40 @@ const GroupChart: FC<Props> = ({
                   ? METAC_COLORS["mc-option-text"][1]
                   : color;
 
+              if (
+                resolutionPoint.placement &&
+                ["below", "above"].includes(resolutionPoint.placement)
+              ) {
+                return (
+                  <VictoryPortal key={`group-resolution-portal-${index}`}>
+                    <VictoryScatter
+                      key={`group-resolution-${index}`}
+                      data={[
+                        {
+                          x: resolutionPoint?.x,
+                          y: resolutionPoint?.placement === "below" ? 0 : 1,
+                          x1: resolutionPoint?.x1,
+                          y1: resolutionPoint?.y1,
+                          text: resolutionPoint?.text,
+                          placement: resolutionPoint?.placement,
+                          primary: color,
+                        },
+                      ]}
+                      dataComponent={
+                        <ResolutionDiamond
+                          hoverable={false}
+
+                          //pointTextColor={getThemeColor(textThemeColor)}
+                          //pointSize={POINT_SIZE}
+                          //chartWidth={chartWidth}
+                          //chartRightPadding={maxRightPadding}
+                        />
+                      }
+                    />
+                  </VictoryPortal>
+                );
+              }
+
               return (
                 <VictoryScatter
                   key={`group-resolution-${index}`}
@@ -593,6 +628,7 @@ export type ChoiceGraph = {
     text?: string;
     x1?: number;
     y1?: number;
+    placement?: "in" | "below" | "above";
   };
   choice: string;
   color: ThemeColor;
@@ -826,18 +862,26 @@ function buildChartData({
             text,
             x1: lastLineItem?.x,
             y1: lastLineItem?.y ?? undefined,
+            placement:
+              resolution === "below_lower_bound"
+                ? "below"
+                : resolution === "above_upper_bound"
+                  ? "above"
+                  : "in",
           };
         }
 
         if (isFinite(Number(resolution))) {
+          const yPos = scaling
+            ? unscaleNominalLocation(Number(resolution), scaling)
+            : Number(resolution) ?? 0;
           // continuous group case
           item.resolutionPoint = {
             x: resolveTime,
-            y: scaling
-              ? unscaleNominalLocation(Number(resolution), scaling)
-              : Number(resolution) ?? 0,
+            y: yPos,
             x1: lastLineItem?.x,
             y1: lastLineItem?.y ?? undefined,
+            placement: yPos < 0 ? "below" : yPos > 1 ? "above" : "in",
           };
         } else if (
           typeof resolution === "string" &&
@@ -851,10 +895,13 @@ function buildChartData({
             resolveTime,
             scaling,
           });
+
           if (dateResolution) {
+            const yPos = dateResolution.y ?? 0;
             item.resolutionPoint = {
               x: dateResolution.x,
-              y: dateResolution.y ?? 0,
+              y: yPos,
+              placement: yPos < 0 ? "below" : yPos > 1 ? "above" : "in",
               x1: lastLineItem?.x,
               y1: lastLineItem?.y ?? undefined,
             };

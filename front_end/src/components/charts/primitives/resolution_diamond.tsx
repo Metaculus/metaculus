@@ -1,4 +1,5 @@
 "use client";
+import { isNil } from "lodash";
 import React, { forwardRef, memo } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
@@ -10,6 +11,10 @@ export type DiamondDatum = {
   placement: "in" | "below" | "above" | "left" | "right";
   primary?: ThemeColor;
   secondary?: ThemeColor;
+  x?: number;
+  y?: number;
+  x1?: number;
+  y1?: number;
 };
 
 type Props = {
@@ -19,6 +24,10 @@ type Props = {
   axisPadPx?: number;
   hoverable?: boolean;
   isHovered?: boolean;
+  scale?: {
+    x: (x: number) => number;
+    y: (y: number) => number;
+  };
   refProps?: React.SVGProps<SVGGElement>;
 };
 
@@ -72,7 +81,16 @@ function getAnchorY(
 }
 
 const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
-  { x, y, datum, axisPadPx = 5, hoverable = true, isHovered = false, refProps },
+  {
+    x,
+    y,
+    datum,
+    axisPadPx = 5,
+    hoverable = true,
+    isHovered = false,
+    refProps,
+    scale,
+  },
   ref
 ) {
   const { getThemeColor } = useAppTheme();
@@ -87,8 +105,10 @@ const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
   const baseTransform = `translate(${anchorX}, ${anchorY}) rotate(${rotateDeg})`;
 
   // Arrow color animation values
-  const lightColor = getThemeColor(METAC_COLORS.purple[500]);
-  const darkColor = getThemeColor(METAC_COLORS.purple[800]);
+  const lightColor = getThemeColor(
+    d.secondary ?? d.primary ? METAC_COLORS.gray[400] : METAC_COLORS.purple[500]
+  );
+  const darkColor = getThemeColor(d.primary ?? METAC_COLORS.purple[800]);
 
   // Animation timing for 750ms duration (250ms each section):
   // Arrow 1: dark from 0% to 33.3% (250ms), then light
@@ -106,68 +126,83 @@ const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
   const HIT_Y = -HIT_H / 2;
 
   return (
-    <g
-      ref={ref}
-      transform={baseTransform}
-      style={{
-        cursor: hoverable ? "pointer" : "default",
-        pointerEvents: "all",
-      }}
-      aria-label="Resolution marker"
-      {...refProps}
-    >
-      <g>
-        <rect
-          x={HIT_X}
-          y={HIT_Y}
-          width={HIT_W}
-          height={HIT_H}
-          fill="transparent"
-          pointerEvents="all"
-        />
-
-        <g transform="translate(-7,-12)">
-          <path
-            d="M12.2324 7L7 12.2324L1.76758 7L7 1.76758L12.2324 7Z"
-            strokeWidth={2.5}
-            className={cn(
-              "fill-gray-0 dark:fill-gray-0-dark",
-              isHovered
-                ? "stroke-purple-900 dark:fill-purple-900-dark"
-                : "stroke-purple-800 dark:stroke-purple-800-dark"
-            )}
+    <>
+      {!isNil(scale) &&
+        !isNil(d.x) &&
+        !isNil(d.y) &&
+        !isNil(d.x1) &&
+        !isNil(d.y1) &&
+        Math.abs(d.y1 - d.y) > 0.1 && (
+          <line
+            x1={scale.x(d.x1)}
+            y1={scale.y(d.y1)}
+            x2={scale.x(d.x)}
+            y2={scale.y(d.y)}
+            stroke={darkColor}
+            strokeWidth={1}
+            strokeDasharray="2 2"
+            opacity={1}
           />
-          <path
-            d="M6.53516 18.7148L1.28516 13.4648C1.01172 13.2188 1.01172 12.8086 1.28516 12.5352C1.53125 12.2891 1.94141 12.2891 2.21484 12.5352L7 17.3477L11.7852 12.5625C12.0312 12.2891 12.4414 12.2891 12.7148 12.5625C12.9609 12.8086 12.9609 13.2188 12.7148 13.4648L7.4375 18.7148C7.19141 18.9883 6.78125 18.9883 6.53516 18.7148Z"
-            fill={isHovered ? darkColor : lightColor}
-          >
-            {!isHovered && (
-              <animate
-                attributeName="fill"
-                values={arrow1Values}
-                keyTimes={arrow1KeyTimes}
-                dur="1s"
-                repeatCount="indefinite"
-              />
-            )}
-          </path>
-          <path
-            d="M6.53516 23.7148L1.28516 18.4648C1.01172 18.2188 1.01172 17.8086 1.28516 17.5352C1.53125 17.2891 1.94141 17.2891 2.21484 17.5352L7 22.3477L11.7852 17.5625C12.0312 17.2891 12.4414 17.2891 12.7148 17.5625C12.9609 17.8086 12.9609 18.2188 12.7148 18.4648L7.4375 23.7148C7.19141 23.9883 6.78125 23.9883 6.53516 23.7148Z"
-            fill={isHovered ? darkColor : lightColor}
-          >
-            {!isHovered && (
-              <animate
-                attributeName="fill"
-                values={arrow2Values}
-                keyTimes={arrow2KeyTimes}
-                dur="1s"
-                repeatCount="indefinite"
-              />
-            )}
-          </path>
+        )}
+      <g
+        ref={ref}
+        transform={baseTransform}
+        style={{
+          cursor: hoverable ? "pointer" : "default",
+          pointerEvents: "all",
+        }}
+        aria-label="Resolution marker"
+        {...refProps}
+      >
+        <g>
+          <rect
+            x={HIT_X}
+            y={HIT_Y}
+            width={HIT_W}
+            height={HIT_H}
+            fill="transparent"
+            pointerEvents="all"
+          />
+
+          <g transform="translate(-7,-12)">
+            <path
+              d="M12.2324 7L7 12.2324L1.76758 7L7 1.76758L12.2324 7Z"
+              strokeWidth={2.5}
+              stroke={darkColor}
+              className={cn("fill-gray-0 dark:fill-gray-0-dark")}
+            />
+            <path
+              d="M6.53516 18.7148L1.28516 13.4648C1.01172 13.2188 1.01172 12.8086 1.28516 12.5352C1.53125 12.2891 1.94141 12.2891 2.21484 12.5352L7 17.3477L11.7852 12.5625C12.0312 12.2891 12.4414 12.2891 12.7148 12.5625C12.9609 12.8086 12.9609 13.2188 12.7148 13.4648L7.4375 18.7148C7.19141 18.9883 6.78125 18.9883 6.53516 18.7148Z"
+              fill={isHovered ? darkColor : lightColor}
+            >
+              {!isHovered && (
+                <animate
+                  attributeName="fill"
+                  values={arrow1Values}
+                  keyTimes={arrow1KeyTimes}
+                  dur="1s"
+                  repeatCount="indefinite"
+                />
+              )}
+            </path>
+            <path
+              d="M6.53516 23.7148L1.28516 18.4648C1.01172 18.2188 1.01172 17.8086 1.28516 17.5352C1.53125 17.2891 1.94141 17.2891 2.21484 17.5352L7 22.3477L11.7852 17.5625C12.0312 17.2891 12.4414 17.2891 12.7148 17.5625C12.9609 17.8086 12.9609 18.2188 12.7148 18.4648L7.4375 23.7148C7.19141 23.9883 6.78125 23.9883 6.53516 23.7148Z"
+              fill={isHovered ? darkColor : lightColor}
+            >
+              {!isHovered && (
+                <animate
+                  attributeName="fill"
+                  values={arrow2Values}
+                  keyTimes={arrow2KeyTimes}
+                  dur="1s"
+                  repeatCount="indefinite"
+                />
+              )}
+            </path>
+          </g>
         </g>
       </g>
-    </g>
+    </>
   );
 });
 
