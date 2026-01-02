@@ -62,9 +62,7 @@ const TournamentsHeader: React.FC = () => {
       <div
         id="tournamentsStickyHeader"
         className={cn(
-          "sticky z-40",
-          "ml-[calc(50%-50dvw)] w-[100dvw]",
-          !isLg && "-mt-[52px]",
+          "sticky top-12 z-40",
           stuck || !isLg ? popoverSafeGlassClasses : "bg-transparent"
         )}
         style={{ top: STICKY_TOP }}

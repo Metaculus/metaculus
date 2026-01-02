@@ -60,6 +60,12 @@ export function filterTournaments(
         );
 
       case TournamentsSortBy.StartDateDesc:
+        // Primary sort: Order
+        const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+        if (orderDiff !== 0) {
+          return orderDiff;
+        }
+
         return differenceInMilliseconds(
           new Date(b.start_date),
           new Date(a.start_date)

@@ -1335,6 +1335,7 @@
   "questionsTotal": "{count} questions total",
   "reviewAll": "Review all",
   "questionsNotPredicted": "{count, plural, =1 {# question} other {# questions}} not predicted",
+  "questionsPreviouslyPredicted": "{count, plural, =1 {# question} other {# questions}} previously predicted",
   "significantMovementForecasts": "{count, plural, =1 {# forecast} other {# forecasts}} with significant movement",
   "stalePredictions": "{count, plural, =1 {# prediction} other {# predictions}} might be stale",
   "allQuestionsPredicted": "All questions predicted",

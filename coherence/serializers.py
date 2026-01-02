@@ -1,7 +1,8 @@
-from collections import Counter
+from collections import Counter, defaultdict
 from typing import Iterable
 
 import numpy as np
+from django.db.models import Q
 from multidict import MultiDict
 from rest_framework import serializers
 
@@ -72,8 +73,8 @@ def serialize_coherence_link_many(
     links: Iterable[CoherenceLink], serialize_questions: bool = True
 ):
     ids = [link.pk for link in links]
-    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
-        "question1", "question2"
+    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).prefetch_related(
+        "question1__related_posts", "question2__related_posts"
     )
 
     objects = list(qs.all())
@@ -136,7 +137,7 @@ def serialize_aggregate_coherence_link_many(
     ids = [link.pk for link in links]
     qs = AggregateCoherenceLink.objects.filter(
         pk__in=[c.pk for c in links]
-    ).select_related("question1", "question2")
+    ).prefetch_related("question1__related_posts", "question2__related_posts")
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)
@@ -170,6 +171,50 @@ def serialize_aggregate_coherence_link_many(
         )
         for link in aggregate_links
     ]
+
+
+def serialize_aggregate_coherence_links_questions_map(
+    questions: Iterable[Question], current_user: User = None
+) -> dict[int, list[dict]]:
+    qs = AggregateCoherenceLink.objects.filter(
+        Q(question1__in=questions) | Q(question2__in=questions)
+    )
+    questions_map = {q.id: q for q in questions}
+
+    serialized_data = serialize_aggregate_coherence_link_many(
+        qs, current_user=current_user
+    )
+    links_map = defaultdict(list)
+
+    for link in serialized_data:
+        for alias in ("question1_id", "question2_id"):
+            question = questions_map.get(link[alias])
+
+            if question:
+                links_map[question].append(link)
+
+    return links_map
+
+
+def serialize_coherence_links_questions_map(
+    questions: Iterable[Question], current_user: User
+) -> dict[int, list[dict]]:
+    qs = CoherenceLink.objects.filter(
+        Q(question1__in=questions) | Q(question2__in=questions), user=current_user
+    )
+    questions_map = {q.id: q for q in questions}
+
+    serialized_data = serialize_coherence_link_many(qs)
+    links_map = defaultdict(list)
+
+    for link in serialized_data:
+        for alias in ("question1_id", "question2_id"):
+            question = questions_map.get(link[alias])
+
+            if question:
+                links_map[question].append(link)
+
+    return links_map
 
 
 def serialize_aggregate_coherence_link_vote(
