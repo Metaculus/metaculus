@@ -94,6 +94,7 @@ type Props = {
   withTodayLine?: boolean;
   globalScaling?: Scaling;
   outlineUser?: boolean;
+  centerOOBResolution?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -113,6 +114,7 @@ const ContinuousAreaChart: FC<Props> = ({
   withTodayLine = true,
   globalScaling,
   outlineUser = false,
+  centerOOBResolution = false,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
@@ -825,82 +827,7 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             ))
           )}
-          {/* Resolution point */}
-          {resX != null && resPlacement === "in" && (
-            <VictoryScatter
-              data={[
-                {
-                  x: resX,
-                  y: 0,
-                  symbol: "diamond",
-                  size: 4,
-                },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
-                  fill: getThemeColor(METAC_COLORS.gray["200"]),
-                  strokeWidth: 2.5,
-                },
-              }}
-            />
-          )}
-          {/* Resolution chip */}
-          {resX != null &&
-            resPlacement === "in" &&
-            withResolutionChip &&
-            (question.type === QuestionType.Discrete ||
-              question.type === QuestionType.Numeric) && (
-              <VictoryScatter
-                data={[
-                  {
-                    x: resX,
-                    y: 0,
-                    symbol: "diamond",
-                    size: 4,
-                  },
-                ]}
-                dataComponent={
-                  <VictoryPortal>
-                    <ChartValueBox
-                      rightPadding={0}
-                      chartWidth={chartWidth}
-                      isCursorActive={false}
-                      isDistributionChip
-                      colorOverride={METAC_COLORS.purple["800"]}
-                      resolution={formattedResolution}
-                    />
-                  </VictoryPortal>
-                }
-              />
-            )}
 
-          {resX != null && resPlacement && resPlacement !== "in" && (
-            <VictoryPortal>
-              <VictoryScatter
-                data={[
-                  {
-                    x:
-                      resPlacement === "left"
-                        ? Math.min(...xDomain)
-                        : Math.max(...xDomain),
-                    y: yDomain[1] - (yDomain[1] - yDomain[0]) * 0.04,
-                    placement: resPlacement === "left" ? "above" : "below",
-                    primary: METAC_COLORS.purple["800"],
-                    secondary: METAC_COLORS.purple["500"],
-                  },
-                ]}
-                dataComponent={
-                  <ResolutionDiamond
-                    hoverable={false}
-                    axisPadPx={3}
-                    rotateDeg={resPlacement === "left" ? 90 : -90}
-                    refProps={{}}
-                  />
-                }
-              />
-            </VictoryPortal>
-          )}
           {/* Today's date dot for date questions */}
           {question.type === QuestionType.Date && withTodayLine && (
             <VictoryScatter
@@ -940,6 +867,115 @@ const ContinuousAreaChart: FC<Props> = ({
                 />
               </VictoryPortal>
             )}
+
+          {/* Resolution point */}
+          {resX != null && resPlacement === "in" && (
+            <VictoryScatter
+              data={[
+                {
+                  x: resX,
+                  y: 0,
+                  symbol: "diamond",
+                  size: 4,
+                },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: getThemeColor(METAC_COLORS.gray["200"]),
+                  strokeWidth: 2.5,
+                },
+              }}
+            />
+          )}
+          {/* Resolution chip */}
+          {resX != null &&
+            resPlacement === "in" &&
+            withResolutionChip &&
+            [
+              QuestionType.Numeric,
+              QuestionType.Discrete,
+              QuestionType.Date,
+            ].includes(question.type) && (
+              <VictoryScatter
+                data={[
+                  {
+                    x: resX,
+                    y: 0,
+                    symbol: "diamond",
+                    size: 4,
+                  },
+                ]}
+                dataComponent={
+                  <VictoryPortal>
+                    <ChartValueBox
+                      rightPadding={0}
+                      chartWidth={chartWidth}
+                      isCursorActive={false}
+                      isDistributionChip
+                      colorOverride={METAC_COLORS.purple["800"]}
+                      resolution={formattedResolution}
+                    />
+                  </VictoryPortal>
+                }
+              />
+            )}
+
+          {/* Resolution chip for out of bounds resolution */}
+          {resX != null &&
+            resPlacement !== "in" &&
+            withResolutionChip &&
+            [
+              QuestionType.Numeric,
+              QuestionType.Discrete,
+              QuestionType.Date,
+            ].includes(question.type) && (
+              <VictoryScatter
+                data={[
+                  {
+                    x:
+                      resPlacement === "left"
+                        ? Math.min(...xDomain)
+                        : Math.max(...xDomain),
+                    y: centerOOBResolution ? Math.max(...yDomain) / 2 : 0,
+                    placement: resPlacement,
+                  },
+                ]}
+                dataComponent={
+                  <VictoryPortal>
+                    <ChartValueBox
+                      rightPadding={0}
+                      chartWidth={chartWidth}
+                      isCursorActive={false}
+                      isDistributionChip
+                      colorOverride={METAC_COLORS.purple["800"]}
+                      resolution={formattedResolution}
+                      textAlignToSide={centerOOBResolution}
+                    />
+                  </VictoryPortal>
+                }
+              />
+            )}
+
+          {resX != null && resPlacement && resPlacement !== "in" && (
+            <VictoryPortal>
+              <VictoryScatter
+                data={[
+                  {
+                    x:
+                      resPlacement === "left"
+                        ? Math.min(...xDomain)
+                        : Math.max(...xDomain),
+                    y: centerOOBResolution ? Math.max(...yDomain) / 2 : 0,
+                    placement: resPlacement,
+                    primary: METAC_COLORS.purple["800"],
+                    secondary: METAC_COLORS.purple["500"],
+                  },
+                ]}
+                dataComponent={<ResolutionDiamond hoverable={false} />}
+              />
+            </VictoryPortal>
+          )}
 
           {/* Manually render cursor component when cursor is on edge */}
           {!isNil(cursorEdge) && (
