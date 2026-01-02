@@ -71,10 +71,6 @@ function getAnchorY(
       return y - axisPadPx;
     case "below":
       return y + axisPadPx;
-    // case "left":
-    //   return y + axisPadPx;
-    // case "right":
-    //   return y + axisPadPx;
     default:
       return y;
   }

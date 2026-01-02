@@ -535,16 +535,7 @@ const GroupChart: FC<Props> = ({
                           primary: color,
                         },
                       ]}
-                      dataComponent={
-                        <ResolutionDiamond
-                          hoverable={false}
-
-                          //pointTextColor={getThemeColor(textThemeColor)}
-                          //pointSize={POINT_SIZE}
-                          //chartWidth={chartWidth}
-                          //chartRightPadding={maxRightPadding}
-                        />
-                      }
+                      dataComponent={<ResolutionDiamond hoverable={false} />}
                     />
                   </VictoryPortal>
                 );
