@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Iterable
 
 import sentry_sdk
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 
 from coherence.models import CoherenceLink
@@ -291,7 +291,10 @@ def get_questions_cutoff(
         AggregateForecast.objects.filter(
             question__in=questions, method=F("question__default_aggregation_method")
         )
-        .filter_active_at(timezone.now())
+        .filter(
+            (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
+            start_time__lte=timezone.now(),
+        )
         .order_by("question_id", "-start_time")
         .distinct("question_id")
         .values_list("question_id", "centers")
