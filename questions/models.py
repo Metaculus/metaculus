@@ -454,6 +454,11 @@ class ForecastQuerySet(QuerySet):
             ),
         )
 
+    def filter_active_at(self, timestamp: datetime):
+        return self.filter(start_time__lte=timestamp).filter(
+            Q(end_time__gt=timestamp) | Q(end_time__isnull=True)
+        )
+
     def active(self):
         """
         Returns active forecasts.

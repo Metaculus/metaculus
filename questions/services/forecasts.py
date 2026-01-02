@@ -244,10 +244,7 @@ def get_last_aggregated_forecasts_for_questions(
 ):
     return (
         aggregated_forecast_qs.filter(question__in=questions)
-        .filter(
-            (Q(end_time__isnull=True) | Q(end_time__gt=timezone.now())),
-            start_time__lte=timezone.now(),
-        )
+        .filter_active_at(timezone.now())
         .order_by("question_id", "method", "-start_time")
         .distinct("question_id", "method")
     )

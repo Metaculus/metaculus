@@ -166,11 +166,25 @@ def comment_edit_api_view(request: Request, pk: int):
     # Small validation
     comment = get_object_or_404(Comment, pk=pk)
     text = serializers.CharField().run_validation(request.data.get("text"))
+    include_forecast = serializers.BooleanField(
+        required=False, allow_null=True
+    ).run_validation(request.data.get("include_forecast"))
 
     if not (comment.author == request.user):
         raise PermissionDenied("You do not have permission to edit this comment.")
 
-    update_comment(comment, text)
+    post = comment.on_post
+    forecast = None
+
+    if include_forecast and not comment.included_forecast and post and post.question_id:
+        forecast = (
+            post.question.user_forecasts.filter(author=comment.author)
+            .filter_active_at(comment.created_at)
+            .order_by("-start_time")
+            .first()
+        )
+
+    update_comment(comment, text, included_forecast=forecast)
 
     return Response({}, status=status.HTTP_200_OK)
 
