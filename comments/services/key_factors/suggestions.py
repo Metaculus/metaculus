@@ -421,6 +421,10 @@ def generate_keyfactors(
 
     validated_key_factors = []
     for item in data.get("key_factors", []):
+        # Failsafe for LLM hallucination
+        if not isinstance(item, dict):
+            logger.debug(f"Suggested Key Factors item is not a dict: {item}")
+
         try:
             kf_type = item.get("type")
             model_class = type_map.get(kf_type)
