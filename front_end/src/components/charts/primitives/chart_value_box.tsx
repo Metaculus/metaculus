@@ -9,7 +9,8 @@ import { QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
 const TEXT_PADDING = 6;
-const PLACEMENT_OFFSET = 4;
+const PLACEMENT_OFFSET_VERTICAL = 4;
+const PLACEMENT_OFFSET_HORIZONTAL = -12;
 const CHIP_HEIGHT = 16;
 const CHIP_FONT_SIZE = 12;
 
@@ -36,14 +37,18 @@ function getRectX(
     case "left":
       return (
         adjustedX -
-        (textAlignToSide ? -3 * PLACEMENT_OFFSET : PLACEMENT_OFFSET) +
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) +
         textWidth -
         TEXT_PADDING / 2
       );
     case "right":
       return (
         adjustedX +
-        (textAlignToSide ? -3 * PLACEMENT_OFFSET : PLACEMENT_OFFSET) -
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) -
         textWidth +
         TEXT_PADDING / 2
       );
@@ -60,11 +65,17 @@ function getTextX(
   switch (placement) {
     case "left":
       return (
-        adjustedX - (textAlignToSide ? -3 * PLACEMENT_OFFSET : PLACEMENT_OFFSET)
+        adjustedX -
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL)
       );
     case "right":
       return (
-        adjustedX + (textAlignToSide ? -3 * PLACEMENT_OFFSET : PLACEMENT_OFFSET)
+        adjustedX +
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL)
       );
     default:
       return adjustedX;
@@ -80,13 +91,17 @@ function getResolvedX(
     case "left":
       return (
         adjustedX -
-        (textAlignToSide ? -3 * PLACEMENT_OFFSET : PLACEMENT_OFFSET) -
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) -
         TEXT_PADDING / 2
       );
     case "right":
       return (
         adjustedX +
-        (textAlignToSide ? -3 * PLACEMENT_OFFSET : PLACEMENT_OFFSET) +
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) +
         TEXT_PADDING / 2
       );
     default:
