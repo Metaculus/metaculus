@@ -1,9 +1,10 @@
 "use client";
 
 import { isNil } from "lodash";
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import FanChart from "@/components/charts/fan_chart";
 import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
@@ -42,6 +43,7 @@ type BaseProps = {
   showChart?: boolean;
   minimalistic?: boolean;
   optionsLimit?: number;
+  yLabel?: string;
 };
 
 type QuestionProps = {
@@ -69,6 +71,7 @@ type ContinuousMultipleChoiceTileProps = BaseProps &
     question?: QuestionWithMultipleChoiceForecasts;
     scaling?: Scaling | undefined;
     forecastAvailability?: ForecastAvailability;
+    onLegendHeightChange?: (height: number) => void;
   };
 
 const CHART_HEIGHT = 100;
@@ -87,15 +90,22 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   groupType,
   group,
   scaling,
+  yLabel,
   hideCP,
   forecastAvailability,
   canPredict,
   showChart = true,
   minimalistic = false,
+  onLegendHeightChange,
 }) => {
   const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
+
+  const { ref: tileRef, width: tileWidth } = useContainerSize<HTMLDivElement>();
+  const isEmbed = useIsEmbedMode();
+  const isCompactEmbed = isEmbed && !!tileWidth && tileWidth < 400;
+
   // when resolution chip is shown we want to hide the chart and display the chip
   // (e.g. multiple-choice question on questions feed)
   // otherwise, resolution status will be populated near the every choice
@@ -115,6 +125,11 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
     [group?.questions, groupType, question, user]
   );
 
+  useEffect(() => {
+    if (!onLegendHeightChange) return;
+    onLegendHeightChange(height);
+  }, [height, groupType, onLegendHeightChange]);
+
   const handleReaffirmClick = useCallback(() => {
     if (!onReaffirm || !canReaffirm) return;
 
@@ -123,17 +138,26 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
 
   return (
     <div
+      ref={tileRef}
       className={cn(
-        "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
+        "MultipleChoiceTile ml-0 w-full items-start",
         {
-          "md:grid md:grid-cols-5": showChart,
-          "gap-5 md:gap-8": !minimalistic,
+          "flex flex-col": isEmbed && isCompactEmbed,
+          "grid grid-cols-2": isEmbed && !isCompactEmbed,
+          "flex flex-col md:grid md:grid-cols-5": !isEmbed,
+        },
+        {
+          "gap-3": isEmbed && isCompactEmbed && !minimalistic,
+          "gap-5": isEmbed && !isCompactEmbed && !minimalistic,
+          "gap-5 md:gap-8": !isEmbed && !minimalistic,
         }
       )}
     >
       <div
-        className={cn("resize-container w-full", {
-          "md:col-span-2": !minimalistic || isResolvedView,
+        className={cn("resize-container w-full min-w-0", {
+          "col-span-1": isEmbed && !isCompactEmbed,
+          "col-span-2": isEmbed && isCompactEmbed,
+          "md:col-span-2": !isEmbed && (!minimalistic || isResolvedView),
         })}
       >
         {isResolvedView ? (
@@ -148,14 +172,18 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               hideCP={hideCP}
               canPredict={canPredict && canReaffirm}
               onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+              layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
             />
           )
         )}
       </div>
       {showChart && !isResolvedView && (
         <div
-          className={cn("relative w-full md:col-span-5", {
-            "md:col-span-3": !minimalistic || isResolvedView,
+          className={cn("relative w-full min-w-0", {
+            "col-span-1": isEmbed && !isCompactEmbed,
+            "col-span-2": isEmbed && isCompactEmbed,
+            "md:col-span-5": !isEmbed,
+            "md:col-span-3": !isEmbed && (!minimalistic || isResolvedView),
           })}
         >
           {isNil(group) ? (
@@ -171,6 +199,8 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forecastAvailability={forecastAvailability}
               openTime={openTime}
               hideCP={hideCP}
+              yLabel={yLabel}
+              isEmbedded={isEmbed}
               forFeedPage
             />
           ) : (
@@ -188,6 +218,8 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               forceShowLinePoints={true}
               openTime={openTime}
               hideCP={hideCP}
+              yLabel={yLabel}
+              isEmbedded={isEmbed}
               forFeedPage
             />
           )}
