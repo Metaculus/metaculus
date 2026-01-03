@@ -137,11 +137,9 @@ export function getContinuousGroupScaling(
     zero_point:
       zeroPoints.length === questions.length ? Math.min(...zeroPoints) : null,
   };
-  // we can have mixes of log and linear scaled options
-  // which leads to a derived zero point inside the range which is invalid
-  // so just ignore the log scaling in this case
+  // if zero_point ends up lying within the range, remove the scaling
   if (
-    scaling.zero_point !== null &&
+    !isNil(scaling.zero_point) &&
     !isNil(scaling.range_min) &&
     !isNil(scaling.range_max) &&
     scaling.range_min <= scaling.zero_point &&
