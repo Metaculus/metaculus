@@ -29,11 +29,12 @@ const LEADERBOARD_YEARS = [
   "2016,2",
   "2018,2",
   "2020,2",
-  "2021,2",
+  "2021,2", // support for odd years starts here
   "2022,2",
   "2023,2",
   "2024,2",
   "2025,2",
+  "2026,2",
   // 5 year leaderboards
   "2016,5",
   "2021,5",
