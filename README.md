@@ -127,22 +127,24 @@ poetry install
 ```
 
 ## Nvm/Node & Frontend
-You'll need node to build the frontend. We use nvm for managing node versions.
+You'll need node to build the frontend. We use nvm for managing node versions. 
 Install nvm with:
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 ```
-Then, install node 20.18.0:
-```bash
-nvm install 20.18.0
-nvm use 20.18.0
-```
-To install the frontend dependencies, run:
+For more detailed installation instructions, see the [nvm installation guide](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating).
+Then, install and use the node version specified in `.nvmrc`:
 ```bash
 cd front_end
+nvm install
+nvm use
+```
+This will automatically use the version specified in `front_end/.nvmrc` (currently 24.12.0).
+To install the frontend dependencies, run in the `front_end` directory:
+```bash
 npm install
 ```
-Note: you have to switch to the front_end directory to run the npm commands as they are all nested there.
+Note: you always have to switch to the `front_end` directory to run the npm commands as they are all nested there.
 
 ## Running the server
 The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files. Start by navigating to the root directory.
@@ -163,7 +165,7 @@ poetry run python manage.py runserver
 Running the front end is pretty easy. Note that you'll have to navigate to the `front_end` directory first.
 ```bash
 cd front_end
-nvm use 20.18.0 # If node 20.18.0 is not already being used
+nvm use # Uses the version specified in .nvmrc
 npm run dev
 ```
 

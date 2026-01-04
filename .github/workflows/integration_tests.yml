@@ -103,7 +103,7 @@ jobs:
       - name: "Install Node"
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: front_end/.nvmrc
           cache: "npm"
           cache-dependency-path: front_end/package-lock.json
       - name: Cache node_modules

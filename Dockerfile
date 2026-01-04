@@ -86,7 +86,7 @@ COPY --from=backend_deps /app/venv /app/venv
 COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
 
 ENV NODE_ENV=production
-RUN cd front_end && npm run build && npm install pm2 -g
+RUN cd front_end && NODE_OPTIONS=--max-old-space-size=4096 npm run build && npm install pm2 -g
 RUN cd front_end && npx sentry-cli sourcemaps inject .next
 
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
