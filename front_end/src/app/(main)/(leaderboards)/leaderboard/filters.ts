@@ -24,7 +24,7 @@ const LEADERBOARD_YEARS = [
   "2023,1",
   "2024,1",
   "2025,1",
-  // "2026,1", // coming soon
+  "2026,1",
   // 2 year leaderboards
   "2016,2",
   "2018,2",
@@ -37,10 +37,10 @@ const LEADERBOARD_YEARS = [
   // 5 year leaderboards
   "2016,5",
   "2021,5",
-  // "2026,5", // coming soon
+  "2026,5",
   // 10 year leaderboards
   "2016,10",
-  // "2026,10", // coming soon
+  "2026,10",
 ];
 export const LEADERBOARD_YEAR_OPTIONS = LEADERBOARD_YEARS.reduce<
   Array<{ year: string; duration: string }>
