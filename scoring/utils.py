@@ -33,6 +33,7 @@ from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from questions.cache import invalidate_average_coverage_cache
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
@@ -125,11 +126,13 @@ def score_question(
         scores_to_delete.delete()
         Score.objects.bulk_create(new_scores, batch_size=500)
 
+    invalidate_average_coverage_cache([question])
 
-def generate_scoring_leaderboard_entries(
+
+def retrieve_question_scores(
     questions: list[Question],
     leaderboard: Leaderboard,
-) -> list[LeaderboardEntry]:
+) -> list[Score | ArchivedScore]:
     score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type) or F(
         "question__default_score_type"
     )
@@ -173,6 +176,14 @@ def generate_scoring_leaderboard_entries(
     scores = list(archived_scores) + list(calculated_scores)
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
 
+    return scores
+
+
+def generate_entries_from_scores(
+    scores: list[Score | ArchivedScore],
+    questions: list[Question],
+    leaderboard: Leaderboard,
+) -> list[LeaderboardEntry]:
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
     maximum_coverage = sum(
@@ -214,6 +225,14 @@ def generate_scoring_leaderboard_entries(
             entry.take = entry.coverage * np.exp(entry.score)
         return sorted(entries.values(), key=lambda entry: entry.take, reverse=True)
     return sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
+
+
+def generate_scoring_leaderboard_entries(
+    questions: list[Question],
+    leaderboard: Leaderboard,
+) -> list[LeaderboardEntry]:
+    scores = retrieve_question_scores(questions, leaderboard)
+    return generate_entries_from_scores(scores, questions, leaderboard)
 
 
 def generate_comment_insight_leaderboard_entries(
@@ -711,6 +730,75 @@ def assign_prizes(
     return entries
 
 
+def process_entries_for_leaderboard(
+    entries: list[LeaderboardEntry],
+    project: Project,
+    leaderboard: Leaderboard,
+    force_finalize: bool = False,
+) -> list[LeaderboardEntry]:
+    # assign ranks - also applies exclusions
+    bot_status = leaderboard.bot_status or project.bot_leaderboard_status
+    bots_get_ranks = bot_status in [
+        Project.BotLeaderboardStatus.BOTS_ONLY,
+        Project.BotLeaderboardStatus.INCLUDE,
+    ]
+    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
+    entries = assign_ranks(
+        entries,
+        leaderboard,
+        include_humans=humans_get_ranks,
+        include_bots=bots_get_ranks,
+    )
+
+    # assign prize percentages
+    prize_pool = (
+        leaderboard.prize_pool
+        if leaderboard.prize_pool is not None
+        else project.prize_pool
+    )
+    minimum_prize_percent = (
+        float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
+    )
+    entries = assign_prize_percentages(entries, minimum_prize_percent)
+
+    if prize_pool:  # always assign prizes
+        entries = assign_prizes(entries, prize_pool)
+    # check if we're ready to finalize and assign medals/prizes if applicable
+    finalize_time = leaderboard.finalize_time or (
+        project.close_date if project else None
+    )
+    if force_finalize or (finalize_time and (timezone.now() >= finalize_time)):
+        if (
+            project
+            and project.type
+            in [
+                Project.ProjectTypes.SITE_MAIN,
+                Project.ProjectTypes.TOURNAMENT,
+            ]
+            and project.default_permission == ObjectPermission.FORECASTER
+            and project.visibility == Project.Visibility.NORMAL
+        ):
+            entries = assign_medals(entries)
+        # always set finalize
+        Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
+
+    # save entries
+    previous_entries_map = {
+        (entry.user_id, entry.aggregation_method): entry.id
+        for entry in leaderboard.entries.all()
+    }
+
+    for entry in entries:
+        entry.leaderboard = leaderboard
+        entry.id = previous_entries_map.get((entry.user_id, entry.aggregation_method))
+
+    with transaction.atomic():
+        leaderboard.entries.all().delete()
+        LeaderboardEntry.objects.bulk_create(entries, batch_size=500)
+
+    return entries
+
+
 def update_project_leaderboard(
     project: Project | None = None,
     leaderboard: Leaderboard | None = None,
@@ -736,69 +824,11 @@ def update_project_leaderboard(
     # new entries
     new_entries = generate_project_leaderboard(project, leaderboard)
 
-    # assign ranks - also applies exclusions
-    bot_status = leaderboard.bot_status or project.bot_leaderboard_status
-    bots_get_ranks = bot_status in [
-        Project.BotLeaderboardStatus.BOTS_ONLY,
-        Project.BotLeaderboardStatus.INCLUDE,
-    ]
-    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
-    new_entries = assign_ranks(
-        new_entries,
-        leaderboard,
-        include_humans=humans_get_ranks,
-        include_bots=bots_get_ranks,
+    # process entries
+    processed_entries = process_entries_for_leaderboard(
+        new_entries, project, leaderboard, force_finalize=force_finalize
     )
-
-    # assign prize percentages
-    prize_pool = (
-        leaderboard.prize_pool
-        if leaderboard.prize_pool is not None
-        else project.prize_pool
-    )
-    minimum_prize_percent = (
-        float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
-    )
-    new_entries = assign_prize_percentages(new_entries, minimum_prize_percent)
-
-    if prize_pool:  # always assign prizes
-        new_entries = assign_prizes(new_entries, prize_pool)
-    # check if we're ready to finalize and assign medals/prizes if applicable
-    finalize_time = leaderboard.finalize_time or (
-        project.close_date if project else None
-    )
-    if force_finalize or (finalize_time and (timezone.now() >= finalize_time)):
-        if (
-            project
-            and project.type
-            in [
-                Project.ProjectTypes.SITE_MAIN,
-                Project.ProjectTypes.TOURNAMENT,
-            ]
-            and project.default_permission == ObjectPermission.FORECASTER
-            and project.visibility == Project.Visibility.NORMAL
-        ):
-            new_entries = assign_medals(new_entries)
-        # always set finalize
-        Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
-
-    # save entries
-    previous_entries_map = {
-        (entry.user_id, entry.aggregation_method): entry.id
-        for entry in leaderboard.entries.all()
-    }
-
-    for new_entry in new_entries:
-        new_entry.leaderboard = leaderboard
-        new_entry.id = previous_entries_map.get(
-            (new_entry.user_id, new_entry.aggregation_method)
-        )
-
-    with transaction.atomic():
-        leaderboard.entries.all().delete()
-        LeaderboardEntry.objects.bulk_create(new_entries, batch_size=500)
-
-    return new_entries
+    return processed_entries
 
 
 def update_leaderboard_from_csv_data(

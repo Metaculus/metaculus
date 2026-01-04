@@ -1,6 +1,5 @@
 "use client";
 
-import { Radio, RadioGroup } from "@headlessui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import Link from "next/link";
@@ -23,12 +22,14 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
-import RadioButton from "@/components/ui/radio_button";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
+
+import { bwInitAndTrackRegistrationIfConsent } from "../../utils/pixel-apis";
 
 export interface CampaignRegistrationProps {
   campaignKey: string;
@@ -41,11 +42,15 @@ export const tournamentRegistrationSchema = z
     addToProject: z.number().optional(),
     fullName: z.string().min(1, "Field required"),
     country: z.string().min(1, "Field required"),
-    undergrad: z.boolean(),
+    undergrad: z.boolean().nullable(),
     institution: z.string().optional(),
     major: z.string().optional(),
     graduationYear: z.number().optional(),
     accepted_terms: z.boolean(),
+  })
+  .refine((data) => data.undergrad !== null && data.undergrad !== undefined, {
+    message: "Please select Yes or No",
+    path: ["undergrad"],
   })
   .refine(
     (data) => {
@@ -54,7 +59,7 @@ export const tournamentRegistrationSchema = z
         !data.undergrad ||
         (data.graduationYear &&
           data.graduationYear >= currentYear &&
-          data.graduationYear <= currentYear + 5)
+          data.graduationYear <= currentYear + 7)
       );
     },
     {
@@ -129,13 +134,14 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
 }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
+  const undergradValue = watch("undergrad") as boolean | null;
 
   return (
     <>
       <InputContainer labelText={t("fullName")}>
         <Input
           autoComplete="full-name"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
           type="text"
           errors={errors}
           {...register("fullName")}
@@ -145,7 +151,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
       <InputContainer labelText={t("country")}>
         <Input
           autoComplete="Country"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
           type="text"
           errors={errors}
           {...register("country")}
@@ -153,37 +159,49 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
       </InputContainer>
 
       <div className="flex w-full flex-col items-center">
-        <p className="text-xs text-gray-900 dark:text-gray-900-dark">
+        <p className="mb-1 text-sm text-gray-900 dark:text-gray-900-dark">
           {t("undergraduateStudentQuestion")}
         </p>
 
-        <RadioGroup
-          value={watch("undergrad")}
-          onChange={(value) => setValue("undergrad", value === "yes")}
-          aria-label="Server size"
-          as="ul"
-          className="flex gap-4"
-        >
-          <Radio value={"no"} as="li" key={"no"}>
-            <RadioButton checked={!watch("undergrad")} size="small">
-              No
-            </RadioButton>
-          </Radio>
-
-          <Radio value={"yes"} as="li" key={"yes"}>
-            <RadioButton checked={watch("undergrad")} size="small">
-              Yes
-            </RadioButton>
-          </Radio>
-        </RadioGroup>
+        <div className="flex">
+          <Button
+            variant={undergradValue === true ? "primary" : "secondary"}
+            onClick={() =>
+              setValue("undergrad", true, { shouldValidate: true })
+            }
+            type="button"
+            className={cn(
+              "rounded-r-none px-3 py-1.5 text-sm",
+              undergradValue === null &&
+                "bg-gray-0 text-gray-900 hover:bg-gray-300 dark:bg-gray-0-dark dark:text-gray-900-dark dark:hover:bg-gray-300-dark"
+            )}
+          >
+            Yes
+          </Button>
+          <Button
+            variant={undergradValue === false ? "primary" : "secondary"}
+            onClick={() =>
+              setValue("undergrad", false, { shouldValidate: true })
+            }
+            type="button"
+            className={cn(
+              "ml-[-1px] rounded-l-none px-3 py-1.5 text-sm",
+              undergradValue === null &&
+                "bg-gray-0 text-gray-900 hover:bg-gray-300 dark:bg-gray-0-dark dark:text-gray-900-dark dark:hover:bg-gray-300-dark"
+            )}
+          >
+            No
+          </Button>
+        </div>
+        <FormError errors={errors} name="undergrad" className="mt-1" />
       </div>
 
-      {watch("undergrad") && (
+      {undergradValue && (
         <>
           <InputContainer labelText={t("institution")}>
             <Input
               autoComplete="Institution"
-              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
               type="text"
               errors={errors}
               {...register("institution")}
@@ -193,7 +211,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
           <InputContainer labelText={t("major")}>
             <Input
               autoComplete="Major"
-              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
               type="text"
               errors={errors}
               {...register("major")}
@@ -202,7 +220,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
 
           <InputContainer labelText={t("graduationYear")}>
             <Input
-              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base font-normal text-gray-800 dark:border-gray-700-dark dark:text-gray-800-dark"
               type="number"
               errors={errors}
               {...register("graduationYear", {
@@ -234,8 +252,7 @@ export const RegistrationAndSignupForm: FC<
       )
     ),
     defaultValues: {
-      isBot: false,
-      undergrad: false,
+      undergrad: null,
       addToProject,
       campaignKey,
     },
@@ -419,7 +436,7 @@ export const RegistrationForm: FC<
   const methods = useForm<TournamentRegistrationSchema>({
     resolver: zodResolver(tournamentRegistrationSchema),
     defaultValues: {
-      undergrad: false,
+      undergrad: null,
       accepted_terms: false,
     },
   });
@@ -458,6 +475,7 @@ export const RegistrationForm: FC<
         }
       }
     } else {
+      bwInitAndTrackRegistrationIfConsent();
       sendAnalyticsEvent(
         watch("undergrad") ? "bw_register_under" : "bw_register_non_under"
       );
@@ -481,7 +499,7 @@ export const RegistrationForm: FC<
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-4 bg-gray-0 p-4 dark:bg-gray-0-dark"
+        className="flex flex-col gap-4 bg-gray-0 dark:bg-gray-0-dark"
       >
         <div className="flex flex-col gap-4">
           <ExtraDataRegistrationFragment errors={errors} />
@@ -522,7 +540,7 @@ export const RegistrationForm: FC<
           </span>
         </Checkbox>
 
-        <div className="mt-7 flex flex-col items-center gap-7">
+        <div className="mt-3 flex flex-col items-center gap-7">
           <Button
             variant="primary"
             className=""

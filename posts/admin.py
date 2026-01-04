@@ -7,10 +7,11 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from posts.models import Post, Notebook
-from posts.services.common import trigger_update_post_translations
+from posts.services.common import soft_delete_post, trigger_update_post_translations
 from posts.services.hotness import explain_post_hotness
+from posts.tasks import run_post_generate_history_snapshot
 from questions.models import Question
-from questions.services import build_question_forecasts
+from questions.services.forecasts import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 
@@ -154,8 +155,7 @@ class PostAdmin(CustomTranslationAdmin):
     def mark_as_deleted(self, request, queryset: QuerySet[Post]):
         updated = 0
         for post in queryset:
-            post.curation_status = Post.CurationStatus.DELETED
-            post.save()
+            soft_delete_post(post)
             updated += 1
         self.message_user(request, f"Marked {updated} post(s) as DELETED.")
 
@@ -168,6 +168,11 @@ class PostAdmin(CustomTranslationAdmin):
                 fields.remove(field)
             fields.insert(0, field)
         return fields
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        run_post_generate_history_snapshot.send(obj.id, request.user.id)
 
 
 @admin.register(Notebook)

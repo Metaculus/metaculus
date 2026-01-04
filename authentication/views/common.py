@@ -47,11 +47,9 @@ def login_api_view(request):
     # The authenticate method below will return None for inactive users
     # We want to show inactive users an error message so they can activate
     # their account, and also to re-send their activation email
-    user = User.objects.filter(
-        Q(username__iexact=login) | Q(email__iexact=login)
-    ).first()
+    user = AuthLoginBackend.find_user(login)
 
-    if user is not None and user.check_password(password) and not user.is_active:
+    if user and not user.is_active and user.check_password(password):
         send_activation_email(user, None)
         raise ValidationError({"user_state": "inactive"})
 
@@ -76,7 +74,6 @@ def signup_api_view(request):
     email = serializer.validated_data["email"]
     username = serializer.validated_data["username"]
     password = serializer.validated_data["password"]
-    is_bot = serializer.validated_data.get("is_bot", False)
 
     project = serializer.validated_data.get("add_to_project", None)
     campaign_key = serializer.validated_data.get("campaign_key", None)
@@ -106,7 +103,7 @@ def signup_api_view(request):
             email=email,
             password=password,
             is_active=is_active,
-            is_bot=is_bot,
+            is_bot=False,
             language=language,
             app_theme=app_theme,
             newsletter_optin=newsletter_optin,

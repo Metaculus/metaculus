@@ -24,6 +24,7 @@ from posts.serializers import (
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
     PostUpdateSerializer,
+    serialize_private_notes_many,
 )
 from posts.services.common import (
     create_post,
@@ -34,12 +35,14 @@ from posts.services.common import (
     reject_post,
     post_make_draft,
     send_back_to_review,
+    soft_delete_post,
     trigger_update_post_translations,
     make_repost,
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
+from posts.services.notes import update_private_note, get_private_notes_feed
 from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -107,6 +110,7 @@ def posts_list_api_view(request):
         include_cp_history=include_cp_history,
         include_movements=include_movements,
         include_conditional_cps=include_conditional_cps,
+        include_average_scores=True,
     )
 
     return paginator.get_paginated_response(data)
@@ -233,6 +237,7 @@ def post_detail(request: Request, pk):
         include_descriptions=True,
         include_cp_history=True,
         include_movements=True,
+        include_average_scores=True,
     )
 
     if not posts:
@@ -266,8 +271,7 @@ def post_create_api_view(request):
     should_delete = not is_user_admin and check_and_handle_post_spam(request.user, post)
 
     if should_delete:
-        post.curation_status = Post.CurationStatus.DELETED
-        post.save(update_fields=["curation_status"])
+        soft_delete_post(post)
         raise spam_error
 
     return Response(
@@ -310,13 +314,12 @@ def post_update_api_view(request, pk):
     )
     serializer.is_valid(raise_exception=True)
 
-    post = update_post(post, **serializer.validated_data)
+    post = update_post(post, updated_by=request.user, **serializer.validated_data)
 
     should_delete = check_and_handle_post_spam(request.user, post)
 
     if should_delete:
-        post.curation_status = Post.CurationStatus.DELETED
-        post.save(update_fields=["curation_status"])
+        soft_delete_post(post)
         raise spam_error
 
     trigger_update_post_translations(post, with_comments=False, force=False)
@@ -392,8 +395,7 @@ def post_delete_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    post.update_curation_status(Post.CurationStatus.DELETED)
-    post.save(update_fields=["curation_status"])
+    soft_delete_post(post)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -636,7 +638,7 @@ def random_post_id(request):
 @api_view(["POST"])
 def repost_api_view(request, pk):
     """
-    Boots/Bury post
+    Make a repost into specific project
     """
 
     user = request.user
@@ -660,3 +662,36 @@ def repost_api_view(request, pk):
     make_repost(post, project)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def post_private_note_api_view(request, pk):
+    """
+    Make a private note
+    """
+
+    user = request.user
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    text = serializers.CharField(max_length=10_000, allow_blank=True).run_validation(
+        request.data.get("text") or ""
+    )
+    update_private_note(request.user, post, text)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def private_notes_list_api_view(request: Request):
+    notes = get_private_notes_feed(user=request.user)
+
+    paginator = LimitOffsetPagination()
+    paginated_notes = paginator.paginate_queryset(notes, request)
+
+    data = serialize_private_notes_many(paginated_notes)
+
+    return paginator.get_paginated_response(data)

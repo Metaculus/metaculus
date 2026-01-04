@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
 from django.urls import reverse
@@ -163,6 +164,21 @@ class BotFilter(admin.SimpleListFilter):
         return queryset
 
 
+class BotInline(admin.TabularInline):
+    model = User
+    fk_name = "bot_owner"
+    fields = ["username", "email", "is_active", "is_primary_bot"]
+    readonly_fields = ["username", "email", "is_active", "is_bot"]
+    extra = 0
+    show_change_link = True
+    verbose_name = "Owned Bot"
+    verbose_name_plural = "Owned Bots"
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = [
@@ -172,6 +188,8 @@ class UserAdmin(admin.ModelAdmin):
         "is_active",
         "is_spam",
         "is_bot",
+        "is_primary_bot",
+        "bot_owner",
         "duration_joined_to_last_login",
         "authored_posts",
         "duration_before_first_post",
@@ -199,7 +217,16 @@ class UserAdmin(admin.ModelAdmin):
         BioLengthFilter,
         ProFilter,
         BotFilter,
+        AutocompleteFilterFactory("Bot Owner", "bot_owner"),
     ]
+    readonly_fields = ["old_usernames"]
+    autocomplete_fields = ["bot_owner"]
+    inlines = [BotInline]
+
+    def get_inlines(self, request, obj):
+        if not obj or obj.is_bot:
+            return []
+        return super().get_inlines(request, obj)
 
     def get_actions(self, request):
         actions = super().get_actions(request)

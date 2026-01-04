@@ -1,7 +1,5 @@
 "use client";
 
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -9,11 +7,11 @@ import { FC, useState } from "react";
 
 import { SignupForm } from "@/components/auth/signup";
 import BaseModal from "@/components/base_modal";
-import Button from "@/components/ui/button";
 
 import { Dates, Prize } from "./cards-q4";
 import HeroQ4 from "./hero-q4";
 import BotLeaderboard from "./leaderboard-q4";
+import NextTournamentCard from "./next-tournament-card";
 import TournamentPager, { TOURNAMENT_ITEMS } from "./tournament-pager";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
@@ -49,25 +47,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
         </div>
         <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
           <BotLeaderboard />
-          <Link
-            href="/aib/2025/fall"
-            className="group flex w-full no-underline"
-          >
-            <div className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 text-balance rounded-md bg-gradient-to-r from-purple-500/35 to-purple-700/35 p-3 text-center text-lg text-purple-800 transition-colors dark:text-gray-1000-dark md:gap-4 md:p-6 md:text-2xl">
-              <FontAwesomeIcon
-                icon={faArrowRight}
-                className="text-4xl opacity-20 transition-all group-hover:opacity-80 md:text-6xl xl:text-8xl"
-              />{" "}
-              Fall 2025 tournament is underway!
-              <Button
-                size="lg"
-                variant="primary"
-                className="mb-3 mt-2 bg-purple-800 opacity-45 transition-all group-hover:opacity-80 md:mb-0 lg:mt-4"
-              >
-                {t("FABQ3ConcludeButton")}
-              </Button>
-            </div>
-          </Link>{" "}
+          <NextTournamentCard />
         </div>
         <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
           <div className="flex max-h-full max-w-xl flex-col items-center">
@@ -82,7 +62,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 The project ID to add the user to is hardcoded here - the FAB project is changed once every quarter, and it doesn't
                 make sense to build infrastructure to manage the ID from the UI. When the new FAB tournament starts, we'll just change the ID here.
               */}
-              <SignupForm forceIsBot={false} addToProject={3349} />
+              <SignupForm addToProject={3349} />
             </div>
             <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {

@@ -5,6 +5,10 @@ import QuestionNotifications from "@/app/(main)/accounts/settings/notifications/
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
+export const metadata = {
+  title: "Notification Settings",
+};
+
 export default async function Page() {
   const currentUser = await ServerProfileApi.getMyProfile();
   const posts = await ServerPostsApi.getAllSubscriptions();

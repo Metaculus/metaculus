@@ -15,6 +15,7 @@ type Props = {
   dialogClassName?: string;
   closeButtonClassName?: string;
   isImmersive?: boolean;
+  withCloseButton?: boolean;
   modalContentRef?: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -28,6 +29,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
   closeButtonClassName,
   isImmersive = false,
   modalContentRef,
+  withCloseButton = false,
 }) => {
   useEffect(() => {
     if (isOpen && isImmersive) {
@@ -48,6 +50,11 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
         className={cn("relative z-[201]", dialogClassName)}
         onClose={onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
+        onKeyDownCapture={(e) => {
+          if (isImmersive) {
+            e.stopPropagation();
+          }
+        }}
       >
         <div
           className={cn(
@@ -73,7 +80,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
                 {label}
               </h2>
             )}
-            {!isImmersive && (
+            {(!isImmersive || withCloseButton) && (
               <button
                 onClick={() => onClose(false)}
                 className={cn(
