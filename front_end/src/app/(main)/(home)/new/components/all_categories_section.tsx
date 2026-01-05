@@ -31,7 +31,11 @@ const AllCategoriesSection: FC<Props> = async ({ categories, className }) => {
   return (
     <section className={cn("py-20", className)}>
       <h2 className="m-0 mb-10 text-xl font-bold leading-7 text-gray-1000 dark:text-gray-1000-dark">
-        {t("allCategories")}
+        <span className="hidden md:inline">
+          {t("allCategoriesTopQuestions")}
+        </span>
+
+        <span className="inline md:hidden">{t("allCategories")}</span>
       </h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {sortedCategories.map((category) => (
