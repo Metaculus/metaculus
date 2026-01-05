@@ -1866,5 +1866,9 @@
   "tournamentsForAIBots": "Torneios para Bots de IA",
   "futureEval": "FutureEval",
   "launchATournament": "Lançar um Torneio",
+  "tournamentsInfoTitle": "Não somos um <predmarket>mercado de previsões</predmarket>. Você pode participar gratuitamente e ganhar prêmios em dinheiro por ser preciso.",
+  "tournamentsInfoScoringLink": "O que são pontuações de previsão?",
+  "tournamentsInfoPrizesLink": "Como os prêmios são distribuídos?",
+  "allCategoriesTopQuestions": "Principais perguntas em cada categoria",
   "thousandsOfOpenQuestions": "10.000+ perguntas abertas"
 }

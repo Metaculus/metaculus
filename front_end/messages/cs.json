@@ -1868,5 +1868,9 @@
   "tournamentsForAIBots": "Turnaje pro AI roboty",
   "futureEval": "Budoucí posouzení",
   "launchATournament": "Spusťte turnaj",
+  "tournamentsInfoTitle": "Nejsme <predmarket>trh s prognózami</predmarket>. Můžete se účastnit zdarma a vyhrát peněžní ceny za přesné předpovědi.",
+  "tournamentsInfoScoringLink": "Co jsou prognostické skóre?",
+  "tournamentsInfoPrizesLink": "Jak jsou rozdělovány ceny?",
+  "allCategoriesTopQuestions": "Nejlepší otázky v každé kategorii",
   "thousandsOfOpenQuestions": "10 000+ otevřených otázek"
 }

@@ -1865,5 +1865,9 @@
   "tournamentsForAIBots": "AI 機器人比賽",
   "futureEval": "未來評估",
   "launchATournament": "發起比賽",
+  "tournamentsInfoTitle": "我們<predmarket>不是一個預測市場</predmarket>。你可以免費參加，並因預測準確而贏取現金獎。",
+  "tournamentsInfoScoringLink": "什麼是預測得分？",
+  "tournamentsInfoPrizesLink": "獎品如何分配？",
+  "allCategoriesTopQuestions": "每個類別中的熱門問題",
   "thousandsOfOpenQuestions": "10,000+ 開放問題"
 }
