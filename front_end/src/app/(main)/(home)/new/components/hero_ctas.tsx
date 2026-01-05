@@ -120,7 +120,7 @@ const HeroCTAs: FC<Props> = ({
     >
       <HeroCTACard
         href={individualsHref}
-        topTitle={t("forIndividuals")}
+        topTitle={t("hero1TopTitle")}
         imageSrc="/images/pie-chart.png"
         imageAlt="Pie chart"
         title={t("heroIndividualsTitle")}
@@ -134,7 +134,7 @@ const HeroCTAs: FC<Props> = ({
 
       <HeroCTACard
         href={businessesHref}
-        topTitle={t("forBusinesses")}
+        topTitle={t("hero2TopTitle")}
         imageSrc="/images/puzzle.png"
         imageAlt="Puzzle"
         title={t("partnerWithMetaculus")}
