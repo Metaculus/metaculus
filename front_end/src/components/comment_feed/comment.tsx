@@ -816,12 +816,13 @@ const Comment: FC<CommentProps> = ({
                       withUgcLinks
                       withCodeBlocks
                     />
-                    {!includedForecast && hadForecastAtCommentCreation && (
+                    {hadForecastAtCommentCreation && (
                       <Checkbox
-                        checked={includeEditForecast}
+                        checked={!!includedForecast || includeEditForecast}
                         onChange={(checked) => setIncludeEditForecast(checked)}
                         label={t("includeMyForecastAtTheTime")}
                         className="mt-3 text-sm"
+                        disabled={!!includedForecast}
                       />
                     )}
                   </div>
