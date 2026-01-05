@@ -1,3 +1,4 @@
+import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 
 export const sourceSerifPro = localFont({
@@ -86,6 +87,18 @@ export const leagueGothic = localFont({
   preload: false,
 });
 
+export const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+});
+
+export const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
 export const getFontsString = () => {
-  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable}`;
+  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} ${geist.variable} ${geistMono.variable}`;
 };

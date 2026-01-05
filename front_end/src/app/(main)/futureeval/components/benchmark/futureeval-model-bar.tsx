@@ -1,6 +1,8 @@
 "use client";
 
 import { FloatingPortal } from "@floating-ui/react";
+import { faUsers } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -57,7 +59,7 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
             className={cn(
               "relative flex w-full flex-col items-center rounded-t-md border pt-2 transition-all duration-200",
               model.isAggregate
-                ? "border-violet-800 bg-violet-200 hover:bg-violet-300 dark:border-violet-800-dark dark:bg-violet-800-dark dark:hover:bg-violet-700-dark"
+                ? "border-violet-800 bg-violet-200 hover:bg-violet-300 dark:border-violet-800-dark dark:bg-violet-800 dark:hover:bg-violet-700-dark"
                 : "border-gray-800 bg-gray-0 hover:bg-gray-300 dark:border-gray-800-dark dark:bg-gray-0-dark dark:hover:bg-gray-300-dark"
             )}
             style={{ height: `${heightPct}%`, minHeight: "48px" }}
@@ -66,14 +68,21 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
             onMouseMove={handleMouseMove}
           >
             {/* Model icon at the TOP of the bar */}
-            {(model.iconLight || model.iconDark) && (
-              <LightDarkIcon
-                alt={model.name}
-                light={model.iconLight}
-                dark={model.iconDark}
-                sizePx="20px"
-                className="shrink-0 sm:!h-6 sm:!w-6"
+            {model.isAggregate ? (
+              <FontAwesomeIcon
+                icon={faUsers}
+                className="h-5 w-5 shrink-0 text-violet-800 dark:text-violet-200 sm:h-5 sm:w-5"
               />
+            ) : (
+              (model.iconLight || model.iconDark) && (
+                <LightDarkIcon
+                  alt={model.name}
+                  light={model.iconLight}
+                  dark={model.iconDark}
+                  sizePx="20px"
+                  className="shrink-0 sm:!h-6 sm:!w-6"
+                />
+              )
             )}
           </div>
 

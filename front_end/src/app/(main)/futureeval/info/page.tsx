@@ -1,19 +1,6 @@
-import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import { redirect } from "next/navigation";
 
-import FutureEvalScreen from "../components/futureeval-screen";
-
-export const metadata = {
-  title: "About FutureEval | Metaculus",
-  description:
-    "Join the AI Forecasting Benchmark (AIB) tournament on Metaculus. Test your AI bot's ability to make accurate probabilistic forecasts on real-world questions. $30,000 prize pool per quarter. Register your bot and compete against the best AI forecasters.",
-};
-
-export default async function FutureEvalInfoPage() {
-  const leaderboard = await ServerLeaderboardApi.getGlobalLeaderboard(
-    null,
-    null,
-    "manual",
-    "Global Bot Leaderboard"
-  );
-  return <FutureEvalScreen leaderboard={leaderboard} current="info" />;
+// Redirect /futureeval/info to /futureeval/methodology for backwards compatibility
+export default function FutureEvalInfoPage() {
+  redirect("/futureeval/methodology");
 }

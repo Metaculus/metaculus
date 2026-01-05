@@ -92,15 +92,15 @@ const FutureEvalModelBenchmark: React.FC = () => {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="mb-0 text-center sm:mb-1 lg:text-left">
-        <h3 className="m-0 text-2xl font-bold text-blue-900 dark:text-blue-900-dark sm:text-3xl lg:text-4xl">
+      <div className="mb-0 text-center sm:mb-1">
+        <h3 className="m-0 text-[24px] font-bold leading-[116%] text-blue-800 dark:text-blue-800-dark sm:text-[32px] sm:leading-[40px] lg:text-4xl">
           {t("aibBenchModelsTitle")}
         </h3>
-        <p className="m-0 mt-2 text-sm text-blue-800 dark:text-blue-800-dark sm:text-base">
+        <p className="m-0 mt-3 text-balance font-geist-mono text-sm text-blue-700 dark:text-blue-700-dark sm:text-base">
           {t("aibBenchModelsBlurb")}{" "}
           <Link
             href="/futureeval/leaderboard"
-            className="text-violet-700 underline hover:text-violet-800 dark:text-violet-700-dark hover:dark:text-violet-800-dark"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark hover:dark:text-blue-800-dark"
           >
             {t("aibViewFullLeaderboard")}
           </Link>

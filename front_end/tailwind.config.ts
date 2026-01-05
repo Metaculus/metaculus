@@ -53,6 +53,8 @@ const config: Config = {
         ],
         mono: ['"Ubuntu mono"', ...defaultTheme.fontFamily.mono],
         "league-gothic": "var(--font-league-gothic)",
+        geist: ["var(--font-geist)", ...defaultTheme.fontFamily.sans],
+        "geist-mono": ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
       },
       strokeWidth: {
         "3": "3px",

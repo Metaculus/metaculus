@@ -1,12 +1,10 @@
-import { faCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBook, faBullseye, faInfo } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 import React from "react";
 
 import FutureEvalBenchmarkTab from "./benchmark/futureeval-benchmark-tab";
+import FutureEvalMethodologyTab from "./futureeval-methodology-tab";
+import FutureEvalParticipateTab from "./futureeval-participate-tab";
 import FutureEvalTabsShell, { Section } from "./futureeval-tabs-shell";
-import AIBInfoTab from "../../aib/components/aib/tabs/info/aib-info-tab";
 import AIBNewsTab from "../../aib/components/aib/tabs/news/aib-news-tab";
 
 type Props = {
@@ -20,36 +18,24 @@ const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
     {
       value: "benchmark",
       href: "/futureeval",
-      icon: (
-        <FontAwesomeIcon
-          className="scale-[1] sm:scale-[1.11]"
-          icon={faBullseye}
-        />
-      ),
       label: t("aibTabsBenchmark"),
       content: <FutureEvalBenchmarkTab />,
     },
     {
-      value: "info",
-      href: "/futureeval/info",
-      icon: (
-        <span className="relative inline-block scale-[0.8] sm:scale-[100%]">
-          <FontAwesomeIcon icon={faCircle} className="h-5 w-5" />
-          <FontAwesomeIcon
-            icon={faInfo}
-            className="absolute right-[20%] top-[43%] h-3 w-3 -translate-y-1/2"
-          />
-        </span>
-      ),
-      label: t("aibTabsInfo"),
-      content: <AIBInfoTab />,
+      value: "methodology",
+      href: "/futureeval/methodology",
+      label: t("aibTabsMethodology"),
+      content: <FutureEvalMethodologyTab />,
+    },
+    {
+      value: "participate",
+      href: "/futureeval/participate",
+      label: t("aibTabsParticipate"),
+      content: <FutureEvalParticipateTab />,
     },
     {
       value: "news",
       href: "/futureeval/news",
-      icon: (
-        <FontAwesomeIcon className="scale-[1] sm:scale-[1.11]" icon={faBook} />
-      ),
       label: t("aibTabsNews"),
       content: <AIBNewsTab />,
     },
