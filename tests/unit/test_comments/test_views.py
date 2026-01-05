@@ -724,7 +724,7 @@ class TestCommentEdit:
         # 3. New forecast created after comment
         t_forecast_2 = now - timedelta(minutes=30)
         with freeze_time(t_forecast_2):
-            forecast_2 = create_forecast(
+            create_forecast(
                 question=question,
                 user=user1,
                 probability_yes=0.8,
