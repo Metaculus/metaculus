@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
@@ -226,6 +227,25 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def __str__(self):
         return f"{self.type} {self.title}"
+
+    def clean(self):
+        super().clean()
+
+        # Validate open_time < scheduled_close_time
+        if (
+            self.open_time is not None
+            and self.scheduled_close_time is not None
+            and self.open_time >= self.scheduled_close_time
+        ):
+            raise ValidationError("Scheduled Close Time must be after open_time")
+
+        # Validate open_time < scheduled_resolve_time
+        if (
+            self.open_time is not None
+            and self.scheduled_resolve_time is not None
+            and self.open_time >= self.scheduled_resolve_time
+        ):
+            raise ValidationError("Scheduled Resolve Time must be after open_time")
 
     def save(self, **kwargs):
         # Ensure resolution is always null or non-empty string
