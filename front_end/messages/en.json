@@ -1849,7 +1849,7 @@
   "featured": "Featured",
   "none": "none",
   "metaculusFutureEval": "Metaculus FutureEval",
-  "futureEvalDescription": "FutureEval measures AI's ability to predict future outcomes. It is guaranteed leak proof.",
+  "futureEvalDescription": "FutureEval measures AI's ability to predict future outcomes. It is guaranteed leak-proof.",
   "futureEvalTagline": "We use forecasting as a way to evaluate reasoning against reality.",
   "modelLeaderboard": "Model leaderboard",
   "modelLeaderboardDescription": "We run all major models with a simple prompt on most open Metaculus forecasting questions, and collect their forecasts.",
