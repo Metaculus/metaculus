@@ -89,7 +89,7 @@ export const TabsList = ({
   return (
     <div
       className={cn(
-        "scrollbar-none z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
+        "scrollbar-none z-10 -mx-3 flex overflow-x-auto bg-blue-200 px-3 py-3 dark:bg-blue-200-dark sm:-mx-4 sm:px-4",
         ctx.variant === "separated" ? "sticky top-12 gap-2" : "gap-2", // non-sticky for "group" to keep both behaviours valid
         className
       )}

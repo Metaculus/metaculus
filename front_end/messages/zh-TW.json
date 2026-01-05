@@ -1814,5 +1814,6 @@
   "tournamentsTabIndexes": "指數",
   "tournamentsTabArchived": "已存檔",
   "tournamentTimelineClosed": "等待裁定",
+  "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

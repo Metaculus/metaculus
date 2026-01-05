@@ -34,6 +34,6 @@ export function selectTournamentsForSection(
   return ongoing.filter(
     (t) =>
       t.type !== TournamentType.QuestionSeries &&
-      t.type !== TournamentType.Index
+      (t.type !== TournamentType.Index || !!t.prize_pool)
   );
 }

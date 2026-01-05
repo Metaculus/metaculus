@@ -95,6 +95,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "html_metadata_json",
             "is_ongoing",
             "user_permission",
+            "order",
             "created_at",
             "edited_at",
             "score_type",

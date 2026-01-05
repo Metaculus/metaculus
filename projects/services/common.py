@@ -208,11 +208,13 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
 
 
 def get_project_timeline_data(project: Project):
-    # Fetch questions directly as per new requirement
     questions = Question.objects.filter(
-        related_posts__post__default_project=project,
-        related_posts__post__curation_status=Post.CurationStatus.APPROVED,
-    ).distinct("id")
+        related_posts__post_id__in=list(
+            Post.objects.filter_projects(project)
+            .filter(curation_status=Post.CurationStatus.APPROVED)
+            .values_list("id", flat=True)
+        )
+    )
 
     return _calculate_timeline_data(project, questions)
 

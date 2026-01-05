@@ -1817,5 +1817,6 @@
   "tournamentsTabIndexes": "Índices",
   "tournamentsTabArchived": "Archivado",
   "tournamentTimelineClosed": "Esperando resoluciones",
+  "questionsPreviouslyPredicted": "{count, plural, =1 {# pregunta} other {# preguntas}} previamente previstas",
   "othersCount": "Otros ({count})"
 }
