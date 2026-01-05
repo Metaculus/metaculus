@@ -96,12 +96,17 @@ export const isPostOpenQuestionPredicted = (
   config?: {
     checkAllSubquestions?: boolean;
     treatClosedAsPredicted?: boolean;
+    treatWithdrawnAsPredicted?: boolean;
   }
 ) => {
-  const { checkAllSubquestions = true, treatClosedAsPredicted = true } =
-    config ?? {};
+  const {
+    checkAllSubquestions = true,
+    treatClosedAsPredicted = true,
+    treatWithdrawnAsPredicted = false,
+  } = config ?? {};
   const openQuestionConfig = {
     treatClosedAsPredicted,
+    treatWithdrawnAsPredicted,
   };
   if (post.question) {
     return isOpenQuestionPredicted(post.question, openQuestionConfig);
@@ -134,18 +139,24 @@ export function isForecastActive(forecast: UserForecast | AggregateForecast) {
 
 export function isOpenQuestionPredicted(
   question: Question,
-  config?: { treatClosedAsPredicted?: boolean }
+  config?: {
+    treatClosedAsPredicted?: boolean;
+    treatWithdrawnAsPredicted?: boolean;
+  }
 ) {
-  const { treatClosedAsPredicted = true } = config ?? {};
+  const { treatClosedAsPredicted = true, treatWithdrawnAsPredicted = false } =
+    config ?? {};
+  const isForecastPredicted = (forecast: UserForecast | undefined) =>
+    !isNil(forecast) &&
+    (treatWithdrawnAsPredicted || isForecastActive(forecast));
+
   return (
     (treatClosedAsPredicted
       ? question.status !== QuestionStatus.OPEN
       : false) ||
     (question.status === QuestionStatus.OPEN &&
-      !isNil(question.my_forecasts?.latest) &&
-      isForecastActive(question.my_forecasts.latest)) ||
+      isForecastPredicted(question.my_forecasts?.latest)) ||
     (question.status === QuestionStatus.OPEN &&
-      !isNil(question.my_forecast?.latest) &&
-      isForecastActive(question.my_forecast.latest))
+      isForecastPredicted(question.my_forecast?.latest))
   );
 }

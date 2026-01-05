@@ -250,7 +250,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     emoji = models.CharField(max_length=10, default="", blank=True)
 
     order = models.IntegerField(
-        help_text="Will be displayed ordered by this field inside each section",
+        help_text="Will be displayed ordered by this field inside each section. Lower numbers appear first.",
         default=0,
     )
 
