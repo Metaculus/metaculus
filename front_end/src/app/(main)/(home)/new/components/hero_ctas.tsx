@@ -1,9 +1,13 @@
+"use client";
+
+import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import Button from "@/components/ui/button";
+import { useBreakpoint } from "@/hooks/tailwind";
 import cn from "@/utils/core/cn";
 
 type HeroCTACardVariant = "blue" | "purple";
@@ -54,10 +58,9 @@ const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
   return (
     <div
       className={cn(
-        "relative flex shrink-0 flex-col justify-between overflow-hidden rounded-lg p-6",
+        "relative flex h-full shrink-0 flex-col justify-between overflow-hidden rounded-lg p-6",
         bgColorClasses,
-        textColorClasses,
-        "w-[80%] md:flex-1"
+        textColorClasses
       )}
     >
       <div className="absolute right-3 top-3 z-0 size-32 opacity-60">
@@ -111,63 +114,73 @@ const HeroCTAs: FC<Props> = ({
   className,
 }) => {
   const t = useTranslations();
-  return (
-    <section
-      className={cn(
-        "flex w-full gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        className
-      )}
-    >
-      <HeroCTACard
-        href={individualsHref}
-        topTitle={t("hero1TopTitle")}
-        imageSrc="/images/pie-chart.png"
-        imageAlt="Pie chart"
-        title={t("heroIndividualsTitle")}
-        buttonText={t("exploreQuestions")}
-        variant="blue"
-      >
-        <p className="m-0 mt-3 text-sm font-medium leading-4 text-blue-800 dark:text-blue-800-dark ">
-          {t("heroIndividualsDescription")}
-        </p>
-      </HeroCTACard>
+  const isMdScreen = useBreakpoint("md");
+  const [emblaRef] = useEmblaCarousel({
+    align: "start",
+    containScroll: "trimSnaps",
+    watchDrag: !isMdScreen,
+  });
 
-      <HeroCTACard
-        href={businessesHref}
-        topTitle={t("hero2TopTitle")}
-        imageSrc="/images/puzzle.png"
-        imageAlt="Puzzle"
-        title={t("partnerWithMetaculus")}
-        buttonText={t("learnMore")}
-        variant="purple"
-      >
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="flex flex-col gap-1">
-            <p className="m-0 text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
-              {t("hireProForecasters")}
-            </p>
-            <p className="m-0 text-sm font-medium leading-4 text-purple-800 dark:text-purple-800-dark">
-              {t("hireProForecastersDescription")}
-            </p>
+  return (
+    <section className={cn("w-full", className)}>
+      <div ref={emblaRef} className="overflow-x-scroll no-scrollbar">
+        <div className="flex gap-4 md:gap-4">
+          <div className="ml-4 min-w-0 shrink-0 basis-[80%] md:ml-0 md:basis-[calc(50%-8px)]">
+            <HeroCTACard
+              href={individualsHref}
+              topTitle={t("hero1TopTitle")}
+              imageSrc="/images/pie-chart.png"
+              imageAlt="Pie chart"
+              title={t("heroIndividualsTitle")}
+              buttonText={t("exploreQuestions")}
+              variant="blue"
+            >
+              <p className="m-0 mt-3 text-sm font-medium leading-4 text-blue-800 dark:text-blue-800-dark ">
+                {t("heroIndividualsDescription")}
+              </p>
+            </HeroCTACard>
           </div>
-          <div className="flex flex-col gap-1">
-            <p className="m-0 text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
-              {t("launchTournament")}
-            </p>
-            <p className="m-0 text-sm font-medium leading-4 text-purple-800 dark:text-purple-800-dark">
-              {t("launchTournamentDescription")}
-            </p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="m-0 text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
-              {t("hostPrivateInstances")}
-            </p>
-            <p className="m-0 text-sm font-medium leading-4 text-purple-800 dark:text-purple-800-dark">
-              {t("hostPrivateInstancesDescription")}
-            </p>
+
+          <div className="mr-4 min-w-0 shrink-0 basis-[80%] md:mr-0 md:basis-[calc(50%-8px)]">
+            <HeroCTACard
+              href={businessesHref}
+              topTitle={t("hero2TopTitle")}
+              imageSrc="/images/puzzle.png"
+              imageAlt="Puzzle"
+              title={t("partnerWithMetaculus")}
+              buttonText={t("learnMore")}
+              variant="purple"
+            >
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="flex flex-col gap-1">
+                  <p className="m-0 text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
+                    {t("hireProForecasters")}
+                  </p>
+                  <p className="m-0 text-sm font-medium leading-4 text-purple-800 dark:text-purple-800-dark">
+                    {t("hireProForecastersDescription")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="m-0 text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
+                    {t("launchTournament")}
+                  </p>
+                  <p className="m-0 text-sm font-medium leading-4 text-purple-800 dark:text-purple-800-dark">
+                    {t("launchTournamentDescription")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="m-0 text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
+                    {t("hostPrivateInstances")}
+                  </p>
+                  <p className="m-0 text-sm font-medium leading-4 text-purple-800 dark:text-purple-800-dark">
+                    {t("hostPrivateInstancesDescription")}
+                  </p>
+                </div>
+              </div>
+            </HeroCTACard>
           </div>
         </div>
-      </HeroCTACard>
+      </div>
     </section>
   );
 };
