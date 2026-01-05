@@ -307,7 +307,7 @@ const Footer: FC = () => {
       </div>
 
       {/* Bottom links */}
-      <div className="flex gap-8 self-start text-sm font-medium leading-4 text-gray-300">
+      <div className="flex gap-8 w-full max-w-[1352px] text-sm font-medium leading-4 text-gray-300">
         <Link
           href="/help/guidelines/"
           className="no-underline hover:text-gray-200"
