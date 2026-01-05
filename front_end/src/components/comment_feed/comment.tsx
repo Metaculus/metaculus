@@ -30,6 +30,7 @@ import { Admin } from "@/components/icons/admin";
 import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
@@ -233,6 +234,10 @@ const Comment: FC<CommentProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
+  const [includeEditForecast, setIncludeEditForecast] = useState(false);
+  const [includedForecast, setIncludedForecast] = useState(
+    comment.included_forecast
+  );
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -242,6 +247,31 @@ const Comment: FC<CommentProps> = ({
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
   const isCommentAuthor = comment.author.id === user?.id;
+
+  // Check if user had a forecast active at comment creation time
+  const commentCreatedAt = new Date(comment.created_at).getTime() / 1000;
+  const hadForecastAtCommentCreation = useMemo(() => {
+    if (comment.author.id !== user?.id) {
+      return false;
+    }
+
+    const forecasts = postData?.question?.my_forecasts?.history || [];
+
+    return forecasts.find((forecast) => {
+      const startTime = forecast.start_time;
+      const endTime = forecast.end_time;
+      return (
+        startTime <= commentCreatedAt &&
+        (endTime === null || endTime > commentCreatedAt)
+      );
+    });
+  }, [
+    comment.author.id,
+    user?.id,
+    postData?.question?.my_forecasts?.history,
+    commentCreatedAt,
+  ]);
+
   const isCmmButtonVisible =
     !!postData?.question ||
     !!postData?.group_of_questions ||
@@ -447,6 +477,7 @@ const Comment: FC<CommentProps> = ({
         id: comment.id,
         text: parsedMarkdown,
         author: user.id,
+        include_forecast: includeEditForecast,
       });
       if (response && "errors" in response) {
         setErrorMessage(response.errors as ErrorResponse);
@@ -460,6 +491,17 @@ const Comment: FC<CommentProps> = ({
         setTempCommentMarkdown(parsedMarkdown);
         setEditInitialMarkdown(parsedMarkdown);
         setIsEditing(false);
+        setIncludeEditForecast(false);
+        if (
+          response &&
+          "included_forecast" in response &&
+          response.included_forecast
+        ) {
+          setIncludedForecast({
+            ...response.included_forecast,
+            start_time: new Date(response.included_forecast.start_time),
+          });
+        }
         deleteEditDraft();
       }
     } finally {
@@ -738,10 +780,10 @@ const Comment: FC<CommentProps> = ({
         </span>
         */}
           {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
-          {comment.included_forecast && !isCollapsed && (
+          {includedForecast && !isCollapsed && !isEditing && (
             <IncludedForecast
               author={formatUsername(comment.author)}
-              forecast={comment.included_forecast}
+              forecast={includedForecast}
             />
           )}
         </div>
@@ -760,173 +802,191 @@ const Comment: FC<CommentProps> = ({
           <>
             <div className="break-anywhere">
               {isEditing && (
-                <MarkdownEditor
-                  key={`edit-${comment.id}-${editorKey}`}
-                  markdown={commentMarkdown}
-                  mode="write"
-                  onChange={(val) => {
-                    setCommentMarkdown(val);
-                    saveEditDraftDebounced(val);
-                  }}
-                  withUgcLinks
-                  withCodeBlocks
-                />
-              )}{" "}
-              {!isEditing && !(isTextEmpty && commentKeyFactors.length > 0) && (
-                <MarkdownEditor
-                  markdown={parseUserMentions(
-                    commentMarkdown,
-                    comment.mentioned_users
-                  )}
-                  mode="read"
-                  withUgcLinks
-                  withTwitterPreview
-                  withCodeBlocks
-                />
-              )}
-            </div>
-            {!!errorMessage && isEditing && (
-              <FormErrorMessage
-                errors={errorMessage}
-                containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
-              />
-            )}
-            {isEditing && (
-              <>
-                <Button
-                  onClick={handleSaveComment}
-                  disabled={isLoading}
-                  className={cn(isLoading && "h-8")}
-                >
-                  {isLoading ? (
-                    <LoadingSpinner className="mx-2.5 size-3" />
-                  ) : (
-                    t("save")
-                  )}
-                </Button>
-                <Button
-                  className="ml-2"
-                  onClick={() => {
-                    setCommentMarkdown(tempCommentMarkdown);
-                    setIsEditing(false);
-                  }}
-                  disabled={isLoading}
-                >
-                  {t("cancel")}
-                </Button>
-              </>
-            )}
-
-            {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
-              <KeyFactorsCommentSection
-                post={postData}
-                keyFactors={commentKeyFactors}
-                permission={postData.user_permission}
-                authorId={comment.author.id}
-              />
-            )}
-
-            <div className="mb-2 mt-1 h-7 overflow-visible">
-              <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-                <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <CommentVoter
-                    voteData={{
-                      commentAuthorId: comment.author.id,
-                      commentId: comment.id,
-                      voteScore: comment.vote_score,
-                      userVote: comment.user_vote ?? null,
-                    }}
-                  />
-
-                  {canShowAddKeyFactorsButton && (
-                    <Button
-                      size="xxs"
-                      variant="tertiary"
-                      onClick={onAddKeyFactorClick}
-                      disabled={isAddKeyFactorsDisabled}
-                      className={cn(
-                        "relative flex items-center justify-center",
-                        isKeyfactorsFormOpen &&
-                          "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark",
-                        isAddKeyFactorsDisabled && "cursor-default opacity-60"
-                      )}
-                    >
-                      <>
-                        <div
-                          className={cn(
-                            "absolute inset-0 flex items-center justify-center",
-                            showInitialSuggestionsLoader && "visible",
-                            !showInitialSuggestionsLoader && "invisible"
-                          )}
-                        >
-                          <LoadingSpinner className="size-4" />
-                        </div>
-                        <div
-                          className={cn(
-                            "flex items-center",
-                            showInitialSuggestionsLoader && "invisible",
-                            !showInitialSuggestionsLoader && "visible"
-                          )}
-                        >
-                          <FontAwesomeIcon
-                            icon={isKeyfactorsFormOpen ? faXmark : faPlus}
-                            className="size-4 p-1"
-                          />
-                          <span className="hidden sm:inline">
-                            {t("addKeyFactor")}
-                          </span>
-                          <span className="sm:hidden">{t("add")}</span>
-                        </div>
-                      </>
-                    </Button>
-                  )}
-
-                  {!onProfile &&
-                    (isReplying ? (
-                      <Button
-                        size="xxs"
-                        variant="tertiary"
-                        onClick={() => {
-                          setIsReplying(false);
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          icon={faXmark}
-                          className="size-4 p-1"
-                        />
-                        {t("cancel")}
-                      </Button>
-                    ) : (
-                      <Button
-                        size="xxs"
-                        onClick={() => setIsReplying(true)}
-                        variant="tertiary"
-                        className="gap-0.5"
-                      >
-                        <FontAwesomeIcon
-                          icon={faReply}
-                          className="size-4 p-1"
-                          size="xs"
-                        />
-                        {t("reply")}
-                      </Button>
-                    ))}
-
-                  {isCmmButtonVisible && (
-                    <CmmToggleButton
-                      cmmContext={cmmContext}
-                      comment_id={comment.id}
-                      disabled={isCmmButtonDisabled}
-                      ref={cmmContext.setAnchorRef}
+                <div className="flex flex-col gap-3 pb-1 pt-3">
+                  <div>
+                    <MarkdownEditor
+                      key={`edit-${comment.id}-${editorKey}`}
+                      className="rounded border border-gray-500 dark:border-gray-500-dark"
+                      markdown={commentMarkdown}
+                      mode="write"
+                      onChange={(val) => {
+                        setCommentMarkdown(val);
+                        saveEditDraftDebounced(val);
+                      }}
+                      withUgcLinks
+                      withCodeBlocks
+                    />
+                    {!includedForecast && hadForecastAtCommentCreation && (
+                      <Checkbox
+                        checked={includeEditForecast}
+                        onChange={(checked) => setIncludeEditForecast(checked)}
+                        label={t("includeMyForecastAtTheTime")}
+                        className="mt-3 text-sm"
+                      />
+                    )}
+                  </div>
+                  {!!errorMessage && (
+                    <FormErrorMessage
+                      errors={errorMessage}
+                      containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
                     />
                   )}
+                  <div className="ml-auto">
+                    <Button
+                      onClick={handleSaveComment}
+                      disabled={isLoading}
+                      className={cn(isLoading && "h-8")}
+                      variant="primary"
+                    >
+                      {isLoading ? (
+                        <LoadingSpinner className="mx-2.5 size-3" />
+                      ) : (
+                        t("save")
+                      )}
+                    </Button>
+                    <Button
+                      className="ml-2"
+                      onClick={() => {
+                        setCommentMarkdown(tempCommentMarkdown);
+                        setIsEditing(false);
+                      }}
+                      disabled={isLoading}
+                    >
+                      {t("cancel")}
+                    </Button>
+                  </div>
                 </div>
-
-                <div className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}>
-                  <DropdownMenu items={menuItems} />
-                </div>
-              </div>
+              )}
             </div>
+
+            {!isEditing && (
+              <>
+                {!(isTextEmpty && commentKeyFactors.length > 0) && (
+                  <MarkdownEditor
+                    markdown={parseUserMentions(
+                      commentMarkdown,
+                      comment.mentioned_users
+                    )}
+                    mode="read"
+                    withUgcLinks
+                    withTwitterPreview
+                    withCodeBlocks
+                  />
+                )}
+                {commentKeyFactors.length > 0 &&
+                  canListKeyFactors &&
+                  postData && (
+                    <KeyFactorsCommentSection
+                      post={postData}
+                      keyFactors={commentKeyFactors}
+                      permission={postData.user_permission}
+                      authorId={comment.author.id}
+                    />
+                  )}
+                <div className="mb-2 mt-1 h-7 overflow-visible">
+                  <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
+                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                      <CommentVoter
+                        voteData={{
+                          commentAuthorId: comment.author.id,
+                          commentId: comment.id,
+                          voteScore: comment.vote_score,
+                          userVote: comment.user_vote ?? null,
+                        }}
+                      />
+
+                      {canShowAddKeyFactorsButton && (
+                        <Button
+                          size="xxs"
+                          variant="tertiary"
+                          onClick={onAddKeyFactorClick}
+                          disabled={isAddKeyFactorsDisabled}
+                          className={cn(
+                            "relative flex items-center justify-center",
+                            isKeyfactorsFormOpen &&
+                              "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark",
+                            isAddKeyFactorsDisabled &&
+                              "cursor-default opacity-60"
+                          )}
+                        >
+                          <>
+                            <div
+                              className={cn(
+                                "absolute inset-0 flex items-center justify-center",
+                                showInitialSuggestionsLoader && "visible",
+                                !showInitialSuggestionsLoader && "invisible"
+                              )}
+                            >
+                              <LoadingSpinner className="size-4" />
+                            </div>
+                            <div
+                              className={cn(
+                                "flex items-center",
+                                showInitialSuggestionsLoader && "invisible",
+                                !showInitialSuggestionsLoader && "visible"
+                              )}
+                            >
+                              <FontAwesomeIcon
+                                icon={isKeyfactorsFormOpen ? faXmark : faPlus}
+                                className="size-4 p-1"
+                              />
+                              <span className="hidden sm:inline">
+                                {t("addKeyFactor")}
+                              </span>
+                              <span className="sm:hidden">{t("add")}</span>
+                            </div>
+                          </>
+                        </Button>
+                      )}
+
+                      {!onProfile &&
+                        (isReplying ? (
+                          <Button
+                            size="xxs"
+                            variant="tertiary"
+                            onClick={() => {
+                              setIsReplying(false);
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faXmark}
+                              className="size-4 p-1"
+                            />
+                            {t("cancel")}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="xxs"
+                            onClick={() => setIsReplying(true)}
+                            variant="tertiary"
+                            className="gap-0.5"
+                          >
+                            <FontAwesomeIcon
+                              icon={faReply}
+                              className="size-4 p-1"
+                              size="xs"
+                            />
+                            {t("reply")}
+                          </Button>
+                        ))}
+
+                      {isCmmButtonVisible && (
+                        <CmmToggleButton
+                          cmmContext={cmmContext}
+                          comment_id={comment.id}
+                          disabled={isCmmButtonDisabled}
+                          ref={cmmContext.setAnchorRef}
+                        />
+                      )}
+                    </div>
+
+                    <div className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}>
+                      <DropdownMenu items={menuItems} />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
