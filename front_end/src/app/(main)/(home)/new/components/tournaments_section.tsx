@@ -8,6 +8,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { getProjectLink } from "@/utils/navigation";
+import LiveTournamentCard from "@/app/(main)/(tournaments)/tournaments/components/tournaments_grid/live_tournament_card";
 
 const TournamentsSection: FC<{ className?: string }> = async ({
   className,
@@ -40,18 +41,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
       </div>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {tournaments.map((tournament) => (
-          <TournamentCard
-            key={tournament.id}
-            href={getProjectLink(tournament)}
-            headerImageSrc={tournament.header_image}
-            name={tournament.name}
-            questionsCount={tournament.questions_count}
-            closeDate={tournament.close_date}
-            showCloseDate={tournament.type !== TournamentType.QuestionSeries}
-            prizePool={tournament.prize_pool}
-            withCount={true}
-            isPrivate={tournament.default_permission === null}
-          />
+          <LiveTournamentCard key={tournament.id} item={tournament} />
         ))}
       </div>
     </section>
