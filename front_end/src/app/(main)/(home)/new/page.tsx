@@ -53,9 +53,7 @@ export default async function Home() {
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
-      <div className={cn(contentWidthClassNames, "px-0")}>
-        <HeroCTAs className="px-4 md:px-0" />
-      </div>
+      <HeroCTAs className={"2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-0 2xl:px-4"} />
       <div className={contentWidthClassNames}>
         <WhyMetaculus className="mt-4 md:mt-8" />
         <HomePageForecasts
