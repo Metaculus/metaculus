@@ -62,7 +62,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 The project ID to add the user to is hardcoded here - the FAB project is changed once every quarter, and it doesn't
                 make sense to build infrastructure to manage the ID from the UI. When the new FAB tournament starts, we'll just change the ID here.
               */}
-              <SignupForm forceIsBot={false} addToProject={3349} />
+              <SignupForm addToProject={3349} />
             </div>
             <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {

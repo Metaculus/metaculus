@@ -50,10 +50,31 @@ export const CoherenceLinksProvider: FC<
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
-  const fetchLinks = async () => {
-    if (!isLoggedIn || !post.question) {
+  useEffect(() => {
+    if (
+      !isLoggedIn ||
+      !post.question ||
+      !post.question.coherence_links?.length ||
+      !post.question.coherence_link_aggregations?.length
+    ) {
       setCoherenceLinks({ data: [] });
       setAggregateCoherenceLinks({ data: [] });
+      return;
+    }
+
+    setCoherenceLinks({ data: post.question.coherence_links });
+    setAggregateCoherenceLinks({
+      data: post.question.coherence_link_aggregations,
+    });
+  }, [
+    isLoggedIn,
+    post.question,
+    post.question?.coherence_links,
+    post.question?.coherence_link_aggregations,
+  ]);
+
+  const updateCoherenceLinks = async () => {
+    if (!isLoggedIn || !post.question) {
       return;
     }
 
@@ -70,15 +91,6 @@ export const CoherenceLinksProvider: FC<
     } catch (err) {
       logError(err);
     }
-  };
-
-  useEffect(() => {
-    void fetchLinks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, post.question?.id]);
-
-  const updateCoherenceLinks = async () => {
-    await fetchLinks();
   };
 
   const getOtherQuestions = () => {

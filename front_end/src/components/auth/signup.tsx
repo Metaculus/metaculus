@@ -37,14 +37,12 @@ type SignInModalType = {
 };
 
 export const SignupForm: FC<{
-  forceIsBot?: boolean;
   addToProject?: number;
   email?: string;
   inviteToken?: string;
   withNewsletterOptin?: boolean;
   redirectLocation?: string;
 }> = ({
-  forceIsBot,
   addToProject,
   email,
   inviteToken,
@@ -64,7 +62,6 @@ export const SignupForm: FC<{
     resolver: zodResolver(generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY)),
     defaultValues: {
       email,
-      isBot: forceIsBot ?? false,
       addToProject,
       inviteToken,
       // We use undefined when the form doesn't have the newsletter optin checkbox - means the user is not making a choice here.
@@ -139,7 +136,6 @@ export const SignupForm: FC<{
       <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
         <SignUpFormFragment
           errors={errors}
-          forceIsBot={forceIsBot}
           disableEmail={!!email}
           withNewsletterOptin={withNewsletterOptin}
         />
@@ -234,11 +230,7 @@ export const AccountInactive: FC<AccountInactiveModalProps> = ({
   );
 };
 
-export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
-  isOpen,
-  onClose,
-  forceIsBot,
-}) => {
+export const SignUpModal: FC<SignInModalType> = ({ isOpen, onClose }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
@@ -261,7 +253,7 @@ export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
       </div>
       <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
         <div className="border-gray-300 dark:border-gray-300-dark sm:w-80 sm:border-r sm:pr-4">
-          <SignupForm withNewsletterOptin={true} forceIsBot={forceIsBot} />
+          <SignupForm withNewsletterOptin={true} />
         </div>
         <div className="flex flex-col gap-2 sm:w-80 sm:pl-4">
           <ul className="hidden leading-tight sm:block">
@@ -331,16 +323,10 @@ export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
 };
 
 const SignUpFormFragment: FC<{
-  forceIsBot?: boolean;
   errors: NonNullable<SignUpActionState>["errors"];
   disableEmail?: boolean;
   withNewsletterOptin?: boolean;
-}> = ({
-  forceIsBot = undefined,
-  errors,
-  disableEmail = false,
-  withNewsletterOptin = false,
-}) => {
+}> = ({ errors, disableEmail = false, withNewsletterOptin = false }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
   return (
@@ -378,18 +364,6 @@ const SignUpFormFragment: FC<{
         disabled={disableEmail}
         {...register("email")}
       />
-      {forceIsBot === null && (
-        <Checkbox
-          checked={watch("isBot")}
-          onChange={(is_bot) => {
-            setValue("isBot", is_bot);
-          }}
-          label={t("signUpAsBot")}
-          className="p-1.5"
-        />
-      )}
-      <FormError errors={errors} name="isBot" />
-      <input type="hidden" {...register("isBot")} />
       {withNewsletterOptin && (
         <Checkbox
           checked={watch("newsletterOptin")}
