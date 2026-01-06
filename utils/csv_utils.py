@@ -250,7 +250,7 @@ def export_data_for_questions(
         )
         aggregate_question_links = AggregateCoherenceLink.objects.filter(
             Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
-        ).select_related("question1", "question2")
+        ).prefetch_related("question1__related_posts", "question2__related_posts")
     else:
         key_factors = None
         aggregate_question_links = None
@@ -953,17 +953,17 @@ def generate_data(
         ]
     )
     for link in aggregate_question_links or []:
-        q1_post = link.question1.get_post()
-        q2_post = link.question2.get_post()
+        q1_post_id = link.question1.get_post_id()
+        q2_post_id = link.question2.get_post_id()
         question_link_writer.writerow(
             [
                 link.id,
                 link.question1_id,
                 link.question1.title,
-                q1_post.id if q1_post else None,
+                q1_post_id,
                 link.question2_id,
                 link.question2.title,
-                q2_post.id if q2_post else None,
+                q2_post_id,
                 link.type,
                 link.created_at,
             ]
