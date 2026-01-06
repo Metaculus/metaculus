@@ -423,12 +423,16 @@ const Comment: FC<CommentProps> = ({
   };
 
   const openEdit = useCallback(() => {
+    const scrollY = window.scrollY;
     setTempCommentMarkdown(originalTextRef.current);
     setIsEditing(true);
     setEditorKey((k) => k + 1);
     setCommentMarkdown(
       editDraftReady ? editInitialMarkdown : originalTextRef.current
     );
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY);
+    });
   }, [editDraftReady, editInitialMarkdown]);
 
   const updateForecast = async (value: number) => {
