@@ -825,37 +825,41 @@ const Comment: FC<CommentProps> = ({
                       withUgcLinks
                       withCodeBlocks
                     />
-                    {hadForecastAtCommentCreation && postData?.question && (
-                      <RichText>
-                        {(tags) => (
-                          <Checkbox
-                            checked={!!includedForecast || includeEditForecast}
-                            onChange={(checked) =>
-                              setIncludeEditForecast(checked)
-                            }
-                            label="includeMyForecastAtTheTime"
-                            className="ml-auto mt-2 w-fit text-sm"
-                            disabled={!!includedForecast}
-                          >
-                            <span
-                              className={cn({
-                                "opacity-35": !!includedForecast,
-                              })}
+                    {hadForecastAtCommentCreation &&
+                      postData?.question &&
+                      !comment.parent_id && (
+                        <RichText>
+                          {(tags) => (
+                            <Checkbox
+                              checked={
+                                !!includedForecast || includeEditForecast
+                              }
+                              onChange={(checked) =>
+                                setIncludeEditForecast(checked)
+                              }
+                              label="includeMyForecastAtTheTime"
+                              className="ml-auto mt-2 w-fit text-sm"
+                              disabled={!!includedForecast}
                             >
-                              {t.rich("includeMyForecastAtTheTime", {
-                                ...tags,
-                                forecast: formatForecastValueText(
-                                  userForecastToForecastType(
-                                    hadForecastAtCommentCreation,
-                                    postData.question
-                                  )
-                                ),
-                              })}
-                            </span>
-                          </Checkbox>
-                        )}
-                      </RichText>
-                    )}
+                              <span
+                                className={cn({
+                                  "opacity-35": !!includedForecast,
+                                })}
+                              >
+                                {t.rich("includeMyForecastAtTheTime", {
+                                  ...tags,
+                                  forecast: formatForecastValueText(
+                                    userForecastToForecastType(
+                                      hadForecastAtCommentCreation,
+                                      postData.question
+                                    )
+                                  ),
+                                })}
+                              </span>
+                            </Checkbox>
+                          )}
+                        </RichText>
+                      )}
                   </div>
                   {!!errorMessage && (
                     <FormErrorMessage
