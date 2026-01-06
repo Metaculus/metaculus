@@ -35,7 +35,7 @@ export const PRO_FORECASTERS: ProForecaster[] = [
     name: "Isabel Juniewicz",
     description: (
       <>
-        Isabel is a Research Fellow at{" "}
+        Isabel previously worked as a Research Fellow at{" "}
         <ProForecasterLink href="https://www.openphilanthropy.org/">
           Open Philanthropy
         </ProForecasterLink>
@@ -51,7 +51,7 @@ export const PRO_FORECASTERS: ProForecaster[] = [
       </>
     ),
     rawDescription:
-      "Isabel is a Research Fellow at Open Philanthropy, serving on the Cause Prioritization Team within the Global Catastrophic Risks focus area. She holds a master’s degree in economics from UCLA and was a Senior Research Assistant at the Federal Reserve Board of Governors. Isabel has contributed to several Metaculus Pro Forecasting projects, focusing on artificial intelligence, the conflict in Ukraine, and regional supply chains.",
+      "Isabel previously worked as a Research Fellow at Open Philanthropy, serving on the Cause Prioritization Team within the Global Catastrophic Risks focus area. She holds a master’s degree in economics from UCLA and was a Senior Research Assistant at the Federal Reserve Board of Governors. Isabel has contributed to several Metaculus Pro Forecasting projects, focusing on artificial intelligence, the conflict in Ukraine, and regional supply chains.",
     linkedInUrl: "https://www.linkedin.com/in/isabel-juniewicz-50867135/",
     image: IsabelJuniewiczImage,
   },
