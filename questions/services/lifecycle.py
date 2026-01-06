@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from notifications.services import delete_scheduled_question_resolution_notifications
 from posts.models import Post
@@ -67,6 +68,9 @@ def resolve_question(
     resolution: str,
     actual_resolve_time: datetime,
 ):
+    if question.open_time and question.open_time > actual_resolve_time:
+        raise ValidationError("Can't resolve a question before its open date")
+
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
