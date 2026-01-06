@@ -271,6 +271,8 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     weeks_comments = Comment.objects.filter(
         created_at__gte=week_start_datetime,
         created_at__lt=week_end_datetime,
+        on_post__isnull=False,
+        on_post__default_project__visibility=Project.Visibility.NORMAL,
     ).exclude(author__is_staff=True)
 
     comments_of_week = weeks_comments.annotate(
