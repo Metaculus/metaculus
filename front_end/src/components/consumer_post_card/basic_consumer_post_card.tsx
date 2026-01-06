@@ -3,7 +3,9 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
-import KeyFactorsTileDisplay from "@/app/(main)/questions/[id]/components/key_factors/key_factors_tile_display";
+import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
+import KeyFactorsTileView from "@/app/(main)/questions/[id]/components/key_factors/questions_feed_view/key_factors_tile_view";
+import ParticipationSummaryQuestionTile from "@/app/(main)/questions/[id]/components/post_score_data/participation_summary_question_tile";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
@@ -91,8 +93,13 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
           ></Link>
         </div>
 
-        {isQuestionPost(post) && (post.key_factors?.length ?? 0) > 0 && (
-          <KeyFactorsTileDisplay post={post} className="mt-[28px]" />
+        {isQuestionPost(post) && (
+          <CoherenceLinksProvider post={post}>
+            <KeyFactorsTileView post={post} className="mt-[28px]" />
+          </CoherenceLinksProvider>
+        )}
+        {isQuestionPost(post) && (
+          <ParticipationSummaryQuestionTile post={post} />
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@
 import {
   faBell,
   faGear,
+  faRobot,
   faUser,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
@@ -12,10 +13,12 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import { useAuth } from "@/contexts/auth_context";
 import { isPathEqual } from "@/utils/navigation";
 
 const SettingsHeader: FC = ({}) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const pathname = usePathname();
   const tabsOptions: GroupButton<string>[] = [
     {
@@ -28,6 +31,15 @@ const SettingsHeader: FC = ({}) => {
       label: <TabItem icon={faBell} label={t("settingsNotifications")} />,
       href: "/accounts/settings/notifications/",
     },
+    ...(!user?.is_bot
+      ? [
+          {
+            value: "bots",
+            label: <TabItem icon={faRobot} label={t("myForecastingBots")} />,
+            href: "/accounts/settings/bots/",
+          },
+        ]
+      : []),
     {
       value: "account",
       label: <TabItem icon={faUser} label={t("settingsAccount")} />,
@@ -46,12 +58,15 @@ const SettingsHeader: FC = ({}) => {
       <div className="text-sm text-gray-600 dark:text-gray-600-dark">
         {t("settingsDescription")}
       </div>
-      <ButtonGroup
-        value={currentPage}
-        buttons={tabsOptions}
-        onChange={() => {}}
-        variant="tertiary"
-      />
+      <div className="-ml-4 w-[calc(100%+32px)] overflow-scroll px-4 no-scrollbar sm:ml-0 sm:w-full sm:px-0">
+        <ButtonGroup
+          value={currentPage}
+          buttons={tabsOptions}
+          onChange={() => {}}
+          variant="tertiary"
+          containerClassName="w-max"
+        />
+      </div>
     </div>
   );
 };
@@ -62,7 +77,7 @@ const TabItem: FC<{ icon: IconDefinition; label: string }> = ({
 }) => {
   return (
     <div className="flex gap-2">
-      <FontAwesomeIcon icon={icon} className="hidden xxs:block" />
+      <FontAwesomeIcon icon={icon} />
       <span>{label}</span>
     </div>
   );

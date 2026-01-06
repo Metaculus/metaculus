@@ -5,10 +5,12 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
-import KeyFactorsTileDisplay from "@/app/(main)/questions/[id]/components/key_factors/key_factors_tile_display";
+import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
+import KeyFactorsTileView from "@/app/(main)/questions/[id]/components/key_factors/questions_feed_view/key_factors_tile_view";
+import ParticipationSummaryQuestionTile from "@/app/(main)/questions/[id]/components/post_score_data/participation_summary_question_tile";
 import BasicPostControls from "@/components/post_card/basic_post_card/post_controls";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
-import { Post } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
@@ -18,12 +20,13 @@ type BorderVariant = "regular" | "highlighted";
 type BorderColor = "blue" | "purple";
 
 type Props = {
-  post: Post;
+  post: PostWithForecasts;
   hideTitle?: boolean;
   borderVariant?: BorderVariant;
   borderColor?: BorderColor;
   forCommunityFeed?: boolean;
   indexWeight?: number;
+  minimalistic?: boolean;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -34,6 +37,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   children,
   forCommunityFeed,
   indexWeight,
+  minimalistic = false,
 }) => {
   const { title } = post;
 
@@ -49,7 +53,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
+          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
@@ -62,7 +66,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         <Link href={getPostLink(post)} className="block no-underline">
           {!hideTitle && (
             <div className="mb-[18px] flex flex-col gap-[10px] sm:mb-0 sm:flex-row sm:gap-3">
-              <h4 className="relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3">
+              <h4
+                className={cn(
+                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3",
+                  minimalistic && " line-clamp-2"
+                )}
+              >
                 {title}
               </h4>
               {typeof indexWeight === "number" && (
@@ -74,9 +83,15 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           )}
           {children}
         </Link>
-        <BasicPostControls post={post} />
-        {isQuestionPost(post) && (post.key_factors?.length ?? 0) > 0 && (
-          <KeyFactorsTileDisplay post={post} />
+        <div className="mt-auto" />
+        <BasicPostControls post={post} minimalistic={minimalistic} />
+        {!minimalistic && isQuestionPost(post) && (
+          <CoherenceLinksProvider post={post}>
+            <KeyFactorsTileView post={post} />
+          </CoherenceLinksProvider>
+        )}
+        {isQuestionPost(post) && (
+          <ParticipationSummaryQuestionTile post={post} />
         )}
       </div>
     </div>

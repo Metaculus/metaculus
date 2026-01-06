@@ -14,32 +14,32 @@ const AIBInfoTournaments: React.FC = () => {
     {
       title: "Fall 2025",
       href: "/aib/2025/fall",
-      imgUrl: "https://metaculus-web-media.s3.amazonaws.com/aib-q3.webp",
+      imgUrl: "https://cdn.metaculus.com/aib-q3.webp",
       prize: "$58,000",
       isLive: true,
     },
     {
       title: "Q2 2025",
       href: "/aib/2025/q2",
-      imgUrl: "https://metaculus-web-media.s3.amazonaws.com/aib-q2.webp",
+      imgUrl: "https://cdn.metaculus.com/aib-q2.webp",
       prize: "$30,000",
     },
     {
       title: "Q1 2025",
       href: "/aib/2025/q1",
-      imgUrl: "https://metaculus-web-media.s3.amazonaws.com/2025-q1.webp",
+      imgUrl: "https://cdn.metaculus.com/2025-q1.webp",
       prize: "$30,000",
     },
     {
       title: "Q4 2024",
       href: "/aib/2024/q4",
-      imgUrl: "https://metaculus-media.s3.amazonaws.com/hires-q4.webp",
+      imgUrl: "https://cdn.metaculus.com/hires-q4.webp",
       prize: "$30,000",
     },
     {
       title: "Q3 2024",
       href: "/aib/2024/q3",
-      imgUrl: "https://metaculus-media.s3.amazonaws.com/hires-bw.webp",
+      imgUrl: "https://cdn.metaculus.com/hires-bw.webp",
       prize: "$30,000",
     },
   ];
@@ -62,9 +62,7 @@ const AIBInfoTournaments: React.FC = () => {
       >
         <p className="m-0 text-center text-sm font-medium text-blue-800 antialiased dark:text-blue-800-dark md:text-lg">
           {t.rich("aibMiniBenchBanner", {
-            link: (chunks) => (
-              <Link href="/tournament/minibench/">{chunks}</Link>
-            ),
+            link: (chunks) => <Link href="/aib/minibench/">{chunks}</Link>,
           })}
         </p>
       </div>

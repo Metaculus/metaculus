@@ -15,7 +15,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from comments.models import (
     ChangedMyMindEntry,
@@ -89,6 +89,9 @@ def create_comment(
     # Inherit root comment privacy
     if root:
         is_private = root.is_private
+
+    if not is_private and user.is_bot and not user.is_primary_bot:
+        raise PermissionDenied("Only your primary bot can post public comments.")
 
     with transaction.atomic():
         obj = Comment(
@@ -197,17 +200,21 @@ def unpin_comment(comment: Comment):
 
 @transaction.atomic
 def soft_delete_comment(comment: Comment):
-    post = comment.on_post
+    if comment.is_soft_deleted:
+        return
 
-    # Decrement counter during comment deletion
-    post.snapshots.filter(viewed_at__gte=comment.created_at).update(
-        comments_count=F("comments_count") - 1
-    )
+    post = comment.on_post
 
     comment.is_soft_deleted = True
     comment.save(update_fields=["is_soft_deleted"])
 
     post.update_comment_count()
+
+    if not comment.is_private:
+        # Decrement counter during comment deletion
+        post.snapshots.filter(viewed_at__gte=comment.created_at).update(
+            comments_count=F("comments_count") - 1
+        )
 
 
 def compute_comment_score(

@@ -121,7 +121,7 @@ const Footer: FC = () => {
         >
           <Image
             className="object-contain px-2 invert"
-            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/Forbes.d977fa9e9196.png"
+            src="https://cdn.metaculus.com/static/media/Forbes.webp"
             alt="Forbes"
             fill
             sizes="(max-width: 768px) 92px, 20vw"
@@ -133,7 +133,7 @@ const Footer: FC = () => {
         >
           <Image
             className="object-contain px-2 invert"
-            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/Scientific_American.7b92ecaf540e.png"
+            src="https://cdn.metaculus.com/static/media/Scientific_American.webp"
             alt="Scientific American"
             fill
             sizes="(max-width: 768px) 85px, 20vw"
@@ -145,7 +145,7 @@ const Footer: FC = () => {
         >
           <Image
             className="w-auto max-w-[80px] object-contain px-2 invert"
-            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/time.51a0d6644179.png"
+            src="https://cdn.metaculus.com/static/media/time.webp"
             alt="Time"
             fill
             sizes="(max-width: 768px) 80px, 20vw"
@@ -157,7 +157,7 @@ const Footer: FC = () => {
         >
           <Image
             className="w-auto max-w-[60px] object-contain px-2 invert"
-            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/vox.e0f55c55ae3c.png"
+            src="https://cdn.metaculus.com/static/media/vox.webp"
             alt="Vox"
             fill
             sizes="(max-width: 768px) 60px, 20vw"
@@ -169,7 +169,7 @@ const Footer: FC = () => {
         >
           <Image
             className="w-auto max-w-[125px] object-contain px-2 invert"
-            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/yale.ce7e6c2b0f04.png"
+            src="https://cdn.metaculus.com/static/media/yale.webp"
             alt="Yale News"
             fill
             sizes="(max-width: 768px) 125px, 20vw"
@@ -181,7 +181,7 @@ const Footer: FC = () => {
         >
           <Image
             className="w-auto max-w-[96px] object-contain px-2 invert"
-            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/nature.b83b2c778bce.png"
+            src="https://cdn.metaculus.com/static/media/nature.webp"
             alt="Nature"
             fill
             sizes="(max-width: 768px) 96px, 20vw"

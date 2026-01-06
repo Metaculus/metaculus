@@ -18,64 +18,57 @@ const articles = [
     outlet: "The Economist",
     title: "What would humans do in a world of super-AI?",
     link: "https://www.economist.com/finance-and-economics/2023/05/23/what-would-humans-do-in-a-world-of-super-ai/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Economist_Logo.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/The_Economist_Logo.svg",
   },
   {
     outlet: "Forbes",
     title: "GPT: To Ban Or Not To Ban? That Is The Question",
     link: "https://www.forbes.com/sites/calumchace/2023/05/02/gpt-to-ban-or-not-to-ban-that-is-the-question/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Forbes_logo.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/Forbes_logo.svg",
   },
   {
     outlet: "The Atlantic",
     title: "How Future Generations Will Remember Us",
     link: "https://www.theatlantic.com/ideas/archive/2022/08/future-generations-climate-change-pandemics-ai/671148/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Atlantic_magazine_logo.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/The_Atlantic_magazine_logo.svg",
   },
   {
     outlet: "Politico",
     title: "We Need a Manhattan Project for AI Safety",
     link: "https://www.politico.com/news/magazine/2023/05/08/manhattan-project-for-ai-safety-00095779/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/POLITICOLOGO.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/POLITICOLOGO.svg",
   },
   {
     outlet: "The Washington Post",
     title: "Want politics to be better? Focus on future generations",
     link: "https://www.washingtonpost.com/outlook/2022/09/16/future-design-yahaba-politics/#:~:text=Metaculus",
     logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Logo_of_The_Washington_Post_Newspaper.svg",
+      "https://cdn.metaculus.com/logos/The_Logo_of_The_Washington_Post_Newspaper.svg",
   },
   {
     outlet: "Vox",
     title: "Predictions are hard, especially about the coronavirus",
     link: "https://www.vox.com/future-perfect/2020/4/8/21210193/coronavirus-forecasting-models-predictions/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Vox_logo.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/Vox_logo.svg",
   },
   {
     outlet: "Seeking Alpha",
     title: "Nvidia May Need More Cash Flow To Join The Trillion-Dollar Club",
     link: "https://seekingalpha.com/article/4591891-nvidia-may-need-more-cash-flow-to-join-trillion-dollar-club/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/Seeking_Alpha_Logo.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/Seeking_Alpha_Logo.svg",
   },
   {
     outlet: "The Conversation",
     title: "Will AI ever reach human-level intelligence? We asked five experts",
     link: "https://theconversation.com/will-ai-ever-reach-human-level-intelligence-we-asked-five-experts-202515/#:~:text=Metaculus",
     logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/The_Conversation_website_text_logo.svg",
+      "https://cdn.metaculus.com/logos/The_Conversation_website_text_logo.svg",
   },
   {
     outlet: "BBC.com",
     title: "What is longtermism?",
     link: "https://www.bbc.com/future/article/20220805-what-is-longtermism-and-why-does-it-matter/#:~:text=Metaculus",
-    logoUrl:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/logos/BBC_Logo_2021.svg",
+    logoUrl: "https://cdn.metaculus.com/logos/BBC_Logo_2021.svg",
   },
 ];
 
@@ -140,7 +133,7 @@ export default async function PressPage() {
             <a
               target="_blank"
               rel="noreferrer"
-              href="https://metaculus-media.s3.us-west-2.amazonaws.com/metaculus-press-kit.zip"
+              href="https://cdn.metaculus.com/metaculus-press-kit.zip"
             >
               Click here
             </a>{" "}

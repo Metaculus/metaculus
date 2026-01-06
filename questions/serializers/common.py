@@ -15,8 +15,8 @@ from questions.models import (
     Conditional,
     GroupOfQuestions,
     AggregateForecast,
+    Forecast,
 )
-from questions.models import Forecast
 from questions.serializers.aggregate_forecasts import (
     serialize_question_aggregations,
 )
@@ -584,12 +584,22 @@ def serialize_question(
     minimize: bool = True,
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
+    question_average_coverage: float = None,
+    coherence_links: list[dict] = None,
+    coherence_link_aggregations: list[dict] = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+
+    serialized_data.update(
+        {
+            "coherence_links": coherence_links,
+            "coherence_link_aggregations": coherence_link_aggregations,
+        }
+    )
 
     if include_descriptions:
         serialized_data.update(
@@ -600,10 +610,14 @@ def serialize_question(
             }
         )
 
+    if post:
+        serialized_data["short_title"] = post.short_title
+
     serialized_data["post_id"] = post.id if post else question.get_post_id()
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
+    serialized_data["average_coverage"] = question_average_coverage
 
     if question_movement:
         if default_agg := serialized_data["aggregations"].get(
@@ -750,6 +764,7 @@ def serialize_group(
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
+    question_average_coverages: dict[Question, float] | None = None,
 ):
     question_movements = question_movements or {}
 
@@ -781,6 +796,7 @@ def serialize_group(
                 ),
                 include_descriptions=include_descriptions,
                 question_movement=question_movements.get(question),
+                question_average_coverage=question_average_coverages.get(question),
             )
         )
 

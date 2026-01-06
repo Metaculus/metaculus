@@ -24,9 +24,15 @@ type Props = {
   post: PostWithForecasts;
   forCommunityFeed?: boolean;
   indexWeight?: number;
+  minimalistic?: boolean;
 };
 
-const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
+const PostCard: FC<Props> = ({
+  post,
+  forCommunityFeed,
+  indexWeight,
+  minimalistic = false,
+}) => {
   const { user } = useAuth();
   const hideCP =
     user?.hide_community_prediction &&
@@ -49,6 +55,7 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
           borderColor={internalPost.notebook ? "purple" : "blue"}
           forCommunityFeed={forCommunityFeed}
           indexWeight={indexWeight}
+          minimalistic={minimalistic}
         >
           <HideCPProvider post={internalPost}>
             {isQuestionPost(internalPost) && (
@@ -58,10 +65,14 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
                 curationStatus={post.status}
                 hideCP={hideCP}
                 canPredict={canPredict}
+                minimalistic={minimalistic}
               />
             )}
             {isGroupOfQuestionsPost(internalPost) && (
-              <GroupOfQuestionsTile post={internalPost} />
+              <GroupOfQuestionsTile
+                post={internalPost}
+                minimalistic={minimalistic}
+              />
             )}
             {isConditionalPost(internalPost) && (
               <ConditionalTile post={internalPost} />

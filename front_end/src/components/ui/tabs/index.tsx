@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ButtonHTMLAttributes,
   createContext,
+  MouseEventHandler,
   ReactNode,
   useCallback,
   useContext,
@@ -15,11 +16,13 @@ import {
 import cn from "@/utils/core/cn";
 
 type TabsVariant = "separated" | "group";
+
 type TabsContextValue = {
   variant: TabsVariant;
   active: string;
   setActive: (v: string) => void;
 };
+
 const TabsContext = createContext<TabsContextValue | null>(null);
 TabsContext.displayName = "TabsContext";
 
@@ -48,7 +51,6 @@ export const Tabs = ({
 }) => {
   const [internalActive, setInternalActive] = useState(defaultValue);
 
-  // Support both controlled and uncontrolled modes
   const active = controlledValue ?? internalActive;
   const setActive = useCallback(
     (v: string) => {
@@ -60,6 +62,7 @@ export const Tabs = ({
     },
     [onChange]
   );
+
   const value = useMemo(
     () => ({ active, setActive, variant }),
     [active, variant, setActive]
@@ -82,11 +85,12 @@ export const TabsList = ({
   className?: string;
 }) => {
   const ctx = useTabsContext();
+
   return (
     <div
       className={cn(
-        "scrollbar-none z-10 -mx-4 flex overflow-x-auto bg-blue-200 px-4 py-3 dark:bg-blue-200-dark",
-        ctx.variant === "separated" && "sticky top-12 gap-2",
+        "scrollbar-none z-10 -mx-3 flex overflow-x-auto bg-blue-200 px-3 py-3 dark:bg-blue-200-dark sm:-mx-4 sm:px-4",
+        ctx.variant === "separated" ? "sticky top-12 gap-2" : "gap-2", // non-sticky for "group" to keep both behaviours valid
         className
       )}
     >
@@ -103,6 +107,7 @@ type TabsTabProps = {
   onSelect?: (value: string) => void;
   scrollOnSelect?: boolean;
   href?: string;
+  dynamicClassName?: (isActive: boolean) => string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const TabsTab = ({
@@ -113,6 +118,7 @@ export const TabsTab = ({
   onSelect,
   scrollOnSelect = true,
   href,
+  dynamicClassName,
   ...buttonProps
 }: TabsTabProps) => {
   const ctx = useTabsContext();
@@ -120,31 +126,49 @@ export const TabsTab = ({
   const HEADER_OFFSET = 60;
 
   const baseClass = cn(
-    "whitespace-nowrap transition-colors",
-    isActive
-      ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-      : "bg-gray-0 dark:bg-gray-0-dark",
-    "first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
-    "border px-3 py-1 text-sm font-[500] leading-[16px] sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
-    !isActive &&
-      "border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
-    isActive && "border-transparent",
+    "whitespace-nowrap px-3 py-1 text-sm transition-colors sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
+    ctx.variant === "separated"
+      ? [
+          // pill-style tabs
+          "rounded-full",
+          isActive
+            ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
+            : "bg-gray-0 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark",
+        ]
+      : [
+          // grouped / segmented control style
+          "border font-[500] items-center flex no-underline leading-[16px] first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:-ml-px",
+          isActive
+            ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark border-transparent"
+            : "bg-gray-0 dark:bg-gray-0-dark border-blue-400 text-blue-700 dark:border-blue-400 dark:text-blue-700-dark",
+        ],
+    dynamicClassName?.(isActive),
     className
   );
 
-  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+  const handleTabClick: MouseEventHandler<
+    HTMLButtonElement | HTMLAnchorElement
+  > = (e) => {
     ctx.setActive(value);
 
     if (!href && scrollOnSelect) {
-      (e.target as HTMLElement)?.scrollIntoView({
+      const target = e.currentTarget;
+
+      target.scrollIntoView({
         inline: "center",
         behavior: "smooth",
       });
-      const top =
-        (e.target as HTMLElement).getBoundingClientRect().top + window.scrollY;
+
+      const top = target.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top: top - HEADER_OFFSET, behavior: "smooth" });
     }
+
     onSelect?.(value);
+  };
+
+  const handleButtonClick: MouseEventHandler<HTMLButtonElement> = (e) => {
+    handleTabClick(e);
+    buttonProps.onClick?.(e);
   };
 
   const inner = icon ? (
@@ -157,7 +181,7 @@ export const TabsTab = ({
   );
 
   return href ? (
-    <Link href={href} className={baseClass} onClick={handleClick}>
+    <Link href={href} className={baseClass} onClick={handleTabClick}>
       {inner}
     </Link>
   ) : (
@@ -165,7 +189,7 @@ export const TabsTab = ({
       type="button"
       {...buttonProps}
       className={baseClass}
-      onClick={handleClick}
+      onClick={handleButtonClick}
     >
       {inner}
     </button>

@@ -269,7 +269,7 @@ const DisclosureSection = () => {
           >
             <Image
               className="h-auto w-full max-w-full"
-              src="https://metaculus-media.s3.us-west-2.amazonaws.com/TheEconomistMetaculusAI.webp"
+              src="https://cdn.metaculus.com/TheEconomistMetaculusAI.webp"
               alt="The Economist graph based on data by Metaculus on the question of when will the first general-AI system be devised, tested and announced"
               width={640}
               height={708}

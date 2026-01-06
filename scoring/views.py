@@ -3,9 +3,9 @@ from django.db.models import Q, Count
 from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
-from rest_framework.exceptions import NotFound
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -13,7 +13,6 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
-from questions.models import AggregationMethod
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard, LeaderboardEntry, LeaderboardsRanksEntry
 from scoring.serializers import (
@@ -23,9 +22,8 @@ from scoring.serializers import (
     GetLeaderboardSerializer,
 )
 from scoring.utils import get_contributions, update_project_leaderboard
-
 from users.models import User
-from users.views import serialize_profile
+from users.services.profile_stats import serialize_metaculus_stats
 
 
 @api_view(["GET"])
@@ -196,6 +194,15 @@ def user_medal_ranks(
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    # Validate userId is a valid integer
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return Response(
+            {"error": "userId must be a valid integer"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     ranks_qs = LeaderboardsRanksEntry.objects.filter(user=user_id)
     ranks = []
     for entry in ranks_qs:
@@ -219,6 +226,15 @@ def user_medals(
     user_id = request.GET.get("userId", None)
     if not user_id:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate userId is a valid integer
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return Response(
+            {"error": "userId must be a valid integer"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     entries_with_medals = LeaderboardEntry.objects.filter(
         user_id=user_id,
@@ -335,13 +351,9 @@ def medal_contributions(
     return Response(return_data)
 
 
-@cache_page(60 * 60 * 24)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def metaculus_track_record(
     request: Request,
 ):
-    # TODO: make it "default"
-    return Response(
-        serialize_profile(aggregation_method=AggregationMethod.RECENCY_WEIGHTED)
-    )
+    return Response(serialize_metaculus_stats())
