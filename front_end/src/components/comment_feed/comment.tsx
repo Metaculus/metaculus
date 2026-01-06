@@ -834,7 +834,7 @@ const Comment: FC<CommentProps> = ({
                               setIncludeEditForecast(checked)
                             }
                             label="includeMyForecastAtTheTime"
-                            className="mt-2 text-sm"
+                            className="ml-auto mt-2 w-fit text-sm"
                             disabled={!!includedForecast}
                           >
                             <span
@@ -863,7 +863,7 @@ const Comment: FC<CommentProps> = ({
                       containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
                     />
                   )}
-                  <div className="ml-auto">
+                  <div className="ml-auto mt-1">
                     <Button
                       onClick={handleSaveComment}
                       disabled={isLoading}
