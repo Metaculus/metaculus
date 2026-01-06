@@ -185,8 +185,9 @@ def comment_edit_api_view(request: Request, pk: int):
         )
 
     update_comment(comment, text, included_forecast=forecast)
+    comment.refresh_from_db()
 
-    return Response({}, status=status.HTTP_200_OK)
+    return Response(serialize_comment(comment), status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
