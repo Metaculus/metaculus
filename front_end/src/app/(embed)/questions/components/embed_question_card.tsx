@@ -15,6 +15,7 @@ type Props = {
   size: EmbedSize;
   theme?: EmbedTheme;
   titleOverride?: string;
+  isDynamicMcHeight?: boolean;
 };
 
 const EmbedQuestionCard: React.FC<Props> = ({
@@ -23,22 +24,32 @@ const EmbedQuestionCard: React.FC<Props> = ({
   size,
   theme,
   titleOverride,
+  isDynamicMcHeight = false,
 }) => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [legendHeight, setLegendHeight] = useState(0);
   const [ogReady, setOgReady] = useState(!ogMode);
 
-  const chartHeight = useMemo(
-    () =>
-      getEmbedChartHeight({
+  const chartHeight = useMemo(() => {
+    if (ogMode) {
+      return getEmbedChartHeight({
         post,
         ogMode,
         size,
         headerHeight,
         legendHeight,
-      }),
-    [post, ogMode, size, headerHeight, legendHeight]
-  );
+      });
+    }
+
+    if (isDynamicMcHeight) return undefined;
+    return getEmbedChartHeight({
+      post,
+      ogMode,
+      size,
+      headerHeight,
+      legendHeight,
+    });
+  }, [post, ogMode, size, headerHeight, legendHeight, isDynamicMcHeight]);
 
   useEffect(() => {
     if (!ogMode) return;
@@ -61,7 +72,7 @@ const EmbedQuestionCard: React.FC<Props> = ({
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
-  }, [ogMode, headerHeight, chartHeight]);
+  }, [ogMode, headerHeight, legendHeight]);
 
   return (
     <QuestionViewModeProvider mode="embed">
