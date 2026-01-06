@@ -61,6 +61,7 @@ class ProjectsQuerySet(models.QuerySet):
                 project_id=OuterRef("pk"),
                 post__curation_status=Post.CurationStatus.APPROVED,
                 post__open_time__lte=now,
+                post__notebook__isnull=True,
             )
             .filter(
                 Q(post__actual_close_time__isnull=True)
