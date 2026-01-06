@@ -1247,6 +1247,7 @@
   "commentData": "評論數據",
   "anonymize": "匿名化",
   "scoreData": "分數數據",
+  "keyFactorData": "關鍵因素數據",
   "includeUserData": "包含用戶數據",
   "aggregationMethods": "匯總方法",
   "configuration": "配置",
