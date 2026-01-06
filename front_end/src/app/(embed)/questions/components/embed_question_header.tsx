@@ -102,7 +102,10 @@ const EmbedQuestionHeader: React.FC<Props> = ({
       className={cn("flex items-center gap-3", isEmbed && "items-start")}
     >
       <TruncatableQuestionTitle
-        className={cn("!text-[20px] !leading-[125%]", titleMinHeightClass)}
+        className={cn(
+          "!text-[20px] !leading-[125%] [@container(max-width:375px)]:!text-[16px]",
+          titleMinHeightClass
+        )}
         maxLines={maxLines}
         revealOnHoverOrTap={true}
         style={titleStyle}

@@ -6,7 +6,10 @@ import { ContinuousQuestionTypes } from "@/constants/questions";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isGroupOfQuestionsPost,
+  isQuestionPost,
+} from "@/utils/questions/helpers";
 
 import EmbedQuestionCard from "./embed_question_card";
 import { EmbedTheme } from "../constants/embed_theme";
@@ -21,14 +24,11 @@ type Props = {
 };
 
 const MIN_EMBED_WIDTH = 360;
+const DYNAMIC_BELOW_WIDTH = 440;
 
 function getBinaryContinuousSize(containerWidth: number): EmbedSize {
-  if (containerWidth >= 550) {
-    return { width: 550, height: 360 };
-  }
-  if (containerWidth >= 440) {
-    return { width: 440, height: 360 };
-  }
+  if (containerWidth >= 550) return { width: 550, height: 360 };
+  if (containerWidth >= 440) return { width: 440, height: 360 };
   return { width: 360, height: 360 };
 }
 
@@ -63,9 +63,7 @@ const EmbedScreen: React.FC<Props> = ({
 }) => {
   const frameRef = useRef<HTMLDivElement | null>(null);
 
-  const [size, setSize] = useState<EmbedSize>(() =>
-    getSizeForPost(post, MIN_EMBED_WIDTH)
-  );
+  const [containerWidth, setContainerWidth] = useState(MIN_EMBED_WIDTH);
 
   useEffect(() => {
     if (!frameRef.current) return;
@@ -75,21 +73,31 @@ const EmbedScreen: React.FC<Props> = ({
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       const rawWidth = entry?.contentRect.width ?? MIN_EMBED_WIDTH;
-      const effectiveWidth = Math.max(rawWidth, MIN_EMBED_WIDTH);
-
-      setSize(getSizeForPost(post, effectiveWidth));
+      setContainerWidth(rawWidth);
     });
 
     observer.observe(el);
-
     return () => observer.disconnect();
   }, [post]);
 
   const ogMode =
     typeof targetWidth === "number" && typeof targetHeight === "number";
 
-  const baseWidth = size.width || MIN_EMBED_WIDTH;
-  const baseHeight = size.height || MIN_EMBED_WIDTH;
+  const isMC =
+    isQuestionPost(post) && post.question?.type === QuestionType.MultipleChoice;
+  const isDynamic = !ogMode && isMC && containerWidth < DYNAMIC_BELOW_WIDTH;
+
+  const effectiveWidthForSizing = isDynamic
+    ? containerWidth
+    : Math.max(containerWidth, MIN_EMBED_WIDTH);
+
+  const snapped = getSizeForPost(post, effectiveWidthForSizing);
+
+  const baseWidth = isDynamic
+    ? effectiveWidthForSizing
+    : snapped.width || MIN_EMBED_WIDTH;
+
+  const baseHeight = snapped.height || MIN_EMBED_WIDTH;
 
   const scale = ogMode
     ? Math.min(targetWidth / baseWidth, targetHeight / baseHeight)
@@ -112,18 +120,18 @@ const EmbedScreen: React.FC<Props> = ({
         overflow: "hidden",
       }
     : {
-        width: baseWidth,
-        height: baseHeight,
-        minWidth: MIN_EMBED_WIDTH,
-        minHeight: baseHeight,
+        width: isDynamic ? "100%" : baseWidth,
+        ...(isDynamic ? {} : { minWidth: MIN_EMBED_WIDTH }),
+        ...(isDynamic ? {} : { height: baseHeight, minHeight: baseHeight }),
+
         boxSizing: "border-box",
       };
 
   return (
     <div
       ref={frameRef}
-      className="flex size-full min-h-[inherit] items-center justify-center"
-      style={{ minWidth: MIN_EMBED_WIDTH }}
+      className="flex size-full min-h-[inherit] items-center justify-center [container-type:inline-size]"
+      style={{ minWidth: isDynamic ? undefined : MIN_EMBED_WIDTH }}
     >
       <div
         id="id-used-by-screenshot-donot-change"
@@ -142,21 +150,21 @@ const EmbedScreen: React.FC<Props> = ({
             isBinary || isContinuous ? "gap-5" : "gap-4 pb-5"
           )}
           style={{
-            width: baseWidth,
-            height: baseHeight,
-            minWidth: MIN_EMBED_WIDTH,
-            minHeight: baseHeight,
+            width: isDynamic ? "100%" : baseWidth,
+            ...(isDynamic ? {} : { minWidth: MIN_EMBED_WIDTH }),
+            ...(isDynamic ? {} : { height: baseHeight, minHeight: baseHeight }),
             boxSizing: "border-box",
             transform: scale !== 1 ? `scale(${scale})` : undefined,
             transformOrigin: "center center",
           }}
         >
           <EmbedQuestionCard
-            size={size}
+            size={snapped}
             ogMode={ogMode}
             post={post}
             theme={theme}
             titleOverride={titleOverride}
+            isDynamicMcHeight={isDynamic}
           />
         </div>
       </div>

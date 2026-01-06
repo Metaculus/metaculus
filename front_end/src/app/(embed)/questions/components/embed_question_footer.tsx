@@ -15,7 +15,7 @@ type Props = {
 
 const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-wrap items-center justify-between gap-y-3">
       <div className="flex items-center gap-2">
         <ForecastersCounter
           className="py-1 pl-0 pr-1.5 [&_strong]:font-normal"

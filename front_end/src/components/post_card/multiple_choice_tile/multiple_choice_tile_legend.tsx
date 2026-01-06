@@ -62,7 +62,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
         }) => (
           <div
             key={`choice-option-${choice}`}
-            className={cn(isWrap && "w-full min-w-0 flex-none overflow-hidden")}
+            className={cn(isWrap && "min-w-0 flex-none overflow-hidden")}
           >
             <ChoiceOption
               choice={choice}
