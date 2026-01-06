@@ -24,6 +24,13 @@ const useSearchParams = () => {
     router.replace(pathname + "?" + params.toString(), { scroll: false });
   }, [params, pathname, router]);
 
+  const replaceUrlWithoutNavigation = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    window.history.replaceState(window.history.state, "", url);
+  }, [params, pathname]);
+
   const setParam = useCallback(
     (name: string, val: string | string[], withNavigation = true) => {
       params.delete(name);
@@ -105,6 +112,7 @@ const useSearchParams = () => {
     replaceParams,
     navigateToSearchParams,
     shallowNavigateToSearchParams,
+    replaceUrlWithoutNavigation,
   };
 };
 
