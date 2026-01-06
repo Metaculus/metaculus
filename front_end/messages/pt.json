@@ -1140,6 +1140,7 @@
   "questionData": "Dados das perguntas",
   "commentData": "Dados dos comentários",
   "scoreData": "Dados de pontuação",
+  "keyFactorData": "Dados de fatores-chave",
   "includeUserData": "Incluir dados do usuário",
   "aggregationMethods": "Métodos de agregação",
   "configuration": "Configuração",

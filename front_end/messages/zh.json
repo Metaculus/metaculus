@@ -1144,6 +1144,7 @@
   "questionData": "问题数据",
   "commentData": "评论数据",
   "scoreData": "评分数据",
+  "keyFactorData": "关键因素数据",
   "includeUserData": "包含用户数据",
   "aggregationMethods": "汇总方法",
   "configuration": "配置",
