@@ -29,6 +29,7 @@ import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
 import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
+import RichText from "@/components/rich_text";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
@@ -55,7 +56,10 @@ import { getMarkdownSummary } from "@/utils/markdown";
 import { canPredictQuestion } from "@/utils/questions/predictions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
-import IncludedForecast from "./included_forecast";
+import IncludedForecast, {
+  formatForecastValueText,
+  userForecastToForecastType,
+} from "./included_forecast";
 import { validateComment } from "./validate_comment";
 import { FormErrorMessage } from "../ui/form_field";
 import LoadingSpinner from "../ui/loading_spiner";
@@ -519,6 +523,7 @@ const Comment: FC<CommentProps> = ({
     setEditInitialMarkdown,
     setIsEditing,
     deleteEditDraft,
+    includeEditForecast,
   ]);
   // scroll to comment from URL hash
   useEffect(() => {
@@ -816,14 +821,36 @@ const Comment: FC<CommentProps> = ({
                       withUgcLinks
                       withCodeBlocks
                     />
-                    {hadForecastAtCommentCreation && (
-                      <Checkbox
-                        checked={!!includedForecast || includeEditForecast}
-                        onChange={(checked) => setIncludeEditForecast(checked)}
-                        label={t("includeMyForecastAtTheTime")}
-                        className="mt-3 text-sm"
-                        disabled={!!includedForecast}
-                      />
+                    {hadForecastAtCommentCreation && postData?.question && (
+                      <RichText>
+                        {(tags) => (
+                          <Checkbox
+                            checked={!!includedForecast || includeEditForecast}
+                            onChange={(checked) =>
+                              setIncludeEditForecast(checked)
+                            }
+                            label="includeMyForecastAtTheTime"
+                            className="mt-2 text-sm"
+                            disabled={!!includedForecast}
+                          >
+                            <span
+                              className={cn({
+                                "opacity-35": !!includedForecast,
+                              })}
+                            >
+                              {t.rich("includeMyForecastAtTheTime", {
+                                ...tags,
+                                forecast: formatForecastValueText(
+                                  userForecastToForecastType(
+                                    hadForecastAtCommentCreation,
+                                    postData.question
+                                  )
+                                ),
+                              })}
+                            </span>
+                          </Checkbox>
+                        )}
+                      </RichText>
                     )}
                   </div>
                   {!!errorMessage && (
@@ -849,6 +876,7 @@ const Comment: FC<CommentProps> = ({
                       className="ml-2"
                       onClick={() => {
                         setCommentMarkdown(tempCommentMarkdown);
+                        setIncludeEditForecast(false);
                         setIsEditing(false);
                       }}
                       disabled={isLoading}

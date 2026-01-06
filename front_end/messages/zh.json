@@ -1820,7 +1820,7 @@
   "tournamentsTabArchived": "已归档",
   "tournamentTimelineClosed": "等待解决",
   "questionsPreviouslyPredicted": "之前预测的{count, plural, =1 {# 个问题} other {# 个问题}}",
-  "includeMyForecastAtTheTime": "包含我当时的预测",
+  "includeMyForecastAtTheTime": "包含我当时的预测 <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "我们<predmarket>不是一个预测市场</predmarket>。您可以免费参与，并因精准的预测赢得现金奖品。",
   "tournamentsInfoScoringLink": "什么是预测分数？",
   "tournamentsInfoPrizesLink": "奖品如何分配？",
