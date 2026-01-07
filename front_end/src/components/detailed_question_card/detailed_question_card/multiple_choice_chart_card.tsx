@@ -209,6 +209,9 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
         showChart
         chartHeight={chartHeight}
         onLegendHeightChange={onLegendHeightChange}
+        onCursorChange={handleCursorChange}
+        withHoverTooltip={false}
+        showCursorLabel={false}
       />
     );
   }

@@ -234,7 +234,10 @@ const MultipleChoiceChart: FC<Props> = ({
         />
       }
       cursorLabelComponent={
-        <ChartCursorLabel positionY={height - 10} isActive={isCursorActive} />
+        <ChartCursorLabel
+          positionY={height - (isEmbedded ? 4 : 10)}
+          isActive={isCursorActive}
+        />
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
