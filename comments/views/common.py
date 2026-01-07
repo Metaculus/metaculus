@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -177,9 +178,16 @@ def comment_edit_api_view(request: Request, pk: int):
     forecast = None
 
     if include_forecast and not comment.included_forecast and post and post.question_id:
+        active_time = comment.created_at
+        question = post.question
+
+        # If question was closed, take the forecast active on the date of closure
+        if question.actual_close_time and question.actual_close_time <= timezone.now():
+            active_time = question.actual_close_time
+
         forecast = (
-            post.question.user_forecasts.filter(author=comment.author)
-            .filter_active_at(comment.created_at)
+            question.user_forecasts.filter(author=comment.author)
+            .filter_active_at(active_time)
             .order_by("-start_time")
             .first()
         )
