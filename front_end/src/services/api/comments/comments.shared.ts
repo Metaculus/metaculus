@@ -34,6 +34,7 @@ export type EditCommentParams = {
   id: number;
   text: string;
   author: number;
+  include_forecast?: boolean;
 };
 
 export type VoteParams = {

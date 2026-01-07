@@ -210,21 +210,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
         </div>
       )}
 
-      {/* TODO: this box can only be shown in create, not edit mode */}
-      {shouldIncludeForecast && (
-        <Checkbox
-          checked={hasIncludedForecast}
-          onChange={(checked) => {
-            setHasIncludedForecast(checked);
-          }}
-          label={t("includeMyForecast")}
-          className="p-1 text-sm"
-        />
-      )}
-      {/* TODO: display in preview mode only */}
-      {/*comment.included_forecast && (
-        <IncludedForecast author="test" forecastValue={test} />
-      )*/}
       <div
         ref={editorWrapperRef}
         className="scroll-mt-24 border border-gray-500 dark:border-gray-500-dark"
@@ -244,6 +229,16 @@ const CommentEditor: FC<CommentEditorProps> = ({
           />
         )}
       </div>
+      {shouldIncludeForecast && (
+        <Checkbox
+          checked={hasIncludedForecast}
+          onChange={(checked) => {
+            setHasIncludedForecast(checked);
+          }}
+          label={t("includeMyForecast")}
+          className="ml-auto mt-2 w-fit text-sm"
+        />
+      )}
       {(isReplying || hasInteracted) && (
         <div className="my-4 flex items-center justify-end gap-3">
           {!isReplying && isPrivateFeed && (
