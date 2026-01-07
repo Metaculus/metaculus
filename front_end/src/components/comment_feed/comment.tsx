@@ -51,6 +51,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { formatUsername } from "@/utils/formatters/users";
 import { getMarkdownSummary } from "@/utils/markdown";
 import { canPredictQuestion } from "@/utils/questions/predictions";
@@ -281,6 +282,13 @@ const Comment: FC<CommentProps> = ({
     !!postData?.group_of_questions ||
     !!postData?.conditional;
   const isCmmButtonDisabled = !user || !userCanPredict || isCommentAuthor;
+
+  const canIncludeForecastInReply = useMemo(() => {
+    if (!postData?.question) return false;
+    if (postData.question.type === QuestionType.MultipleChoice) return false;
+    const latest = postData.question.my_forecasts?.latest;
+    return !!latest && isForecastActive(latest);
+  }, [postData]);
 
   const {
     draftReady: editDraftReady,
@@ -1033,6 +1041,7 @@ const Comment: FC<CommentProps> = ({
             setIsReplying(false);
           }}
           isReplying={isReplying}
+          shouldIncludeForecast={canIncludeForecastInReply}
         />
       )}
       {isKeyfactorsFormOpen && postData && (
