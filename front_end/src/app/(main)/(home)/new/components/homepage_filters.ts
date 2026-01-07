@@ -27,6 +27,7 @@ export const FILTERS: Record<TabId, PostsParams> = {
     statuses: ["open"],
     limit: 7,
     forecast_type: allowedTypes,
+    access: "public",
   },
   news: {
     for_main_feed: "true",
@@ -34,6 +35,7 @@ export const FILTERS: Record<TabId, PostsParams> = {
     order_by: "-news_hotness",
     limit: 7,
     forecast_type: allowedTypes,
+    access: "public",
   },
   new: {
     for_main_feed: "true",
@@ -41,5 +43,6 @@ export const FILTERS: Record<TabId, PostsParams> = {
     order_by: "-open_time",
     limit: 7,
     forecast_type: allowedTypes,
+    access: "public",
   },
 };
