@@ -210,7 +210,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
         </div>
       )}
 
-      {/* TODO: this box can only be shown in create, not edit mode */}
       {shouldIncludeForecast && (
         <Checkbox
           checked={hasIncludedForecast}
