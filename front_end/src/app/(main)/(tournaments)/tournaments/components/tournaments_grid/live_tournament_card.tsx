@@ -11,6 +11,7 @@ import { bucketRelativeMs } from "@/utils/formatters/date";
 
 import TournamentCardShell from "./tournament_card_shell";
 import GradientProgressLine from "../../../tournament/components/gradient_progress_line";
+import { safeTs } from "../../helpers";
 
 type Props = {
   item: TournamentPreview;
@@ -257,12 +258,6 @@ function ClosedChip({
       />
     </div>
   );
-}
-
-function safeTs(iso?: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  return Number.isFinite(t) ? t : null;
 }
 
 function clamp01(x: number) {
