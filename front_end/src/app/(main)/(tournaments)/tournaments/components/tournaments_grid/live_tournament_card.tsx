@@ -115,20 +115,23 @@ function TournamentTimelineBar({
   const closedTs = safeTs(forecastingEndDate ?? closeDate ?? null);
   if (!startTs || !closedTs) return null;
 
-  const isClosed =
+  const now = nowTs ?? Date.now();
+
+  const rawClosed =
     timeline?.all_questions_closed != null
       ? Boolean(timeline.all_questions_closed)
       : !isOngoing;
 
+  const isClosed = rawClosed && now >= closedTs;
   const isResolved = Boolean(timeline?.all_questions_resolved);
 
   if (!isClosed) {
-    return <ActiveMiniBar nowTs={nowTs} startTs={startTs} endTs={closedTs} />;
+    return <ActiveMiniBar nowTs={now} startTs={startTs} endTs={closedTs} />;
   }
 
   return (
     <ClosedMiniBar
-      nowTs={nowTs}
+      nowTs={now}
       isResolved={isResolved}
       closeDate={closeDate ?? null}
       timeline={timeline}
