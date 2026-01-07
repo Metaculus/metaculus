@@ -1142,6 +1142,7 @@
   "questionData": "Datos de la pregunta",
   "commentData": "Datos del comentario",
   "scoreData": "Datos de la puntuación",
+  "keyFactorData": "Datos de factores clave",
   "includeUserData": "Incluir datos del usuario",
   "aggregationMethods": "Métodos de agregación",
   "configuration": "Configuración",
@@ -1818,5 +1819,9 @@
   "tournamentsTabArchived": "Archivado",
   "tournamentTimelineClosed": "Esperando resoluciones",
   "questionsPreviouslyPredicted": "{count, plural, =1 {# pregunta} other {# preguntas}} previamente previstas",
+  "includeMyForecastAtTheTime": "Incluir mi predicción en ese momento <strong>({forecast})</strong>",
+  "tournamentsInfoTitle": "Nosotros <predmarket>no somos un mercado de predicciones</predmarket>. Puedes participar gratis y ganar premios en efectivo por ser preciso.",
+  "tournamentsInfoScoringLink": "¿Qué son las puntuaciones de predicción?",
+  "tournamentsInfoPrizesLink": "¿Cómo se distribuyen los premios?",
   "othersCount": "Otros ({count})"
 }
