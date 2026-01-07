@@ -33,7 +33,7 @@ const variantStyles: Record<
 type HeroCTACardProps = {
   href: string;
   topTitle: string;
-  imageSrc: string;
+  imageSrc?: string;
   imageAlt: string;
   title: string;
   buttonText: string;
@@ -58,25 +58,27 @@ const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
   return (
     <div
       className={cn(
-        "relative flex h-full shrink-0 flex-col justify-between overflow-hidden rounded-lg p-6",
+        "relative flex h-full shrink-0 flex-col  overflow-hidden rounded-lg p-6",
         bgColorClasses,
         textColorClasses
       )}
     >
       <div className="absolute right-3 top-3 z-0 size-32 opacity-60">
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          width={120}
-          height={120}
-          className="h-full w-full object-contain object-center"
-        />
+        {imageSrc && (
+          <Image
+            src={imageSrc}
+            alt={imageAlt}
+            width={120}
+            height={120}
+            className="h-full w-full object-contain object-center"
+          />
+        )}
       </div>
 
       <p className={cn("mb-0 text-sm font-medium leading-4", textColorClasses)}>
         {topTitle}
       </p>
-      <div className="mt-16 flex flex-col gap-6">
+      <div className="mt-8 flex flex-col gap-6">
         <div className="flex flex-col">
           <h3
             className={cn(
@@ -89,7 +91,7 @@ const HeroCTACard: FC<PropsWithChildren<HeroCTACardProps>> = ({
           <div>{children}</div>
         </div>
       </div>
-      <Link href={href}>
+      <Link href={href} className="mt-auto">
         <Button
           variant="secondary"
           size="sm"
@@ -129,7 +131,6 @@ const HeroCTAs: FC<Props> = ({
             <HeroCTACard
               href={individualsHref}
               topTitle={t("hero1TopTitle")}
-              imageSrc="/images/pie-chart.png"
               imageAlt="Pie chart"
               title={t("heroIndividualsTitle")}
               buttonText={t("exploreQuestions")}
@@ -145,7 +146,6 @@ const HeroCTAs: FC<Props> = ({
             <HeroCTACard
               href={businessesHref}
               topTitle={t("hero2TopTitle")}
-              imageSrc="/images/puzzle.png"
               imageAlt="Puzzle"
               title={t("partnerWithMetaculus")}
               buttonText={t("learnMore")}
