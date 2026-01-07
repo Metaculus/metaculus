@@ -62,6 +62,8 @@ class ProjectsQuerySet(models.QuerySet):
                 post__curation_status=Post.CurationStatus.APPROVED,
                 post__open_time__lte=now,
                 post__notebook__isnull=True,
+                post__default_project__default_permission__isnull=False,
+                post__default_project__visibility=Project.Visibility.NORMAL,
             )
             .filter(
                 Q(post__actual_close_time__isnull=True)
