@@ -797,3 +797,45 @@ class TestCommentEdit:
         assert response.status_code == 200
         comment.refresh_from_db()
         assert comment.included_forecast == forecast_1
+
+    def test_comment_edit_include_forecast_closed_question(
+        self, user1, user1_client, question_binary
+    ):
+        """When question is closed, forecast should be taken from closure time, not comment creation time."""
+        post = factory_post(author=user1, question=question_binary)
+        question = post.question
+        now = timezone.now()
+
+        # Timeline:
+        t_forecast = now - timedelta(hours=3)
+        t_close = now - timedelta(hours=2)
+
+        # Create forecast before question closure
+        with freeze_time(t_forecast):
+            forecast = create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.6,
+            )
+
+        # Forecast end_time is after closure (still active at closure)
+        forecast.end_time = now - timedelta(hours=1)
+        forecast.save()
+
+        # Close the question
+        question.actual_close_time = t_close
+        question.save()
+
+        # Create comment after closure
+        comment = factory_comment(author=user1, on_post=post)
+
+        # Edit comment to include forecast
+        url = reverse("comment-edit", kwargs={"pk": comment.pk})
+        response = user1_client.post(
+            url, {"text": "Comment with forecast", "include_forecast": True}
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        # Should attach forecast active at closure time
+        assert comment.included_forecast == forecast
