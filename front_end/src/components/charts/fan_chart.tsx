@@ -426,6 +426,8 @@ const FanChart: FC<Props> = ({
       return { name, valueText };
     });
   }, [isEmbedded, embedLegendNames, normOptions, yScale]);
+  console.log("chartWidth", chartWidth);
+  const isCompactEmbed = isEmbedded && !!chartWidth && chartWidth < 400;
 
   return (
     <div className="w-full">
@@ -435,208 +437,212 @@ const FanChart: FC<Props> = ({
         </div>
       )}
 
-      <div
-        id="fan-graph-container"
-        ref={chartContainerRef}
-        className="relative w-full"
-        style={{ height }}
-      >
-        {shouldDisplayChart && (
-          <VictoryChart
-            width={chartWidth}
-            height={height}
-            theme={actualTheme}
-            domain={{ y: yDomain }}
-            domainPadding={v.domainPadding(variantArgs)}
-            padding={chartPadding}
-            containerComponent={
-              withTooltip ? (
-                containerWithTooltip
-              ) : (
-                <VictoryContainer
-                  style={{
-                    pointerEvents: "auto",
-                    userSelect: "auto",
-                    touchAction: "auto",
-                  }}
-                />
-              )
-            }
-            events={[
-              {
-                target: "parent",
-                eventHandlers: {
-                  onMouseOutCapture: () => setActivePoint(null),
+      {!isCompactEmbed && (
+        <div
+          id="fan-graph-container"
+          ref={chartContainerRef}
+          className="relative w-full"
+          style={{ height }}
+        >
+          {shouldDisplayChart && (
+            <VictoryChart
+              width={chartWidth}
+              height={height}
+              theme={actualTheme}
+              domain={{ y: yDomain }}
+              domainPadding={v.domainPadding(variantArgs)}
+              padding={chartPadding}
+              containerComponent={
+                withTooltip ? (
+                  containerWithTooltip
+                ) : (
+                  <VictoryContainer
+                    style={{
+                      pointerEvents: "auto",
+                      userSelect: "auto",
+                      touchAction: "auto",
+                    }}
+                  />
+                )
+              }
+              events={[
+                {
+                  target: "parent",
+                  eventHandlers: {
+                    onMouseOutCapture: () => setActivePoint(null),
+                  },
                 },
-              },
-            ]}
-          >
-            <VictoryAxis
-              dependentAxis
-              orientation={isEmbedded ? "right" : undefined}
-              label={isEmbedded ? undefined : yLabel}
-              tickValues={
-                isEmbedded && embedLabelTicks ? embedLabelTicks : yScale.ticks
-              }
-              tickFormat={yScale.tickFormat}
-              style={{
-                ...baseYAxisStyle,
-                grid: isEmbedded ? { display: "none" } : baseYAxisStyle?.grid,
-              }}
-              offsetX={isEmbedded ? undefined : v.axisLabelOffsetX(variantArgs)}
-              axisLabelComponent={
-                isEmbedded ? undefined : <VictoryLabel x={chartWidth} />
-              }
-            />
-
-            {isEmbedded && embedGridTicks && (
+              ]}
+            >
               <VictoryAxis
                 dependentAxis
-                tickValues={embedGridTicks}
-                tickFormat={() => ""}
-                orientation="right"
+                orientation={isEmbedded ? "right" : undefined}
+                label={isEmbedded ? undefined : yLabel}
+                tickValues={
+                  isEmbedded && embedLabelTicks ? embedLabelTicks : yScale.ticks
+                }
+                tickFormat={yScale.tickFormat}
                 style={{
                   ...baseYAxisStyle,
-                  tickLabels: {
-                    ...baseYAxisStyle?.tickLabels,
-                    display: "none",
-                  },
-                  grid: {
-                    ...baseYAxisStyle?.grid,
-                    strokeDasharray: "2,4",
-                  },
+                  grid: isEmbedded ? { display: "none" } : baseYAxisStyle?.grid,
                 }}
+                offsetX={
+                  isEmbedded ? undefined : v.axisLabelOffsetX(variantArgs)
+                }
+                axisLabelComponent={
+                  isEmbedded ? undefined : <VictoryLabel x={chartWidth} />
+                }
               />
-            )}
 
-            <VictoryPortal>
-              <VictoryAxis
-                tickValues={normOptions.map((o) => o.name)}
-                tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
-                style={v.xAxisStyle({
-                  tickLabelFontSize,
-                  maxLeftPadding: effectiveMaxLeftPadding,
-                  maxRightPadding: effectiveMaxRightPadding,
-                  getThemeColor,
-                })}
-              />
-            </VictoryPortal>
-
-            {!hideCP &&
-              communityAreas.map((area, idx) => (
-                <VictoryArea
-                  key={`c-area-${idx}`}
-                  name={`communityFanArea-${idx}`}
-                  data={area ?? []}
+              {isEmbedded && embedGridTicks && (
+                <VictoryAxis
+                  dependentAxis
+                  tickValues={embedGridTicks}
+                  tickFormat={() => ""}
+                  orientation="right"
                   style={{
-                    data: {
-                      opacity: 0.3,
-                      fill: ({ datum }) =>
-                        datum?.resolved
-                          ? getThemeColor(METAC_COLORS.purple["500"])
-                          : palette.communityArea,
+                    ...baseYAxisStyle,
+                    tickLabels: {
+                      ...baseYAxisStyle?.tickLabels,
+                      display: "none",
+                    },
+                    grid: {
+                      ...baseYAxisStyle?.grid,
+                      strokeDasharray: "2,4",
                     },
                   }}
                 />
-              ))}
-            {!hideCP &&
-              communityLines.map((line, idx) => (
-                <VictoryLine
-                  key={`c-line-${idx}`}
-                  name={`communityFanLine-${idx}`}
-                  data={line ?? []}
+              )}
+
+              <VictoryPortal>
+                <VictoryAxis
+                  tickValues={normOptions.map((o) => o.name)}
+                  tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
+                  style={v.xAxisStyle({
+                    tickLabelFontSize,
+                    maxLeftPadding: effectiveMaxLeftPadding,
+                    maxRightPadding: effectiveMaxRightPadding,
+                    getThemeColor,
+                  })}
+                />
+              </VictoryPortal>
+
+              {!hideCP &&
+                communityAreas.map((area, idx) => (
+                  <VictoryArea
+                    key={`c-area-${idx}`}
+                    name={`communityFanArea-${idx}`}
+                    data={area ?? []}
+                    style={{
+                      data: {
+                        opacity: 0.3,
+                        fill: ({ datum }) =>
+                          datum?.resolved
+                            ? getThemeColor(METAC_COLORS.purple["500"])
+                            : palette.communityArea,
+                      },
+                    }}
+                  />
+                ))}
+              {!hideCP &&
+                communityLines.map((line, idx) => (
+                  <VictoryLine
+                    key={`c-line-${idx}`}
+                    name={`communityFanLine-${idx}`}
+                    data={line ?? []}
+                    style={{
+                      data: {
+                        stroke: ({ datum }) =>
+                          datum?.resolved
+                            ? getThemeColor(METAC_COLORS.purple["700"])
+                            : palette.communityLine,
+                      },
+                    }}
+                  />
+                ))}
+
+              <VictoryScatter
+                data={userPoints}
+                dataComponent={<PredictionWithRange />}
+              />
+
+              {!hideCP && !forecastAvailability?.cpRevealsOn && (
+                <VictoryScatter
+                  data={communityPoints.map((p) => ({
+                    ...p,
+                    resolved: false,
+                    symbol: "square",
+                  }))}
                   style={{
                     data: {
-                      stroke: ({ datum }) =>
-                        datum?.resolved
-                          ? getThemeColor(METAC_COLORS.purple["700"])
-                          : palette.communityLine,
+                      fill: () => palette.communityPoint,
+                      stroke: () => palette.communityPoint,
+                      strokeWidth: 6,
+                      strokeOpacity: ({ datum }) =>
+                        activePoint === datum.x ? 0.3 : 0,
                     },
                   }}
+                  dataComponent={
+                    <FanPoint
+                      activePoint={activePoint}
+                      pointSize={isEmbedded ? 8 : pointSize}
+                      pointColor={palette.communityPoint}
+                      bottomPadding={bottomPadForPoints}
+                    />
+                  }
+                />
+              )}
+
+              {resolutionPoints.map((point) => (
+                <VictoryScatter
+                  key={`res-${point.x}`}
+                  data={[{ ...point, symbol: "diamond" }]}
+                  style={{
+                    data: {
+                      fill: v.resolutionPoint.fill({ getThemeColor }),
+                      stroke: () => palette.resolutionStroke,
+                      strokeWidth: 2,
+                      strokeOpacity: 1,
+                    },
+                  }}
+                  dataComponent={
+                    <FanPoint
+                      activePoint={null}
+                      pointSize={v.resolutionPoint.size}
+                      strokeWidth={v.resolutionPoint.strokeWidth}
+                    />
+                  }
                 />
               ))}
+              {emptyPoints.map((point) => (
+                <VictoryScatter
+                  key={`empty-${point.x}`}
+                  data={[{ ...point, symbol: "diamond" }]}
+                  dataComponent={
+                    <FanPoint
+                      activePoint={activePoint}
+                      pointSize={v.resolutionPoint.size}
+                      strokeWidth={v.resolutionPoint.strokeWidth}
+                      unsuccessfullyResolved={point.unsuccessfullyResolved}
+                      bgColor={v.resolutionPoint.fill({ getThemeColor })}
+                      bottomPadding={bottomPadForPoints}
+                      isClosed
+                    />
+                  }
+                />
+              ))}
+            </VictoryChart>
+          )}
 
-            <VictoryScatter
-              data={userPoints}
-              dataComponent={<PredictionWithRange />}
+          {!withTooltip && (
+            <ForecastAvailabilityChartOverflow
+              forecastAvailability={forecastAvailability}
+              className="text-xs lg:text-sm"
+              textClassName="!max-w-[300px]"
             />
-
-            {!hideCP && !forecastAvailability?.cpRevealsOn && (
-              <VictoryScatter
-                data={communityPoints.map((p) => ({
-                  ...p,
-                  resolved: false,
-                  symbol: "square",
-                }))}
-                style={{
-                  data: {
-                    fill: () => palette.communityPoint,
-                    stroke: () => palette.communityPoint,
-                    strokeWidth: 6,
-                    strokeOpacity: ({ datum }) =>
-                      activePoint === datum.x ? 0.3 : 0,
-                  },
-                }}
-                dataComponent={
-                  <FanPoint
-                    activePoint={activePoint}
-                    pointSize={isEmbedded ? 8 : pointSize}
-                    pointColor={palette.communityPoint}
-                    bottomPadding={bottomPadForPoints}
-                  />
-                }
-              />
-            )}
-
-            {resolutionPoints.map((point) => (
-              <VictoryScatter
-                key={`res-${point.x}`}
-                data={[{ ...point, symbol: "diamond" }]}
-                style={{
-                  data: {
-                    fill: v.resolutionPoint.fill({ getThemeColor }),
-                    stroke: () => palette.resolutionStroke,
-                    strokeWidth: 2,
-                    strokeOpacity: 1,
-                  },
-                }}
-                dataComponent={
-                  <FanPoint
-                    activePoint={null}
-                    pointSize={v.resolutionPoint.size}
-                    strokeWidth={v.resolutionPoint.strokeWidth}
-                  />
-                }
-              />
-            ))}
-            {emptyPoints.map((point) => (
-              <VictoryScatter
-                key={`empty-${point.x}`}
-                data={[{ ...point, symbol: "diamond" }]}
-                dataComponent={
-                  <FanPoint
-                    activePoint={activePoint}
-                    pointSize={v.resolutionPoint.size}
-                    strokeWidth={v.resolutionPoint.strokeWidth}
-                    unsuccessfullyResolved={point.unsuccessfullyResolved}
-                    bgColor={v.resolutionPoint.fill({ getThemeColor })}
-                    bottomPadding={bottomPadForPoints}
-                    isClosed
-                  />
-                }
-              />
-            ))}
-          </VictoryChart>
-        )}
-
-        {!withTooltip && (
-          <ForecastAvailabilityChartOverflow
-            forecastAvailability={forecastAvailability}
-            className="text-xs lg:text-sm"
-            textClassName="!max-w-[300px]"
-          />
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

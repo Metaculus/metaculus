@@ -121,7 +121,6 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   const { ref: tileRef, width: tileWidth } = useContainerSize<HTMLDivElement>();
   const isEmbed = useIsEmbedMode();
   const isCompactEmbed = isEmbed && !!tileWidth && tileWidth < 400;
-  const hideChartInCompact = isCompactEmbed && isNil(group);
 
   // when resolution chip is shown we want to hide the chart and display the chip
   // (e.g. multiple-choice question on questions feed)
@@ -194,7 +193,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
           )
         )}
       </div>
-      {showChart && !hideChartInCompact && !isResolvedView && (
+      {showChart && !isCompactEmbed && !isResolvedView && (
         <div
           className={cn("relative w-full min-w-0", {
             "col-span-1": isEmbed && !isCompactEmbed,

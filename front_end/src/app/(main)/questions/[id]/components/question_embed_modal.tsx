@@ -11,9 +11,15 @@ type Props = {
   postId: number;
   postTitle?: string;
   questionType?: QuestionType;
+  isFanChart?: boolean;
 };
 
-const QuestionEmbedModal: FC<Props> = ({ postId, postTitle, questionType }) => {
+const QuestionEmbedModal: FC<Props> = ({
+  postId,
+  postTitle,
+  questionType,
+  isFanChart,
+}) => {
   const embedUrl = useEmbedUrl(`/questions/embed/${postId}`);
   const { isOpen, updateIsOpen } = useEmbedModalContext();
 
@@ -27,7 +33,7 @@ const QuestionEmbedModal: FC<Props> = ({ postId, postTitle, questionType }) => {
       ContinuousQuestionTypes.some((type) => type === questionType));
 
   const embedWidth = 550;
-  const embedHeight = isBinaryOrContinuous ? 360 : 270;
+  const embedHeight = isBinaryOrContinuous || isFanChart ? 380 : 290;
 
   return (
     <EmbedModal
