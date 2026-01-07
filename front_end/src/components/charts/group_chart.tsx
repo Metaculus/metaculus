@@ -2,7 +2,7 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useState } from "react";
+import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -80,6 +80,8 @@ type Props = {
   forceShowLinePoints?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
+  showCursorLabel?: boolean;
+  fadeLinesOnHover?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -88,6 +90,7 @@ const TICK_FONT_SIZE = 10;
 const POINT_SIZE = 9;
 const USER_POINT_SIZE = 6;
 const USER_POINT_STROKE = 1.5;
+const PLOT_TOP = 10;
 
 const GroupChart: FC<Props> = ({
   timestamps,
@@ -114,6 +117,8 @@ const GroupChart: FC<Props> = ({
   forceShowLinePoints = false,
   forFeedPage,
   isEmbedded = false,
+  showCursorLabel = true,
+  fadeLinesOnHover = true,
 }) => {
   const t = useTranslations();
   const {
@@ -121,6 +126,7 @@ const GroupChart: FC<Props> = ({
     width: chartWidth,
     height: chartHeight,
   } = useContainerSize<HTMLDivElement>();
+  const inPlotRef = useRef(false);
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -178,26 +184,39 @@ const GroupChart: FC<Props> = ({
       forFeedPage,
     ]
   );
+  const [localCursorTimestamp, setLocalCursorTimestamp] = useState<
+    number | null
+  >(null);
+  const effectiveCursorTimestamp = !isNil(cursorTimestamp)
+    ? cursorTimestamp
+    : localCursorTimestamp;
+  const plotBottom =
+    height - (isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING);
   const filteredLines = useMemo(() => {
     return graphs.map(({ line, active }) => {
       const lastLineX = line.at(-1)?.x;
       if (!active || !lastLineX) return null;
+
+      if (isNil(effectiveCursorTimestamp)) return line;
+
       let filteredLine =
-        !isNil(cursorTimestamp) && lastLineX > cursorTimestamp
-          ? line.filter(({ x }) => x <= cursorTimestamp)
+        lastLineX > effectiveCursorTimestamp
+          ? line.filter(({ x }) => x <= effectiveCursorTimestamp)
           : line;
-      if (!isNil(cursorTimestamp) && lastLineX > cursorTimestamp) {
+
+      if (lastLineX > effectiveCursorTimestamp) {
         filteredLine = [
           ...filteredLine,
           {
-            x: cursorTimestamp,
+            x: effectiveCursorTimestamp,
             y: filteredLine.at(-1)?.y ?? null,
           },
         ];
       }
+
       return filteredLine;
     });
-  }, [graphs, cursorTimestamp]);
+  }, [graphs, effectiveCursorTimestamp]);
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
@@ -212,6 +231,9 @@ const GroupChart: FC<Props> = ({
   );
 
   const prevWidth = usePrevious(chartWidth);
+  const baseLineOpacity =
+    fadeLinesOnHover && isCursorActive && !isHighlightActive ? 0.35 : 1;
+
   useEffect(() => {
     if (!prevWidth && chartWidth && onChartReady) {
       onChartReady();
@@ -229,19 +251,19 @@ const GroupChart: FC<Props> = ({
       style={{
         touchAction: "pan-y",
       }}
-      cursorLabelOffset={{
-        x: 0,
-        y: 0,
-      }}
-      cursorLabel={({ datum }: VictoryLabelProps) => {
-        if (datum) {
-          return datum.x === defaultCursor
-            ? isClosed
-              ? ""
-              : t("now")
-            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
-        }
-      }}
+      cursorLabelOffset={showCursorLabel ? { x: 0, y: 0 } : undefined}
+      cursorLabel={
+        showCursorLabel
+          ? ({ datum }: VictoryLabelProps) => {
+              if (!datum) return "";
+              return datum.x === defaultCursor
+                ? isClosed
+                  ? ""
+                  : t("now")
+                : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+            }
+          : undefined
+      }
       cursorComponent={
         <LineSegment
           style={
@@ -257,18 +279,27 @@ const GroupChart: FC<Props> = ({
         />
       }
       cursorLabelComponent={
-        <VictoryPortal>
-          <ChartCursorLabel positionY={height - 10} isActive={isCursorActive} />
-        </VictoryPortal>
+        showCursorLabel ? (
+          <VictoryPortal>
+            <ChartCursorLabel
+              positionY={height - (isEmbedded ? 4 : 10)}
+              isActive={isCursorActive}
+            />
+          </VictoryPortal>
+        ) : undefined
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
-        if (typeof value === "number" && onCursorChange) {
+        if (typeof value !== "number") return;
+        if (!inPlotRef.current) return;
+
+        setLocalCursorTimestamp(value);
+
+        if (onCursorChange) {
           const lastTimestamp = timestamps[timestamps.length - 1];
           if (value === lastTimestamp) {
             onCursorChange(lastTimestamp, xScale.tickFormat);
             return;
           }
-
           onCursorChange(value, xScale.tickFormat);
         }
       }}
@@ -298,13 +329,32 @@ const GroupChart: FC<Props> = ({
               {
                 target: "parent",
                 eventHandlers: {
-                  onMouseOverCapture: () => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  onMouseMoveCapture: (e: any) => {
                     if (!onCursorChange) return;
-                    setIsCursorActive(true);
+                    const svg =
+                      (e.currentTarget as SVGElement).ownerSVGElement ??
+                      e.currentTarget;
+                    const rect = (svg as SVGElement).getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const inPlot =
+                      x >= 0 &&
+                      x <= chartWidth - maxRightPadding &&
+                      y >= PLOT_TOP &&
+                      y <= plotBottom;
+                    inPlotRef.current = inPlot;
+                    setIsCursorActive(inPlot);
+                    if (!inPlot) {
+                      setLocalCursorTimestamp(null);
+                    }
                   },
-                  onMouseOutCapture: () => {
+                  onMouseLeaveCapture: () => {
                     if (!onCursorChange) return;
+                    inPlotRef.current = false;
                     setIsCursorActive(false);
+                    setLocalCursorTimestamp(null);
                   },
                 },
               },
@@ -424,7 +474,7 @@ const GroupChart: FC<Props> = ({
                     data: {
                       stroke: getThemeColor(color),
                       strokeOpacity: !isHighlightActive
-                        ? 1
+                        ? baseLineOpacity
                         : highlighted
                           ? 1
                           : 0.3,

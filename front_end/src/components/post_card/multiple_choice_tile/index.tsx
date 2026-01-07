@@ -1,7 +1,7 @@
 "use client";
 
 import { isNil } from "lodash";
-import React, { FC, useCallback, useEffect, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
@@ -16,9 +16,10 @@ import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
+import useChartTooltip from "@/hooks/use_chart_tooltip";
 import useContainerSize from "@/hooks/use_container_size";
 import { ForecastPayload } from "@/services/api/questions/questions.server";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, PostStatus, QuestionStatus } from "@/types/post";
 import {
@@ -44,6 +45,9 @@ type BaseProps = {
   minimalistic?: boolean;
   optionsLimit?: number;
   yLabel?: string;
+  onCursorChange?: (value: number, format: TickFormat) => void;
+  withHoverTooltip?: boolean;
+  showCursorLabel?: boolean;
 };
 
 type QuestionProps = {
@@ -91,13 +95,25 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   group,
   scaling,
   yLabel,
+  onCursorChange,
   hideCP,
   forecastAvailability,
   canPredict,
   showChart = true,
   minimalistic = false,
   onLegendHeightChange,
+  withHoverTooltip = true,
+  showCursorLabel = true,
 }) => {
+  const enableTooltip = withHoverTooltip;
+  const { getReferenceProps, refs } = useChartTooltip();
+  const attachRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (!enableTooltip) return;
+      if (node) refs.setReference(node);
+    },
+    [enableTooltip, refs]
+  );
   const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -145,7 +161,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
         {
           "flex flex-col": isEmbed && isCompactEmbed,
           "grid grid-cols-2": isEmbed && !isCompactEmbed,
-          "flex flex-col md:grid md:grid-cols-5": !isEmbed,
+          "flex grid-cols-5 flex-col md:grid": !isEmbed && showChart,
         },
         {
           "gap-3": isEmbed && isCompactEmbed && !minimalistic,
@@ -187,43 +203,54 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
             "md:col-span-3": !isEmbed && (!minimalistic || isResolvedView),
           })}
         >
-          {isNil(group) ? (
-            <MultipleChoiceChart
-              timestamps={timestamps}
-              actualCloseTime={actualCloseTime}
-              choiceItems={choices}
-              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-              extraTheme={chartTheme}
-              defaultZoom={defaultChartZoom}
-              withZoomPicker={withZoomPicker}
-              scaling={scaling}
-              forecastAvailability={forecastAvailability}
-              openTime={openTime}
-              hideCP={hideCP}
-              yLabel={yLabel}
-              isEmbedded={isEmbed}
-              forFeedPage
-            />
-          ) : (
-            <GroupChart
-              questionType={groupType}
-              timestamps={timestamps}
-              actualCloseTime={actualCloseTime}
-              choiceItems={choices}
-              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-              extraTheme={chartTheme}
-              defaultZoom={defaultChartZoom}
-              withZoomPicker={withZoomPicker}
-              scaling={scaling}
-              forecastAvailability={forecastAvailability}
-              forceShowLinePoints={true}
-              openTime={openTime}
-              hideCP={hideCP}
-              yLabel={yLabel}
-              isEmbedded={isEmbed}
-              forFeedPage
-            />
-          )}
+          <div
+            ref={enableTooltip ? refs.setReference : undefined}
+            {...(enableTooltip ? getReferenceProps() : {})}
+            className="relative"
+          >
+            {isNil(group) ? (
+              <MultipleChoiceChart
+                timestamps={timestamps}
+                actualCloseTime={actualCloseTime}
+                choiceItems={choices}
+                height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+                extraTheme={chartTheme}
+                defaultZoom={defaultChartZoom}
+                withZoomPicker={withZoomPicker}
+                scaling={scaling}
+                forecastAvailability={forecastAvailability}
+                openTime={openTime}
+                hideCP={hideCP}
+                yLabel={yLabel}
+                isEmbedded={isEmbed}
+                onCursorChange={onCursorChange}
+                attachRef={attachRef}
+                forFeedPage
+              />
+            ) : (
+              <GroupChart
+                questionType={groupType}
+                timestamps={timestamps}
+                actualCloseTime={actualCloseTime}
+                choiceItems={choices}
+                height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+                extraTheme={chartTheme}
+                defaultZoom={defaultChartZoom}
+                withZoomPicker={withZoomPicker}
+                scaling={scaling}
+                forecastAvailability={forecastAvailability}
+                openTime={openTime}
+                hideCP={hideCP}
+                yLabel={yLabel}
+                onCursorChange={onCursorChange}
+                showCursorLabel={showCursorLabel}
+                forceShowLinePoints={!isEmbed}
+                attachRef={attachRef}
+                isEmbedded={isEmbed}
+                forFeedPage
+              />
+            )}
+          </div>
         </div>
       )}
     </div>

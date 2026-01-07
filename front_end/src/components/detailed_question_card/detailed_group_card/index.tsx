@@ -10,6 +10,7 @@ import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
+import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import {
   GroupOfQuestionsGraphType,
   GroupOfQuestionsPost,
@@ -111,6 +112,13 @@ const DetailedGroupCard: FC<Props> = ({
       isContinuousGroup ? getContinuousGroupScaling(questions) : undefined,
     [isContinuousGroup, questions]
   );
+  const timestamps = getGroupQuestionsTimestamps(questions, {
+    withUserTimestamps: !!forecastAvailability.cpRevealsOn,
+  });
+
+  const [_cursorTimestamp, _tooltipDate, handleCursorChange] =
+    useTimestampCursor(timestamps);
+
   if (
     forecastAvailability.isEmpty &&
     forecastAvailability.cpRevealsOn &&
@@ -156,6 +164,7 @@ const DetailedGroupCard: FC<Props> = ({
               onLegendHeightChange={onLegendHeightChange}
               chartTheme={chartTheme}
               yLabel={commonUnit ?? undefined}
+              onCursorChange={handleCursorChange}
             />
             {hideCP && <RevealCPButton />}
           </>
