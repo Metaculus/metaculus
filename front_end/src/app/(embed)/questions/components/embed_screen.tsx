@@ -6,10 +6,7 @@ import { ContinuousQuestionTypes } from "@/constants/questions";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import {
-  isGroupOfQuestionsPost,
-  isQuestionPost,
-} from "@/utils/questions/helpers";
+import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import EmbedQuestionCard from "./embed_question_card";
 import { EmbedTheme } from "../constants/embed_theme";
@@ -83,9 +80,7 @@ const EmbedScreen: React.FC<Props> = ({
   const ogMode =
     typeof targetWidth === "number" && typeof targetHeight === "number";
 
-  const isMC =
-    isQuestionPost(post) && post.question?.type === QuestionType.MultipleChoice;
-  const isDynamic = !ogMode && isMC && containerWidth < DYNAMIC_BELOW_WIDTH;
+  const isDynamic = !ogMode && containerWidth < DYNAMIC_BELOW_WIDTH;
 
   const effectiveWidthForSizing = isDynamic
     ? containerWidth
@@ -130,7 +125,7 @@ const EmbedScreen: React.FC<Props> = ({
   return (
     <div
       ref={frameRef}
-      className="flex size-full min-h-[inherit] items-center justify-center [container-type:inline-size]"
+      className="flex size-full min-h-[inherit] items-center justify-center bg-blue-100 [container-type:inline-size] dark:bg-blue-100-dark"
       style={{ minWidth: isDynamic ? undefined : MIN_EMBED_WIDTH }}
     >
       <div
