@@ -1261,6 +1261,7 @@
   "commentData": "Comment data",
   "anonymize": "Anonymize",
   "scoreData": "Score data",
+  "keyFactorData": "Key factor data",
   "includeUserData": "Include user data",
   "aggregationMethods": "Aggregation methods",
   "configuration": "Configuration",
