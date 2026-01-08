@@ -386,7 +386,7 @@
   "outOfRank": "de um total de {total}",
   "comments": "Comentários",
   "questions": "Perguntas",
-  "viewMore": "Ver mais...",
+  "viewMore": "Ver mais",
   "randomQuestion": "Pergunta Aleatória",
   "notebooks": "Cadernos",
   "otherWithCount": "{count, plural, =1 {# outro} other {# outros}}",

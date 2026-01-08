@@ -487,7 +487,7 @@
   "comments": "Comments",
   "questions": "Questions",
   "leaderboardQuestions": "Leaderboard Questions",
-  "viewMore": "View more...",
+  "viewMore": "View more",
   "randomQuestion": "Random Question",
   "notebooks": "Notebooks",
   "otherWithCount": "{count, plural, =1 {# other} other {# others} }",

@@ -355,7 +355,7 @@
   "outOfRank": "z {total}",
   "comments": "Komentáře",
   "questions": "Otázky",
-  "viewMore": "Zobrazit více...",
+  "viewMore": "Zobrazit více",
   "randomQuestion": "Náhodná otázka",
   "notebooks": "Poznámkové bloky",
   "otherWithCount": "{count, plural, =1 {# další} other {# dalších} }",

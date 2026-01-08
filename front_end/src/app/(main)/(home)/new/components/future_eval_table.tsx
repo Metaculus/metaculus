@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState } from "react";
+import { FC, useMemo } from "react";
 
 import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import {
@@ -16,7 +16,7 @@ import cn from "@/utils/core/cn";
 
 type Props = { details: LeaderboardDetails; className?: string };
 
-const INITIAL_ROWS = 5;
+const INITIAL_ROWS = 8;
 
 const MEDALS: Record<number, MedalType> = {
   1: "gold",
@@ -38,7 +38,6 @@ const MedalRow: FC<{ rank: number }> = ({ rank }) => {
 
 const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
   const t = useTranslations();
-  const [expanded, setExpanded] = useState(false);
 
   const rows = useMemo(() => {
     const entries = (details.entries ?? [])
@@ -62,16 +61,11 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
     return entries;
   }, [details.entries, t]);
 
-  const visibleRows = expanded ? rows : rows.slice(0, INITIAL_ROWS);
+  const visibleRows = rows.slice(0, INITIAL_ROWS);
 
   return (
     <div className={cn("flex max-h-full w-full flex-col gap-2", className)}>
-      <div
-        className={cn(
-          "max-h-full w-full grow-0 overflow-y-hidden rounded-lg border border-gray-300 dark:border-gray-300-dark",
-          expanded && "overflow-y-auto"
-        )}
-      >
+      <div className="max-h-full w-full grow-0 overflow-y-hidden rounded-lg border border-gray-300 dark:border-gray-300-dark">
         <table className="w-full table-fixed border-collapse">
           <colgroup>
             <col className="w-[72px]" />
@@ -140,12 +134,12 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
         </table>
       </div>
       {rows.length > INITIAL_ROWS && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-auto flex h-12 w-full shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-gray-0 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-600-dark dark:hover:bg-gray-100-dark"
+        <Link
+          href="/futureeval/leaderboard/"
+          className="mt-auto flex h-12 w-full shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-gray-0 text-sm font-semibold text-gray-600 no-underline transition-colors hover:bg-gray-100 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-600-dark dark:hover:bg-gray-100-dark"
         >
-          {expanded ? t("viewLess") : t("viewMore")}
-        </button>
+          {t("viewMore")}
+        </Link>
       )}
     </div>
   );
