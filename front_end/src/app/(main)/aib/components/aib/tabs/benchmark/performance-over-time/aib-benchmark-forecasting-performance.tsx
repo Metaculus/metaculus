@@ -21,15 +21,12 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
     if (!firstIdxByGroup.has(group)) firstIdxByGroup.set(group, i);
   });
 
-  // Only show these specific groups in the legend
-  const allowedGroups = ["OpenAI", "Claude", "DeepSeek", "Gemini"];
+  // Show all companies in the legend (no filtering)
   const legend = [
-    ...Array.from(firstIdxByGroup.entries())
-      .filter(([label]) => allowedGroups.includes(label))
-      .map(([label, pointIndex]) => ({
-        label,
-        pointIndex,
-      })),
+    ...Array.from(firstIdxByGroup.entries()).map(([label, pointIndex]) => ({
+      label,
+      pointIndex,
+    })),
     { label: t("aibSOTALinearTrend"), trend: true as const },
   ];
 
