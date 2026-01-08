@@ -1815,11 +1815,11 @@
   "tournamentsTabSeries": "Série de Perguntas",
   "tournamentsTabIndexes": "Índices",
   "tournamentsTabArchived": "Arquivado",
-  "tournamentTimelineClosed": "Aguardando resoluções",
   "questionsPreviouslyPredicted": "{count, plural, =1 {# pergunta} other {# perguntas}} previamente previstas",
   "includeMyForecastAtTheTime": "Incluir minha previsão no momento <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "Nós <predmarket>não somos um mercado de previsões</predmarket>. Você pode participar gratuitamente e ganhar prêmios em dinheiro por ser preciso.",
   "tournamentsInfoScoringLink": "O que são pontuações de previsão?",
   "tournamentsInfoPrizesLink": "Como os prêmios são distribuídos?",
+  "tournamentTimelineClosed": "Resoluções pendentes",
   "othersCount": "Outros ({count})"
 }
