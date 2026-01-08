@@ -15,7 +15,7 @@ type Props = {
   size: EmbedSize;
   theme?: EmbedTheme;
   titleOverride?: string;
-  isDynamicMcHeight?: boolean;
+  containerWidth?: number;
 };
 
 const EmbedQuestionCard: React.FC<Props> = ({
@@ -24,7 +24,7 @@ const EmbedQuestionCard: React.FC<Props> = ({
   size,
   theme,
   titleOverride,
-  isDynamicMcHeight = false,
+  containerWidth,
 }) => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [legendHeight, setLegendHeight] = useState(0);
@@ -41,7 +41,6 @@ const EmbedQuestionCard: React.FC<Props> = ({
       });
     }
 
-    if (isDynamicMcHeight) return undefined;
     return getEmbedChartHeight({
       post,
       ogMode,
@@ -49,7 +48,7 @@ const EmbedQuestionCard: React.FC<Props> = ({
       headerHeight,
       legendHeight,
     });
-  }, [post, ogMode, size, headerHeight, legendHeight, isDynamicMcHeight]);
+  }, [post, ogMode, size, headerHeight, legendHeight]);
 
   useEffect(() => {
     if (!ogMode) return;
@@ -75,7 +74,7 @@ const EmbedQuestionCard: React.FC<Props> = ({
   }, [ogMode, headerHeight, legendHeight]);
 
   return (
-    <QuestionViewModeProvider mode="embed">
+    <QuestionViewModeProvider mode="embed" containerWidth={containerWidth}>
       <EmbedQuestionHeader
         post={post}
         onHeightChange={setHeaderHeight}

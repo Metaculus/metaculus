@@ -159,7 +159,7 @@ const EmbedScreen: React.FC<Props> = ({
             post={post}
             theme={theme}
             titleOverride={titleOverride}
-            isDynamicMcHeight={isDynamic}
+            containerWidth={containerWidth}
           />
         </div>
       </div>

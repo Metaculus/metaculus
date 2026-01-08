@@ -67,6 +67,8 @@ type Props = {
   forceTickCount?: number;
   variant?: "feed" | "question";
   colorOverride?: string;
+  showBaseline?: boolean;
+  minMaxLabelsOnly?: boolean;
 };
 
 const MinifiedContinuousAreaChart: FC<Props> = ({
@@ -82,6 +84,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   forceTickCount,
   variant = "feed",
   colorOverride,
+  showBaseline = false,
+  minMaxLabelsOnly = false,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -230,9 +234,11 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     // However, if there's a resolution point, we need extra padding to prevent clipping
     const hasResolution =
       !isNil(question.resolution) && question.resolution !== "";
+    const wantsAnyXLabels = !hideCP && (!hideLabels || minMaxLabelsOnly);
+    if (wantsAnyXLabels) return BOTTOM_PADDING;
     const baseMinimalPadding = hasResolution ? 8 : 3; // Extra padding for resolution diamond
-    return hideCP || hideLabels ? baseMinimalPadding : BOTTOM_PADDING;
-  }, [hideCP, hideLabels, question.resolution]);
+    return baseMinimalPadding;
+  }, [hideCP, hideLabels, minMaxLabelsOnly, question.resolution]);
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -258,6 +264,22 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
             />
           }
         >
+          {showBaseline && (
+            <VictoryLine
+              data={[
+                { x: xDomain[0], y: yDomain[0] },
+                { x: xDomain[1], y: yDomain[0] },
+              ]}
+              style={{
+                data: {
+                  stroke: colorOverride
+                    ? colorOverride
+                    : getThemeColor(METAC_COLORS.olive["700"]),
+                  strokeWidth: 1,
+                },
+              }}
+            />
+          )}
           {charts
             .filter((chart) => chart.type !== "user_components")
             .map((chart, index) => {
@@ -360,7 +382,20 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
 
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideCP || hideLabels ? () => "" : xScale.tickFormat}
+            tickFormat={(tick: number, index?: number, ticks?: number[]) => {
+              if (hideCP) return "";
+
+              if (hideLabels && !minMaxLabelsOnly) return "";
+
+              if (minMaxLabelsOnly) {
+                const last = (ticks?.length ?? 0) - 1;
+                if (index === 0 || index === last)
+                  return xScale.tickFormat(tick);
+                return "";
+              }
+
+              return xScale.tickFormat(tick);
+            }}
             style={{
               ticks: {
                 strokeWidth: 1,
