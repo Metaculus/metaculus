@@ -104,7 +104,7 @@ const ExploreAllCard: FC = () => {
   return (
     <Link
       href="/questions/"
-      className="flex flex-col justify-between rounded border border-blue-400 bg-gray-0 p-5 pb-0 no-underline dark:border-blue-400-dark dark:bg-gray-0-dark"
+      className="flex flex-col rounded border border-blue-400 bg-gray-0 p-5 pb-0 no-underline dark:border-blue-400-dark dark:bg-gray-0-dark"
     >
       <div>
         <div className="m-0 flex justify-between text-base font-semibold text-gray-900 dark:text-gray-900-dark">
@@ -116,8 +116,8 @@ const ExploreAllCard: FC = () => {
         </p>
       </div>
 
-      <div className="mt-auto hidden flex-col items-center self-stretch overflow-hidden md:flex">
-        <ExploreImagesGrid className="w-full" />
+      <div className="relative mt-10 hidden flex-1 overflow-hidden md:block">
+        <ExploreImagesGrid className="absolute bottom-0 left-0 h-full w-auto" />
       </div>
     </Link>
   );
