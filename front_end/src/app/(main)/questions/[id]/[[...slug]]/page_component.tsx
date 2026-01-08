@@ -10,9 +10,13 @@ import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
+import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { getPostTitle } from "@/utils/questions/helpers";
+import {
+  getPostTitle,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
@@ -21,6 +25,7 @@ import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
+
 import "../components/key_factors/key-factors.css";
 
 const CommunityDisclaimer = dynamic(
@@ -49,6 +54,10 @@ const IndividualQuestionPage: FC<{
     extractPreselectedGroupQuestionId(searchParams);
 
   const questionTitle = getPostTitle(postData);
+  const isFanChart =
+    isGroupOfQuestionsPost(postData) &&
+    postData.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.FanGraph;
 
   return (
     <EmbedModalContextProvider>
@@ -104,6 +113,7 @@ const IndividualQuestionPage: FC<{
                 postId={postData.id}
                 postTitle={postData.title}
                 questionType={postData.question?.type}
+                isFanChart={isFanChart}
               />
             </PostSubscriptionProvider>
           </HideCPProvider>

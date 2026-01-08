@@ -1,6 +1,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { formatResolution } from "@/utils/formatters/resolution";
@@ -24,6 +25,7 @@ const QuestionResolutionChip: FC<Props> = ({
   size = "md",
 }) => {
   const t = useTranslations();
+  const isEmbed = useIsEmbedMode();
   return (
     <div className={cn("flex justify-center", className)}>
       <div
@@ -44,6 +46,7 @@ const QuestionResolutionChip: FC<Props> = ({
                 // Mobile-first responsive sizing
                 "text-[10px] md:text-xs": size === "sm",
                 "text-xs md:text-sm": size === "md",
+                "md:text-xs": size === "md" && isEmbed,
                 "text-sm md:text-base": size === "lg",
               }
             )}
@@ -59,6 +62,7 @@ const QuestionResolutionChip: FC<Props> = ({
               // Mobile-first responsive sizing
               "text-sm md:text-base": size === "sm",
               "text-lg md:text-xl": size === "md",
+              "md:text-lg": size === "md" && isEmbed,
               "text-xl md:text-2xl": size === "lg",
             }
           )}
