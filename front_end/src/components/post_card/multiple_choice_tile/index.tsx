@@ -388,12 +388,7 @@ function generateReaffirmData({
         const hasActivePrediction = latest && isForecastActive(latest);
 
         if (hasActivePrediction) {
-          forecastValues = latest.forecast_values.map((v) => {
-            if (v === null) {
-              throw new Error("Forecast values contain null values");
-            }
-            return v;
-          });
+          forecastValues = latest.forecast_values;
         }
 
         return {

@@ -32,7 +32,7 @@ import {
   GraphingQuestionProps,
   Question,
   QuestionType,
-  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
@@ -1111,7 +1111,7 @@ export function getContinuousAreaChartData({
   userForecastOverride,
   isClosed,
 }: {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   userForecastOverride?: {
     cdf: number[];
     pmf: number[];
@@ -1127,12 +1127,7 @@ export function getContinuousAreaChartData({
   if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
-      cdf: latest.forecast_values.map((v) => {
-        if (v === null) {
-          throw new Error("Forecast values contain null values");
-        }
-        return v;
-      }),
+      cdf: latest.forecast_values,
       type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
     });
   }
@@ -1146,12 +1141,7 @@ export function getContinuousAreaChartData({
   } else if (!!userForecast && isForecastActive(userForecast)) {
     chartData.push({
       pmf: cdfToPmf(userForecast.forecast_values),
-      cdf: userForecast.forecast_values.map((v) => {
-        if (v === null) {
-          throw new Error("Forecast values contain null values");
-        }
-        return v;
-      }),
+      cdf: userForecast.forecast_values,
       type: "user" as ContinuousAreaType,
     });
   }

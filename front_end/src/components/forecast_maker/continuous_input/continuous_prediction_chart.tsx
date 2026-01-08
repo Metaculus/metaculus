@@ -133,12 +133,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     if (showCP && latestAggLatest && isForecastActive(latestAggLatest)) {
       charts.push({
         pmf: cdfToPmf(latestAggLatest.forecast_values),
-        cdf: latestAggLatest.forecast_values.map((v) => {
-          if (v === null) {
-            throw new Error("Forecast values contain null values");
-          }
-          return v;
-        }),
+        cdf: latestAggLatest.forecast_values,
         type:
           question.status === QuestionStatus.CLOSED
             ? "community_closed"

@@ -11,18 +11,14 @@ import QuestionCPMovement from "@/components/cp_movement";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
-import {
-  QuestionType,
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   size: "md" | "lg";
   hideLabel?: boolean;
 };

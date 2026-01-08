@@ -27,7 +27,7 @@ import {
   GraphingQuestionProps,
   Question,
   QuestionType,
-  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import { getClosestYValue, interpolateYValue } from "@/utils/charts/helpers";
@@ -596,7 +596,7 @@ export function getContinuousAreaChartData({
   question,
   isClosed,
 }: {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   isClosed?: boolean;
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
@@ -607,12 +607,7 @@ export function getContinuousAreaChartData({
   if (latest && isForecastActive(latest)) {
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
-      cdf: latest.forecast_values.map((v) => {
-        if (v === null) {
-          throw new Error("Forecast values contain null values");
-        }
-        return v;
-      }),
+      cdf: latest.forecast_values,
       type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
     });
   }

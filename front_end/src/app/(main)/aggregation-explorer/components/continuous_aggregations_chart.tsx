@@ -11,7 +11,7 @@ import {
   ContinuousAreaHoverState,
 } from "@/types/charts";
 import {
-  AggregateForecastHistory,
+  NumericAggregateForecastHistory,
   GraphingQuestionProps,
 } from "@/types/question";
 import {
@@ -21,11 +21,11 @@ import {
 import { cdfToPmf } from "@/utils/math";
 import { formatValueUnit } from "@/utils/questions/units";
 
-import { AggregationExtraQuestion } from "../types";
+import { NumericAggregationExtraQuestion } from "../types";
 
 type Props = {
-  questionData: AggregationExtraQuestion;
-  activeAggregation: AggregateForecastHistory;
+  questionData: NumericAggregationExtraQuestion;
+  activeAggregation: NumericAggregateForecastHistory;
   selectedTimestamp: number | null;
 };
 
@@ -84,12 +84,7 @@ const ContinuousAggregationChart: FC<Props> = ({
       if (historyItem) {
         charts.push({
           pmf: cdfToPmf(historyItem.forecast_values),
-          cdf: historyItem.forecast_values.map((v) => {
-            if (v === null) {
-              throw new Error("Forecast values contain null values");
-            }
-            return v;
-          }),
+          cdf: historyItem.forecast_values,
           type: "community",
         });
       }
