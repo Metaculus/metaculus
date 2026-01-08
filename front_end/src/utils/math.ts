@@ -278,9 +278,9 @@ export function getCdfAt(x: number, cdf: number[], scaling: Scaling) {
   const lowerIndex = Math.floor(floatIndex);
   const upperIndex = Math.ceil(floatIndex);
   const weight = floatIndex - lowerIndex;
-  /* eslint-disable @typescript-eslint/no-non-null-assertion */
-  return cdf[lowerIndex]! * (1 - weight) + cdf[upperIndex]! * weight;
-  /* eslint-enable @typescript-eslint/no-non-null-assertion */
+  return (
+    (cdf[lowerIndex] || 0) * (1 - weight) + (cdf[upperIndex] || 1) * weight
+  );
 }
 
 /**
