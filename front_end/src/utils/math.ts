@@ -64,18 +64,14 @@ function logisticCDF(
   );
 }
 
-export function cdfToPmf(cdf: (number | null)[]) {
+export function cdfToPmf(cdf: number[]) {
   const pdf = [];
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
   for (let i = 0; i < cdf.length; i++) {
-    const value = cdf[i]!;
-    if (value === null) {
-      throw new Error("CDF contains null values");
-    }
     if (i === 0) {
-      pdf.push(value);
+      pdf.push(cdf[i]!);
     } else {
-      pdf.push(value - cdf[i - 1]!);
+      pdf.push(cdf[i]! - cdf[i - 1]!);
     }
   }
   pdf.push(1 - cdf[cdf.length - 1]!);
@@ -115,40 +111,36 @@ export function cdfFromSliders(
 }
 
 export function computeQuartilesFromCDF(
-  cdf: (number | null)[],
+  cdf: number[],
   extendedQuartiles: true,
   discrete?: boolean
 ): ExtendedQuartiles;
 export function computeQuartilesFromCDF(
-  cdf: (number | null)[],
+  cdf: number[],
   extendedQuartiles?: false,
   discrete?: boolean
 ): Quartiles;
 export function computeQuartilesFromCDF(cdf: number[]): Quartiles;
 export function computeQuartilesFromCDF(
-  cdf: (number | null)[],
+  cdf: number[],
   extendedQuartiles?: boolean,
   discrete?: boolean
 ): Quartiles | ExtendedQuartiles {
-  function findPercentile(cdf: (number | null)[], percentile: number) {
+  function findPercentile(cdf: number[], percentile: number) {
     if (cdf === null) {
       cdf = [];
     }
     const target = percentile / 100;
     for (let i = 0; i < cdf.length; i++) {
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const value = cdf[i]!;
-      if (value === null) {
-        throw new Error("CDF contains null values");
-      }
-      if (value >= target) {
+      if (cdf[i]! >= target) {
         if (i === 0) return 0;
 
         if (discrete) {
           return (i - 0.5) / (cdf.length - 1);
         }
 
-        const diff = value - cdf[i - 1]!;
+        const diff = cdf[i]! - cdf[i - 1]!;
         const adjustedPercentile = (target - cdf[i - 1]!) / diff;
         return (i - 1 + adjustedPercentile) / (cdf.length - 1);
       }
@@ -180,9 +172,7 @@ export function computeQuartilesFromCDF(
   }
 }
 
-export function getCdfBounds(
-  cdf: (number | null)[] | undefined
-): Bounds | undefined {
+export function getCdfBounds(cdf: number[] | undefined): Bounds | undefined {
   if (!cdf) {
     return;
   }

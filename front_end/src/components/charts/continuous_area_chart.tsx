@@ -32,7 +32,7 @@ import {
   GraphingQuestionProps,
   Question,
   QuestionType,
-  QuestionWithNumericForecasts,
+  QuestionWithForecasts,
   Scaling,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
@@ -1111,13 +1111,21 @@ export function getContinuousAreaChartData({
   userForecastOverride,
   isClosed,
 }: {
-  question: QuestionWithNumericForecasts;
+  question: QuestionWithForecasts;
   userForecastOverride?: {
     cdf: number[];
     pmf: number[];
   };
   isClosed?: boolean;
 }): ContinuousAreaGraphInput {
+  if (
+    question.type !== QuestionType.Numeric &&
+    question.type !== QuestionType.Discrete &&
+    question.type !== QuestionType.Date
+  ) {
+    return [];
+  }
+
   const chartData: ContinuousAreaGraphInput = [];
 
   const latest =

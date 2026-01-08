@@ -24,10 +24,9 @@ export enum NumericQuestionType {
   Discrete = "discrete",
   Date = "date",
 }
-
-export const MultipleChoiceQuestionType = {
-  MultipleChoice: "multiple_choice",
-};
+export enum MultipleChoiceQuestionType {
+  MultipleChoice = "multiple_choice",
+}
 
 export type ContinuousQuestionType = (typeof ContinuousQuestionTypes)[number];
 export type SimpleQuestionType = Exclude<
@@ -426,7 +425,7 @@ export type MultipleChoiceAggregationQuestion = {
   scheduled_resolve_time: string;
   title: string;
   short_title: string;
-  type: QuestionType;
+  type: QuestionType.MultipleChoice;
   unit?: string;
   forecasters_count?: number | null;
 };
@@ -455,7 +454,11 @@ export type NumericAggregationQuestion = {
   scheduled_resolve_time: string;
   title: string;
   short_title: string;
-  type: QuestionType;
+  type:
+    | QuestionType.Binary
+    | QuestionType.Numeric
+    | QuestionType.Date
+    | QuestionType.Discrete;
   unit?: string;
   forecasters_count?: number | null;
 };

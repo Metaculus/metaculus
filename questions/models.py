@@ -626,6 +626,7 @@ class Forecast(models.Model):
         gets the PMF for this forecast, replacing None values with 0.0
         Not for serialization use (keep None values in that case)
         """
+        # TODO: return a numpy array with NaNs instead of 0.0s
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
@@ -708,6 +709,7 @@ class AggregateForecast(models.Model):
         gets the PMF for this forecast, replacing None values with 0.0
         Not for serialization use (keep None values in that case)
         """
+        # TODO: return a numpy array with NaNs instead of 0.0s
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
         forecast_values = [

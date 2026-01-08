@@ -19,11 +19,7 @@ import { getPostDrivenTime } from "@/utils/questions/helpers";
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
-import {
-  AggregationExtraQuestion,
-  MultipleChoiceAggregationExtraQuestion,
-  NumericAggregationExtraQuestion,
-} from "../types";
+import { AggregationExtraQuestion } from "../types";
 
 type Props = {
   aggregationData: AggregationExtraQuestion | null;
@@ -84,21 +80,6 @@ const AggregationsTab: FC<Props> = ({
     500
   );
 
-  const isMultipleChoiceAggregationQuestion = (
-    questionData: AggregationExtraQuestion
-  ): questionData is MultipleChoiceAggregationExtraQuestion =>
-    questionData.type === QuestionType.MultipleChoice;
-  const isNumericAggregationQuestion = (
-    questionData: AggregationExtraQuestion
-  ): questionData is NumericAggregationExtraQuestion =>
-    questionData.type !== QuestionType.MultipleChoice;
-  const getNumericAggregation = (
-    questionData: NumericAggregationExtraQuestion
-  ) => questionData.aggregations?.[tabData.id];
-  const getMultipleChoiceAggregation = (
-    questionData: MultipleChoiceAggregationExtraQuestion
-  ) => questionData.aggregations?.[tabData.id];
-
   const cursorData = useMemo(() => {
     if (!activeAggregation) {
       return null;
@@ -141,41 +122,33 @@ const AggregationsTab: FC<Props> = ({
 
   const renderAggregation = (questionData: AggregationExtraQuestion) => {
     switch (questionData.type) {
-      case QuestionType.Binary: {
-        if (!isNumericAggregationQuestion(questionData)) return null;
-        const numericAggregation = getNumericAggregation(questionData);
-        if (!numericAggregation) return null;
+      case QuestionType.Binary:
         return (
           <HistogramDrawer
-            activeAggregation={numericAggregation}
+            activeAggregation={activeAggregation}
             questionData={questionData}
             selectedTimestamp={aggregationTimestamp}
           />
         );
-      }
-      case QuestionType.MultipleChoice: {
-        if (!isMultipleChoiceAggregationQuestion(questionData)) return null;
-        const multipleChoiceAggregation =
-          getMultipleChoiceAggregation(questionData);
-        if (!multipleChoiceAggregation) return null;
+      case QuestionType.MultipleChoice:
         return (
           <HistogramDrawer
-            activeAggregation={multipleChoiceAggregation}
+            activeAggregation={activeAggregation}
             questionData={questionData}
             selectedTimestamp={aggregationTimestamp}
             aggregationIndex={aggregationIndex}
           />
         );
-      }
       case QuestionType.Numeric:
       case QuestionType.Discrete:
       case QuestionType.Date: {
-        if (!isNumericAggregationQuestion(questionData)) return null;
-        const numericAggregation = getNumericAggregation(questionData);
-        if (!numericAggregation) return null;
+        const aggregation = questionData.aggregations?.[tabData.id];
+        if (!aggregation) {
+          return null;
+        }
         return (
           <ContinuousAggregationChart
-            activeAggregation={numericAggregation}
+            activeAggregation={aggregation}
             selectedTimestamp={aggregationTimestamp}
             questionData={questionData}
           />

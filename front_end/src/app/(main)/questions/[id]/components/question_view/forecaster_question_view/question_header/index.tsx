@@ -8,7 +8,7 @@ import QuestionHeaderInfo from "@/app/(main)/questions/[id]/components/question_
 import ConditionalTile from "@/components/conditional_tile";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithForecasts } from "@/types/question";
 import {
   isContinuousQuestion,
   isConditionalPost,
@@ -45,7 +45,7 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
               {isQuestionPost(post) && (
                 <div className="md:hidden">
                   <QuestionHeaderCPStatus
-                    question={post.question as QuestionWithNumericForecasts}
+                    question={post.question as QuestionWithForecasts}
                     size="md"
                     hideLabel={isContinuousQuestion(post.question)}
                   />
@@ -58,7 +58,7 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
         {isQuestionPost(post) && !isContinuousQuestion(post.question) && (
           <div className="hidden md:block">
             <QuestionHeaderCPStatus
-              question={post.question as QuestionWithNumericForecasts}
+              question={post.question as QuestionWithForecasts}
               size="lg"
             />
           </div>
