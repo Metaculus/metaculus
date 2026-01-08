@@ -15,7 +15,7 @@ const TournamentsSection: FC<{ className?: string }> = async ({
 }) => {
   const t = await getTranslations();
   const allTournaments = (await ServerProjectsApi.getTournaments()).filter(
-    (t) => t.is_ongoing
+    (t) => t.is_ongoing && t.type == TournamentType.Tournament
   );
   const tournaments = allTournaments.filter((t) => t.show_on_homepage);
 
