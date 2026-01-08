@@ -8,6 +8,8 @@ import GlobalErrorBoundary from "@/components/global_error_boundary";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SocialProviderType } from "@/types/auth";
 import { SearchParams } from "@/types/navigation";
+import { logError } from "@/utils/core/errors";
+import { ensureRelativeRedirect } from "@/utils/navigation";
 
 export default function SocialAuth(props: {
   params: Promise<{ provider: SocialProviderType }>;
@@ -22,10 +24,21 @@ export default function SocialAuth(props: {
   const router = useRouter();
 
   useEffect(() => {
+    let redirectUrl = "/";
+
+    if (searchParams.state) {
+      try {
+        const stateData = JSON.parse(searchParams.state as string);
+        redirectUrl = ensureRelativeRedirect(stateData.redirect);
+      } catch (e) {
+        logError(e);
+      }
+    }
+
     exchangeSocialOauthCode(provider, searchParams.code as string)
-      .then(() => router.push("/"))
+      .then(() => router.push(redirectUrl))
       .catch(setError);
-  }, [provider, searchParams.code, router]);
+  }, [provider, searchParams.code, searchParams.state, router]);
 
   if (error) {
     return <GlobalErrorBoundary error={error} reset={() => router.push("/")} />;

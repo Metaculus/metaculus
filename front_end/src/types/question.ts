@@ -1,4 +1,8 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import {
+  FetchedAggregateCoherenceLinks,
+  FetchedCoherenceLinks,
+} from "@/types/coherence";
 import { QuestionStatus, Resolution } from "@/types/post";
 import { Category } from "@/types/projects";
 
@@ -267,6 +271,9 @@ export type Question = {
     lifetime_elapsed: number;
     movement: null | CPMovement;
   };
+  average_coverage?: number | null;
+  coherence_links?: FetchedCoherenceLinks["data"];
+  coherence_link_aggregations?: FetchedAggregateCoherenceLinks["data"];
 };
 
 export enum MovementDirection {

@@ -4,7 +4,6 @@ from datetime import date, datetime
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.translation import activate
@@ -12,12 +11,16 @@ from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
+from notifications.services import delete_scheduled_post_notifications
 from posts.models import Notebook, Post, PostUserSnapshot, Vote
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.cache import invalidate_projects_questions_count_cache
-from projects.services.common import get_projects_staff_users, get_site_main_project
-from projects.services.common import move_project_forecasting_end_date
+from projects.services.common import (
+    get_projects_staff_users,
+    get_site_main_project,
+    move_project_forecasting_end_date,
+)
 from questions.models import Question
 from questions.services.common import (
     create_conditional,
@@ -42,7 +45,8 @@ from utils.translation import (
     update_translations_for_model,
 )
 from .search import generate_post_content_for_embedding_vectorization
-from ..tasks import run_post_indexing
+from .versioning import PostVersionService
+from ..tasks import run_post_indexing, run_post_generate_history_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +240,7 @@ def update_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     notebook: dict = None,
+    updated_by: User = None,
     **kwargs,
 ):
     # We need to edit post & questions content in the original mode
@@ -297,6 +302,11 @@ def update_post(
     ):
         run_post_indexing.send(post.id)
 
+    if PostVersionService.check_is_enabled():
+        run_post_generate_history_snapshot(
+            post.id, updated_by.id if updated_by else None
+        )
+
     return post
 
 
@@ -328,10 +338,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         if cp is None:
             continue
 
-        active_forecasts = question.user_forecasts.filter(
-            Q(end_time__isnull=True) | Q(end_time__gt=now),
-            start_time__lte=now,
-        )
+        active_forecasts = question.user_forecasts.filter_active_at(now)
         for forecast in active_forecasts:
             difference = prediction_difference_for_sorting(
                 forecast.get_prediction_values(),
@@ -430,6 +437,10 @@ def approve_post(
     # Translate approved post
     trigger_update_post_translations(post, with_comments=False, force=False)
 
+    # Log initial post version
+    if PostVersionService.check_is_enabled():
+        run_post_generate_history_snapshot(post.id, post.author_id)
+
 
 @transaction.atomic
 def reject_post(post: Post):
@@ -463,6 +474,15 @@ def send_back_to_review(post: Post):
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None
     post.save(update_fields=["curation_status", "open_time"])
+
+
+def soft_delete_post(post: Post):
+    """
+    Soft deletes a post by marking it as DELETED and cleaning up any scheduled notifications.
+    """
+    post.curation_status = Post.CurationStatus.DELETED
+    post.save(update_fields=["curation_status"])
+    delete_scheduled_post_notifications(post)
 
 
 def get_posts_staff_users(

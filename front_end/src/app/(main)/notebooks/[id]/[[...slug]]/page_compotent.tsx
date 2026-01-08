@@ -100,13 +100,27 @@ const IndividualNotebookPage: FC<{
             <CircleDivider className="mx-1" />
 
             <span className="whitespace-nowrap">
-              {formatDate(locale, new Date(postData.published_at))}
+              {formatDate(
+                locale,
+                new Date(postData.published_at ?? postData.notebook.created_at)
+              )}
             </span>
-            <CircleDivider className="mx-1" />
-            <span className="whitespace-nowrap">
-              Edited on{" "}
-              {formatDate(locale, new Date(postData.notebook.edited_at))}
-            </span>
+            {postData.notebook.edited_at &&
+              (!postData.published_at ||
+                new Date(postData.published_at) <=
+                  new Date(postData.notebook.edited_at)) && (
+                <>
+                  <CircleDivider className="mx-1" />
+                  <span className="whitespace-nowrap">
+                    {t("editedOnDate", {
+                      date: formatDate(
+                        locale,
+                        new Date(postData.notebook.edited_at)
+                      ),
+                    })}
+                  </span>
+                </>
+              )}
             <CircleDivider className="mx-1" />
             <span className="whitespace-nowrap">
               {t("estimatedReadingTime", {

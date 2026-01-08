@@ -72,7 +72,6 @@ import {
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
@@ -929,7 +928,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           </div>
         );
       })}
-      {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
 };

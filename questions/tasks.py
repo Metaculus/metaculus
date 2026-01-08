@@ -30,7 +30,7 @@ from .services.forecasts import (
 
 @dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
 @task_concurrent_limit(
-    lambda question_id: f"build-question-forecasts-{question_id}",
+    lambda question_id: f"mutex:build-question-forecasts-{question_id}",
     # We want only one task for the same question id be executed at the same time
     # To ensure all forecasts will be included in the AggregatedForecasts model
     limit=1,

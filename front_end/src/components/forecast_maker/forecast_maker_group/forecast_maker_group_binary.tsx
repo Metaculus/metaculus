@@ -60,7 +60,6 @@ import {
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type QuestionOption = {
@@ -84,7 +83,6 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -477,7 +475,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           )}
         </>
       )}
-      {highlightedQuestion && <ScoreDisplay question={highlightedQuestion} />}
     </>
   );
 };

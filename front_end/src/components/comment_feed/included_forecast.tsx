@@ -8,11 +8,12 @@ import ChoiceIcon from "@/components/choice_icon";
 import Button from "@/components/ui/button";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ForecastType } from "@/types/comment";
-import { QuestionType } from "@/types/question";
+import { Question, QuestionType, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 import { getQuestionDateFormatString } from "@/utils/formatters/prediction";
+import { scaleInternalLocation } from "@/utils/math";
 import { formatValueUnit } from "@/utils/questions/units";
 
 type Props = {
@@ -24,55 +25,63 @@ type ForecastValueProps = {
   forecast: ForecastType;
 };
 
-const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
-  const t = useTranslations();
-  const [showAll, setShowAll] = useState(false);
+export function userForecastToForecastType(
+  userForecast: UserForecast,
+  question: Question
+): ForecastType {
+  const scaling = question.scaling;
+  const questionType = question.type;
 
-  if (forecast.question_type == QuestionType.Binary) {
-    return (
-      <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
-        {`${Math.round(forecast.probability_yes * 1000) / 10}%`}
-      </div>
-    );
+  let quartiles: [number, number, number] = [0, 0, 0];
+  if (
+    questionType !== QuestionType.Binary &&
+    questionType !== QuestionType.MultipleChoice
+  ) {
+    const q1 = userForecast.interval_lower_bounds?.[0] ?? 0.25;
+    const q2 = userForecast.centers?.[0] ?? 0.5;
+    const q3 = userForecast.interval_upper_bounds?.[0] ?? 0.75;
+    quartiles = [
+      scaleInternalLocation(q1, scaling),
+      scaleInternalLocation(q2, scaling),
+      scaleInternalLocation(q3, scaling),
+    ];
   }
-  if (forecast.question_type == QuestionType.MultipleChoice) {
+
+  return {
+    start_time: new Date(userForecast.start_time * 1000),
+    probability_yes: userForecast.forecast_values[1] ?? 0,
+    probability_yes_per_category: userForecast.forecast_values,
+    options: question.options ?? [],
+    continuous_cdf: userForecast.forecast_values,
+    quartiles,
+    scaling,
+    question_type: questionType,
+    question_unit: question.unit,
+  };
+}
+
+export function formatForecastValueText(forecast: ForecastType): string {
+  if (forecast.question_type === QuestionType.Binary) {
+    return `${Math.round(forecast.probability_yes * 1000) / 10}%`;
+  }
+
+  if (forecast.question_type === QuestionType.MultipleChoice) {
     const choices = forecast.probability_yes_per_category
       .map((probability, index) => ({
-        probability: probability,
+        probability,
         name: forecast.options[index],
-        color: MULTIPLE_CHOICE_COLOR_SCALE[index],
       }))
       .sort((a, b) => b.probability - a.probability);
-    return (
-      <ol className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
-        {choices.map((choice, index) => (
-          <li
-            className={cn("flex items-center gap-2 pr-2", {
-              hidden: !showAll && index > 1,
-            })}
-            key={index}
-          >
-            {/* TODO: why does this generate a slightly different color than in ForecastChoiceOption ? */}
-            <ChoiceIcon color={choice.color} />
-            {`${choice.name}: ${Math.round(choice.probability * 1000) / 10}%`}
-          </li>
-        ))}
-        <Button
-          size="lg"
-          variant="text"
-          className="!py-0"
-          onClick={() => setShowAll(!showAll)}
-        >
-          {showAll ? t("closeFullForecast") : t("showFullForecast")}
-        </Button>
-      </ol>
-    );
+    const top = choices[0];
+    if (top) {
+      return `${top.name}: ${Math.round(top.probability * 1000) / 10}%`;
+    }
+    return "";
   }
 
-  // continuous questions get customized formatting
-  if (forecast.quartiles.length !== 3) return null;
+  if (forecast.quartiles.length !== 3) return "";
   const { range_min, range_max } = forecast.scaling;
-  if (isNil(range_min) || isNil(range_max)) return null;
+  if (isNil(range_min) || isNil(range_max)) return "";
 
   const q1 =
     forecast.quartiles[0] <= range_min
@@ -125,19 +134,20 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
           format(new Date(forecast.quartiles[2] * 1000), dateFormatString),
           format(new Date(range_max * 1000), dateFormatString),
         ];
-  let text: string = "";
+
   if (q1 === "below" && q2 === "below" && q3 === "below") {
-    text =
+    return (
       probBelow +
       "% " +
       (forecast.question_type === QuestionType.Numeric ||
       forecast.question_type === QuestionType.Discrete
         ? "below "
         : "before ") +
-      valueText[0];
+      valueText[0]
+    );
   }
   if (q1 === "below" && q2 === "below" && q3 === "inRange") {
-    text =
+    return (
       probBelow +
       "% " +
       (forecast.question_type === QuestionType.Numeric ||
@@ -147,10 +157,11 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       valueText[0] +
       " (upper 75%=" +
       valueText[3] +
-      ")";
+      ")"
+    );
   }
   if (q1 === "below" && q2 === "inRange" && q3 === "inRange") {
-    text =
+    return (
       valueText[2] +
       " (" +
       probBelow +
@@ -160,13 +171,14 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
         ? "below "
         : "before ") +
       valueText[0] +
-      ")";
+      ")"
+    );
   }
   if (q1 === "inRange" && q2 === "inRange" && q3 === "inRange") {
-    text = valueText[2] + " (" + valueText[1] + " - " + valueText[3] + ")";
+    return valueText[2] + " (" + valueText[1] + " - " + valueText[3] + ")";
   }
   if (q1 === "inRange" && q2 === "inRange" && q3 === "above") {
-    text =
+    return (
       valueText[2] +
       " (" +
       probAbove +
@@ -176,10 +188,11 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
         ? "above "
         : "after ") +
       valueText[4] +
-      ")";
+      ")"
+    );
   }
   if (q1 === "inRange" && q2 === "above" && q3 === "above") {
-    text =
+    return (
       probAbove +
       "% " +
       (forecast.question_type === QuestionType.Numeric ||
@@ -189,24 +202,67 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       valueText[4] +
       " (lower 25%=" +
       valueText[1] +
-      ")";
+      ")"
+    );
   }
   if (q1 === "above" && q2 === "above" && q3 === "above") {
-    text =
+    return (
       probAbove +
       "% " +
       (forecast.question_type === QuestionType.Numeric ||
       forecast.question_type === QuestionType.Discrete
         ? "above "
         : "after ") +
-      valueText[4];
+      valueText[4]
+    );
   }
   if (q1 === "below" && q2 === "inRange" && q3 === "above") {
-    text = valueText[2] + " (" + valueText[1] + " - " + valueText[3] + ")";
+    return valueText[2] + " (" + valueText[1] + " - " + valueText[3] + ")";
   }
+  return "";
+}
+
+const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
+  const t = useTranslations();
+  const [showAll, setShowAll] = useState(false);
+
+  if (forecast.question_type === QuestionType.MultipleChoice) {
+    const choices = forecast.probability_yes_per_category
+      .map((probability, index) => ({
+        probability: probability,
+        name: forecast.options[index],
+        color: MULTIPLE_CHOICE_COLOR_SCALE[index],
+      }))
+      .sort((a, b) => b.probability - a.probability);
+    return (
+      <ol className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
+        {choices.map((choice, index) => (
+          <li
+            className={cn("flex items-center gap-2 pr-2", {
+              hidden: !showAll && index > 1,
+            })}
+            key={index}
+          >
+            {/* TODO: why does this generate a slightly different color than in ForecastChoiceOption ? */}
+            <ChoiceIcon color={choice.color} />
+            {`${choice.name}: ${Math.round(choice.probability * 1000) / 10}%`}
+          </li>
+        ))}
+        <Button
+          size="lg"
+          variant="text"
+          className="!py-0"
+          onClick={() => setShowAll(!showAll)}
+        >
+          {showAll ? t("closeFullForecast") : t("showFullForecast")}
+        </Button>
+      </ol>
+    );
+  }
+
   return (
     <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
-      {`${text}`}
+      {formatForecastValueText(forecast)}
     </div>
   );
 };

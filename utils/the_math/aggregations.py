@@ -733,9 +733,7 @@ def get_aggregations_at_time(
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
     forecasts = (
-        question.user_forecasts.filter(
-            Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
-        )
+        question.user_forecasts.filter_active_at(time)
         .order_by("start_time")
         .select_related("author")
     )

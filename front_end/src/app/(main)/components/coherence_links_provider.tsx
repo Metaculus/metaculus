@@ -6,6 +6,7 @@ import {
   FC,
   PropsWithChildren,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -45,20 +46,50 @@ export const CoherenceLinksProvider: FC<
     useState<FetchedAggregateCoherenceLinks>({
       data: [],
     });
+
   const { user } = useAuth();
   const isLoggedIn = !isNil(user);
 
-  const updateCoherenceLinks = async () => {
-    if (isLoggedIn && post.question) {
-      ClientCoherenceLinksApi.getCoherenceLinksForPost(post.question)
-        .then((links) => setCoherenceLinks(links))
-        .catch(logError);
-      ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(post.question)
-        .then((links) => setAggregateCoherenceLinks(links))
-        .catch(logError);
-    } else {
+  useEffect(() => {
+    if (
+      !isLoggedIn ||
+      !post.question ||
+      !post.question.coherence_links?.length ||
+      !post.question.coherence_link_aggregations?.length
+    ) {
       setCoherenceLinks({ data: [] });
       setAggregateCoherenceLinks({ data: [] });
+      return;
+    }
+
+    setCoherenceLinks({ data: post.question.coherence_links });
+    setAggregateCoherenceLinks({
+      data: post.question.coherence_link_aggregations,
+    });
+  }, [
+    isLoggedIn,
+    post.question,
+    post.question?.coherence_links,
+    post.question?.coherence_link_aggregations,
+  ]);
+
+  const updateCoherenceLinks = async () => {
+    if (!isLoggedIn || !post.question) {
+      return;
+    }
+
+    try {
+      const [links, aggregate] = await Promise.all([
+        ClientCoherenceLinksApi.getCoherenceLinksForPost(post.question),
+        ClientCoherenceLinksApi.getAggregateCoherenceLinksForPost(
+          post.question
+        ),
+      ]);
+
+      setCoherenceLinks(links);
+      setAggregateCoherenceLinks(aggregate);
+    } catch (err) {
+      logError(err);
     }
   };
 
@@ -66,11 +97,15 @@ export const CoherenceLinksProvider: FC<
     const questionData = new Map<number, Question>();
     const questionID = post.question?.id;
     if (!questionID) return questionData;
+
     for (const link of coherenceLinks.data) {
       const otherQuestion =
         questionID === link.question1_id ? link.question2 : link.question1;
-      questionData.set(link.id, otherQuestion);
+      if (otherQuestion) {
+        questionData.set(link.id, otherQuestion);
+      }
     }
+
     return questionData;
   };
 

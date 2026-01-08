@@ -2,7 +2,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import { ContinuousQuestionTypes } from "@/constants/questions";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -14,23 +14,18 @@ import ForecastMakerBinary from "./forecast_maker_binary";
 import ForecastMakerContinuous from "./forecast_maker_continuous";
 import ForecastMakerMultipleChoice from "./forecast_maker_multiple_choice";
 import ForecastMakerContainer from "../container";
-import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithForecasts;
-  permission?: ProjectPermissions;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
 
 const QuestionForecastMaker: FC<Props> = ({
   question,
-  permission,
   canPredict,
-  canResolve,
   post,
   predictionMessage,
   onPredictionSubmit,
@@ -42,9 +37,7 @@ const QuestionForecastMaker: FC<Props> = ({
           <ForecastMakerContinuous
             post={post}
             question={question as QuestionWithNumericForecasts}
-            permission={permission}
             canPredict={canPredict}
-            canResolve={canResolve}
             predictionMessage={predictionMessage}
             onPredictionSubmit={onPredictionSubmit}
           />
@@ -56,9 +49,7 @@ const QuestionForecastMaker: FC<Props> = ({
           <ForecastMakerBinary
             post={post}
             question={question}
-            permission={permission}
             canPredict={canPredict}
-            canResolve={canResolve}
             predictionMessage={predictionMessage}
             onPredictionSubmit={onPredictionSubmit}
           />
@@ -70,16 +61,13 @@ const QuestionForecastMaker: FC<Props> = ({
           <ForecastMakerMultipleChoice
             post={post}
             question={question}
-            permission={permission}
             canPredict={canPredict}
-            canResolve={canResolve}
             predictionMessage={predictionMessage}
             onPredictionSubmit={onPredictionSubmit}
           />
           <QuestionResolutionText question={question} />
         </>
       )}
-      <ScoreDisplay question={question} />
     </ForecastMakerContainer>
   );
 };

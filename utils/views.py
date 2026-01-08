@@ -180,6 +180,7 @@ def validate_data_request(request: Request, **kwargs):
     include_scores = params.get("include_scores", True)
     include_user_data = params.get("include_user_data", False)
     include_future = params.get("include_future", False)
+    include_key_factors = params.get("include_key_factors", False)
     # TODO: change url param name to only_include_user_ids (requires front end changes)
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
@@ -232,6 +233,7 @@ def validate_data_request(request: Request, **kwargs):
         "include_scores": include_scores,
         "include_user_data": include_user_data,
         "include_comments": include_comments,
+        "include_key_factors": include_key_factors,
         "only_include_user_ids": only_include_user_ids,
         "include_bots": include_bots,
         "anonymized": anonymized,

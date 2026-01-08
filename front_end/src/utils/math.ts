@@ -277,14 +277,20 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
  */
 export function getCdfAt(x: number, cdf: number[], scaling: Scaling) {
   const location = unscaleNominalLocation(x, scaling);
-  const floatIndex = location * (cdf.length - 1);
-  if (floatIndex <= 0) {
+  if (location <= 0) {
     return cdf.at(0);
   }
-  if (floatIndex >= 1) {
+  if (location >= 1) {
     return cdf.at(-1);
   }
-  return cdf.at(Math.round(floatIndex));
+  const floatIndex = location * (cdf.length - 1);
+  // linear interpolation
+  const lowerIndex = Math.floor(floatIndex);
+  const upperIndex = Math.ceil(floatIndex);
+  const weight = floatIndex - lowerIndex;
+  return (
+    (cdf[lowerIndex] || 0) * (1 - weight) + (cdf[upperIndex] || 1) * weight
+  );
 }
 
 /**

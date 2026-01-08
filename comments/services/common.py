@@ -15,7 +15,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from comments.models import (
     ChangedMyMindEntry,
@@ -90,6 +90,9 @@ def create_comment(
     if root:
         is_private = root.is_private
 
+    if not is_private and user.is_bot and not user.is_primary_bot:
+        raise PermissionDenied("Only your primary bot can post public comments.")
+
     with transaction.atomic():
         obj = Comment(
             author=user,
@@ -127,7 +130,9 @@ def create_comment(
     return obj
 
 
-def update_comment(comment: Comment, text: str = None):
+def update_comment(
+    comment: Comment, text: str = None, included_forecast: Forecast = None
+):
     differ = difflib.Differ()
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
@@ -145,10 +150,19 @@ def update_comment(comment: Comment, text: str = None):
         comment.text = text
         comment.text_edited_at = timezone.now()
 
+        if included_forecast:
+            comment.included_forecast = included_forecast
+
         should_soft_delete = check_and_handle_comment_spam(comment.author, comment)
 
         comment.save(
-            update_fields=["text", "edit_history", "text_edited_at", "is_soft_deleted"]
+            update_fields=[
+                "text",
+                "edit_history",
+                "text_edited_at",
+                "is_soft_deleted",
+                "included_forecast",
+            ]
         )
 
         if should_soft_delete:
@@ -197,17 +211,21 @@ def unpin_comment(comment: Comment):
 
 @transaction.atomic
 def soft_delete_comment(comment: Comment):
-    post = comment.on_post
+    if comment.is_soft_deleted:
+        return
 
-    # Decrement counter during comment deletion
-    post.snapshots.filter(viewed_at__gte=comment.created_at).update(
-        comments_count=F("comments_count") - 1
-    )
+    post = comment.on_post
 
     comment.is_soft_deleted = True
     comment.save(update_fields=["is_soft_deleted"])
 
     post.update_comment_count()
+
+    if not comment.is_private:
+        # Decrement counter during comment deletion
+        post.snapshots.filter(viewed_at__gte=comment.created_at).update(
+            comments_count=F("comments_count") - 1
+        )
 
 
 def compute_comment_score(
@@ -264,6 +282,8 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     weeks_comments = Comment.objects.filter(
         created_at__gte=week_start_datetime,
         created_at__lt=week_end_datetime,
+        on_post__isnull=False,
+        on_post__default_project__visibility=Project.Visibility.NORMAL,
     ).exclude(author__is_staff=True)
 
     comments_of_week = weeks_comments.annotate(

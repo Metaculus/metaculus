@@ -47,6 +47,7 @@ import {
   getAxisRightPadding,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
@@ -858,8 +859,9 @@ const ResolutionChip: FC<{
 
   const { getThemeColor } = useAppTheme();
   const { x, y, compact, datum, chartHeight, text, color, scale } = props;
-  const adjustedText =
-    compact && text.length > RESOLUTION_TEXT_LIMIT ? "Yes" : text;
+  const adjustedText = compact
+    ? truncateLabel(text, RESOLUTION_TEXT_LIMIT)
+    : text;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 

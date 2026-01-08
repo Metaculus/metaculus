@@ -40,6 +40,7 @@ type BaseProps = {
   chartHeight?: number;
   canPredict?: boolean;
   showChart?: boolean;
+  minimalistic?: boolean;
   optionsLimit?: number;
 };
 
@@ -90,6 +91,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   forecastAvailability,
   canPredict,
   showChart = true,
+  minimalistic = false,
 }) => {
   const { user } = useAuth();
   const { onReaffirm } = useCardReaffirmContext();
@@ -122,29 +124,40 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   return (
     <div
       className={cn(
-        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-5 md:gap-8",
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
         {
           "md:grid md:grid-cols-5": showChart,
+          "gap-5 md:gap-8": !minimalistic,
         }
       )}
     >
-      <div className="resize-container w-full md:col-span-2">
+      <div
+        className={cn("resize-container w-full", {
+          "md:col-span-2": !minimalistic || isResolvedView,
+        })}
+      >
         {isResolvedView ? (
           <PredictionChip question={question} status={PostStatus.RESOLVED} />
         ) : (
-          <MultipleChoiceTileLegend
-            ref={ref}
-            choices={choices}
-            visibleChoicesCount={visibleChoicesCount}
-            questionType={groupType}
-            hideCP={hideCP}
-            canPredict={canPredict && canReaffirm}
-            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-          />
+          !minimalistic && (
+            <MultipleChoiceTileLegend
+              ref={ref}
+              choices={choices}
+              visibleChoicesCount={visibleChoicesCount}
+              questionType={groupType}
+              hideCP={hideCP}
+              canPredict={canPredict && canReaffirm}
+              onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            />
+          )
         )}
       </div>
       {showChart && !isResolvedView && (
-        <div className="relative w-full md:col-span-3">
+        <div
+          className={cn("relative w-full md:col-span-5", {
+            "md:col-span-3": !minimalistic || isResolvedView,
+          })}
+        >
           {isNil(group) ? (
             <MultipleChoiceChart
               timestamps={timestamps}
@@ -195,6 +208,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
   groupType,
   canPredict,
   showChart = true,
+  minimalistic = false,
   optionsLimit,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
@@ -219,26 +233,37 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
   return (
     <div
       className={cn(
-        "MultipleChoiceTile ml-0 flex w-full flex-col items-start gap-8",
+        "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
         {
           "md:grid md:grid-cols-5": showChart,
+          "gap-8": !minimalistic,
         }
       )}
     >
-      <div className="resize-container w-full md:col-span-2">
-        <MultipleChoiceTileLegend
-          ref={ref}
-          choices={choices}
-          visibleChoicesCount={visibleChoicesCount}
-          hideCP={hideCP}
-          questionType={groupType}
-          canPredict={canPredict && canReaffirm}
-          onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-          withChoiceIcon={false}
-        />
+      <div
+        className={cn("resize-container w-full", {
+          "md:col-span-2": !minimalistic,
+        })}
+      >
+        {!minimalistic && (
+          <MultipleChoiceTileLegend
+            ref={ref}
+            choices={choices}
+            visibleChoicesCount={visibleChoicesCount}
+            hideCP={hideCP}
+            questionType={groupType}
+            canPredict={canPredict && canReaffirm}
+            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+            withChoiceIcon={false}
+          />
+        )}
       </div>
       {showChart && (
-        <div className="w-full md:col-span-3">
+        <div
+          className={cn("w-full md:col-span-5", {
+            "md:col-span-3": !minimalistic,
+          })}
+        >
           <FanChart
             group={group}
             height={chartHeight ?? Math.max(height, CHART_HEIGHT)}

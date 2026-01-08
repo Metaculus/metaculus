@@ -78,7 +78,6 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -351,8 +350,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   const handleSingleQuestionSubmit = useCallback(
     async (questionId: number, forecastExpiration: ForecastExpirationValue) => {
-      const optionToSubmit = questionsToSubmit.find(
-        (opt) => opt.id === questionId
+      const optionToSubmit = groupOptions.find(
+        (opt) => opt.question.id === questionId
       );
 
       if (!optionToSubmit) return;
