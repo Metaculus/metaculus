@@ -15,6 +15,7 @@ import EmailConfirmation from "./components/email_confirmation";
 import HeroCTAs from "./components/hero_ctas";
 import { FILTERS } from "./components/homepage_filters";
 import HomePageForecasts from "./components/homepage_forecasts";
+import NewsletterSubscription from "./components/newsletter_subscription";
 import ResearchAndUpdates from "./components/research_and_updates";
 import StaffPicks from "./components/staff_picks";
 import TournamentsSection from "./components/tournaments_section";
@@ -81,6 +82,7 @@ export default async function Home() {
           className={contentWidthClassNames}
         />
       </Suspense>
+      <NewsletterSubscription />
     </main>
   );
 }
