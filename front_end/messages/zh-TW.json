@@ -413,7 +413,7 @@
   "comments": "評論",
   "questions": "問題",
   "leaderboardQuestions": "排行榜問題",
-  "viewMore": "查看更多...",
+  "viewMore": "查看更多",
   "randomQuestion": "隨機問題",
   "notebooks": "筆記本",
   "otherWithCount": "{count, plural, =1 {# 別的} other {# 其他} }",
