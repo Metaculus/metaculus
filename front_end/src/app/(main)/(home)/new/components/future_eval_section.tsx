@@ -186,14 +186,10 @@ const FutureEvalSection: FC<{ className?: string }> = async ({ className }) => {
               />
               <FeatureItem
                 icon={<TrophyIcon />}
-                title={t("quarterlyBiweeklyTournaments")}
+                title={t("startCompeting")}
                 description={
                   <>
-                    {t("tournamentsDescriptionPart1")}{" "}
-                    <Link href="/aib/" className="underline">
-                      {t("theFall2025")}
-                    </Link>{" "}
-                    {t("tournamentsDescriptionPart2")}{" "}
+                    {t("startCompetingDescription")}{" "}
                     <Link href="/aib/" className="underline">
                       {t("miniBench")}
                     </Link>
