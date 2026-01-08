@@ -1,7 +1,10 @@
 import { isNil } from "lodash";
-import React, { FC } from "react";
+import { FC } from "react";
 
-import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
+import {
+  useEmbedContainerWidth,
+  useIsEmbedMode,
+} from "@/app/(embed)/questions/components/question_view_mode_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -26,8 +29,10 @@ const ContinuousCPBar: FC<Props> = ({
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
 
-  const isEmbed = useIsEmbedMode();
   const isDate = question.type === QuestionType.Date;
+  const isEmbed = useIsEmbedMode();
+  const w = useEmbedContainerWidth();
+  const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
 
   if (!latest) {
     return null;
@@ -47,7 +52,7 @@ const ContinuousCPBar: FC<Props> = ({
               latest?.interval_upper_bounds?.[0] as number,
             ]
           : [],
-      unit: isEmbed ? "" : question.unit,
+      unit: isEmbedBelow376 ? question.unit : isEmbed ? "" : question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
     },
@@ -82,11 +87,13 @@ const ContinuousCPBar: FC<Props> = ({
           "mb-1 text-base": size === "lg",
           "mb-0 truncate text-sm md:text-sm": isEmbed,
           "text-olive-800 dark:text-olive-800-dark": isEmbed && !accentStyle,
+          "text-[18px] font-bold text-olive-900 dark:text-olive-900-dark":
+            isEmbedBelow376,
         })}
       >
         {centerLabel}
       </div>
-      {!isNil(intervalLabel) && (
+      {!isNil(intervalLabel) && !isEmbedBelow376 && (
         <div
           style={accentStyle}
           className={cn("text-[10px] font-normal tabular-nums md:text-xs", {

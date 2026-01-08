@@ -33,7 +33,7 @@ const QuestionEmbedModal: FC<Props> = ({
       ContinuousQuestionTypes.some((type) => type === questionType));
 
   const embedWidth = 550;
-  const embedHeight = isBinaryOrContinuous || isFanChart ? 380 : 290;
+  const embedHeight = isBinaryOrContinuous || isFanChart ? 390 : 290;
 
   return (
     <EmbedModal

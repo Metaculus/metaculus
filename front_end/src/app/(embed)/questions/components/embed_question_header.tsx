@@ -113,13 +113,15 @@ const EmbedQuestionHeader: React.FC<Props> = ({
         {titleOverride ?? post.title}
       </TruncatableQuestionTitle>
       {isQuestionPost(post) && (
-        <QuestionHeaderCPStatus
-          question={post.question as QuestionWithForecasts}
-          size="md"
-          hideLabel={isContinuousQuestion(post.question)}
-          colorOverride={predictionColor}
-          chartTheme={theme?.chart}
-        />
+        <div className="[@container(max-width:375px)]:hidden">
+          <QuestionHeaderCPStatus
+            question={post.question as QuestionWithForecasts}
+            size="md"
+            hideLabel={isContinuousQuestion(post.question)}
+            colorOverride={predictionColor}
+            chartTheme={theme?.chart}
+          />
+        </div>
       )}
     </div>
   );
