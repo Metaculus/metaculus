@@ -20,21 +20,21 @@ const FEATURED_IN = [
     href: "https://www.nasdaq.com/",
     label: "Nasdaq",
     component: (
-      <NasdaqLogo className="h-5 w-auto text-[#171717] dark:text-white" />
+      <NasdaqLogo className="h-4 w-auto text-[#171717] dark:text-white" />
     ),
   },
   {
     href: "https://www.forbes.com/",
     label: "Forbes",
     component: (
-      <ForbesLogo className="h-5 w-auto text-[#171717] dark:text-white" />
+      <ForbesLogo className="h-3 w-auto text-[#171717] dark:text-white" />
     ),
   },
   {
     href: "https://www.theatlantic.com/",
     label: "The Atlantic",
     component: (
-      <TheAtlanticLogo className="h-8 w-auto text-[#171717] dark:text-white " />
+      <TheAtlanticLogo className="h-12 w-auto text-[#171717] dark:text-white " />
     ),
   },
   {
@@ -53,7 +53,7 @@ const FEATURED_IN = [
     href: "https://www.bloomberg.com/",
     label: "Bloomberg",
     component: (
-      <BloombergLogo className="h-5 w-auto text-[#171717] dark:text-white " />
+      <BloombergLogo className="h-4 w-auto text-[#171717] dark:text-white " />
     ),
   },
 ];
