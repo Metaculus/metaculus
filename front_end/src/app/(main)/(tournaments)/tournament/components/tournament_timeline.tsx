@@ -39,9 +39,19 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
     all_questions_closed,
   } = tournament.timeline;
 
+  const latestScheduledCloseTimestamp = getTimestampFromDateString(
+    tournament.forecasting_end_date || tournament.close_date
+  );
+
+  const nowTs = Date.now();
+  const hasCloseDate = latestScheduledCloseTimestamp > 0;
+  const shouldShowClosedTimeline =
+    all_questions_closed &&
+    (!hasCloseDate || nowTs >= latestScheduledCloseTimestamp);
+
   return (
     <div className="mt-4 flex flex-col gap-x-5 gap-y-4 sm:mt-5 sm:flex-row">
-      {!all_questions_closed ? (
+      {!shouldShowClosedTimeline ? (
         <ActiveTournamentTimeline
           tournament={tournament}
           lastParticipationDayTimestamp={
@@ -49,9 +59,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
               ? getTimestampFromDateString(last_cp_reveal_time)
               : null
           }
-          latestScheduledCloseTimestamp={getTimestampFromDateString(
-            tournament.forecasting_end_date || tournament.close_date
-          )}
+          latestScheduledCloseTimestamp={latestScheduledCloseTimestamp}
         />
       ) : (
         <ClosedTournamentTimeline
@@ -59,9 +67,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
           latestScheduledResolutionTimestamp={getTimestampFromDateString(
             latest_scheduled_resolve_time
           )}
-          latestActualCloseTimestamp={getTimestampFromDateString(
-            tournament.forecasting_end_date || tournament.close_date
-          )}
+          latestActualCloseTimestamp={latestScheduledCloseTimestamp}
           isAllQuestionsResolved={all_questions_resolved}
           latestActualResolutionTimestamp={getTimestampFromDateString(
             latest_actual_resolve_time

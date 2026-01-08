@@ -714,6 +714,7 @@
   "legacyPeerDisclaimer": "The Peer Accuracy leaderboards used slightly different math before 2024. See details <link>here</link>.",
   "namesPrediction": "<name>{username}'s</name> Prediction",
   "includeMyForecast": "include your current forecast in this comment",
+  "includeMyForecastAtTheTime": "Include my prediction at the time <strong>({forecast})</strong>",
   "privateComment": "private comment",
   "groupVariable": "Group Variable",
   "questionUnit": "Question Unit",
