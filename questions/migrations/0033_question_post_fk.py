@@ -66,7 +66,7 @@ def reverse_populate(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("posts", "0027_alter_postusersnapshot_private_note_updated_at"),
-        ("questions", "0031_forecast_questions_f_author__d4ea27_idx"),
+        ("questions", "0032_alter_aggregateforecast_forecast_values_and_more"),
     ]
 
     operations = [

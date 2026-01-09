@@ -215,7 +215,8 @@ class Leaderboard(TimeStampedModel):
             # normal Project leaderboard
             if self.project:
                 questions = questions.filter(
-                    Q(post__projects=self.project) | Q(post__default_project=self.project),
+                    Q(post__projects=self.project)
+                    | Q(post__default_project=self.project),
                 )
             return questions.distinct("id")
 
