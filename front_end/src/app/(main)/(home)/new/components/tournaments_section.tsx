@@ -1,14 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import LiveTournamentCard from "@/app/(main)/(tournaments)/tournaments/components/tournaments_grid/live_tournament_card";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import TournamentCard from "@/components/tournament_card";
 import Button from "@/components/ui/button";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { getProjectLink } from "@/utils/navigation";
-import LiveTournamentCard from "@/app/(main)/(tournaments)/tournaments/components/tournaments_grid/live_tournament_card";
 
 const TournamentsSection: FC<{ className?: string }> = async ({
   className,
