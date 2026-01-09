@@ -4,7 +4,6 @@ from django.utils import timezone
 from django_dynamic_fixture import G
 
 from posts.models import Post, PostUserSnapshot, Notebook
-from posts.services.common import update_questions_post_relation
 from projects.models import Project
 from projects.services.common import get_site_main_project
 from questions.models import Question, Conditional
@@ -41,7 +40,7 @@ def factory_post(
         )
     )
     post.projects.add(*projects)
-    update_questions_post_relation(post)
+    post.sync_question_post_fk()
 
     return post
 

@@ -836,6 +836,26 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Sync the Question.post FK only when creating a new post
+        if is_new:
+            self.sync_question_post_fk()
+
+    def sync_question_post_fk(self):
+        """Ensure all questions associated with this post have their post FK set."""
+        questions_to_update = []
+
+        for q in self.get_questions():
+            if q.post_id != self.pk:
+                q.post_id = self.pk
+                questions_to_update.append(q)
+
+        if questions_to_update:
+            Question.objects.bulk_update(questions_to_update, ["post_id"])
+
     def update_curation_status(self, status: CurationStatus):
         self.curation_status = status
         self.curation_status_updated_at = timezone.now()
