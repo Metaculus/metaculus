@@ -106,6 +106,7 @@ def homepage_categories_list_api_view(request: Request):
             ],
         }
         for obj in categories
+        if len(obj.top_n_post_ids) > 0
     ]
 
     return Response(data)
