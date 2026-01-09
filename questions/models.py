@@ -28,12 +28,7 @@ class QuestionQuerySet(QuerySet):
         )
 
     def filter_public(self):
-        return self.filter(
-            related_posts__post__default_project__default_permission__isnull=False
-        )
-
-    def prefetch_related_post(self):
-        return self.prefetch_related("related_posts__post")
+        return self.filter(post__default_project__default_permission__isnull=False)
 
 
 class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):

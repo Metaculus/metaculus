@@ -92,12 +92,6 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
         )
 
-    def prefetch_condition_post(self):
-        return self.prefetch_related(
-            "conditional__condition__related_posts__post",
-            "conditional__condition_child__related_posts__post",
-        )
-
     def prefetch_questions_scores(self):
         question_relations = [
             "question",

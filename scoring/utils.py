@@ -957,18 +957,13 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
 def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     question_ids = list(
         leaderboard.get_questions()
-        .filter(
-            Q(related_posts__post__author_id=user.id)
-            | Q(related_posts__post__coauthors=user)
-        )
+        .filter(Q(post__author_id=user.id) | Q(post__coauthors=user))
         .distinct("id")
         .values_list("id", flat=True)
     )
 
     # Now fetch full questions for later iteration
-    questions = Question.objects.filter(id__in=question_ids).prefetch_related(
-        "related_posts__post"
-    )
+    questions = Question.objects.filter(id__in=question_ids).select_related("post")
 
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
@@ -1048,8 +1043,8 @@ def get_contributions(
     # Scoring Leaderboards
     questions = (
         leaderboard.get_questions()
-        .prefetch_related("related_posts__post")
-        .filter(Q(related_posts__post__published_at__lt=timezone.now()))
+        .select_related("post")
+        .filter(Q(post__published_at__lt=timezone.now()))
     )
 
     # Extract question IDs first to avoid complex subqueries in Score filters
@@ -1070,12 +1065,12 @@ def get_contributions(
         question_id__in=question_ids,
         user=user,
         score_type=score_type,
-    ).prefetch_related("question__related_posts__post")
+    ).select_related("question__post")
     archived_scores = ArchivedScore.objects.filter(
         question_id__in=question_ids,
         user=user,
         score_type=score_type,
-    ).prefetch_related("question__related_posts__post")
+    ).select_related("question__post")
 
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(

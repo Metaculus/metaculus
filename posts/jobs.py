@@ -73,7 +73,7 @@ def job_check_post_open_event():
     """
 
     questions_qs = Question.objects.filter(
-        related_posts__post__in=Post.objects.filter_published(),
+        post__in=Post.objects.filter_published(),
         open_time__lte=timezone.now(),
         open_time_triggered=False,
     ).filter(
