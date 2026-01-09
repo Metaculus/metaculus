@@ -235,7 +235,7 @@ def export_data_for_questions(
         key_factors = (
             KeyFactor.objects.filter_active()
             .filter(
-                comment__on_post__related_questions__question_id__in=question_ids,
+                comment__on_post__questions__id__in=question_ids,
                 comment__is_soft_deleted=False,
             )
             .select_related(
