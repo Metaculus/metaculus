@@ -12,7 +12,10 @@ from django.conf import settings
 from django.db import transaction
 
 from posts.models import Post
-from posts.services.common import trigger_update_post_translations
+from posts.services.common import (
+    trigger_update_post_translations,
+    update_questions_post_relation,
+)
 from posts.tasks import run_post_indexing
 from projects.models import Project
 from questions.models import Question
@@ -312,6 +315,7 @@ def submit_questions(
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
             post.save()
+            update_questions_post_relation(post)
             created_posts.append(post)
             log_info(
                 f"   - added Question/Post [{question.title}] to {tournament.name}"

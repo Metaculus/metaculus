@@ -613,7 +613,7 @@ def serialize_question(
     if post:
         serialized_data["short_title"] = post.short_title
 
-    serialized_data["post_id"] = post.id if post else question.get_post_id()
+    serialized_data["post_id"] = post.id if post else question.post_id
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )

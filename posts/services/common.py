@@ -110,6 +110,21 @@ def update_global_leaderboard_tags(post: Post):
     post.projects.set([*non_leaderboard_tags, *desired_tags])
 
 
+def update_questions_post_relation(post: Post) -> None:
+    """
+    Update Question.post_id for all questions related to this post.
+
+    Note: This uses explicit lookups (not post.get_questions()) because it needs
+    to work during creation when Question.post_id is not yet set.
+    """
+    questions: list[Question] = post.get_questions()
+
+    if questions:
+        for q in questions:
+            q.post_id = post.id
+        Question.objects.bulk_update(questions, ["post_id"])
+
+
 def create_post(
     *,
     title: str = None,
@@ -165,6 +180,9 @@ def create_post(
             categories.remove(obj.default_project)
 
         obj.projects.add(*categories)
+
+        # Set Question.post_id for all related questions
+        update_questions_post_relation(obj)
 
         # Update global leaderboard tags
         update_global_leaderboard_tags(obj)
@@ -293,6 +311,7 @@ def update_post(
 
         update_notebook(post.notebook, **notebook)
 
+    update_questions_post_relation(post)
     post.update_pseudo_materialized_fields()
 
     # Compare the text content before and after the post update for embedding generation

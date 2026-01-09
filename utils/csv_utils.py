@@ -953,8 +953,8 @@ def generate_data(
         ]
     )
     for link in aggregate_question_links or []:
-        q1_post_id = link.question1.get_post_id()
-        q2_post_id = link.question2.get_post_id()
+        q1_post_id = link.question1.post_id
+        q2_post_id = link.question2.post_id
         question_link_writer.writerow(
             [
                 link.id,

@@ -773,8 +773,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
+    # Note: related_name="+" disables reverse accessor since Question.post FK is now canonical
     question = models.OneToOneField(
-        Question, models.CASCADE, related_name="post", null=True, blank=True
+        Question, models.CASCADE, related_name="+", null=True, blank=True
     )
     conditional = models.OneToOneField(
         Conditional, models.CASCADE, related_name="post", null=True, blank=True

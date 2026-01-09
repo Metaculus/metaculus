@@ -4,7 +4,6 @@ from itertools import chain
 from typing import Iterable
 
 from django.db import IntegrityError
-from django.db.models import F
 from django.utils import timezone
 from django.utils.timezone import make_aware
 
@@ -244,17 +243,14 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
     # 2. Fetch Questions
     all_post_ids = set().union(*project_posts.values())
 
-    questions = (
-        Question.objects.filter(related_posts__post_id__in=all_post_ids)
-        .annotate(post_id=F("related_posts__post_id"))
-        .only(
-            "id",
-            "cp_reveal_time",
-            "actual_resolve_time",
-            "scheduled_resolve_time",
-            "actual_close_time",
-            "scheduled_close_time",
-        )
+    questions = Question.objects.filter(post_id__in=all_post_ids).only(
+        "id",
+        "post_id",
+        "cp_reveal_time",
+        "actual_resolve_time",
+        "scheduled_resolve_time",
+        "actual_close_time",
+        "scheduled_close_time",
     )
 
     # Group by post

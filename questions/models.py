@@ -49,6 +49,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     archived_scores: QuerySet["ArchivedScore"]
     id: int
     group_id: int | None
+    post_id: int | None
 
     # Annotated fields
     forecasts_count: int = 0
@@ -204,6 +205,18 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
+    # Post relation (canonical ownership - every question belongs to exactly one post)
+    post = models.ForeignKey(
+        "posts.Post",
+        null=True,  # Temporarily nullable for migration; should always be set
+        # TODO: check if it's still possible to create a question
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="questions",
+        editable=False,
+        help_text="The post this question belongs to. Set automatically.",
+    )
+
     # Group
     group_variable = models.CharField(blank=True, null=False)
     label = models.TextField(blank=True, null=False)
@@ -274,21 +287,10 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return super().save(**kwargs)
 
-    def _get_post_rel(self):
-        rels = self.related_posts.all()
-
-        if len(rels) == 0:
-            return None
-        if len(rels) == 1:
-            return rels[0]
-        if len(rels) > 1:
-            raise ValueError(f"Question {self.id} has more than one post: {rels}")
-
     def get_post(self) -> "Post | None":
-        return getattr(self._get_post_rel(), "post", None)
-
-    def get_post_id(self):
-        return getattr(self._get_post_rel(), "post_id", None)
+        """Get the post this question belongs to."""
+        if self.post_id:
+            return self.post
 
     @property
     def status(self) -> QuestionStatus:
