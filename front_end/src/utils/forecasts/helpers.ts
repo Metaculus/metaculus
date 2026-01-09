@@ -14,6 +14,7 @@ import {
   DistributionSliderComponent,
   Quantile,
   Question,
+  QuestionWithForecasts,
   UserForecast,
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
@@ -138,7 +139,7 @@ export function isForecastActive(forecast: UserForecast | AggregateForecast) {
 }
 
 export function isOpenQuestionPredicted(
-  question: Question,
+  question: QuestionWithForecasts,
   config?: {
     treatClosedAsPredicted?: boolean;
     treatWithdrawnAsPredicted?: boolean;

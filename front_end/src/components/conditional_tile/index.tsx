@@ -10,7 +10,7 @@ import ForecastersCounter from "@/app/(main)/questions/components/forecaster_cou
 import PredictionChip from "@/components/prediction_chip";
 import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
@@ -21,7 +21,7 @@ import Arrow from "./icons/Arrow";
 import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
-  post: ConditionalPost<QuestionWithForecasts>;
+  post: ConditionalPost<QuestionWithNumericForecasts>;
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
   withCPRevealBtn?: boolean;
