@@ -101,6 +101,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "score_type",
             "default_permission",
             "visibility",
+            "show_on_homepage",
             "is_current_content_translated",
             "bot_leaderboard_status",
             "description_preview",
