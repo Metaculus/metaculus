@@ -385,6 +385,32 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             )
         )
 
+    class Meta:
+        indexes = [
+            # Partial indexes for question-level status filtering in feed queries
+            # Used by Exists() subqueries in get_posts_feed()
+            models.Index(
+                fields=["post"],
+                name="idx_question_post_unresolved",
+                condition=Q(resolution__isnull=True),
+            ),
+            models.Index(
+                fields=["post"],
+                name="idx_question_post_resolved",
+                condition=Q(resolution__isnull=False),
+            ),
+            models.Index(
+                fields=["post", "scheduled_close_time"],
+                name="idx_question_post_close_time",
+                condition=Q(resolution__isnull=True),
+            ),
+            models.Index(
+                fields=["post", "scheduled_resolve_time"],
+                name="idx_question_post_resolve_time",
+                condition=Q(resolution__isnull=True),
+            ),
+        ]
+
 
 QUESTION_CONTINUOUS_TYPES = [
     Question.QuestionType.NUMERIC,

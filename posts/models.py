@@ -160,6 +160,36 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def filter_user_has_not_forecasted(self, author_id: int):
+        """
+        Filter to posts where user has NOT forecasted.
+        Uses NOT EXISTS which is more efficient than annotate + filter IS NULL.
+        """
+        return self.filter(
+            ~Exists(
+                PostUserSnapshot.objects.filter(
+                    user_id=author_id,
+                    post_id=OuterRef("pk"),
+                    last_forecast_date__isnull=False,
+                )
+            )
+        )
+
+    def filter_user_has_forecasted(self, author_id: int):
+        """
+        Filter to posts where user HAS forecasted.
+        Uses EXISTS which is more efficient than annotate + filter IS NOT NULL.
+        """
+        return self.filter(
+            Exists(
+                PostUserSnapshot.objects.filter(
+                    user_id=author_id,
+                    post_id=OuterRef("pk"),
+                    last_forecast_date__isnull=False,
+                )
+            )
+        )
+
     def annotate_has_active_forecast(self, author_id: int):
         """
         Annotates if user has active forecast for post

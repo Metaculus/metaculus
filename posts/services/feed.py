@@ -130,54 +130,76 @@ def get_posts_feed(
     qs = qs.filter(forecast_type_q)
 
     statuses = list(statuses or [])
-
-    q = Q()
+    now = timezone.now()
+    status_q = Q()
 
     for status in statuses:
         if status in Post.CurationStatus:
-            q |= Q(curation_status=status)
+            status_q |= Q(curation_status=status)
         if status == "upcoming":
-            q |= Q(
+            status_q |= (
                 Q(notebook__isnull=True)
                 & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(open_time__gte=timezone.now())
+                & Exists(
+                    Question.objects.filter(
+                        post_id=OuterRef("pk"),
+                        open_time__gte=now,
+                    )
+                )
             )
         if status == "closed":
-            q |= Q(notebook__isnull=True) & (
-                Q(curation_status=Post.CurationStatus.APPROVED)
-                & (
-                    Q(actual_close_time__isnull=False, resolved=False)
-                    | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
+            status_q |= (
+                Q(notebook__isnull=True)
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Exists(
+                    Question.objects.filter(
+                        post_id=OuterRef("pk"),
+                        resolution__isnull=True,
+                    ).filter(
+                        Q(actual_close_time__isnull=False)
+                        | Q(scheduled_close_time__lte=now)
+                    )
                 )
             )
         if status == "pending_resolution":
-            q |= (
+            status_q |= (
                 Q(notebook__isnull=True)
                 & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(resolved=False, scheduled_resolve_time__lte=timezone.now())
+                & Exists(
+                    Question.objects.filter(
+                        post_id=OuterRef("pk"),
+                        resolution__isnull=True,
+                        scheduled_resolve_time__lte=now,
+                    )
+                )
             )
             if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
                 order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
         if status == "resolved":
-            q |= Q(notebook__isnull=True) & Q(
-                resolved=True, curation_status=Post.CurationStatus.APPROVED
+            status_q |= (
+                Q(notebook__isnull=True)
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Exists(
+                    Question.objects.filter(
+                        post_id=OuterRef("pk"),
+                        resolution__isnull=False,
+                    )
+                )
             )
         if status == "open":
-            q |= Q(
-                Q(published_at__lte=timezone.now())
+            status_q |= Q(
+                Q(published_at__lte=now)
                 & Q(curation_status=Post.CurationStatus.APPROVED)
                 & (
-                    # Notebooks don't support statuses filter
-                    # So we add fallback condition list this
                     Q(notebook_id__isnull=False)
                     | (
-                        Q(open_time__lte=timezone.now())
+                        Q(open_time__lte=now)
                         & Q(
                             (
                                 Q(actual_close_time__isnull=True)
-                                | Q(actual_close_time__gte=timezone.now())
+                                | Q(actual_close_time__gte=now)
                             )
-                            & Q(scheduled_close_time__gte=timezone.now())
+                            & Q(scheduled_close_time__gte=now)
                         )
                         & Q(resolved=False)
                     )
@@ -186,9 +208,9 @@ def get_posts_feed(
 
     # Include only approved posts if no curation status specified
     if not any(status in Post.CurationStatus for status in statuses):
-        q &= Q(curation_status=Post.CurationStatus.APPROVED)
+        status_q &= Q(curation_status=Post.CurationStatus.APPROVED)
 
-    qs = qs.filter(q)
+    qs = qs.filter(status_q)
 
     if forecaster_id:
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
@@ -202,10 +224,9 @@ def get_posts_feed(
             qs = qs.annotate_has_active_forecast(forecaster_id).filter(
                 has_active_forecast=not withdrawn
             )
+
     if not_forecaster_id:
-        qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
-            user_last_forecasts_date__isnull=True
-        )
+        qs = qs.filter_user_has_not_forecasted(not_forecaster_id)
 
     if upvoted_by:
         qs = qs.filter(
@@ -296,7 +317,7 @@ def get_posts_feed(
         )
     if order_type == PostFilterSerializer.Order.NEWS_HOTNESS:
         if not order_desc:
-            raise ValidationError("Ascending is not supported for “In the news” order")
+            raise ValidationError('Ascending is not supported for "In the news" order')
 
         # Annotate news hotness and exclude notebooks
         qs = qs.annotate_news_hotness().filter(notebook__isnull=True)
