@@ -216,7 +216,7 @@ const AIBProsVsBotsDiffChart: FC<{
   );
   const yTicksNoZero = useMemo(() => yTicks.filter((t) => t !== 0), [yTicks]);
 
-  const gridStroke = getThemeColor(METAC_COLORS.gray[400]);
+  const gridStroke = getThemeColor(METAC_COLORS.gray[900]);
   const axisLabelColor = getThemeColor(METAC_COLORS.gray[700]);
   const tickLabelColor = getThemeColor(METAC_COLORS.gray[500]);
   const show = categories.length > 0 && (hasS1 || hasS2);
@@ -412,13 +412,21 @@ const AIBProsVsBotsDiffChart: FC<{
                   style={{
                     grid: {
                       stroke: gridStroke,
-                      strokeWidth: 1,
-                      strokeDasharray: "2,5",
+                      strokeWidth: 0.1,
                     },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
-                    tickLabels: { fill: tickLabelColor, fontSize: 16 },
-                    axisLabel: { fill: axisLabelColor, fontSize: 16 },
+                    tickLabels: {
+                      fill: tickLabelColor,
+                      fontSize: smUp ? 12 : 12,
+                      fontWeight: 400,
+                      fontFeatureSettings: '"tnum"',
+                    },
+                    axisLabel: {
+                      fill: axisLabelColor,
+                      fontSize: 14,
+                      fontWeight: 400,
+                    },
                   }}
                 />
                 <VictoryAxis
@@ -427,10 +435,15 @@ const AIBProsVsBotsDiffChart: FC<{
                   offsetX={smUp ? 60 : 45}
                   tickValues={[0]}
                   style={{
-                    grid: { stroke: gridStroke, strokeWidth: 1 },
+                    grid: { stroke: gridStroke, strokeWidth: 0.1 },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
-                    tickLabels: { fill: tickLabelColor, fontSize: 16 },
+                    tickLabels: {
+                      fill: tickLabelColor,
+                      fontSize: smUp ? 12 : 12,
+                      fontWeight: 400,
+                      fontFeatureSettings: '"tnum"',
+                    },
                   }}
                 />
                 <VictoryAxis
@@ -445,7 +458,8 @@ const AIBProsVsBotsDiffChart: FC<{
                     ticks: { stroke: "transparent" },
                     tickLabels: {
                       fill: tickLabelColor,
-                      fontSize: smUp ? 16 : 12,
+                      fontSize: smUp ? 12 : 10,
+                      fontWeight: 400,
                     },
                   }}
                 />

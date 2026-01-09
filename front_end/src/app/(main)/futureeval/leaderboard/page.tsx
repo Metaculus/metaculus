@@ -1,8 +1,11 @@
+import { Suspense } from "react";
+
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 
-import AIBContainer from "../../aib/components/aib/aib-container";
-import AIBLeaderboardHero from "../../aib/components/aib/leaderboard/aib-leaderboard-hero";
-import AIBLeaderboardTable from "../../aib/components/aib/leaderboard/aib-leaderboard-table";
+import FutureEvalContainer from "../components/futureeval-container";
+import FutureEvalLeaderboardHero from "../components/futureeval-leaderboard-hero";
+import FutureEvalLeaderboardTable from "../components/futureeval-leaderboard-table";
+import FutureEvalNavbar from "../components/futureeval-navbar";
 
 export const metadata = {
   title: "Top Model Leaderboards | Metaculus",
@@ -17,19 +20,22 @@ export default async function FutureEvalLeaderboardsPage() {
     "Global Bot Leaderboard"
   );
 
-  console.log("LEADERBOARD DATA", data);
-
   return (
-    <AIBContainer className="pb-[148px] min-[376px]:pb-[58px]">
-      <AIBLeaderboardHero />
+    <div className="font-geist">
+      <FutureEvalNavbar />
+      <FutureEvalContainer className="pb-[148px] min-[376px]:pb-[58px]">
+        <FutureEvalLeaderboardHero />
 
-      {data?.entries?.length ? (
-        <AIBLeaderboardTable details={data} />
-      ) : (
-        <div className="mx-auto mt-10 w-full max-w-[570px] rounded-[2px] border-[1px] border-gray-300 bg-gray-0 p-8 text-base font-normal text-gray-700 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-700-dark">
-          Leaderboard data not currently available, please check back soon!
-        </div>
-      )}
-    </AIBContainer>
+        {data?.entries?.length ? (
+          <Suspense fallback={<div className="h-96" />}>
+            <FutureEvalLeaderboardTable details={data} />
+          </Suspense>
+        ) : (
+          <div className="mx-auto mt-10 w-full max-w-[570px] rounded-[2px] border-[1px] border-violet-300 bg-gray-0 p-8 text-base font-normal text-gray-700 dark:border-violet-300-dark dark:bg-gray-0-dark dark:text-gray-700-dark">
+            Leaderboard data not currently available, please check back soon!
+          </div>
+        )}
+      </FutureEvalContainer>
+    </div>
   );
 }

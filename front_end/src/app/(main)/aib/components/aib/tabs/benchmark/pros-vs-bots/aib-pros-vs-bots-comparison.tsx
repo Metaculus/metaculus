@@ -5,7 +5,7 @@ import { ALL_TYPES, BINARY_ONLY_EXAMPLE } from "./config";
 
 export const AIBProsVsBotsDiffExample: React.FC = () => {
   return (
-    <div className="mt-8 rounded-[12px] bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8">
+    <div className="mt-4">
       <AIBProsVsBotsDiffChart
         series={[
           {
