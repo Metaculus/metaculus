@@ -5,7 +5,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import cn from "@/utils/core/cn";
 
 import InfoPopover from "./info-popover";
-import TabGroup from "./tab-group";
+import { TabGroup } from "./tab-group";
 
 type Props = {
   tabs: { id: string; label: string }[];
@@ -46,10 +46,10 @@ export default function LaborHubHeader({ tabs, infoContent }: Props) {
       <div className="pointer-events-none sticky top-12 z-[100] mx-auto w-full max-w-7xl pb-8 transition-all sm:px-8 md:px-12 lg:px-16">
         <div
           className={cn(
-            "rounded-b-md border border-t-0 backdrop-blur-sm transition-all",
+            "border border-t-0 backdrop-blur-sm transition-all",
             isSticky
-              ? "mb-12 border-blue-500 bg-gray-0/90 px-4 py-4 dark:border-blue-500-dark dark:bg-gray-0-dark/90"
-              : "border-gray-0 bg-gray-0 px-10 py-10 dark:border-gray-0-dark dark:bg-gray-0-dark"
+              ? "mb-12 rounded-b-[2rem] border-blue-500 bg-gray-0/90 px-4 py-4 dark:border-blue-500-dark dark:bg-gray-0-dark/90"
+              : "rounded-b-md border-gray-0 bg-gray-0 px-10 py-10 dark:border-gray-0-dark dark:bg-gray-0-dark"
           )}
         >
           <div className="pointer-events-auto flex items-center justify-between gap-3">

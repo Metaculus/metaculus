@@ -6,7 +6,15 @@ import plugin from "tailwindcss/plugin";
 import { METAC_COLORS } from "./src/constants/colors";
 
 const config: Config = {
-  darkMode: "class",
+  darkMode: [
+    "variant",
+    [
+      // Dark mode: inside .dark, but not the .inverted element or its children
+      "&:is(.dark *):not(:is(.inverted, .inverted *))",
+      // Inverted in light mode: the .inverted element itself OR its children, but not in dark mode
+      "&:is(.inverted, .inverted *):not(.dark *)",
+    ],
+  ],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",

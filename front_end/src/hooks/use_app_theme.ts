@@ -9,6 +9,7 @@ import {
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { useAuth } from "@/contexts/auth_context";
+import useInvertedThemeContext from "@/contexts/inverted_theme_context";
 import { AppTheme, ThemeColor } from "@/types/theme";
 import { logError } from "@/utils/core/errors";
 
@@ -19,6 +20,7 @@ const useAppTheme = () => {
     setTheme: setNextTheme,
     forcedTheme,
   } = useTheme();
+  const isInverted = useInvertedThemeContext();
   const [isSyncing, setIsSyncing] = useState<boolean>();
   const { user, setUser } = useAuth();
 
@@ -45,8 +47,14 @@ const useAppTheme = () => {
   );
 
   const getThemeColor = useCallback(
-    (color: ThemeColor) => (theme === "dark" ? color.dark : color.DEFAULT),
-    [theme]
+    (color: ThemeColor) => {
+      if (theme === "dark") {
+        return isInverted ? color.DEFAULT : color.dark;
+      }
+
+      return isInverted ? color.dark : color.DEFAULT;
+    },
+    [theme, isInverted]
   );
 
   return {

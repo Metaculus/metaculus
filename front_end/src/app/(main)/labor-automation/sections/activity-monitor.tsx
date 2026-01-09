@@ -1,13 +1,17 @@
 import { ComponentProps } from "react";
 
+import cn from "@/utils/core/cn";
+
 import { ActivityCard } from "../components/activity-card";
 import { SectionHeader } from "../components/section";
 
 export function ActivityMonitorSection({
+  className,
+  children,
   ...props
 }: ComponentProps<"section">) {
   return (
-    <section {...props}>
+    <section className={cn("py-8", className)} {...props}>
       <SectionHeader className="mb-4 mt-0 md:mb-8 md:text-center">
         Activity Monitor
       </SectionHeader>

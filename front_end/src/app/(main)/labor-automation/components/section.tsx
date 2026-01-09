@@ -37,3 +37,45 @@ export function SectionHeader({
     </h2>
   );
 }
+
+export function DualPaneSectionCard({
+  className,
+  children,
+  ...props
+}: ComponentProps<"section">) {
+  return (
+    <SectionCard className={cn("grid grid-cols-2 gap-8", className)} {...props}>
+      {children}
+    </SectionCard>
+  );
+}
+
+export function DualPaneSectionLeft({
+  className,
+  children,
+  ...props
+}: ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "sticky top-36 flex flex-col space-y-6 self-start",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function DualPaneSectionRight({
+  className,
+  children,
+  ...props
+}: ComponentProps<"div">) {
+  return (
+    <div className={cn("flex flex-col space-y-6", className)} {...props}>
+      {children}
+    </div>
+  );
+}
