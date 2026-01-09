@@ -141,14 +141,19 @@ const AggregationsTab: FC<Props> = ({
         );
       case QuestionType.Numeric:
       case QuestionType.Discrete:
-      case QuestionType.Date:
+      case QuestionType.Date: {
+        const aggregation = questionData.aggregations?.[tabData.id];
+        if (!aggregation) {
+          return null;
+        }
         return (
           <ContinuousAggregationChart
-            activeAggregation={activeAggregation}
+            activeAggregation={aggregation}
             selectedTimestamp={aggregationTimestamp}
             questionData={questionData}
           />
         );
+      }
       default:
         return <div>{t("unsupportedQuestionType")}</div>;
     }

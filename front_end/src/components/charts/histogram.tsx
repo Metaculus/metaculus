@@ -21,8 +21,8 @@ import ChartContainer from "./primitives/chart_container";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];
-  median: number | undefined;
-  mean: number | undefined;
+  median: number | null | undefined;
+  mean: number | null | undefined;
   color: "blue" | "gray";
   width?: number;
 };

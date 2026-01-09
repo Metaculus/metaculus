@@ -52,7 +52,7 @@ export function userForecastToForecastType(
     probability_yes: userForecast.forecast_values[1] ?? 0,
     probability_yes_per_category: userForecast.forecast_values,
     options: question.options ?? [],
-    continuous_cdf: userForecast.forecast_values,
+    continuous_cdf: userForecast.forecast_values.map((value) => value ?? 0),
     quartiles,
     scaling,
     question_type: questionType,
@@ -71,10 +71,10 @@ export function formatForecastValueText(forecast: ForecastType): string {
         probability,
         name: forecast.options[index],
       }))
-      .sort((a, b) => b.probability - a.probability);
+      .sort((a, b) => (b.probability || 0.0) - (a.probability || 0.0));
     const top = choices[0];
     if (top) {
-      return `${top.name}: ${Math.round(top.probability * 1000) / 10}%`;
+      return `${top.name}: ${Math.round((top.probability || 0.0) * 1000) / 10}%`;
     }
     return "";
   }
@@ -233,7 +233,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
         name: forecast.options[index],
         color: MULTIPLE_CHOICE_COLOR_SCALE[index],
       }))
-      .sort((a, b) => b.probability - a.probability);
+      .sort((a, b) => (b.probability || 0.0) - (a.probability || 0.0));
     return (
       <ol className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
         {choices.map((choice, index) => (
@@ -245,7 +245,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
           >
             {/* TODO: why does this generate a slightly different color than in ForecastChoiceOption ? */}
             <ChoiceIcon color={choice.color} />
-            {`${choice.name}: ${Math.round(choice.probability * 1000) / 10}%`}
+            {`${choice.name}: ${Math.round((choice.probability || 0.0) * 1000) / 10}%`}
           </li>
         ))}
         <Button
