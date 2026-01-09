@@ -2,13 +2,6 @@ import DOMPurify from "dompurify";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-// Prevent tabnabbing attacks by ensuring all target="_blank" links have rel="noopener noreferrer"
-DOMPurify.addHook("afterSanitizeAttributes", (node) => {
-  if (node.tagName === "A" && node.getAttribute("target") === "_blank") {
-    node.setAttribute("rel", "noopener noreferrer");
-  }
-});
-
 export function getMarkdownSummary({
   markdown,
   width,
@@ -121,5 +114,16 @@ export function sanitizeHtmlContent(
     ],
   });
 
-  return purified;
+  // Prevent tabnabbing: add rel="noopener noreferrer" to target="_blank" links
+  const withSafeLinks = purified.replace(
+    /<a\s+([^>]*target="_blank"[^>]*)>/gi,
+    (match, attrs) => {
+      if (/rel=/.test(attrs)) {
+        return match;
+      }
+      return `<a ${attrs} rel="noopener noreferrer">`;
+    }
+  );
+
+  return withSafeLinks;
 }
