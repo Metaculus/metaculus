@@ -7,7 +7,6 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { NotebookPost } from "@/types/post";
-import cn from "@/utils/core/cn";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
@@ -53,7 +52,11 @@ export default async function Home() {
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
-      <HeroCTAs className={"2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-0 2xl:px-4"} />
+      <HeroCTAs
+        className={
+          "mx-auto w-full px-0 md:max-2xl:px-20 2xl:max-w-[1352px] 2xl:px-4"
+        }
+      />
       <div className={contentWidthClassNames}>
         <WhyMetaculus className="mt-4 md:mt-8" />
         <HomePageForecasts
