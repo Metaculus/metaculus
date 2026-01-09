@@ -107,7 +107,9 @@ const QuestionContinuousTile: FC<Props> = ({
             {
               questionId: question.id,
               forecastData: {
-                continuousCdf: activeForecast.forecast_values,
+                continuousCdf: activeForecast.forecast_values.map(
+                  (value) => value ?? 0
+                ),
                 probabilityYes: null,
                 probabilityYesPerCategory: null,
               },

@@ -1154,6 +1154,14 @@ export function getContinuousAreaChartData({
   };
   isClosed?: boolean;
 }): ContinuousAreaGraphInput {
+  if (
+    question.type !== QuestionType.Numeric &&
+    question.type !== QuestionType.Discrete &&
+    question.type !== QuestionType.Date
+  ) {
+    return [];
+  }
+
   const chartData: ContinuousAreaGraphInput = [];
 
   const latest =

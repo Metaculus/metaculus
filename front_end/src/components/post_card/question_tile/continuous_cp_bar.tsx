@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import React, { FC } from "react";
 
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getDiscreteValueOptions,
@@ -10,7 +10,7 @@ import {
 } from "@/utils/formatters/prediction";
 
 type Props = {
-  question: QuestionWithNumericForecasts;
+  question: QuestionWithForecasts;
   size?: "md" | "lg";
   variant?: "feed" | "question";
 };

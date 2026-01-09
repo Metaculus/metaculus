@@ -4,7 +4,6 @@ from datetime import date, datetime
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.translation import activate
@@ -339,10 +338,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         if cp is None:
             continue
 
-        active_forecasts = question.user_forecasts.filter(
-            Q(end_time__isnull=True) | Q(end_time__gt=now),
-            start_time__lte=now,
-        )
+        active_forecasts = question.user_forecasts.filter_active_at(now)
         for forecast in active_forecasts:
             difference = prediction_difference_for_sorting(
                 forecast.get_prediction_values(),

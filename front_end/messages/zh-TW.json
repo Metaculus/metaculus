@@ -1247,6 +1247,7 @@
   "commentData": "評論數據",
   "anonymize": "匿名化",
   "scoreData": "分數數據",
+  "keyFactorData": "關鍵因素數據",
   "includeUserData": "包含用戶數據",
   "aggregationMethods": "匯總方法",
   "configuration": "配置",
@@ -1814,5 +1815,10 @@
   "tournamentsTabIndexes": "指數",
   "tournamentsTabArchived": "已存檔",
   "tournamentTimelineClosed": "等待裁定",
+  "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
+  "includeMyForecastAtTheTime": "包括我當時的預測 <strong>({forecast})</strong>",
+  "tournamentsInfoTitle": "我們 <predmarket>不是預測市場</predmarket>。您可以免費參加並因精確的預測贏取現金獎勵。",
+  "tournamentsInfoScoringLink": "什麼是預測得分？",
+  "tournamentsInfoPrizesLink": "獎品如何分配？",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

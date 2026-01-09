@@ -34,6 +34,12 @@ export function selectTournamentsForSection(
   return ongoing.filter(
     (t) =>
       t.type !== TournamentType.QuestionSeries &&
-      t.type !== TournamentType.Index
+      (t.type !== TournamentType.Index || !!t.prize_pool)
   );
+}
+
+export function safeTs(iso?: string | null): number | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  return Number.isFinite(t) ? t : null;
 }
