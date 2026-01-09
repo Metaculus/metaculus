@@ -11,6 +11,8 @@ import { useState } from "react";
 import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
 import cn from "@/utils/core/cn";
 
+import { FE_COLORS } from "../../theme";
+
 type Props = {
   heightPct: number;
   model: {
@@ -59,7 +61,11 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
             className={cn(
               "relative flex w-full flex-col items-center rounded-t-md border pt-2 transition-all duration-200",
               model.isAggregate
-                ? "border-violet-800 bg-violet-200 hover:bg-violet-300 dark:border-violet-800-dark dark:bg-violet-800 dark:hover:bg-violet-700-dark"
+                ? cn(
+                    FE_COLORS.barAggregateBorder,
+                    FE_COLORS.barAggregateBg,
+                    FE_COLORS.barAggregateHover
+                  )
                 : "border-gray-800 bg-gray-0 hover:bg-gray-300 dark:border-gray-800-dark dark:bg-gray-0-dark dark:hover:bg-gray-300-dark"
             )}
             style={{ height: `${heightPct}%`, minHeight: "48px" }}
@@ -71,7 +77,10 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
             {model.isAggregate ? (
               <FontAwesomeIcon
                 icon={faUsers}
-                className="h-5 w-5 shrink-0 text-violet-800 dark:text-violet-200 sm:h-5 sm:w-5"
+                className={cn(
+                  "h-5 w-5 shrink-0 sm:h-5 sm:w-5",
+                  FE_COLORS.barAggregateIcon
+                )}
               />
             ) : (
               (model.iconLight || model.iconDark) && (

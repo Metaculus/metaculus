@@ -1,27 +1,51 @@
 "use client";
 
-import Link from "next/link";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
+
+import Button from "@/components/ui/button";
+import cn from "@/utils/core/cn";
+
+import { FE_COLORS } from "../theme";
 
 const FutureEvalLeaderboardHero: React.FC = () => {
   const t = useTranslations();
 
   return (
-    <div className="mb-6 flex flex-col items-center gap-4 antialiased sm:mb-10">
-      <Link
-        className="mb-2 text-base font-medium text-violet-700 dark:text-violet-700-dark sm:mb-0 sm:text-lg"
-        href="/futureeval"
-      >
-        {t("aibLbBrandLink")}
-      </Link>
+    <div className="mb-6 flex flex-col antialiased sm:mb-10">
+      {/* Back button - subtle tertiary style */}
+      <div className="mb-6 sm:mb-10">
+        <Button
+          variant="tertiary"
+          size="sm"
+          href="/futureeval"
+          className="gap-2"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+          FutureEval
+        </Button>
+      </div>
 
-      <h1 className="m-0 text-center text-[32px] font-bold leading-[116%] -tracking-[1.28px] text-violet-800 dark:text-violet-800-dark sm:text-5xl sm:-tracking-[1.92px]">
+      {/* Title - left aligned on desktop, centered on mobile */}
+      <h1
+        className={cn(
+          "m-0 text-center text-[24px] font-bold leading-[116%] sm:text-left sm:text-[32px] sm:leading-[40px] lg:text-4xl",
+          FE_COLORS.textHeading
+        )}
+      >
         {t("aibLbTitle")}
       </h1>
 
-      <div className="flex items-center gap-2 text-center text-sm font-normal text-violet-800 opacity-60 dark:text-violet-800-dark sm:text-base">
-        <span>{t("aibLbSubtitle")}</span>
-      </div>
+      {/* Subtitle - left aligned on desktop, centered on mobile */}
+      <p
+        className={cn(
+          "m-0 mt-3 text-center font-geist-mono text-sm sm:text-left sm:text-base",
+          FE_COLORS.textSubheading
+        )}
+      >
+        {t("aibLbSubtitle")}
+      </p>
     </div>
   );
 };

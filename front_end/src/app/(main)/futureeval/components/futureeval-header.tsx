@@ -27,7 +27,7 @@ const FutureEvalHeader: React.FC<Props> = ({
   onTabChange,
 }) => {
   return (
-    <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
       {/* Logo */}
       <div className="flex flex-col items-center lg:items-start">
         <Image

@@ -6,7 +6,6 @@ import React, { useMemo } from "react";
 
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 
-import FutureEvalModelBar from "./futureeval-model-bar";
 import { useAIBLeaderboard } from "../../../aib/components/aib/leaderboard/aib-leaderboard-provider";
 import {
   aggregateKind,
@@ -15,6 +14,9 @@ import {
   isAggregate,
   shouldDisplayEntry,
 } from "../../../aib/components/aib/leaderboard/utils";
+import { FE_COLORS } from "../../theme";
+import FutureEvalInfoPopover from "../futureeval-info-popover";
+import FutureEvalModelBar from "./futureeval-model-bar";
 
 const MAX_VISIBLE_BOTS = 18; // 18 bots + up to 2 aggregates = ~20 total
 const MIN_HEIGHT_PCT = 20;
@@ -92,19 +94,23 @@ const FutureEvalModelBenchmark: React.FC = () => {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="mb-0 text-center sm:mb-1">
-        <h3 className="m-0 text-[24px] font-bold leading-[116%] text-blue-800 dark:text-blue-800-dark sm:text-[32px] sm:leading-[40px] lg:text-4xl">
-          {t("aibBenchModelsTitle")}
-        </h3>
-        <p className="m-0 mt-3 text-balance font-geist-mono text-sm text-blue-700 dark:text-blue-700-dark sm:text-base">
-          {t("aibBenchModelsBlurb")}{" "}
-          <Link
-            href="/futureeval/leaderboard"
-            className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark hover:dark:text-blue-800-dark"
+      <div className="mb-0 flex items-start justify-between gap-4 sm:mb-1">
+        <div className="text-left">
+          <h3
+            className={`m-0 text-[24px] font-bold leading-[116%] sm:text-[32px] sm:leading-[40px] lg:text-4xl ${FE_COLORS.textHeading}`}
           >
-            {t("aibViewFullLeaderboard")}
-          </Link>
-        </p>
+            {t("aibBenchModelsTitle")}
+          </h3>
+          <p
+            className={`m-0 mt-3 text-balance font-geist-mono text-sm sm:text-base ${FE_COLORS.textSubheading}`}
+          >
+            {t("aibBenchModelsBlurb")}{" "}
+            <Link href="/futureeval/leaderboard" className="underline">
+              {t("aibViewFullLeaderboard")}
+            </Link>
+          </p>
+        </div>
+        <FutureEvalInfoPopover />
       </div>
 
       {/* Horizontal bar chart carousel */}
@@ -127,8 +133,10 @@ const FutureEvalModelBenchmark: React.FC = () => {
           )}
           itemClassName="w-[40px] sm:w-[64px] h-full"
           gapClassName="gap-1 sm:gap-2"
-          gradientFromClass="from-gray-0 dark:from-gray-950"
-          arrowClassName="w-8 h-8 sm:w-10 sm:h-10 text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark rounded-full shadow-md border border-blue-700 dark:border-blue-700-dark"
+          gradientFromClass={FE_COLORS.gradientFrom}
+          arrowClassName={`w-7 h-7 sm:w-10 sm:h-10 ${FE_COLORS.textSubheading} ${FE_COLORS.carouselArrowBg} rounded-full shadow-md ${FE_COLORS.cardBorder}`}
+          arrowLeftPosition="left-1 sm:left-[18px]"
+          arrowRightPosition="right-1 sm:right-[18px]"
           slideBy={{ mode: "items", count: 3 }}
           showArrows={true}
           wheelToHorizontal={false}

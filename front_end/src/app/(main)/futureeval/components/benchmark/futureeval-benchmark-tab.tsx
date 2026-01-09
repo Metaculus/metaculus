@@ -1,10 +1,10 @@
-import {
-  AIBBenchmarkForecastingPerformanceHeader,
-  AIBBenchmarkProsVsBotsSectionHeader,
-} from "@/app/(main)/aib/components/aib/tabs/benchmark/aib-benchmark-subsection-header";
 import AIBBenchmarkForecastingPerformance from "@/app/(main)/aib/components/aib/tabs/benchmark/performance-over-time/aib-benchmark-forecasting-performance";
 import { AIBProsVsBotsDiffExample } from "@/app/(main)/aib/components/aib/tabs/benchmark/pros-vs-bots/aib-pros-vs-bots-comparison";
 
+import {
+  FutureEvalForecastingPerformanceHeader,
+  FutureEvalProsVsBotsSectionHeader,
+} from "./futureeval-benchmark-headers";
 import FutureEvalModelBenchmark from "./futureeval-model-benchmark";
 
 const FutureEvalBenchmarkTab: React.FC = () => {
@@ -14,13 +14,15 @@ const FutureEvalBenchmarkTab: React.FC = () => {
         <FutureEvalModelBenchmark />
       </div>
 
+      {/* Forecasting Performance Over Time */}
       <div>
-        <AIBBenchmarkForecastingPerformanceHeader />
+        <FutureEvalForecastingPerformanceHeader />
         <AIBBenchmarkForecastingPerformance />
       </div>
 
+      {/* Pros vs Bots */}
       <div>
-        <AIBBenchmarkProsVsBotsSectionHeader />
+        <FutureEvalProsVsBotsSectionHeader />
         <AIBProsVsBotsDiffExample />
       </div>
     </>
