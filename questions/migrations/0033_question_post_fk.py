@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
             model_name="question",
             name="post",
             field=models.ForeignKey(
-                blank=True,
+                blank=False,
                 editable=False,
                 help_text="The post this question belongs to. Set automatically.",
                 null=True,
@@ -84,8 +84,5 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(populate_question_post, reverse_populate),
-        migrations.AddIndex(
-            model_name="question",
-            index=models.Index(fields=["post"], name="questions_q_post_id_idx"),
-        ),
+        migrations.DeleteModel(name="QuestionPost"),
     ]
