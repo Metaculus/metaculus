@@ -35,7 +35,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.cache import invalidate_average_coverage_cache
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question, Forecast, QuestionPost
+from questions.models import Question, Forecast
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import (
@@ -306,11 +306,15 @@ def generate_comment_insight_leaderboard_entries(
 
 
 def generate_question_writing_leaderboard_entries(
-    questions: list[Question],
+    questions: QuerySet[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
-    questions = list(questions)
+    questions = list(
+        questions.select_related("post__author").prefetch_related(
+            "post__coauthors", "post__projects"
+        )
+    )
 
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
@@ -320,20 +324,14 @@ def generate_question_writing_leaderboard_entries(
         ).only("question_id", "author_id"),
         key=lambda forecast: forecast.question_id,
     )
-    question_post_map = {
-        obj.question_id: obj.post
-        for obj in QuestionPost.objects.filter(question__in=questions)
-        .select_related("post__author")
-        .prefetch_related("post__coauthors", "post__projects")
-    }
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
         forecasts_during_period = user_forecasts_map.get(question.pk) or []
         forecasters = set(forecast.author_id for forecast in forecasts_during_period)
-        post = question_post_map.get(question.id)
-        if post:
-            forecaster_ids_for_post[post].update(forecasters)
+
+        if question.post:
+            forecaster_ids_for_post[question.post].update(forecasters)
 
     exclusions: QuerySet[MedalExclusionRecord] = (
         MedalExclusionRecord.objects.all().select_related("user")
@@ -963,7 +961,11 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     )
 
     # Now fetch full questions for later iteration
-    questions = Question.objects.filter(id__in=question_ids).select_related("post")
+    questions = list(
+        Question.objects.filter(id__in=question_ids)
+        .select_related("post__author")
+        .prefetch_related("post__coauthors", "post__projects")
+    )
 
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
@@ -973,20 +975,14 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
         ).only("question_id", "author_id"),
         key=lambda forecast: forecast.question_id,
     )
-    question_post_map = {
-        obj.question_id: obj.post
-        for obj in QuestionPost.objects.filter(question_id__in=question_ids)
-        .select_related("post__author")
-        .prefetch_related("post__coauthors", "post__projects")
-    }
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
         forecasts_during_period = user_forecasts_map.get(question.pk) or []
         forecasters = set(forecast.author_id for forecast in forecasts_during_period)
-        post = question_post_map.get(question.id)
-        if post:
-            forecaster_ids_for_post[post].update(forecasters)
+
+        if question.post:
+            forecaster_ids_for_post[question.post].update(forecasters)
 
     exclusions = MedalExclusionRecord.objects.filter(user=user)
     contributions: list[Contribution] = []

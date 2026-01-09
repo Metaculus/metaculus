@@ -709,23 +709,6 @@ class AggregateForecast(models.Model):
         return self.forecast_values
 
 
-class QuestionPost(models.Model):
-    """
-    Postgres View of Post<>Question relations
-    """
-
-    post = models.ForeignKey(
-        "posts.Post", related_name="related_questions", on_delete=models.DO_NOTHING
-    )
-    question = models.ForeignKey(
-        Question, related_name="related_posts", on_delete=models.DO_NOTHING
-    )
-
-    class Meta:
-        managed = False
-        db_table = "questions_question_post"
-
-
 class UserForecastNotification(models.Model):
     id: int
 
