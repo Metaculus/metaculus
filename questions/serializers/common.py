@@ -19,7 +19,7 @@ from questions.models import (
 )
 from questions.serializers.aggregate_forecasts import serialize_question_aggregations
 from questions.services.multiple_choice_handlers import get_all_options_from_history
-from questions.types import QuestionMovement
+from questions.types import OptionsHistoryType, QuestionMovement
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
@@ -400,7 +400,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     probability_yes = serializers.FloatField(allow_null=True, required=False)
     probability_yes_per_category = serializers.DictField(
-        child=serializers.FloatField(), allow_null=True, required=False
+        child=serializers.FloatField(allow_null=True), allow_null=True, required=False
     )
     continuous_cdf = serializers.ListField(
         child=serializers.FloatField(),
@@ -441,21 +441,47 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             )
         return probability_yes
 
-    def multiple_choice_validation(self, probability_yes_per_category, options):
+    def multiple_choice_validation(
+        self,
+        probability_yes_per_category: dict[str, float | None],
+        current_options: list[str],
+        options_history: OptionsHistoryType | None,
+    ):
         if probability_yes_per_category is None:
             raise serializers.ValidationError(
                 "probability_yes_per_category is required"
             )
         if not isinstance(probability_yes_per_category, dict):
             raise serializers.ValidationError("Forecast must be a dictionary")
-        if set(probability_yes_per_category.keys()) != set(options):
-            raise serializers.ValidationError("Forecast must include all options")
-        values = [float(probability_yes_per_category[option]) for option in options]
-        if not all([0.001 <= v <= 0.999 for v in values]) or not np.isclose(
-            sum(values), 1
-        ):
+        if not set(current_options).issubset(set(probability_yes_per_category.keys())):
             raise serializers.ValidationError(
-                "All probabilities must be between 0.001 and 0.999 and sum to 1.0"
+                f"Forecast must reflect current options: {current_options}"
+            )
+        all_options = get_all_options_from_history(options_history)
+        if not set(probability_yes_per_category.keys()).issubset(set(all_options)):
+            raise serializers.ValidationError(
+                "Forecast contains probabilities for unknown options"
+            )
+
+        values: list[float | None] = []
+        for option in all_options:
+            value = probability_yes_per_category.get(option, None)
+            if option in current_options:
+                if (value is None) or (not (0.001 <= value <= 0.999)):
+                    raise serializers.ValidationError(
+                        "Probabilities for current options must be between 0.001 and 0.999"
+                    )
+            elif value is not None:
+                raise serializers.ValidationError(
+                    f"Probability for inactivate option '{option}' must be null or absent"
+                )
+            values.append(value)
+        if not np.isclose(sum(filter(None, values)), 1):
+            raise serializers.ValidationError(
+                "Forecast values must sum to 1.0. "
+                f"Received {probability_yes_per_category} which is interpreted as "
+                f"values: {values} representing {all_options} "
+                f"with current options {current_options}"
             )
         return values
 
@@ -561,7 +587,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                     "provided for multiple choice questions"
                 )
             data["probability_yes_per_category"] = self.multiple_choice_validation(
-                probability_yes_per_category, question.options
+                probability_yes_per_category, question.options, question.options_history
             )
         else:  # Continuous question
             if probability_yes or probability_yes_per_category:
@@ -639,6 +665,21 @@ def serialize_question(
         archived_scores = question.user_archived_scores
         user_forecasts = question.request_user_forecasts
         last_forecast = user_forecasts[-1] if user_forecasts else None
+        # if the user has a pre-registered forecast,
+        # replace the current forecast and anything after it
+        if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+            # Right now, Multiple Choice is the only type that can have pre-registered
+            # forecasts
+            if last_forecast and last_forecast.start_time > timezone.now():
+                user_forecasts = [
+                    f for f in user_forecasts if f.start_time < timezone.now()
+                ]
+                if user_forecasts:
+                    last_forecast.start_time = user_forecasts[-1].start_time
+                    user_forecasts[-1] = last_forecast
+                else:
+                    last_forecast.start_time = timezone.now()
+                    user_forecasts = [last_forecast]
         if (
             last_forecast
             and last_forecast.end_time
@@ -653,11 +694,7 @@ def serialize_question(
                 many=True,
             ).data,
             "latest": (
-                MyForecastSerializer(
-                    user_forecasts[-1],
-                ).data
-                if user_forecasts
-                else None
+                MyForecastSerializer(last_forecast).data if last_forecast else None
             ),
             "score_data": dict(),
         }
