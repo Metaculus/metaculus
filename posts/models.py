@@ -494,7 +494,10 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
         return super().get_queryset().defer("embedding_vector")
 
 
-class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
+class Notebook(TranslatedModel):
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    edited_at = models.DateTimeField(editable=False, null=True)
+
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
     markdown_summary = models.TextField(blank=True, default="")
@@ -990,7 +993,7 @@ class PostUserSnapshot(models.Model):
 
     @classmethod
     def update_viewed_at(cls, post: Post, user: User):
-        cls.objects.update_or_create(
+        return cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={

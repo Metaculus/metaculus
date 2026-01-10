@@ -53,7 +53,7 @@ export type CommentOfWeekEntry = {
 export type ForecastType = {
   start_time: Date;
   probability_yes: number;
-  probability_yes_per_category: number[];
+  probability_yes_per_category: (number | null)[];
   options: string[];
   continuous_cdf: number[];
   quartiles: [number, number, number];

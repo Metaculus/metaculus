@@ -19,6 +19,7 @@ import {
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
+import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -457,27 +458,48 @@ const FanChart: FC<Props> = ({
             />
           )}
 
-          {resolutionPoints.map((point) => (
-            <VictoryScatter
-              key={`res-${point.x}`}
-              data={[{ ...point, symbol: "diamond" }]}
-              style={{
-                data: {
-                  fill: v.resolutionPoint.fill({ getThemeColor }),
-                  stroke: () => palette.resolutionStroke,
-                  strokeWidth: 2,
-                  strokeOpacity: 1,
-                },
-              }}
-              dataComponent={
-                <FanPoint
-                  activePoint={null}
-                  pointSize={v.resolutionPoint.size}
-                  strokeWidth={v.resolutionPoint.strokeWidth}
-                />
-              }
-            />
-          ))}
+          {resolutionPoints.map((point) => {
+            if (
+              point.placement &&
+              ["below", "above"].includes(point.placement)
+            ) {
+              return (
+                <VictoryPortal key={`res-portal-${point.x}`}>
+                  <VictoryScatter
+                    key={`res-${point.x}`}
+                    data={[
+                      {
+                        ...point,
+                        y: point.placement === "below" ? 0 : 1,
+                      },
+                    ]}
+                    dataComponent={<ResolutionDiamond hoverable={false} />}
+                  />
+                </VictoryPortal>
+              );
+            }
+            return (
+              <VictoryScatter
+                key={`res-${point.x}`}
+                data={[{ ...point, symbol: "diamond" }]}
+                style={{
+                  data: {
+                    fill: v.resolutionPoint.fill({ getThemeColor }),
+                    stroke: () => palette.resolutionStroke,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                  },
+                }}
+                dataComponent={
+                  <FanPoint
+                    activePoint={null}
+                    pointSize={v.resolutionPoint.size}
+                    strokeWidth={v.resolutionPoint.strokeWidth}
+                  />
+                }
+              />
+            );
+          })}
           {emptyPoints.map((point) => (
             <VictoryScatter
               key={`empty-${point.x}`}
@@ -514,6 +536,7 @@ type FanGraphPoint = {
   y: number;
   resolved?: boolean;
   unsuccessfullyResolved?: boolean;
+  placement?: "in" | "below" | "above";
 };
 
 function buildChartData({
@@ -593,11 +616,21 @@ function buildChartData({
             ? getResolutionPosition({ question: option.question, scaling })
             : NaN;
 
+      const isAboveUpperBound =
+        option.question?.resolution === "above_upper_bound" || yVal > 1;
+      const isBelowLowerBound =
+        option.question?.resolution === "below_lower_bound" || yVal < 0;
+
       resolutionPoints.push({
         x: option.name,
         y: yVal,
         unsuccessfullyResolved: false,
         resolved: true,
+        placement: isAboveUpperBound
+          ? "above"
+          : isBelowLowerBound
+            ? "below"
+            : "in",
       });
     }
 

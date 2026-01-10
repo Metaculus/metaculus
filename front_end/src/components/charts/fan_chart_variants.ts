@@ -99,8 +99,8 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       communityPoint: getThemeColor(METAC_COLORS.olive["800"]),
     }),
     resolutionPoint: {
-      size: 8,
-      strokeWidth: 2,
+      size: 10,
+      strokeWidth: 2.5,
       fill: () => "none",
     },
   },

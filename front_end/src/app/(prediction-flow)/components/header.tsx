@@ -41,9 +41,9 @@ const PredictionFlowHeader: FC<Props> = ({
             </h1>
           </Link>
         </div>
-        <p className="m-0 mx-3 max-w-[255px] truncate text-lg leading-7">
+        <div className="m-0 mx-3 max-w-[255px] truncate text-lg leading-7 md:absolute md:left-1/2 md:mx-0 md:max-w-[350px] md:-translate-x-1/2">
           {tournamentName}
-        </p>
+        </div>
         <Button
           className="mr-2 hidden sm:block"
           onClick={() => {
