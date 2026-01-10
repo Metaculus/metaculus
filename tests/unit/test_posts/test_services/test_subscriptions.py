@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
@@ -9,9 +10,12 @@ from posts.services.subscriptions import (
     notify_new_comments,
     create_subscription_specific_time,
     notify_date,
+    get_users_with_active_forecasts_for_questions,
 )
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_questions.factories import create_question, factory_forecast
+from questions.models import Question
 
 
 def test_notify_new_comments(user1, user2):
@@ -124,3 +128,73 @@ class TestNotifyDate:
         with freeze_time("2024-09-18T13:46Z"):
             notify_date()
             assert Notification.objects.filter(recipient=user1).count() == 2
+
+
+class TestGetUsersWithActiveForecasts:
+    def test_returns_users_with_active_forecasts(self, user1, user2):
+        """Users with active forecasts (end_time=None) should be returned"""
+        question = create_question(question_type=Question.QuestionType.BINARY)
+        factory_post(author=user1, question=question)
+
+        # User1 has an active forecast (end_time=None)
+        factory_forecast(author=user1, question=question)
+
+        result = get_users_with_active_forecasts_for_questions([question.pk])
+
+        assert user1.pk in result
+        assert user2.pk not in result
+
+    def test_excludes_users_with_withdrawn_forecasts(self, user1):
+        """Users with withdrawn forecasts (end_time set in past) should be excluded"""
+        question = create_question(question_type=Question.QuestionType.BINARY)
+        factory_post(author=user1, question=question)
+
+        # User1 has a withdrawn forecast (end_time in the past)
+        factory_forecast(
+            author=user1,
+            question=question,
+            start_time=timezone.now() - timedelta(hours=2),
+            end_time=timezone.now() - timedelta(hours=1),
+        )
+
+        result = get_users_with_active_forecasts_for_questions([question.pk])
+
+        assert user1.pk not in result
+
+    def test_includes_users_with_future_end_time(self, user1):
+        """Users with end_time in the future are still considered active"""
+        question = create_question(question_type=Question.QuestionType.BINARY)
+        factory_post(author=user1, question=question)
+
+        # User1 has a forecast that will be withdrawn in the future
+        factory_forecast(
+            author=user1,
+            question=question,
+            end_time=timezone.now() + timedelta(hours=1),
+        )
+
+        result = get_users_with_active_forecasts_for_questions([question.pk])
+
+        assert user1.pk in result
+
+    def test_user_with_one_active_one_withdrawn(self, user1):
+        """User with at least one active forecast should be included"""
+        question1 = create_question(question_type=Question.QuestionType.BINARY)
+        question2 = create_question(question_type=Question.QuestionType.BINARY)
+        factory_post(author=user1, question=question1)
+        factory_post(author=user1, question=question2)
+
+        # User1 has one withdrawn and one active forecast
+        factory_forecast(
+            author=user1,
+            question=question1,
+            start_time=timezone.now() - timedelta(hours=2),
+            end_time=timezone.now() - timedelta(hours=1),
+        )
+        factory_forecast(author=user1, question=question2)
+
+        result = get_users_with_active_forecasts_for_questions(
+            [question1.pk, question2.pk]
+        )
+
+        assert user1.pk in result

@@ -494,7 +494,10 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
         return super().get_queryset().defer("embedding_vector")
 
 
-class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
+class Notebook(TranslatedModel):
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    edited_at = models.DateTimeField(editable=False, null=True)
+
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
     markdown_summary = models.TextField(blank=True, default="")
@@ -957,6 +960,9 @@ class PostUserSnapshot(models.Model):
         null=True, blank=True, db_index=True
     )  # Jeffrey's Divergence
 
+    private_note = models.TextField(default="", blank=True)
+    private_note_updated_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)
     # divergence_asymmetric = models.FloatField(null=True, blank=True)
@@ -965,6 +971,13 @@ class PostUserSnapshot(models.Model):
         constraints = [
             models.UniqueConstraint(
                 name="postusersnapshot_unique_user_post", fields=["user_id", "post_id"]
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=["user", "-private_note_updated_at"],
+                name="posts_postuser_notes_idx",
+                condition=~Q(private_note=""),
             )
         ]
 
@@ -980,7 +993,7 @@ class PostUserSnapshot(models.Model):
 
     @classmethod
     def update_viewed_at(cls, post: Post, user: User):
-        cls.objects.update_or_create(
+        return cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={

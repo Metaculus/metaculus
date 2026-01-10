@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
@@ -226,6 +227,25 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def __str__(self):
         return f"{self.type} {self.title}"
+
+    def clean(self):
+        super().clean()
+
+        # Validate open_time < scheduled_close_time
+        if (
+            self.open_time is not None
+            and self.scheduled_close_time is not None
+            and self.open_time >= self.scheduled_close_time
+        ):
+            raise ValidationError("Scheduled Close Time must be after open_time")
+
+        # Validate open_time < scheduled_resolve_time
+        if (
+            self.open_time is not None
+            and self.scheduled_resolve_time is not None
+            and self.open_time >= self.scheduled_resolve_time
+        ):
+            raise ValidationError("Scheduled Resolve Time must be after open_time")
 
     def save(self, **kwargs):
         # Ensure resolution is always null or non-empty string
@@ -454,6 +474,11 @@ class ForecastQuerySet(QuerySet):
             ),
         )
 
+    def filter_active_at(self, timestamp: datetime):
+        return self.filter(start_time__lte=timestamp).filter(
+            Q(end_time__gt=timestamp) | Q(end_time__isnull=True)
+        )
+
     def active(self):
         """
         Returns active forecasts.
@@ -512,20 +537,20 @@ class Forecast(models.Model):
 
     # CDF of a continuous forecast
     # evaluated at [0.0, 0.005, 0.010, ..., 0.995, 1.0] (internal representation)
-    continuous_cdf = ArrayField(
+    continuous_cdf: list[float] = ArrayField(
         models.FloatField(),
         null=True,
         max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1,
         blank=True,
     )
     # binary prediction
-    probability_yes = models.FloatField(
+    probability_yes: float = models.FloatField(
         null=True,
         blank=True,
     )
     # multiple choice prediction
-    probability_yes_per_category = ArrayField(
-        models.FloatField(),
+    probability_yes_per_category: list[float | None] = ArrayField(
+        models.FloatField(null=True),
         null=True,
         blank=True,
     )
@@ -589,7 +614,7 @@ class Forecast(models.Model):
             f"by {self.author.username} on {self.question.id}: {pvs}"
         )
 
-    def get_prediction_values(self) -> list[float]:
+    def get_prediction_values(self) -> list[float | None]:
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
@@ -597,10 +622,17 @@ class Forecast(models.Model):
         return self.continuous_cdf
 
     def get_pmf(self) -> list[float]:
+        """
+        gets the PMF for this forecast, replacing None values with 0.0
+        Not for serialization use (keep None values in that case)
+        """
+        # TODO: return a numpy array with NaNs instead of 0.0s
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
-            return self.probability_yes_per_category
+            return [
+                v or 0.0 for v in self.probability_yes_per_category
+            ]  # replace None with 0.0
         cdf = self.continuous_cdf
         pmf = [cdf[0]]
         for i in range(1, len(cdf)):
@@ -633,10 +665,10 @@ class AggregateForecast(models.Model):
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField(null=True, db_index=True)
-    forecast_values = ArrayField(
-        models.FloatField(), max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1
+    forecast_values: list[float | None] = ArrayField(
+        models.FloatField(null=True), max_length=DEFAULT_INBOUND_OUTCOME_COUNT + 1
     )
-    forecaster_count = models.IntegerField(null=True)
+    forecaster_count: int | None = models.IntegerField(null=True)
     interval_lower_bounds = ArrayField(models.FloatField(), null=True)
     centers = ArrayField(models.FloatField(), null=True)
     interval_upper_bounds = ArrayField(models.FloatField(), null=True)
@@ -665,25 +697,34 @@ class AggregateForecast(models.Model):
             f"by {self.method} on {self.question_id}: {pvs}>"
         )
 
-    def get_cdf(self) -> list[float] | None:
+    def get_cdf(self) -> list[float | None] | None:
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
         if question_type in QUESTION_CONTINUOUS_TYPES:
             return self.forecast_values
+        return None
 
     def get_pmf(self) -> list[float]:
+        """
+        gets the PMF for this forecast, replacing None values with 0.0
+        Not for serialization use (keep None values in that case)
+        """
+        # TODO: return a numpy array with NaNs instead of 0.0s
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
+        forecast_values = [
+            v or 0.0 for v in self.forecast_values
+        ]  # replace None with 0.0
         if question_type in QUESTION_CONTINUOUS_TYPES:
-            cdf = self.forecast_values
+            cdf: list[float] = forecast_values
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
                 pmf.append(cdf[i] - cdf[i - 1])
             pmf.append(1 - cdf[-1])
             return pmf
-        return self.forecast_values
+        return forecast_values
 
-    def get_prediction_values(self) -> list[float]:
+    def get_prediction_values(self) -> list[float | None]:
         return self.forecast_values
 
 

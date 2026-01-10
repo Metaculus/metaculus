@@ -4,14 +4,14 @@ import { FC } from "react";
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
   formatedResolution: string;
   successfullyResolved: boolean;
   size?: "md" | "lg";
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
 };
 
 const QuestionHeaderContinuousResolutionChip: FC<Props> = ({

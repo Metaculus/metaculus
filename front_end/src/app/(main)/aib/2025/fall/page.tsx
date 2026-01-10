@@ -1,6 +1,6 @@
 import { getServerSession } from "@/services/session";
 
-import AiBenchmarkingTournamentPage from "../../components/page-view";
+import AiBenchmarkingTournamentPage from "../../components/page-view-2025-fall";
 
 export const metadata = {
   title: "AI Forecasting Benchmark Tournament | Metaculus",

@@ -35,7 +35,7 @@ import {
   DistributionQuantile,
   DistributionSlider,
   QuestionWithNumericForecasts,
-  UserForecast,
+  NumericUserForecast,
 } from "@/types/question";
 import {
   getQuantileNumericForecastDataset,
@@ -78,7 +78,6 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
-  canResolve: boolean;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -351,8 +350,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   const handleSingleQuestionSubmit = useCallback(
     async (questionId: number, forecastExpiration: ForecastExpirationValue) => {
-      const optionToSubmit = questionsToSubmit.find(
-        (opt) => opt.id === questionId
+      const optionToSubmit = groupOptions.find(
+        (opt) => opt.question.id === questionId
       );
 
       if (!optionToSubmit) return;
@@ -593,7 +592,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     const response = await createForecasts(
       postId,
       predictedQuestions.map(({ my_forecasts, id, forecastExpiration }) => {
-        const latest = my_forecasts?.latest as UserForecast;
+        const latest = my_forecasts?.latest as NumericUserForecast;
         return {
           questionId: id,
           forecastEndTime: forecastExpirationToDate(forecastExpiration),

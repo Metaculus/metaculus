@@ -49,30 +49,9 @@ export function isNotebookPost(post: Post): post is NotebookPost {
   return !isNil(post.notebook);
 }
 
-export function getConditionTitle(
-  postTitle: string,
-  condition: Question
-): string {
-  const titleCandidate = postTitle.split("→")[0];
-  if (titleCandidate) {
-    return titleCandidate.trim();
-  }
-
-  return condition.title;
-}
-
-export function getConditionalQuestionTitle(question: Question): string {
-  const titleCandidate = question.title.split("→")[1];
-  if (titleCandidate) {
-    return titleCandidate.trim();
-  }
-
-  return question.title;
-}
-
 export function getPostTitle(post: Post) {
   if (post.conditional) {
-    return getConditionalQuestionTitle(post.conditional.question_yes);
+    return post.conditional.condition_child.title;
   }
 
   return post.title;
@@ -156,15 +135,11 @@ export function getContinuousGroupScaling(
     range_min: rangeMinPoints.length > 0 ? Math.min(...rangeMinPoints) : null,
     // set zero_point to null if any are linearly scaled
     zero_point:
-      zeroPoints.length > 0 && !zeroPoints.some((p) => p !== null)
-        ? Math.min(...zeroPoints)
-        : null,
+      zeroPoints.length === questions.length ? Math.min(...zeroPoints) : null,
   };
-  // we can have mixes of log and linear scaled options
-  // which leads to a derived zero point inside the range which is invalid
-  // so just ignore the log scaling in this case
+  // if zero_point ends up lying within the range, remove the scaling
   if (
-    scaling.zero_point !== null &&
+    !isNil(scaling.zero_point) &&
     !isNil(scaling.range_min) &&
     !isNil(scaling.range_max) &&
     scaling.range_min <= scaling.zero_point &&

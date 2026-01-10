@@ -35,7 +35,6 @@ class User(TimeStampedModel, AbstractUser):
 
     # Profile data
     bio = models.TextField(default="", blank=True)
-    is_bot = models.BooleanField(default=False, db_index=True)
     is_spam = models.BooleanField(default=False, db_index=True)
     check_for_spam = models.BooleanField(default=True)
 
@@ -101,6 +100,17 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
+    class ApiAccessTier(models.TextChoices):
+        RESTRICTED = "restricted", "Restricted"
+        UNRESTRICTED = "unrestricted", "Unrestricted"
+
+    api_access_tier = models.CharField(
+        max_length=32,
+        choices=ApiAccessTier.choices,
+        default=ApiAccessTier.RESTRICTED,
+        help_text="Indicates the API access tier for the user.",
+    )
+
     # Metadata - to update the intended use of this field, update description in Admin
     metadata = models.JSONField(
         null=True,
@@ -111,6 +121,27 @@ class User(TimeStampedModel, AbstractUser):
         ),
     )
 
+    # Bot properties
+    is_bot = models.BooleanField(default=False, db_index=True)
+    is_primary_bot = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Marks the user’s primary bot. Only the primary bot can post public comments, "
+            "be eligible for prizes, count toward peer scores, "
+            "and appear on leaderboards."
+        ),
+    )
+    bot_owner = models.ForeignKey(
+        "self",
+        related_name="bots",
+        null=True,
+        blank=True,
+        # TODO: what should we do if user deletes their own profile?
+        on_delete=models.PROTECT,
+        help_text="The human owner of the bot. This property can only be changed for bot users.",
+    )
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:
@@ -119,6 +150,24 @@ class User(TimeStampedModel, AbstractUser):
             models.Index(
                 models.Func("username", function="UPPER"),
                 name="upper_username_idx",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(is_bot=True) | models.Q(bot_owner__isnull=True),
+                name="user_bot_owner_only_for_bots",
+                violation_error_message="Bot owner can be set only for bot account",
+            ),
+            models.CheckConstraint(
+                check=models.Q(is_bot=True) | models.Q(is_primary_bot=False),
+                name="user_is_primary_bot_only_for_bots",
+                violation_error_message="Is Primary Bot could be set only for bot account",
+            ),
+            models.UniqueConstraint(
+                fields=["bot_owner"],
+                condition=models.Q(is_primary_bot=True),
+                name="unique_primary_bot_per_bot_owner",
+                violation_error_message="Bot owner could have only one primary bot",
             ),
         ]
 

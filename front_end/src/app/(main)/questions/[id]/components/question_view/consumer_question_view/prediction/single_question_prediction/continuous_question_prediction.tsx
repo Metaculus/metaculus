@@ -4,11 +4,11 @@ import { getContinuousAreaChartData } from "@/components/charts/continuous_area_
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import ConsumerContinuousTile from "@/components/consumer_post_card/consumer_question_tile/consumer_continuous_tile";
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
 type Props = {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
 };
 
 const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {

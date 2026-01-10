@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db.models import F, Value, CharField, TextField
 from django.db.models.functions import Concat
+from social_django.models import Partial, UserSocialAuth
 
 from notifications.constants import MailingTags
 from users.models import User
@@ -83,6 +84,13 @@ class Command(BaseCommand):
             f" Unsubscribed {staff_users.count()} staff users from mailing tags ",
             staff_users.first().unsubscribed_mailing_tags,
         )
+
+        # Clear social auth tables
+        partial_count, _ = Partial.objects.all().delete()
+        print(f"Deleted {partial_count} entries from social_auth_partial")
+
+        social_auth_count, _ = UserSocialAuth.objects.all().delete()
+        print(f"Deleted {social_auth_count} entries from social_auth_usersocialauth")
 
         anonymize_users(users)
         self.stdout.write(self.style.SUCCESS("Successfully anonymized all users."))

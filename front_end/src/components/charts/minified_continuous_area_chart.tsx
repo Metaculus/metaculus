@@ -27,7 +27,7 @@ import {
   GraphingQuestionProps,
   Question,
   QuestionType,
-  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import { getClosestYValue, interpolateYValue } from "@/utils/charts/helpers";
@@ -596,7 +596,7 @@ export function getContinuousAreaChartData({
   question,
   isClosed,
 }: {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   isClosed?: boolean;
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];

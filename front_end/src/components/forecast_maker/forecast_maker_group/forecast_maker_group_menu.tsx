@@ -6,14 +6,10 @@ import React, { FC, ReactNode, useState } from "react";
 import IncludeBotsInfo from "@/app/(main)/questions/[id]/components/sidebar/question_info/include_bots_info";
 import QuestionWeightInfo from "@/app/(main)/questions/[id]/components/sidebar/question_info/question_weight_info";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
-import {
-  unresolveQuestion as unresolveQuestionAction,
-  withdrawForecasts,
-} from "@/app/(main)/questions/actions";
+import { withdrawForecasts } from "@/app/(main)/questions/actions";
+import QuestionUnresolveModal from "@/components/forecast_maker/resolution/unresolve_modal";
 import DropdownMenu from "@/components/ui/dropdown_menu";
-import LoadingSpinner from "@/components/ui/loading_spiner";
 import LocalDaytime from "@/components/ui/local_daytime";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { Post, ProjectPermissions, QuestionStatus } from "@/types/post";
 import {
@@ -44,12 +40,9 @@ const ForecastMakerGroupControls: FC<Props> = ({
   onPredictionSubmit,
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
+  const [isUnresolveModalOpen, setIsUnresolveModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const t = useTranslations();
-  const { setCurrentModal } = useModal();
-  const [unresolveQuestion, isPending] = useServerAction(
-    unresolveQuestionAction
-  );
 
   const handleWithdraw = async () => {
     if (post) {
@@ -133,14 +126,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
                 {
                   id: "unresolve",
                   name: t("unresolve"),
-                  onClick: () =>
-                    setCurrentModal({
-                      type: "confirm",
-                      data: {
-                        title: t("confirmUnresolveQuestion"),
-                        onConfirm: () => unresolveQuestion(question.id),
-                      },
-                    }),
+                  onClick: () => setIsUnresolveModalOpen(true),
                 },
               ]
             : []),
@@ -156,17 +142,18 @@ const ForecastMakerGroupControls: FC<Props> = ({
         ]}
         textAlign="left"
       >
-        {isPending ? (
-          <LoadingSpinner size="lg" className="size-[26px]" />
-        ) : (
-          button
-        )}
+        {button}
       </DropdownMenu>
 
       <QuestionResolutionModal
         question={question}
         isOpen={isResolutionModalOpen}
         onClose={() => setIsResolutionModalOpen(false)}
+      />
+      <QuestionUnresolveModal
+        question={question}
+        isOpen={isUnresolveModalOpen}
+        onClose={() => setIsUnresolveModalOpen(false)}
       />
 
       {/* Withdraw Confirmation Modal */}

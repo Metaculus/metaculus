@@ -5,6 +5,7 @@ from .common import get_questions_count_for_projects
 
 QUESTIONS_COUNT_CACHE_PREFIX = "project_questions_count:v1"
 QUESTIONS_COUNT_CACHE_TIMEOUT = 1 * 3600  # 3 hour
+PROJECT_TIMELINE_TTL_SECONDS = 5 * 360
 
 
 def get_projects_questions_count_cache_key(project_id: int) -> str:
