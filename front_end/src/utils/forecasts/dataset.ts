@@ -15,6 +15,82 @@ import {
   nominalLocationToCdfLocation,
 } from "@/utils/math";
 
+function standardizeCdf(
+  cdf: number[],
+  lowerOpen: boolean,
+  upperOpen: boolean,
+  inboundOutcomeCount: number
+): number[] {
+  if (cdf.length === 0) {
+    return [];
+  }
+
+  // apply lower bound
+  const cdfOffset =
+    lowerOpen && upperOpen
+      ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
+      : lowerOpen
+        ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
+        : upperOpen
+          ? (F: number, x: number) => 0.989 * F + 0.01 * x
+          : (F: number, x: number) => 0.99 * F + 0.01 * x;
+  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
+
+  // apply upper bound
+  let pmf: number[] = [];
+  pmf.push(cdf[0] ?? 0);
+  for (let i = 1; i < cdf.length; i++) {
+    pmf.push((cdf[i] ?? 0) - (cdf[i - 1] ?? 0));
+  }
+  pmf.push(1 - (cdf[cdf.length - 1] ?? 1));
+  // cap depends on inboundOutcomeCount (0.2 if it is the default 200)
+  const cap = 0.2 * (DefaultInboundOutcomeCount / inboundOutcomeCount);
+  const capPmf = (scale: number) =>
+    pmf.map((value, i) =>
+      i == 0 || i == pmf.length - 1 ? value : Math.min(cap, scale * value)
+    );
+  const cappedSum = (scale: number) =>
+    capPmf(scale).reduce((acc, value) => acc + value, 0);
+
+  // find the appropriate scale search space
+  let lo = 1;
+  let hi = 1;
+  let scale = 1;
+  while (cappedSum(hi) < 1) hi *= 1.2;
+  // hone in on scale value that makes capped sum 1
+  for (let i = 0; i < 100; i++) {
+    scale = 0.5 * (lo + hi);
+    const s = cappedSum(scale);
+    if (s < 1) {
+      lo = scale;
+    } else {
+      hi = scale;
+    }
+    if (s === 1 || hi - lo < 2e-5) {
+      break;
+    }
+  }
+  // apply scale and renormalize
+  pmf = capPmf(scale);
+  const inboundScaleFactor =
+    ((cdf[cdf.length - 1] ?? 1) - (cdf[0] ?? 0)) /
+    pmf.slice(1, pmf.length - 1).reduce((acc, value) => acc + value, 0);
+  pmf = pmf.map((value, i) =>
+    i == 0 || i == pmf.length - 1 ? value : value * inboundScaleFactor
+  );
+  // back to CDF space
+  cdf = [];
+  let cumulative = 0;
+  for (let i = 0; i < pmf.length - 1; i++) {
+    cumulative += pmf[i] ?? 0;
+    cdf.push(cumulative);
+  }
+
+  // finally round to 10 decimal places
+  cdf = cdf.map((value) => Math.round(value * 1e10) / 1e10);
+  return cdf;
+}
+
 /**
  * Get chart data from slider input
  */
@@ -51,19 +127,7 @@ export function getSliderNumericForecastDataset(
   }, Array(componentCdfs[0]!.length).fill(0));
   cdf = cdf.map((F) => Number(F));
 
-  // standardize cdf
-  const cdfOffset =
-    lowerOpen && upperOpen
-      ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
-      : lowerOpen
-        ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
-        : upperOpen
-          ? (F: number, x: number) => 0.989 * F + 0.01 * x
-          : (F: number, x: number) => 0.99 * F + 0.01 * x;
-  cdf = cdf.map(
-    (F, index) =>
-      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e10) / 1e10
-  );
+  cdf = standardizeCdf(cdf, lowerOpen, upperOpen, inboundOutcomeCount);
 
   return {
     cdf: cdf,
