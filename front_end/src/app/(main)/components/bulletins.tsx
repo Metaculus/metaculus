@@ -5,6 +5,7 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import { logError } from "@/utils/core/errors";
+import { getBulletinParamsFromPathname } from "@/utils/navigation";
 
 import Bulletin from "./bulletin";
 
@@ -35,19 +36,10 @@ const Bulletins: FC = () => {
     );
   }, [pathname]);
 
-  const bulletinParams = useMemo(() => {
-    const questionMatch = pathname.match(/^\/questions\/(\d+)(?:\/|$)/);
-    if (questionMatch) {
-      return { post_id: Number(questionMatch[1]) };
-    }
-
-    const projectMatch = pathname.match(/^\/tournament\/([^/]+)(?:\/|$)/);
-    if (projectMatch) {
-      return { project_slug: projectMatch[1] };
-    }
-
-    return undefined;
-  }, [pathname]);
+  const bulletinParams = useMemo(
+    () => getBulletinParamsFromPathname(pathname),
+    [pathname]
+  );
 
   const fetchBulletins = useCallback(async () => {
     try {
