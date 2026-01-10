@@ -4,7 +4,9 @@ import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, useState } from "react";
 
+import { KeyFactorsProvider } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
 import Comment from "@/components/comment_feed/comment";
+import { useAuth } from "@/contexts/auth_context";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
@@ -30,6 +32,7 @@ export const CommentWrapper: FC<Props> = ({
   suggestKeyFactorsOnFirstRender = false,
   shouldSuggestKeyFactors = false,
 }) => {
+  const { user } = useAuth();
   const isUnread =
     last_viewed_at && new Date(last_viewed_at) < new Date(comment.created_at);
   const match = window.location.hash.match(/#comment-(\d+)/);
@@ -69,20 +72,27 @@ export const CommentWrapper: FC<Props> = ({
           </Link>
         </h3>
       )}
-      <Comment
-        onProfile={!!profileId}
-        comment={comment}
-        handleCommentPin={handleCommentPin}
-        treeDepth={0}
-        /* replies should always be sorted from oldest to newest */
-        sort={"created_at" as SortOption}
-        postData={postData}
-        lastViewedAt={postData?.last_viewed_at}
-        isCollapsed={isCollapsed}
-        isCommentJustCreated={suggestKeyFactorsOnFirstRender}
-        shouldSuggestKeyFactors={shouldSuggestKeyFactors}
-        forceExpandedChildren={isFocusedCommentInTree}
-      />
+      <KeyFactorsProvider
+        user={user}
+        post={postData}
+        commentId={comment.id}
+        suggest={shouldSuggestKeyFactors && suggestKeyFactorsOnFirstRender}
+      >
+        <Comment
+          onProfile={!!profileId}
+          comment={comment}
+          handleCommentPin={handleCommentPin}
+          treeDepth={0}
+          /* replies should always be sorted from oldest to newest */
+          sort={"created_at" as SortOption}
+          postData={postData}
+          lastViewedAt={postData?.last_viewed_at}
+          isCollapsed={isCollapsed}
+          isCommentJustCreated={suggestKeyFactorsOnFirstRender}
+          shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+          forceExpandedChildren={isFocusedCommentInTree}
+        />
+      </KeyFactorsProvider>
     </div>
   );
 };

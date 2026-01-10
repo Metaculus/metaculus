@@ -64,7 +64,16 @@ export function extractLeaderboardFiltersFromParams(
   }
 
   const periods = getLeaderboardTimePeriodFilters(duration);
-  let year: string = periods[periods.length - 1]?.value ?? "2024";
+  // Get the earliest non-finalized year as default
+  const gracePeriod = 100; // 100 days
+  const currentDate = new Date();
+  let year = new Date(currentDate.getTime() - gracePeriod * 24 * 60 * 60 * 1000)
+    .getFullYear()
+    .toString();
+  // if year is not in periods, fall back to the lastest period
+  if (!periods.find((p) => p.value === year)) {
+    year = periods[periods.length - 1]?.value ?? "2025";
+  }
   if (
     params[SCORING_YEAR_FILTER] &&
     typeof params[SCORING_YEAR_FILTER] === "string" &&

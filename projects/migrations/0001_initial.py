@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
                     "order",
                     models.IntegerField(
                         default=0,
-                        help_text="Will be displayed ordered by this field inside each section",
+                        help_text="Will be displayed ordered by this field inside each section. Lower numbers appear first.",
                     ),
                 ),
                 (

@@ -1,4 +1,8 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import {
+  FetchedAggregateCoherenceLinks,
+  FetchedCoherenceLinks,
+} from "@/types/coherence";
 import { QuestionStatus, Resolution } from "@/types/post";
 import { Category } from "@/types/projects";
 
@@ -13,6 +17,15 @@ export enum QuestionType {
   Numeric = "numeric",
   Discrete = "discrete",
   Date = "date",
+}
+export enum NumericQuestionType {
+  Binary = "binary",
+  Numeric = "numeric",
+  Discrete = "discrete",
+  Date = "date",
+}
+export enum MultipleChoiceQuestionType {
+  MultipleChoice = "multiple_choice",
 }
 
 export type ContinuousQuestionType = (typeof ContinuousQuestionTypes)[number];
@@ -83,7 +96,7 @@ export type ExtendedQuartiles = Quartiles & {
   upper90: number;
 };
 
-export type Forecast = {
+export type NumericForecast = {
   question_id: number;
   start_time: number;
   end_time: number | null;
@@ -92,6 +105,18 @@ export type Forecast = {
   centers: number[] | null;
   interval_upper_bounds: number[] | null;
 };
+
+export type MultipleChoiceForecast = {
+  question_id: number;
+  start_time: number;
+  end_time: number | null;
+  forecast_values: (number | null)[];
+  interval_lower_bounds: (number | null)[] | null;
+  centers: (number | null)[] | null;
+  interval_upper_bounds: (number | null)[] | null;
+};
+
+export type Forecast = NumericForecast | MultipleChoiceForecast;
 
 export type ScoreData = {
   baseline_score?: number | null;
@@ -142,17 +167,33 @@ export type DistributionQuantile = {
   type: ContinuousForecastInputType.Quantile;
 };
 
-export type UserForecast = Forecast & {
+export type NumericUserForecast = NumericForecast & {
   distribution_input: DistributionSlider | DistributionQuantile | null;
 };
 
-export type UserForecastHistory = {
-  history: UserForecast[];
-  latest?: UserForecast;
+export type MultipleChoiceUserForecast = MultipleChoiceForecast & {
+  distribution_input: DistributionSlider | DistributionQuantile | null;
+};
+
+export type UserForecast = NumericUserForecast | MultipleChoiceUserForecast;
+
+export type NumericUserForecastHistory = {
+  history: NumericUserForecast[];
+  latest?: NumericUserForecast;
   score_data?: ScoreData;
 };
 
-export type AggregateForecast = Forecast & {
+export type MultipleChoiceUserForecastHistory = {
+  history: MultipleChoiceUserForecast[];
+  latest?: MultipleChoiceUserForecast;
+  score_data?: ScoreData;
+};
+
+export type UserForecastHistory =
+  | NumericUserForecastHistory
+  | MultipleChoiceUserForecastHistory;
+
+export type NumericAggregateForecast = NumericForecast & {
   method: AggregationMethod;
   forecaster_count: number;
   means: number[] | null;
@@ -160,47 +201,50 @@ export type AggregateForecast = Forecast & {
   forecast_values: number[] | null;
 };
 
-export type AggregateForecastHistory = {
-  history: AggregateForecast[];
-  latest?: AggregateForecast;
+export type MultipleChoiceAggregateForecast = MultipleChoiceForecast & {
+  method: AggregationMethod;
+  forecaster_count: number;
+  means: number[] | null;
+  histogram: number[][] | null;
+  forecast_values: number[] | null;
+};
+export type AggregateForecast =
+  | NumericAggregateForecast
+  | MultipleChoiceAggregateForecast;
+
+export type NumericAggregateForecastHistory = {
+  history: NumericAggregateForecast[];
+  latest?: NumericAggregateForecast;
   score_data?: ScoreData;
   movement?: CPMovement | null;
 };
 
-export type Aggregations = {
-  recency_weighted: AggregateForecastHistory;
-  unweighted: AggregateForecastHistory;
-  single_aggregation: AggregateForecastHistory;
-  metaculus_prediction: AggregateForecastHistory;
+export type MultipleChoiceAggregateForecastHistory = {
+  history: MultipleChoiceAggregateForecast[];
+  latest?: MultipleChoiceAggregateForecast;
+  score_data?: ScoreData;
+  movement?: CPMovement | null;
 };
 
-export type BaseForecast = {
-  timestamps: number[];
-  nr_forecasters: number[];
-  my_forecasts: {
-    timestamps: number[];
-    medians: number[];
-    distribution_input: unknown | null;
-  } | null;
+export type AggregateForecastHistory =
+  | NumericAggregateForecastHistory
+  | MultipleChoiceAggregateForecastHistory;
+
+export type NumericAggregations = {
+  recency_weighted: NumericAggregateForecastHistory;
+  unweighted: NumericAggregateForecastHistory;
+  single_aggregation: NumericAggregateForecastHistory;
+  metaculus_prediction: NumericAggregateForecastHistory;
 };
 
-export type NumericForecast = BaseForecast & {
-  medians: number[];
-  q3s: number[];
-  q1s: number[];
-  means: number[];
-  latest_pmf: number[];
-  latest_cdf: number[];
-  histogram?: number[];
+export type MultipleChoiceAggregations = {
+  recency_weighted: MultipleChoiceAggregateForecastHistory;
+  unweighted: MultipleChoiceAggregateForecastHistory;
+  single_aggregation: MultipleChoiceAggregateForecastHistory;
+  metaculus_prediction: MultipleChoiceAggregateForecastHistory;
 };
 
-export type MultipleChoiceForecast = BaseForecast & {
-  [value_choice_n: string]: Array<{
-    median: number;
-    q3: number;
-    q1: number;
-  }>;
-};
+export type Aggregations = NumericAggregations | MultipleChoiceAggregations;
 
 export type CPMovement = {
   divergence?: number;
@@ -257,17 +301,12 @@ export type Question = {
   author_username: string;
   post_id: number;
   display_divergences?: number[][];
-  aggregations: Aggregations;
-  my_forecasts?: UserForecastHistory;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
-  // used for prediction flow in tournament
-  my_forecast?: {
-    latest: UserForecast;
-    lifetime_elapsed: number;
-    movement: null | CPMovement;
-  };
+  // Other
   average_coverage?: number | null;
+  coherence_links?: FetchedCoherenceLinks["data"];
+  coherence_link_aggregations?: FetchedAggregateCoherenceLinks["data"];
 };
 
 export enum MovementDirection {
@@ -321,14 +360,28 @@ export type QuestionWithNumericForecasts = Question & {
     | QuestionType.Numeric
     | QuestionType.Date
     | QuestionType.Discrete;
-  forecasts: NumericForecast;
   open_lower_bound?: boolean;
   open_upper_bound?: boolean;
+  aggregations: NumericAggregations;
+  my_forecasts?: NumericUserForecastHistory;
+  // used for prediction flow in tournament
+  my_forecast?: {
+    latest: NumericUserForecast;
+    lifetime_elapsed: number;
+    movement: null | CPMovement;
+  };
 };
 export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
-  forecasts: MultipleChoiceForecast;
   options: string[];
+  aggregations: MultipleChoiceAggregations;
+  my_forecasts?: MultipleChoiceUserForecastHistory;
+  // used for prediction flow in tournament
+  my_forecast?: {
+    latest: MultipleChoiceUserForecast;
+    lifetime_elapsed: number;
+    movement: null | CPMovement;
+  };
 };
 
 export type QuestionWithForecasts =
@@ -347,10 +400,11 @@ export type PredictionInputMessage =
   | "predictionClosedMessage"
   | null;
 
-export type AggregationQuestion = {
+// TODO: is this type needed?
+export type MultipleChoiceAggregationQuestion = {
   actual_close_time: string | null;
   actual_resolve_time: string | null;
-  aggregations: Aggregations;
+  aggregations: MultipleChoiceAggregations;
   created_at: string;
   description: string;
   fine_print: string;
@@ -371,10 +425,47 @@ export type AggregationQuestion = {
   scheduled_resolve_time: string;
   title: string;
   short_title: string;
-  type: QuestionType;
+  type: QuestionType.MultipleChoice;
   unit?: string;
   forecasters_count?: number | null;
 };
+
+export type NumericAggregationQuestion = {
+  actual_close_time: string | null;
+  actual_resolve_time: string | null;
+  aggregations: NumericAggregations;
+  created_at: string;
+  description: string;
+  fine_print: string;
+  id: number;
+  label: string | null;
+  scaling: Scaling;
+  status: QuestionStatus;
+  open_lower_bound: boolean | null;
+  open_upper_bound: boolean | null;
+  inbound_outcome_count: number | null;
+  open_time: string;
+  options: string[] | null;
+  post_id: number;
+  resolution: string | null;
+  resolution_criteria: string;
+  resolution_set_time: string | null;
+  scheduled_close_time: string;
+  scheduled_resolve_time: string;
+  title: string;
+  short_title: string;
+  type:
+    | QuestionType.Binary
+    | QuestionType.Numeric
+    | QuestionType.Date
+    | QuestionType.Discrete;
+  unit?: string;
+  forecasters_count?: number | null;
+};
+
+export type AggregationQuestion =
+  | NumericAggregationQuestion
+  | MultipleChoiceAggregationQuestion;
 
 export enum CurveQuestionLabels {
   question = "your forecast",

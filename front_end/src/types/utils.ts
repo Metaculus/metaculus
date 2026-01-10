@@ -14,6 +14,7 @@ export type DataParams = {
   include_scores?: boolean;
   include_bots?: boolean;
   include_user_data?: boolean;
+  include_key_factors?: boolean;
   anonymized?: boolean;
 };
 export type WhitelistStatus = {
