@@ -574,7 +574,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
+          src="https://cdn.metaculus.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
           alt="Metaculus and Markets Comparison"
           className="my-4"
           width={700}
@@ -1112,7 +1112,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_2.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_2.jpg"
           alt="The two conditionals next to each other"
           width={730}
           height={75}
@@ -1155,7 +1155,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_3.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_3.jpg"
           alt="The Conditional Pair forecasting interface"
           width={754}
           height={253}
@@ -1167,7 +1167,7 @@ export default async function FAQ() {
         </p>
 
         <Image
-          src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_1.jpg"
+          src="https://cdn.metaculus.com/conditional_faq_1.jpg"
           alt="The Conditional Pair feed tile"
           width={746}
           height={142}
@@ -2381,7 +2381,7 @@ export default async function FAQ() {
             the question page, or using a special button in feeds.
           </p>
           <Image
-            src="https://metaculus-public.s3.us-west-2.amazonaws.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
+            src="https://cdn.metaculus.com/Screen+Shot+2023-02-14+at+2.14.38+PM.png"
             alt="Reaffirming a prediction"
             className="my-4"
             width={922}
@@ -2409,7 +2409,7 @@ export default async function FAQ() {
             next to the option you wish to withdraw.
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/withdraw_button.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/withdraw_button.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={700}
@@ -2648,7 +2648,7 @@ export default async function FAQ() {
             the filter menu:
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/search_filters.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/search_filters.jpg"
             alt="Search Filters"
             className="my-4"
             width={700}
@@ -2656,7 +2656,7 @@ export default async function FAQ() {
           />
           <p>And withdrawals show up as crosses in the timeline graphs:</p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/timeline_withdraw.jpg"
+            src="https://cdn.metaculus.com/user_uploaded/timeline_withdraw.jpg"
             alt="Prediction Interface"
             className="my-4"
             width={300}
@@ -2743,7 +2743,7 @@ export default async function FAQ() {
             Prediction assigns a density of 0.319.
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_zcQBntc.png"
+            src="https://cdn.metaculus.com/user_uploaded/image_zcQBntc.png"
             alt="Continuous Prediction Interface"
             className="my-4"
             width={734}
@@ -2769,7 +2769,7 @@ export default async function FAQ() {
             the Community Prediction predicts 69.4%.
           </p>
           <Image
-            src="https://metaculus-web-media.s3.amazonaws.com/user_uploaded/image_eVvUMVQ.png"
+            src="https://cdn.metaculus.com/user_uploaded/image_eVvUMVQ.png"
             alt="Cumulative Interface"
             className="my-4"
             width={734}

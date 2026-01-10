@@ -120,3 +120,19 @@ export function formatNumberWithUnit(
   }
   return `${formattedNumber} ${unit}`;
 }
+
+/**
+ * Format a number using BIPM-style thousands separation with narrow non-breaking spaces (U+202F)
+ * and a dot as the decimal separator.
+ */
+export function formatNumberBipm(
+  val: number | string | null | undefined,
+  options?: Intl.NumberFormatOptions
+): string {
+  let num = Number(val);
+  if (Number.isNaN(num)) {
+    num = 0;
+  }
+
+  return num.toLocaleString("en-US", options).replace(/,/g, "\u202F");
+}

@@ -32,6 +32,7 @@ const schema = z.object({
   include_comments: z.boolean(),
   include_scores: z.boolean(),
   include_user_data: z.boolean(),
+  include_key_factors: z.boolean(),
   include_bots: z.enum(["default", "true", "false"]).optional(),
   anonymized: z.boolean(),
 });
@@ -90,6 +91,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_comments: false,
       include_scores: false,
       include_user_data: true,
+      include_key_factors: false,
       include_bots: undefined,
       anonymized: !whitelistStatus.view_deanonymized_data,
     },
@@ -199,6 +201,13 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
             name="include_scores"
             label={t("scoreData")}
             errors={errors.include_scores}
+            disabled={isLoggedOut}
+          />
+          <CheckboxField
+            control={control}
+            name="include_key_factors"
+            label={t("keyFactorData")}
+            errors={errors.include_key_factors}
             disabled={isLoggedOut}
           />
           <CheckboxField

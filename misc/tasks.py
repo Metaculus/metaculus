@@ -35,5 +35,8 @@ def send_email_async(*args, recipient_list: list[str], **kwargs):
         else filter_staff_emails(recipient_list)
     )
 
+    # Filter out empty emails
+    recipient_list = list(filter(bool, recipient_list))
+
     if recipient_list:
         send_mail(*args, recipient_list=recipient_list, **kwargs)

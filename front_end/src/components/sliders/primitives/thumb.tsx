@@ -33,6 +33,7 @@ const SliderThumb: FC<Props> = ({
     {...props}
     className={cn(
       "absolute flex cursor-pointer touch-none items-center focus:outline-none",
+      active ? "z-10" : "z-0",
       className
     )}
   >

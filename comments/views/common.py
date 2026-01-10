@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -166,13 +167,35 @@ def comment_edit_api_view(request: Request, pk: int):
     # Small validation
     comment = get_object_or_404(Comment, pk=pk)
     text = serializers.CharField().run_validation(request.data.get("text"))
+    include_forecast = serializers.BooleanField(
+        required=False, allow_null=True
+    ).run_validation(request.data.get("include_forecast"))
 
     if not (comment.author == request.user):
         raise PermissionDenied("You do not have permission to edit this comment.")
 
-    update_comment(comment, text)
+    post = comment.on_post
+    forecast = None
 
-    return Response({}, status=status.HTTP_200_OK)
+    if include_forecast and not comment.included_forecast and post and post.question_id:
+        active_time = comment.created_at
+        question = post.question
+
+        # If question was closed, take the forecast active on the date of closure
+        if question.actual_close_time and question.actual_close_time <= timezone.now():
+            active_time = question.actual_close_time
+
+        forecast = (
+            question.user_forecasts.filter(author=comment.author)
+            .filter_active_at(active_time)
+            .order_by("-start_time")
+            .first()
+        )
+
+    update_comment(comment, text, included_forecast=forecast)
+    comment.refresh_from_db()
+
+    return Response(serialize_comment(comment), status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

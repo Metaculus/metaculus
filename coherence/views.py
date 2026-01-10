@@ -1,24 +1,37 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.request import Request
 from rest_framework.response import Response
 
-from coherence.models import CoherenceLink, AggregateCoherenceLink
+from coherence.models import (
+    CoherenceLink,
+    AggregateCoherenceLink,
+    AggregateCoherenceLinkVote,
+)
 from coherence.serializers import (
     CoherenceLinkSerializer,
     serialize_coherence_link,
     serialize_coherence_link_many,
     serialize_aggregate_coherence_link_many,
     NeedsUpdateQuerySerializer,
+    serialize_aggregate_coherence_link_vote,
 )
-from coherence.services import create_coherence_link, get_stale_linked_questions
+from coherence.services import (
+    create_coherence_link,
+    get_stale_linked_questions,
+    get_links_for_question,
+    aggregate_coherence_link_vote,
+)
+from coherence.utils import get_aggregation_results, get_aggregations_links
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers.common import serialize_question
+from users.models import User
 
 
 @api_view(["POST"])
@@ -67,16 +80,47 @@ def get_links_for_question_api_view(request, pk):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_aggregate_links_for_question_api_view(request, pk):
+@permission_classes([AllowAny])
+def get_aggregate_links_for_question_api_view(request: Request, pk: int):
     question = get_object_or_404(Question, pk=pk)
     links = AggregateCoherenceLink.objects.filter(
         Q(question1=question) | Q(question2=question)
     )
 
-    links_to_data = serialize_aggregate_coherence_link_many(links)
+    links_to_data = serialize_aggregate_coherence_link_many(
+        links,
+        current_user=request.user if request.user.is_authenticated else None,
+        current_question=question,
+    )
 
     return Response({"data": links_to_data})
+
+
+@api_view(["POST"])
+def aggregate_links_vote_view(request: Request, pk: int):
+    aggregation = get_object_or_404(AggregateCoherenceLink, pk=pk)
+
+    vote = serializers.ChoiceField(
+        required=False,
+        allow_null=True,
+        choices=AggregateCoherenceLinkVote.VoteDirection.choices,
+    ).run_validation(request.data.get("vote"))
+
+    aggregate_coherence_link_vote(aggregation, user=request.user, vote=vote)
+
+    # Calculate strength
+    _, strength, _ = get_aggregation_results(
+        get_aggregations_links([aggregation]), list(aggregation.votes.all())
+    )
+
+    return Response(
+        {
+            **serialize_aggregate_coherence_link_vote(
+                list(aggregation.votes.all()), user_vote=vote
+            ),
+            "strength": strength,
+        }
+    )
 
 
 @api_view(["DELETE"])
@@ -100,7 +144,25 @@ def get_questions_requiring_update(request, pk):
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     datetime = serializer.validated_data["datetime"]
+    user_id_for_links = serializer.validated_data.get("user_id_for_links", None)
 
-    questions_to_update = get_stale_linked_questions(question, user, datetime)
+    links_user = user
+    if user_id_for_links:
+        is_user_admin = user.is_staff or user.is_superuser
+        if not is_user_admin:
+            raise PermissionDenied(
+                "Non-admin user can't request to use the links of another user"
+            )
+        links_user = User.objects.filter(pk=user_id_for_links).first()
+        if links_user is None:
+            raise NotFound("Links user not found.")
+
+    links = get_links_for_question(question, links_user)
+    questions_to_update = get_stale_linked_questions(links, question, user, datetime)
     serialized_questions = [serialize_question(q) for q in questions_to_update]
-    return Response({"questions": serialized_questions})
+    return Response(
+        {
+            "questions": serialized_questions,
+            "links": serialize_coherence_link_many(links, serialize_questions=False),
+        }
+    )

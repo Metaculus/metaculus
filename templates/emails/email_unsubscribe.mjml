@@ -3,11 +3,13 @@
         <mj-text>
             <p style="font-size:14px; line-height:150%; color:#777777; margin-top:0px;">
                 {% blocktrans %}
-                If you no longer wish to receive this type of email, you can
-                <a href="%unsubscribe_url%">unsubscribe here</a>.
-                You can also manage your notification settings on your Metaculus
+                You can manage your notification settings on your
                 {% endblocktrans %}
                 <a href="{% tag_notification_settings_url %}">{% trans "settings page" %}</a>.
+                {% blocktrans %}
+                You can also unsubscribe from all Metaculus emails
+                <a href="%unsubscribe_url%">here</a>.
+                {% endblocktrans %}
             </p>
         </mj-text>
     </mj-column>

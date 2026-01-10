@@ -1,14 +1,15 @@
 import csv
+import datetime
+import hashlib
 import io
 import zipfile
-import hashlib
-import datetime
-import numpy as np
 
+import numpy as np
 from django.db.models import QuerySet, Q
 from django.utils import timezone
 
-from comments.models import Comment
+from coherence.models import AggregateCoherenceLink
+from comments.models import Comment, KeyFactor
 from posts.models import Post
 from questions.models import (
     Question,
@@ -18,13 +19,13 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
+from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
-from utils.the_math.measures import percent_point_function
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
     string_location_to_bucket_index,
 )
-from users.models import User
+from utils.the_math.measures import percent_point_function
 
 
 def export_all_data_for_questions(
@@ -67,7 +68,7 @@ def export_all_data_for_questions(
         for question in questions:
             aggregation_dict = get_aggregation_history(
                 question,
-                aggregation_methods,
+                aggregation_methods or [question.default_aggregation_method],
                 only_include_user_ids=only_include_user_ids,
                 minimize=minimize,
                 include_stats=True,
@@ -125,6 +126,7 @@ def export_data_for_questions(
     include_scores: bool,
     include_user_data: bool,
     include_comments: bool,
+    include_key_factors: bool,
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
@@ -178,7 +180,7 @@ def export_data_for_questions(
         for question in questions_with_revealed_cp:
             aggregation_dict = get_aggregation_history(
                 question,
-                aggregation_methods,
+                aggregation_methods or [question.default_aggregation_method],
                 only_include_user_ids=only_include_user_ids,
                 minimize=minimize,
                 include_stats=True,
@@ -229,12 +231,38 @@ def export_data_for_questions(
     else:
         all_scores = None
 
+    if include_key_factors and question_ids:
+        key_factors = (
+            KeyFactor.objects.filter_active()
+            .filter(
+                comment__on_post__related_questions__question_id__in=question_ids,
+                comment__is_soft_deleted=False,
+            )
+            .select_related(
+                "driver",
+                "base_rate",
+                "news",
+                "comment",
+                "comment__author",
+                "question",
+            )
+            .order_by("created_at")
+        )
+        aggregate_question_links = AggregateCoherenceLink.objects.filter(
+            Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
+        ).prefetch_related("question1__related_posts", "question2__related_posts")
+    else:
+        key_factors = None
+        aggregate_question_links = None
+
     return generate_data(
         questions=questions,
         user_forecasts=user_forecasts,
         aggregate_forecasts=aggregate_forecasts,
         comments=comments,
         scores=all_scores,
+        key_factors=key_factors,
+        aggregate_question_links=aggregate_question_links,
         anonymized=anonymized,
     )
 
@@ -267,13 +295,19 @@ def generate_data(
     ) = None,
     comments: QuerySet[Comment] | list[Comment] | None = None,
     scores: QuerySet[Score | ArchivedScore] | list[Score | ArchivedScore] | None = None,
+    key_factors: QuerySet[KeyFactor] | list[KeyFactor] | None = None,
+    aggregate_question_links: (
+        QuerySet[AggregateCoherenceLink] | list[AggregateCoherenceLink] | None
+    ) = None,
     anonymized: bool = False,
 ) -> bytes:
-    # generate a zip file with up to 4 csv files:
+    # generate a zip file with up to 6 csv files:
     #     question_data - Always
     #     forecast_data - Always (populated by user_forecasts and aggregate_forecasts)
     #     comment_data - Only if comments given
     #     score_data - Only if scores given
+    #     key_factor_data - Only if key_factors given
+    #     question_link_data - Only if aggregate_question_links given
     #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
     is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
@@ -305,6 +339,12 @@ def generate_data(
         readme_output.write(f"Contains the data for {len(comments)} comments\n")
     if scores:
         readme_output.write(f"Contains the data for {len(scores)} scores\n")
+    if key_factors:
+        readme_output.write(f"Contains the data for {len(key_factors)} key factors\n")
+    if aggregate_question_links:
+        readme_output.write(
+            f"Contains the data for {len(aggregate_question_links)} question links\n"
+        )
     if anonymized:
         readme_output.write("User IDs have been obscured\n")
     readme_output.write("\n" + "\n" + "# File: README.md\n" + "\n" + "This File\n")
@@ -726,6 +766,209 @@ def generate_data(
         )
         score_writer.writerow(row)
 
+    # key_factor_data csv file
+    if key_factors is not None:
+        readme_output.write(
+            "\n"
+            + "\n"
+            + "# File: `key_factor_data.csv`\n"
+            + "\n"
+            + "This file contains the key factors for the questions in this dataset.\n"
+            + "\n"
+            + "### columns:\n"
+            + "\n"
+            + "**`Key Factor ID`** - the id of the key factor.\n"
+            + "**`Comment ID`** - the id of the comment this key factor is attached to.\n"
+            + "**`Post ID`** - the id of the Post this key factor belongs to.\n"
+            + "**`Question ID`** - the id of the question this key factor is linked to (if specific to a sub-question).\n"
+            + "**`Question Option`** - the multiple choice option this key factor is linked to (if applicable).\n"
+            + "**`Type`** - the type of key factor: 'driver', 'base_rate', or 'news'.\n"
+            + "**`Created At`** - the time when the key factor was created.\n"
+            + "**`Votes Score`** - the aggregate vote score for this key factor.\n"
+            + (
+                "**`Author (Anonymized)`** - the anonymized reference to the author.\n"
+                if anonymized
+                else (
+                    "**`Author ID`** - the id of the author who created this key factor.\n"
+                    + "**`Author Username`** - the username of the author.\n"
+                )
+            )
+            + "**`Driver Text`** - the text of the driver (if type is 'driver').\n"
+            + "**`Driver Impact Direction`** - impact direction: 1 for increase, -1 for decrease (if type is 'driver').\n"
+            + "**`Driver Certainty`** - certainty level of the driver (if type is 'driver').\n"
+            + "**`Base Rate Reference Class`** - the reference class for base rate (if type is 'base_rate').\n"
+            + "**`Base Rate Type`** - 'frequency' or 'trend' (if type is 'base_rate').\n"
+            + "**`Base Rate Rate Numerator`** - numerator for trend rate (if type is 'base_rate' and trend).\n"
+            + "**`Base Rate Rate Denominator`** - denominator for trend rate (if type is 'base_rate' and trend).\n"
+            + "**`Base Rate Projected Value`** - projected value (if type is 'base_rate' and frequency).\n"
+            + "**`Base Rate Projected By Year`** - projection year (if type is 'base_rate' and frequency).\n"
+            + "**`Base Rate Unit`** - unit of measurement (if type is 'base_rate').\n"
+            + "**`Base Rate Extrapolation`** - extrapolation type (if type is 'base_rate').\n"
+            + "**`Base Rate Based On`** - what this base rate is based on (if type is 'base_rate').\n"
+            + "**`Base Rate Source`** - source of the base rate (if type is 'base_rate').\n"
+            + "**`News URL`** - URL of the news article (if type is 'news').\n"
+            + "**`News Title`** - title of the news article (if type is 'news').\n"
+            + "**`News Source`** - source of the news article (if type is 'news').\n"
+            + "**`News Published At`** - publication date of the news article (if type is 'news').\n"
+            + "**`News Impact Direction`** - impact direction: 1 for increase, -1 for decrease (if type is 'news').\n"
+            + "**`News Certainty`** - certainty level of the news impact (if type is 'news').\n"
+        )
+    key_factor_output = io.StringIO()
+    key_factor_writer = csv.writer(key_factor_output)
+    headers = [
+        "Key Factor ID",
+        "Comment ID",
+        "Post ID",
+        "Question ID",
+        "Question Option",
+        "Type",
+        "Created At",
+        "Votes Score",
+    ]
+    if anonymized:
+        headers.append("Author (Anonymized)")
+    else:
+        headers.extend(["Author ID", "Author Username"])
+    headers.extend(
+        [
+            "Driver Text",
+            "Driver Impact Direction",
+            "Driver Certainty",
+            "Base Rate Reference Class",
+            "Base Rate Type",
+            "Base Rate Rate Numerator",
+            "Base Rate Rate Denominator",
+            "Base Rate Projected Value",
+            "Base Rate Projected By Year",
+            "Base Rate Unit",
+            "Base Rate Extrapolation",
+            "Base Rate Based On",
+            "Base Rate Source",
+            "News URL",
+            "News Title",
+            "News Source",
+            "News Published At",
+            "News Impact Direction",
+            "News Certainty",
+        ]
+    )
+    key_factor_writer.writerow(headers)
+    for kf in key_factors or []:
+        kf_type = (
+            "driver" if kf.driver_id else ("base_rate" if kf.base_rate_id else "news")
+        )
+        row = [
+            kf.id,
+            kf.comment_id,
+            kf.comment.on_post_id,
+            kf.question_id,
+            kf.question_option or None,
+            kf_type,
+            kf.created_at,
+            kf.votes_score,
+        ]
+        if anonymized:
+            row.append(hashlib.sha256(str(kf.comment.author_id).encode()).hexdigest())
+        else:
+            row.extend([kf.comment.author_id, username_dict.get(kf.comment.author_id)])
+
+        # Driver fields
+        if kf.driver:
+            row.extend(
+                [kf.driver.text, kf.driver.impact_direction, kf.driver.certainty]
+            )
+        else:
+            row.extend([None, None, None])
+
+        # Base Rate fields
+        if kf.base_rate:
+            row.extend(
+                [
+                    kf.base_rate.reference_class,
+                    kf.base_rate.type,
+                    kf.base_rate.rate_numerator,
+                    kf.base_rate.rate_denominator,
+                    kf.base_rate.projected_value,
+                    kf.base_rate.projected_by_year,
+                    kf.base_rate.unit,
+                    kf.base_rate.extrapolation,
+                    kf.base_rate.based_on,
+                    kf.base_rate.source,
+                ]
+            )
+        else:
+            row.extend([None] * 10)
+
+        # News fields
+        if kf.news:
+            row.extend(
+                [
+                    kf.news.url,
+                    kf.news.title,
+                    kf.news.source,
+                    kf.news.published_at,
+                    kf.news.impact_direction,
+                    kf.news.certainty,
+                ]
+            )
+        else:
+            row.extend([None] * 6)
+
+        key_factor_writer.writerow(row)
+
+    # question_link_data csv file (Aggregate Question Links)
+    if aggregate_question_links is not None:
+        readme_output.write(
+            "\n"
+            + "\n"
+            + "# File: `question_link_data.csv`\n"
+            + "\n"
+            + "This file contains the aggregate question links (coherence links) for the questions in this dataset.\n"
+            + "\n"
+            + "### columns:\n"
+            + "\n"
+            + "**`Link ID`** - the id of the aggregate link.\n"
+            + "**`Question 1 ID`** - the id of the first question in the link.\n"
+            + "**`Question 1 Title`** - the title of the first question.\n"
+            + "**`Question 1 Post ID`** - the post id of the first question.\n"
+            + "**`Question 2 ID`** - the id of the second question in the link.\n"
+            + "**`Question 2 Title`** - the title of the second question.\n"
+            + "**`Question 2 Post ID`** - the post id of the second question.\n"
+            + "**`Link Type`** - the type of link (e.g., 'causal').\n"
+            + "**`Created At`** - the time when the link was created.\n"
+        )
+    question_link_output = io.StringIO()
+    question_link_writer = csv.writer(question_link_output)
+    question_link_writer.writerow(
+        [
+            "Link ID",
+            "Question 1 ID",
+            "Question 1 Title",
+            "Question 1 Post ID",
+            "Question 2 ID",
+            "Question 2 Title",
+            "Question 2 Post ID",
+            "Link Type",
+            "Created At",
+        ]
+    )
+    for link in aggregate_question_links or []:
+        q1_post_id = link.question1.get_post_id()
+        q2_post_id = link.question2.get_post_id()
+        question_link_writer.writerow(
+            [
+                link.id,
+                link.question1_id,
+                link.question1.title,
+                q1_post_id,
+                link.question2_id,
+                link.question2.title,
+                q2_post_id,
+                link.type,
+                link.created_at,
+            ]
+        )
+
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
@@ -736,6 +979,10 @@ def generate_data(
             zip_file.writestr("comment_data.csv", comment_output.getvalue())
         if scores:
             zip_file.writestr("score_data.csv", score_output.getvalue())
+        if key_factors:
+            zip_file.writestr("key_factor_data.csv", key_factor_output.getvalue())
+        if aggregate_question_links:
+            zip_file.writestr("question_link_data.csv", question_link_output.getvalue())
 
     # return the zip file
     return zip_buffer.getvalue()

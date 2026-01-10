@@ -1,6 +1,10 @@
+from datetime import timedelta
+
 import pytest  # noqa
 from django.urls import reverse
+from django.utils import timezone
 from django_dynamic_fixture import G
+from freezegun import freeze_time
 
 from comments.models import (
     Comment,
@@ -10,7 +14,7 @@ from comments.models import (
     KeyFactorNews,
 )
 from comments.services.feed import get_comments_feed
-from questions.services import create_forecast
+from questions.services.forecasts import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_misc.factories import factory_itn_article
 from tests.unit.test_posts.factories import factory_post
@@ -674,3 +678,164 @@ class TestKeyFactorDeletion:
         assert not KeyFactor.objects.filter(pk=kf2.pk).exists()
         # Last KF deleted - drop comment
         assert not Comment.objects.filter(pk=comment.pk).exists()
+
+
+class TestCommentEdit:
+    def test_comment_edit_include_forecast(self, user1, user1_client, question_binary):
+        post = factory_post(author=user1, question=question_binary)
+        question = post.question
+        now = timezone.now()
+
+        # 0. Forecast created and closed before comment creation
+        t_forecast_expired_start = now - timedelta(hours=4)
+        t_forecast_expired_end = now - timedelta(hours=3)
+
+        with freeze_time(t_forecast_expired_start):
+            forecast_expired = create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.2,
+            )
+
+        forecast_expired.end_time = t_forecast_expired_end
+        forecast_expired.save()
+
+        # 1. Forecast active at comment creation
+        t_forecast_1 = now - timedelta(hours=2)
+
+        with freeze_time(t_forecast_1):
+            forecast_1 = create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.5,
+            )
+
+        # 2. Comment created later.
+        t_comment = now - timedelta(hours=1)
+
+        with freeze_time(t_comment):
+            comment = factory_comment(author=user1, on_post=post)
+
+        # Ensure timestamps are correct
+        assert forecast_1.start_time == t_forecast_1
+        assert comment.created_at == t_comment
+        assert forecast_1.start_time < comment.created_at
+
+        # 3. New forecast created after comment
+        t_forecast_2 = now - timedelta(minutes=30)
+        with freeze_time(t_forecast_2):
+            create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.8,
+            )
+
+        # 4. Edit comment to include forecast
+        url = reverse("comment-edit", kwargs={"pk": comment.pk})
+        response = user1_client.post(
+            url, {"text": "Updated text", "include_forecast": True}
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+
+        # Should attach forecast_1 (active at creation), not forecast_2 (created later)
+        assert comment.included_forecast == forecast_1
+
+        # 5. Prevent overwrite if already set
+        with freeze_time(now):
+            create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.9,
+            )
+
+        # Even if we pass include_forecast=True again, it shouldn't change
+        response = user1_client.post(
+            url, {"text": "Updated text 2", "include_forecast": True}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast == forecast_1
+
+        # 6. Test include_forecast=False (should do nothing if already set)
+        response = user1_client.post(
+            url, {"text": "Updated text 3", "include_forecast": False}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast == forecast_1
+
+        # 7. If we manually remove it, include_forecast=False should leave it removed.
+        comment.included_forecast = None
+        comment.save()
+
+        response = user1_client.post(
+            url, {"text": "Updated text 4", "include_forecast": False}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast is None
+
+        # 8. Test attaching when multiple forecasts exist before creation
+        t_forecast_0 = now - timedelta(hours=3)
+        with freeze_time(t_forecast_0):
+            forecast_0 = create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.1,
+            )
+
+        # Close it before comment creation
+        forecast_0.end_time = t_forecast_1
+        forecast_0.save()
+
+        # So at t_comment, forecast_0 is closed. Forecast_1 is open.
+        response = user1_client.post(
+            url, {"text": "Updated text 5", "include_forecast": True}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast == forecast_1
+
+    def test_comment_edit_include_forecast_closed_question(
+        self, user1, user1_client, question_binary
+    ):
+        """When question is closed, forecast should be taken from closure time, not comment creation time."""
+        post = factory_post(author=user1, question=question_binary)
+        question = post.question
+        now = timezone.now()
+
+        # Timeline:
+        t_forecast = now - timedelta(hours=3)
+        t_close = now - timedelta(hours=2)
+
+        # Create forecast before question closure
+        with freeze_time(t_forecast):
+            forecast = create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.6,
+            )
+
+        # Forecast end_time is after closure (still active at closure)
+        forecast.end_time = now - timedelta(hours=1)
+        forecast.save()
+
+        # Close the question
+        question.actual_close_time = t_close
+        question.save()
+
+        # Create comment after closure
+        comment = factory_comment(author=user1, on_post=post)
+
+        # Edit comment to include forecast
+        url = reverse("comment-edit", kwargs={"pk": comment.pk})
+        response = user1_client.post(
+            url, {"text": "Comment with forecast", "include_forecast": True}
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        # Should attach forecast active at closure time
+        assert comment.included_forecast == forecast

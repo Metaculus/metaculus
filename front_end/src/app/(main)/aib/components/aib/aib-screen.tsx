@@ -12,11 +12,13 @@ type Props = { leaderboard: LeaderboardDetails; current: Section["value"] };
 const AIBScreen: React.FC<Props> = ({ leaderboard, current }) => {
   return (
     <AIBLeaderboardProvider leaderboard={leaderboard}>
-      <AIBBulletin />
-      <AIBContainer>
-        <AIBHero />
-        <AIBTabs current={current} />
-      </AIBContainer>
+      <div className="flex flex-1 flex-col dark:bg-blue-200-dark">
+        <AIBBulletin />
+        <AIBContainer>
+          <AIBHero />
+          <AIBTabs current={current} />
+        </AIBContainer>
+      </div>
     </AIBLeaderboardProvider>
   );
 };

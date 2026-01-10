@@ -8,11 +8,11 @@ import {
 import { VoteDirection } from "@/types/votes";
 
 import {
+  Category,
   Community,
+  LeaderboardTag,
   NewsCategory,
   Tournament,
-  LeaderboardTag,
-  Category,
 } from "./projects";
 
 export type Resolution =
@@ -78,8 +78,8 @@ export enum PostStatus {
 export type PostConditional<QT> = {
   id: number;
   title: string;
-  condition: QuestionWithForecasts;
-  condition_child: QuestionWithForecasts;
+  condition: QuestionWithForecasts & { short_title: string };
+  condition_child: QuestionWithForecasts & { short_title: string };
   question_yes: QT;
   question_no: QT;
 };
@@ -113,6 +113,11 @@ export type Notebook = {
   markdown: string;
   image_url: string;
   markdown_summary: string;
+};
+
+export type PostPrivateNote = {
+  text: string;
+  updated_at: string;
 };
 
 type BasePost = {
@@ -155,6 +160,7 @@ type BasePost = {
   unread_comment_count?: number;
   last_viewed_at?: string;
   is_current_content_translated?: boolean;
+  private_note?: PostPrivateNote | null;
   key_factors?: KeyFactor[];
   html_metadata_json?: {
     title: string;

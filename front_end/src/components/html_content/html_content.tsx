@@ -12,11 +12,12 @@ const TOGGLE_CHILDREN_LOOKUP_LIMIT = 10;
 type Props = {
   content: string;
   className?: string;
+  allowStyleTag?: boolean;
 };
 
-const HtmlContent: FC<Props> = ({ content, className }) => {
+const HtmlContent: FC<Props> = ({ content, className, allowStyleTag }) => {
   const toggleKey = useRef<string | null>(null);
-  const clearContent = sanitizeHtmlContent(content);
+  const clearContent = sanitizeHtmlContent(content, { allowStyleTag });
 
   const transform = (node: DOMNode, index: number) => {
     const el = node as Element;
