@@ -430,8 +430,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         # and comment_data
 
         questions = Question.objects.filter(
-            Q(related_posts__post__default_project__in=queryset)
-            | Q(related_posts__post__projects__in=queryset)
+            Q(post__default_project__in=queryset) | Q(post__projects__in=queryset)
         ).distinct()
 
         data = export_all_data_for_questions(
@@ -484,8 +483,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     ):
         question_ids = list(
             Question.objects.filter(
-                Q(related_posts__post__default_project__in=queryset)
-                | Q(related_posts__post__projects__in=queryset)
+                Q(post__default_project__in=queryset) | Q(post__projects__in=queryset)
             )
             .distinct()
             .values_list("id", flat=True)
@@ -837,8 +835,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         if obj.type == Project.ProjectTypes.SITE_MAIN:
             return None
         questions = Question.objects.filter(
-            Q(related_posts__post__projects=obj)
-            | Q(related_posts__post__default_project=obj),
+            Q(post__projects=obj) | Q(post__default_project=obj),
         ).distinct()
         latest_resolving_time = None
         for question in questions:

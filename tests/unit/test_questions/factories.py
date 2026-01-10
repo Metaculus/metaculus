@@ -1,5 +1,6 @@
 from django_dynamic_fixture import G
 
+from posts.models import Post
 from questions.models import Question, Conditional, Forecast, GroupOfQuestions
 from users.models import User
 from utils.dtypes import setdefaults_not_null
@@ -11,6 +12,13 @@ def create_question(
     """
     Question factory
     """
+    # If a group is specified and it has a post, set post (FK object) automatically
+    group = kwargs.get("group")
+    if group and group.pk:
+        # Query for the post that has this group
+        post = Post.objects.filter(group_of_questions_id=group.pk).first()
+        if post:
+            kwargs.setdefault("post", post)
 
     return G(Question, **setdefaults_not_null(kwargs, type=question_type))
 

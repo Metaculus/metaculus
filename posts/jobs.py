@@ -36,7 +36,7 @@ def job_subscription_notify_date():
 @dramatiq.actor
 def job_compute_movement():
     chunk_size = 100
-    qs = Post.objects.filter_active().filter_questions().prefetch_questions()
+    qs = Post.objects.filter_active().filter_questions().prefetch_related("questions")
     logger.info(f"Start computing movement for {qs.count()} posts")
 
     with (
@@ -48,7 +48,7 @@ def job_compute_movement():
         ) as questions_updater,
     ):
         for post in qs.iterator(chunk_size):
-            questions = post.get_questions()
+            questions = list(post.questions.all())
 
             for question in questions:
                 question.movement = compute_question_movement(question)
@@ -73,7 +73,7 @@ def job_check_post_open_event():
     """
 
     questions_qs = Question.objects.filter(
-        related_posts__post__in=Post.objects.filter_published(),
+        post__in=Post.objects.filter_published(),
         open_time__lte=timezone.now(),
         open_time_triggered=False,
     ).filter(

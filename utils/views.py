@@ -203,8 +203,7 @@ def validate_data_request(request: Request, **kwargs):
     elif project:
         questions = list(
             Question.objects.filter(
-                Q(related_posts__post__default_project=project)
-                | Q(related_posts__post__projects=project)
+                Q(post__default_project=project) | Q(post__projects=project)
             ).distinct()
         )
     if not questions:

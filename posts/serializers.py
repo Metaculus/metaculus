@@ -484,8 +484,13 @@ def serialize_post_many(
     qs = (
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions()
-        .prefetch_condition_post()
-        .select_related("default_project__primary_leaderboard", "author", "notebook")
+        .select_related(
+            "conditional__condition__post",
+            "conditional__condition_child__post",
+            "default_project__primary_leaderboard",
+            "author",
+            "notebook",
+        )
         .prefetch_related("coauthors")
     )
 

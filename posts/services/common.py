@@ -293,6 +293,7 @@ def update_post(
 
         update_notebook(post.notebook, **notebook)
 
+    post.sync_question_post_fk()
     post.update_pseudo_materialized_fields()
 
     # Compare the text content before and after the post update for embedding generation

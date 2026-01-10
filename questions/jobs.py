@@ -20,7 +20,7 @@ def job_close_question():
         actual_close_time__isnull=True,
         scheduled_close_time__lte=timezone.now(),
         # Don't close draft posts
-        related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+        post__curation_status=Post.CurationStatus.APPROVED,
     ).all()
     for question in questions_to_close:
         try:

@@ -144,7 +144,7 @@ class Command(BaseCommand):
                 unit="",
                 conditional_yes__isnull=True,
                 conditional_no__isnull=True,
-                related_posts__post__curation_status__in=[
+                post__curation_status__in=[
                     Post.CurationStatus.APPROVED,
                     Post.CurationStatus.PENDING,
                 ],

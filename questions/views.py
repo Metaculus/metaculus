@@ -99,7 +99,7 @@ def bulk_create_forecasts_api_view(request):
     # Prefetching questions for bulk optimization
     questions = Question.objects.filter(
         pk__in=[f["question"] for f in validated_data]
-    ).prefetch_related_post()
+    ).select_related("post")
     questions_map: dict[int, Question] = {q.pk: q for q in questions}
 
     # Replacing prefetched optimized questions
@@ -150,7 +150,7 @@ def bulk_withdraw_forecasts_api_view(request):
     # Prefetching questions for bulk optimization
     questions = (
         Question.objects.filter(pk__in=[f["question"] for f in validated_data])
-        .prefetch_related_post()
+        .select_related("post")
         .prefetch_related("user_forecasts")
     )
     questions_map: dict[int, Question] = {q.pk: q for q in questions}
