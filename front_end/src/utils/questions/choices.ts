@@ -14,6 +14,7 @@ import {
   formatResolution,
 } from "@/utils/formatters/resolution";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
+import { getAllOptionsHistory } from "@/utils/questions/helpers";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 export function generateChoiceItemsFromMultipleChoiceForecast(
@@ -32,7 +33,8 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const latest =
     question.aggregations[question.default_aggregation_method].latest;
 
-  const choiceOrdering: number[] = question.options?.map((_, i) => i) ?? [];
+  const allOptions = getAllOptionsHistory(question);
+  const choiceOrdering: number[] = allOptions?.map((_, i) => i) ?? [];
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
       const aCenter = latest?.forecast_values[a] ?? 0;
@@ -41,7 +43,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     });
   }
 
-  const labels = question.options ? question.options : [];
+  const labels = allOptions ? allOptions : [];
   const aggregationHistory =
     question.aggregations[question.default_aggregation_method].history;
   const userHistory = question.my_forecasts?.history;
@@ -139,7 +141,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
   // move resolved choice to the front
   const resolutionIndex = choiceOrdering.findIndex(
-    (order) => question.options?.[order] === question.resolution
+    (order) => allOptions?.[order] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = orderedChoiceItems.splice(resolutionIndex, 1);

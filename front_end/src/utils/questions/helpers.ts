@@ -199,3 +199,19 @@ export function inferEffectiveQuestionTypeFromPost(
 
   return null;
 }
+
+export function getAllOptionsHistory(question: Question): string[] {
+  const allOptions: string[] = [];
+  (question.options_history ?? []).map((entry) => {
+    entry[1].slice(0, -1).map((option) => {
+      if (!allOptions.includes(option)) {
+        allOptions.push(option);
+      }
+    });
+  });
+  const other = (question.options ?? []).at(-1);
+  if (other) {
+    allOptions.push(other);
+  }
+  return allOptions;
+}
