@@ -1,0 +1,68 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section background-color="#ffffff" padding-bottom="16px">
+            <mj-column>
+                <mj-text font-size="16px" color="#161C22" padding-bottom="8px">
+                    Hello {{recipient.username}},
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-section background-color="#ffffff" padding="0px">
+            <mj-column>
+                <mj-text padding="0px">
+                    <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #2F4155;">
+                        {% blocktrans %}
+                        Options were removed from this multiple choice question.
+                        {% endblocktrans %}
+                    </div>
+                    <div style="margin: 0px 24px 12px 24px;">
+                        <a href="{% post_url params.post.post_id params.post.post_title %}"
+                           style="display: block; text-decoration: none; color: inherit;">
+                            <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 12px;">
+                                <div style="font-size: 16px; font-weight: 600; color: #161C22; line-height: 1.4;">
+                                    {{ params.post.post_title }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    {% if params.removed_options %}
+                    <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #161C22;">
+                        {% blocktrans with count=params.removed_options|length %}
+                        Removed option{{ count|pluralize }}:
+                        {% endblocktrans %}
+                    </div>
+                    <ul style="margin: 0px 24px 16px 40px; padding: 0px; color: #2F4155; font-size: 14px;">
+                        {% for option in params.removed_options %}
+                        <li style="margin-bottom: 6px;">{{ option }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #2F4155;">
+                        {% blocktrans with timestep=params.timestep %}
+                        This change took effect at <b>{{ timestep }}</b>. Any probability on removed options
+                        was moved to the catch-all option.
+                        {% endblocktrans %}
+                    </div>
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-section background-color="#ffffff" padding="0px 0px 16px 0px">
+            <mj-column>
+                <mj-button mj-class="cta-button" href="{% post_url params.post.post_id params.post.post_title %}">
+                    Review the question
+                </mj-button>
+            </mj-column>
+        </mj-section>
+
+        <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
+    </mj-body>
+</mjml>
