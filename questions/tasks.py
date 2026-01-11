@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 import dramatiq
 from django.conf import settings
@@ -270,19 +270,40 @@ def multiple_choice_delete_option_notificiations(
     question = Question.objects.get(id=question_id)
     post = question.get_post()
     options_history = question.options_history
-    removed_options = list(set(options_history[-2][1]) - set(options_history[-1][1]))
+    previous_options = options_history[-2][1]
+    current_options = options_history[-1][1]
+    removed_options = [opt for opt in previous_options if opt not in current_options]
+    catch_all_option = question.options[-1] if question.options else ""
 
     # send out a comment
     comment_author = User.objects.get(id=comment_author_id)
     default_text = (
-        "Options {removed_options} were removed at {timestep}. "
-        "Forecasts were adjusted to keep remaining probability on the catch-all."
+        "Options {removed_options} were removed on {timestep}. "
+        'Their probability was folded into the "{catch_all_option}" option.'
     )
     template = comment_text or default_text
+    removed_options_text = ", ".join(f'"{option}"' for option in removed_options)
+    formatted_timestep = timestep
+    if timezone.is_naive(formatted_timestep):
+        formatted_timestep = timezone.make_aware(formatted_timestep, dt_timezone.utc)
+    formatted_timestep = timezone.localtime(
+        formatted_timestep, timezone=dt_timezone.utc
+    ).strftime("%d %B %Y %H:%M UTC")
+    formatted_timestep = formatted_timestep.lstrip("0")
+    if len(removed_options) == 1:
+        template = template.replace("Options ", "Option ", 1)
+        template = template.replace("Their", "Its", 1)
     try:
-        text = template.format(removed_options=removed_options, timestep=timestep)
+        text = template.format(
+            removed_options=removed_options_text,
+            timestep=formatted_timestep,
+            catch_all_option=catch_all_option,
+        )
     except Exception:
-        text = f"{template} (removed options: {removed_options}, at {timestep})"
+        text = (
+            f"{template} (removed options: {removed_options_text}, "
+            f"at {formatted_timestep}, catch-all: {catch_all_option})"
+        )
 
     create_comment(comment_author, post, text=text)
 
@@ -334,26 +355,47 @@ def multiple_choice_add_option_notificiations(
     question = Question.objects.get(id=question_id)
     post = question.get_post()
     options_history = question.options_history
-    added_options = list(set(options_history[-1][1]) - set(options_history[-2][1]))
+    previous_options = options_history[-2][1]
+    current_options = options_history[-1][1]
+    added_options = [opt for opt in current_options if opt not in previous_options]
 
     # send out a comment
     comment_author = User.objects.get(id=comment_author_id)
     default_text = (
-        "Options {added_options} were added at {timestep}. "
+        "Options {added_options} were added on {timestep}. "
         "Please update forecasts before {grace_period_end}, when existing "
         "forecasts will auto-withdraw."
     )
     template = comment_text or default_text
+    added_options_text = ", ".join(f'"{option}"' for option in added_options)
+    formatted_timestep = timestep
+    if timezone.is_naive(formatted_timestep):
+        formatted_timestep = timezone.make_aware(formatted_timestep, dt_timezone.utc)
+    formatted_timestep = timezone.localtime(
+        formatted_timestep, timezone=dt_timezone.utc
+    ).strftime("%d %B %Y %H:%M UTC")
+    formatted_timestep = formatted_timestep.lstrip("0")
+    formatted_grace_period_end = grace_period_end
+    if timezone.is_naive(formatted_grace_period_end):
+        formatted_grace_period_end = timezone.make_aware(
+            formatted_grace_period_end, dt_timezone.utc
+        )
+    formatted_grace_period_end = timezone.localtime(
+        formatted_grace_period_end, timezone=dt_timezone.utc
+    ).strftime("%d %B %Y %H:%M UTC")
+    formatted_grace_period_end = formatted_grace_period_end.lstrip("0")
+    if len(added_options) == 1:
+        template = template.replace("Options ", "Option ", 1)
     try:
         text = template.format(
-            added_options=added_options,
-            timestep=timestep,
-            grace_period_end=grace_period_end,
+            added_options=added_options_text,
+            timestep=formatted_timestep,
+            grace_period_end=formatted_grace_period_end,
         )
     except Exception:
         text = (
-            f"{template} (added options: {added_options}, at {timestep}, "
-            f"grace ends: {grace_period_end})"
+            f"{template} (added options: {added_options_text}, at {formatted_timestep}, "
+            f"grace ends: {formatted_grace_period_end})"
         )
 
     create_comment(comment_author, post, text=text)

@@ -708,7 +708,7 @@ function buildChartData({
                 const lastLineItem = line.at(-1);
                 if (!isNil(lastLineItem)) {
                   line.push({
-                    x: timestamp,
+                    x: timestamp - 1e-5, // backdate by 1/100000s
                     y: lastLineItem.y,
                   });
                 }

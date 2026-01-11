@@ -91,7 +91,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
     grace_period_end = forms.DateTimeField(
         required=False,
         help_text=(
-            "Default value is 2 weeks from now. "
+            "Default value is 3 days from now. "
             "Required when adding options; must be in the future. "
             "Format: YYYY-MM-DD or YYYY-MM-DD HH:MM (time optional)."
         ),
@@ -102,16 +102,16 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         label="Delete options comment",
         widget=forms.Textarea(attrs={"rows": 3}),
         help_text="Placeholders will auto-fill; edit as needed."
-        " {removed_options} becomes ['a', 'b'], {timestep} is the time of "
-        "deletion in isoformat.",
+        " {removed_options} becomes a quoted list, {timestep} is formatted UTC, "
+        "and {catch_all_option} is the catch-all option.",
     )
     add_comment = forms.CharField(
         required=False,
         label="Add options comment",
         widget=forms.Textarea(attrs={"rows": 4}),
         help_text="Placeholders will auto-fill; edit as needed."
-        " {removed_options} becomes ['a', 'b'], {timestep} is the time of "
-        "deletion in isoformat.",
+        " {added_options} becomes a quoted list, {timestep} is formatted UTC, "
+        "and {grace_period_end} is the grace deadline.",
     )
 
     def __init__(self, question: Question, *args, **kwargs):
@@ -119,15 +119,18 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         options_history = question.options_history or []
-        self.options_grace_period_end = get_latest_options_history_datetime(
-            options_history
+        latest_options_history = get_latest_options_history_datetime(options_history)
+        self.options_grace_period_end = (
+            latest_options_history
+            if latest_options_history and latest_options_history > timezone.now()
+            else None
         )
         default_delete_comment = (
-            "Options {removed_options} were removed at {timestep}. "
-            "Forecasts were adjusted to keep remaining probability on the catch-all."
+            "Options {removed_options} were removed on {timestep}. "
+            'Their probability was folded into the "{catch_all_option}" option.'
         )
         default_add_comment = (
-            "Options {added_options} were added at {timestep}. "
+            "Options {added_options} were added on {timestep}. "
             "Please update forecasts before {grace_period_end}; "
             "forecasts that are not updated will auto-withdraw then."
         )
@@ -184,21 +187,19 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
             "2 options: the last option you can't delete, and one other."
         )
         grace_field = self.fields["grace_period_end"]
-        grace_field.widget = forms.DateTimeInput(attrs={"type": "datetime-local"})
+        grace_field.widget = forms.DateTimeInput(
+            attrs={"type": "datetime-local"},
+            format="%Y-%m-%dT%H:%M",
+        )
         grace_initial = self.options_grace_period_end or (
-            timezone.now() + timedelta(days=14)
+            timezone.now() + timedelta(days=3)
         )
         if grace_initial and timezone.is_naive(grace_initial):
             grace_initial = timezone.make_aware(grace_initial)
-        grace_field.initial = timezone.localtime(grace_initial).strftime(
-            "%Y-%m-%dT%H:%M"
-        )
+        grace_field.initial = timezone.localtime(grace_initial)
         if self.options_grace_period_end:
-            grace_field.help_text = (
-                f"Current grace period end: "
-                f"{timezone.localtime(self.options_grace_period_end)}. "
-                "Provide a new end to extend or shorten."
-            )
+            grace_field.help_text = "Time selection is in UTC."
+        self.fields["grace_period_end"].initial = grace_field.initial
         self.fields["delete_comment"].initial = default_delete_comment
         self.fields["add_comment"].initial = default_add_comment
 

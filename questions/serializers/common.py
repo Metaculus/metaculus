@@ -869,9 +869,9 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
     if question.type == Question.QuestionType.BINARY:
         return serializers.ChoiceField(choices=["yes", "no"]).run_validation(resolution)
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return serializers.ChoiceField(choices=question.options).run_validation(
-            resolution
-        )
+        return serializers.ChoiceField(
+            choices=get_all_options_from_history(question.options_history)
+        ).run_validation(resolution)
 
     # Continuous question
     if resolution == "above_upper_bound":

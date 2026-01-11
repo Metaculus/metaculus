@@ -21,6 +21,7 @@ import {
 } from "@/constants/questions";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
+import { getAllOptionsHistory } from "@/utils/questions/helpers";
 
 type Props = {
   question: Question;
@@ -74,7 +75,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     }
 
     return [
-      ...(question.options?.map((option) => ({
+      ...(getAllOptionsHistory(question).map((option) => ({
         value: option,
         label: option,
       })) || []),
