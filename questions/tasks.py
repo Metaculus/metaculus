@@ -265,6 +265,7 @@ def multiple_choice_delete_option_notificiations(
     question_id: int,
     timestep: datetime,
     comment_author_id: int,
+    comment_text: str | None = None,
 ):
     question = Question.objects.get(id=question_id)
     post = question.get_post()
@@ -273,14 +274,17 @@ def multiple_choice_delete_option_notificiations(
 
     # send out a comment
     comment_author = User.objects.get(id=comment_author_id)
-    create_comment(
-        comment_author,
-        on_post=post,
-        text=(
-            f"PLACEHOLDER: (at)forecasters Option(s) {removed_options} "
-            f"were removed at {timestep}."
-        ),
+    default_text = (
+        "Options {removed_options} were removed at {timestep}. "
+        "Forecasts were adjusted to keep remaining probability on the catch-all."
     )
+    template = comment_text or default_text
+    try:
+        text = template.format(removed_options=removed_options, timestep=timestep)
+    except Exception:
+        text = f"{template} (removed options: {removed_options}, at {timestep})"
+
+    create_comment(comment_author, post, text=text)
 
     forecasters = (
         User.objects.filter(
@@ -325,6 +329,7 @@ def multiple_choice_add_option_notificiations(
     grace_period_end: datetime,
     timestep: datetime,
     comment_author_id: int,
+    comment_text: str | None = None,
 ):
     question = Question.objects.get(id=question_id)
     post = question.get_post()
@@ -333,19 +338,25 @@ def multiple_choice_add_option_notificiations(
 
     # send out a comment
     comment_author = User.objects.get(id=comment_author_id)
-    create_comment(
-        comment_author,
-        on_post=post,
-        text=(
-            f"PLACEHOLDER: (at)forecasters Option(s) {added_options} "
-            f"were added at {timestep}. "
-            f"You have until {grace_period_end} to update your forecast to reflect "
-            "the new options. "
-            "If you do not, your forecast will be automatically withdrawn "
-            f"at {grace_period_end}. "
-            "Please see our faq (link) for details on how this works."
-        ),
+    default_text = (
+        "Options {added_options} were added at {timestep}. "
+        "Please update forecasts before {grace_period_end}, when existing "
+        "forecasts will auto-withdraw."
     )
+    template = comment_text or default_text
+    try:
+        text = template.format(
+            added_options=added_options,
+            timestep=timestep,
+            grace_period_end=grace_period_end,
+        )
+    except Exception:
+        text = (
+            f"{template} (added options: {added_options}, at {timestep}, "
+            f"grace ends: {grace_period_end})"
+        )
+
+    create_comment(comment_author, post, text=text)
 
     forecasters = (
         User.objects.filter(
