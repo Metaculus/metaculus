@@ -1820,5 +1820,12 @@
   "tournamentsInfoTitle": "我們 <predmarket>不是預測市場</predmarket>。您可以免費參加並因精確的預測贏取現金獎勵。",
   "tournamentsInfoScoringLink": "什麼是預測得分？",
   "tournamentsInfoPrizesLink": "獎品如何分配？",
+  "dismiss": "關閉",
+  "gracePeriodTooltip": "如果您在寬限期間結束之前未更新您的預測，您的現有預測將自動撤回。",
+  "newOptionsAddedPlural": "這些選項最近新增，請相應調整您的預測。",
+  "newOptionsAddedSingular": "一個新選項最近新增，請相應調整您的預測。",
+  "showNewOptions": "顯示新選項",
+  "showNewOption": "顯示新選項",
+  "timeRemaining": "剩餘時間",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回"
 }

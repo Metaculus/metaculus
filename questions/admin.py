@@ -129,7 +129,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         default_add_comment = (
             "Options {added_options} were added at {timestep}. "
             "Please update forecasts before {grace_period_end}; "
-            "existing forecasts will auto-withdraw then."
+            "forecasts that are not updated will auto-withdraw then."
         )
 
         active_grace = has_active_grace_period(options_history)

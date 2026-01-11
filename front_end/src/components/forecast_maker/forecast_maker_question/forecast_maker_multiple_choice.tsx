@@ -3,7 +3,15 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   createForecasts,
@@ -12,9 +20,11 @@ import {
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import Tooltip from "@/components/ui/tooltip";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
+import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
@@ -37,7 +47,9 @@ import {
   BINARY_MAX_VALUE,
   BINARY_MIN_VALUE,
 } from "../binary_slider";
-import ForecastChoiceOption from "../forecast_choice_option";
+import ForecastChoiceOption, {
+  ANIMATION_DURATION_MS,
+} from "../forecast_choice_option";
 import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
@@ -53,6 +65,140 @@ type ChoiceOption = {
   communityForecast: number | null;
   forecast: number | null;
   color: ThemeColor;
+};
+
+type NewOptionCalloutProps = {
+  newOptions: Array<{ name: string; color: ThemeColor }>;
+  mounted: boolean;
+  getThemeColor: (color: ThemeColor) => string;
+  gracePeriodEnd: Date | null;
+  onShowNewOptions: () => void;
+  onDismiss: () => void;
+};
+
+/**
+ * Hook to display remaining time until grace period ends
+ * Updates every second for a live countdown
+ */
+const useGracePeriodCountdown = (gracePeriodEnd: Date | null) => {
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+
+  useEffect(() => {
+    if (!gracePeriodEnd) {
+      setTimeRemaining("");
+      return;
+    }
+
+    const updateTime = () => {
+      const now = new Date();
+      const diff = gracePeriodEnd.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeRemaining("expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const pluralize = (count: number, singular: string) =>
+        count === 1 ? singular : `${singular}s`;
+
+      if (days > 0) {
+        setTimeRemaining(
+          `${days} ${pluralize(days, "day")}, ${hours} ${pluralize(hours, "hour")}`
+        );
+      } else if (hours > 0) {
+        setTimeRemaining(
+          `${hours} ${pluralize(hours, "hour")}, ${minutes} ${pluralize(minutes, "minute")}`
+        );
+      } else if (minutes > 0) {
+        setTimeRemaining(
+          `${minutes} ${pluralize(minutes, "minute")}, ${seconds} ${pluralize(seconds, "second")}`
+        );
+      } else {
+        setTimeRemaining(`${seconds} ${pluralize(seconds, "second")}`);
+      }
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [gracePeriodEnd]);
+
+  return timeRemaining;
+};
+
+const NewOptionCallout: FC<NewOptionCalloutProps> = ({
+  newOptions,
+  mounted,
+  getThemeColor,
+  gracePeriodEnd,
+  onShowNewOptions,
+  onDismiss,
+}) => {
+  const t = useTranslations();
+  const isPlural = newOptions.length > 1;
+  const timeRemaining = useGracePeriodCountdown(gracePeriodEnd);
+
+  return (
+    <div className="mb-3 w-full rounded-lg bg-blue-900 p-4 shadow-lg dark:bg-blue-900-dark">
+      <div className="mb-0 flex flex-col-reverse items-start justify-between gap-2 sm:flex-row sm:gap-2">
+        <p className="mt-0 flex-1 text-sm text-gray-0 dark:text-gray-0-dark">
+          {isPlural ? t("newOptionsAddedPlural") : t("newOptionsAddedSingular")}
+        </p>
+        {timeRemaining && timeRemaining !== "expired" && (
+          <Tooltip
+            tooltipContent={t("gracePeriodTooltip")}
+            placement="bottom"
+            showDelayMs={200}
+          >
+            <div className="flex cursor-help items-center gap-1.5 rounded border border-blue-700 bg-blue-800 px-2.5 py-1 hover:border-blue-600 hover:bg-blue-700 dark:bg-blue-800-dark dark:hover:bg-blue-700-dark">
+              <span className="text-xs font-medium text-blue-400 dark:text-blue-900">
+                {t("timeRemaining")}:
+              </span>
+              <span className="text-sm font-bold text-blue-200 dark:text-blue-900">
+                {timeRemaining}
+              </span>
+            </div>
+          </Tooltip>
+        )}
+      </div>
+      {isPlural && newOptions.length > 0 && mounted && (
+        <div className="mb-3 flex flex-wrap gap-4">
+          {newOptions.map((option) => (
+            <div key={option.name} className="flex items-center gap-1.5">
+              <div
+                className="h-3 w-3 shrink-0 rounded-sm"
+                style={{ backgroundColor: getThemeColor(option.color) }}
+              />
+              <span className="text-xs text-gray-0 dark:text-gray-0-dark">
+                {option.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Button variant="secondary" size="sm" onClick={onShowNewOptions}>
+          {isPlural ? t("showNewOptions") : t("showNewOption")}
+        </Button>
+        <Button
+          variant="text"
+          size="sm"
+          className="text-gray-0 hover:text-gray-100 dark:text-gray-0-dark dark:hover:text-gray-100-dark"
+          onClick={onDismiss}
+        >
+          {t("dismiss")}
+        </Button>
+      </div>
+    </div>
+  );
 };
 
 type Props = {
@@ -73,6 +219,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+  const { getThemeColor } = useAppTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const allOptions = getAllOptionsHistory(question);
 
@@ -115,7 +267,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   }, [question, user?.prediction_expiration_percent]);
 
   // Set default expiration if not already set
-  React.useEffect(() => {
+  useEffect(() => {
     if (!modalSavedState.forecastExpiration) {
       setModalSavedState((prev) => ({
         ...prev,
@@ -130,6 +282,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const [isDirty, setIsDirty] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [dismissedOverlay, setDismissedOverlay] = useState(false);
+  const [interactedOptions, setInteractedOptions] = useState<Set<string>>(
+    new Set()
+  );
+  const [isAnimatingHighlight, setIsAnimatingHighlight] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
@@ -167,6 +324,70 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     activeUserForecast.forecast_values.filter((value) => value !== null)
       .length < question.options.length;
 
+  const getNewOptions = useCallback(() => {
+    if (!activeUserForecast) return [];
+
+    return choicesForecasts
+      .filter((choice, index) => {
+        const isCurrentOption = question.options.includes(choice.name);
+        const hasForecast = activeUserForecast.forecast_values[index] !== null;
+        return isCurrentOption && !hasForecast;
+      })
+      .map((c) => ({ name: c.name, color: c.color }));
+  }, [activeUserForecast, choicesForecasts, question.options]);
+
+  const newOptions = getNewOptions();
+  const showOverlay =
+    showUserMustForecast && !dismissedOverlay && newOptions.length > 0;
+
+  // Calculate grace period end time
+  const gracePeriodEnd = useMemo(() => {
+    try {
+      if (!question.options_history || question.options_history.length === 0) {
+        return null;
+      }
+      const history = question.options_history;
+      const lastEntry = history[history.length - 1];
+
+      if (!lastEntry || typeof lastEntry[0] === "undefined") {
+        return null;
+      }
+
+      // Following coworker's implementation: new Date(history[history.length - 1][0])
+      const gracePeriodEnd = new Date(lastEntry[0]);
+
+      // Validate the date is valid
+      if (isNaN(gracePeriodEnd.getTime())) {
+        console.warn("Invalid grace period date:", lastEntry[0]);
+        return null;
+      }
+
+      return gracePeriodEnd;
+    } catch (error) {
+      console.error("Error calculating grace period:", error);
+      return null;
+    }
+  }, [question.options_history]);
+
+  const firstNewOptionRef = useRef<HTMLTableRowElement | null>(null);
+
+  const scrollToNewOptions = () => {
+    if (firstNewOptionRef.current) {
+      // Trigger animation immediately
+      setIsAnimatingHighlight(true);
+
+      firstNewOptionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      // Reset animation after duration
+      setTimeout(() => {
+        setIsAnimatingHighlight(false);
+      }, ANIMATION_DURATION_MS);
+    }
+  };
+
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
@@ -199,7 +420,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
           const isInitialChange = prev.some((el) => el.forecast === null);
 
-          if (isInitialChange) {
+          if (isInitialChange && prevChoice.forecast === null) {
             // User is predicting for the first time. Show default non-null values
             // for remaining options after first interaction with the inputs.
             return { ...prevChoice, forecast: equalizedForecast };
@@ -350,6 +571,16 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         isSubmissionDisabled={!isForecastValid}
         onSubmit={submit}
       />
+      {showOverlay && (
+        <NewOptionCallout
+          newOptions={newOptions}
+          mounted={mounted}
+          getThemeColor={getThemeColor}
+          gracePeriodEnd={gracePeriodEnd}
+          onShowNewOptions={scrollToNewOptions}
+          onDismiss={() => setDismissedOverlay(true)}
+        />
+      )}
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
@@ -377,6 +608,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <tbody>
           {choicesForecasts.map((choice) => {
             if (question.options.includes(choice.name)) {
+              const isFirstNewOption =
+                newOptions.length > 0 && choice.name === newOptions[0]?.name;
+              const isNewOption = newOptions.some(
+                (opt) => opt.name === choice.name
+              );
               return (
                 <ForecastChoiceOption
                   key={choice.name}
@@ -397,6 +633,19 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                     type: "question",
                     resolution: question.resolution,
                   }}
+                  isNewOption={isNewOption}
+                  showHighlight={
+                    isNewOption && !interactedOptions.has(choice.name)
+                  }
+                  isAnimating={isAnimatingHighlight}
+                  onInteraction={() => {
+                    isNewOption
+                      ? setInteractedOptions((prev) =>
+                          new Set(prev).add(choice.name)
+                        )
+                      : undefined;
+                  }}
+                  rowRef={isFirstNewOption ? firstNewOptionRef : undefined}
                 />
               );
             }
@@ -413,11 +662,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <div className="flex flex-col pb-5">
           <div className="mt-5 flex flex-wrap items-center justify-center gap-4 ">
             <div className="mx-auto text-center sm:ml-0 sm:text-left">
-              {showUserMustForecast && (
-                <div className="mb-1 text-sm font-semibold text-red-600">
-                  PLACEHOLDER: User must forecast (a new option).
-                </div>
-              )}
               <div>
                 <span className="text-2xl font-bold">
                   Total: {getForecastPctString(forecastsSum)}
