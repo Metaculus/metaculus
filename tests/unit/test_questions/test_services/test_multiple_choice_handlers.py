@@ -9,6 +9,7 @@ from questions.services.multiple_choice_handlers import (
     multiple_choice_rename_option,
     multiple_choice_reorder_options,
 )
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.utils import datetime_aware as dt
 from users.models import User
 
@@ -239,6 +240,7 @@ def test_multiple_choice_delete_options(
     question.options = initial_options
     question.options_history = [(datetime.min.isoformat(), initial_options)]
     question.save()
+    factory_post(question=question)
 
     timestep = dt(2025, 1, 1)
     for forecast in forecasts:
@@ -408,6 +410,7 @@ def test_multiple_choice_add_options(
     question.options = initial_options
     question.options_history = [(datetime.min.isoformat(), initial_options)]
     question.save()
+    factory_post(question=question)
 
     for forecast in forecasts:
         forecast.author = user1
