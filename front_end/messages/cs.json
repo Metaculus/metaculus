@@ -1823,5 +1823,12 @@
   "tournamentsInfoTitle": "Jsme <predmarket>nepredikční trh</predmarket>. Můžete se účastnit zdarma a vyhrát peněžní ceny za přesnost.",
   "tournamentsInfoScoringLink": "Co jsou předpovídací skóre?",
   "tournamentsInfoPrizesLink": "Jak jsou rozdělovány ceny?",
+  "dismiss": "Zavřít",
+  "gracePeriodTooltip": "Pokud neaktualizujete své předpovědi před koncem této lhůty, vaše stávající předpovědi budou automaticky staženy.",
+  "newOptionsAddedPlural": "Tyto možnosti byly nedávno přidány, prosím upravte své předpovědi odpovídajícím způsobem.",
+  "newOptionsAddedSingular": "Nedávno byla přidána nová možnost, prosím upravte své předpovědi odpovídajícím způsobem.",
+  "showNewOptions": "Zobrazit nové možnosti",
+  "showNewOption": "Zobrazit novou možnost",
+  "timeRemaining": "Zbývající čas",
   "othersCount": "Ostatní ({count})"
 }
