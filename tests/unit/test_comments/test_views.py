@@ -690,7 +690,7 @@ class TestCommentEdit:
         # 0. Forecast created and closed before comment creation
         t_forecast_expired_start = now - timedelta(hours=4)
         t_forecast_expired_end = now - timedelta(hours=3)
-        forecast_expired = Forecast.objects.create(
+        Forecast.objects.create(
             question=question,
             author=user1,
             probability_yes=0.2,
@@ -782,7 +782,7 @@ class TestCommentEdit:
 
         # 8. Test attaching when multiple forecasts exist before creation
         t_forecast_0 = now - timedelta(hours=3)
-        forecast_0 = Forecast.objects.create(
+        Forecast.objects.create(
             question=question,
             author=user1,
             probability_yes=0.1,
