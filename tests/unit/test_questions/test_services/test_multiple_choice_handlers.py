@@ -88,7 +88,7 @@ def test_multiple_choice_reorder_options(
         (["a", "b", "other"], ["b"], [], [], True),  # simplest path
         (["a", "b", "other"], ["c"], [], [], False),  # try to remove absent item
         (["a", "b", "other"], ["a", "b"], [], [], True),  # remove two items
-        pytest.param(
+        (
             ["a", "b", "other"],
             ["b"],
             [
@@ -112,11 +112,8 @@ def test_multiple_choice_reorder_options(
                 ),
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # happy path
-        pytest.param(
+        (
             ["a", "b", "c", "other"],
             ["b", "c"],
             [
@@ -140,9 +137,6 @@ def test_multiple_choice_reorder_options(
                 ),
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # happy path removing 2
         (
             ["a", "b", "other"],
@@ -195,7 +189,7 @@ def test_multiple_choice_reorder_options(
             [],
             False,
         ),  # initial forecast is invalid
-        pytest.param(
+        (
             ["a", "b", "other"],
             ["b"],
             [
@@ -229,9 +223,6 @@ def test_multiple_choice_reorder_options(
                 ),
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # preserve previous forecasts
     ],
 )
@@ -291,7 +282,7 @@ def test_multiple_choice_delete_options(
         (["a", "b", "other"], ["c", "d"], dt(2025, 1, 1), [], [], True),  # double add
         # grace period before last options history
         (["a", "b", "other"], ["c"], dt(1900, 1, 1), [], [], False),
-        pytest.param(
+        (
             ["a", "b", "other"],
             ["c"],
             dt(2025, 1, 1),
@@ -310,11 +301,8 @@ def test_multiple_choice_delete_options(
                 )
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # happy path
-        pytest.param(
+        (
             ["a", "b", "other"],
             ["c", "d"],
             dt(2025, 1, 1),
@@ -333,11 +321,8 @@ def test_multiple_choice_delete_options(
                 )
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # happy path adding two options
-        pytest.param(
+        (
             ["a", "b", "other"],
             ["c"],
             dt(2025, 1, 1),
@@ -356,9 +341,6 @@ def test_multiple_choice_delete_options(
                 )
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # forecast starts at /after grace_period_end
         (
             ["a", "b", "other"],
@@ -380,7 +362,7 @@ def test_multiple_choice_delete_options(
             ],
             True,
         ),  # no effect
-        pytest.param(
+        (
             ["a", "b", "other"],
             ["c"],
             dt(2025, 1, 1),
@@ -409,9 +391,6 @@ def test_multiple_choice_delete_options(
                 ),
             ],
             True,
-            marks=pytest.mark.xfail(
-                reason="Support for aggregations isn't yet implemented"
-            ),
         ),  # edit all forecasts including old
     ],
 )
