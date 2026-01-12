@@ -459,14 +459,18 @@ const NumericChart: FC<Props> = ({
 
   const showRightYAxis = isEmbedded;
 
+  const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
+  const axisLabelLane = yAxisLabel ? (tickLabelFontSize as number) : 0;
+  const baseLeftPad = Math.max(leftPadding, MIN_LEFT_PADDING);
+  const baseRightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
+  const leftPad = showRightYAxis ? 10 : baseLeftPad + axisLabelLane;
+  const rightPad = showRightYAxis ? baseRightPad + axisLabelLane : baseRightPad;
+
   const chartPadding = {
     top: 10,
     bottom: isEmbedded ? BOTTOM_PADDING + 15 : BOTTOM_PADDING,
-
-    left: showRightYAxis ? 10 : Math.max(leftPadding, MIN_LEFT_PADDING),
-    right: showRightYAxis
-      ? Math.max(rightPadding, MIN_RIGHT_PADDING)
-      : Math.max(rightPadding, MIN_RIGHT_PADDING),
+    left: leftPad,
+    right: rightPad,
   };
 
   return (
@@ -537,6 +541,11 @@ const NumericChart: FC<Props> = ({
                   axisLabel: {
                     fontFamily: LABEL_FONT_FAMILY,
                     fontSize: tickLabelFontSize,
+                    padding: yAxisLabel
+                      ? showRightYAxis
+                        ? rightPad - 14
+                        : leftPad - 14
+                      : undefined,
                     ...(hasExternalTheme
                       ? {}
                       : { fill: getThemeColor(METAC_COLORS.gray["500"]) }),
@@ -552,7 +561,7 @@ const NumericChart: FC<Props> = ({
                 }}
                 tickValues={yScaleTicks}
                 tickFormat={yScale.tickFormat}
-                label={!isNil(yLabel) ? `(${yLabel})` : undefined}
+                label={yAxisLabel}
               />
 
               {/* X axis */}
