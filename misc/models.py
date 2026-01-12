@@ -43,8 +43,30 @@ class Bulletin(TimeStampedModel):
     bulletin_end = models.DateTimeField()
     text = models.TextField()
 
+    post = models.ForeignKey(
+        Post,
+        null=True,
+        blank=True,
+        db_index=True,
+        on_delete=models.CASCADE,
+        help_text="""Optional. If set, places this Bulletin only on this post's page.""",
+    )
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        db_index=True,
+        on_delete=models.CASCADE,
+        help_text="""Optional. If set, places this Bulletin only on this project's page.""",
+    )
+
     def __str__(self):
-        return self.text[:150] + "..." if len(self.text) > 150 else self.text
+        text = self.text
+        if self.post:
+            text = (self.post.short_title or self.post.title)[:50] + "... " + text
+        elif self.project:
+            text = self.project.name[:50] + "... " + text
+        return text[:150] + "..." if len(text) > 150 else text
 
 
 class BulletinViewedBy(TimeStampedModel):
