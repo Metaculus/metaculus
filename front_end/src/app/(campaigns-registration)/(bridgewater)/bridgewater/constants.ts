@@ -14,5 +14,6 @@ The most accurate forecasters will be eligible for $30,000 in prizes and potenti
 The competition features two tracks: an undergraduate track for current students and an open track for all participants. Register today and be notified as soon as questions open. The earlier you forecast, the better your odds to beat the competition and win cash prizes!`,
   howItWorksUrl: "/bridgewater/how-it-works",
   contestRulesUrl: "/bridgewater/contest-rules",
+  contestQuestionsUrl: "/tournament/bridgewater/",
   practiceQuestionsUrl: "/tournament/bridgewater-warmup/", // This will be updated to the actual tournament page
 } as const;
