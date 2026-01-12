@@ -4,8 +4,7 @@ import ForecastCard from "@/components/forecast_card";
 import { InvertedThemeContainer } from "@/contexts/inverted_theme_context";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 
-import LaborHubHeader from "./components/labor-hub-header";
-import LaborHubInfo from "./components/labor-hub-info";
+import LaborHubNavigation from "./components/labor-hub-navigation";
 import {
   DualPaneSectionCard,
   DualPaneSectionLeft,
@@ -65,14 +64,13 @@ export default async function LaborAutomationHubPage() {
   const [topRightQ, topLeftQ] = await getFeaturedPosts();
 
   return (
-    <main className="relative mb-24 mt-12 min-h-screen">
-      <div className="mx-auto w-full max-w-7xl sm:px-8 md:px-12 lg:px-16">
+    <main className="relative mb-24 min-h-screen xl:mt-12">
+      <div className="mx-auto w-full max-w-7xl xl:px-16">
         <HeroSection />
       </div>
+      <LaborHubNavigation tabs={TABS} />
 
-      <LaborHubHeader tabs={TABS} infoContent={<LaborHubInfo />} />
-
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 sm:px-8 md:px-12 lg:px-16">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 sm:px-8 xl:px-16">
         {/* Overview Stats Section */}
         <section
           id="overview"

@@ -12,6 +12,8 @@ type ScrollspyProps = {
   history?: boolean;
   throttleTime?: number;
   style?: React.CSSProperties;
+  /** Scroll the active anchor into view within its horizontal scroll container */
+  scrollActiveIntoView?: boolean;
 };
 
 export function Scrollspy({
@@ -23,6 +25,7 @@ export function Scrollspy({
   smooth = true,
   dataAttribute = "scrollspy",
   history = true,
+  scrollActiveIntoView = false,
 }: ScrollspyProps) {
   const selfRef = useRef<HTMLDivElement | null>(null);
   const anchorElementsRef = useRef<Element[] | null>(null);
@@ -32,21 +35,40 @@ export function Scrollspy({
   const setActiveSection = useCallback(
     (sectionId: string | null, force = false) => {
       if (!sectionId) return;
+      let activeElement: Element | null = null;
       anchorElementsRef.current?.forEach((item) => {
         const id = item.getAttribute(`data-${dataAttribute}-anchor`);
         if (id === sectionId) {
           item.setAttribute("data-active", "true");
+          activeElement = item;
         } else {
           item.removeAttribute("data-active");
         }
       });
+
+      // Scroll active element into view within horizontal scroll container
+      if (scrollActiveIntoView && activeElement) {
+        (activeElement as HTMLElement).scrollIntoView({
+          behavior: smooth ? "smooth" : "auto",
+          block: "nearest",
+          inline: "nearest",
+        });
+      }
+
       if (onUpdate) onUpdate(sectionId);
       if (history && (force || prevIdTracker.current !== sectionId)) {
         window.history.replaceState({}, "", `#${sectionId}`);
       }
       prevIdTracker.current = sectionId;
     },
-    [anchorElementsRef, dataAttribute, history, onUpdate]
+    [
+      anchorElementsRef,
+      dataAttribute,
+      history,
+      onUpdate,
+      scrollActiveIntoView,
+      smooth,
+    ]
   );
 
   const handleScroll = useCallback(() => {
