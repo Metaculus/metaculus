@@ -62,6 +62,12 @@ export function filterTournaments(
         );
 
       case TournamentsSortBy.StartDateDesc:
+        return differenceInMilliseconds(
+          new Date(b.start_date),
+          new Date(a.start_date)
+        );
+
+      case TournamentsSortBy.LiveDefault:
         const nowTs = Date.now();
 
         // 1) Open tournaments first

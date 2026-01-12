@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-import { TournamentPreview } from "@/types/projects";
+import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
 
 import { selectTournamentsForSection } from "../helpers";
 import { useTournamentFilters } from "../hooks/use_tournament_filters";
@@ -36,7 +36,12 @@ export function TournamentsSectionProvider(props: {
     [tournaments, current]
   );
 
-  const { filtered } = useTournamentFilters(sectionItems);
+  const { filtered } = useTournamentFilters(sectionItems, {
+    defaultSort:
+      current === "live"
+        ? TournamentsSortBy.LiveDefault
+        : TournamentsSortBy.StartDateDesc,
+  });
 
   const value = useMemo<TournamentsSectionCtxValue>(
     () => ({

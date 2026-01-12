@@ -46,6 +46,7 @@ export enum TournamentsSortBy {
   PrizePoolDesc = "-prize_pool",
   CloseDateAsc = "close_date",
   StartDateDesc = "-start_date",
+  LiveDefault = "live_default",
 }
 
 export type TournamentMember = {
