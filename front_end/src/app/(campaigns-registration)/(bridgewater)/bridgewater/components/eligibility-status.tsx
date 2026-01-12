@@ -72,21 +72,21 @@ const EligibilityStatus: FC<EligibilityStatusProps> = ({ eligibleBoth }) => {
       </div>
 
       <p className="mb-4 text-balance text-center text-base text-white dark:text-blue-50-dark">
-        Ready to get started? Try the{" "}
+        The contest is live.{" "}
+        <Link
+          href={BRIDGEWATER_2026.contestQuestionsUrl}
+          className="font-semibold text-white underline dark:text-blue-50-dark"
+        >
+          Start forecasting
+        </Link>
+        .{" "}
         <button
           onClick={() => setCurrentModal({ type: "onboarding" })}
           className="cursor-pointer font-semibold text-white underline hover:text-blue-100 dark:text-blue-50-dark dark:hover:text-blue-100-dark"
         >
-          forecasting tutorial
-        </button>{" "}
-        or explore some{" "}
-        <Link
-          href={BRIDGEWATER_2026.practiceQuestionsUrl}
-          className="font-semibold text-white underline dark:text-blue-50-dark"
-        >
-          warm-up questions
-        </Link>{" "}
-        to sharpen your skills!
+          Try the tutorial
+        </button>
+        .
       </p>
 
       <div className="mb-4 flex items-start gap-2 text-xs text-blue-200 dark:text-blue-200-dark">
