@@ -423,8 +423,7 @@ def generate_project_leaderboard(
 def assign_ranks(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
-    include_humans: bool = True,
-    include_bots: bool = False,
+    bot_status: Project.BotLeaderboardStatus,
 ) -> list[LeaderboardEntry]:
     RelativeLegacy = LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT
     if leaderboard.score_type == RelativeLegacy:
@@ -464,24 +463,35 @@ def assign_ranks(
 
     candidates: QuerySet[User] = User.objects.filter(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
-    ).only("id")
+    ).only("id", "is_bot")
 
     # dictionary of {excluded user id : show anyway status}
-    shown_exclusions_dict = {None: True}  # aggregations always excluded but shown
+    shown_exclusions_dict: dict[None | int, bool] = {
+        None: True
+    }  # aggregations always excluded but shown
     for exclusion in exclusion_records:
-        if exclusion.user_id not in shown_exclusions_dict:
+        if exclusion.show_anyway is False:
+            # exclusions that don't show anyway override ones that do show
             shown_exclusions_dict[exclusion.user_id] = False
-        shown_exclusions_dict[exclusion.user_id] = (
-            shown_exclusions_dict[exclusion.user_id] or exclusion.show_anyway
-        )
-    if not include_humans:
+        elif exclusion.user_id not in shown_exclusions_dict:
+            shown_exclusions_dict[exclusion.user_id] = True
+    if bot_status == Project.BotLeaderboardStatus.BOTS_ONLY:
+        # don't display humans
         for user in candidates.filter(is_bot=False):
-            if user.id not in shown_exclusions_dict:
-                shown_exclusions_dict[user.id] = True
-    if not include_bots:
+            shown_exclusions_dict[user.id] = False
+    if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
+        # show all non-excluded bots
         for user in candidates.filter(is_bot=True):
+            # don't override existing exclusions
             if user.id not in shown_exclusions_dict:
                 shown_exclusions_dict[user.id] = True
+    if bot_status == Project.BotLeaderboardStatus.INCLUDE:
+        # bots and humans are included, no action needed
+        pass
+    if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_HIDE:
+        # don't show ANY bots
+        for user in candidates.filter(is_bot=True):
+            shown_exclusions_dict[user.id] = False
 
     # set ranks
     rank = 1
@@ -738,16 +748,10 @@ def process_entries_for_leaderboard(
 ) -> list[LeaderboardEntry]:
     # assign ranks - also applies exclusions
     bot_status = leaderboard.bot_status or project.bot_leaderboard_status
-    bots_get_ranks = bot_status in [
-        Project.BotLeaderboardStatus.BOTS_ONLY,
-        Project.BotLeaderboardStatus.INCLUDE,
-    ]
-    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
     entries = assign_ranks(
         entries,
         leaderboard,
-        include_humans=humans_get_ranks,
-        include_bots=bots_get_ranks,
+        bot_status=bot_status,
     )
 
     # assign prize percentages
