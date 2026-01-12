@@ -17,40 +17,40 @@ import {
 
 const FEATURED_IN = [
   {
-    href: "https://www.nasdaq.com/",
+    href: "https://www.nasdaq.com/articles/how-crypto-can-help-secure-ai",
     label: "Nasdaq",
     component: (
       <NasdaqLogo className="h-4 w-auto text-[#171717] dark:text-white" />
     ),
   },
   {
-    href: "https://www.forbes.com/",
+    href: "https://www.forbes.com/sites/stevenwolfepereira/2025/12/08/building-a-one-person-unicorn-this-startup-just-raised-87m-to-help/",
     label: "Forbes",
     component: (
       <ForbesLogo className="h-3 w-auto text-[#171717] dark:text-white" />
     ),
   },
   {
-    href: "https://www.theatlantic.com/",
+    href: "https://archive.is/0O588",
     label: "The Atlantic",
     component: (
       <TheAtlanticLogo className="h-12 w-auto text-[#171717] dark:text-white " />
     ),
   },
   {
-    href: "https://www.aei.org/",
+    href: "https://www.aei.org/articles/the-great-ai-forecasting-divide/1",
     label: "AEI",
     component: (
       <AeiLogo className="h-5 w-auto text-[#008CCC] dark:text-white" />
     ),
   },
   {
-    href: "https://www.theaeconomist.com/",
+    href: "https://www.economist.com/finance-and-economics/2023/05/23/what-would-humans-do-in-a-world-of-super-ai",
     label: "The Economist",
     component: <TheEconomistLogo className="h-5 w-auto " />,
   },
   {
-    href: "https://www.bloomberg.com/",
+    href: "https://www.bloomberg.com/opinion/articles/2024-03-24/can-sam-altman-make-ai-smart-enough-to-answer-these-6-questions",
     label: "Bloomberg",
     component: (
       <BloombergLogo className="h-4 w-auto text-[#171717] dark:text-white " />
