@@ -5,6 +5,12 @@ info:
   description: |
     <b>Welcome to the official Metaculus API!</b>
     
+    <b> Authentication Required</b>
+    <p>
+      ⚠️ All API requests require valid authentication credentials. Unauthenticated requests will be rejected with an authentication error. Ensure you include your API token in the <code>Authorization</code> header for all requests.
+      </br>See the "How to Authenticate" section below for setup instructions.
+    </p>
+
     If you have questions, ideas, or feedback, please contact our team at
     <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon this
     initial version of the API, and we’d like to keep making it more useful
@@ -30,7 +36,7 @@ info:
     Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
     </blockquote>
     
-    Please note that we throttle requests to 1000 requests per hour to prevent abuse.
+    Please note that we throttle requests to prevent abuse.
 
     <b>How to generate a continuous cdf?</b>
     
