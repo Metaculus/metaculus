@@ -11,14 +11,18 @@ export function ActivityMonitorSection({
   ...props
 }: ComponentProps<"section">) {
   return (
-    <section className={cn("py-8", className)} {...props}>
+    <section className={cn("xl:py-8", className)} {...props}>
       <SectionHeader className="mb-4 mt-0 md:mb-8 md:text-center">
         Activity Monitor
       </SectionHeader>
 
       {/* Activity Log */}
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="flex flex-col gap-2.5">
+      <div className="grid gap-5 sm:gap-6 md:grid-cols-2 md:gap-8">
+        {/* Timeline Chart */}
+        <div className="h-full rounded-md border p-7 md:order-2">
+          {/* {!!topRightQ && <DetailedGroupCard post={topRightQ} />} */}
+        </div>
+        <div className="flex flex-col gap-2.5 md:order-1">
           <ActivityCard
             date="Nov 13, 2025"
             degradeIndex={0}
@@ -70,10 +74,6 @@ export function ActivityMonitorSection({
           <button className="w-full rounded-md border border-blue-400 bg-blue-100 py-3 text-center text-lg font-medium leading-7 text-blue-800 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark">
             See all activity
           </button>
-        </div>
-        {/* Timeline Chart */}
-        <div className="h-full rounded-md border p-7">
-          {/* {!!topRightQ && <DetailedGroupCard post={topRightQ} />} */}
         </div>
       </div>
     </section>

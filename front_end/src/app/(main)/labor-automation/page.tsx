@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import ForecastCard from "@/components/forecast_card";
-import { InvertedThemeContainer } from "@/contexts/inverted_theme_context";
+import SectionToggle from "@/components/ui/section_toggle";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 
 import LaborHubNavigation from "./components/labor-hub-navigation";
@@ -10,6 +10,7 @@ import {
   DualPaneSectionLeft,
   DualPaneSectionRight,
   SectionHeader,
+  ContentParagraph,
 } from "./components/section";
 import {
   PercentageChange,
@@ -25,6 +26,8 @@ import { ActivityMonitorSection } from "./sections/activity-monitor";
 import { HeroSection } from "./sections/hero";
 import { JobsMonitorSection } from "./sections/jobs-monitor";
 import { MethodologySection } from "./sections/methodology";
+import { OverviewSection } from "./sections/overview";
+import { ResearchSection } from "./sections/research";
 
 //import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 //import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
@@ -34,8 +37,9 @@ const TABS = [
   { id: "overview", label: "Overview" },
   { id: "jobs", label: "Jobs" },
   { id: "wages", label: "Wages" },
-  { id: "next-generation", label: "Next Generation" },
+  { id: "education", label: "Education" },
   { id: "economy", label: "Economy" },
+  { id: "research", label: "Research" },
   { id: "methodology", label: "Methodology" },
 ];
 
@@ -70,57 +74,24 @@ export default async function LaborAutomationHubPage() {
       </div>
       <LaborHubNavigation tabs={TABS} />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 sm:px-8 xl:px-16">
-        {/* Overview Stats Section */}
-        <section
-          id="overview"
-          className="grid scroll-mt-12 gap-10 lg:grid-cols-2"
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16">
+        <SectionToggle
+          key="tl-dr"
+          title="TL;DR: What does the data show?"
+          variant="light"
+          defaultOpen={false}
         >
-          {/* Left Column */}
-          <div className="flex flex-col gap-10">
-            {/* Mini Line Chart */}
-            {!!topLeftQ && <ForecastCard post={topLeftQ} />}
-
-            {/* Summary Text */}
-            <div className="mt-4 text-xl text-blue-700 dark:text-blue-700-dark">
-              <p>
-                Overall employment is projected to{" "}
-                <span className="font-bold text-salmon-600 dark:text-salmon-600-dark">
-                  fall 3% by 2030
-                </span>{" "}
-                and{" "}
-                <span className="font-bold text-salmon-600 dark:text-salmon-600-dark">
-                  7% by 2035
-                </span>{" "}
-                relative to 2025 due to AI-driven displacement. This sharply
-                contrasts with{" "}
-                <span className="font-bold">
-                  government baselines projecting +3% growth
-                </span>{" "}
-                over the decade from aging-adjusted population trends. The{" "}
-                <span className="font-bold text-mc-option-2 dark:text-mc-option-2-dark">
-                  most vulnerable AI-exposed occupations
-                </span>{" "}
-                are expected to shrink{" "}
-                <span className="font-bold text-mc-option-2 dark:text-mc-option-2-dark">
-                  67% by 2035
-                </span>
-                , while the{" "}
-                <span className="font-bold text-mc-option-3 dark:text-mc-option-3-dark">
-                  least vulnerable occupations grow 19%
-                </span>
-                .
-              </p>
-            </div>
-          </div>
-
-          {!!topRightQ && (
-            <InvertedThemeContainer className="flex flex-1">
-              <ForecastCard post={topRightQ} className="flex-1" />
-            </InvertedThemeContainer>
-          )}
-        </section>
-
+          <ContentParagraph>
+            Forecasts suggest that AI-driven job change is likely, uneven, and
+            gradual rather than sudden.
+          </ContentParagraph>
+          <ContentParagraph>
+            Most disruption is expected to come from task-level automation and
+            wage pressure, not mass unemployment, with impacts varying widely by
+            sector and skill level.
+          </ContentParagraph>
+        </SectionToggle>
+        <OverviewSection id="overview" />
         <ActivityMonitorSection id="activity" className="" />
         <JobsMonitorSection id="jobs" className="" />
 
@@ -131,15 +102,6 @@ export default async function LaborAutomationHubPage() {
               Economic Evolution:
               <br /> Hours, Pay, and Broader Impacts
             </SectionHeader>
-            <p className="text-blue-700 dark:text-blue-700-dark">
-              Overall employment is projected to fall 3% by 2030 and 7% by 2035
-              relative to 2025 due to AI-driven displacement. This sharply
-              contrasts with government baselines projecting +3% growth over the
-              decade from aging-adjusted population trends. The most vulnerable
-              AI-exposed occupations are expected to shrink 67% by 2035, while
-              the least vulnerable occupations grow 19%.
-            </p>
-
             <TableCompact className="inverted mt-6">
               <TableCompactHead>
                 <TableCompactRow>
@@ -209,6 +171,21 @@ export default async function LaborAutomationHubPage() {
                 ))}
               </TableCompactBody>
             </TableCompact>
+
+            <ContentParagraph>
+              Forecasts currently show that{" "}
+              <span className="text-salmon-700 dark:text-salmon-700-dark">
+                despite a predicted decline in overall employment
+              </span>
+              , <strong>median wages are expected to grow.</strong> The workweek
+              is also expected to become <strong>four hours shorter</strong>{" "}
+              among those employed full time, while productivity grows.
+            </ContentParagraph>
+            <ContentParagraph>
+              Lower income households are also expected to be better off after
+              accounting for government benefits, but are expected to receive a
+              larger share of their income through government benefits.
+            </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
             {/* Mini Line Chart */}
@@ -339,7 +316,7 @@ export default async function LaborAutomationHubPage() {
         </DualPaneSectionCard>
 
         {/* Deep Dive Section */}
-        <DualPaneSectionCard id="next-generation" className="scroll-mt-12">
+        <DualPaneSectionCard id="education" className="scroll-mt-12">
           <DualPaneSectionLeft>
             <SectionHeader>
               How will the next generation of workers be affected?
@@ -621,6 +598,7 @@ export default async function LaborAutomationHubPage() {
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
+        <ResearchSection id="research" className="scroll-mt-12" />
         <MethodologySection id="methodology" className="scroll-mt-12" />
       </div>
     </main>

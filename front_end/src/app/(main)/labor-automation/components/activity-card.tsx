@@ -19,7 +19,7 @@ export function ActivityCard({
       <div className="mb-1 text-xs font-medium text-purple-700 dark:text-purple-700-dark">
         {date}
       </div>
-      <div className="text-sm leading-normal text-purple-800 dark:text-purple-800-dark">
+      <div className="text-sm leading-normal text-purple-800 dark:text-purple-800-dark lg:text-base">
         {content}
       </div>
     </div>

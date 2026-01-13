@@ -21,7 +21,7 @@ export const TableCompact: FC<TableCompactProps> = ({
 }) => (
   <div
     className={cn(
-      "overflow-hidden rounded bg-blue-200 p-5 dark:bg-blue-800",
+      "overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5",
       className
     )}
   >
@@ -63,7 +63,7 @@ export const TableCompactCell: FC<
   <td
     className={cn(
       // 14px text, compact vertical padding
-      "py-2 text-left text-sm leading-5 text-blue-800 dark:text-blue-100",
+      "py-2 text-left text-xs text-blue-800 dark:text-blue-100 md:text-sm",
       className
     )}
     {...props}

@@ -28,7 +28,7 @@ export function SectionHeader({
   return (
     <h2
       className={cn(
-        "mt-0 text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold",
+        "my-0 text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold",
         className
       )}
       {...props}
@@ -44,7 +44,10 @@ export function DualPaneSectionCard({
   ...props
 }: ComponentProps<"section">) {
   return (
-    <SectionCard className={cn("grid grid-cols-2 gap-8", className)} {...props}>
+    <SectionCard
+      className={cn("grid gap-8 lg:grid-cols-2", className)}
+      {...props}
+    >
       {children}
     </SectionCard>
   );
@@ -58,7 +61,7 @@ export function DualPaneSectionLeft({
   return (
     <div
       className={cn(
-        "sticky top-36 flex flex-col space-y-6 self-start",
+        "flex flex-col space-y-4 self-start md:space-y-8 lg:sticky lg:top-36",
         className
       )}
       {...props}
@@ -74,8 +77,29 @@ export function DualPaneSectionRight({
   ...props
 }: ComponentProps<"div">) {
   return (
-    <div className={cn("flex flex-col space-y-6", className)} {...props}>
+    <div
+      className={cn("hidden flex-col space-y-6 lg:flex", className)}
+      {...props}
+    >
       {children}
     </div>
+  );
+}
+
+export function ContentParagraph({
+  className,
+  children,
+  ...props
+}: ComponentProps<"p">) {
+  return (
+    <p
+      className={cn(
+        "text-base text-blue-700 dark:text-blue-700-dark md:text-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </p>
   );
 }
