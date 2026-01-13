@@ -16,9 +16,10 @@ const TournamentsFilter: React.FC = () => {
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
   const sortBy =
     (params.get(TOURNAMENTS_SORT) as TournamentsSortBy) ??
-    TournamentsSortBy.StartDateDesc;
+    TournamentsSortBy.Featured;
 
   const sortOptions: SelectOption<TournamentsSortBy>[] = [
+    { value: TournamentsSortBy.Featured, label: t("featured") },
     {
       label: t("highestPrizePool"),
       value: TournamentsSortBy.PrizePoolDesc,

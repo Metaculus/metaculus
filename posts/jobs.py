@@ -36,7 +36,14 @@ def job_subscription_notify_date():
 @dramatiq.actor
 def job_compute_movement():
     chunk_size = 100
-    qs = Post.objects.filter_active().filter_questions().prefetch_related("questions")
+    base_qs = Post.objects.filter_questions().prefetch_related("questions")
+    active = base_qs.filter_active()
+    # Also include resolved posts that have non-zero movement as they will update to
+    # having 0.0 movement 7 days after resolution to remove them from the movers feed
+    resolved_with_movement = base_qs.filter(resolved=True).exclude(
+        Q(movement=0.0) | Q(movement__isnull=True)
+    )
+    qs = active.union(resolved_with_movement)
     logger.info(f"Start computing movement for {qs.count()} posts")
 
     with (
