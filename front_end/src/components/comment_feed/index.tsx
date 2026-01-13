@@ -79,11 +79,8 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
     return false;
   }
 
-  // we can link forecast only for date, binary and numeric questions
+  // we can link forecast for all question types
   if (postData.question) {
-    if (postData.question.type === QuestionType.MultipleChoice) {
-      return false;
-    }
     const latest = postData.question.my_forecasts?.latest;
     return !!latest && isForecastActive(latest);
   }

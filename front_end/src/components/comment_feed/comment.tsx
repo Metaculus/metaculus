@@ -285,7 +285,6 @@ const Comment: FC<CommentProps> = ({
 
   const canIncludeForecastInReply = useMemo(() => {
     if (!postData?.question) return false;
-    if (postData.question.type === QuestionType.MultipleChoice) return false;
     const latest = postData.question.my_forecasts?.latest;
     return !!latest && isForecastActive(latest);
   }, [postData]);
