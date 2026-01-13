@@ -97,7 +97,7 @@ export default async function Home() {
             <div className="w-full md:max-w-xl">
               <HomeSearch />
             </div>
-            <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
+            <div className="flex max-w-2xl flex-wrap justify-center text-center">
               {hotTopics.map((item, idx) => (
                 <TopicLink
                   key={`topic-${idx}`}
