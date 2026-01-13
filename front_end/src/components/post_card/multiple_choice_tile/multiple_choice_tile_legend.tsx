@@ -21,6 +21,7 @@ type Props = {
   ref?: RefObject<HTMLDivElement | null>;
   withChoiceIcon?: boolean;
   layout?: "column" | "wrap";
+  cursorTimestamp?: number | null;
 };
 
 const MultipleChoiceTileLegend: FC<Props> = ({
@@ -32,6 +33,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   onReaffirm,
   canPredict = false,
   ref,
+  cursorTimestamp = null,
   withChoiceIcon = true,
   layout = "column",
 }) => {
@@ -55,6 +57,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           choice,
           color,
           aggregationValues,
+          aggregationTimestamps,
           resolution,
           displayedResolution,
           scaling,
@@ -62,12 +65,13 @@ const MultipleChoiceTileLegend: FC<Props> = ({
         }) => (
           <div
             key={`choice-option-${choice}`}
-            className={cn(isWrap && "min-w-0 flex-none overflow-hidden")}
+            className={cn("w-full min-w-0", isWrap && "overflow-hidden")}
           >
             <ChoiceOption
               choice={choice}
               color={color}
               values={hideCP ? [null as unknown as number] : aggregationValues}
+              timestamps={hideCP ? undefined : aggregationTimestamps}
               resolution={resolution}
               displayedResolution={displayedResolution}
               questionType={questionType}
@@ -75,6 +79,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
               labelClassName={optionLabelClassName}
               actual_resolve_time={actual_resolve_time}
               withIcon={withChoiceIcon}
+              cursorTimestamp={cursorTimestamp}
             />
           </div>
         )

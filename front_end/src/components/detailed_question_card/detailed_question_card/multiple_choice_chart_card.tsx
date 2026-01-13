@@ -46,6 +46,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   onLegendHeightChange,
 }) => {
   const t = useTranslations();
+  const [isChartHovered, setIsChartHovered] = useState(false);
 
   const actualCloseTime = getPostDrivenTime(question.actual_close_time);
   const openTime = getPostDrivenTime(question.open_time);
@@ -212,6 +213,8 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
         onCursorChange={handleCursorChange}
         withHoverTooltip={false}
         showCursorLabel={false}
+        legendCursorTimestamp={isChartHovered ? cursorTimestamp : null}
+        onCursorActiveChange={setIsChartHovered}
       />
     );
   }

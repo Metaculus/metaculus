@@ -1,7 +1,10 @@
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isContinuousQuestion,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 export type EmbedSize = {
   width: number;
@@ -51,6 +54,14 @@ function getChartRange(args: {
         : 150
       : 176;
 
+  if (
+    header > 115 &&
+    header < 125 &&
+    post.question &&
+    isContinuousQuestion(post.question)
+  ) {
+    min = 132;
+  }
   let max = ogMode ? 320 : 202;
   let fudge = 8;
 

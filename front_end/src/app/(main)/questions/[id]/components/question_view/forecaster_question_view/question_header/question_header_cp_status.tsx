@@ -175,6 +175,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
                 {
                   "-mt-2 text-center": size === "md" && hideLabel,
                   "text-center": size === "md" && !hideLabel,
+                  "mt-0 md:[&>span]:whitespace-nowrap": isEmbed,
                 }
               )}
               size={"sm"}

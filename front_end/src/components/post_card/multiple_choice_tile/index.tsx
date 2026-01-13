@@ -76,6 +76,8 @@ type ContinuousMultipleChoiceTileProps = BaseProps &
     scaling?: Scaling | undefined;
     forecastAvailability?: ForecastAvailability;
     onLegendHeightChange?: (height: number) => void;
+    legendCursorTimestamp?: number | null;
+    onCursorActiveChange?: (active: boolean) => void;
   };
 
 const CHART_HEIGHT = 100;
@@ -102,6 +104,8 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   showChart = true,
   minimalistic = false,
   onLegendHeightChange,
+  legendCursorTimestamp = null,
+  onCursorActiveChange,
   withHoverTooltip = true,
   showCursorLabel = true,
 }) => {
@@ -189,6 +193,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               canPredict={canPredict && canReaffirm}
               onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
               layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
+              cursorTimestamp={legendCursorTimestamp}
             />
           )
         )}
@@ -225,6 +230,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
                 onCursorChange={onCursorChange}
                 attachRef={attachRef}
                 forFeedPage
+                onCursorActiveChange={onCursorActiveChange}
               />
             ) : (
               <GroupChart

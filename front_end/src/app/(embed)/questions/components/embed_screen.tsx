@@ -6,7 +6,10 @@ import { ContinuousQuestionTypes } from "@/constants/questions";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isConditionalPost,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import EmbedQuestionCard from "./embed_question_card";
 import { EmbedTheme } from "../constants/embed_theme";
@@ -70,7 +73,7 @@ const EmbedScreen: React.FC<Props> = ({
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       const rawWidth = entry?.contentRect.width ?? MIN_EMBED_WIDTH;
-      setContainerWidth(rawWidth);
+      setContainerWidth(Math.round(rawWidth));
     });
 
     observer.observe(el);
@@ -142,12 +145,15 @@ const EmbedScreen: React.FC<Props> = ({
         <div
           className={cn(
             "EmbedQuestionCard flex flex-col p-5 pb-4",
+            isConditionalPost(post) && "justify-between",
             isBinary || isContinuous ? "gap-5" : "gap-4 pb-5"
           )}
           style={{
             width: isDynamic ? "100%" : baseWidth,
             ...(isDynamic ? {} : { minWidth: MIN_EMBED_WIDTH }),
-            ...(isDynamic ? {} : { height: baseHeight, minHeight: baseHeight }),
+            ...(isDynamic
+              ? { minHeight: 270, justifyContent: "space-between" }
+              : { height: baseHeight, minHeight: baseHeight }),
             boxSizing: "border-box",
             transform: scale !== 1 ? `scale(${scale})` : undefined,
             transformOrigin: "center center",

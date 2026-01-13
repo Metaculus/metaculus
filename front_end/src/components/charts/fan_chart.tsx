@@ -427,7 +427,6 @@ const FanChart: FC<Props> = ({
       return { name, valueText };
     });
   }, [isEmbedded, embedLegendNames, normOptions, yScale]);
-  console.log("chartWidth", chartWidth);
   const isCompactEmbed = isEmbedded && !!chartWidth && chartWidth < 400;
 
   return (

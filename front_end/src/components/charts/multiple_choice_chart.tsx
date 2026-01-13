@@ -77,6 +77,7 @@ type Props = {
   hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
+  onCursorActiveChange?: (active: boolean) => void;
   attachRef?: (node: HTMLElement | null) => void;
   extraTheme?: VictoryThemeDefinition;
   scaling?: Scaling;
@@ -105,6 +106,7 @@ const MultipleChoiceChart: FC<Props> = ({
   hideCP,
   onCursorChange,
   onChartReady,
+  onCursorActiveChange,
   attachRef,
   extraTheme,
   scaling,
@@ -289,10 +291,22 @@ const MultipleChoiceChart: FC<Props> = ({
                   onMouseOverCapture: () => {
                     if (!onCursorChange) return;
                     setIsCursorActive(true);
+                    onCursorActiveChange?.(true);
                   },
                   onMouseOutCapture: () => {
                     if (!onCursorChange) return;
                     setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
+                  onTouchStartCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(true);
+                    onCursorActiveChange?.(true);
+                  },
+                  onTouchEndCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
                   },
                 },
               },

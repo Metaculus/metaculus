@@ -6,6 +6,7 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
+  isConditionalPost,
   isContinuousQuestion,
   isGroupOfQuestionsPost,
   isQuestionPost,
@@ -72,6 +73,9 @@ const EmbedQuestionHeader: React.FC<Props> = ({
     return q.type === QuestionType.Binary || isContinuousQuestion(q) ? 4 : 3;
   }, [post]);
 
+  const isConditional = useMemo(() => isConditionalPost(post), [post]);
+  const effectiveMaxLines = isConditional ? 0 : maxLines;
+
   const titleMinHeightClass = useMemo(() => {
     if (isGroupOfQuestionsPost(post)) {
       const firstType = post.group_of_questions.questions[0]?.type;
@@ -106,8 +110,8 @@ const EmbedQuestionHeader: React.FC<Props> = ({
           "!text-[20px] !leading-[125%] [@container(max-width:375px)]:!text-[16px]",
           titleMinHeightClass
         )}
-        maxLines={maxLines}
-        revealOnHoverOrTap={true}
+        maxLines={effectiveMaxLines}
+        revealOnHoverOrTap={!isConditional}
         style={titleStyle}
       >
         {titleOverride ?? post.title}
