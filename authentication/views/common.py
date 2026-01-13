@@ -59,7 +59,7 @@ def login_api_view(request):
 
     tokens = get_tokens_for_user(user)
 
-    return Response({**tokens, "user": UserPrivateSerializer(user).data})
+    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["POST"])
@@ -115,7 +115,7 @@ def signup_api_view(request):
             )
 
         is_active = user.is_active
-        tokens = {}
+        tokens = None
 
         if is_active:
             # We need to treat this as login action, so we should call `authenticate` service as well
@@ -132,7 +132,7 @@ def signup_api_view(request):
         {
             "is_active": is_active,
             "user": UserPrivateSerializer(user).data,
-            **tokens,
+            "tokens": tokens,
         },
         status=status.HTTP_201_CREATED,
     )
@@ -170,7 +170,7 @@ def signup_simplified_api_view(request):
         {
             "is_active": user.is_active,
             "user": UserPrivateSerializer(user).data,
-            **tokens,
+            "tokens": tokens,
         },
         status=status.HTTP_201_CREATED,
     )
@@ -206,7 +206,7 @@ def signup_activate_api_view(request):
     user = check_and_activate_user(user_id, token)
     tokens = get_tokens_for_user(user)
 
-    return Response({**tokens, "user": UserPrivateSerializer(user).data})
+    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["GET"])
@@ -249,7 +249,7 @@ def password_reset_confirm_api_view(request):
 
         tokens = get_tokens_for_user(user)
 
-        return Response({**tokens, "user": UserPrivateSerializer(user).data})
+        return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

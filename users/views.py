@@ -300,9 +300,4 @@ def bot_jwt_api_view(request: Request, pk: int):
     bot = get_object_or_404(get_user_bots(request.user), pk=pk)
     tokens = get_tokens_for_user(bot)
 
-    return Response(
-        {
-            "access": tokens["access_token"],
-            "refresh": tokens["refresh_token"],
-        }
-    )
+    return Response(tokens)
