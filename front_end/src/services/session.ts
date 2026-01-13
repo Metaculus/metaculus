@@ -5,14 +5,14 @@ import {
   setAuthTokens,
   clearAuthTokens,
   getAccessToken,
-  getRefreshToken,
-  hasAuthSession,
   AuthTokens,
+  REFRESH_TOKEN_EXPIRY_SECONDS,
 } from "@/services/auth_tokens";
 import { AuthResponse } from "@/types/auth";
 
 export const COOKIE_NAME_DEV_TOKEN = "alpha_token";
-export const COOKIE_NAME_IMPERSONATOR_TOKEN = "impersonator_token";
+export const COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN =
+  "impersonator_refresh_token";
 
 async function setServerCookie(name: string, value: string) {
   const cookieStorage = await cookies();
@@ -38,20 +38,28 @@ export async function getServerSession(): Promise<string | null> {
   return getAccessToken();
 }
 
-export async function getImpersonatorSession() {
+export async function getImpersonatorRefreshToken(): Promise<string | null> {
   const cookieStorage = await cookies();
-  const cookie = cookieStorage.get(COOKIE_NAME_IMPERSONATOR_TOKEN);
+  const cookie = cookieStorage.get(COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN);
   return cookie?.value || null;
 }
 
-// TODO: !!! THIS DOES NOT WORK; FIX IT !!!
-export async function setImpersonatorSession(token: string) {
-  return setServerCookie(COOKIE_NAME_IMPERSONATOR_TOKEN, token);
+export async function setImpersonatorRefreshToken(
+  refreshToken: string
+): Promise<void> {
+  const cookieStorage = await cookies();
+  cookieStorage.set(COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN, refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: REFRESH_TOKEN_EXPIRY_SECONDS,
+    path: "/",
+  });
 }
 
-export async function deleteImpersonatorSession() {
+export async function deleteImpersonatorSession(): Promise<void> {
   const cookieStorage = await cookies();
-  cookieStorage.delete(COOKIE_NAME_IMPERSONATOR_TOKEN);
+  cookieStorage.delete(COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN);
 }
 
 export async function deleteServerSession() {

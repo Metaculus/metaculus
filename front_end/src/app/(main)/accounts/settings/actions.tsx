@@ -3,13 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getRefreshToken } from "@/services/auth_tokens";
 import {
   deleteImpersonatorSession,
-  getImpersonatorSession,
-  getServerSession,
-  setImpersonatorSession,
-  setServerSession,
+  getImpersonatorRefreshToken,
+  setImpersonatorRefreshToken,
+  setServerSessionWithTokens,
 } from "@/services/session";
 import { ApiError } from "@/utils/core/errors";
 
@@ -117,10 +118,13 @@ export async function getBotTokenAction(botId: number) {
 }
 
 export async function stopImpersonatingAction() {
-  const impersonatorToken = await getImpersonatorSession();
+  const impersonatorRefreshToken = await getImpersonatorRefreshToken();
 
-  if (impersonatorToken) {
-    await setServerSession(impersonatorToken);
+  if (impersonatorRefreshToken) {
+    const tokens = await ServerAuthApi.refreshTokens(impersonatorRefreshToken);
+    if (tokens) {
+      await setServerSessionWithTokens(tokens);
+    }
     await deleteImpersonatorSession();
   }
 
@@ -129,14 +133,14 @@ export async function stopImpersonatingAction() {
 
 export async function impersonateBotAction(botId: number) {
   try {
-    const userToken = await getServerSession();
-    const { token: botToken } = await ServerProfileApi.getBotToken(botId);
+    const userRefreshToken = await getRefreshToken();
+    const botTokens = await ServerProfileApi.getBotJwt(botId);
 
-    if (userToken) {
-      await setImpersonatorSession(userToken);
+    if (userRefreshToken) {
+      await setImpersonatorRefreshToken(userRefreshToken);
     }
 
-    await setServerSession(botToken);
+    await setServerSessionWithTokens(botTokens);
 
     redirect("/");
   } catch (err) {

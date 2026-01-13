@@ -1,5 +1,6 @@
 import "server-only";
 import { getServerSession } from "@/services/session";
+import { AuthTokens } from "@/types/auth";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
 import { CurrentBot, CurrentUser } from "@/types/users";
@@ -113,6 +114,10 @@ class ServerProfileApiClass extends ProfileApi {
 
   async getBotToken(botId: number) {
     return await this.get<{ token: string }>(`/users/me/bots/${botId}/token/`);
+  }
+
+  async getBotJwt(botId: number) {
+    return await this.post<AuthTokens>(`/users/me/bots/${botId}/jwt/`, {});
   }
 }
 
