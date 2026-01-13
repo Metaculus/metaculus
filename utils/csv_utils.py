@@ -87,7 +87,7 @@ def export_all_data_for_questions(
         comments = Comment.objects.filter(
             is_private=False,
             is_soft_deleted=False,
-            on_post__in=questions.values_list("related_posts__post", flat=True),
+            on_post__in=questions.values_list("post", flat=True),
         ).order_by("created_at")
     else:
         comments = None
@@ -199,7 +199,7 @@ def export_data_for_questions(
         comments = Comment.objects.filter(
             is_private=False,
             is_soft_deleted=False,
-            on_post__in=questions.values_list("related_posts__post", flat=True),
+            on_post__in=questions.values_list("post", flat=True),
         ).order_by("created_at")
     else:
         comments = None
@@ -235,7 +235,7 @@ def export_data_for_questions(
         key_factors = (
             KeyFactor.objects.filter_active()
             .filter(
-                comment__on_post__related_questions__question_id__in=question_ids,
+                comment__on_post__questions__id__in=question_ids,
                 comment__is_soft_deleted=False,
             )
             .select_related(
@@ -250,7 +250,7 @@ def export_data_for_questions(
         )
         aggregate_question_links = AggregateCoherenceLink.objects.filter(
             Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
-        ).prefetch_related("question1__related_posts", "question2__related_posts")
+        ).select_related("question1__post", "question2__post")
     else:
         key_factors = None
         aggregate_question_links = None
@@ -271,9 +271,7 @@ def export_data_for_user(user=User):
     forecasts = Forecast.objects.filter(author=user).select_related("question")
     questions = Question.objects.filter(user_forecasts__in=forecasts).distinct()
     authored_posts = Post.objects.filter(Q(author=user) | Q(coauthors=user)).distinct()
-    authored_questions = Question.objects.filter(
-        related_posts__post__in=authored_posts
-    ).distinct()
+    authored_questions = Question.objects.filter(post__in=authored_posts).distinct()
     comments = Comment.objects.filter(author=user)
     scores = Score.objects.filter(user=user)
 
@@ -311,9 +309,7 @@ def generate_data(
     #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
     is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
-    questions = questions.prefetch_related(
-        "related_posts__post", "related_posts__post__default_project"
-    )
+    questions = questions.select_related("post", "post__default_project")
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
@@ -414,7 +410,7 @@ def generate_data(
         ]
     )
     for question in questions:
-        post = question.related_posts.first().post
+        post = question.post
 
         def format_value(val):
             if val is None or question.type != Question.QuestionType.DATE:
@@ -953,8 +949,8 @@ def generate_data(
         ]
     )
     for link in aggregate_question_links or []:
-        q1_post_id = link.question1.get_post_id()
-        q2_post_id = link.question2.get_post_id()
+        q1_post_id = link.question1.post_id
+        q2_post_id = link.question2.post_id
         question_link_writer.writerow(
             [
                 link.id,

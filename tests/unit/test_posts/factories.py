@@ -40,6 +40,7 @@ def factory_post(
         )
     )
     post.projects.add(*projects)
+    post.sync_question_post_fk()
 
     return post
 
