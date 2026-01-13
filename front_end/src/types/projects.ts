@@ -43,6 +43,7 @@ export enum TaxonomyProjectType {
 }
 
 export enum TournamentsSortBy {
+  Featured = "featured",
   PrizePoolDesc = "-prize_pool",
   CloseDateAsc = "close_date",
   StartDateDesc = "-start_date",
