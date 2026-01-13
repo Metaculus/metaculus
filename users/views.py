@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from authentication.services import get_tokens_for_user
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -287,3 +288,21 @@ def bot_token_api_view(request: Request, pk: int):
     token, _ = Token.objects.get_or_create(user=bot)
 
     return Response({"token": token.key})
+
+
+@api_view(["POST"])
+def bot_jwt_api_view(request: Request, pk: int):
+    """
+    Get JWT tokens to impersonate a bot account.
+    Returns access and refresh tokens for the bot.
+    """
+
+    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    tokens = get_tokens_for_user(bot)
+
+    return Response(
+        {
+            "access": tokens["access_token"],
+            "refresh": tokens["refresh_token"],
+        }
+    )
