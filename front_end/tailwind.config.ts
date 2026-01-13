@@ -81,12 +81,11 @@ const config: Config = {
   },
   plugins: [
     containerQueries,
-    // @ts-ignore
+    // @ts-expect-error - addVariant is typed as any
     function ({ addVariant }) {
       addVariant("no-hover", "@media (hover: none)");
       addVariant("can-hover", "@media (hover: hover)");
     },
-    // @ts-ignore
     plugin(function ({ addUtilities }) {
       addUtilities({
         /* https://github.com/tailwindlabs/tailwindcss/pull/12128 */
