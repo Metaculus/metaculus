@@ -16,6 +16,13 @@ export const ACCESS_TOKEN_EXPIRY_SECONDS = 15 * 60; // 15 minutes
 export const REFRESH_TOKEN_EXPIRY_SECONDS = 30 * 24 * 60 * 60; // 30 days
 export const REFRESH_BUFFER_SECONDS = 30; // Refresh if expiring within 30s
 
+const AUTH_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax" as const,
+  path: "/",
+};
+
 /**
  * Decode JWT payload without verification (we just need expiration time)
  */
@@ -49,83 +56,82 @@ export function isTokenExpired(
   return now >= expiresAt - bufferMs;
 }
 
-/**
- * Set both access and refresh tokens in httpOnly cookies
- */
-export async function setAuthTokens(tokens: AuthTokens): Promise<void> {
-  const cookieStorage = await cookies();
+type CookieOptions = {
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: "lax" | "strict" | "none";
+  path?: string;
+  maxAge?: number;
+};
 
-  cookieStorage.set(COOKIE_NAME_ACCESS_TOKEN, tokens.access, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
-    path: "/",
-  });
-
-  cookieStorage.set(COOKIE_NAME_REFRESH_TOKEN, tokens.refresh, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: REFRESH_TOKEN_EXPIRY_SECONDS,
-    path: "/",
-  });
+export interface ReadonlyCookieStorage {
+  get(name: string): { value: string } | undefined;
 }
 
-export async function getAccessToken(): Promise<string | null> {
-  const cookieStorage = await cookies();
-  return cookieStorage.get(COOKIE_NAME_ACCESS_TOKEN)?.value || null;
+export interface CookieStorage extends ReadonlyCookieStorage {
+  set(name: string, value: string, options?: CookieOptions): void;
+  delete(name: string): void;
 }
 
 /**
- * Check if access token is expired or about to expire
- * @param bufferSeconds - refresh if expiring within this many seconds (default: 30)
+ * Read-only manager for auth token cookies.
+ * Works with request.cookies (ReadonlyCookieStorage).
  */
-export async function isAccessTokenExpired(
-  bufferSeconds: number = 30
-): Promise<boolean> {
-  const token = await getAccessToken();
-  return isTokenExpired(token ?? undefined, bufferSeconds);
-}
+export class AuthCookieReader {
+  constructor(private cookieStorage: ReadonlyCookieStorage) {}
 
-export async function getRefreshToken(): Promise<string | null> {
-  const cookieStorage = await cookies();
-  return cookieStorage.get(COOKIE_NAME_REFRESH_TOKEN)?.value || null;
-}
+  getAccessToken(): string | null {
+    return this.cookieStorage.get(COOKIE_NAME_ACCESS_TOKEN)?.value || null;
+  }
 
-export async function clearAuthTokens(): Promise<void> {
-  const cookieStorage = await cookies();
-  cookieStorage.delete(COOKIE_NAME_ACCESS_TOKEN);
-  cookieStorage.delete(COOKIE_NAME_REFRESH_TOKEN);
-}
+  getRefreshToken(): string | null {
+    return this.cookieStorage.get(COOKIE_NAME_REFRESH_TOKEN)?.value || null;
+  }
 
-export async function hasAuthSession(): Promise<boolean> {
-  const accessToken = await getAccessToken();
-  const refreshToken = await getRefreshToken();
-  return !!(accessToken || refreshToken);
+  hasAuthSession(): boolean {
+    return !!(this.getAccessToken() || this.getRefreshToken());
+  }
+
+  isAccessTokenExpired(
+    bufferSeconds: number = REFRESH_BUFFER_SECONDS
+  ): boolean {
+    const token = this.getAccessToken();
+    return isTokenExpired(token ?? undefined, bufferSeconds);
+  }
 }
 
 /**
- * Apply token cookies to a NextResponse (used by api-proxy and refresh route)
+ * Full manager for auth token cookies with read/write access.
+ * Works with next/headers cookies() and response.cookies (CookieStorage).
  */
-export function applyTokenCookiesToResponse(
-  response: {
-    cookies: { set: (name: string, value: string, options: object) => void };
-  },
-  tokens: AuthTokens
-): void {
-  const opts = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax" as const,
-    path: "/",
-  };
-  response.cookies.set(COOKIE_NAME_ACCESS_TOKEN, tokens.access, {
-    ...opts,
-    maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
-  });
-  response.cookies.set(COOKIE_NAME_REFRESH_TOKEN, tokens.refresh, {
-    ...opts,
-    maxAge: REFRESH_TOKEN_EXPIRY_SECONDS,
-  });
+export class AuthCookieManager extends AuthCookieReader {
+  constructor(private writableCookieStorage: CookieStorage) {
+    super(writableCookieStorage);
+  }
+
+  setAuthTokens(tokens: AuthTokens): void {
+    this.writableCookieStorage.set(COOKIE_NAME_ACCESS_TOKEN, tokens.access, {
+      ...AUTH_COOKIE_OPTIONS,
+      maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
+    });
+
+    this.writableCookieStorage.set(COOKIE_NAME_REFRESH_TOKEN, tokens.refresh, {
+      ...AUTH_COOKIE_OPTIONS,
+      maxAge: REFRESH_TOKEN_EXPIRY_SECONDS,
+    });
+  }
+
+  clearAuthTokens(): void {
+    this.writableCookieStorage.delete(COOKIE_NAME_ACCESS_TOKEN);
+    this.writableCookieStorage.delete(COOKIE_NAME_REFRESH_TOKEN);
+  }
+}
+
+/**
+ * Factory function to create an AuthCookieManager from next/headers cookies().
+ * Use this in server components and server actions.
+ */
+export async function getAuthCookieManager(): Promise<AuthCookieManager> {
+  const cookieStorage = await cookies();
+  return new AuthCookieManager(cookieStorage);
 }

@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import {
-  ACCESS_TOKEN_EXPIRY_SECONDS,
-  COOKIE_NAME_ACCESS_TOKEN,
-  COOKIE_NAME_REFRESH_TOKEN,
-  isTokenExpired,
-  REFRESH_TOKEN_EXPIRY_SECONDS,
-} from "@/services/auth_tokens";
+import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
@@ -16,58 +10,48 @@ import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-function hasAuthSession(request: NextRequest): boolean {
-  const accessToken = request.cookies.get(COOKIE_NAME_ACCESS_TOKEN)?.value;
-  const refreshToken = request.cookies.get(COOKIE_NAME_REFRESH_TOKEN)?.value;
-  return !!(accessToken || refreshToken);
+async function verifyToken(responseAuth: AuthCookieManager): Promise<void> {
+  try {
+    await ServerAuthApi.verifyToken();
+  } catch {
+    // Token is invalid (user banned, token revoked, etc.) - clear all auth cookies
+    console.error("Token verification failed, clearing auth cookies");
+    responseAuth.clearAuthTokens();
+  }
 }
 
 /**
- * Refresh tokens and apply new cookies to response
+ * Refresh tokens and apply new cookies to response.
+ * Returns true if tokens were refreshed.
  */
 async function refreshTokensIfNeeded(
-  request: NextRequest,
-  response: NextResponse
-): Promise<void> {
-  const accessToken = request.cookies.get(COOKIE_NAME_ACCESS_TOKEN)?.value;
-  const refreshToken = request.cookies.get(COOKIE_NAME_REFRESH_TOKEN)?.value;
+  requestAuth: AuthCookieReader,
+  responseAuth: AuthCookieManager
+): Promise<boolean> {
+  const refreshToken = requestAuth.getRefreshToken();
 
   // No refresh token = can't refresh
-  if (!refreshToken) return;
+  if (!refreshToken) return false;
 
   // Access token still valid = no refresh needed
-  if (!isTokenExpired(accessToken)) return;
+  if (!requestAuth.isAccessTokenExpired()) return false;
 
   let tokens;
   try {
     tokens = await ServerAuthApi.refreshTokens(refreshToken);
   } catch (error) {
     console.error("Middleware token refresh failed:", error);
-    return;
+    return false;
   }
 
-  // Set new cookies on the response
-  const cookieOpts = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax" as const,
-    path: "/",
-  };
-
-  response.cookies.set(COOKIE_NAME_ACCESS_TOKEN, tokens.access, {
-    ...cookieOpts,
-    maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
-  });
-
-  response.cookies.set(COOKIE_NAME_REFRESH_TOKEN, tokens.refresh, {
-    ...cookieOpts,
-    maxAge: REFRESH_TOKEN_EXPIRY_SECONDS,
-  });
+  responseAuth.setAuthTokens(tokens);
+  return true;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasSession = hasAuthSession(request);
+  const requestAuth = new AuthCookieReader(request.cookies);
+  const hasSession = requestAuth.hasAuthSession();
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
 
@@ -104,10 +88,19 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-url", request.url);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const responseAuth = new AuthCookieManager(response.cookies);
 
   // Proactive token refresh (MUST happen in middleware to persist cookies)
   if (hasSession) {
-    await refreshTokensIfNeeded(request, response);
+    const tokensRefreshed = await refreshTokensIfNeeded(
+      requestAuth,
+      responseAuth
+    );
+    // Skip verification if tokens were just refreshed (they're valid by definition)
+    // Only verify existing tokens to catch banned users or revoked tokens
+    if (!tokensRefreshed) {
+      await verifyToken(responseAuth);
+    }
   }
 
   const locale_in_url = request.nextUrl.searchParams.get("locale");

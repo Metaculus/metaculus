@@ -1,7 +1,7 @@
 "use server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { setAuthTokens } from "@/services/auth_tokens";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { SocialProviderType } from "@/types/auth";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -17,6 +17,7 @@ export async function exchangeSocialOauthCode(
   );
 
   if (response?.tokens) {
-    await setAuthTokens(response.tokens);
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(response.tokens);
   }
 }

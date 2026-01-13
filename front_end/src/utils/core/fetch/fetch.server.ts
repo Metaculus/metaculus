@@ -2,7 +2,7 @@ import "server-only";
 
 import { getLocale } from "next-intl/server";
 
-import { getAccessToken } from "@/services/auth_tokens";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { getAlphaTokenSession } from "@/services/session";
 import { FetchConfig, FetchOptions } from "@/types/fetch";
 
@@ -27,7 +27,8 @@ async function serverFetch<T>(
   const shouldPassAuth =
     config.passAuthHeader || PUBLIC_AUTHENTICATION_REQUIRED;
 
-  const token = shouldPassAuth ? await getAccessToken() : null;
+  const authManager = await getAuthCookieManager();
+  const token = shouldPassAuth ? authManager.getAccessToken() : null;
   const alphaToken = await getAlphaTokenSession();
 
   const requestOptions: FetchOptions = {

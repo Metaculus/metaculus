@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { getRefreshToken } from "@/services/auth_tokens";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import {
   deleteImpersonatorSession,
   getImpersonatorRefreshToken,
@@ -133,7 +133,8 @@ export async function stopImpersonatingAction() {
 
 export async function impersonateBotAction(botId: number) {
   try {
-    const userRefreshToken = await getRefreshToken();
+    const authManager = await getAuthCookieManager();
+    const userRefreshToken = authManager.getRefreshToken();
     const botTokens = await ServerProfileApi.getBotJwt(botId);
 
     if (userRefreshToken) {

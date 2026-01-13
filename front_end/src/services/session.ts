@@ -2,9 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 
 import {
-  setAuthTokens,
-  clearAuthTokens,
-  getAccessToken,
+  getAuthCookieManager,
   AuthTokens,
   REFRESH_TOKEN_EXPIRY_SECONDS,
 } from "@/services/auth_tokens";
@@ -25,17 +23,20 @@ async function setServerCookie(name: string, value: string) {
 }
 
 export async function setServerSession(response: AuthResponse): Promise<void> {
-  await setAuthTokens(response.tokens);
+  const authManager = await getAuthCookieManager();
+  authManager.setAuthTokens(response.tokens);
 }
 
 export async function setServerSessionWithTokens(
   tokens: AuthTokens
 ): Promise<void> {
-  await setAuthTokens(tokens);
+  const authManager = await getAuthCookieManager();
+  authManager.setAuthTokens(tokens);
 }
 
 export async function getServerSession(): Promise<string | null> {
-  return getAccessToken();
+  const authManager = await getAuthCookieManager();
+  return authManager.getAccessToken();
 }
 
 export async function getImpersonatorRefreshToken(): Promise<string | null> {
@@ -63,7 +64,8 @@ export async function deleteImpersonatorSession(): Promise<void> {
 }
 
 export async function deleteServerSession() {
-  await clearAuthTokens();
+  const authManager = await getAuthCookieManager();
+  authManager.clearAuthTokens();
 }
 
 export async function getAlphaTokenSession() {
