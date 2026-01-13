@@ -22,7 +22,7 @@ const AIBBenchmarkModels: React.FC = () => {
 
   const entries = useMemo(() => {
     const e = [...(leaderboard.entries ?? [])].filter((e) =>
-      shouldDisplayEntry(e, 300)
+      shouldDisplayEntry(e)
     );
     e.sort((a, b) => {
       if (a.rank != null && b.rank != null) return a.rank - b.rank;

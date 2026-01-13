@@ -16,7 +16,7 @@ from comments.services.key_factors.common import (
     get_votes_for_key_factors,
     calculate_key_factors_freshness,
 )
-from questions.models import Question, QuestionPost
+from questions.models import Question
 from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import generate_map_from_list
@@ -118,13 +118,11 @@ def serialize_key_factors_many(
     freshness_map = calculate_key_factors_freshness(objects, votes_map)
 
     # Fetch post questions
-    post_questions_rel = generate_map_from_list(
+    post_questions_map = generate_map_from_list(
         list(
-            QuestionPost.objects.filter(
+            Question.objects.filter(
                 post_id__in=[x.comment.on_post_id for x in objects]
-            )
-            .select_related("question")
-            .only("post_id", "question__type", "question__unit")
+            ).only("post_id", "type", "unit")
         ),
         key=lambda x: x.post_id,
     )
@@ -133,7 +131,7 @@ def serialize_key_factors_many(
 
     for key_factor in objects:
         post_id = key_factor.comment.on_post_id
-        questions = [x.question for x in post_questions_rel.get(post_id) or []]
+        questions = post_questions_map.get(post_id) or []
 
         question_type = questions[0].type if questions else None
         question_units = list({q.unit for q in questions})

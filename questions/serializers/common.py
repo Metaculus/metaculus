@@ -486,11 +486,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 "continuous_cdf must be increasing by at least "
                 f"{min_diff} at every step.\n"
             )
-        # max diff for default CDF is derived empirically from slider positions
-        # TODO: make this lower and scale with inbound_outcome_count
-        max_diff = (
-            0.59 if len(continuous_cdf) == DEFAULT_INBOUND_OUTCOME_COUNT + 1 else 1
-        )
+        # Check if maximum difference between cdf points is acceptable
+        # (0.59 if inbound outcome count is the default 200)
+        # TODO: switch this value to 0.2 after coordinating
+        max_diff = 0.59 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "
@@ -585,12 +584,21 @@ def serialize_question(
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
     question_average_coverage: float = None,
+    coherence_links: list[dict] = None,
+    coherence_link_aggregations: list[dict] = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+
+    serialized_data.update(
+        {
+            "coherence_links": coherence_links,
+            "coherence_link_aggregations": coherence_link_aggregations,
+        }
+    )
 
     if include_descriptions:
         serialized_data.update(
@@ -604,7 +612,7 @@ def serialize_question(
     if post:
         serialized_data["short_title"] = post.short_title
 
-    serialized_data["post_id"] = post.id if post else question.get_post_id()
+    serialized_data["post_id"] = post.id if post else question.post_id
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )

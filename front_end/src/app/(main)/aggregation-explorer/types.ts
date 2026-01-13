@@ -1,18 +1,38 @@
 import {
-  AggregationQuestion,
-  Aggregations,
-  AggregateForecastHistory,
+  NumericAggregationQuestion,
+  MultipleChoiceAggregationQuestion,
+  NumericAggregations,
+  MultipleChoiceAggregations,
+  NumericAggregateForecastHistory,
+  MultipleChoiceAggregateForecastHistory,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
 // flexible version of Aggregations type which can include
 // arbitrarily named aggregations
-export type AggregationsExtra = Aggregations &
-  Partial<Record<string, AggregateForecastHistory>>;
 
-export type AggregationExtraQuestion = AggregationQuestion & {
-  aggregations: AggregationsExtra;
+export type NumericAggregationsExtra = NumericAggregations &
+  Partial<Record<string, NumericAggregateForecastHistory>>;
+
+export type NumericAggregationExtraQuestion = NumericAggregationQuestion & {
+  aggregations: NumericAggregationsExtra;
 };
+
+export type MultipleChoiceAggregationsExtra = MultipleChoiceAggregations &
+  Partial<Record<string, MultipleChoiceAggregateForecastHistory>>;
+
+export type MultipleChoiceAggregationExtraQuestion =
+  MultipleChoiceAggregationQuestion & {
+    aggregations: MultipleChoiceAggregationsExtra;
+  };
+
+export type AggregationsExtra =
+  | NumericAggregationsExtra
+  | MultipleChoiceAggregationsExtra;
+
+export type AggregationExtraQuestion =
+  | NumericAggregationExtraQuestion
+  | MultipleChoiceAggregationExtraQuestion;
 
 export enum AggregationExtraMethod {
   recency_weighted = "recency_weighted",

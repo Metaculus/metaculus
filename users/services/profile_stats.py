@@ -36,7 +36,7 @@ def generate_question_scores(qs: QuerySet[Score]):
     scores_qs = qs.annotate(
         question_title=F("question__title"),
         question_resolution=F("question__resolution"),
-        post_id=F("question__related_posts__post_id"),
+        post_id=F("question__post_id"),
     ).values(
         "score",
         "edited_at",
@@ -378,7 +378,7 @@ def get_authoring_stats_data(
 
 def _serialize_user_stats(user: User):
     score_qs = Score.objects.filter(
-        question__related_posts__post__default_project__default_permission__isnull=False,
+        question__post__default_project__default_permission__isnull=False,
         score_type=ScoreTypes.PEER,
     )
     score_qs = score_qs.filter(user=user)
@@ -409,7 +409,7 @@ def _serialize_metaculus_stats() -> dict:
 
     # TODO: support archived scores
     score_qs = Score.objects.filter(
-        question__related_posts__post__default_project__default_permission__isnull=False,
+        question__post__default_project__default_permission__isnull=False,
         score_type=ScoreTypes.BASELINE,
     )
     score_qs = score_qs.filter(aggregation_method=aggregation_method)

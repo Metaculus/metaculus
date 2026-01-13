@@ -21,7 +21,9 @@ from projects.serializers.common import (
     serialize_index_data,
     serialize_tournaments_with_counts,
 )
-from projects.services.cache import get_projects_questions_count_cached
+from projects.services.cache import (
+    get_projects_questions_count_cached,
+)
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
@@ -132,12 +134,13 @@ def tournaments_list_api_view(request: Request):
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
-        .prefetch_related("primary_leaderboard")
+        .select_related("primary_leaderboard")
+    )
+    projects = list(qs)
+    data = serialize_tournaments_with_counts(
+        projects, sort_key=lambda r: r["questions_count"], with_timeline=True
     )
 
-    data = serialize_tournaments_with_counts(
-        qs, sort_key=lambda x: x["questions_count"]
-    )
     return Response(data)
 
 
@@ -234,7 +237,7 @@ def project_delete_api_view(request: Request, project_id: int):
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_edit_project(permission, raise_exception=True)
 
-    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Question.objects.filter(post__default_project=obj).delete()
     Post.objects.filter(default_project=obj).delete()
     obj.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)

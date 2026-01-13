@@ -8,6 +8,10 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from coherence.serializers import (
+    serialize_coherence_links_questions_map,
+    serialize_aggregate_coherence_links_questions_map,
+)
 from comments.models import KeyFactor
 from comments.serializers.key_factors import serialize_key_factors_many
 from misc.models import ITNArticle
@@ -341,6 +345,8 @@ def serialize_post(
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
     question_average_coverages: dict[Question, float] = None,
+    coherence_links: dict[Question, list[dict]] = None,
+    coherence_link_aggregations: dict[Question, list[dict]] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -348,6 +354,8 @@ def serialize_post(
     serialized_data = PostReadSerializer(post).data
     question_movements = question_movements or {}
     question_average_coverages = question_average_coverages or {}
+    coherence_links = coherence_links or {}
+    coherence_link_aggregations = coherence_link_aggregations or {}
 
     # Appending projects
     projects = projects or []
@@ -367,6 +375,8 @@ def serialize_post(
             include_descriptions=include_descriptions,
             question_movement=question_movements.get(post.question),
             question_average_coverage=question_average_coverages.get(post.question),
+            coherence_links=coherence_links.get(post.question),
+            coherence_link_aggregations=coherence_link_aggregations.get(post.question),
         )
 
     if post.conditional:
@@ -474,8 +484,13 @@ def serialize_post_many(
     qs = (
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions()
-        .prefetch_condition_post()
-        .select_related("default_project__primary_leaderboard", "author", "notebook")
+        .select_related(
+            "conditional__condition__post",
+            "conditional__condition_child__post",
+            "default_project__primary_leaderboard",
+            "author",
+            "notebook",
+        )
         .prefetch_related("coauthors")
     )
 
@@ -516,6 +531,8 @@ def serialize_post_many(
         )
 
     comment_key_factors_map = {}
+    coherence_links_map = {}
+    coherence_link_aggs_map = {}
 
     if with_key_factors:
         comment_key_factors_map = generate_map_from_list(
@@ -526,6 +543,15 @@ def serialize_post_many(
                 current_user=current_user,
             ),
             key=lambda x: x["post"]["id"],
+        )
+
+        if current_user:
+            coherence_links_map = serialize_coherence_links_questions_map(
+                questions, current_user
+            )
+
+        coherence_link_aggs_map = serialize_aggregate_coherence_links_questions_map(
+            questions
         )
 
     question_movements = {}
@@ -559,6 +585,8 @@ def serialize_post_many(
             include_descriptions=include_descriptions,
             question_movements=question_movements,
             question_average_coverages=question_average_coverages,
+            coherence_links=coherence_links_map,
+            coherence_link_aggregations=coherence_link_aggs_map,
         )
         for post in posts
     ]

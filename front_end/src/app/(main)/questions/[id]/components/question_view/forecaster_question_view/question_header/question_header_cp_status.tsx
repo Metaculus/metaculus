@@ -11,11 +11,7 @@ import QuestionCPMovement from "@/components/cp_movement";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
-import {
-  QuestionType,
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -40,11 +36,10 @@ const QuestionHeaderCPStatus: FC<Props> = ({
     question,
     isClosed: question.status === QuestionStatus.CLOSED,
   });
-  const isContinuous = [
-    QuestionType.Numeric,
-    QuestionType.Discrete,
-    QuestionType.Date,
-  ].includes(question.type);
+  const isContinuous =
+    question.type === QuestionType.Numeric ||
+    question.type === QuestionType.Discrete ||
+    question.type === QuestionType.Date;
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -107,7 +102,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             )}
             {!hideCP && (
               <ContinuousCPBar
-                question={question as QuestionWithNumericForecasts}
+                question={question as QuestionWithForecasts}
                 size={size}
                 variant="question"
               />

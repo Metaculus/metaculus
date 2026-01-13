@@ -43,6 +43,7 @@ export enum TaxonomyProjectType {
 }
 
 export enum TournamentsSortBy {
+  Featured = "featured",
   PrizePoolDesc = "-prize_pool",
   CloseDateAsc = "close_date",
   StartDateDesc = "-start_date",
@@ -69,6 +70,9 @@ export type TournamentPreview = Project & {
   default_permission: ProjectPermissions | null;
   score_type: string;
   followers_count?: number;
+  timeline: TournamentTimeline;
+  description_preview?: string;
+  order?: number;
 };
 
 export type TournamentTimeline = {
