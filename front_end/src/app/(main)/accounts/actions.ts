@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
@@ -168,6 +168,8 @@ export async function LogOut() {
   const authManager = await getAuthCookieManager();
   authManager.clearAuthTokens();
   authManager.clearImpersonatorRefreshToken();
+  // DEPRECATED: Remove after 30-day migration period
+  (await cookies()).delete("auth_token");
   return redirect("/");
 }
 
