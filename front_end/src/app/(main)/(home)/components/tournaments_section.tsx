@@ -39,7 +39,11 @@ const TournamentsSection: FC<{ className?: string }> = async ({
       </div>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {tournaments.map((tournament) => (
-          <LiveTournamentCard key={tournament.id} item={tournament} />
+          <LiveTournamentCard
+            key={tournament.id}
+            item={tournament}
+            nowTs={Date.now()}
+          />
         ))}
       </div>
     </section>
