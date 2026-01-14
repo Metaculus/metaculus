@@ -25,7 +25,7 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
   const [newLinks, setNewLinks] = useState<number[]>([]);
-  const { coherenceLinks, updateCoherenceLinks } = useCoherenceLinksContext();
+  const { coherenceLinks } = useCoherenceLinksContext();
   const toggleOpenRef = useCallback((element: HTMLElement | null) => {
     if (element) {
       setNewLinks([]);
@@ -41,11 +41,6 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   async function deleteLink(key: number) {
     setNewLinks((prevLinks) => prevLinks.filter((current) => current !== key));
   }
-
-  useEffect(() => {
-    void updateCoherenceLinks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const questionType = post.question?.type;
 
