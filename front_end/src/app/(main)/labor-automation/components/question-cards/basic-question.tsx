@@ -24,7 +24,7 @@ import {
   getPostDrivenTime,
 } from "@/utils/questions/helpers";
 
-import { QuestionCardContainer } from "./container";
+import { QuestionCard } from "./question-card";
 
 export function BasicQuestionContent({
   postData,
@@ -144,11 +144,11 @@ export default function BasicQuestion({
   preferTimeline?: boolean;
 }) {
   return (
-    <QuestionCardContainer title={postData.title}>
+    <QuestionCard title={postData.title}>
       <BasicQuestionContent
         postData={postData}
         preferTimeline={preferTimeline}
       />
-    </QuestionCardContainer>
+    </QuestionCard>
   );
 }

@@ -1,5 +1,8 @@
 import { ComponentProps } from "react";
 
+import { QuestionCard } from "../components/question-cards/question-card";
+import { RiskChart } from "../components/question-cards/risk-chart";
+
 export function OverviewSection({
   className,
   ...props
@@ -11,8 +14,13 @@ export function OverviewSection({
     >
       {/* Left Column */}
       <div className="flex flex-col gap-5 sm:gap-6 md:gap-8">
-        {/* Mini Line Chart */}
-        <div className="h-48 w-full rounded-lg bg-gray-100 dark:bg-gray-100-dark"></div>
+        <QuestionCard
+          title="Risk Monitor"
+          subtitle="Predicted employment change in the next decade"
+          variant="primary"
+        >
+          <RiskChart />
+        </QuestionCard>
 
         {/* Summary Text */}
         <div className="text-base text-blue-700 dark:text-blue-700-dark md:text-xl">
@@ -45,7 +53,12 @@ export function OverviewSection({
         </div>
       </div>
 
-      <div className="h-48 w-full rounded-lg bg-gray-100 dark:bg-gray-100-dark"></div>
+      <QuestionCard
+        title="Predicted employment change in the next decade"
+        variant="primary"
+      >
+        <div className="h-80 w-full rounded-lg bg-gray-100 dark:bg-gray-100-dark"></div>
+      </QuestionCard>
     </section>
   );
 }
