@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, serializers
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -265,3 +266,28 @@ def invite_user_api_view(request):
         SignupInviteService().send_email(request.user, email)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def exchange_legacy_token_api_view(request):
+    """
+    Exchange a legacy DRF auth token for new JWT tokens.
+
+    DEPRECATED: This endpoint exists only for backward compatibility during
+    the migration period. It should be removed after the grace period (30 days).
+    """
+    token = serializers.CharField().run_validation(request.data.get("token"))
+
+    try:
+        token_obj = Token.objects.get(key=token)
+    except Token.DoesNotExist:
+        raise ValidationError({"token": ["Invalid token"]})
+
+    user = token_obj.user
+    if not user.is_active:
+        raise ValidationError({"token": ["User account is inactive"]})
+
+    tokens = get_tokens_for_user(user)
+
+    return Response({"tokens": tokens})
