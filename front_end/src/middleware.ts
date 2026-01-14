@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
+// DEPRECATED: Remove after 30-day migration period
+import { handleLegacyTokenMigration } from "@/services/auth_tokens_migration";
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
@@ -51,7 +53,7 @@ async function refreshTokensIfNeeded(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestAuth = new AuthCookieReader(request.cookies);
-  const hasSession = requestAuth.hasAuthSession();
+  let hasSession = requestAuth.hasAuthSession();
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
 
@@ -89,6 +91,17 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   const responseAuth = new AuthCookieManager(response.cookies);
+
+  // DEPRECATED: Legacy token migration - remove after 30-day grace period
+  const wasMigrated = await handleLegacyTokenMigration(
+    request,
+    requestAuth,
+    responseAuth
+  );
+  if (wasMigrated) {
+    // Update hasSession since we now have valid tokens
+    hasSession = true;
+  }
 
   // Proactive token refresh (MUST happen in middleware to persist cookies)
   if (hasSession) {
