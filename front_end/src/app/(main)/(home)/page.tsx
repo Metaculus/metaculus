@@ -12,7 +12,6 @@ import { convertSidebarItem } from "@/utils/sidebar";
 
 import AllCategoriesSection from "./components/all_categories_section";
 import EmailConfirmation from "./components/email_confirmation";
-import FutureEvalSection from "./components/future_eval_section";
 import HeroCTAs from "./components/hero_ctas";
 import { FILTERS } from "./components/homepage_filters";
 import HomePageForecasts from "./components/homepage_forecasts";
@@ -68,9 +67,6 @@ export default async function Home() {
         <div className="mt-8 w-full border-y border-gray-300  bg-gray-100 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark md:mt-16 ">
           <TournamentsSection className={contentWidthClassNames} />
         </div>
-      </Suspense>
-      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
-        <FutureEvalSection className={contentWidthClassNames} />
       </Suspense>
       <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
         <div className="border-y border-gray-300 bg-gray-100  py-20 dark:border-gray-300-dark dark:bg-gray-100-dark">
