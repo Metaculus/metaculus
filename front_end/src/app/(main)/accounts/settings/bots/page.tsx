@@ -6,7 +6,7 @@ import BotsDisclaimer from "@/app/(main)/accounts/settings/bots/components/bots_
 import BotCreateButton from "@/app/(main)/accounts/settings/bots/components/create_button";
 import EmptyPlaceholder from "@/app/(main)/accounts/settings/bots/components/empty_placeholder";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 
 import PreferencesSection from "../components/preferences_section";
 
@@ -15,8 +15,8 @@ export const metadata = {
 };
 
 export default async function Bots() {
-  const token = await getServerSession();
-  invariant(token);
+  const authManager = await getAuthCookieManager();
+  invariant(authManager.hasAuthSession());
 
   const t = await getTranslations();
   const bots = await ServerProfileApi.getMyBots();

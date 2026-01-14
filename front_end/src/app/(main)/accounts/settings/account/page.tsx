@@ -2,7 +2,7 @@ import invariant from "ts-invariant";
 
 import EmailMeMyData from "@/app/(main)/accounts/settings/account/components/email_me_my_data";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 
 import ApiAccess from "./components/api_access";
 import ChangePassword from "./components/change_password";
@@ -15,7 +15,8 @@ export const metadata = {
 
 export default async function Settings() {
   const currentUser = await ServerProfileApi.getMyProfile();
-  const token = await getServerSession();
+  const authManager = await getAuthCookieManager();
+  const token = authManager.getAccessToken();
   invariant(currentUser);
   invariant(token);
 

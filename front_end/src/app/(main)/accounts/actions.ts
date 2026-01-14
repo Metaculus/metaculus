@@ -9,12 +9,8 @@ import { z } from "zod";
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { LanguageService } from "@/services/language_service";
-import {
-  deleteImpersonatorSession,
-  deleteServerSession,
-  setServerSession,
-} from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
@@ -71,7 +67,8 @@ export default async function loginAction(
     };
   }
 
-  await setServerSession(response);
+  const authManager = await getAuthCookieManager();
+  authManager.setAuthTokens(response.tokens);
 
   // Set user's language preference as the active locale
   if (response.user.language) {
@@ -136,7 +133,8 @@ export async function signUpAction(
     const signUpActionState: SignUpActionState = { ...response };
 
     if (response.is_active && response.tokens) {
-      await setServerSession(response);
+      const authManager = await getAuthCookieManager();
+      authManager.setAuthTokens(response.tokens);
 
       // Set user's language preference as the active locale
       if (response.user?.language) {
@@ -167,8 +165,9 @@ export async function signUpAction(
 }
 
 export async function LogOut() {
-  await deleteServerSession();
-  await deleteImpersonatorSession();
+  const authManager = await getAuthCookieManager();
+  authManager.clearAuthTokens();
+  authManager.clearImpersonatorRefreshToken();
   return redirect("/");
 }
 
@@ -217,7 +216,8 @@ export async function simplifiedSignUpAction(
     const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
 
     if (response) {
-      await setServerSession(response);
+      const authManager = await getAuthCookieManager();
+      authManager.setAuthTokens(response.tokens);
     }
     return response;
   } catch (err: unknown) {

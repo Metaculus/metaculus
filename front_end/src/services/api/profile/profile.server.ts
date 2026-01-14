@@ -1,5 +1,5 @@
 import "server-only";
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { AuthTokens } from "@/types/auth";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
@@ -36,9 +36,9 @@ class ServerProfileApiClass extends ProfileApi {
   // We make getMyProfile server-only, as it depends on the session
   // On client side, we can access user profile using `useAuth` hook
   async getMyProfile(): Promise<CurrentUser | null> {
-    const token = await getServerSession();
+    const authManager = await getAuthCookieManager();
 
-    if (!token) {
+    if (!authManager.hasAuthSession()) {
       return null;
     }
 

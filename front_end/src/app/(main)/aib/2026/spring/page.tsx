@@ -1,5 +1,5 @@
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 
 import AiBenchmarkingTournamentPage from "../../components/page-view";
 
@@ -11,7 +11,8 @@ export const metadata = {
 
 async function getPrimaryBotToken() {
   const user = await ServerProfileApi.getMyProfile();
-  const token = await getServerSession();
+  const authManager = await getAuthCookieManager();
+  const token = authManager.getAccessToken();
 
   if (!user) {
     return null;

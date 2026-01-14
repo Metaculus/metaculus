@@ -10,6 +10,8 @@ export type { AuthTokens } from "@/types/auth";
 // Constants
 export const COOKIE_NAME_ACCESS_TOKEN = "metaculus_access_token";
 export const COOKIE_NAME_REFRESH_TOKEN = "metaculus_refresh_token";
+export const COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN =
+  "impersonator_refresh_token";
 
 // Token expiration times (should match backend)
 export const ACCESS_TOKEN_EXPIRY_SECONDS = 15 * 60; // 15 minutes
@@ -88,8 +90,19 @@ export class AuthCookieReader {
     return this.cookieStorage.get(COOKIE_NAME_REFRESH_TOKEN)?.value || null;
   }
 
+  getImpersonatorRefreshToken(): string | null {
+    return (
+      this.cookieStorage.get(COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN)?.value ||
+      null
+    );
+  }
+
   hasAuthSession(): boolean {
     return !!(this.getAccessToken() || this.getRefreshToken());
+  }
+
+  isImpersonating(): boolean {
+    return !!this.getImpersonatorRefreshToken();
   }
 
   isAccessTokenExpired(
@@ -124,6 +137,21 @@ export class AuthCookieManager extends AuthCookieReader {
   clearAuthTokens(): void {
     this.writableCookieStorage.delete(COOKIE_NAME_ACCESS_TOKEN);
     this.writableCookieStorage.delete(COOKIE_NAME_REFRESH_TOKEN);
+  }
+
+  setImpersonatorRefreshToken(refreshToken: string): void {
+    this.writableCookieStorage.set(
+      COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN,
+      refreshToken,
+      {
+        ...AUTH_COOKIE_OPTIONS,
+        maxAge: REFRESH_TOKEN_EXPIRY_SECONDS,
+      }
+    );
+  }
+
+  clearImpersonatorRefreshToken(): void {
+    this.writableCookieStorage.delete(COOKIE_NAME_IMPERSONATOR_REFRESH_TOKEN);
   }
 }
 

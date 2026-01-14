@@ -6,12 +6,6 @@ import { redirect } from "next/navigation";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
-import {
-  deleteImpersonatorSession,
-  getImpersonatorRefreshToken,
-  setImpersonatorRefreshToken,
-  setServerSessionWithTokens,
-} from "@/services/session";
 import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
@@ -118,14 +112,15 @@ export async function getBotTokenAction(botId: number) {
 }
 
 export async function stopImpersonatingAction() {
-  const impersonatorRefreshToken = await getImpersonatorRefreshToken();
+  const authManager = await getAuthCookieManager();
+  const impersonatorRefreshToken = authManager.getImpersonatorRefreshToken();
 
   if (impersonatorRefreshToken) {
     const tokens = await ServerAuthApi.refreshTokens(impersonatorRefreshToken);
     if (tokens) {
-      await setServerSessionWithTokens(tokens);
+      authManager.setAuthTokens(tokens);
     }
-    await deleteImpersonatorSession();
+    authManager.clearImpersonatorRefreshToken();
   }
 
   redirect("/accounts/settings/bots/");
@@ -138,10 +133,10 @@ export async function impersonateBotAction(botId: number) {
     const botTokens = await ServerProfileApi.getBotJwt(botId);
 
     if (userRefreshToken) {
-      await setImpersonatorRefreshToken(userRefreshToken);
+      authManager.setImpersonatorRefreshToken(userRefreshToken);
     }
 
-    await setServerSessionWithTokens(botTokens);
+    authManager.setAuthTokens(botTokens);
 
     redirect("/");
   } catch (err) {

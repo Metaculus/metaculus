@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import invariant from "ts-invariant";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { setServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { logError } from "@/utils/core/errors";
 
 export async function GET(request: Request) {
@@ -15,7 +15,8 @@ export async function GET(request: Request) {
 
   try {
     const response = await ServerAuthApi.activateAccount(userId, token);
-    await setServerSession(response);
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(response.tokens);
   } catch (err) {
     logError(err);
   }
