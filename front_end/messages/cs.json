@@ -1487,7 +1487,7 @@
   "settingsThemeLightMode": "Světelný režim",
   "settingsThemeDarkMode": "Tmavý režim",
   "withdrawAfterPercentSetting": "Stáhnout po <input></input> z celkové doby trvání otázky",
-  "withdrawAfterPercentSettingDescription": "Například, pokud otázka trvá celkem 10 týdnů, ve výchozím nastavení budou vaše předpovědi staženy po <strong>{value} {value, plural, =1 {týdnu} other {týdnech}}</strong>. Tuto dobu můžete také změnit nebo stažení pro každou otázku zakázat.",
+  "withdrawAfterPercentSettingDescription": "Například, pokud otázka trvá celkem 10 měsíců, ve výchozím nastavení budou vaše předpovědi staženy po <strong>{value} {value, plural, =1 {měsíci} other {měsících}} (minimálně 1 měsíc)</strong>. Tuto dobu můžete také změnit nebo stažení pro každou otázku zakázat.",
   "withdrawAfterPercentSettingDescriptionLink": "Proč na tom záleží?",
   "consumerView": "Zobrazení pro spotřebitele",
   "consumerViewDescription": "Více bílého prostoru, méně nepořádku. Doporučeno pro nové uživatele",

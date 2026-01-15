@@ -1487,7 +1487,7 @@
   "settingsThemeLightMode": "Modo Claro",
   "settingsThemeDarkMode": "Modo Oscuro",
   "withdrawAfterPercentSetting": "Retirar después del <input></input> del tiempo de vida total de la pregunta",
-  "withdrawAfterPercentSettingDescription": "Por ejemplo, si una pregunta dura un total de 10 semanas, por defecto tus predicciones serán retiradas después de <strong>{value} {value, plural, =1 {semana} other {semanas}}</strong>. También puedes cambiar esta duración o desactivar el retiro para cada pregunta.",
+  "withdrawAfterPercentSettingDescription": "Por ejemplo, si una pregunta dura un total de 10 meses, por defecto tus predicciones serán retiradas después de <strong>{value} {value, plural, =1 {mes} other {meses}} (mínimo 1 mes)</strong>. También puedes cambiar esta duración o desactivar el retiro para cada pregunta.",
   "withdrawAfterPercentSettingDescriptionLink": "¿Por qué es importante?",
   "consumerView": "Vista de Consumidor",
   "consumerViewDescription": "Más espacio en blanco, menos desorden. Recomendado para nuevos usuarios",
