@@ -14,6 +14,7 @@ import {
   Scaling,
   UserForecastHistory,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
@@ -53,6 +54,7 @@ type Props = {
   cursorTooltip?: ReactNode;
   isConsumerView?: boolean;
   forFeedPage?: boolean;
+  colorOverride?: ThemeColor | string;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -86,6 +88,7 @@ const NumericTimeline: FC<Props> = ({
   cursorTooltip,
   isConsumerView,
   forFeedPage,
+  colorOverride,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -211,6 +214,7 @@ const NumericTimeline: FC<Props> = ({
       cursorTooltip={cursorTooltip}
       isConsumerView={isConsumerView}
       questionType={questionType}
+      colorOverride={colorOverride}
     />
   );
 };

@@ -49,7 +49,12 @@ def login_api_view(request):
     # their account, and also to re-send their activation email
     user = AuthLoginBackend.find_user(login)
 
-    if user and not user.is_active and user.check_password(password):
+    if (
+        user
+        and not user.is_active
+        and not user.last_login
+        and user.check_password(password)
+    ):
         send_activation_email(user, None)
         raise ValidationError({"user_state": "inactive"})
 

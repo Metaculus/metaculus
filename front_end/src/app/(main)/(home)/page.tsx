@@ -1,26 +1,24 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
-import { NotebookPost, PostWithForecasts } from "@/types/post";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
+import { NotebookPost } from "@/types/post";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
+import AllCategoriesSection from "./components/all_categories_section";
 import EmailConfirmation from "./components/email_confirmation";
-import EngageBlock from "./components/engage_block";
-import FocusAreaLink, { FocusAreaItem } from "./components/focus_area_link";
-import HomeSearch from "./components/home_search";
-import FocusAreaAiIcon from "./components/icons/focus_area_ai";
-import FocusAreaBiosecurityIcon from "./components/icons/focus_area_biosecurity";
-import FocusAreaClimateIcon from "./components/icons/focus_area_climate";
-import FocusAreaNuclearIcon from "./components/icons/focus_area_nuclear";
-import QuestionCarousel from "./components/questions_carousel";
-import ResearchAndUpdatesBlock from "./components/research_and_updates";
-import TopicLink from "./components/topic_link";
-import TournamentsBlock from "./components/tournaments_block";
+import HeroCTAs from "./components/hero_ctas";
+import { FILTERS } from "./components/homepage_filters";
+import HomePageForecasts from "./components/homepage_forecasts";
+import ResearchAndUpdates from "./components/research_and_updates";
+import StaffPicks from "./components/staff_picks";
+import TournamentsSection from "./components/tournaments_section";
+import WhyMetaculus from "./components/why_metaculus";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -29,121 +27,61 @@ export default async function Home() {
     return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
-  const t = await getTranslations();
-  const sidebarItems = await serverMiscApi.getSidebarItems();
+  const [sidebarItems, homepagePosts, categories, initialPopularPosts] =
+    await Promise.all([
+      serverMiscApi.getSidebarItems(),
+      ServerPostsApi.getPostsForHomepage(),
+      ServerProjectsApi.getHomepageCategories(),
+      ServerPostsApi.getPostsWithCP(FILTERS.popular),
+    ]);
+
+  const postNotebooks = homepagePosts.filter(
+    (post) => !!post.notebook
+  ) as unknown as NotebookPost[];
 
   const hotTopics = sidebarItems
     .filter(({ section }) => section === "hot_topics")
     .map((item) => convertSidebarItem(item));
 
-  const FOCUS_AREAS: FocusAreaItem[] = [
-    {
-      id: "biosecurity",
-      title: t("biosecurity"),
-      Icon: FocusAreaBiosecurityIcon,
-      text: t("biosecurityDescription"),
-      href: "/questions/?categories=health-pandemics&for_main_feed=false",
-    },
-    {
-      id: "ai",
-      title: t("aiProgress"),
-      Icon: FocusAreaAiIcon,
-      text: t("aiProgressDescription"),
-      href: "/questions/?categories=artificial-intelligence&for_main_feed=false",
-    },
-    {
-      id: "nuclear",
-      title: t("nuclearSecurity"),
-      Icon: FocusAreaNuclearIcon,
-      text: t("nuclearSecurityDescription"),
-      href: "/questions/?categories=nuclear&for_main_feed=false",
-    },
-    {
-      id: "climate",
-      title: t("climateChange"),
-      Icon: FocusAreaClimateIcon,
-      text: t("climateChangeDescription"),
-      href: "/questions/?categories=environment-climate&for_main_feed=false",
-    },
-  ];
-
-  const homepagePosts = await ServerPostsApi.getPostsForHomepage();
-  const postQuestions = homepagePosts.filter(
-    (post) => !post.notebook
-  ) as unknown as PostWithForecasts[];
-  const postNotebooks = homepagePosts.filter(
-    (post) => !!post.notebook
-  ) as unknown as NotebookPost[];
+  const contentWidthClassNames =
+    "2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-4";
 
   return (
-    <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">
+    <main className=" min-h-screen  bg-gray-0 dark:bg-gray-0-dark ">
       <OnboardingCheck />
       <EmailConfirmation />
-      <div className="mx-auto mb-24 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-blue-700 dark:text-blue-700-dark sm:px-8 md:px-12 lg:px-16">
-        <div className="mb-6 flex flex-col items-center md:mb-12 lg:mb-14">
-          <h1 className="mb-5 mt-0 text-balance text-center text-4xl text-blue-800 dark:text-blue-800-dark sm:text-5xl sm:tracking-tight md:text-6xl">
-            {t.rich("homeTitle", {
-              highlight: (chunks) => (
-                <span className="text-blue-600 dark:text-blue-600-dark">
-                  {chunks}
-                </span>
-              ),
-            })}
-          </h1>
-          <span className="m-0 max-w-2xl text-balance text-center text-xl text-blue-700 dark:text-blue-700-dark md:text-2xl">
-            {t("homeDescription")}
-          </span>
-          <div className="mb-4 mt-8 inline-flex w-full flex-col items-center justify-center gap-4 md:mt-12">
-            <div className="w-full md:max-w-xl">
-              <HomeSearch />
-            </div>
-            <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
-              {hotTopics.map((item, idx) => (
-                <TopicLink
-                  key={`topic-${idx}`}
-                  text={item.name}
-                  emoji={item.emoji}
-                  href={item.url}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        {!!postQuestions.length && (
-          <div className="mt-12">
-            <QuestionCarousel posts={postQuestions} />
-          </div>
-        )}
-        <div className="my-6 md:my-12 lg:my-16">
-          <h2 className="mb-5 mt-0 w-full text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
-            {t.rich("focusAreasTitle", {
-              highlight: (chunks) => (
-                <span className="text-blue-600 dark:text-blue-600-dark">
-                  {chunks}
-                </span>
-              ),
-            })}
-          </h2>
-          <p className="mb-9 mt-0 flex-1 text-center text-xl text-blue-700 dark:text-blue-700-dark">
-            {t("focusAreasDescription")}
-          </p>
-          <div className="mt-16 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-            {FOCUS_AREAS.map((focusArea) => (
-              <FocusAreaLink key={focusArea.id} {...focusArea} />
-            ))}
-          </div>
-        </div>
-
-        <Suspense>
-          <TournamentsBlock />
-        </Suspense>
-        {!!postNotebooks.length && (
-          <Suspense>
-            <ResearchAndUpdatesBlock posts={postNotebooks} />
-          </Suspense>
-        )}
-        <EngageBlock />
+      <StaffPicks items={hotTopics} />
+      <HeroCTAs
+        className={
+          "mx-auto w-full px-0 md:max-2xl:px-20 2xl:max-w-[1352px] 2xl:px-4"
+        }
+      />
+      <div className={contentWidthClassNames}>
+        <WhyMetaculus className="mt-4 md:mt-8" />
+        <HomePageForecasts
+          initialPopularPosts={initialPopularPosts.results}
+          className="mt-16 md:mt-8 lg:mt-16"
+        />
       </div>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
+        <div className="mt-8 w-full border-y border-gray-300  bg-gray-100 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark md:mt-16 ">
+          <TournamentsSection className={contentWidthClassNames} />
+        </div>
+      </Suspense>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
+        <div className="border-y border-gray-300 bg-gray-100  py-20 dark:border-gray-300-dark dark:bg-gray-100-dark">
+          <ResearchAndUpdates
+            posts={postNotebooks}
+            className={contentWidthClassNames}
+          />
+        </div>
+      </Suspense>
+      <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
+        <AllCategoriesSection
+          categories={categories}
+          className={contentWidthClassNames}
+        />
+      </Suspense>
     </main>
   );
 }

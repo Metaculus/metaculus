@@ -335,6 +335,7 @@ const InitializedMarkdownEditor: FC<
         "content markdown-editor",
         {
           "dark-theme": theme === "dark",
+          "markdown-editor-read": mode === "read",
         },
         className
       )}
