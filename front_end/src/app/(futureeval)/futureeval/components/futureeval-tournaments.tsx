@@ -7,11 +7,10 @@ import AIBInfoTournamentCard from "@/app/(main)/aib/components/aib/tabs/info/aib
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 import cn from "@/utils/core/cn";
 
-import { FE_COLORS } from "../theme";
+import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 /**
  * FutureEval-specific tournaments section with consistent theming.
- * Uses the violet gradient for the carousel and matching text colors.
  */
 const FutureEvalTournaments: React.FC = () => {
   const t = useTranslations();
@@ -54,7 +53,8 @@ const FutureEvalTournaments: React.FC = () => {
     <div className="flex flex-col">
       <h4
         className={cn(
-          "m-0 mb-5 text-center text-[24px] font-bold leading-[116%] sm:text-[32px] sm:leading-[40px] lg:text-4xl",
+          "m-0 mb-5 text-center",
+          FE_TYPOGRAPHY.h2,
           FE_COLORS.textHeading
         )}
       >
@@ -71,13 +71,17 @@ const FutureEvalTournaments: React.FC = () => {
       <div className={cn("mt-6 rounded-[10px] p-4", FE_COLORS.bgSecondary)}>
         <p
           className={cn(
-            "m-0 text-center font-geist-mono text-sm antialiased sm:text-base",
+            "m-0 text-center antialiased",
+            FE_TYPOGRAPHY.body,
             FE_COLORS.textSubheading
           )}
         >
           {t.rich("aibMiniBenchBanner", {
             link: (chunks) => (
-              <Link href="/aib/minibench/" className="underline">
+              <Link
+                href="/aib/minibench/"
+                className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+              >
                 {chunks}
               </Link>
             ),

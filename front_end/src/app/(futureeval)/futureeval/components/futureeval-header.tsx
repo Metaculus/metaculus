@@ -8,6 +8,7 @@ import cn from "@/utils/core/cn";
 
 import FELogoDark from "../assets/FE-logo-dark.svg?url";
 import FELogoLight from "../assets/FE-logo-light.svg?url";
+import { FE_COLORS, FE_LOGO_SIZES } from "../theme";
 
 export type TabItem = {
   value: string;
@@ -26,24 +27,33 @@ const FutureEvalHeader: React.FC<Props> = ({
   activeTab,
   onTabChange,
 }) => {
+  // Logo sizes are controlled by FE_LOGO_SCALE in theme.ts
+  const logoStyle = {
+    "--logo-mobile": `${FE_LOGO_SIZES.mobile}px`,
+    "--logo-desktop": `${FE_LOGO_SIZES.desktop}px`,
+  } as React.CSSProperties;
+
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-      {/* Logo */}
-      <div className="flex flex-col items-center lg:items-start">
+      {/* Logo - sizes controlled by FE_LOGO_SCALE in theme.ts */}
+      <div
+        className="flex flex-col items-center lg:items-start"
+        style={logoStyle}
+      >
         <Image
           src={FELogoLight}
           alt="FutureEval"
-          width={269}
-          height={62}
-          className="h-auto w-[200px] dark:hidden sm:w-[269px]"
+          width={FE_LOGO_SIZES.desktop}
+          height={Math.round(FE_LOGO_SIZES.desktop * 0.287)}
+          className="h-auto w-[var(--logo-mobile)] dark:hidden sm:w-[var(--logo-desktop)]"
           priority
         />
         <Image
           src={FELogoDark}
           alt="FutureEval"
-          width={269}
-          height={62}
-          className="hidden h-auto w-[200px] dark:block sm:w-[269px]"
+          width={FE_LOGO_SIZES.desktop}
+          height={Math.round(FE_LOGO_SIZES.desktop * 0.287)}
+          className="hidden h-auto w-[var(--logo-mobile)] dark:block sm:w-[var(--logo-desktop)]"
           priority
         />
       </div>
@@ -81,10 +91,10 @@ const FutureEvalTabLink: React.FC<TabLinkProps> = ({
       href={tab.href}
       onClick={onClick}
       className={cn(
-        "pb-1 font-geist-mono text-sm font-medium transition-colors sm:text-base",
+        "pb-1 font-sans text-xs font-medium transition-colors sm:text-sm",
         isActive
-          ? "text-violet-800 dark:text-violet-800-dark"
-          : "text-gray-600 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200"
+          ? FE_COLORS.textAccent
+          : `${FE_COLORS.textMuted} hover:${FE_COLORS.textSecondary}`
       )}
       style={{
         textDecoration: "none",

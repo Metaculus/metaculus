@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import localFont from "next/font/local";
 
 export const sourceSerifPro = localFont({
@@ -99,6 +99,14 @@ export const geistMono = Geist_Mono({
   display: "swap",
 });
 
+export const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  display: "swap",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
 export const getFontsString = () => {
-  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} ${geist.variable} ${geistMono.variable}`;
+  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} ${geist.variable} ${geistMono.variable} ${newsreader.variable}`;
 };

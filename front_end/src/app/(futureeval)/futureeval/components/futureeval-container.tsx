@@ -11,7 +11,7 @@ const FutureEvalContainer: React.FC<Props> = ({ className, children }) => {
     <div className={cn(FE_COLORS.bgPrimary, "select-none pt-header")}>
       <div
         className={cn(
-          "mx-auto box-content max-w-[1044px] px-4 pb-[58px] pt-8 min-[376px]:pt-[52px] sm:px-10 md:px-16 md:pt-[72px] lg:pb-[143px] lg:pt-[103px]",
+          "mx-auto box-content max-w-[1044px] px-4 pb-[58px] pt-8 sm:px-10 md:px-16 lg:pb-[143px]",
           className
         )}
       >

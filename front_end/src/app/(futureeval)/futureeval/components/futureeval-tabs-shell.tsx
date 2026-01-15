@@ -32,11 +32,11 @@ const FutureEvalTabsShell: React.FC<Props> = ({ current, sections }) => {
   }));
 
   return (
-    <div className="font-geist">
+    <div className="font-sans">
       {/* Custom FutureEval navbar */}
       <FutureEvalNavbar />
 
-      {/* Hero banner with violet background - edge to edge */}
+      {/* Hero banner - edge to edge */}
       <FutureEvalHeroBanner
         tabs={tabs}
         activeTab={active}

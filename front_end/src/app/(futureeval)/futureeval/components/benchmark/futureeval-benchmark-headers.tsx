@@ -6,7 +6,7 @@ import { PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { FE_COLORS } from "../../theme";
+import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
 
 type Props = PropsWithChildren<{
   title?: React.ReactNode;
@@ -26,7 +26,8 @@ const FutureEvalSubsectionHeader: React.FC<Props> = ({
       <div className="flex items-start justify-start gap-2">
         <h3
           className={cn(
-            "m-0 text-left text-[24px] font-bold leading-[116%] sm:text-[32px] sm:leading-[40px] lg:text-4xl",
+            "m-0 text-left",
+            FE_TYPOGRAPHY.h2,
             FE_COLORS.textHeading
           )}
         >
@@ -36,7 +37,8 @@ const FutureEvalSubsectionHeader: React.FC<Props> = ({
 
       <p
         className={cn(
-          "m-0 mt-3 text-balance text-left font-geist-mono text-sm sm:text-base",
+          "m-0 mt-3 text-balance text-left",
+          FE_TYPOGRAPHY.body,
           FE_COLORS.textSubheading
         )}
       >
@@ -73,7 +75,7 @@ export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
       subtitle={t.rich("aibProsVsBotsSubtitle", {
         link: (chunks) => (
           <Link
-            className={cn("hover:underline", FE_COLORS.textSubheading)}
+            className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             href="/notebooks/38928/futureeval-resources-page/#what-is-the-pro-vs-bots-graph"
           >
             {chunks}

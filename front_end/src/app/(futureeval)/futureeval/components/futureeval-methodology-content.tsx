@@ -10,7 +10,7 @@ import { PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { FE_COLORS } from "../theme";
+import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 /**
  * FutureEval-specific methodology content without the main title.
@@ -23,63 +23,33 @@ const FutureEvalMethodologyContent: React.FC = () => {
     {
       icon: faCircleDot,
       title: t("aibIdeaCard1Title"),
+      linkHref:
+        "/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard",
       content: (
         <>
           <p>{t("aibIdeaCard1P1")}</p>
-          <p>
-            {t.rich("aibIdeaCard1P2", {
-              link: (chunks) => (
-                <Link
-                  href="/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard"
-                  className="underline"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
         </>
       ),
     },
     {
       icon: faBullseye,
       title: t("aibIdeaCard2Title"),
+      linkHref:
+        "/notebooks/38928/futureeval-resources-page/#what-do-the-tournaments-look-like",
       content: (
         <>
           <p>{t("aibIdeaCard2P1")}</p>
-          <p>
-            {t.rich("aibIdeaCard2P2", {
-              link: (chunks) => (
-                <Link
-                  href="/notebooks/38928/futureeval-resources-page/#what-do-the-tournaments-look-like"
-                  className="underline"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
         </>
       ),
     },
     {
       icon: faBrain,
       title: t("aibIdeaCard3Title"),
+      linkHref:
+        "/notebooks/38928/futureeval-resources-page/#what-is-unique-about-futureeval",
       content: (
         <>
           <p>{t("aibIdeaCard3P1")}</p>
-          <p>
-            {t.rich("aibIdeaCard2P2", {
-              link: (chunks) => (
-                <Link
-                  href="/notebooks/38928/futureeval-resources-page/#what-is-unique-about-futureeval"
-                  className="underline"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
         </>
       ),
     },
@@ -87,11 +57,20 @@ const FutureEvalMethodologyContent: React.FC = () => {
 
   return (
     <div className="space-y-8 sm:space-y-[56px] md:space-y-16">
-      {/* Description paragraphs - use font-geist-mono like benchmark page */}
+      {/* Hero headline */}
+      <h1
+        className={cn("m-0 max-w-3xl", FE_TYPOGRAPHY.h1, FE_COLORS.textHeading)}
+      >
+        Predicting the future is one of the few ways to evaluate{" "}
+        <span className={FE_COLORS.textAccent}>reasoning against reality.</span>
+      </h1>
+
+      {/* Description paragraphs */}
       <div className="max-w-[840px] space-y-4 antialiased">
         <p
           className={cn(
-            "m-0 text-balance font-geist-mono text-sm sm:text-base",
+            "m-0 text-balance",
+            FE_TYPOGRAPHY.body,
             FE_COLORS.textSubheading
           )}
         >
@@ -99,7 +78,8 @@ const FutureEvalMethodologyContent: React.FC = () => {
         </p>
         <p
           className={cn(
-            "m-0 text-balance font-geist-mono text-sm sm:text-base",
+            "m-0 text-balance",
+            FE_TYPOGRAPHY.body,
             FE_COLORS.textSubheading
           )}
         >
@@ -113,6 +93,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
             key={card.title}
             icon={card.icon}
             title={card.title}
+            linkHref={card.linkHref}
           >
             {card.content}
           </FutureEvalIdeaCard>
@@ -123,42 +104,48 @@ const FutureEvalMethodologyContent: React.FC = () => {
 };
 
 /**
- * FutureEval-specific idea card with monospace font for titles
+ * FutureEval-specific idea card
  */
 type IdeaCardProps = PropsWithChildren<{
   icon: IconDefinition;
   title?: string;
+  linkHref?: string;
 }>;
 
 const FutureEvalIdeaCard: React.FC<IdeaCardProps> = ({
   icon,
   title,
+  linkHref,
   children,
 }) => {
   return (
     <div className="flex flex-1 flex-col items-start">
       <FontAwesomeIcon
-        className={cn("text-[26px]", FE_COLORS.textSubheading)}
+        className={cn("text-[26px]", FE_COLORS.textAccent)}
         icon={icon}
       />
-      {/* Title uses font-geist-mono like benchmark headers */}
       <h4
         className={cn(
-          "m-0 mt-5 font-geist-mono text-xl font-semibold antialiased md:text-2xl",
+          "m-0 mt-5 antialiased",
+          FE_TYPOGRAPHY.h4,
           FE_COLORS.textHeading
         )}
       >
         {title}
       </h4>
-      {/* Content uses font-geist-mono for consistency */}
       <div
-        className={cn(
-          "mt-2.5 font-geist-mono text-sm md:text-base",
-          FE_COLORS.textSubheading
-        )}
+        className={cn("mt-2.5", FE_TYPOGRAPHY.body, FE_COLORS.textSubheading)}
       >
         {children}
       </div>
+      {linkHref && (
+        <Link
+          href={linkHref}
+          className={cn("mt-3", FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+        >
+          Learn more
+        </Link>
+      )}
     </div>
   );
 };

@@ -70,7 +70,7 @@ const FutureEvalInfoPopover: React.FC<Props> = ({ defaultOpen = false }) => {
         aria-label="Learn more about the Model Leaderboard"
         aria-pressed={open}
         className={cn(
-          "h-9 min-h-9 w-9 min-w-9 flex-shrink-0 text-lg",
+          "mb-0 h-7 min-h-7 w-7 min-w-7 flex-shrink-0 text-base sm:mb-2",
           FE_COLORS.buttonBorder
         )}
         {...getReferenceProps()}

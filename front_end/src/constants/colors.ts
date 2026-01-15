@@ -190,6 +190,12 @@ export const METAC_COLORS = {
   bell: { DEFAULT: "#b79d00", dark: "#dac024" },
   twitter: { DEFAULT: "#1da1f2" },
   // FutureEval brand colors
+  futureeval: {
+    "primary-light": "#00A99E",
+    "primary-dark": "#23FBE3",
+    "bg-light": "#FBFFFC",
+    "bg-dark": "#030C07",
+  },
   violet: {
     50: { DEFAULT: "#f5f3ff", dark: "#2f0d68" },
     100: { DEFAULT: "#ede9fe", dark: "#4d179a" },

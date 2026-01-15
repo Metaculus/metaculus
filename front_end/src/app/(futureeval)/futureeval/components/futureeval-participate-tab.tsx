@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import cn from "@/utils/core/cn";
 
-import { FE_COLORS } from "../theme";
+import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 /**
  * FutureEval Participate Tab
@@ -77,8 +77,19 @@ const FutureEvalSubmitSteps: React.FC = () => {
   return (
     <div className="flex flex-col gap-[60px] antialiased lg:flex-row lg:items-center">
       {/* Video section */}
-      <div className="flex flex-1 flex-col items-center gap-[26px] rounded-[13px] bg-blue-900 p-8 dark:bg-blue-900-dark md:mx-auto md:max-w-[432px] lg:mx-0 lg:max-w-none">
-        <p className="m-0 mx-auto max-w-[400px] text-center font-geist-mono text-xl text-gray-0 dark:text-gray-0-dark sm:text-2xl">
+      <div
+        className={cn(
+          "flex flex-1 flex-col items-center gap-[26px] rounded-[13px] p-8 md:mx-auto md:max-w-[432px] lg:mx-0 lg:max-w-none",
+          FE_COLORS.bgSecondary
+        )}
+      >
+        <p
+          className={cn(
+            "m-0 mx-auto max-w-[400px] text-center",
+            FE_TYPOGRAPHY.h4,
+            FE_COLORS.textHeading
+          )}
+        >
           {t("aibSubmitLearnLine")}
         </p>
 
@@ -101,7 +112,8 @@ const FutureEvalSubmitSteps: React.FC = () => {
       <div className="my-6 flex-1">
         <h4
           className={cn(
-            "m-0 mb-[55px] text-center text-[24px] font-bold leading-[116%] sm:text-[32px] sm:leading-[40px] lg:text-4xl",
+            "m-0 mb-[55px] text-center",
+            FE_TYPOGRAPHY.h2,
             FE_COLORS.textHeading
           )}
         >
@@ -129,18 +141,13 @@ const FutureEvalSubmitStep: React.FC<{
     <div className="flex items-center gap-6">
       <div
         className={cn(
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-full p-[10px] font-geist-mono text-[22.5px] text-gray-0 dark:text-gray-0-dark",
+          "flex h-12 w-12 shrink-0 items-center justify-center rounded-full p-[10px] font-sans text-[22.5px] font-medium text-futureeval-bg-light dark:text-futureeval-bg-dark",
           FE_COLORS.stepNumberBg
         )}
       >
         {index}
       </div>
-      <p
-        className={cn(
-          "m-0 font-geist-mono text-sm sm:text-base md:text-lg",
-          FE_COLORS.textSubheading
-        )}
-      >
+      <p className={cn("m-0", FE_TYPOGRAPHY.body, FE_COLORS.textSubheading)}>
         {content}
       </p>
     </div>
@@ -148,7 +155,7 @@ const FutureEvalSubmitStep: React.FC<{
 };
 
 /**
- * Resources section with monospace font
+ * Resources section
  */
 const FutureEvalResources: React.FC = () => {
   const t = useTranslations();
@@ -178,7 +185,8 @@ const FutureEvalResources: React.FC = () => {
     <div className="space-y-8">
       <h4
         className={cn(
-          "m-0 text-center text-[24px] font-bold leading-[116%] sm:text-[32px] sm:leading-[40px] lg:text-4xl",
+          "m-0 text-center",
+          FE_TYPOGRAPHY.h2,
           FE_COLORS.textHeading
         )}
       >
@@ -221,32 +229,23 @@ const FutureEvalResourceCard: React.FC<ResourceCardProps> = ({
       <div
         className={cn(
           "flex h-full flex-1 flex-col items-start rounded-[10px] border p-8 antialiased transition",
-          "hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-violet-500",
+          "hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-futureeval-primary-light dark:focus-visible:ring-futureeval-primary-dark",
           FE_COLORS.cardBorder,
           FE_COLORS.bgCard
         )}
       >
         <FontAwesomeIcon
           icon={icon}
-          className={cn(
-            "text-[26px] transition-colors group-hover:text-violet-600",
-            FE_COLORS.textSubheading
-          )}
+          className={cn("text-[26px] transition-colors", FE_COLORS.textAccent)}
           aria-hidden
         />
-        {/* Title uses font-geist-mono */}
-        <h4
-          className={cn(
-            "m-0 mt-5 font-geist-mono text-xl font-semibold md:text-2xl",
-            FE_COLORS.textHeading
-          )}
-        >
+        <h4 className={cn("m-0 mt-5", FE_TYPOGRAPHY.h4, FE_COLORS.textHeading)}>
           {title}
         </h4>
-        {/* Description uses font-geist-mono */}
         <p
           className={cn(
-            "m-0 mt-2.5 font-geist-mono text-sm md:text-base",
+            "m-0 mt-2.5",
+            FE_TYPOGRAPHY.body,
             FE_COLORS.textSubheading
           )}
         >

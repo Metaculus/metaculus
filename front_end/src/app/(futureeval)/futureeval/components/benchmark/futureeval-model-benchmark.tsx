@@ -4,17 +4,17 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
-import ReusableGradientCarousel from "@/components/gradient-carousel";
-
-import { useAIBLeaderboard } from "../../../aib/components/aib/leaderboard/aib-leaderboard-provider";
+import { useAIBLeaderboard } from "@/app/(main)/aib/components/aib/leaderboard/aib-leaderboard-provider";
 import {
   aggregateKind,
   entryIconPair,
   entryLabel,
   isAggregate,
   shouldDisplayEntry,
-} from "../../../aib/components/aib/leaderboard/utils";
-import { FE_COLORS } from "../../theme";
+} from "@/app/(main)/aib/components/aib/leaderboard/utils";
+import ReusableGradientCarousel from "@/components/gradient-carousel";
+
+import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
 import FutureEvalInfoPopover from "../futureeval-info-popover";
 import FutureEvalModelBar from "./futureeval-model-bar";
 
@@ -96,21 +96,32 @@ const FutureEvalModelBenchmark: React.FC = () => {
       {/* Header */}
       <div className="mb-0 flex items-start justify-between gap-4 sm:mb-1">
         <div className="text-left">
-          <h3
-            className={`m-0 text-[24px] font-bold leading-[116%] sm:text-[32px] sm:leading-[40px] lg:text-4xl ${FE_COLORS.textHeading}`}
-          >
-            {t("aibBenchModelsTitle")}
-          </h3>
+          {/* Title with info popover inline on desktop */}
+          <div className="flex items-center gap-3">
+            <h3 className={`m-0 ${FE_TYPOGRAPHY.h2} ${FE_COLORS.textHeading}`}>
+              {t("aibBenchModelsTitle")}
+            </h3>
+            {/* Info popover - inline on desktop (sm+) */}
+            <div className="hidden sm:block">
+              <FutureEvalInfoPopover />
+            </div>
+          </div>
           <p
-            className={`m-0 mt-3 text-balance font-geist-mono text-sm sm:text-base ${FE_COLORS.textSubheading}`}
+            className={`m-0 mt-3 text-balance ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
           >
-            {t("aibBenchModelsBlurb")}{" "}
-            <Link href="/futureeval/leaderboard" className="underline">
-              {t("aibViewFullLeaderboard")}
-            </Link>
+            {t("aibBenchModelsBlurb")}
           </p>
+          <Link
+            href="/futureeval/leaderboard"
+            className={`mt-2 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
+          >
+            {t("aibViewFullLeaderboard")}
+          </Link>
         </div>
-        <FutureEvalInfoPopover />
+        {/* Info popover - right aligned on mobile only */}
+        <div className="block sm:hidden">
+          <FutureEvalInfoPopover />
+        </div>
       </div>
 
       {/* Horizontal bar chart carousel */}
@@ -134,7 +145,6 @@ const FutureEvalModelBenchmark: React.FC = () => {
           itemClassName="w-[40px] sm:w-[64px] h-full"
           gapClassName="gap-1 sm:gap-2"
           gradientFromClass={FE_COLORS.gradientFrom}
-          arrowClassName={`w-7 h-7 sm:w-10 sm:h-10 ${FE_COLORS.textSubheading} ${FE_COLORS.carouselArrowBg} rounded-full shadow-md ${FE_COLORS.cardBorder}`}
           arrowLeftPosition="left-1 sm:left-[18px]"
           arrowRightPosition="right-1 sm:right-[18px]"
           slideBy={{ mode: "items", count: 3 }}

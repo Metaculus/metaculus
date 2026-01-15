@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef } from "react";
 
@@ -18,6 +17,7 @@ type Props = { details: LeaderboardDetails };
 
 const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
   const t = useTranslations();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const highlightedRowRef = useRef<HTMLTableRowElement>(null);
@@ -61,7 +61,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
   const hasCI = rows.some((r) => r.ciLower != null || r.ciUpper != null);
 
   return (
-    <table className="mx-auto w-full max-w-[854px] table-fixed border-collapse border-spacing-0 border-[1px] border-gray-300 dark:border-gray-300-dark">
+    <table className="mx-auto w-full table-fixed border-collapse border-spacing-0 border-[1px] border-gray-300 dark:border-gray-300-dark">
       <colgroup>
         <col className="w-8 sm:w-16" />
         <col />
@@ -76,7 +76,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
       </colgroup>
 
       <thead>
-        <tr className="items-center border-b-[1px] border-blue-400 bg-blue-100 text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
+        <tr className="items-center border-b-[1px] border-blue-400 bg-futureeval-bg-light text-gray-500 dark:border-blue-400-dark dark:bg-futureeval-bg-dark dark:text-gray-500-dark">
           <Th />
           <Th>{t("aibLbThModel")}</Th>
           <Th className="hidden text-center sm:table-cell">
@@ -96,19 +96,27 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
         </tr>
       </thead>
 
-      <tbody className="bg-gray-0 dark:bg-gray-0-dark">
+      <tbody className="bg-futureeval-bg-light dark:bg-futureeval-bg-dark">
         {rows.map((r, i) => {
           const isHighlighted = highlightId === r.id;
+          const isClickable = !r.isAggregate && r.profileHref;
           return (
             <tr
               key={`${r.username}-${r.rank}`}
               ref={isHighlighted ? highlightedRowRef : null}
+              onClick={
+                isClickable && r.profileHref
+                  ? () => router.push(r.profileHref)
+                  : undefined
+              }
               className={cn(
                 "h-[61px] border-b border-gray-300 last:border-0 dark:border-gray-300-dark",
-                isHighlighted && "animate-highlight-flash"
+                isHighlighted && "animate-highlight-flash",
+                isClickable &&
+                  "cursor-pointer hover:bg-futureeval-primary-light/10 dark:hover:bg-futureeval-primary-dark/10"
               )}
             >
-              <Td className="text-center">{i + 1}</Td>
+              <Td className="text-center tabular-nums">{i + 1}</Td>
 
               <Td>
                 <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -123,13 +131,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
                   )}
                   <div className="min-w-0">
                     <div className="truncate text-sm leading-[24px] sm:text-base">
-                      {r.isAggregate || !r.profileHref ? (
-                        r.label
-                      ) : (
-                        <Link className="no-underline" href={r.profileHref}>
-                          {r.label}
-                        </Link>
-                      )}
+                      {r.label}
                     </div>
                     <div className="truncate text-[10px] text-gray-500 dark:text-gray-500-dark sm:text-xs">
                       {r.username}
@@ -138,17 +140,19 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
                 </div>
               </Td>
 
-              <Td className="hidden text-center sm:table-cell">
+              <Td className="hidden text-center tabular-nums sm:table-cell">
                 {r.forecasts}
               </Td>
-              <Td className="w-[100px] text-center">{fmt(r.score, 2)}</Td>
+              <Td className="w-[100px] text-center tabular-nums">
+                {fmt(r.score, 2)}
+              </Td>
 
               {hasCI && (
                 <>
-                  <Td className="hidden text-center md:table-cell">
+                  <Td className="hidden text-center tabular-nums md:table-cell">
                     {fmt(r.ciLower, 2)}
                   </Td>
-                  <Td className="hidden text-center md:table-cell">
+                  <Td className="hidden text-center tabular-nums md:table-cell">
                     {fmt(r.ciUpper, 2)}
                   </Td>
                 </>

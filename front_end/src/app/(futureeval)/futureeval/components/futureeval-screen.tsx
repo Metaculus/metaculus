@@ -1,8 +1,8 @@
+import { AIBLeaderboardProvider } from "@/app/(main)/aib/components/aib/leaderboard/aib-leaderboard-provider";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import FutureEvalTabs from "./futureeval-tabs";
 import { Section } from "./futureeval-tabs-shell";
-import { AIBLeaderboardProvider } from "../../aib/components/aib/leaderboard/aib-leaderboard-provider";
 
 type Props = { leaderboard: LeaderboardDetails; current: Section["value"] };
 

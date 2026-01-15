@@ -21,7 +21,7 @@ export default async function FutureEvalLeaderboardsPage() {
   );
 
   return (
-    <div className="font-geist">
+    <div className="font-sans">
       <FutureEvalNavbar />
       <FutureEvalContainer className="pb-[148px] min-[376px]:pb-[58px]">
         <FutureEvalLeaderboardHero />
@@ -31,7 +31,7 @@ export default async function FutureEvalLeaderboardsPage() {
             <FutureEvalLeaderboardTable details={data} />
           </Suspense>
         ) : (
-          <div className="mx-auto mt-10 w-full max-w-[570px] rounded-[2px] border-[1px] border-violet-300 bg-gray-0 p-8 text-base font-normal text-gray-700 dark:border-violet-300-dark dark:bg-gray-0-dark dark:text-gray-700-dark">
+          <div className="mx-auto mt-10 w-full max-w-[570px] rounded-[2px] border border-futureeval-primary-light/30 bg-futureeval-bg-light p-8 text-base font-normal text-futureeval-bg-dark/80 dark:border-futureeval-primary-dark/30 dark:bg-futureeval-bg-dark dark:text-futureeval-bg-light/80">
             Leaderboard data not currently available, please check back soon!
           </div>
         )}
