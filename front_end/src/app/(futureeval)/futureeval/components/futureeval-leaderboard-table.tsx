@@ -99,16 +99,13 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
       <tbody className="bg-futureeval-bg-light dark:bg-futureeval-bg-dark">
         {rows.map((r, i) => {
           const isHighlighted = highlightId === r.id;
-          const isClickable = !r.isAggregate && r.profileHref;
+          const profileHref = r.profileHref;
+          const isClickable = !r.isAggregate && profileHref;
           return (
             <tr
               key={`${r.username}-${r.rank}`}
               ref={isHighlighted ? highlightedRowRef : null}
-              onClick={
-                isClickable && r.profileHref
-                  ? () => router.push(r.profileHref)
-                  : undefined
-              }
+              onClick={isClickable ? () => router.push(profileHref) : undefined}
               className={cn(
                 "h-[61px] border-b border-gray-300 last:border-0 dark:border-gray-300-dark",
                 isHighlighted && "animate-highlight-flash",
