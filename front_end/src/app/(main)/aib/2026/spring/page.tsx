@@ -17,8 +17,8 @@ async function getPrimaryBotToken() {
   }
 
   if (user.is_bot) {
-    const { token } = await ServerAuthApi.getApiToken();
-    return token;
+    const { key } = await ServerAuthApi.getApiKey();
+    return key;
   }
 
   const bots = await ServerProfileApi.getMyBots();

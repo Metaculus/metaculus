@@ -117,12 +117,30 @@ export async function getBotTokenAction(botId: number) {
   }
 }
 
-export async function getApiTokenAction() {
+export async function getApiKeyAction() {
   try {
-    const data = await ServerAuthApi.getApiToken();
+    const data = await ServerAuthApi.getApiKey();
 
     return {
-      token: data.token,
+      key: data.key,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function rotateApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.rotateApiKey();
+
+    return {
+      key: data.key,
     };
   } catch (err) {
     if (!ApiError.isApiError(err)) {

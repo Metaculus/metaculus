@@ -1,6 +1,7 @@
 import invariant from "ts-invariant";
 
 import EmailMeMyData from "@/app/(main)/accounts/settings/account/components/email_me_my_data";
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import ApiAccess from "./components/api_access";
@@ -16,11 +17,13 @@ export default async function Settings() {
   const currentUser = await ServerProfileApi.getMyProfile();
   invariant(currentUser);
 
+  const { key: apiKey } = await ServerAuthApi.getApiKey();
+
   return (
     <PreferencesSection className="gap-0">
       <EmailEdit user={currentUser} />
       <ChangePassword />
-      <ApiAccess />
+      <ApiAccess apiKey={apiKey} />
       <EmailMeMyData />
     </PreferencesSection>
   );
