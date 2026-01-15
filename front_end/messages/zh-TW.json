@@ -1409,7 +1409,7 @@
   "settingsThemeLightMode": "淺色模式",
   "settingsThemeDarkMode": "深色模式",
   "withdrawAfterPercentSetting": "在問題總生命週期的 <input></input> 之後提取",
-  "withdrawAfterPercentSettingDescription": "例如，如果問題總共持續 10 週，則預設情況下您的預測將在 <strong>{value} {value, plural, =1 {週} other {週}}</strong>後提取。您也可以更改此期限或對每個問題禁用提取。",
+  "withdrawAfterPercentSettingDescription": "例如，如果問題總共持續 10 個月，則預設情況下您的預測將在 <strong>{value} {value, plural, =1 {個月} other {個月}} (最少 1 個月)</strong>後提取。您也可以更改此期限或對每個問題禁用提取。",
   "withdrawAfterPercentSettingDescriptionLink": "為什麼這很重要？",
   "consumerView": "消費者視圖",
   "consumerViewDescription": "更多空白，減少雜亂。推薦給新用戶",

@@ -689,7 +689,7 @@
   "settingsThemeLightMode": "Light Mode",
   "settingsThemeDarkMode": "Dark Mode",
   "withdrawAfterPercentSetting": "Withdraw after <input></input> of the total question lifetime",
-  "withdrawAfterPercentSettingDescription": "For example, if a question lasts 10 weeks total, by default your predictions will be withdrawn after <strong>{value} {value, plural, =1 {week} other {weeks}}</strong>. You can also change this duration or disable withdrawal for each question.",
+  "withdrawAfterPercentSettingDescription": "For example, if a question lasts 10 months total, by default your predictions will be withdrawn after <strong>{value} {value, plural, =1 {month} other {months}}</strong> (1 month minimum). You can also change this duration or disable withdrawal for each question.",
   "withdrawAfterPercentSettingDescriptionLink": "Why does this matter?",
   "consumerView": "Consumer View",
   "consumerViewDescription": "More whitespace, less clutter. Recommended for new users",
