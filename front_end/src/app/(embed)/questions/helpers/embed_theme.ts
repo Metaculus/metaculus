@@ -63,9 +63,10 @@ function getEmbeddedContainerTheme(
     return theme;
   }
 
-  if (Object.values(cssVariables).length) {
+  const containerBackground = cssVariables["container_background"];
+  if (containerBackground) {
     return {
-      backgroundColor: cssVariables["container_background"],
+      backgroundColor: containerBackground,
     };
   }
 
