@@ -17,7 +17,7 @@ def migrate_tokens_and_drop_old_table(apps, schema_editor):
         if cursor.fetchone():
             cursor.execute(
                 """
-                INSERT INTO authentication_apitoken (key, user_id, created, last_used_at)
+                INSERT INTO authentication_apikey (key, user_id, created, last_used_at)
                 SELECT key, user_id, created, NULL
                 FROM authtoken_token
                 ON CONFLICT (key) DO NOTHING
@@ -43,7 +43,7 @@ def restore_old_table_from_new(apps, schema_editor):
             """
             INSERT INTO authtoken_token (key, user_id, created)
             SELECT key, user_id, created
-            FROM authentication_apitoken
+            FROM authentication_apikey
             ON CONFLICT (key) DO NOTHING
             """
         )
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="ApiToken",
+            name="ApiKey",
             fields=[
                 (
                     "key",
@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
                     "user",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="auth_token",
+                        related_name="api_key",
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
