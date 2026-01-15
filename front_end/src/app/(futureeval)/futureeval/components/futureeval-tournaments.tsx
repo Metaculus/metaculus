@@ -50,7 +50,7 @@ const FutureEvalTournaments: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col">
+    <div id="tournaments" className="flex scroll-mt-24 flex-col">
       <h4
         className={cn(
           "m-0 mb-5 text-center",

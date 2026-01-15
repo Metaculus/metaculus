@@ -92,7 +92,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col">
+    <div id="model-leaderboard" className="flex scroll-mt-24 flex-col">
       {/* Header */}
       <div className="mb-0 flex items-start justify-between gap-4 sm:mb-1">
         <div className="text-left">

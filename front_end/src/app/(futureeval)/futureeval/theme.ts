@@ -132,6 +132,16 @@ export const FE_COLORS = {
     "border-futureeval-primary-light dark:border-futureeval-primary-dark",
   borderSubtle:
     "border-futureeval-bg-dark/20 dark:border-futureeval-bg-light/20",
+
+  // ===========================================
+  // ORBIT HERO COLORS
+  // ===========================================
+  // Solid background for orbit circles (must be opaque to hide orbit ring)
+  orbitCircleBg: "bg-futureeval-bg-light dark:bg-futureeval-bg-dark",
+  // Solid hover background for orbit circles - slightly tinted with primary
+  // Light: #F0FFFD (very subtle teal tint on off-white)
+  // Dark: #0A1A15 (very subtle teal tint on near-black)
+  orbitCircleHoverBg: "bg-[#F0FFFD] dark:bg-[#0A1A15]",
 } as const;
 
 // ===========================================

@@ -6,6 +6,7 @@ import React from "react";
 import cn from "@/utils/core/cn";
 
 import FutureEvalHeader, { TabItem } from "./futureeval-header";
+import FutureEvalOrbit from "./orbit";
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 type Props = {
@@ -29,21 +30,23 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
 
         {/* Hero content - only on Benchmark tab */}
         {showHero && (
-          <div className="mt-8 flex flex-col gap-8 sm:mt-10 lg:mt-32 lg:flex-row lg:items-start lg:justify-between lg:gap-12">
-            {/* Text content */}
-            <div className="flex-1">
+          <div
+            className={cn(
+              "mt-8 flex flex-col gap-8",
+              // Stack vertically below sm, side-by-side above
+              "sm:mt-10 sm:flex-row sm:items-center sm:gap-12"
+            )}
+          >
+            {/* Text content - 50% on tablet+ */}
+            <div className="flex-1 sm:basis-1/2">
               <h1
-                className={cn(
-                  "m-0 max-w-xl",
-                  FE_TYPOGRAPHY.h1,
-                  FE_COLORS.textHeading
-                )}
+                className={cn("m-0", FE_TYPOGRAPHY.h1, FE_COLORS.textHeading)}
               >
                 Measuring the forecasting accuracy of AI
               </h1>
               <p
                 className={cn(
-                  "m-0 mt-4 max-w-xl sm:mt-6",
+                  "m-0 mt-4 sm:mt-6",
                   FE_TYPOGRAPHY.body,
                   FE_COLORS.textSubheading
                 )}
@@ -65,22 +68,9 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
               </Link>
             </div>
 
-            {/* Hero placeholder - circular on desktop, rectangular on mobile */}
-            <div className="flex items-center justify-center lg:flex-shrink-0">
-              <div
-                className={cn(
-                  // Mobile: rectangular placeholder
-                  "flex h-[200px] w-full items-center justify-center rounded-2xl border-2 border-dashed",
-                  // Desktop: circular placeholder
-                  "sm:h-[280px] lg:h-[320px] lg:w-[320px] lg:rounded-full",
-                  FE_COLORS.borderSubtle,
-                  FE_COLORS.textMuted
-                )}
-              >
-                <span className={cn(FE_TYPOGRAPHY.bodySmall, "opacity-50")}>
-                  Hero Visualization
-                </span>
-              </div>
+            {/* Orbit visualization - 50% on tablet+, centered below on mobile */}
+            <div className="flex flex-1 items-center justify-center sm:basis-1/2">
+              <FutureEvalOrbit />
             </div>
           </div>
         )}
