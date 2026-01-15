@@ -13,12 +13,18 @@ export const metadata = {
 };
 
 export default async function FutureEvalLeaderboardsPage() {
-  const data = await ServerLeaderboardApi.getGlobalLeaderboard(
-    null,
-    null,
-    "manual",
-    "Global Bot Leaderboard"
-  );
+  let data = null;
+
+  try {
+    data = await ServerLeaderboardApi.getGlobalLeaderboard(
+      null,
+      null,
+      "manual",
+      "Global Bot Leaderboard"
+    );
+  } catch (error) {
+    console.error("Failed to fetch leaderboard data:", error);
+  }
 
   return (
     <div className="font-sans">

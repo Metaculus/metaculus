@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 import { TabItem } from "./futureeval-header";
 import FutureEvalHeroBanner from "./futureeval-hero-banner";
@@ -20,9 +20,7 @@ type Props = {
 };
 
 const FutureEvalTabsShell: React.FC<Props> = ({ current, sections }) => {
-  const [active, setActive] = useState<string>(current);
-
-  const activeSection = sections.find((s) => s.value === active);
+  const activeSection = sections.find((s) => s.value === current);
 
   // Convert sections to tab items for the header
   const tabs: TabItem[] = sections.map((s) => ({
@@ -37,11 +35,7 @@ const FutureEvalTabsShell: React.FC<Props> = ({ current, sections }) => {
       <FutureEvalNavbar />
 
       {/* Hero banner - edge to edge */}
-      <FutureEvalHeroBanner
-        tabs={tabs}
-        activeTab={active}
-        onTabChange={setActive}
-      />
+      <FutureEvalHeroBanner tabs={tabs} activeTab={current} />
 
       {/* Tab content */}
       {activeSection && (

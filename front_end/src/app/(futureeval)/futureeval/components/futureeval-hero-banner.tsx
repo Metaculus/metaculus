@@ -11,14 +11,9 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 type Props = {
   tabs: TabItem[];
   activeTab: string;
-  onTabChange: (value: string) => void;
 };
 
-const FutureEvalHeroBanner: React.FC<Props> = ({
-  tabs,
-  activeTab,
-  onTabChange,
-}) => {
+const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
   const showHero = activeTab === "benchmark";
 
   return (
@@ -30,11 +25,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({
         )}
       >
         {/* Header with logo and tabs */}
-        <FutureEvalHeader
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-        />
+        <FutureEvalHeader tabs={tabs} activeTab={activeTab} />
 
         {/* Hero content - only on Benchmark tab */}
         {showHero && (

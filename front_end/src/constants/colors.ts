@@ -196,32 +196,6 @@ export const METAC_COLORS = {
     "bg-light": "#FBFFFC",
     "bg-dark": "#030C07",
   },
-  violet: {
-    50: { DEFAULT: "#f5f3ff", dark: "#2f0d68" },
-    100: { DEFAULT: "#ede9fe", dark: "#4d179a" },
-    200: { DEFAULT: "#ddd6ff", dark: "#5d0ec0" },
-    300: { DEFAULT: "#c4b4ff", dark: "#7008e7" },
-    400: { DEFAULT: "#a684ff", dark: "#7f22fe" },
-    500: { DEFAULT: "#8e51ff", dark: "#8e51ff" },
-    600: { DEFAULT: "#7f22fe", dark: "#a684ff" },
-    700: { DEFAULT: "#7008e7", dark: "#c4b4ff" },
-    800: { DEFAULT: "#5d0ec0", dark: "#ddd6ff" },
-    900: { DEFAULT: "#4d179a", dark: "#ede9fe" },
-    950: { DEFAULT: "#2f0d68", dark: "#f5f3ff" },
-  },
-  lime: {
-    50: { DEFAULT: "#f7fee7", dark: "#192e03" },
-    100: { DEFAULT: "#ecfcca", dark: "#35530e" },
-    200: { DEFAULT: "#d8f999", dark: "#3c6300" },
-    300: { DEFAULT: "#bbf451", dark: "#497d00" },
-    400: { DEFAULT: "#9ae600", dark: "#5ea500" },
-    500: { DEFAULT: "#7ccf00", dark: "#7ccf00" },
-    600: { DEFAULT: "#5ea500", dark: "#9ae600" },
-    700: { DEFAULT: "#497d00", dark: "#bbf451" },
-    800: { DEFAULT: "#3c6300", dark: "#d8f999" },
-    900: { DEFAULT: "#35530e", dark: "#ecfcca" },
-    950: { DEFAULT: "#192e03", dark: "#f7fee7" },
-  },
 } as const;
 
 export const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(

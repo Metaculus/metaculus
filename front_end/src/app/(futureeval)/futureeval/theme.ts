@@ -18,12 +18,12 @@
 // LOGO SIZING
 // ===========================================
 // Adjust this value to scale the logo (1.0 = default, 1.15 = 15% larger, etc.)
-// Desktop is always 20% larger than mobile, then this scale is applied on top
+// Desktop is always 40% larger than mobile, then this scale is applied on top
 export const FE_LOGO_SCALE = 1.2;
 
 // Base sizes before scaling (do not edit these directly, edit FE_LOGO_SCALE instead)
 const LOGO_BASE_MOBILE = 120; // px
-const LOGO_BASE_DESKTOP = LOGO_BASE_MOBILE * 1.4; // 20% larger
+const LOGO_BASE_DESKTOP = LOGO_BASE_MOBILE * 1.4; // 40% larger
 
 // Computed logo sizes (used in components)
 export const FE_LOGO_SIZES = {
@@ -50,6 +50,9 @@ export const FE_COLORS = {
   // Secondary/muted text
   textSecondary: "text-futureeval-bg-dark/80 dark:text-futureeval-bg-light/80",
   textMuted: "text-futureeval-bg-dark/60 dark:text-futureeval-bg-light/60",
+  // Hover state for muted text (use in className directly, not dynamically)
+  textMutedHover:
+    "text-futureeval-bg-dark/60 dark:text-futureeval-bg-light/60 hover:text-futureeval-bg-dark/80 dark:hover:text-futureeval-bg-light/80",
 
   // Heading colors (uses primary accent)
   textHeading: "text-futureeval-bg-dark dark:text-futureeval-bg-light",

@@ -728,58 +728,59 @@ const LegendDot: FC<LegendDotProps> = ({
   onHover,
   onClick,
   onDeselect,
-}) => (
-  <button
-    type="button"
-    className={classNames(
-      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 transition-all duration-150",
-      "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-      {
-        // Selected state: blue-600 border in light mode, blue-400 in dark mode
-        "border-2 border-blue-600 dark:border-blue-400": isSelected,
-        // Hover state (not selected): blue-400 border in light mode, blue-600 in dark mode
-        "border-2 border-blue-400 dark:border-blue-600":
-          isHovered && !isSelected,
-        // Default state: transparent border
-        "border-2 border-transparent": !isHovered && !isSelected,
-        // Dimmed when another company is hovered
-        "opacity-35": isDimmed,
-      }
-    )}
-    onMouseEnter={() => onHover?.(label)}
-    onMouseLeave={() => onHover?.(null)}
-    onClick={() => onClick?.(label)}
-  >
-    <span
-      aria-hidden
-      className="inline-block h-[14px] w-[14px] rounded-full"
-      style={{ backgroundColor: color }}
-    />
-    <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
-      {label}
-    </span>
-    {isSelected && (
+}) => {
+  // Toggle behavior: select when not selected, deselect when selected
+  const handleClick = () => {
+    if (isSelected) {
+      onDeselect?.();
+    } else {
+      onClick?.(label);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      aria-pressed={isSelected}
+      aria-label={isSelected ? `Deselect ${label}` : `Select ${label}`}
+      className={classNames(
+        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 transition-all duration-150",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+        {
+          // Selected state: blue-600 border in light mode, blue-400 in dark mode
+          "border-2 border-blue-600 dark:border-blue-400": isSelected,
+          // Hover state (not selected): blue-400 border in light mode, blue-600 in dark mode
+          "border-2 border-blue-400 dark:border-blue-600":
+            isHovered && !isSelected,
+          // Default state: transparent border
+          "border-2 border-transparent": !isHovered && !isSelected,
+          // Dimmed when another company is hovered
+          "opacity-35": isDimmed,
+        }
+      )}
+      onMouseEnter={() => onHover?.(label)}
+      onMouseLeave={() => onHover?.(null)}
+      onClick={handleClick}
+    >
       <span
-        role="button"
-        tabIndex={0}
-        aria-label={`Deselect ${label}`}
-        className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDeselect?.();
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.stopPropagation();
-            onDeselect?.();
-          }
-        }}
-      >
-        <FontAwesomeIcon icon={faXmark} className="h-3 w-3" />
+        aria-hidden
+        className="inline-block h-[14px] w-[14px] rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+        {label}
       </span>
-    )}
-  </button>
-);
+      {isSelected && (
+        <span
+          aria-hidden
+          className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-600 dark:text-gray-400"
+        >
+          <FontAwesomeIcon icon={faXmark} className="h-3 w-3" />
+        </span>
+      )}
+    </button>
+  );
+};
 
 const LegendTrend: FC<{ color: string; label: string; isDimmed?: boolean }> = ({
   color,

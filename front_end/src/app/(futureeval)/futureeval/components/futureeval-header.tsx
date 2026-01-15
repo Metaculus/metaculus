@@ -19,14 +19,9 @@ export type TabItem = {
 type Props = {
   tabs: TabItem[];
   activeTab: string;
-  onTabChange: (value: string) => void;
 };
 
-const FutureEvalHeader: React.FC<Props> = ({
-  tabs,
-  activeTab,
-  onTabChange,
-}) => {
+const FutureEvalHeader: React.FC<Props> = ({ tabs, activeTab }) => {
   // Logo sizes are controlled by FE_LOGO_SCALE in theme.ts
   const logoStyle = {
     "--logo-mobile": `${FE_LOGO_SIZES.mobile}px`,
@@ -66,7 +61,6 @@ const FutureEvalHeader: React.FC<Props> = ({
               key={tab.value}
               tab={tab}
               isActive={activeTab === tab.value}
-              onClick={() => onTabChange(tab.value)}
             />
           ))}
         </div>
@@ -78,23 +72,15 @@ const FutureEvalHeader: React.FC<Props> = ({
 type TabLinkProps = {
   tab: TabItem;
   isActive: boolean;
-  onClick: () => void;
 };
 
-const FutureEvalTabLink: React.FC<TabLinkProps> = ({
-  tab,
-  isActive,
-  onClick,
-}) => {
+const FutureEvalTabLink: React.FC<TabLinkProps> = ({ tab, isActive }) => {
   return (
     <Link
       href={tab.href}
-      onClick={onClick}
       className={cn(
         "pb-1 font-sans text-xs font-medium transition-colors sm:text-sm",
-        isActive
-          ? FE_COLORS.textAccent
-          : `${FE_COLORS.textMuted} hover:${FE_COLORS.textSecondary}`
+        isActive ? FE_COLORS.textAccent : FE_COLORS.textMutedHover
       )}
       style={{
         textDecoration: "none",

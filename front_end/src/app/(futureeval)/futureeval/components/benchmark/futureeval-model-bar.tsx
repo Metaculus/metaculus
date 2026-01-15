@@ -88,7 +88,7 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
                   alt={model.name}
                   light={model.iconLight}
                   dark={model.iconDark}
-                  sizePx="20px"
+                  sizePx={20}
                   className="shrink-0 sm:!h-6 sm:!w-6"
                 />
               )

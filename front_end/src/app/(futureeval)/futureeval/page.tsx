@@ -1,19 +1,27 @@
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import { LeaderboardDetails } from "@/types/scoring";
 
 import FutureEvalScreen from "./components/futureeval-screen";
 
 export const metadata = {
-  title: "AI Forecasting Benchmark Tournament | Metaculus",
+  title: "FutureEval | Metaculus",
   description:
-    "Join the AI Forecasting Benchmark (AIB) tournament on Metaculus. Test your AI bot's ability to make accurate probabilistic forecasts on real-world questions. $30,000 prize pool per quarter. Register your bot and compete against the best AI forecasters.",
+    "Metaculus FutureEval measures AI's ability to predict future outcomes. Compare AI models against human pro forecasters on real-world forecasting questions.",
 };
 
 export default async function FutureEvalPage() {
-  const leaderboard = await ServerLeaderboardApi.getGlobalLeaderboard(
-    null,
-    null,
-    "manual",
-    "Global Bot Leaderboard"
-  );
+  let leaderboard: LeaderboardDetails = { entries: [] };
+
+  try {
+    leaderboard = await ServerLeaderboardApi.getGlobalLeaderboard(
+      null,
+      null,
+      "manual",
+      "Global Bot Leaderboard"
+    );
+  } catch (error) {
+    console.error("Failed to fetch leaderboard data:", error);
+  }
+
   return <FutureEvalScreen leaderboard={leaderboard} current="benchmark" />;
 }
