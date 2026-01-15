@@ -207,3 +207,17 @@ export function ensureRelativeRedirect(input: string): string {
   // Normalize slashes
   return "/" + url;
 }
+
+export function getBulletinParamsFromPathname(pathname: string) {
+  const questionMatch = pathname.match(/^\/questions\/(\d+)(?:\/|$)/);
+  if (questionMatch) {
+    return { post_id: Number(questionMatch[1]) };
+  }
+
+  const projectMatch = pathname.match(/^\/tournament\/([^/]+)(?:\/|$)/);
+  if (projectMatch) {
+    return { project_slug: projectMatch[1] };
+  }
+
+  return undefined;
+}

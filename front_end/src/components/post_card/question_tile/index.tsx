@@ -82,6 +82,7 @@ const QuestionTile: FC<Props> = ({
           forecastAvailability={forecastAvailability}
           canPredict={canPredict}
           showChart={showChart}
+          minimalistic={minimalistic}
         />
       );
     case QuestionType.MultipleChoice: {

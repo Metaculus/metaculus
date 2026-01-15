@@ -118,7 +118,7 @@ def update_custom_leaderboard(
     questions = (
         leaderboard.get_questions()
         .filter(
-            related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+            post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
         )
         .exclude(resolution__in=UnsuccessfulResolutionType)

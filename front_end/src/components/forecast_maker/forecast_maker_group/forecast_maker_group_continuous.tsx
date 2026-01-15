@@ -35,7 +35,7 @@ import {
   DistributionQuantile,
   DistributionSlider,
   QuestionWithNumericForecasts,
-  UserForecast,
+  NumericUserForecast,
 } from "@/types/question";
 import {
   getQuantileNumericForecastDataset,
@@ -592,7 +592,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     const response = await createForecasts(
       postId,
       predictedQuestions.map(({ my_forecasts, id, forecastExpiration }) => {
-        const latest = my_forecasts?.latest as UserForecast;
+        const latest = my_forecasts?.latest as NumericUserForecast;
         return {
           questionId: id,
           forecastEndTime: forecastExpirationToDate(forecastExpiration),

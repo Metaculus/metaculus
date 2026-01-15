@@ -19,9 +19,9 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
 import {
-  AggregateForecastHistory,
+  MultipleChoiceAggregateForecastHistory,
   QuestionWithMultipleChoiceForecasts,
-  UserForecast,
+  MultipleChoiceUserForecast,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { sendPredictEvent } from "@/utils/analytics";
@@ -481,8 +481,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
 function generateChoiceOptions(
   question: QuestionWithMultipleChoiceForecasts,
-  aggregate: AggregateForecastHistory,
-  userLastForecast: UserForecast | undefined
+  aggregate: MultipleChoiceAggregateForecastHistory,
+  userLastForecast: MultipleChoiceUserForecast | undefined
 ): ChoiceOption[] {
   const latest = aggregate.latest;
 

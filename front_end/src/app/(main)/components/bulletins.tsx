@@ -5,6 +5,7 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import { logError } from "@/utils/core/errors";
+import { getBulletinParamsFromPathname } from "@/utils/navigation";
 
 import Bulletin from "./bulletin";
 
@@ -36,14 +37,19 @@ const Bulletins: FC = () => {
     );
   }, [pathname]);
 
+  const bulletinParams = useMemo(
+    () => getBulletinParamsFromPathname(pathname),
+    [pathname]
+  );
+
   const fetchBulletins = useCallback(async () => {
     try {
-      const bulletins = await ClientMiscApi.getBulletins();
-      setBulletins(bulletins);
+      const bulletins = await ClientMiscApi.getBulletins(bulletinParams);
+      setBulletins(bulletins ?? []);
     } catch (error) {
       logError(error);
     }
-  }, []);
+  }, [bulletinParams]);
 
   useEffect(() => {
     if (!shouldHide) {

@@ -208,15 +208,15 @@ class Leaderboard(TimeStampedModel):
         from posts.models import Post
 
         questions = Question.objects.filter(
-            related_posts__post__curation_status=Post.CurationStatus.APPROVED
+            post__curation_status=Post.CurationStatus.APPROVED
         )
 
         if not (self.project and self.project.type == Project.ProjectTypes.SITE_MAIN):
             # normal Project leaderboard
             if self.project:
                 questions = questions.filter(
-                    Q(related_posts__post__projects=self.project)
-                    | Q(related_posts__post__default_project=self.project),
+                    Q(post__projects=self.project)
+                    | Q(post__default_project=self.project),
                 )
             return questions.distinct("id")
 
@@ -225,12 +225,12 @@ class Leaderboard(TimeStampedModel):
             raise ValueError("Global leaderboards must have start and end times")
 
         questions = questions.filter_public().filter(
-            related_posts__post__in=Post.objects.filter_for_main_feed()
+            post__in=Post.objects.filter_for_main_feed()
         )
 
         if self.score_type == LeaderboardScoreTypes.COMMENT_INSIGHT:
             # post must be published
-            return questions.filter(related_posts__post__published_at__lt=self.end_time)
+            return questions.filter(post__published_at__lt=self.end_time)
         elif self.score_type == LeaderboardScoreTypes.QUESTION_WRITING:
             # post must be published, and can't be resolved before the start_time
             # of the leaderboard
@@ -240,7 +240,7 @@ class Leaderboard(TimeStampedModel):
                     Q(actual_close_time__isnull=True)
                     | Q(actual_close_time__gte=self.start_time)
                 ),
-                related_posts__post__published_at__lt=self.end_time,
+                post__published_at__lt=self.end_time,
             )
 
         close_grace_period = timedelta(days=3)

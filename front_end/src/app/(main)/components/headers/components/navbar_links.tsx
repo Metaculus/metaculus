@@ -12,7 +12,7 @@ const NavbarLinks: FC<Props> = ({ links, className }) => {
   return (
     <ul
       className={cn(
-        "flex flex-auto list-none items-stretch justify-end p-0 text-sm font-medium",
+        "flex flex-auto list-none items-stretch p-0 text-sm font-medium",
         className
       )}
     >
