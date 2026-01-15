@@ -7,13 +7,13 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from authentication.backends import AuthLoginBackend
+from authentication.models import ApiToken
 from authentication.serializers import (
     SignupSerializer,
     ConfirmationTokenSerializer,
@@ -62,7 +62,7 @@ def login_api_view(request):
     if not user:
         raise ValidationError({"password": ["incorrect login / password"]})
 
-    token, _ = Token.objects.get_or_create(user=user)
+    token, _ = ApiToken.objects.get_or_create(user=user)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
@@ -125,7 +125,7 @@ def signup_api_view(request):
         if is_active:
             # We need to treat this as login action, so we should call `authenticate` service as well
             user = authenticate(login=email, password=password)
-            token_obj, _ = Token.objects.get_or_create(user=user)
+            token_obj, _ = ApiToken.objects.get_or_create(user=user)
             token = token_obj.key
 
     if not is_active:
@@ -169,7 +169,7 @@ def signup_simplified_api_view(request):
         last_login=timezone.now(),
     )
 
-    token_obj, _ = Token.objects.get_or_create(user=user)
+    token_obj, _ = ApiToken.objects.get_or_create(user=user)
     token = token_obj.key
 
     return Response(
@@ -210,7 +210,7 @@ def signup_activate_api_view(request):
     token = serializer.validated_data["token"]
 
     user = check_and_activate_user(user_id, token)
-    token, _ = Token.objects.get_or_create(user=user)
+    token, _ = ApiToken.objects.get_or_create(user=user)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
@@ -253,7 +253,7 @@ def password_reset_confirm_api_view(request):
         user.set_password(password)
         user.save()
 
-        token, _ = Token.objects.get_or_create(user=user)
+        token, _ = ApiToken.objects.get_or_create(user=user)
 
         return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
@@ -271,3 +271,11 @@ def invite_user_api_view(request):
         SignupInviteService().send_email(request.user, email)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def api_token_api_view(request):
+    """Get or create an API token for the authenticated user."""
+    token, _ = ApiToken.objects.get_or_create(user=request.user)
+
+    return Response({"token": token.key})
