@@ -2,10 +2,9 @@ import { Metadata } from "next";
 
 import SectionToggle from "@/components/ui/section_toggle";
 import { InvertedThemeContainer } from "@/contexts/inverted_theme_context";
-import ServerPostsApi from "@/services/api/posts/posts.server";
 
 import LaborHubNavigation from "./components/labor-hub-navigation";
-import BasicQuestion from "./components/question-cards/basic-question";
+import { QuestionLoader } from "./components/question-cards/question";
 import {
   DualPaneSectionCard,
   DualPaneSectionLeft,
@@ -49,21 +48,7 @@ export const metadata: Metadata = {
 // TODO: Replace with actual post IDs for featured labor automation questions
 const FEATURED_POST_IDS: number[] = [4701, 40866, 14732, 37738, 35297];
 
-async function getFeaturedPosts() {
-  if (FEATURED_POST_IDS.length === 0) {
-    return [];
-  }
-
-  const results = await Promise.all(
-    FEATURED_POST_IDS.map((id) => ServerPostsApi.getPost(id, true))
-  );
-
-  return results;
-}
-
-export default async function LaborAutomationHubPage() {
-  const featuredPosts = await getFeaturedPosts();
-
+export default function LaborAutomationHubPage() {
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12">
       <div className="mx-auto w-full max-w-7xl xl:px-16">
@@ -185,10 +170,10 @@ export default async function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            {featuredPosts.map((post, index) => (
-              <BasicQuestion
-                key={post.id}
-                postData={post}
+            {FEATURED_POST_IDS.map((id, index) => (
+              <QuestionLoader
+                key={id}
+                questionId={id}
                 preferTimeline={index % 2 === 0}
               />
             ))}
@@ -275,8 +260,8 @@ export default async function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            {featuredPosts.map((post) => (
-              <BasicQuestion key={post.id} postData={post} />
+            {FEATURED_POST_IDS.map((id) => (
+              <QuestionLoader key={id} questionId={id} />
             ))}
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -285,8 +270,7 @@ export default async function LaborAutomationHubPage() {
           <DualPaneSectionLeft>
             <SectionHeader>Changing economy</SectionHeader>
             <InvertedThemeContainer>
-              {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-              <BasicQuestion postData={featuredPosts[2]!} />
+              <QuestionLoader questionId={40866} subQuestionId={40523} />
             </InvertedThemeContainer>
             <ContentParagraph>
               The vulnerability of white collar work to AI advancement is
@@ -306,16 +290,19 @@ export default async function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            {featuredPosts.map((post) => (
-              <BasicQuestion key={post.id} postData={post} preferTimeline />
+            {FEATURED_POST_IDS.map((id) => (
+              <QuestionLoader key={id} questionId={id} preferTimeline />
             ))}
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
         <ResearchSection id="research" className="scroll-mt-12">
           <InvertedThemeContainer>
-            {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-            <BasicQuestion postData={featuredPosts[2]!} />
+            <QuestionLoader
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              questionId={FEATURED_POST_IDS[2]!}
+              preferTimeline={false}
+            />
           </InvertedThemeContainer>
         </ResearchSection>
         <MethodologySection id="methodology" className="scroll-mt-12" />

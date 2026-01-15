@@ -24,22 +24,22 @@ import {
   getPostDrivenTime,
 } from "@/utils/questions/helpers";
 
-import { QuestionCard } from "./question-card";
-
 export function BasicQuestionContent({
   postData,
   preferTimeline,
+  subQuestionId,
 }: {
   postData: PostWithForecasts;
   preferTimeline?: boolean;
+  subQuestionId?: number;
 }) {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
 
-  if (isMultipleChoicePost(postData)) {
+  if (isMultipleChoicePost(postData) && !subQuestionId) {
     return <PercentageForecastCard post={postData} forceColorful={false} />;
   }
 
-  if (isGroupOfQuestionsPost(postData)) {
+  if (isGroupOfQuestionsPost(postData) && !subQuestionId) {
     if (preferTimeline) {
       return <GroupTimeline group={postData.group_of_questions} />;
     }
@@ -85,10 +85,14 @@ export function BasicQuestionContent({
         return null;
     }
   }
+  const question = subQuestionId
+    ? postData.group_of_questions?.questions.find(
+        (question) => question.id === subQuestionId
+      )
+    : postData.question;
 
-  if (isQuestionPost(postData)) {
+  if ((isQuestionPost(postData) || subQuestionId) && question) {
     if (preferTimeline) {
-      const question = postData.question;
       const forecastAvailability = getQuestionForecastAvailability(question);
       return (
         <NumericTimeline
@@ -116,39 +120,19 @@ export function BasicQuestionContent({
         />
       );
     }
-    switch (postData.question.type) {
+    switch (question.type) {
       case QuestionType.Binary:
         return (
-          <BinaryQuestionPrediction
-            question={postData.question}
-            canPredict={false}
-          />
+          <BinaryQuestionPrediction question={question} canPredict={false} />
         );
       case QuestionType.Numeric:
       case QuestionType.Discrete:
       case QuestionType.Date:
-        return <ContinuousQuestionPrediction question={postData.question} />;
+        return <ContinuousQuestionPrediction question={question} />;
       default:
         return null;
     }
   }
 
   return null;
-}
-
-export default function BasicQuestion({
-  postData,
-  preferTimeline,
-}: {
-  postData: PostWithForecasts;
-  preferTimeline?: boolean;
-}) {
-  return (
-    <QuestionCard title={postData.title}>
-      <BasicQuestionContent
-        postData={postData}
-        preferTimeline={preferTimeline}
-      />
-    </QuestionCard>
-  );
 }

@@ -3,7 +3,7 @@ import { ComponentProps } from "react";
 import cn from "@/utils/core/cn";
 
 import { ActivityCard } from "../components/activity-card";
-import { QuestionCard } from "../components/question-cards/question-card";
+import { QuestionLoader } from "../components/question-cards/question";
 import { SectionHeader } from "../components/section";
 
 export function ActivityMonitorSection({
@@ -19,12 +19,14 @@ export function ActivityMonitorSection({
 
       {/* Activity Log */}
       <div className="grid gap-5 sm:gap-6 md:grid-cols-2 md:gap-8">
-        <QuestionCard
+        <QuestionLoader
+          questionId={14732}
           title="Projected employment growth relative to 2025"
           subtitle="Predictions update in real-time; track how forecasters adjust as AI progresses"
           className="md:order-2"
           variant="primary"
-        ></QuestionCard>
+          preferTimeline
+        />
         <div className="flex flex-col gap-2.5 md:order-1">
           <ActivityCard
             date="Nov 13, 2025"
