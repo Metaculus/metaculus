@@ -1489,7 +1489,7 @@
   "settingsThemeLightMode": "浅色模式",
   "settingsThemeDarkMode": "深色模式",
   "withdrawAfterPercentSetting": "于总问题期限的<input></input>后提款",
-  "withdrawAfterPercentSettingDescription": "例如，如果一个问题总共持续10周，默认情况下您的预测将在<strong>{value} {value, plural, =1 {周} other {周}}</strong>后提款。您还可以更改此持续时间或为每个问题禁用提款。",
+  "withdrawAfterPercentSettingDescription": "例如，如果一个问题总共持续10个月，默认情况下您的预测将在<strong>{value} {value, plural, =1 {个月} other {个月}} (最少1个月)</strong>后提款。您还可以更改此持续时间或为每个问题禁用提款。",
   "withdrawAfterPercentSettingDescriptionLink": "这为什么重要？",
   "consumerView": "消费者视图",
   "consumerViewDescription": "更多空白，更少混乱。推荐给新用户",
