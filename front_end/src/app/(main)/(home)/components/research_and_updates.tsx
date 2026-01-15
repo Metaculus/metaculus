@@ -40,7 +40,7 @@ const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
           </p>
         </div>
         <Button
-          href="/notebooks/"
+          href="/news/"
           variant="secondary"
           size="md"
           className="w-fit whitespace-nowrap font-normal"
