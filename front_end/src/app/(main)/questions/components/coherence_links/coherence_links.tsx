@@ -2,7 +2,7 @@
 
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { AddButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
