@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function FutureEvalNewsPage() {
-  let leaderboard: LeaderboardDetails = { entries: [] };
+  let leaderboard: LeaderboardDetails | null = null;
 
   try {
     leaderboard = await ServerLeaderboardApi.getGlobalLeaderboard(
@@ -23,5 +23,8 @@ export default async function FutureEvalNewsPage() {
     console.error("Failed to fetch leaderboard data:", error);
   }
 
-  return <FutureEvalScreen leaderboard={leaderboard} current="news" />;
+  const safeLeaderboard =
+    leaderboard ?? ({ entries: [] } as LeaderboardDetails);
+
+  return <FutureEvalScreen leaderboard={safeLeaderboard} current="news" />;
 }
