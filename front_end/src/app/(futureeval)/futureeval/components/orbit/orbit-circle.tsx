@@ -90,7 +90,7 @@ const MODEL_BENCHMARK_CHIPS: CarouselChip[] = [
  */
 const BOT_TOURNAMENTS_CHIPS: CarouselChip[] = [
   { id: "prizes", label: "$240k paid in prizes" },
-  { id: "credits", label: "Complementary AI credits provided" },
+  { id: "credits", label: "Complimentary AI credits provided" },
 ];
 
 // ===========================================
@@ -243,11 +243,16 @@ const ExpandedCard: React.FC<ExpandedCardProps> = ({
     );
   }
 
-  // For scroll actions, use button/div
+  // For scroll actions, use button for accessibility
   return (
-    <div onClick={onClick} className="cursor-pointer">
+    <button
+      type="button"
+      onClick={onClick}
+      className="cursor-pointer"
+      aria-label={`Go to ${item.label.replace(/\n/g, " ")}`}
+    >
       {CardContent}
-    </div>
+    </button>
   );
 };
 

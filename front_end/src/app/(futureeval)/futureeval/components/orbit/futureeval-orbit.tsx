@@ -16,7 +16,7 @@ import OrbitCircle, { OrbitItem } from "./orbit-circle";
  * Rotation speed in degrees per second
  * Set to 0 to disable rotation
  */
-export const ORBIT_ROTATION_SPEED = 4; // degrees per second
+export const ORBIT_ROTATION_SPEED: number = 4; // degrees per second
 
 /**
  * The orbit items data
@@ -137,12 +137,13 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   const handleItemClick = useCallback(
     (item: OrbitItem) => {
       switch (item.action.type) {
-        case "scroll":
+        case "scroll": {
           const element = document.getElementById(item.action.target);
           if (element) {
             element.scrollIntoView({ behavior: "smooth", block: "start" });
           }
           break;
+        }
         case "tab-scroll":
           if (item.action.tabHref) {
             router.push(`${item.action.tabHref}#${item.action.target}`);
