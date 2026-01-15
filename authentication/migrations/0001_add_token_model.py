@@ -44,7 +44,7 @@ def restore_old_table_from_new(apps, schema_editor):
             CREATE TABLE IF NOT EXISTS authtoken_token (
                 key VARCHAR(40) PRIMARY KEY,
                 created TIMESTAMP WITH TIME ZONE NOT NULL,
-                user_id INTEGER NOT NULL UNIQUE REFERENCES {user_table}(id)
+                user_id BIGINT NOT NULL UNIQUE REFERENCES {user_table}(id)
                     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
             )
             """
