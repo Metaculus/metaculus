@@ -5,12 +5,20 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def get_user_table_name(apps, schema_editor):
+    """Resolve the user model's database table name dynamically."""
+    app_label, model_name = settings.AUTH_USER_MODEL.split(".")
+    User = apps.get_model(app_label, model_name)
+    return schema_editor.connection.ops.quote_name(User._meta.db_table)
+
+
 def migrate_tokens_and_drop_old_table(apps, schema_editor):
     """Copy tokens from old authtoken_token table and drop it."""
     with schema_editor.connection.cursor() as cursor:
         cursor.execute(
             """
-            SELECT table_name FROM information_schema.tables
+            SELECT table_name
+            FROM information_schema.tables
             WHERE table_name = 'authtoken_token'
             """
         )
@@ -28,13 +36,15 @@ def migrate_tokens_and_drop_old_table(apps, schema_editor):
 
 def restore_old_table_from_new(apps, schema_editor):
     """Recreate old authtoken_token table and copy data back for rollback."""
+    user_table = get_user_table_name(apps, schema_editor)
+
     with schema_editor.connection.cursor() as cursor:
         cursor.execute(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS authtoken_token (
                 key VARCHAR(40) PRIMARY KEY,
                 created TIMESTAMP WITH TIME ZONE NOT NULL,
-                user_id INTEGER NOT NULL UNIQUE REFERENCES users_user(id)
+                user_id INTEGER NOT NULL UNIQUE REFERENCES {user_table}(id)
                     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
             )
             """
