@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
@@ -25,6 +25,8 @@ type Props = {
 
 const MIN_EMBED_WIDTH = 360;
 const DYNAMIC_BELOW_WIDTH = 440;
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
 
 function getBinaryContinuousSize(containerWidth: number): EmbedSize {
   if (containerWidth >= 550) return { width: 550, height: 360 };
@@ -81,7 +83,9 @@ const EmbedScreen: React.FC<Props> = ({
   }, [post]);
 
   const ogMode =
-    typeof targetWidth === "number" && typeof targetHeight === "number";
+    typeof targetWidth === "number" || typeof targetHeight === "number";
+  const ogViewportWidth = targetWidth ?? OG_WIDTH;
+  const ogViewportHeight = targetHeight ?? OG_HEIGHT;
 
   const isDynamic = !ogMode && containerWidth < DYNAMIC_BELOW_WIDTH;
 
@@ -89,7 +93,24 @@ const EmbedScreen: React.FC<Props> = ({
     ? containerWidth
     : Math.max(containerWidth, MIN_EMBED_WIDTH);
 
-  const snapped = getSizeForPost(post, effectiveWidthForSizing);
+  const shouldScaleByHeightInOg = useMemo(() => {
+    const isBinaryOrContinuous =
+      !!post.question &&
+      (post.question.type === QuestionType.Binary ||
+        ContinuousQuestionTypes.some((t) => t === post.question?.type));
+
+    const isFanChart =
+      isGroupOfQuestionsPost(post) &&
+      post.group_of_questions?.graph_type ===
+        GroupOfQuestionsGraphType.FanGraph;
+
+    return isBinaryOrContinuous || isFanChart;
+  }, [post]);
+
+  const snapped = getSizeForPost(
+    post,
+    ogMode ? OG_WIDTH : effectiveWidthForSizing
+  );
 
   const baseWidth = isDynamic
     ? effectiveWidthForSizing
@@ -98,8 +119,15 @@ const EmbedScreen: React.FC<Props> = ({
   const baseHeight = snapped.height || MIN_EMBED_WIDTH;
 
   const scale = ogMode
-    ? Math.min(targetWidth / baseWidth, targetHeight / baseHeight)
+    ? shouldScaleByHeightInOg
+      ? ogViewportHeight / baseHeight
+      : ogViewportWidth / baseWidth
     : 1;
+
+  const contentWidth =
+    ogMode && shouldScaleByHeightInOg
+      ? Math.max(baseWidth, ogViewportWidth / scale)
+      : baseWidth;
 
   const isBinary = post.question?.type === QuestionType.Binary;
   const isContinuous =
@@ -108,8 +136,8 @@ const EmbedScreen: React.FC<Props> = ({
 
   const frameStyle: React.CSSProperties = ogMode
     ? {
-        width: targetWidth,
-        height: targetHeight,
+        width: ogViewportWidth,
+        height: ogViewportHeight,
         minWidth: MIN_EMBED_WIDTH,
         boxSizing: "border-box",
         display: "flex",
@@ -124,6 +152,8 @@ const EmbedScreen: React.FC<Props> = ({
 
         boxSizing: "border-box",
       };
+
+  const effectiveSize = ogMode ? { ...snapped, width: contentWidth } : snapped;
 
   return (
     <div
@@ -149,23 +179,24 @@ const EmbedScreen: React.FC<Props> = ({
             isBinary || isContinuous ? "gap-5" : "gap-4 pb-5"
           )}
           style={{
-            width: isDynamic ? "100%" : baseWidth,
+            width: isDynamic ? "100%" : contentWidth,
             ...(isDynamic ? {} : { minWidth: MIN_EMBED_WIDTH }),
             ...(isDynamic
               ? { minHeight: 270, justifyContent: "space-between" }
               : { height: baseHeight, minHeight: baseHeight }),
+            ...(ogMode ? { justifyContent: "space-between" } : {}),
             boxSizing: "border-box",
             transform: scale !== 1 ? `scale(${scale})` : undefined,
             transformOrigin: "center center",
           }}
         >
           <EmbedQuestionCard
-            size={snapped}
+            size={effectiveSize}
             ogMode={ogMode}
             post={post}
             theme={theme}
             titleOverride={titleOverride}
-            containerWidth={containerWidth}
+            containerWidth={ogMode ? contentWidth : containerWidth}
           />
         </div>
       </div>
