@@ -128,6 +128,10 @@ class ServerAuthApiClass extends ApiService {
       { username, auth_token }
     );
   }
+
+  async getApiToken(): Promise<{ token: string }> {
+    return this.get<{ token: string }>("/auth/api-token/");
+  }
 }
 
 const ServerAuthApi = new ServerAuthApiClass(serverFetcher);
