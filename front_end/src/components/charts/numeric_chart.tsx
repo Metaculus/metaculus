@@ -19,6 +19,7 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
   VictoryPortal,
@@ -47,11 +48,7 @@ import {
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import {
-  getAxisLeftPadding,
-  getAxisRightPadding,
-  getTickLabelFontSize,
-} from "@/utils/charts/axis";
+import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
 import { resolveToCssColor } from "@/utils/resolve_color";
@@ -205,10 +202,6 @@ const NumericChart: FC<Props> = ({
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
   const maxRightPadding = useMemo(() => {
@@ -457,21 +450,18 @@ const NumericChart: FC<Props> = ({
     return typeof fromTheme === "number" ? fromTheme : 0.3;
   }, [hasExternalTheme, themeAreaData?.opacity]);
 
-  const showRightYAxis = isEmbedded;
-
+  const rightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
   const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
-  const axisLabelLane = yAxisLabel ? (tickLabelFontSize as number) : 0;
-  const baseLeftPad = Math.max(leftPadding, MIN_LEFT_PADDING);
-  const baseRightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
-  const leftPad = showRightYAxis ? 10 : baseLeftPad + axisLabelLane;
-  const rightPad = showRightYAxis ? baseRightPad + axisLabelLane : baseRightPad;
+  const leftPad = 10;
 
-  const chartPadding = {
-    top: 10,
-    bottom: isEmbedded ? BOTTOM_PADDING + 15 : BOTTOM_PADDING,
-    left: leftPad,
-    right: rightPad,
-  };
+  const chartPadding = isEmbedded
+    ? {
+        top: 10,
+        bottom: BOTTOM_PADDING + 15,
+        left: leftPad,
+        right: rightPad,
+      }
+    : { top: 10, bottom: BOTTOM_PADDING, left: 10, right: rightPad };
 
   return (
     <>
@@ -488,8 +478,8 @@ const NumericChart: FC<Props> = ({
           className="text-xs text-gray-700 dark:text-gray-700-dark"
           textClassName="pl-0"
           style={{
-            paddingRight: isEmbedded ? maxRightPadding : maxRightPadding,
-            paddingLeft: isEmbedded ? 0 : 0,
+            paddingRight: rightPad,
+            paddingLeft: 0,
             paddingTop: withZoomPicker ? 24 : 0,
           }}
         />
@@ -533,7 +523,6 @@ const NumericChart: FC<Props> = ({
               {/* Y axis used for LABELS */}
               <VictoryAxis
                 dependentAxis
-                orientation={showRightYAxis ? "right" : "left"}
                 style={{
                   ticks: { stroke: "transparent" },
                   axis: { stroke: "transparent" },
@@ -541,11 +530,6 @@ const NumericChart: FC<Props> = ({
                   axisLabel: {
                     fontFamily: LABEL_FONT_FAMILY,
                     fontSize: tickLabelFontSize,
-                    padding: yAxisLabel
-                      ? showRightYAxis
-                        ? rightPad - 14
-                        : leftPad - 14
-                      : undefined,
                     ...(hasExternalTheme
                       ? {}
                       : { fill: getThemeColor(METAC_COLORS.gray["500"]) }),
@@ -562,6 +546,13 @@ const NumericChart: FC<Props> = ({
                 tickValues={yScaleTicks}
                 tickFormat={yScale.tickFormat}
                 label={yAxisLabel}
+                orientation={"left"}
+                offsetX={
+                  isNil(yLabel)
+                    ? chartWidth + 5
+                    : chartWidth - tickLabelFontSize + 5
+                }
+                axisLabelComponent={<VictoryLabel x={chartWidth} />}
               />
 
               {/* X axis */}
