@@ -21,6 +21,8 @@ type Props = {
   targetHeight?: number;
   theme?: EmbedTheme;
   titleOverride?: string;
+  customWidth?: number;
+  customHeight?: number;
 };
 
 const MIN_EMBED_WIDTH = 360;
@@ -62,6 +64,8 @@ const EmbedScreen: React.FC<Props> = ({
   targetHeight,
   theme,
   titleOverride,
+  customWidth,
+  customHeight,
 }) => {
   const frameRef = useRef<HTMLDivElement | null>(null);
 
@@ -87,7 +91,13 @@ const EmbedScreen: React.FC<Props> = ({
   const ogViewportWidth = targetWidth ?? OG_WIDTH;
   const ogViewportHeight = targetHeight ?? OG_HEIGHT;
 
-  const isDynamic = !ogMode && containerWidth < DYNAMIC_BELOW_WIDTH;
+  // Check if custom dimensions are provided
+  const hasCustomDimensions =
+    typeof customWidth === "number" && typeof customHeight === "number";
+
+  // Disable dynamic mode when custom dimensions are set
+  const isDynamic =
+    !ogMode && !hasCustomDimensions && containerWidth < DYNAMIC_BELOW_WIDTH;
 
   const effectiveWidthForSizing = isDynamic
     ? containerWidth
@@ -107,16 +117,20 @@ const EmbedScreen: React.FC<Props> = ({
     return isBinaryOrContinuous || isFanChart;
   }, [post]);
 
-  const snapped = getSizeForPost(
-    post,
-    ogMode ? OG_WIDTH : effectiveWidthForSizing
-  );
+  // Use custom dimensions if both are provided, otherwise use default sizing logic
+  const snapped = hasCustomDimensions
+    ? { width: customWidth, height: customHeight }
+    : getSizeForPost(post, ogMode ? OG_WIDTH : effectiveWidthForSizing);
 
-  const baseWidth = isDynamic
-    ? effectiveWidthForSizing
-    : snapped.width || MIN_EMBED_WIDTH;
+  const baseWidth = hasCustomDimensions
+    ? customWidth
+    : isDynamic
+      ? effectiveWidthForSizing
+      : snapped.width || MIN_EMBED_WIDTH;
 
-  const baseHeight = snapped.height || MIN_EMBED_WIDTH;
+  const baseHeight = hasCustomDimensions
+    ? customHeight
+    : snapped.height || MIN_EMBED_WIDTH;
 
   const scale = ogMode
     ? shouldScaleByHeightInOg
@@ -155,17 +169,26 @@ const EmbedScreen: React.FC<Props> = ({
 
   const effectiveSize = ogMode ? { ...snapped, width: contentWidth } : snapped;
 
+  const hasContainerBackground = !!theme?.container?.backgroundColor;
+  const hasCardBackground = !!theme?.card?.backgroundColor;
+
   return (
     <div
       ref={frameRef}
-      className="flex size-full min-h-[inherit] items-center justify-center bg-blue-100 [container-type:inline-size] dark:bg-blue-100-dark"
-      style={{ minWidth: isDynamic ? undefined : MIN_EMBED_WIDTH }}
+      className={cn(
+        "flex size-full min-h-[inherit] items-center justify-center [container-type:inline-size]",
+        !hasContainerBackground && "bg-blue-100 dark:bg-blue-100-dark"
+      )}
+      style={{
+        minWidth: isDynamic ? undefined : MIN_EMBED_WIDTH,
+        ...theme?.container,
+      }}
     >
       <div
         id="id-used-by-screenshot-donot-change"
         className={cn(
-          "bg-blue-100 text-gray-900",
-          "dark:bg-blue-100-dark dark:text-gray-900-dark"
+          "text-gray-900 dark:text-gray-900-dark",
+          !hasCardBackground && "bg-blue-100 dark:bg-blue-100-dark"
         )}
         style={{
           ...frameStyle,
