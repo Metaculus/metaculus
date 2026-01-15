@@ -5,9 +5,9 @@ from django.conf import settings
 from django.db import models
 
 
-class ApiToken(models.Model):
+class ApiKey(models.Model):
     """
-    API token model with usage tracking.
+    API key model with usage tracking.
 
     Replaces rest_framework.authtoken.models.Token to add last_used_at tracking.
     """
@@ -15,7 +15,7 @@ class ApiToken(models.Model):
     key = models.CharField(max_length=40, primary_key=True)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        related_name="auth_token",
+        related_name="api_key",
         on_delete=models.CASCADE,
     )
     created = models.DateTimeField(auto_now_add=True)

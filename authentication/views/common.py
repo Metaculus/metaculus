@@ -13,7 +13,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from authentication.backends import AuthLoginBackend
-from authentication.models import ApiToken
+from authentication.models import ApiKey
 from authentication.serializers import (
     SignupSerializer,
     ConfirmationTokenSerializer,
@@ -62,7 +62,7 @@ def login_api_view(request):
     if not user:
         raise ValidationError({"password": ["incorrect login / password"]})
 
-    token, _ = ApiToken.objects.get_or_create(user=user)
+    token, _ = ApiKey.objects.get_or_create(user=user)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
@@ -125,7 +125,7 @@ def signup_api_view(request):
         if is_active:
             # We need to treat this as login action, so we should call `authenticate` service as well
             user = authenticate(login=email, password=password)
-            token_obj, _ = ApiToken.objects.get_or_create(user=user)
+            token_obj, _ = ApiKey.objects.get_or_create(user=user)
             token = token_obj.key
 
     if not is_active:
@@ -169,7 +169,7 @@ def signup_simplified_api_view(request):
         last_login=timezone.now(),
     )
 
-    token_obj, _ = ApiToken.objects.get_or_create(user=user)
+    token_obj, _ = ApiKey.objects.get_or_create(user=user)
     token = token_obj.key
 
     return Response(
@@ -210,7 +210,7 @@ def signup_activate_api_view(request):
     token = serializer.validated_data["token"]
 
     user = check_and_activate_user(user_id, token)
-    token, _ = ApiToken.objects.get_or_create(user=user)
+    token, _ = ApiKey.objects.get_or_create(user=user)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
@@ -253,7 +253,7 @@ def password_reset_confirm_api_view(request):
         user.set_password(password)
         user.save()
 
-        token, _ = ApiToken.objects.get_or_create(user=user)
+        token, _ = ApiKey.objects.get_or_create(user=user)
 
         return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
@@ -274,8 +274,19 @@ def invite_user_api_view(request):
 
 
 @api_view(["GET"])
-def api_token_api_view(request):
-    """Get or create an API token for the authenticated user."""
-    token, _ = ApiToken.objects.get_or_create(user=request.user)
+def api_key_api_view(request):
+    """Get the API key for the authenticated user if it exists."""
+    try:
+        api_key = ApiKey.objects.get(user=request.user)
+        return Response({"key": api_key.key})
+    except ApiKey.DoesNotExist:
+        return Response({"key": None})
 
-    return Response({"token": token.key})
+
+@api_view(["POST"])
+def api_key_rotate_api_view(request):
+    """Create or rotate the API key for the authenticated user."""
+    ApiKey.objects.filter(user=request.user).delete()
+    api_key = ApiKey.objects.create(user=request.user)
+
+    return Response({"key": api_key.key}, status=status.HTTP_201_CREATED)

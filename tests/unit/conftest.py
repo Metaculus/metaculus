@@ -2,7 +2,7 @@ from typing import Callable
 
 import dramatiq
 import pytest
-from authentication.models import ApiToken
+from authentication.models import ApiKey
 from rest_framework.test import APIClient
 
 from users.models import User
@@ -69,7 +69,7 @@ def create_client_for_user() -> Callable[[User | None], APIClient]:
         client = APIClient()
 
         if user:
-            token = ApiToken.objects.create(user=user)
+            token = ApiKey.objects.create(user=user)
             client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 
         return client

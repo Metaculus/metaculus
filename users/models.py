@@ -8,7 +8,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
-from authentication.models import ApiToken
+from authentication.models import ApiKey
 from social_django.models import UserSocialAuth
 
 from utils.models import TimeStampedModel
@@ -248,7 +248,7 @@ class User(TimeStampedModel, AbstractUser):
         # don't touch public comments
 
         # Token
-        ApiToken.objects.filter(user=self).delete()
+        ApiKey.objects.filter(user=self).delete()
 
         # Social Auth login credentials
         UserSocialAuth.objects.filter(user=self).delete()
