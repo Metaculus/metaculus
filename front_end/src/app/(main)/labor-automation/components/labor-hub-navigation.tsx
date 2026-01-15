@@ -51,14 +51,7 @@ export default function LaborHubNavigation({
           )}
         >
           <div className="pointer-events-auto w-full overflow-x-auto no-scrollbar">
-            <div
-              className={cn(
-                "flex w-max before:shrink-0 before:content-[''] after:shrink-0 after:content-['']",
-                isSticky
-                  ? "before:w-4 after:w-4"
-                  : "before:w-5 after:w-5 sm:before:w-8 sm:after:w-8 md:before:w-10 md:after:w-10"
-              )}
-            >
+            <div className="flex w-max before:w-5 before:shrink-0 before:content-[''] after:w-5 after:shrink-0 after:content-[''] sm:before:w-8 sm:after:w-8 md:before:w-10 md:after:w-10">
               <TabGroup tabs={tabs} />
             </div>
           </div>

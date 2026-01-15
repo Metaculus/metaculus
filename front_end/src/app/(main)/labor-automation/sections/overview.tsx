@@ -1,5 +1,6 @@
 import { ComponentProps } from "react";
 
+import MultiLineRiskChart from "../components/question-cards/multi-line-risk-chart";
 import { QuestionCard } from "../components/question-cards/question-card";
 import { RiskChart } from "../components/question-cards/risk-chart";
 
@@ -9,7 +10,7 @@ export function OverviewSection({
 }: ComponentProps<"section">) {
   return (
     <section
-      className="grid scroll-mt-12 gap-5 sm:gap-6 md:grid-cols-2 md:gap-8"
+      className="grid scroll-mt-12 items-start gap-5 sm:gap-6 md:grid-cols-2 md:gap-8"
       {...props}
     >
       {/* Left Column */}
@@ -57,7 +58,7 @@ export function OverviewSection({
         title="Predicted employment change in the next decade"
         variant="primary"
       >
-        <div className="h-80 w-full rounded-lg bg-gray-100 dark:bg-gray-100-dark"></div>
+        <MultiLineRiskChart />
       </QuestionCard>
     </section>
   );
