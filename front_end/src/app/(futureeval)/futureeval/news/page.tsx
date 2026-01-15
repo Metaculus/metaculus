@@ -24,7 +24,7 @@ export default async function FutureEvalNewsPage() {
   }
 
   const safeLeaderboard =
-    leaderboard ?? ({ entries: [] } as LeaderboardDetails);
+    leaderboard ?? ({ entries: [] } as unknown as LeaderboardDetails);
 
   return <FutureEvalScreen leaderboard={safeLeaderboard} current="news" />;
 }

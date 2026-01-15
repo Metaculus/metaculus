@@ -25,7 +25,7 @@ export default async function FutureEvalPage() {
 
   // Provide fallback for error cases - components handle empty entries gracefully
   const safeLeaderboard =
-    leaderboard ?? ({ entries: [] } as LeaderboardDetails);
+    leaderboard ?? ({ entries: [] } as unknown as LeaderboardDetails);
 
   return <FutureEvalScreen leaderboard={safeLeaderboard} current="benchmark" />;
 }
