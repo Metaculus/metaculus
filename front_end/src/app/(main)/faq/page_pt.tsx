@@ -249,6 +249,21 @@ export default function FAQ() {
         {/* <hr> */}
 
         <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">Recursos</h2>
+          <ul className="space-y-1">
+            <li>
+              <a href="#related-news">O que é o NewsMatch?</a>
+            </li>
+            <li>
+              <a href="#top-comments-of-the-week">
+                O que é o Top Comments da Semana?
+              </a>
+            </li>
+          </ul>
+        </div>
+        {/* <hr> */}
+
+        <div>
           <h2 className="mb-4 mt-0 text-2xl font-semibold">
             Jornal do Metaculus
           </h2>
@@ -292,12 +307,6 @@ export default function FAQ() {
                 questões, a previsão do Metaculus sobre outros, e nenhuma
                 previsão sobre alguns outros?
               </a>
-            </li>
-            <li>
-              <a href="#related-news">O que é o NewsMatch?</a>
-            </li>
-            <li>
-              <a href="#community-insights">O que são Insights Comunitários?</a>
             </li>
             <li>
               <a href="#domains">Posso ter o meu próprio Metaculus?</a>
@@ -3523,6 +3532,95 @@ M834 80h400000v40h-400000z"
         {/* <hr> */}
 
         <div>
+          <h2 id="features" className="scroll-mt-nav text-2xl font-bold">
+            Recursos
+          </h2>
+          <h3 className="scroll-mt-nav text-xl font-semibold" id="related-news">
+            O que é o NewsMatch?
+          </h3>
+          <p>
+            NewsMatch exibe uma seleção de artigos relevantes para a questão
+            atual do Metaculus. Estes servem como um recurso adicional para os
+            meteorologistas enquanto discutem e preveem sobre a questão. Cada
+            artigo é listado com sua fonte e sua data de publicação. Clicar no
+            título de um artigo navega até o próprio artigo. O up e downvoting
+            permite que você indique se o artigo foi útil ou não. Sua entrada
+            melhora a precisão e a utilidade do modelo que corresponde aos
+            artigos para questões do Metaculus.
+          </p>
+          <p>
+            O modelo de correspondência de artigos é apoiado pelo{""}
+            <a href="https://www.improvethenews.org/">Improve the News</a>, um
+            agregador de notícias desenvolvido por um grupo de pesquisadores do
+            MIT. Projetado para dar aos leitores mais controle sobre o consumo
+            de notícias, o Improve the News ajuda os leitores a se manterem
+            informados enquanto encontram uma variedade maior de pontos de
+            vista.
+          </p>
+          <p>
+            Os artigos no banco de dados da ITN são combinados com perguntas
+            relevantes do Metaculus por um modelo de aprendizado de máquina
+            baseado em transformador treinado para mapear passagens
+            semanticamente semelhantes para regiões em &quot;espaço de
+            incorporação&quot;. As próprias incorporações são geradas usando{""}
+            <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
+          </p>
+
+          <h3
+            className="scroll-mt-nav text-xl font-semibold"
+            id="top-comments-of-the-week"
+          >
+            O que é o Top Comments da Semana?
+          </h3>
+
+          <p>
+            Top Comments é um destaque semanal do raciocínio mais claro e útil
+            no Metaculus. A cada domingo, os vencedores da semana anterior são
+            anunciados e uma nova semana de competição começa. Você verá os
+            destaques na barra lateral e na sua caixa de entrada. Apenas votos
+            feitos dentro de 7 dias da publicação de um comentário contam para o
+            ranking. Isso mantém o campo justo para que comentários mais antigos
+            não tenham vantagem simplesmente por estarem por aí há mais tempo.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Quantos vencedores existem e como são reconhecidos?
+          </h4>
+
+          <p>
+            Seis por semana: 🥇 vai para o melhor comentário, 🥈 para o 2º e 3º,
+            🥉 para o 4º–6º. Eles aparecem em destaque na página Top Comments,
+            no e-mail semanal e em mais lugares em breve.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Como o ranking é calculado?
+          </h4>
+
+          <p>
+            Combinamos três sinais: upvotes em comentários, votos de “mudei de
+            ideia” e votos de fatores-chave (veja abaixo para o último). Cada um
+            é normalizado e depois ponderado: upvotes e “mudei de ideia” têm
+            peso de 40% cada, e votos de fatores-chave têm peso de 20%. Também
+            há um bônus para comentários que performam bem em múltiplos sinais.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            O que é “impacto de fator-chave” e como vocês o calculam?
+          </h4>
+
+          <p>
+            Se um comentário tiver fatores-chave, calculamos uma pontuação total
+            de <strong>impacto de fator-chave</strong>. Ela é calculada como a
+            média do valor absoluto dos votos de impacto nesse fator-chave
+            (baixo=2, moderado=3, alto=5), somada em todos os fatores-chave
+            desse comentário. Se você não adicionou fatores-chave ao seu
+            comentário, essa métrica não aparecerá.
+          </p>
+        </div>
+        {/* <hr> */}
+
+        <div>
           <h2
             id="Metaculus Journal"
             className="mb-4 scroll-mt-nav text-3xl font-bold"
@@ -3594,39 +3692,59 @@ M834 80h400000v40h-400000z"
             O que são os Meteorologistas Metaculus Pro?
           </h3>
           <p>
-            Para certos projetos, o Metaculus emprega{""}
-            <Link href="/pro-forecasters/">Pro Forecasters</Link>
-            que demonstraram excelente capacidade de previsão e que têm um
-            histórico de descrever claramente suas justificativas. Prós preveem
-            conjuntos de perguntas privados e públicos para produzir previsões
-            bem calibradas e justificativas descritivas para nossos parceiros.
-            Recrutamos principalmente membros da comunidade Metaculus com os
-            melhores históricos para nossa equipe Pro, mas os meteorologistas
-            que demonstraram excelente capacidade de previsão em outros lugares
-            também podem ser considerados.
+            Para certos projetos, o Metaculus emprega{" "}
+            <Link href="/pro-forecasters">Pro Forecasters</Link> que
+            demonstraram excelente habilidade de previsão e têm um histórico de
+            descrever claramente seus raciocínios. Os Pros fazem previsões em
+            conjuntos privados e públicos de perguntas para produzir previsões
+            bem calibradas e de alta qualidade para projetos de clientes e
+            parceiros.
           </p>
+
           <p>
-            Se você estiver interessado em contratar o Metaculus Pro Forecasters
-            para um projeto, entre em contato conosco pelo{""}
-            <a href="mailto:support@metaculus.com">e-soco.com</a>.
-            <a href="mailto:support@metaculus.com">com</a>
-            com o assunto &quot;Project Inquiry&quot;.
+            Se você tem interesse em contratar Pro Forecasters do Metaculus para
+            um projeto, entre em contato conosco preenchendo nosso{" "}
+            <Link href="/contact">formulário de contato</Link>.
           </p>
+
           <p>
-            Metaculus seleciona indivíduos de acordo com os seguintes critérios:
+            Os Pro Forecasters são selecionados cuidadosamente entre previsores
+            que cumprem certos critérios para garantir a qualidade das previsões
+            e do raciocínio. Esses critérios incluem:
           </p>
-          <ol className="ml-5 list-inside list-decimal">
+
+          <ul className="ml-5 list-disc space-y-2">
             <li>
-              Tem pontuação no top 2% de todos os meteorologistas Metaculus.
+              <strong>Excelente capacidade de previsão:</strong> Nossa
+              metodologia de seleção usa os{" "}
+              <Link href="/leaderboards">Leaderboards do Metaculus</Link>,
+              combinando os leaderboards de Peer Accuracy, Baseline Accuracy e
+              Comments para produzir uma pontuação média ponderada (ao longo
+              desses leaderboards e de diferentes períodos). Os Pros são
+              escolhidos entre os previsores com melhor pontuação nessa métrica
+              combinada, representando os melhores de todo o Metaculus. Observe
+              que, embora o Peer score tenha o maior peso, a ponderação é tal
+              que os previsores precisam ter bons resultados em todas as
+              categorias.
             </li>
-            <li>Previu um mínimo de 75+ questões que foram resolvidas.</li>
-            <li>Tenha previsão de experiência por um ano ou mais.</li>
-            <li>Tem previsto em várias áreas temáticas.</li>
+
             <li>
-              Tenha um histórico de fornecer comentários explicando suas
-              previsões.
+              <strong>Histórico robusto:</strong> Pro Forecasters precisam ter
+              pelo menos 75 perguntas resolvidas e ter feito previsões em
+              múltiplas áreas temáticas, com pelo menos um ano de experiência
+              prevendo. Também consideramos recrutar previsores que tenham
+              demonstrado excelente habilidade de previsão em outros lugares.
             </li>
-          </ol>
+
+            <li>
+              <strong>Comentários e comunicação claros:</strong> Nossos Pros
+              trabalham em projetos para parceiros externos que valorizam
+              raciocínio claro para interpretar melhor as previsões.
+              Selecionamos Pros com histórico de comentários claros e
+              perspicazes, e que estejam dispostos a discordar dos pares de
+              forma educada e respeitosa.
+            </li>
+          </ul>
           <h3 id="api" className="mb-4 scroll-mt-nav text-2xl font-semibold">
             Metaculus tem uma API?
           </h3>
@@ -3684,72 +3802,6 @@ M834 80h400000v40h-400000z"
             às primeiras previsões, que podem &quot;terrar&quot; ou viés
             posteriores. Uma vez que a previsão da comunidade é visível, a
             previsão do Metaculus é oculta até que a questão se feche.
-          </p>
-        </div>
-        <div>
-          <h3
-            id="related-news"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            O que é o NewsMatch?
-          </h3>
-          <p>
-            NewsMatch exibe uma seleção de artigos relevantes para a questão
-            atual do Metaculus. Estes servem como um recurso adicional para os
-            meteorologistas enquanto discutem e preveem sobre a questão. Cada
-            artigo é listado com sua fonte e sua data de publicação. Clicar no
-            título de um artigo navega até o próprio artigo. O up e downvoting
-            permite que você indique se o artigo foi útil ou não. Sua entrada
-            melhora a precisão e a utilidade do modelo que corresponde aos
-            artigos para questões do Metaculus.
-          </p>
-          <p>
-            O modelo de correspondência de artigos é apoiado pelo{""}
-            <a href="https://www.improvethenews.org/">Improve the News</a>, um
-            agregador de notícias desenvolvido por um grupo de pesquisadores do
-            MIT. Projetado para dar aos leitores mais controle sobre o consumo
-            de notícias, o Improve the News ajuda os leitores a se manterem
-            informados enquanto encontram uma variedade maior de pontos de
-            vista.
-          </p>
-          <p>
-            Os artigos no banco de dados da ITN são combinados com perguntas
-            relevantes do Metaculus por um modelo de aprendizado de máquina
-            baseado em transformador treinado para mapear passagens
-            semanticamente semelhantes para regiões em &quot;espaço de
-            incorporação&quot;. As próprias incorporações são geradas usando{""}
-            <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
-          </p>
-        </div>
-        <div>
-          <h3
-            id="community-insights"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            O que são Insights Comunitários?
-          </h3>
-          <p>
-            O Community Insights resume os comentários do usuário do Metaculus
-            sobre uma determinada pergunta usando o GPT-4. Eles condensam
-            previsões recentes, comentários com carimbo de data e a previsão
-            atual da comunidade em resumos concisos de argumentos relevantes
-            para diferentes previsões sobre uma determinada questão. Os
-            meteorologistas podem usá-los para tomar decisões mais informadas e
-            manter-se atualizados com os insights mais recentes da comunidade.
-          </p>
-          <p>
-            O Community Insights está atualmente disponível em perguntas
-            binárias e contínuas com grandes tópicos de comentários e será
-            atualizado regularmente à medida que novas discussões surgirem nos
-            comentários. Se você tiver feedback sobre esses resumos - ou quiser
-            vê-los aparecer em uma variedade maior de perguntas - e-mail{""}
-            <a href="mailto:support@metaculus.com">support.com</a>.
-          </p>
-          <p>
-            Se você encontrar um resumo do Community Insights incorreto,
-            ofensivo ou enganoso, use o botão na parte inferior do resumo para
-            &quot;Desloque este resumo&quot; para que a equipe do Metaculus
-            possa resolvê-lo.
           </p>
         </div>
         <div>
