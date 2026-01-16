@@ -65,7 +65,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
   ];
 
   const buildHeaders = (accessToken?: string): Headers => {
-    const headers: HeadersInit = new Headers({
+    const headers = new Headers({
       ...Object.fromEntries(
         Array.from(request.headers.entries()).filter(
           ([key]) => !blocklistHeaders.includes(key.toLowerCase())
