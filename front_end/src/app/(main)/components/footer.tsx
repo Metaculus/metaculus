@@ -118,16 +118,14 @@ const FooterLinkColumn: FC<{
 
   return (
     <div className="flex flex-col gap-3 text-sm">
-      <span className="font-bold leading-4 text-gray-500 dark:text-gray-500-dark">
-        {title}
-      </span>
+      <span className="font-bold leading-4 text-gray-500">{title}</span>
       {links.map((link, index) => {
         if (link.isModal) {
           return (
             <button
               key={index}
               type="button"
-              className="text-left font-medium leading-4 text-gray-300 no-underline hover:text-gray-200 dark:text-gray-300-dark dark:hover:text-gray-200-dark"
+              className="text-left font-medium leading-4 text-gray-300 no-underline hover:text-gray-200"
               onClick={onContactClick}
             >
               {t(link.labelKey as Parameters<typeof t>[0])}
@@ -141,7 +139,7 @@ const FooterLinkColumn: FC<{
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium leading-4 text-gray-300 no-underline hover:text-gray-200 dark:text-gray-300-dark dark:hover:text-gray-200-dark"
+              className="font-medium leading-4 text-gray-300 no-underline hover:text-gray-200"
             >
               {t(link.labelKey as Parameters<typeof t>[0])}
             </a>
@@ -151,7 +149,7 @@ const FooterLinkColumn: FC<{
           <Link
             key={index}
             href={link.href}
-            className="font-medium leading-4 text-gray-300 no-underline hover:text-gray-200 dark:text-gray-300-dark dark:hover:text-gray-200-dark"
+            className="font-medium leading-4 text-gray-300 no-underline hover:text-gray-200"
           >
             {t(link.labelKey as Parameters<typeof t>[0])}
           </Link>
@@ -177,25 +175,25 @@ const LanguageSelector: FC = () => {
   return (
     <Listbox value={selectedLanguage} onChange={updateLanguage}>
       <div className="relative">
-        <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-gray-900 px-3 text-sm font-medium text-gray-200 dark:border-gray-300-dark dark:bg-gray-900-dark dark:text-gray-200-dark">
-          <LanguageIcon className="size-5 text-gray-200 dark:text-gray-200-dark" />
+        <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-blue-950 px-3 text-sm font-medium text-gray-200">
+          <LanguageIcon className="size-5 text-gray-200" />
           <span>
             {APP_LANGUAGES.find((opt) => opt.locale === selectedLanguage)?.name}
           </span>
           <FontAwesomeIcon
             icon={faChevronDown}
-            className="size-3 text-gray-500 dark:text-gray-500-dark"
+            className="size-3 text-gray-500"
           />
         </ListboxButton>
-        <ListboxOptions className="absolute bottom-full z-50 mb-1 w-full min-w-[160px] overflow-hidden rounded-lg border border-gray-300 bg-gray-900 py-1 shadow-lg dark:border-gray-300-dark dark:bg-gray-900-dark">
+        <ListboxOptions className="absolute bottom-full z-50 mb-1 w-full min-w-[160px] overflow-hidden rounded-lg border border-gray-300 bg-blue-950 py-1 shadow-lg">
           {APP_LANGUAGES.map((language) => (
             <ListboxOption
               key={language.locale}
               value={language.locale}
               className={({ selected }) =>
                 cn(
-                  "cursor-pointer px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 dark:text-gray-200-dark dark:hover:bg-gray-300",
-                  selected && "bg-gray-700 font-medium dark:bg-gray-300"
+                  "cursor-pointer px-3 py-2 text-sm text-gray-200 hover:bg-gray-700",
+                  selected && "bg-gray-700 font-medium"
                 )
               }
             >
@@ -224,23 +222,23 @@ const ThemeSelector: FC = () => {
   return (
     <Listbox value={currentTheme} onChange={handleThemeChange}>
       <div className="relative">
-        <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-gray-900 px-3 text-sm font-medium text-gray-200 dark:border-gray-300-dark dark:bg-gray-900-dark dark:text-gray-200-dark">
-          <ComputerIcon className="size-5 text-gray-200 dark:text-gray-200-dark" />
+        <ListboxButton className="flex h-10 items-center gap-2 text-nowrap rounded-lg border border-gray-300 bg-blue-950 px-3 text-sm font-medium text-gray-200">
+          <ComputerIcon className="size-5 text-gray-200" />
           <span>{t(currentOption.labelKey as Parameters<typeof t>[0])}</span>
           <FontAwesomeIcon
             icon={faChevronDown}
-            className="size-3 text-gray-500 dark:text-gray-500-dark"
+            className="size-3 text-gray-500"
           />
         </ListboxButton>
-        <ListboxOptions className="absolute bottom-full z-50 mb-1 w-full min-w-[180px] overflow-hidden rounded-lg border border-gray-300 bg-gray-900 py-1 shadow-lg dark:border-gray-300-dark dark:bg-gray-900-dark">
+        <ListboxOptions className="absolute bottom-full z-50 mb-1 w-full min-w-[180px] overflow-hidden rounded-lg border border-gray-300 bg-blue-950 py-1 shadow-lg">
           {THEME_OPTIONS.map((option) => (
             <ListboxOption
               key={option.value}
               value={option.value}
               className={({ selected }) =>
                 cn(
-                  "cursor-pointer text-nowrap px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 dark:text-gray-200-dark dark:hover:bg-gray-300",
-                  selected && "bg-gray-700 font-medium dark:bg-gray-300"
+                  "cursor-pointer text-nowrap px-3 py-2 text-sm text-gray-200 hover:bg-gray-700",
+                  selected && "bg-gray-700 font-medium"
                 )
               }
             >
@@ -260,18 +258,18 @@ const Footer: FC = () => {
   const handleContactClick = () => setCurrentModal({ type: "contactUs" });
 
   return (
-    <footer className="flex w-full flex-col gap-16 bg-gray-900 px-4 py-20 text-gray-300 dark:bg-gray-900-dark dark:text-gray-300-dark lg:items-center lg:px-20">
+    <footer className="flex w-full flex-col gap-16 bg-blue-950 px-4 py-20 text-gray-300 lg:items-center lg:px-20">
       {/* Main content */}
       <div className="flex w-full max-w-[1352px] flex-col gap-16 lg:flex-row lg:gap-4">
         {/* Left column - Logo, description, socials, selectors */}
         <div className="flex w-full max-w-[344px] flex-col gap-8 lg:gap-16">
           {/* Logo and description */}
           <div className="flex max-w-[241px] flex-col items-start gap-3">
-            <MetaculusTextLogo className="h-[24px] w-auto text-gray-300 dark:text-gray-300-dark" />
-            <p className="my-0 text-sm font-medium leading-5 text-gray-300 dark:text-gray-300-dark">
+            <MetaculusTextLogo className="h-[24px] w-auto text-gray-300" />
+            <p className="my-0 text-sm font-medium leading-5 text-gray-300">
               {t("publicBenefitCorporation")}
             </p>
-            <p className="my-0 text-sm font-medium leading-5 text-gray-300 dark:text-gray-300-dark">
+            <p className="my-0 text-sm font-medium leading-5 text-gray-300">
               {t("metaculusDescription")}
             </p>
           </div>
@@ -283,7 +281,7 @@ const Footer: FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t("metaculusOnTwitter")}
-              className="text-gray-200 no-underline hover:text-white dark:text-gray-200-dark dark:hover:text-gray-0-dark"
+              className="text-gray-200 no-underline hover:text-white"
             >
               <FontAwesomeIcon icon={faXTwitter} className="size-[18px]" />
             </a>
@@ -292,7 +290,7 @@ const Footer: FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t("metaculusOnDiscord")}
-              className="text-gray-200 no-underline hover:text-white dark:text-gray-200-dark dark:hover:text-gray-0-dark"
+              className="text-gray-200 no-underline hover:text-white"
             >
               <FontAwesomeIcon icon={faDiscord} className="size-6" />
             </a>
@@ -334,22 +332,22 @@ const Footer: FC = () => {
       </div>
 
       {/* Bottom links */}
-      <div className="flex w-full max-w-[1352px] gap-8 text-sm font-medium leading-4 text-gray-300 dark:text-gray-300-dark">
+      <div className="flex w-full max-w-[1352px] gap-8 text-sm font-medium leading-4 text-gray-300">
         <Link
           href="/help/guidelines/"
-          className="no-underline hover:text-gray-200 dark:hover:text-gray-200-dark"
+          className="no-underline hover:text-gray-200"
         >
           {t("guidelines")}
         </Link>
         <Link
           href="/privacy-policy/"
-          className="no-underline hover:text-gray-200 dark:hover:text-gray-200-dark"
+          className="no-underline hover:text-gray-200"
         >
           {t("privacyPolicy")}
         </Link>
         <Link
           href="/terms-of-use/"
-          className="no-underline hover:text-gray-200 dark:hover:text-gray-200-dark"
+          className="no-underline hover:text-gray-200"
         >
           {t("termsOfUse")}
         </Link>
