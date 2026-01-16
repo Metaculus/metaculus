@@ -39,9 +39,20 @@ const ClosedTournamentTimeline: FC<Props> = async ({
         2
       ).getTime();
 
+  const currentYear = getYear(new Date());
+  const closeYear = getYear(new Date(latestActualCloseTimestamp));
+  const resolveYear = getYear(
+    new Date(
+      isAllQuestionsResolved && latestActualResolutionTimestamp
+        ? latestActualResolutionTimestamp
+        : latestScheduledResolutionTimestamp
+    )
+  );
+  const endYear = getYear(new Date(endDateTimestamp));
   const formatString =
-    getYear(new Date(latestActualCloseTimestamp)) ===
-    getYear(new Date(endDateTimestamp))
+    closeYear === currentYear &&
+    resolveYear === currentYear &&
+    endYear === currentYear
       ? "MMM dd"
       : "MMM dd yyyy";
 
