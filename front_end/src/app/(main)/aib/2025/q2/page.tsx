@@ -1,4 +1,4 @@
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 
 import AiBenchmarkingTournamentPage from "../../components/page-view-2025-q2";
 
@@ -9,7 +9,8 @@ export const metadata = {
 };
 
 export default async function Q2Page() {
-  const token = await getServerSession();
+  const authManager = await getAuthCookieManager();
+  const token = authManager.getAccessToken();
 
   return <AiBenchmarkingTournamentPage token={token} />;
 }

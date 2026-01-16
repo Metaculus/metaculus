@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
-import { getImpersonatorSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import FeedbackFloat from "./(home)/components/feedback_float";
@@ -28,13 +28,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const impersonatorToken = await getImpersonatorSession();
+  const authManager = await getAuthCookieManager();
+  const isImpersonating = authManager.isImpersonating();
 
   return (
     <div className="flex min-h-screen flex-col">
       <GlobalHeader />
 
-      {impersonatorToken && <ImpersonationBanner />}
+      {isImpersonating && <ImpersonationBanner />}
 
       <Bulletins />
       <div className="flex-grow">{children}</div>

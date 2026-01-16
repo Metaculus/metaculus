@@ -7,8 +7,8 @@ import {
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { LanguageService } from "@/services/language_service";
-import { getServerSession } from "@/services/session";
 import type { ErrorResponse } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
@@ -129,9 +129,9 @@ export async function updateLanguagePreference(
   language: string,
   revalidate = true
 ) {
-  const serverSession = await getServerSession();
+  const authManager = await getAuthCookieManager();
 
-  if (serverSession) {
+  if (authManager.hasAuthSession()) {
     // Update the user's language preference in the database
     await ServerProfileApi.updateProfile({
       language: language,

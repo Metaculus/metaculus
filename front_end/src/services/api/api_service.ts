@@ -14,9 +14,10 @@ export abstract class ApiService {
   protected post<T = Response, B = Record<string, unknown>>(
     url: string,
     body: B,
-    options?: FetchOptions
+    options?: FetchOptions,
+    config?: FetchConfig
   ): Promise<T> {
-    return this.fetcher.post(url, body, options);
+    return this.fetcher.post(url, body, options, config);
   }
 
   protected put<T, B>(

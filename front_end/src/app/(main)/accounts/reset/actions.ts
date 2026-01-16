@@ -5,7 +5,7 @@ import {
   passwordResetRequestSchema,
 } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { setServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { AuthResponse } from "@/types/auth";
 import { ApiError } from "@/utils/core/errors";
 
@@ -66,7 +66,8 @@ export async function passwordResetConfirmAction(
       validatedFields.data.password
     );
 
-    await setServerSession(response.token);
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(response.tokens);
 
     return {
       data: response,

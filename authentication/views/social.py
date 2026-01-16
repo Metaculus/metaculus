@@ -4,11 +4,12 @@ from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_social_auth.views import SocialTokenOnlyAuthView
 from social_core.backends.oauth import BaseOAuth2
 
-from authentication.auth import FallbackTokenAuthentication
-from authentication.models import ApiKey
+from authentication.services import get_tokens_for_user
+from users.models import User
 
 
 @api_view(["GET"])
@@ -45,14 +46,13 @@ def social_providers_api_view(request):
 
 class SocialCodeAuth(SocialTokenOnlyAuthView):
     class TokenSerializer(serializers.Serializer):
-        token = serializers.SerializerMethodField()
+        tokens = serializers.SerializerMethodField()
 
-        def get_token(self, obj):
-            token, created = ApiKey.objects.get_or_create(user=obj)
-            return token.key
+        def get_tokens(self, obj: User):
+            return get_tokens_for_user(obj)
 
     serializer_class = TokenSerializer
-    authentication_classes = (FallbackTokenAuthentication,)
+    authentication_classes = (JWTAuthentication,)
 
     def respond_error(self, error):
         response = super().respond_error(error)

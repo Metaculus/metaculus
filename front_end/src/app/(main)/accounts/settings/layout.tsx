@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { redirect } from "next/navigation";
 
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 
 import SettingsHeader from "./components/settings_header";
 
@@ -12,10 +12,10 @@ export default async function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const token = await getServerSession();
+  const authManager = await getAuthCookieManager();
   const currentUser = await ServerProfileApi.getMyProfile();
 
-  if (!token || !currentUser) return redirect("/");
+  if (!authManager.hasAuthSession() || !currentUser) return redirect("/");
 
   return (
     <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 px-4 py-6 dark:bg-gray-0-dark sm:p-8 lg:my-8">
