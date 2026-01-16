@@ -48,7 +48,7 @@ class SocialCodeAuth(SocialTokenOnlyAuthView):
     class TokenSerializer(serializers.Serializer):
         tokens = serializers.SerializerMethodField()
 
-        def get_token(self, obj: User):
+        def get_tokens(self, obj: User):
             return get_tokens_for_user(obj)
 
     serializer_class = TokenSerializer
