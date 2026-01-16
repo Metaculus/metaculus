@@ -12,17 +12,27 @@ import {
   usePublisher,
 } from "@mdxeditor/editor";
 import { useTranslations } from "next-intl";
-import { FC, memo, useEffect, useState } from "react";
+import { FC, memo, useEffect, useMemo, useState } from "react";
 
-import ForecastCard from "@/components/forecast_card";
-import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/embed_question_modal";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import {
+  EMBED_QUESTION_TITLE,
+  ENFORCED_THEME_PARAM,
+  GRAPH_ZOOM_PARAM,
+} from "@/constants/global_search_params";
+import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useEmbedUrl } from "@/hooks/share";
+import useAppTheme from "@/hooks/use_app_theme";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { PostWithForecasts } from "@/types/post";
+import { TimelineChartZoomOption } from "@/types/charts";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/core/errors";
+import { addUrlParams } from "@/utils/navigation";
 
 import createEditorComponent from "../createJsxComponent";
+import EmbedQuestionModal from "./embed_question_modal";
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
 
 type Props = {
@@ -30,6 +40,22 @@ type Props = {
 };
 
 export const EMBEDDED_QUESTION_COMPONENT_NAME = "EmbeddedQuestion";
+const EMBED_MAX_WIDTH = 550;
+
+function isBinaryOrContinuousQuestion(qType?: QuestionType) {
+  if (!qType) return false;
+  return (
+    qType === QuestionType.Binary ||
+    ContinuousQuestionTypes.some((t) => t === qType)
+  );
+}
+
+function isFanChartPost(post: PostWithForecasts) {
+  return (
+    !!post.group_of_questions &&
+    post.group_of_questions.graph_type === GroupOfQuestionsGraphType.FanGraph
+  );
+}
 
 const EmbeddedQuestion: FC<Props> = ({ id }) => {
   const [postData, setPostData] = useState<PostWithForecasts | null>(null);
@@ -37,6 +63,27 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
 
   const deleteQuestion = useLexicalNodeRemove();
   const isReadOnly = useCellValue(readOnly$);
+
+  const { ref, getReferenceProps } =
+    useLexicalBackspaceNodeRemove<HTMLDivElement>(!isReadOnly);
+  const [shellEl, setShellEl] = useState<HTMLDivElement | null>(null);
+  const [shellWidth, setShellWidth] = useState<number>(EMBED_MAX_WIDTH);
+
+  useEffect(() => {
+    if (!shellEl) return;
+
+    const update = () =>
+      setShellWidth(Math.ceil(shellEl.getBoundingClientRect().width));
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(shellEl);
+
+    return () => ro.disconnect();
+  }, [shellEl]);
+
+  const embedUrl = useEmbedUrl(`/questions/embed/${id}`);
+  const { theme: appTheme } = useAppTheme();
 
   useEffect(() => {
     const loadPost = async () => {
@@ -54,8 +101,29 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
     void loadPost();
   }, [id]);
 
-  const { ref, getReferenceProps } =
-    useLexicalBackspaceNodeRemove<HTMLDivElement>(!isReadOnly);
+  const iFrameSrc = useMemo(() => {
+    if (!embedUrl) return null;
+    return addUrlParams(embedUrl, [
+      { paramName: ENFORCED_THEME_PARAM, paramValue: appTheme },
+      // keep parity with your embed modal defaults
+      { paramName: GRAPH_ZOOM_PARAM, paramValue: TimelineChartZoomOption.All },
+      ...(postData?.title
+        ? [{ paramName: EMBED_QUESTION_TITLE, paramValue: postData.title }]
+        : []),
+    ]);
+  }, [embedUrl, appTheme, postData?.title]);
+
+  const embedHeight = useMemo(() => {
+    if (!postData) return 360;
+    const effectiveWidth = Math.min(shellWidth, EMBED_MAX_WIDTH);
+    const qType = postData.question?.type;
+
+    const isBinaryOrContinuous = isBinaryOrContinuousQuestion(qType);
+    const fan = isFanChartPost(postData);
+    if (isBinaryOrContinuous) return effectiveWidth < 418 ? 390 : 360;
+    if (fan) return effectiveWidth < 480 ? 290 : 360;
+    return effectiveWidth < 418 ? 290 : 270;
+  }, [postData, shellWidth]);
 
   return (
     <div
@@ -66,7 +134,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
       {isLoading ? (
         <LoadingIndicator />
       ) : postData ? (
-        <div className="flex flex-col">
+        <div ref={setShellEl} className="flex flex-col">
           {!isReadOnly && (
             <Button
               onClick={deleteQuestion}
@@ -78,12 +146,24 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
             </Button>
           )}
 
-          <ForecastCard
-            post={postData}
-            withZoomPicker
-            navigateToNewTab
-            className="min-h-72"
-          />
+          {iFrameSrc ? (
+            <div className="mt-1 max-w-full overflow-x-hidden">
+              <iframe
+                title={postData.title ?? `Question ${id}`}
+                className="mx-auto block border-0"
+                src={iFrameSrc}
+                style={{
+                  height: embedHeight,
+                  width: "100%",
+                  maxWidth: EMBED_MAX_WIDTH,
+                }}
+              />
+            </div>
+          ) : (
+            <div className="mx-auto w-[400px] bg-blue-200 p-3 dark:bg-blue-200-dark">
+              Failed to build embed URL
+            </div>
+          )}
         </div>
       ) : (
         <div className="mx-auto w-[400px] bg-blue-200 p-3 dark:bg-blue-200-dark">

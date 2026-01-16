@@ -120,7 +120,7 @@ def _compute_hotness_comments(post: Post) -> float:
 
 
 def _compute_hotness_questions(post: Post) -> tuple[float, list]:
-    questions = post.get_questions()
+    questions = list(post.questions.all())
     if not questions:
         return 0.0, []
 
@@ -174,23 +174,20 @@ def compute_feed_hotness():
     # so we can safely ignore them for performance reasons
     min_creation_date = timezone.now() - datetime.timedelta(days=70)
 
-    qs = (
-        Post.objects.filter_published()
-        .prefetch_questions()
-        .prefetch_related(
-            Prefetch(
-                "votes",
-                queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
-                    "id", "direction", "created_at"
-                ),
+    qs = Post.objects.filter_published().prefetch_related(
+        "questions",
+        Prefetch(
+            "votes",
+            queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
+                "id", "direction", "created_at"
             ),
-            Prefetch(
-                "comments",
-                queryset=Comment.objects.filter(
-                    created_at__gte=min_creation_date, is_private=False
-                ).only("id", "created_at", "is_private"),
-            ),
-        )
+        ),
+        Prefetch(
+            "comments",
+            queryset=Comment.objects.filter(
+                created_at__gte=min_creation_date, is_private=False
+            ).only("id", "created_at", "is_private"),
+        ),
     )
     total = qs.count()
     batch_size = 500

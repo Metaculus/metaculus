@@ -825,7 +825,17 @@ def minimize_history(
     """
     if len(history) <= max_size:
         return history
-    h = [h.timestamp() for h in history]
+    now = timezone.now()
+
+    # TODO: make a decision about how many future-dated entries there actually should be
+    # defaults to 100 now, but is in addition to max_size, meaning we can output 500 now
+    future_index = bisect_right(history, now)
+    past = history[:future_index]
+    h = [h.timestamp() for h in past]
+    future = history[future_index:]
+    future_timestamps = [h.timestamp() for h in future]
+    # take evenly space future-dated data
+    future_timestamps = future_timestamps[:: (len(future_timestamps) // 100) + 1]
     # determine how many datetimes we want to have in each interval
     day = timedelta(days=1).total_seconds()
     domain = h[-1] - h[0]
@@ -910,7 +920,9 @@ def minimize_history(
         remainder = all_size - len(all_history)
     # put it all together
     minimized_history = all_history + month_history + week_history + day_history
-    return [datetime.fromtimestamp(h, tz=dt_timezone.utc) for h in minimized_history]
+    return [
+        datetime.fromtimestamp(h, tz=dt_timezone.utc) for h in minimized_history
+    ] + [datetime.fromtimestamp(f, tz=dt_timezone.utc) for f in future_timestamps]
 
 
 def get_user_forecast_history(

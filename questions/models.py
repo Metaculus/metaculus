@@ -49,12 +49,7 @@ class QuestionQuerySet(QuerySet):
         )
 
     def filter_public(self):
-        return self.filter(
-            related_posts__post__default_project__default_permission__isnull=False
-        )
-
-    def prefetch_related_post(self):
-        return self.prefetch_related("related_posts__post")
+        return self.filter(post__default_project__default_permission__isnull=False)
 
 
 class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
@@ -70,6 +65,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     archived_scores: QuerySet["ArchivedScore"]
     id: int
     group_id: int | None
+    post_id: int | None
 
     # Annotated fields
     forecasts_count: int = 0
@@ -237,6 +233,18 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
+    # Post relation (canonical ownership - every question belongs to exactly one post)
+    post = models.ForeignKey(
+        "posts.Post",
+        null=True,  # Temporarily nullable for migration; should always be set
+        # TODO: check if it's still possible to create a question
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="questions",
+        editable=False,
+        help_text="The post this question belongs to. Set automatically.",
+    )
+
     # Group
     group_variable = models.CharField(blank=True, null=False)
     label = models.TextField(blank=True, null=False)
@@ -310,21 +318,10 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return super().save(**kwargs)
 
-    def _get_post_rel(self):
-        rels = self.related_posts.all()
-
-        if len(rels) == 0:
-            return None
-        if len(rels) == 1:
-            return rels[0]
-        if len(rels) > 1:
-            raise ValueError(f"Question {self.id} has more than one post: {rels}")
-
     def get_post(self) -> "Post | None":
-        return getattr(self._get_post_rel(), "post", None)
-
-    def get_post_id(self):
-        return getattr(self._get_post_rel(), "post_id", None)
+        """Get the post this question belongs to."""
+        if self.post_id:
+            return self.post
 
     @property
     def status(self) -> QuestionStatus:
@@ -423,6 +420,32 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
                 ).filter_within_question_period()
             )
         )
+
+    class Meta:
+        indexes = [
+            # Partial indexes for question-level status filtering in feed queries
+            # Used by Exists() subqueries in get_posts_feed()
+            models.Index(
+                fields=["post"],
+                name="idx_question_post_unresolved",
+                condition=Q(resolution__isnull=True),
+            ),
+            models.Index(
+                fields=["post"],
+                name="idx_question_post_resolved",
+                condition=Q(resolution__isnull=False),
+            ),
+            models.Index(
+                fields=["post", "scheduled_close_time"],
+                name="idx_question_post_close_time",
+                condition=Q(resolution__isnull=True),
+            ),
+            models.Index(
+                fields=["post", "scheduled_resolve_time"],
+                name="idx_question_post_resolve_time",
+                condition=Q(resolution__isnull=True),
+            ),
+        ]
 
 
 QUESTION_CONTINUOUS_TYPES = [
@@ -770,23 +793,6 @@ class AggregateForecast(models.Model):
 
     def get_prediction_values(self) -> list[float | None]:
         return self.forecast_values
-
-
-class QuestionPost(models.Model):
-    """
-    Postgres View of Post<>Question relations
-    """
-
-    post = models.ForeignKey(
-        "posts.Post", related_name="related_questions", on_delete=models.DO_NOTHING
-    )
-    question = models.ForeignKey(
-        Question, related_name="related_posts", on_delete=models.DO_NOTHING
-    )
-
-    class Meta:
-        managed = False
-        db_table = "questions_question_post"
 
 
 class UserForecastNotification(models.Model):

@@ -152,11 +152,11 @@ def posts_full_text_search(qs: QuerySet[Post], query: str):
     query = " & ".join(f"{word.strip()}:*" for word in query.split() if word.strip())
 
     search_vector = (
-        SearchVector("related_questions__question__title")
-        + SearchVector("related_questions__question__description")
-        + SearchVector("related_questions__question__resolution_criteria")
-        + SearchVector("related_questions__question__fine_print")
-        + SearchVector("related_questions__question__options")
+        SearchVector("questions__title")
+        + SearchVector("questions__description")
+        + SearchVector("questions__resolution_criteria")
+        + SearchVector("questions__fine_print")
+        + SearchVector("questions__options")
         + SearchVector("group_of_questions__description")
         + SearchVector("group_of_questions__resolution_criteria")
         + SearchVector("group_of_questions__fine_print")

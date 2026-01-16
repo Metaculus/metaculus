@@ -536,9 +536,8 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 f"{min_diff} at every step.\n"
             )
         # Check if maximum difference between cdf points is acceptable
-        # (0.59 if inbound outcome count is the default 200)
-        # TODO: switch this value to 0.2 after coordinating
-        max_diff = 0.59 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
+        # (0.2 if inbound outcome count is the default 200)
+        max_diff = 0.2 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "
@@ -661,7 +660,7 @@ def serialize_question(
     if post:
         serialized_data["short_title"] = post.short_title
 
-    serialized_data["post_id"] = post.id if post else question.get_post_id()
+    serialized_data["post_id"] = post.id if post else question.post_id
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )

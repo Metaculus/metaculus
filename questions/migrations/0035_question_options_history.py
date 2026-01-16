@@ -18,7 +18,7 @@ def initialize_options_history(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("questions", "0032_alter_aggregateforecast_forecast_values_and_more"),
+        ("questions", "0034_question_status_filter_indexes"),
     ]
 
     operations = [

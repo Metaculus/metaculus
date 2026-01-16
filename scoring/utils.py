@@ -35,7 +35,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.cache import invalidate_average_coverage_cache
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question, Forecast, QuestionPost
+from questions.models import Question, Forecast
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import (
@@ -306,11 +306,15 @@ def generate_comment_insight_leaderboard_entries(
 
 
 def generate_question_writing_leaderboard_entries(
-    questions: list[Question],
+    questions: QuerySet[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
-    questions = list(questions)
+    questions = list(
+        questions.select_related("post__author").prefetch_related(
+            "post__coauthors", "post__projects"
+        )
+    )
 
     user_forecasts_map = generate_map_from_list(
         Forecast.objects.filter(
@@ -320,20 +324,14 @@ def generate_question_writing_leaderboard_entries(
         ).only("question_id", "author_id"),
         key=lambda forecast: forecast.question_id,
     )
-    question_post_map = {
-        obj.question_id: obj.post
-        for obj in QuestionPost.objects.filter(question__in=questions)
-        .select_related("post__author")
-        .prefetch_related("post__coauthors", "post__projects")
-    }
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
         forecasts_during_period = user_forecasts_map.get(question.pk) or []
         forecasters = set(forecast.author_id for forecast in forecasts_during_period)
-        post = question_post_map.get(question.id)
-        if post:
-            forecaster_ids_for_post[post].update(forecasters)
+
+        if question.post:
+            forecaster_ids_for_post[question.post].update(forecasters)
 
     exclusions: QuerySet[MedalExclusionRecord] = (
         MedalExclusionRecord.objects.all().select_related("user")
@@ -423,8 +421,7 @@ def generate_project_leaderboard(
 def assign_ranks(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
-    include_humans: bool = True,
-    include_bots: bool = False,
+    bot_status: Project.BotLeaderboardStatus,
 ) -> list[LeaderboardEntry]:
     RelativeLegacy = LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT
     if leaderboard.score_type == RelativeLegacy:
@@ -464,24 +461,35 @@ def assign_ranks(
 
     candidates: QuerySet[User] = User.objects.filter(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
-    ).only("id")
+    ).only("id", "is_bot")
 
     # dictionary of {excluded user id : show anyway status}
-    shown_exclusions_dict = {None: True}  # aggregations always excluded but shown
+    shown_exclusions_dict: dict[None | int, bool] = {
+        None: True
+    }  # aggregations always excluded but shown
     for exclusion in exclusion_records:
-        if exclusion.user_id not in shown_exclusions_dict:
+        if exclusion.show_anyway is False:
+            # exclusions that don't show anyway override ones that do show
             shown_exclusions_dict[exclusion.user_id] = False
-        shown_exclusions_dict[exclusion.user_id] = (
-            shown_exclusions_dict[exclusion.user_id] or exclusion.show_anyway
-        )
-    if not include_humans:
+        elif exclusion.user_id not in shown_exclusions_dict:
+            shown_exclusions_dict[exclusion.user_id] = True
+    if bot_status == Project.BotLeaderboardStatus.BOTS_ONLY:
+        # don't display humans
         for user in candidates.filter(is_bot=False):
-            if user.id not in shown_exclusions_dict:
-                shown_exclusions_dict[user.id] = True
-    if not include_bots:
+            shown_exclusions_dict[user.id] = False
+    if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
+        # show all non-excluded bots
         for user in candidates.filter(is_bot=True):
+            # don't override existing exclusions
             if user.id not in shown_exclusions_dict:
                 shown_exclusions_dict[user.id] = True
+    if bot_status == Project.BotLeaderboardStatus.INCLUDE:
+        # bots and humans are included, no action needed
+        pass
+    if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_HIDE:
+        # don't show ANY bots
+        for user in candidates.filter(is_bot=True):
+            shown_exclusions_dict[user.id] = False
 
     # set ranks
     rank = 1
@@ -738,16 +746,10 @@ def process_entries_for_leaderboard(
 ) -> list[LeaderboardEntry]:
     # assign ranks - also applies exclusions
     bot_status = leaderboard.bot_status or project.bot_leaderboard_status
-    bots_get_ranks = bot_status in [
-        Project.BotLeaderboardStatus.BOTS_ONLY,
-        Project.BotLeaderboardStatus.INCLUDE,
-    ]
-    humans_get_ranks = bot_status != Project.BotLeaderboardStatus.BOTS_ONLY
     entries = assign_ranks(
         entries,
         leaderboard,
-        include_humans=humans_get_ranks,
-        include_bots=bots_get_ranks,
+        bot_status=bot_status,
     )
 
     # assign prize percentages
@@ -957,17 +959,16 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
 def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     question_ids = list(
         leaderboard.get_questions()
-        .filter(
-            Q(related_posts__post__author_id=user.id)
-            | Q(related_posts__post__coauthors=user)
-        )
+        .filter(Q(post__author_id=user.id) | Q(post__coauthors=user))
         .distinct("id")
         .values_list("id", flat=True)
     )
 
     # Now fetch full questions for later iteration
-    questions = Question.objects.filter(id__in=question_ids).prefetch_related(
-        "related_posts__post"
+    questions = list(
+        Question.objects.filter(id__in=question_ids)
+        .select_related("post__author")
+        .prefetch_related("post__coauthors", "post__projects")
     )
 
     user_forecasts_map = generate_map_from_list(
@@ -978,20 +979,14 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
         ).only("question_id", "author_id"),
         key=lambda forecast: forecast.question_id,
     )
-    question_post_map = {
-        obj.question_id: obj.post
-        for obj in QuestionPost.objects.filter(question_id__in=question_ids)
-        .select_related("post__author")
-        .prefetch_related("post__coauthors", "post__projects")
-    }
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
         forecasts_during_period = user_forecasts_map.get(question.pk) or []
         forecasters = set(forecast.author_id for forecast in forecasts_during_period)
-        post = question_post_map.get(question.id)
-        if post:
-            forecaster_ids_for_post[post].update(forecasters)
+
+        if question.post:
+            forecaster_ids_for_post[question.post].update(forecasters)
 
     exclusions = MedalExclusionRecord.objects.filter(user=user)
     contributions: list[Contribution] = []
@@ -1048,8 +1043,8 @@ def get_contributions(
     # Scoring Leaderboards
     questions = (
         leaderboard.get_questions()
-        .prefetch_related("related_posts__post")
-        .filter(Q(related_posts__post__published_at__lt=timezone.now()))
+        .select_related("post")
+        .filter(Q(post__published_at__lt=timezone.now()))
     )
 
     # Extract question IDs first to avoid complex subqueries in Score filters
@@ -1070,12 +1065,12 @@ def get_contributions(
         question_id__in=question_ids,
         user=user,
         score_type=score_type,
-    ).prefetch_related("question__related_posts__post")
+    ).select_related("question__post")
     archived_scores = ArchivedScore.objects.filter(
         question_id__in=question_ids,
         user=user,
         score_type=score_type,
-    ).prefetch_related("question__related_posts__post")
+    ).select_related("question__post")
 
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(

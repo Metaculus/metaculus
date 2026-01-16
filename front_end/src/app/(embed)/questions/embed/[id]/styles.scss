@@ -1,3 +1,7 @@
+html {
+  scrollbar-gutter: auto !important;
+}
+
 $embeds-min-width: 480px;
 $embeds-max-width: 600px;
 $plot-stroke-width: 2;
@@ -185,6 +189,70 @@ body {
       .scatter-group .inner-point {
         stroke-width: 3px;
       }
+    }
+  }
+}
+
+.EmbedQuestionCard {
+  --embed-title-size: 28px;
+  --embed-chip-size: 28px;
+  --embed-chip-line: 1.1;
+  --embed-label-size: 14px;
+  --embed-label-line: 16px;
+  --embed-icon-size: 12px;
+  --embed-ellipsis-size: 22px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.EmbedQuestionCard .ForecastCard-header > h2 {
+  font-size: var(--embed-title-size);
+  line-height: 1.2;
+}
+
+.EmbedQuestionCard .ForecastCard-prediction .InternalChip,
+.EmbedQuestionCard .ForecastCard-prediction .InternalLabel {
+  font-size: var(--embed-chip-size);
+  line-height: var(--embed-chip-line);
+}
+
+.EmbedQuestionCard .ForecastCard-prediction .InternalChip {
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 22px;
+  padding-bottom: 22px;
+}
+
+.EmbedQuestionCard .embed-gap {
+  gap: 10px;
+}
+
+.EmbedQuestionCard .MultipleChoiceTile .resize-label,
+.EmbedQuestionCard .MultiTimeSeriesTile .resize-label {
+  font-size: var(--embed-label-size);
+  line-height: var(--embed-label-line);
+}
+
+.EmbedQuestionCard .MultipleChoiceTile .resize-icon,
+.EmbedQuestionCard .MultiTimeSeriesTile .resize-icon {
+  width: var(--embed-icon-size);
+  height: var(--embed-icon-size);
+}
+
+.EmbedQuestionCard .MultipleChoiceTile .resize-ellipsis,
+.EmbedQuestionCard .MultiTimeSeriesTile .resize-ellipsis {
+  font-size: var(--embed-ellipsis-size);
+  line-height: var(--embed-label-line);
+  width: auto;
+}
+
+.EmbedQuestionCard .MultipleChoiceTile {
+  @media screen and (min-width: $embeds-max-width) {
+    gap: 1.25rem;
+
+    .resize-label {
+      padding-left: 0px;
+      margin-left: -2px;
     }
   }
 }

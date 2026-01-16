@@ -444,8 +444,8 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "id",
         "title_original",
         "description_original",
-        "related_posts__post__id",
-        "related_posts__post__title",
+        "post_id",
+        "post__title",
     ]
     actions = [
         "export_selected_questions_data",
@@ -457,13 +457,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     ]
     list_filter = [
         "type",
-        "related_posts__post__curation_status",
-        AutocompleteFilterFactory("Post", "related_posts__post"),
-        AutocompleteFilterFactory("Author", "related_posts__post__author"),
-        AutocompleteFilterFactory(
-            "Default Project", "related_posts__post__default_project"
-        ),
-        AutocompleteFilterFactory("Project", "related_posts__post__projects"),
+        "post__curation_status",
+        AutocompleteFilterFactory("Post", "post"),
+        AutocompleteFilterFactory("Author", "post__author"),
+        AutocompleteFilterFactory("Default Project", "post__default_project"),
+        AutocompleteFilterFactory("Project", "post__projects"),
     ]
 
     autocomplete_fields = ["group"]
@@ -472,19 +470,20 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         return obj.user_forecasts.count()
 
     def author(self, obj):
-        return obj.related_posts.first().post.author
+        return obj.post.author if obj.post else None
 
-    author.admin_order_field = "related_posts__post__author"
+    author.admin_order_field = "post__author"
 
     def curation_status(self, obj):
-        return obj.related_posts.first().post.curation_status
+        return obj.post.curation_status if obj.post else None
 
-    curation_status.admin_order_field = "related_posts__post__curation_status"
+    curation_status.admin_order_field = "post__curation_status"
 
     def post_link(self, obj):
-        post = obj.related_posts.first().post
-        url = reverse("admin:posts_post_change", args=[post.id])
-        return format_html('<a href="{}">{}</a>', url, f"Post-{post.id}")
+        if not obj.post_id:
+            return None
+        url = reverse("admin:posts_post_change", args=[obj.post_id])
+        return format_html('<a href="{}">{}</a>', url, f"Post-{obj.post_id}")
 
     def view_forecasts(self, obj):
         url = reverse("admin:questions_forecast_changelist") + f"?question={obj.id}"

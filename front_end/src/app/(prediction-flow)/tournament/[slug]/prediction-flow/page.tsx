@@ -1,4 +1,6 @@
+import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
 import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
@@ -16,6 +18,20 @@ type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const { slug } = await props.params;
+  const tournament = await ServerProjectsApi.getTournament(slug);
+  const t = await getTranslations();
+
+  if (!tournament) {
+    return {};
+  }
+
+  return {
+    title: `${tournament.name} | ${t("predictionFlow")}`,
+  };
+}
 
 export default async function PredictionFlow(props: Props) {
   const params = await props.params;
