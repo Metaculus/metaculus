@@ -303,8 +303,8 @@ def exchange_legacy_token_api_view(request):
     token = serializers.CharField().run_validation(request.data.get("token"))
 
     try:
-        token_obj = Token.objects.get(key=token)
-    except Token.DoesNotExist:
+        token_obj = ApiKey.objects.get(key=token)
+    except ApiKey.DoesNotExist:
         raise ValidationError({"token": ["Invalid token"]})
 
     user = token_obj.user
