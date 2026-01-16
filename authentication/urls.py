@@ -5,7 +5,7 @@ from .views import common, social
 
 urlpatterns = [
     path("auth/login/token/", common.login_api_view),
-    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/verify_token/", common.verify_token_api_view),
     # DEPRECATED: Legacy token migration endpoint (remove after 30 days)
     path("auth/exchange-legacy-token/", common.exchange_legacy_token_api_view),
