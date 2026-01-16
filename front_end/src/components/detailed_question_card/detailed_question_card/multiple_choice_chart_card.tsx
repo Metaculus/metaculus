@@ -226,6 +226,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
       choiceItems={choiceItems}
+      currentOptions={question.options}
       hideCP={hideCP}
       timestamps={timestamps}
       forecastersCount={forecastersCount}
