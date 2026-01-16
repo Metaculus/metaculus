@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { DomainTuple, VictoryThemeDefinition } from "victory";
 
 import {
@@ -126,9 +127,14 @@ export function buildNumericChartData({
   });
 
   const latestTimestamp = actualCloseTime
-    ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
+    ? Math.max(
+        Math.min(actualCloseTime / 1000, Date.now() / 1000),
+        myForecasts?.latest ? myForecasts.latest.start_time : 0
+      )
     : Date.now() / 1000;
-  if (aggregation.latest?.end_time === null) {
+  if (isNil(actualCloseTime) && aggregation.latest?.end_time === null) {
+    // we don't have an actual close time and last aggregation hasn't ended,
+    // so put a point at the end of the timeline
     line.push({
       x: latestTimestamp,
       y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
@@ -138,6 +144,23 @@ export function buildNumericChartData({
       y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
       y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
     });
+  } else if (
+    actualCloseTime &&
+    (aggregation.latest?.end_time === null ||
+      (aggregation.latest?.end_time &&
+        aggregation.latest.end_time >= actualCloseTime))
+  ) {
+    // we have an actual close time and the aggregation outlives it,
+    // trucate it to the actualCloseTime
+    line[line.length - 1] = {
+      x: actualCloseTime / 1000,
+      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
+    };
+    area[area.length - 1] = {
+      x: actualCloseTime / 1000,
+      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
+      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
+    };
   } else if (
     aggregation.latest?.end_time &&
     aggregation.latest.end_time >= latestTimestamp
