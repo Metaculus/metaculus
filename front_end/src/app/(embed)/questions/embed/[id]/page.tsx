@@ -9,6 +9,23 @@ import "./styles.scss";
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
+const MIN_EMBED_WIDTH = 360;
+const MIN_EMBED_HEIGHT = 200;
+const MAX_EMBED_WIDTH = 1200;
+const MAX_EMBED_HEIGHT = 800;
+
+function parseIntParam(
+  value: string | undefined,
+  min?: number,
+  max?: number
+): number | undefined {
+  if (!value) return undefined;
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed) || parsed <= 0) return undefined;
+  if (min !== undefined && parsed < min) return min;
+  if (max !== undefined && parsed > max) return max;
+  return parsed;
+}
 
 export default async function GenerateQuestionPreview(props: {
   params: Promise<{ id: number }>;
@@ -33,10 +50,25 @@ export default async function GenerateQuestionPreview(props: {
 
   const isOgCapture = searchParams["og"] === "1";
 
+  // Custom dimensions (consumer handles responsive logic)
+  // Both width and height must be provided for custom sizing to take effect
+  const width = parseIntParam(
+    searchParams["width"] as string,
+    MIN_EMBED_WIDTH,
+    MAX_EMBED_WIDTH
+  );
+  const height = parseIntParam(
+    searchParams["height"] as string,
+    MIN_EMBED_HEIGHT,
+    MAX_EMBED_HEIGHT
+  );
+
   const commonProps = {
     post,
     theme: embedTheme,
     titleOverride,
+    customWidth: width,
+    customHeight: height,
   };
 
   return isOgCapture ? (

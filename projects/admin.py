@@ -10,7 +10,7 @@ from django.urls import path
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
-from rest_framework.authtoken.models import Token
+from authentication.models import ApiKey
 
 from posts.models import Post
 from projects.models import (
@@ -561,7 +561,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(username)
             user.save()
-            Token.objects.create(user=user)
+            ApiKey.objects.create(user=user)
             data += f"{user.username}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
@@ -619,7 +619,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(password)
             user.save()
-            Token.objects.create(user=user)
+            ApiKey.objects.create(user=user)
             data += f"{user.username},{password}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
