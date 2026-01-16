@@ -1,6 +1,109 @@
+"use client";
+
+import { faXTwitter } from "@fortawesome/free-brands-svg-icons";
+import {
+  faEllipsis,
+  faArrowUpRightFromSquare,
+  faFileImage,
+  faFileCsv,
+  faCopy,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ComponentProps } from "react";
 
+import Button from "@/components/ui/button";
+import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import cn from "@/utils/core/cn";
+
+const dropdownItemClassName =
+  "flex w-full items-center justify-end gap-2 whitespace-nowrap border-b border-blue-400 px-4 py-1.5 text-sm text-blue-800 hover:bg-blue-100 last:border-b-0 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark";
+
+const moreMenuItems: MenuItemProps[] = [
+  {
+    id: "view-question",
+    name: "View Question",
+    element: (
+      <button className={dropdownItemClassName}>
+        <span>View Question</span>
+        <FontAwesomeIcon
+          icon={faArrowUpRightFromSquare}
+          className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
+        />
+      </button>
+    ),
+  },
+  {
+    id: "export-png",
+    name: "Export PNG",
+    element: (
+      <button className={dropdownItemClassName}>
+        <span>Export PNG</span>
+        <FontAwesomeIcon
+          icon={faFileImage}
+          className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
+        />
+      </button>
+    ),
+  },
+  {
+    id: "export-csv",
+    name: "Export CSV",
+    element: (
+      <button className={dropdownItemClassName}>
+        <span>Export CSV</span>
+        <FontAwesomeIcon
+          icon={faFileCsv}
+          className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
+        />
+      </button>
+    ),
+  },
+  {
+    id: "share-twitter",
+    name: "Share on",
+    element: (
+      <button className={dropdownItemClassName}>
+        <span>Share on</span>
+        <FontAwesomeIcon
+          icon={faXTwitter}
+          className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
+        />
+      </button>
+    ),
+  },
+  {
+    id: "copy-link",
+    name: "Copy Link",
+    element: (
+      <button className={dropdownItemClassName}>
+        <span>Copy Link</span>
+        <FontAwesomeIcon
+          icon={faCopy}
+          className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
+        />
+      </button>
+    ),
+  },
+];
+
+function MoreButton() {
+  return (
+    <DropdownMenu
+      items={moreMenuItems}
+      textAlign="right"
+      className="min-w-36 overflow-hidden rounded-md border-blue-400 bg-gray-0 dark:border-blue-400-dark dark:bg-gray-0-dark"
+    >
+      <Button
+        aria-label="more options"
+        size="md"
+        presentationType="icon"
+        className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
+      >
+        <FontAwesomeIcon icon={faEllipsis} />
+      </Button>
+    </DropdownMenu>
+  );
+}
 
 /**
  * Skeleton loader for the question card while data is being fetched
@@ -48,16 +151,18 @@ export function QuestionCard({
   title,
   subtitle,
   variant = "secondary",
+  showMoreButton = true,
   ...props
 }: ComponentProps<"div"> & {
   title?: string;
   subtitle?: string;
   variant?: "secondary" | "primary";
+  showMoreButton?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "relative",
+        "group relative",
         variant === "primary" &&
           "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark lg:p-8",
         variant === "secondary" &&
@@ -66,14 +171,19 @@ export function QuestionCard({
       )}
       {...props}
     >
+      {showMoreButton && (
+        <div className="absolute right-4 top-4 z-10 lg:right-5 lg:top-5">
+          <MoreButton />
+        </div>
+      )}
       {title && (
         <h3
           className={cn(
             "my-0 w-full font-[450] leading-tight [text-wrap:pretty]",
             variant === "primary" &&
-              "text-2xl text-blue-800 dark:text-blue-800-dark",
+              "pr-12 text-2xl text-blue-800 dark:text-blue-800-dark",
             variant === "secondary" &&
-              "text-base text-gray-800 dark:text-gray-800-dark"
+              "pr-8 text-base text-gray-800 dark:text-gray-800-dark"
           )}
         >
           {title}
