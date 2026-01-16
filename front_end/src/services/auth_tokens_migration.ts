@@ -5,7 +5,7 @@
  */
 import "server-only";
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -15,9 +15,11 @@ const LEGACY_COOKIE_NAME = "auth_token";
 /**
  * Migrate legacy auth_token cookie to new JWT tokens.
  * Call this in middleware before normal auth handling.
+ * Deletes invalid legacy tokens on 400 response.
  */
 export async function handleLegacyTokenMigration(
   request: NextRequest,
+  response: NextResponse,
   requestAuth: AuthCookieReader,
   responseAuth: AuthCookieManager
 ): Promise<boolean> {
@@ -29,7 +31,7 @@ export async function handleLegacyTokenMigration(
   const { PUBLIC_API_BASE_URL } = getPublicSettings();
 
   try {
-    const response = await fetch(
+    const apiResponse = await fetch(
       `${PUBLIC_API_BASE_URL}/api/auth/exchange-legacy-token/`,
       {
         method: "POST",
@@ -38,9 +40,15 @@ export async function handleLegacyTokenMigration(
       }
     );
 
-    if (!response.ok) return false;
+    if (apiResponse.status === 400) {
+      // Invalid token - clean it up
+      response.cookies.delete(LEGACY_COOKIE_NAME);
+      return false;
+    }
 
-    const data = await response.json();
+    if (!apiResponse.ok) return false;
+
+    const data = await apiResponse.json();
     responseAuth.setAuthTokens(data.tokens);
     return true;
   } catch {

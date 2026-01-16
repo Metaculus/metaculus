@@ -95,6 +95,7 @@ export async function middleware(request: NextRequest) {
   // DEPRECATED: Legacy token migration - remove after 30-day grace period
   const wasMigrated = await handleLegacyTokenMigration(
     request,
+    response,
     requestAuth,
     responseAuth
   );
