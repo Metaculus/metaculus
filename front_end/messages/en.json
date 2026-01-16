@@ -1647,7 +1647,7 @@
   "aibBenchmarkHeroTitle": "AI forecasting capabilities, measured against human forecasters.",
   "aibBenchmarkHeroSubtitle": "FutureEval tracks how well AI systems predict real-world outcomes through standardized tournaments, comparing their accuracy directly against professional human forecasters on thousands of questions.",
   "aibBenchModelsTitle": "Model Leaderboard",
-  "aibBenchModelsBlurb": "Updated every day based on our standardized forecasting performance measurement methodology.",
+  "aibBenchModelsBlurb": "Updated daily based on our standardized scoring methodology.",
   "aibProsVsBotsTitle": "How much Pros beat Bots",
   "aibProsVsBotsSubtitle": "Metaculus Pro Forecasters have beaten Bots every quarter of our <link>AI Benchmarking Tournaments</link> so far.",
   "aibPerfOverTimeTitle": "Forecasting Performance Over Time",

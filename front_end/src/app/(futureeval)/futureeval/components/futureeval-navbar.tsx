@@ -14,25 +14,25 @@ const FutureEvalNavbar: React.FC = () => {
   return (
     <header
       className={cn(
-        "fixed left-0 top-0 z-[200] flex h-header w-full items-center justify-end px-3 sm:px-6 md:px-8",
+        "fixed left-0 top-0 z-[200] flex h-header w-full items-center pl-1 pr-3 sm:px-6 md:px-8",
+        "justify-between sm:justify-end",
         "bg-transparent"
       )}
     >
-      {/* Right side: Platform button + Dark mode toggle */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <Button
-          variant="text"
-          size="sm"
-          href="/"
-          className={cn("gap-2", FE_COLORS.textPrimary, "hover:opacity-80")}
-        >
-          <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-          <span className="hidden sm:inline">Metaculus Platform</span>
-          <span className="inline sm:hidden">Platform</span>
-        </Button>
+      {/* Left side on mobile: Platform button */}
+      <Button
+        variant="text"
+        size="sm"
+        href="/"
+        className={cn("gap-2", FE_COLORS.textPrimary, "hover:opacity-80")}
+      >
+        <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+        <span className="hidden sm:inline">Metaculus Platform</span>
+        <span className="inline sm:hidden">Metaculus</span>
+      </Button>
 
-        <ThemeToggle />
-      </div>
+      {/* Right side: Dark mode toggle */}
+      <ThemeToggle />
     </header>
   );
 };

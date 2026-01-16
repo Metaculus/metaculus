@@ -216,7 +216,7 @@ const AIBProsVsBotsDiffChart: FC<{
   );
   const yTicksNoZero = useMemo(() => yTicks.filter((t) => t !== 0), [yTicks]);
 
-  const gridStroke = getThemeColor(METAC_COLORS.gray[900]);
+  const gridStroke = getThemeColor(METAC_COLORS.gray[500]);
   const axisLabelColor = getThemeColor(METAC_COLORS.gray[700]);
   const tickLabelColor = getThemeColor(METAC_COLORS.gray[500]);
   const show = categories.length > 0 && (hasS1 || hasS2);
@@ -225,7 +225,7 @@ const AIBProsVsBotsDiffChart: FC<{
   const paddingRight = 0;
   const paddingTop = 16;
   const paddingBottom = 44;
-  const chartH = 360;
+  const chartH = smUp ? 360 : 216; // Mobile: 60% of desktop height
 
   const plotW = Math.max(0, width - paddingLeft - paddingRight);
   const domainSpan = xDomain[1] - xDomain[0];
@@ -322,7 +322,7 @@ const AIBProsVsBotsDiffChart: FC<{
   return (
     <div ref={ref} className={className ?? "relative w-full"}>
       {show && (
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 antialiased sm:gap-x-10">
+        <div className="mb-6 flex flex-wrap items-center justify-start gap-x-6 gap-y-3 antialiased sm:gap-x-10">
           {s1 && (
             <span className="inline-flex items-center gap-2">
               <span
@@ -330,7 +330,7 @@ const AIBProsVsBotsDiffChart: FC<{
                 className="inline-block h-[14px] w-[14px] rounded-[2px]"
                 style={{ background: getThemeColor(s1.colorToken) }}
               />
-              <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
                 {s1.label}
               </span>
             </span>
@@ -342,12 +342,12 @@ const AIBProsVsBotsDiffChart: FC<{
                 className="inline-block h-[14px] w-[14px] rounded-[2px]"
                 style={{ background: getThemeColor(s2.colorToken) }}
               />
-              <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
                 {s2.label}
               </span>
             </span>
           )}
-          <span className="inline-flex items-center gap-2 text-base text-gray-700 dark:text-gray-700-dark sm:text-lg">
+          <span className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-700-dark sm:text-base sm:text-lg">
             <svg
               width="13"
               height="16"
@@ -384,7 +384,7 @@ const AIBProsVsBotsDiffChart: FC<{
 
       {show && (
         <>
-          {width === 0 && <div style={{ height: smUp ? chartH : 240 }} />}
+          {width === 0 && <div style={{ height: chartH }} />}
           <div ref={chartRef}>
             {width > 0 && (
               <VictoryChart
@@ -408,23 +408,24 @@ const AIBProsVsBotsDiffChart: FC<{
                     <VictoryLabel angle={-90} dx={-16} dy={smUp ? -10 : -5} />
                   }
                   tickValues={yTicksNoZero}
-                  label={smUp ? "Average score difference" : "Score"}
+                  label="Score Difference"
                   style={{
                     grid: {
                       stroke: gridStroke,
-                      strokeWidth: 0.1,
+                      strokeWidth: 1,
+                      opacity: 0.15,
                     },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
                     tickLabels: {
                       fill: tickLabelColor,
-                      fontSize: smUp ? 12 : 12,
+                      fontSize: smUp ? 12 : 10,
                       fontWeight: 400,
                       fontFeatureSettings: '"tnum"',
                     },
                     axisLabel: {
                       fill: axisLabelColor,
-                      fontSize: 14,
+                      fontSize: smUp ? 14 : 10,
                       fontWeight: 400,
                     },
                   }}
@@ -435,12 +436,12 @@ const AIBProsVsBotsDiffChart: FC<{
                   offsetX={smUp ? 60 : 45}
                   tickValues={[0]}
                   style={{
-                    grid: { stroke: gridStroke, strokeWidth: 0.1 },
+                    grid: { stroke: gridStroke, strokeWidth: 1, opacity: 0.15 },
                     axis: { stroke: "transparent" },
                     ticks: { stroke: "transparent" },
                     tickLabels: {
                       fill: tickLabelColor,
-                      fontSize: smUp ? 12 : 12,
+                      fontSize: smUp ? 12 : 10,
                       fontWeight: 400,
                       fontFeatureSettings: '"tnum"',
                     },

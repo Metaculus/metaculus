@@ -79,14 +79,14 @@ const FutureEvalSubmitSteps: React.FC = () => {
       {/* Video section */}
       <div
         className={cn(
-          "flex flex-1 flex-col items-center gap-[26px] rounded-[13px] p-8 md:mx-auto md:max-w-[432px] lg:mx-0 lg:max-w-none",
+          "flex flex-1 flex-col items-center gap-[26px] rounded-lg p-8 md:mx-auto md:max-w-[432px] lg:mx-0 lg:max-w-none",
           FE_COLORS.bgSecondary
         )}
       >
         <p
           className={cn(
             "m-0 mx-auto max-w-[400px] text-center",
-            FE_TYPOGRAPHY.h4,
+            FE_TYPOGRAPHY.h3,
             FE_COLORS.textHeading
           )}
         >
@@ -119,7 +119,7 @@ const FutureEvalSubmitSteps: React.FC = () => {
         >
           {t("aibSubmitHeading")}
         </h4>
-        <div className="flex flex-col gap-[42px]">
+        <div className="flex flex-col gap-6">
           {submitSteps.map((step, index) => (
             <FutureEvalSubmitStep
               key={index}
@@ -141,13 +141,13 @@ const FutureEvalSubmitStep: React.FC<{
     <div className="flex items-center gap-6">
       <div
         className={cn(
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-full p-[10px] font-sans text-[22.5px] font-medium text-futureeval-bg-light dark:text-futureeval-bg-dark",
+          "flex h-12 w-12 shrink-0 items-center justify-center rounded-full p-[10px] font-sans font-medium text-futureeval-bg-light dark:text-futureeval-bg-dark",
           FE_COLORS.stepNumberBg
         )}
       >
         {index}
       </div>
-      <p className={cn("m-0", FE_TYPOGRAPHY.body, FE_COLORS.textSubheading)}>
+      <p className={cn("m-0 text-base sm:text-lg", FE_COLORS.textSubheading)}>
         {content}
       </p>
     </div>

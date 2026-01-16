@@ -107,7 +107,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
             </div>
           </div>
           <p
-            className={`m-0 mt-3 text-balance ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
+            className={`m-0 mt-3 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
           >
             {t("aibBenchModelsBlurb")}
           </p>

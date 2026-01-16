@@ -40,7 +40,7 @@ const FutureEvalTabsShell: React.FC<Props> = ({ current, sections }) => {
       {/* Tab content */}
       {activeSection && (
         <div className={FE_COLORS.bgPrimary}>
-          <div className="mx-auto box-content max-w-[1044px] space-y-[60px] px-4 pb-[58px] pt-[60px] sm:px-10 md:px-16 lg:pb-[143px] 2xl:space-y-[120px] 2xl:pt-[120px]">
+          <div className="mx-auto box-content max-w-[1044px] space-y-[60px] px-4 pb-[58px] sm:px-10 md:px-16 lg:pb-[143px] 2xl:space-y-[120px] 2xl:pt-[120px]">
             {activeSection.content}
           </div>
         </div>

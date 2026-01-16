@@ -1,6 +1,10 @@
 "use client";
 
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowsLeftRight,
+  faArrowsUpDown,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
@@ -220,8 +224,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     userSelect: "none" as const,
     cursor: "default",
   };
-  const edgePadLeft = smUp ? 50 : 30;
-  const edgePadRight = rightPad;
+  const edgePadLeft = smUp ? 50 : 8;
+  const edgePadRight = smUp ? rightPad : 8;
   const pointKey = (p: { x: Date; y: number; name: string }) =>
     `${+p.x}|${p.y}|${p.name}`;
 
@@ -385,7 +389,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     <div ref={wrapRef} className={className ?? "relative w-full"}>
       {/* Legend above the chart */}
       {legend?.length ? (
-        <div className="mb-4 flex flex-wrap items-center justify-center gap-x-[14px] gap-y-2 antialiased sm:gap-x-8 sm:gap-y-3">
+        <div className="mb-4 flex flex-wrap items-center justify-start gap-x-[14px] gap-y-2 antialiased sm:gap-x-8 sm:gap-y-3">
           {/* Company legend items (interactive) - hidden on mobile */}
           {smUp &&
             companyLegendItems.map((item, i) =>
@@ -426,6 +430,21 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               <LegendStar key={`legend-sota-${i}`} label={item.label} />
             )
           )}
+          {/* Mobile-only axis legends (shown when company legends are hidden) */}
+          {!smUp && (
+            <>
+              <LegendAxisIcon
+                icon={faArrowsUpDown}
+                label="Score"
+                color={getThemeColor(METAC_COLORS.gray[500])}
+              />
+              <LegendAxisIcon
+                icon={faArrowsLeftRight}
+                label="Model Release Date"
+                color={getThemeColor(METAC_COLORS.gray[500])}
+              />
+            </>
+          )}
         </div>
       ) : null}
 
@@ -440,9 +459,9 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           domainPadding={{ x: 24 }}
           padding={{
             top: 16,
-            bottom: 68,
-            left: smUp ? 50 : 30,
-            right: rightPad,
+            bottom: smUp ? 68 : 36,
+            left: smUp ? 50 : 8,
+            right: smUp ? rightPad : 8,
           }}
           containerComponent={
             <VictoryVoronoiContainer
@@ -480,7 +499,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
         >
           <VictoryAxis
             dependentAxis
-            label={t("aibScore")}
+            label={smUp ? t("aibScore") : undefined}
             axisLabelComponent={
               <VictoryLabel angle={-90} dx={-10} dy={smUp ? -10 : 10} />
             }
@@ -488,14 +507,15 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             tickFormat={smUp ? (d: number) => Math.round(d) : () => ""}
             style={{
               grid: {
-                stroke: getThemeColor(METAC_COLORS.gray[900]),
-                strokeWidth: 0.1,
+                stroke: getThemeColor(METAC_COLORS.gray[500]),
+                strokeWidth: 1,
+                opacity: 0.15,
               },
               axis: { stroke: "transparent" },
               ticks: { stroke: "transparent" },
               tickLabels: {
                 fill: getThemeColor(METAC_COLORS.gray[500]),
-                fontSize: smUp ? 12 : 12,
+                fontSize: smUp ? 12 : 10,
                 fontWeight: 400,
                 fontFeatureSettings: '"tnum"',
               },
@@ -510,7 +530,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
           <VictoryAxis
             orientation="bottom"
             crossAxis={false}
-            label={t("aibModelReleaseDate")}
+            label={smUp ? t("aibModelReleaseDate") : undefined}
             axisLabelComponent={<VictoryLabel dy={28} />}
             tickFormat={(d: Date) =>
               d.toLocaleDateString(undefined, {
@@ -518,9 +538,11 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
                 year: "numeric",
               })
             }
-            offsetY={68}
+            offsetY={smUp ? 68 : 36}
             tickValues={timeTicks}
-            tickLabelComponent={<VictoryLabel dy={16} textAnchor="middle" />}
+            tickLabelComponent={
+              <VictoryLabel dy={smUp ? 16 : 8} textAnchor="middle" />
+            }
             style={{
               axis: { stroke: "transparent" },
               ticks: { stroke: "transparent" },
@@ -767,7 +789,7 @@ const LegendDot: FC<LegendDotProps> = ({
         className="inline-block h-[14px] w-[14px] rounded-full"
         style={{ backgroundColor: color }}
       />
-      <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+      <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
         {label}
       </span>
       {isSelected && (
@@ -799,7 +821,7 @@ const LegendTrend: FC<{ color: string; label: string; isDimmed?: boolean }> = ({
         style={{ borderTop: `2px dashed ${color}` }}
       />
     </span>
-    <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+    <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
       {label}
     </span>
   </span>
@@ -814,7 +836,25 @@ const LegendStar: FC<{ label: string }> = ({ label }) => (
     >
       <span className="text-base leading-none">★</span>
     </span>
-    <span className="text-base text-gray-900 dark:text-gray-900-dark sm:text-lg">
+    <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
+      {label}
+    </span>
+  </span>
+);
+
+const LegendAxisIcon: FC<{
+  icon: typeof faArrowsLeftRight;
+  label: string;
+  color: string;
+}> = ({ icon, label, color }) => (
+  <span className="inline-flex items-center gap-1.5">
+    <FontAwesomeIcon
+      icon={icon}
+      className="h-[14px] w-[14px]"
+      style={{ color }}
+      aria-hidden
+    />
+    <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
       {label}
     </span>
   </span>

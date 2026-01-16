@@ -152,16 +152,16 @@ export const FE_COLORS = {
 
 export const FE_TYPOGRAPHY = {
   // Page title - large display heading
-  h1: "font-newsreader text-2xl font-normal sm:text-5xl text-balance",
+  h1: "font-newsreader text-2xl font-normal sm:text-3xl md:text-4xl lg:text-5xl text-balance",
 
   // Section headings
-  h2: "font-newsreader text-2xl font-normal sm:text-4xl text-balance",
+  h2: "font-newsreader text-2xl font-normal sm:text-2xl md:text-3xl lg:text-4xl text-balance",
 
   // Subsection headings
-  h3: "font-newsreader text-lg font-normal sm:text-3xl text-balance",
+  h3: "font-newsreader text-lg font-normal sm:text-3xl",
 
   // Card titles and smaller headings
-  h4: "font-newsreader text-base font-normal sm:text-2xl text-balance",
+  h4: "font-newsreader text-base font-normal sm:text-2xl",
 
   // Body text - primary
   body: "font-sans text-sm leading-[1.6] sm:text-base",

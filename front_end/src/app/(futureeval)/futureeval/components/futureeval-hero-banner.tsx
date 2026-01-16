@@ -21,7 +21,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
     <div className={cn("w-full select-none pt-header", FE_COLORS.bgPrimary)}>
       <div
         className={cn(
-          "mx-auto box-content max-w-[1044px] px-4 pt-0 sm:px-10 md:px-16 md:pt-8 lg:pt-16",
+          "mx-auto box-content max-w-[1044px] px-4 pt-4 sm:px-10 md:px-16 md:pt-8 lg:pt-16",
           showHero ? "pb-4 sm:pb-10 lg:pb-12" : "pb-8 sm:pb-10 lg:pb-12"
         )}
       >
@@ -69,7 +69,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
             </div>
 
             {/* Orbit visualization - 50% on tablet+, centered below on mobile */}
-            <div className="flex flex-1 items-center justify-center sm:basis-1/2">
+            <div className="flex flex-1 items-center justify-center pb-4 sm:basis-1/2 sm:pb-0">
               <FutureEvalOrbit />
             </div>
           </div>

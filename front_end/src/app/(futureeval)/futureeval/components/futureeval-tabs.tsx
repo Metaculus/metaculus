@@ -1,12 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import React from "react";
 
-import AIBNewsTab from "@/app/(main)/aib/components/aib/tabs/news/aib-news-tab";
-
 import FutureEvalBenchmarkTab from "./benchmark/futureeval-benchmark-tab";
 import FutureEvalMethodologyTab from "./futureeval-methodology-tab";
 import FutureEvalParticipateTab from "./futureeval-participate-tab";
 import FutureEvalTabsShell, { Section } from "./futureeval-tabs-shell";
+import FutureEvalNewsTab from "./news/futureeval-news-tab";
 
 type Props = {
   current: Section["value"];
@@ -32,7 +31,7 @@ const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
       value: "news",
       href: "/futureeval/news",
       label: t("aibTabsNews"),
-      content: <AIBNewsTab />,
+      content: <FutureEvalNewsTab />,
     },
     {
       value: "participate",

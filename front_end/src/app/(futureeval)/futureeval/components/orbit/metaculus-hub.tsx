@@ -37,7 +37,7 @@ const MetaculusHub: React.FC = () => {
         {/* Title */}
         <span
           className={cn(
-            "text-left font-sans text-base font-semibold leading-tight",
+            "text-left font-sans text-xs font-semibold leading-tight sm:text-base",
             FE_COLORS.textPrimary
           )}
         >
@@ -51,7 +51,7 @@ const MetaculusHub: React.FC = () => {
       <div className="mt-2">
         <span
           className={cn(
-            "font-sans text-xs leading-tight",
+            "font-sans text-[10px] leading-tight sm:text-xs",
             FE_COLORS.textSecondary
           )}
         >
@@ -62,12 +62,12 @@ const MetaculusHub: React.FC = () => {
       {/* Subtext link */}
       <span
         className={cn(
-          "mt-0.5 font-sans text-xs",
+          "mt-0.5 font-sans text-[10px] sm:text-xs",
           FE_COLORS.textAccent,
           "cursor-default"
         )}
       >
-        best human forecasters
+        with the best human forecasters
       </span>
     </div>
   );

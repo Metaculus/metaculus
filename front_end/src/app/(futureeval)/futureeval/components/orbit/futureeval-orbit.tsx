@@ -65,7 +65,7 @@ export const ORBIT_CONFIG = {
   // Orbit ring diameter as % of container
   orbitDiameter: 75,
   // Circle size as % of container
-  circleSize: 28,
+  circleSize: 30,
   // Starting angle for first circle (Model Benchmark at upper-left)
   // Using CSS coordinate system where 0° = right, positive = clockwise
   startAngle: 135,
@@ -73,6 +73,14 @@ export const ORBIT_CONFIG = {
   angleIncrement: -120,
   // Stroke width for orbit ring and circle borders (in pixels)
   strokeWidth: 2,
+  // Drop shadow for orbit circles
+  // Uses theme background color for a subtle glow effect
+  shadow: {
+    blur: 20, // px - how soft/spread the shadow edges are
+    spread: 24, // px - how far the shadow extends (desktop)
+    mobileSpreadRatio: 0.5, // Mobile uses this ratio of spread (50%)
+    expandedSpreadRatio: 0.5, // Expanded uses this ratio of spread (50%)
+  },
 };
 
 // ===========================================
@@ -86,16 +94,20 @@ type FutureEvalOrbitProps = {
 /**
  * FutureEvalOrbit - Orbit visualization with rotating circles
  * Works on both desktop and mobile
- * On mobile (touch devices), expanded states are disabled - tap goes directly to action
+ * On mobile (touch devices): tap expands the item, showing close button to dismiss
+ * On desktop: hover to expand, click to navigate
  */
 const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [mobileExpandedItem, setMobileExpandedItem] = useState<string | null>(
+    null
+  );
   const [rotation, setRotation] = useState(0);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Detect touch device
   useEffect(() => {
@@ -114,8 +126,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
       const delta = timestamp - lastTimeRef.current;
       lastTimeRef.current = timestamp;
 
-      // Only rotate if not hovered and no item is expanded
-      if (!isHovered && !expandedItem) {
+      // Only rotate if no item is expanded (desktop or mobile)
+      if (!expandedItem && !mobileExpandedItem) {
         setRotation(
           (prev) => (prev + (ORBIT_ROTATION_SPEED * delta) / 1000) % 360
         );
@@ -131,7 +143,7 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isHovered, expandedItem]);
+  }, [expandedItem, mobileExpandedItem]);
 
   // Handle item click actions
   const handleItemClick = useCallback(
@@ -157,6 +169,16 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
     [router]
   );
 
+  // Handle mobile tap - expand instead of navigate
+  const handleMobileTap = useCallback((item: OrbitItem) => {
+    setMobileExpandedItem(item.id);
+  }, []);
+
+  // Handle mobile close - return to default state
+  const handleMobileClose = useCallback(() => {
+    setMobileExpandedItem(null);
+  }, []);
+
   // Calculate circle position as percentage offsets from center
   const getCirclePosition = (index: number) => {
     const angle =
@@ -169,17 +191,40 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
     return { x, y };
   };
 
+  // Handle click on container background (mobile: close expanded item)
+  const handleContainerClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Only handle clicks directly on the container (not bubbled from children)
+      if (e.target === e.currentTarget && isTouchDevice && mobileExpandedItem) {
+        setMobileExpandedItem(null);
+      }
+    },
+    [isTouchDevice, mobileExpandedItem]
+  );
+
   return (
     <div
+      ref={containerRef}
       className={cn("relative aspect-square w-full", className)}
-      onMouseEnter={() => !isTouchDevice && setIsHovered(true)}
-      onMouseLeave={() => {
-        if (!isTouchDevice) {
-          setIsHovered(false);
-          setExpandedItem(null);
-        }
-      }}
+      onClick={handleContainerClick}
     >
+      {/* Mobile backdrop with 75% opacity overlay - closes expanded item when tapped */}
+      {/* Extends beyond container to cover orbit circles that may extend outside */}
+      {isTouchDevice && mobileExpandedItem && (
+        <div
+          className="absolute z-40 bg-futureeval-bg-light/75 dark:bg-futureeval-bg-dark/75"
+          style={{
+            // Extend 15% beyond container on all sides to cover protruding circles
+            top: "-10%",
+            left: "-10%",
+            right: "-10%",
+            bottom: "-10%",
+          }}
+          onClick={() => setMobileExpandedItem(null)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Orbit ring - centered in container */}
       <div
         className={cn(
@@ -213,7 +258,10 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
               // Center the circle + force GPU acceleration for smooth animation
               transform: "translate3d(-50%, -50%, 0)",
               // Expanded items get higher z-index
-              zIndex: expandedItem === item.id ? 50 : 10,
+              zIndex:
+                expandedItem === item.id || mobileExpandedItem === item.id
+                  ? 50
+                  : 10,
               // Circle size as percentage of container
               width: `${ORBIT_CONFIG.circleSize}%`,
               height: `${ORBIT_CONFIG.circleSize}%`,
@@ -222,11 +270,23 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
             <OrbitCircle
               item={item}
               isExpanded={!isTouchDevice && expandedItem === item.id}
-              isHoveredParent={!isTouchDevice && isHovered}
               onMouseEnter={() => !isTouchDevice && setExpandedItem(item.id)}
-              onMouseLeave={() => {}}
-              onClick={() => handleItemClick(item)}
+              onMouseLeave={() => !isTouchDevice && setExpandedItem(null)}
+              onClick={
+                isTouchDevice
+                  ? () => handleMobileTap(item)
+                  : () => handleItemClick(item)
+              }
               strokeWidth={ORBIT_CONFIG.strokeWidth}
+              shadowBlur={ORBIT_CONFIG.shadow.blur}
+              shadowSpread={ORBIT_CONFIG.shadow.spread}
+              mobileSpreadRatio={ORBIT_CONFIG.shadow.mobileSpreadRatio}
+              expandedSpreadRatio={ORBIT_CONFIG.shadow.expandedSpreadRatio}
+              isMobile={isTouchDevice}
+              isMobileExpanded={isTouchDevice && mobileExpandedItem === item.id}
+              onMobileClose={handleMobileClose}
+              onNavigate={() => handleItemClick(item)}
+              containerRef={containerRef}
             />
           </div>
         );

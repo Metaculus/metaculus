@@ -37,7 +37,7 @@ const FutureEvalSubsectionHeader: React.FC<Props> = ({
 
       <p
         className={cn(
-          "m-0 mt-3 text-balance text-left",
+          "m-0 mt-3 text-left",
           FE_TYPOGRAPHY.body,
           FE_COLORS.textSubheading
         )}
