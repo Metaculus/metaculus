@@ -1843,7 +1843,6 @@
   "othersCount": "Otros ({count})",
   "featured": "Destacado",
   "staffPicks": "Selecciones del personal",
-  "othersCount": "Otros ({count})",
   "hero1TopTitle": "Plataforma Metaculus",
   "heroIndividualsTitle": "Toma decisiones basadas en pronósticos comunitarios confiables",
   "exploreQuestions": "Explorar preguntas",
@@ -1882,9 +1881,6 @@
   "tournamentsForAIBots": "Torneos para bots de IA",
   "futureEval": "EvaluaciónFutura",
   "launchATournament": "Iniciar un Torneo",
-  "tournamentsInfoTitle": "Nosotros <predmarket>no somos un mercado de predicciones</predmarket>. Puedes participar gratis y ganar premios en efectivo por ser preciso.",
-  "tournamentsInfoScoringLink": "¿Qué son las puntuaciones de pronóstico?",
-  "tournamentsInfoPrizesLink": "¿Cómo se distribuyen los premios?",
   "allCategoriesTopQuestions": "Principales preguntas en cada categoría",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

@@ -56,7 +56,7 @@ const HORIZONTAL_PADDING = 10;
 
 type Props = {
   question: Question | GraphingQuestionProps;
-  data: ContinuousAreaGraphInput | null;
+  data: ContinuousAreaGraphInput;
   height?: number;
   width?: number;
   extraTheme?: VictoryThemeDefinition;
@@ -87,9 +87,6 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   showBaseline = false,
   minMaxLabelsOnly = false,
 }) => {
-  if (data === null) {
-    throw new Error("Data for MinifiedContinuousAreaChart is null");
-  }
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;

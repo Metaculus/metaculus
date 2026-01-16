@@ -1845,7 +1845,6 @@
   "othersCount": "其他（{count}）",
   "featured": "精选",
   "staffPicks": "员工精选",
-  "othersCount": "其他（{count}）",
   "hero1TopTitle": "Metaculus 平台",
   "heroIndividualsTitle": "根据可信赖的社区预测做出决策",
   "exploreQuestions": "探索问题",
@@ -1884,9 +1883,6 @@
   "tournamentsForAIBots": "AI机器人比赛",
   "futureEval": "未来评估",
   "launchATournament": "发起比赛",
-  "tournamentsInfoTitle": "我们<predmarket>不是预测市场</predmarket>。您可以免费参与，并因准确预测而赢取现金奖励。",
-  "tournamentsInfoScoringLink": "什么是预测得分？",
-  "tournamentsInfoPrizesLink": "奖金如何分配？",
   "allCategoriesTopQuestions": "每个类别的热门问题",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

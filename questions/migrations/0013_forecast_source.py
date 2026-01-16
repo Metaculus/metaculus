@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="source",
             field=models.CharField(
                 blank=True,
-                choices=[("api", "Api"), ("ui", "Ui"), ("automatic", "Automatic")],
+                choices=[("api", "Api"), ("ui", "Ui")],
                 default="",
                 max_length=30,
                 null=True,

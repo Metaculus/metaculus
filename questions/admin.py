@@ -66,13 +66,13 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
     ACTION_RENAME = "rename_options"
     ACTION_DELETE = "delete_options"
     ACTION_ADD = "add_options"
-    ACTION_CHANGE_GRACE = "change_grace_period_end"  # not ready yet
+    ACTION_CHANGE_GRACE = "change_grace_period_end"
     ACTION_REORDER = "reorder_options"
     ACTION_CHOICES = (
         (ACTION_RENAME, "Rename options"),
         (ACTION_DELETE, "Delete options"),
         (ACTION_ADD, "Add options"),
-        # (ACTION_CHANGE_GRACE, "Change grace period end"),
+        # (ACTION_CHANGE_GRACE, "Change grace period end"),  # not ready yet
         (ACTION_REORDER, "Reorder options"),
     )
 

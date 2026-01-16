@@ -489,9 +489,7 @@ class MedianAggregatorMixin:
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
             centers_array = np.array(centers)
-            centers_array[np.equal(centers_array, 0.0) | (centers_array == 0.0)] = (
-                1.0  # avoid divide by zero
-            )
+            centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
             normalized_centers = np.array(aggregation_forecast_values)
             normalized_lowers = np.array(lowers)
             normalized_lowers[non_nones] = (

@@ -34,7 +34,7 @@ class MultipleChoiceOptionsUpdateSerializer(serializers.Serializer):
             return
         if len(new_options) == len(current_options):  # renaming
             if any(v > 1 for v in Counter(new_options).values()):
-                ValidationError("new_options includes duplicate labels")
+                raise ValidationError("new_options includes duplicate labels")
         elif timezone.now().timestamp() < ts:
             raise ValidationError("options cannot change during a grace period")
         elif len(new_options) < len(current_options):  # deletion
@@ -288,9 +288,9 @@ def multiple_choice_delete_options(
     build_question_forecasts(question)
 
     # notify users that about the change
-    from questions.tasks import multiple_choice_delete_option_notificiations
+    from questions.tasks import multiple_choice_delete_option_notifications
 
-    multiple_choice_delete_option_notificiations(
+    multiple_choice_delete_option_notifications(
         question_id=question.id,
         timestep=timestep,
         comment_author_id=comment_author.id,
@@ -363,9 +363,9 @@ def multiple_choice_add_options(
     build_question_forecasts(question)
 
     # notify users that about the change
-    from questions.tasks import multiple_choice_add_option_notificiations
+    from questions.tasks import multiple_choice_add_option_notifications
 
-    multiple_choice_add_option_notificiations(
+    multiple_choice_add_option_notifications(
         question_id=question.id,
         grace_period_end=grace_period_end,
         timestep=timestep,

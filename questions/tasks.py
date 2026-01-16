@@ -261,7 +261,7 @@ def format_time_remaining(time_remaining: timedelta):
 
 
 @dramatiq.actor
-def multiple_choice_delete_option_notificiations(
+def multiple_choice_delete_option_notifications(
     question_id: int,
     timestep: datetime,
     comment_author_id: int,
@@ -308,11 +308,7 @@ def multiple_choice_delete_option_notificiations(
     create_comment(comment_author, post, text=text)
 
     forecasters = (
-        User.objects.filter(
-            forecast__in=question.user_forecasts.filter(
-                Q(end_time__isnull=True) | Q(end_time__gt=timestep)
-            )
-        )
+        question.get_forecasters()
         .exclude(
             unsubscribed_mailing_tags__contains=[
                 MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
@@ -345,7 +341,7 @@ def multiple_choice_delete_option_notificiations(
 
 
 @dramatiq.actor
-def multiple_choice_add_option_notificiations(
+def multiple_choice_add_option_notifications(
     question_id: int,
     grace_period_end: datetime,
     timestep: datetime,

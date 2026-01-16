@@ -141,34 +141,36 @@ const QuestionHeaderCPStatus: FC<Props> = ({
               />
             )}
           </div>
-          <div
-            className={cn({
-              "flex min-h-0 flex-1 items-center": hideLabel, // Desktop timeline: flex and center
-              "": !hideLabel, // Mobile: no special styling
-              "mt-1.5": isEmbed,
-            })}
-          >
-            <MinifiedContinuousAreaChart
-              question={question}
-              data={continuousAreaChartData}
-              height={
-                hideLabel && size === "lg"
-                  ? 120
-                  : isEmbed
-                    ? isEmbedBelow376
-                      ? 32
-                      : 24
-                    : 50
-              }
-              forceTickCount={2}
-              hideLabels={hideLabel || isEmbedBelow376}
-              minMaxLabelsOnly={isEmbedBelow376}
-              showBaseline={isEmbedBelow376}
-              hideCP={hideCP}
-              extraTheme={chartTheme}
-              colorOverride={colorOverride}
-            />
-          </div>
+          {!!continuousAreaChartData && (
+            <div
+              className={cn({
+                "flex min-h-0 flex-1 items-center": hideLabel, // Desktop timeline: flex and center
+                "": !hideLabel, // Mobile: no special styling
+                "mt-1.5": isEmbed,
+              })}
+            >
+              <MinifiedContinuousAreaChart
+                question={question}
+                data={continuousAreaChartData}
+                height={
+                  hideLabel && size === "lg"
+                    ? 120
+                    : isEmbed
+                      ? isEmbedBelow376
+                        ? 32
+                        : 24
+                      : 50
+                }
+                forceTickCount={2}
+                hideLabels={hideLabel || isEmbedBelow376}
+                minMaxLabelsOnly={isEmbedBelow376}
+                showBaseline={isEmbedBelow376}
+                hideCP={hideCP}
+                extraTheme={chartTheme}
+                colorOverride={colorOverride}
+              />
+            </div>
+          )}
           {!hideCP && (
             <QuestionCPMovement
               question={question}

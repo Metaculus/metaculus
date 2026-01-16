@@ -53,7 +53,8 @@ def scaled_location_to_string_location(
     if question.type == Question.QuestionType.BINARY:
         return "yes" if scaled_location > 0.5 else "no"
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return question.options[int(scaled_location)]
+        list_of_all_options = get_all_options_from_history(question.options_history)
+        return list_of_all_options[int(scaled_location)]
     # continuous
     if scaled_location < question.range_min:
         return "below_lower_bound"

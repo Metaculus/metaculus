@@ -342,7 +342,7 @@ class TestAggregations:
                         [0.4, 0.35, None, 0.25],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
-                    forecaster_ids=[1, 2],
+                    forecaster_ids=[1, 2, 3],
                     timesteps=[
                         datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
                         datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
@@ -625,7 +625,7 @@ class TestAggregations:
                 False,
                 AggregateForecast(
                     start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
-                    method=AggregationMethod.UNWEIGHTED,
+                    method=AggregationMethod.RECENCY_WEIGHTED,
                     forecast_values=[0.6, 0.20, None, 0.20],
                     interval_lower_bounds=[0.6, 0.15, None, 0.15],
                     centers=[0.6, 0.20, None, 0.20],

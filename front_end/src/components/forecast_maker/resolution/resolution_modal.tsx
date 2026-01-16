@@ -81,7 +81,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       })) || []),
       ...baseQuestionOptions,
     ];
-  }, [question.options, question.type]);
+  }, [question]);
 
   const { handleSubmit, register, watch, setValue, formState } =
     useForm<FormData>({

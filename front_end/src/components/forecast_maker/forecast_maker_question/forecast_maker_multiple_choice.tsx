@@ -50,6 +50,7 @@ import {
 import ForecastChoiceOption, {
   ANIMATION_DURATION_MS,
 } from "../forecast_choice_option";
+import useGracePeriodCountdown from "./use_grace_period_countdown";
 import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
@@ -74,64 +75,6 @@ type NewOptionCalloutProps = {
   gracePeriodEnd: Date | null;
   onShowNewOptions: () => void;
   onDismiss: () => void;
-};
-
-/**
- * Hook to display remaining time until grace period ends
- * Updates every second for a live countdown
- */
-const useGracePeriodCountdown = (gracePeriodEnd: Date | null) => {
-  const [timeRemaining, setTimeRemaining] = useState<string>("");
-
-  useEffect(() => {
-    if (!gracePeriodEnd) {
-      setTimeRemaining("");
-      return;
-    }
-
-    const updateTime = () => {
-      const now = new Date();
-      const diff = gracePeriodEnd.getTime() - now.getTime();
-
-      if (diff <= 0) {
-        setTimeRemaining("expired");
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      const pluralize = (count: number, singular: string) =>
-        count === 1 ? singular : `${singular}s`;
-
-      if (days > 0) {
-        setTimeRemaining(
-          `${days} ${pluralize(days, "day")}, ${hours} ${pluralize(hours, "hour")}`
-        );
-      } else if (hours > 0) {
-        setTimeRemaining(
-          `${hours} ${pluralize(hours, "hour")}, ${minutes} ${pluralize(minutes, "minute")}`
-        );
-      } else if (minutes > 0) {
-        setTimeRemaining(
-          `${minutes} ${pluralize(minutes, "minute")}, ${seconds} ${pluralize(seconds, "second")}`
-        );
-      } else {
-        setTimeRemaining(`${seconds} ${pluralize(seconds, "second")}`);
-      }
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-
-    return () => clearInterval(interval);
-  }, [gracePeriodEnd]);
-
-  return timeRemaining;
 };
 
 const NewOptionCallout: FC<NewOptionCalloutProps> = ({
@@ -225,8 +168,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const allOptions = getAllOptionsHistory(question);
 
   const activeUserForecast =
     question.my_forecasts?.latest &&
@@ -324,19 +265,56 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     activeUserForecast.forecast_values.filter((value) => value !== null)
       .length < question.options.length;
 
-  const getNewOptions = useCallback(() => {
+  const forecastValueByOption = useMemo(() => {
+    if (!activeUserForecast) return new Map<string, number | null>();
+
+    const allOptions = getAllOptionsHistory(question);
+    return new Map(
+      allOptions.map((option, index) => [
+        option,
+        activeUserForecast.forecast_values[index] ?? null,
+      ])
+    );
+  }, [activeUserForecast, question]);
+
+  const latestForecastValueByOption = useMemo(() => {
+    const latestForecast = question.my_forecasts?.latest;
+    if (!latestForecast) return new Map<string, number | null>();
+
+    const allOptions = getAllOptionsHistory(question);
+    return new Map(
+      allOptions.map((option, index) => [
+        option,
+        latestForecast.forecast_values[index] ?? null,
+      ])
+    );
+  }, [question]);
+
+  const newOptions = useMemo(() => {
     if (!activeUserForecast) return [];
 
     return choicesForecasts
-      .filter((choice, index) => {
+      .filter((choice) => {
         const isCurrentOption = question.options.includes(choice.name);
-        const hasForecast = activeUserForecast.forecast_values[index] !== null;
+        const forecastValue = forecastValueByOption.get(choice.name);
+        const hasForecast =
+          typeof forecastValue !== "undefined" && forecastValue !== null;
         return isCurrentOption && !hasForecast;
       })
       .map((c) => ({ name: c.name, color: c.color }));
-  }, [activeUserForecast, choicesForecasts, question.options]);
+  }, [
+    activeUserForecast,
+    choicesForecasts,
+    forecastValueByOption,
+    question.options,
+  ]);
 
-  const newOptions = getNewOptions();
+  const newOptionNames = useMemo(
+    () => new Set(newOptions.map((option) => option.name)),
+    [newOptions]
+  );
+  const firstNewOptionName = newOptions[0]?.name;
+
   const showOverlay =
     showUserMustForecast && !dismissedOverlay && newOptions.length > 0;
 
@@ -391,13 +369,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      allOptions.map((_, index) => {
-        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on allOptions
-        // so there won't be a case where arrays are not of the same length
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const choiceOption = prev[index]!;
+      prev.map((choiceOption) => {
         const userForecast =
-          question.my_forecasts?.latest?.forecast_values[index] ?? null;
+          latestForecastValueByOption.get(choiceOption.name) ?? null;
 
         return {
           ...choiceOption,
@@ -407,7 +381,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [allOptions, question.my_forecasts?.latest?.forecast_values]);
+  }, [latestForecastValueByOption]);
 
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
@@ -608,11 +582,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         <tbody>
           {choicesForecasts.map((choice) => {
             if (question.options.includes(choice.name)) {
-              const isFirstNewOption =
-                newOptions.length > 0 && choice.name === newOptions[0]?.name;
-              const isNewOption = newOptions.some(
-                (opt) => opt.name === choice.name
-              );
+              const isFirstNewOption = choice.name === firstNewOptionName;
+              const isNewOption = newOptionNames.has(choice.name);
               return (
                 <ForecastChoiceOption
                   key={choice.name}

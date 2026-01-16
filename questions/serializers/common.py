@@ -240,7 +240,7 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
             if data.get("options") != question.options:
                 # if there are user forecasts, we can't update options this way
                 if question.user_forecasts.exists():
-                    ValidationError(
+                    raise ValidationError(
                         "Cannot update options through this endpoint while there are "
                         "user forecasts. "
                         "Instead, use /api/questions/update-mc-options/ or the UI on "
@@ -490,7 +490,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                     )
             elif value is not None:
                 raise serializers.ValidationError(
-                    f"Probability for inactivate option '{option}' must be null or absent"
+                    f"Probability for inactive option '{option}' must be null or absent"
                 )
             values.append(value)
         if not np.isclose(sum(filter(None, values)), 1):

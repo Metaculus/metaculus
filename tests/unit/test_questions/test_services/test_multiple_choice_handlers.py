@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import pytest  # noqa
+import pytest
 
 from questions.models import Question, Forecast
 from questions.services.multiple_choice_handlers import (

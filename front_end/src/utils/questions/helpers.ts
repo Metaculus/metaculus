@@ -203,7 +203,7 @@ export function inferEffectiveQuestionTypeFromPost(
 export function getAllOptionsHistory(question: Question): string[] {
   const allOptions: string[] = [];
   (question.options_history ?? []).map((entry) => {
-    entry[1].slice(0, -1).map((option) => {
+    entry[1].slice(0, -1).forEach((option) => {
       if (!allOptions.includes(option)) {
         allOptions.push(option);
       }
