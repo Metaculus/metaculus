@@ -3,13 +3,35 @@ from collections import defaultdict
 from typing import Iterable
 
 from django.db.models import Q, QuerySet
+from rest_framework.exceptions import PermissionDenied
 
 from comments.models import Comment
+from posts.models import Post
 from projects.permissions import ObjectPermission
 from users.models import User
 
 # Regex pattern to find all @<username> mentions
 USERNAME_PATTERN = r"@(\([^)]+\)|\w[\w\-_.]+\w)"
+
+
+def validate_predictors_mention(text: str, user: User, post: Post) -> None:
+    """
+    Validates that only curators and admins can mention @predictors.
+    Raises PermissionDenied if a non-curator/admin tries to use @predictors.
+    """
+    if not text:
+        return
+
+    mentions = {
+        m.strip("()").lower() for m in re.findall(USERNAME_PATTERN, text, re.UNICODE)
+    }
+
+    if "predictors" in mentions:
+        # Check if user has curator or admin permission
+        if user not in post.default_project.get_users_for_permission(
+            ObjectPermission.CURATOR
+        ):
+            raise PermissionDenied("Only curators and admins can mention @predictors")
 
 
 def comment_extract_user_mentions(

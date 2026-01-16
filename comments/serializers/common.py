@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
-from comments.utils import comments_extract_user_mentions_mapping
+from comments.utils import comments_extract_user_mentions_mapping, validate_predictors_mention
 from posts.models import Post
 from posts.services.common import get_posts_staff_users
 from projects.permissions import ObjectPermission
@@ -142,6 +142,15 @@ class CommentWriteSerializer(serializers.ModelSerializer):
 
         if not text and not has_sufficient_kf:
             raise ValidationError({"text": "Comment text is required"})
+
+        # Check for @predictors mention restriction
+        user = self.context.get("user")
+        on_post = attrs.get("on_post")
+        if user and on_post:
+            try:
+                validate_predictors_mention(text, user, on_post)
+            except Exception as e:
+                raise ValidationError({"text": str(e)})
 
         return attrs
 

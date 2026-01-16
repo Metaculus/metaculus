@@ -1,10 +1,13 @@
 import pytest
 import re
 
+from rest_framework.exceptions import PermissionDenied
+
 from comments.utils import (
     USERNAME_PATTERN,
     get_mention_for_user,
     comment_extract_user_mentions,
+    validate_predictors_mention,
 )
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -150,3 +153,87 @@ def test_comment_extract_user_mentions(
 
     assert {x.username for x in qs} == expected_usernames
     assert mentions == expected_mentions
+
+
+def test_validate_predictors_mention_curator_allowed(question_binary):
+    """Test that curators can mention @predictors"""
+    curator = factory_user(username="curator")
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+            override_permissions={
+                curator: ObjectPermission.CURATOR,
+            },
+        ),
+    )
+
+    # Should not raise an exception
+    validate_predictors_mention("Hello @predictors", curator, post)
+
+
+def test_validate_predictors_mention_admin_allowed(question_binary):
+    """Test that admins can mention @predictors"""
+    admin = factory_user(username="admin")
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+            override_permissions={
+                admin: ObjectPermission.ADMIN,
+            },
+        ),
+    )
+
+    # Should not raise an exception
+    validate_predictors_mention("Hello @predictors", admin, post)
+
+
+def test_validate_predictors_mention_superuser_allowed(question_binary):
+    """Test that superusers can mention @predictors"""
+    superuser = factory_user(username="superuser", is_superuser=True)
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        ),
+    )
+
+    # Should not raise an exception
+    validate_predictors_mention("Hello @predictors", superuser, post)
+
+
+def test_validate_predictors_mention_forecaster_denied(question_binary):
+    """Test that regular forecasters cannot mention @predictors"""
+    forecaster = factory_user(username="forecaster")
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        ),
+    )
+
+    # Should raise PermissionDenied
+    with pytest.raises(PermissionDenied) as exc_info:
+        validate_predictors_mention("Hello @predictors", forecaster, post)
+
+    assert "Only curators and admins can mention @predictors" in str(exc_info.value)
+
+
+def test_validate_predictors_mention_no_mention(question_binary):
+    """Test that validation passes when @predictors is not mentioned"""
+    forecaster = factory_user(username="forecaster")
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        ),
+    )
+
+    # Should not raise an exception when @predictors is not mentioned
+    validate_predictors_mention("Hello @someone_else", forecaster, post)

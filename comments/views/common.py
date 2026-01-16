@@ -34,6 +34,7 @@ from comments.services.common import (
 )
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors.common import create_key_factors
+from comments.utils import validate_predictors_mention
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -124,7 +125,7 @@ def comment_delete_api_view(request: Request, pk: int):
 @transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
-    serializer = CommentWriteSerializer(data=request.data)
+    serializer = CommentWriteSerializer(data=request.data, context={"user": user})
     serializer.is_valid(raise_exception=True)
 
     on_post = serializer.validated_data["on_post"]
@@ -175,6 +176,10 @@ def comment_edit_api_view(request: Request, pk: int):
         raise PermissionDenied("You do not have permission to edit this comment.")
 
     post = comment.on_post
+
+    # Validate @predictors mention restriction
+    validate_predictors_mention(text, request.user, post)
+
     forecast = None
 
     if include_forecast and not comment.included_forecast and post and post.question_id:
