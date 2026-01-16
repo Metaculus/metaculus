@@ -5,13 +5,6 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-def get_user_table_name(apps, schema_editor):
-    """Resolve the user model's database table name dynamically."""
-    app_label, model_name = settings.AUTH_USER_MODEL.split(".")
-    User = apps.get_model(app_label, model_name)
-    return schema_editor.connection.ops.quote_name(User._meta.db_table)
-
-
 def migrate_tokens_and_drop_old_table(apps, schema_editor):
     """Copy tokens from old authtoken_token table and drop it."""
     with schema_editor.connection.cursor() as cursor:
@@ -31,24 +24,11 @@ def migrate_tokens_and_drop_old_table(apps, schema_editor):
                 ON CONFLICT (key) DO NOTHING
                 """
             )
-            cursor.execute("DROP TABLE authtoken_token")
 
 
 def restore_old_table_from_new(apps, schema_editor):
-    """Recreate old authtoken_token table and copy data back for rollback."""
-    user_table = get_user_table_name(apps, schema_editor)
-
+    """Copy data back to the old model for rollback."""
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute(
-            f"""
-            CREATE TABLE IF NOT EXISTS authtoken_token (
-                key VARCHAR(40) PRIMARY KEY,
-                created TIMESTAMP WITH TIME ZONE NOT NULL,
-                user_id BIGINT NOT NULL UNIQUE REFERENCES {user_table}(id)
-                    ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
-            )
-            """
-        )
         cursor.execute(
             """
             INSERT INTO authtoken_token (key, user_id, created)
@@ -60,7 +40,6 @@ def restore_old_table_from_new(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
