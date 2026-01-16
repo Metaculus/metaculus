@@ -3235,19 +3235,22 @@ export default async function FAQ() {
           </h3>
           <p>
             For certain projects, Metaculus employs{" "}
-            <Link href="/pro-forecasters">Pro Forecasters</Link> who have
-            demonstrated excellent forecasting ability and who have a history of
-            clearly describing their rationales. Pros forecast on private and
-            public sets of questions to produce well-calibrated forecasts and
-            descriptive rationales for our partners. We primarily recruit
-            members of the Metaculus community with the best track records for
-            our Pro team, but forecasters who have demonstrated excellent
-            forecasting ability elsewhere may be considered as well.
+            <Link href="/services/pro-forecasters/">Pro Forecasters</Link> who
+            have demonstrated excellent forecasting ability and who have a
+            history of clearly describing their rationales. Pros forecast on
+            private and public sets of questions to produce well-calibrated
+            forecasts and descriptive rationales for our partners. We primarily
+            recruit members of the Metaculus community with the best track
+            records for our Pro team, but forecasters who have demonstrated
+            excellent forecasting ability elsewhere may be considered as well.
           </p>
           <p>
             If you&apos;re interested in hiring Metaculus Pro Forecasters for a
             project, reach out to us by completing our{" "}
-            <Link href="/contact">contact form</Link>.
+            <Link href="/services/pro-forecasters/#contact-us">
+              contact form
+            </Link>
+            .
           </p>
 
           <p>
@@ -3260,15 +3263,15 @@ export default async function FAQ() {
             <li>
               <strong>Excellent forecasting ability:</strong> Our Pro selection
               methodology uses the{" "}
-              <Link href="/leaderboards">Metaculus Leaderboards</Link>,
-              combining the Peer Accuracy, Baseline Accuracy, and Comments
-              leaderboards to produce a weighted average score across those
-              leaderboards and across different leaderboard periods. Pros are
-              selected from forecasters who have the highest score on this
-              combined metric, representing the very best forecasters from all
-              of Metaculus. Note that while the Peer score is weighted highest
-              in this combined metric, the weighting is such that forecasters
-              must have good scores in all categories.
+              <Link href="/leaderboard">Metaculus Leaderboards</Link>, combining
+              the Peer Accuracy, Baseline Accuracy, and Comments leaderboards to
+              produce a weighted average score across those leaderboards and
+              across different leaderboard periods. Pros are selected from
+              forecasters who have the highest score on this combined metric,
+              representing the very best forecasters from all of Metaculus. Note
+              that while the Peer score is weighted highest in this combined
+              metric, the weighting is such that forecasters must have good
+              scores in all categories.
             </li>
 
             <li>

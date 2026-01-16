@@ -3693,7 +3693,7 @@ M834 80h400000v40h-400000z"
           </h3>
           <p>
             Para certos projetos, o Metaculus emprega{" "}
-            <Link href="/pro-forecasters">Pro Forecasters</Link> que
+            <Link href="/services/pro-forecasters/">Pro Forecasters</Link> que
             demonstraram excelente habilidade de previsão e têm um histórico de
             descrever claramente seus raciocínios. Os Pros fazem previsões em
             conjuntos privados e públicos de perguntas para produzir previsões
@@ -3704,7 +3704,10 @@ M834 80h400000v40h-400000z"
           <p>
             Se você tem interesse em contratar Pro Forecasters do Metaculus para
             um projeto, entre em contato conosco preenchendo nosso{" "}
-            <Link href="/contact">formulário de contato</Link>.
+            <Link href="/services/pro-forecasters/#contact-us">
+              formulário de contato
+            </Link>
+            .
           </p>
 
           <p>
@@ -3717,7 +3720,7 @@ M834 80h400000v40h-400000z"
             <li>
               <strong>Excelente capacidade de previsão:</strong> Nossa
               metodologia de seleção usa os{" "}
-              <Link href="/leaderboards">Leaderboards do Metaculus</Link>,
+              <Link href="/leaderboard">Leaderboards do Metaculus</Link>,
               combinando os leaderboards de Peer Accuracy, Baseline Accuracy e
               Comments para produzir uma pontuação média ponderada (ao longo
               desses leaderboards e de diferentes períodos). Os Pros são

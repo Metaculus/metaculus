@@ -3646,8 +3646,8 @@ export default function FAQ() {
           </h3>
           <p>
             Para ciertos proyectos, Metaculus emplea{" "}
-            <Link href="/pro-forecasters">Pro Forecasters</Link> que han
-            demostrado una excelente capacidad de pronóstico y que tienen un
+            <Link href="/services/pro-forecasters/">Pro Forecasters</Link> que
+            han demostrado una excelente capacidad de pronóstico y que tienen un
             historial de describir con claridad sus razonamientos. Los Pros
             pronostican en conjuntos privados y públicos de preguntas para
             producir pronósticos bien calibrados y de alta calidad para
@@ -3657,7 +3657,10 @@ export default function FAQ() {
           <p>
             Si te interesa contratar Pro Forecasters de Metaculus para un
             proyecto, contáctanos completando nuestro{" "}
-            <Link href="/contact">formulario de contacto</Link>.
+            <Link href="/services/pro-forecasters/#contact-us">
+              formulario de contacto
+            </Link>
+            .
           </p>
 
           <p>
@@ -3671,7 +3674,7 @@ export default function FAQ() {
             <li>
               <strong>Excelente capacidad de pronóstico:</strong> Nuestra
               metodología de selección utiliza los{" "}
-              <Link href="/leaderboards">Leaderboards de Metaculus</Link>,
+              <Link href="/leaderboard">Leaderboards de Metaculus</Link>,
               combinando los leaderboards de Peer Accuracy, Baseline Accuracy y
               Comments para producir un puntaje promedio ponderado (a través de
               esos leaderboards y de distintos períodos). Los Pros se
