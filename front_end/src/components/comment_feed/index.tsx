@@ -427,6 +427,7 @@ const CommentFeed: FC<Props> = ({
                   }
                 }
                 isPrivateFeed={feedFilters.is_private}
+                userPermission={postData?.user_permission}
               />
             )}
           </>
