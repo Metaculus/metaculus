@@ -1042,6 +1042,7 @@ const Comment: FC<CommentProps> = ({
           }}
           isReplying={isReplying}
           shouldIncludeForecast={canIncludeForecastInReply}
+          userPermission={postData?.user_permission}
         />
       )}
       {isKeyfactorsFormOpen && postData && (
