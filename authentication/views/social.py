@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from rest_social_auth.views import SocialTokenOnlyAuthView
 from social_core.backends.oauth import BaseOAuth2
 
+from authentication.auth import FallbackTokenAuthentication
+from authentication.models import ApiKey
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -41,6 +44,16 @@ def social_providers_api_view(request):
 
 
 class SocialCodeAuth(SocialTokenOnlyAuthView):
+    class TokenSerializer(serializers.Serializer):
+        token = serializers.SerializerMethodField()
+
+        def get_token(self, obj):
+            token, created = ApiKey.objects.get_or_create(user=obj)
+            return token.key
+
+    serializer_class = TokenSerializer
+    authentication_classes = (FallbackTokenAuthentication,)
+
     def respond_error(self, error):
         response = super().respond_error(error)
 
