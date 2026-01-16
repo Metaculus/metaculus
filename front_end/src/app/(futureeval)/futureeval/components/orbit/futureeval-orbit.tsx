@@ -142,6 +142,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
+      // Reset timestamp so next animation starts fresh without a large delta jump
+      lastTimeRef.current = null;
     };
   }, [expandedItem, mobileExpandedItem]);
 

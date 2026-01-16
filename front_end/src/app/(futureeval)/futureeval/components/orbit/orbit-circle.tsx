@@ -211,13 +211,15 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
       {/* The circle itself - fills container */}
       <button
         onClick={onClick}
+        tabIndex={showExpanded ? -1 : 0}
+        aria-hidden={showExpanded}
         className={cn(
           "flex h-full w-full items-center justify-center rounded-full transition-all duration-200",
           "cursor-pointer select-none",
           "border-futureeval-primary-light dark:border-futureeval-primary-dark",
           FE_COLORS.orbitCircleBg,
-          // Hide circle when expanded
-          showExpanded && "opacity-0"
+          // Hide circle when expanded and remove from interaction
+          showExpanded && "pointer-events-none opacity-0"
         )}
         style={{ borderWidth: strokeWidth, ...defaultShadowStyle }}
       >

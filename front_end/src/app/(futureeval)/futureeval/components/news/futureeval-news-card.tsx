@@ -69,9 +69,7 @@ const FutureEvalNewsCard: FC<Props> = ({ post }) => {
           <CircleDivider className="mx-2 opacity-60" />
           <span>by {post.author_username}</span>
           <CircleDivider className="mx-2 opacity-60" />
-          <span>
-            {`${commentsCount ? `${commentsCount} ` : ""}${t("commentsWithCount", { count: commentsCount })}`}
-          </span>
+          <span>{t("commentsWithCount", { count: commentsCount })}</span>
         </div>
       </Link>
     </div>

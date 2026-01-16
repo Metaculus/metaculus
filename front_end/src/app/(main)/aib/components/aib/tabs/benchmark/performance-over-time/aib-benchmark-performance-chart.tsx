@@ -435,12 +435,12 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
             <>
               <LegendAxisIcon
                 icon={faArrowsUpDown}
-                label="Score"
+                label={t("aibScore")}
                 color={getThemeColor(METAC_COLORS.gray[500])}
               />
               <LegendAxisIcon
                 icon={faArrowsLeftRight}
-                label="Model Release Date"
+                label={t("aibModelReleaseDate")}
                 color={getThemeColor(METAC_COLORS.gray[500])}
               />
             </>

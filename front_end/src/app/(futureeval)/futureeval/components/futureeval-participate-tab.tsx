@@ -103,6 +103,7 @@ const FutureEvalSubmitSteps: React.FC = () => {
             src={videoThumbnail}
             alt={t("aibSubmitVideoAlt")}
             width={468}
+            height={263}
             unoptimized
           />
         </Link>
@@ -224,12 +225,15 @@ const FutureEvalResourceCard: React.FC<ResourceCardProps> = ({
     <Link
       href={href}
       aria-label={`${title} — open`}
-      className="group block flex-1 no-underline focus:outline-none"
+      className={cn(
+        "group block flex-1 rounded-[10px] no-underline",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-futureeval-primary-light dark:focus-visible:ring-futureeval-primary-dark"
+      )}
     >
       <div
         className={cn(
           "flex h-full flex-1 flex-col items-start rounded-[10px] border p-8 antialiased transition",
-          "hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-futureeval-primary-light dark:focus-visible:ring-futureeval-primary-dark",
+          "group-hover:-translate-y-0.5 group-hover:shadow-md",
           FE_COLORS.cardBorder,
           FE_COLORS.bgCard
         )}
