@@ -7,13 +7,13 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from authentication.backends import AuthLoginBackend
+from authentication.models import ApiKey
 from authentication.serializers import (
     SignupSerializer,
     ConfirmationTokenSerializer,
@@ -50,7 +50,12 @@ def login_api_view(request):
     # their account, and also to re-send their activation email
     user = AuthLoginBackend.find_user(login)
 
-    if user and not user.is_active and user.check_password(password):
+    if (
+        user
+        and not user.is_active
+        and not user.last_login
+        and user.check_password(password)
+    ):
         send_activation_email(user, None)
         raise ValidationError({"user_state": "inactive"})
 
@@ -164,7 +169,6 @@ def signup_simplified_api_view(request):
         last_login=timezone.now(),
     )
 
-    # Todo: figure out better format
     tokens = get_tokens_for_user(user)
 
     return Response(
@@ -266,6 +270,25 @@ def invite_user_api_view(request):
         SignupInviteService().send_email(request.user, email)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def api_key_api_view(request):
+    """Get the API key for the authenticated user if it exists."""
+    try:
+        api_key = ApiKey.objects.get(user=request.user)
+        return Response({"key": api_key.key})
+    except ApiKey.DoesNotExist:
+        return Response({"key": None})
+
+
+@api_view(["POST"])
+def api_key_rotate_api_view(request):
+    """Create or rotate the API key for the authenticated user."""
+    ApiKey.objects.filter(user=request.user).delete()
+    api_key = ApiKey.objects.create(user=request.user)
+
+    return Response({"key": api_key.key}, status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])

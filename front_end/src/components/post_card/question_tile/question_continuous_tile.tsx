@@ -25,6 +25,7 @@ import {
   QuestionWithNumericForecasts,
   UserForecast,
 } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
@@ -37,6 +38,7 @@ type Props = {
   forecastAvailability: ForecastAvailability;
   canPredict?: boolean;
   showChart?: boolean;
+  minimalistic?: boolean;
 };
 
 const QuestionContinuousTile: FC<Props> = ({
@@ -45,6 +47,7 @@ const QuestionContinuousTile: FC<Props> = ({
   forecastAvailability,
   canPredict,
   showChart = true,
+  minimalistic = false,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
 
@@ -187,7 +190,12 @@ const QuestionContinuousTile: FC<Props> = ({
     return (
       <div className="w-full">
         {/* Mobile: Overlay layout */}
-        <div className="flex flex-col items-center md:hidden">
+        <div
+          className={cn(
+            "flex flex-col items-center md:hidden",
+            minimalistic && "md:flex"
+          )}
+        >
           {/* CP values container - positioned first */}
           <div className="relative z-20 flex w-full items-stretch justify-stretch md:items-center md:justify-center">
             <div className="flex w-full flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
@@ -196,6 +204,7 @@ const QuestionContinuousTile: FC<Props> = ({
                 onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
                 canPredict={canPredict}
                 showMyPrediction={true}
+                className={minimalistic ? "md:flex-row" : undefined}
               />
             </div>
           </div>
@@ -220,7 +229,12 @@ const QuestionContinuousTile: FC<Props> = ({
         </div>
 
         {/* Large screens: Side-by-side layout (like binary questions) */}
-        <div className="hidden justify-between gap-6 md:flex">
+        <div
+          className={cn(
+            "hidden justify-between gap-6 md:flex",
+            minimalistic && "md:hidden"
+          )}
+        >
           <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
             <PredictionContinuousInfo
               question={question}

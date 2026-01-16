@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     # third-party:
     "django_extensions",
     "rest_framework",
-    "rest_framework.authtoken",
     "social_django",
     "rest_social_auth",
     "corsheaders",

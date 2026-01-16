@@ -25,4 +25,7 @@ urlpatterns = [
     path("auth/password-reset/change/", common.password_reset_confirm_api_view),
     # Invite user
     path("auth/invite/", common.invite_user_api_view),
+    # API Key
+    path("auth/api-key/", common.api_key_api_view),
+    path("auth/api-key/rotate/", common.api_key_rotate_api_view),
 ]

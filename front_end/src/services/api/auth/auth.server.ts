@@ -153,6 +153,14 @@ class ServerAuthApiClass extends ApiService {
       { passAuthHeader: false }
     );
   }
+
+  async getApiKey(): Promise<{ key: string | null }> {
+    return this.get<{ key: string | null }>("/auth/api-key/");
+  }
+
+  async rotateApiKey(): Promise<{ key: string }> {
+    return this.post<{ key: string }>("/auth/api-key/rotate/", {});
+  }
 }
 
 const ServerAuthApi = new ServerAuthApiClass(serverFetcher);

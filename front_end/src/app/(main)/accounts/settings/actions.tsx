@@ -111,6 +111,42 @@ export async function getBotTokenAction(botId: number) {
   }
 }
 
+export async function getApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.getApiKey();
+
+    return {
+      key: data.key,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function rotateApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.rotateApiKey();
+
+    return {
+      key: data.key,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
 export async function stopImpersonatingAction() {
   const authManager = await getAuthCookieManager();
   const impersonatorRefreshToken = authManager.getImpersonatorRefreshToken();

@@ -56,6 +56,7 @@ export type TournamentMember = {
 
 export type TournamentPreview = Project & {
   type: TournamentType;
+  show_on_homepage: boolean;
   header_image: string;
   forecasts_count: number;
   forecasters_count: number;

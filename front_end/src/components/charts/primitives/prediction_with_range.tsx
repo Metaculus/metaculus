@@ -5,6 +5,7 @@ import { D3Scale } from "victory";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
+import { ThemeColor } from "@/types/theme";
 
 type PredictionWithRangeProps = {
   x?: number;
@@ -15,6 +16,7 @@ type PredictionWithRangeProps = {
     y?: D3Scale;
   };
   datum?: { y1: number; y2: number };
+  colorOverride?: ThemeColor | string;
 };
 
 const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
