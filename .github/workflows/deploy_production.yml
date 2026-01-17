@@ -1,0 +1,180 @@
+# NEW WORKFLOW - Testing phase
+# This replaces deploy_prod.yml with improved features:
+# - Migration detection for smart preboot toggle
+# - Better caching
+#
+# TODO: Once validated, deprecate and delete deploy_prod.yml
+
+name: Deploy PRODUCTION (v2)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-24.04
+    environment: prod_env
+    permissions:
+      contents: read
+      packages: write
+      deployments: write
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP: metaculus-web
+      GHCR_IMAGE: ghcr.io/${{ github.repository }}
+      HEROKU_TARGETS: release dramatiq_worker django_cron web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check for migrations since last deployment
+        id: check-migrations
+        run: |
+          # Safe default: assume migrations exist (disables preboot)
+          safe_default() {
+            echo "::warning::$1 - disabling preboot to be safe"
+            echo "has_migrations=true" >> $GITHUB_OUTPUT
+            exit 0
+          }
+          
+          # Get the last successful deployment commit from prod_env
+          LAST_DEPLOYED=$(gh api \
+            repos/${{ github.repository }}/deployments \
+            --jq '[.[] | select(.environment=="prod_env")] | .[0].sha' 2>/dev/null) || safe_default "Failed to fetch deployment history"
+          
+          echo "Last deployed commit: $LAST_DEPLOYED"
+          echo "Current commit: ${{ github.sha }}"
+          
+          if [ -z "$LAST_DEPLOYED" ] || [ "$LAST_DEPLOYED" = "null" ]; then
+            safe_default "No previous deployment found"
+          fi
+          
+          # Fetch only the history needed to compare with last deployment
+          # This is faster than fetching full history with fetch-depth: 0
+          git fetch --shallow-exclude="$LAST_DEPLOYED" origin ${{ github.ref_name }} 2>/dev/null || true
+          git fetch --deepen=1 origin ${{ github.ref_name }} 2>/dev/null || true
+          
+          # Check for migration file changes
+          MIGRATION_CHANGES=$(git diff "$LAST_DEPLOYED" "${{ github.sha }}" --name-only -- "*/migrations/*.py" 2>/dev/null) || safe_default "Failed to diff commits"
+          
+          if [ -n "$MIGRATION_CHANGES" ]; then
+            echo "::warning::🗄️ Database migrations detected - disabling preboot"
+            echo ""
+            echo "Changed migration files:"
+            echo "$MIGRATION_CHANGES"
+            echo "has_migrations=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ No migration changes - enabling preboot for zero-downtime deploy"
+            echo "has_migrations=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Heroku Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.heroku.com
+          username: _
+          password: ${{ secrets.HEROKU_API_KEY }}
+
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GHCR_IMAGE }}
+          tags: |
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest
+
+      - name: Build All Runners and Push to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          target: all_runners
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Heroku Targets
+        run: |
+          set -e
+          for target in ${{ env.HEROKU_TARGETS }}; do
+            docker buildx build \
+              --platform linux/amd64 \
+              --target "$target" \
+              --tag "registry.heroku.com/${{ env.HEROKU_APP }}/$target" \
+              --push \
+              --cache-from type=gha \
+              .
+          done
+
+      - name: Configure preboot based on migration status
+        run: |
+          if [ "${{ steps.check-migrations.outputs.has_migrations }}" == "true" ]; then
+            echo "🗄️ Migrations detected - disabling preboot to ensure migrations run before new code"
+            heroku features:disable preboot -a ${{ env.HEROKU_APP }}
+          else
+            echo "✅ No migrations - enabling preboot for zero-downtime deployment"
+            heroku features:enable preboot -a ${{ env.HEROKU_APP }}
+          fi
+
+      - name: Deploy to Heroku
+        run: |
+          heroku container:release ${{ env.HEROKU_TARGETS }} -a ${{ env.HEROKU_APP }}
+
+      - name: Wait for release to complete
+        run: |
+          set -e
+          max_iters=90
+          for ((i = 1; i <= max_iters; i++)); do
+            json=$(heroku releases --json -a ${{ env.HEROKU_APP }})
+            status=$(echo "$json" | jq -r '.[0].status')
+            current=$(echo "$json" | jq -r '.[0].current')
+
+            if [ "$status" == "pending" ]; then
+              echo "Waiting for release to finish (attempt $i/$max_iters)..."
+              sleep 5
+              continue
+            fi
+
+            if [ "$status" == "succeeded" ] && [ "$current" == "true" ]; then
+              echo "Release succeeded!"
+              exit 0
+            fi
+
+            break
+          done
+
+          echo "Release failed with status: $status"
+          exit 1
+
+      - name: "Cloudflare: Purge cache"
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+
+      - name: "Sentry: Upload sourcemaps"
+        run: |
+          docker run -w /app/front_end -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} registry.heroku.com/${{ env.HEROKU_APP }}/web npx sentry-cli sourcemaps upload  /app/front_end/.next/ --project metaculus-frontend --org metaculus
+
+  # Deploy storybook to Cloudflare Pages
+  deploy-storybook:
+    needs: [ build-push-deploy ]
+    uses: ./.github/workflows/storybook.yml
+    secrets: inherit
