@@ -38,10 +38,26 @@ jobs:
             exit 0
           }
           
-          # Get the last successful deployment commit from prod_env
-          LAST_DEPLOYED=$(gh api \
-            repos/${{ github.repository }}/deployments \
-            --jq '[.[] | select(.environment=="prod_env")] | .[0].sha' 2>/dev/null) || safe_default "Failed to fetch deployment history"
+          # Get the last successful deployment commit from prod_env using GraphQL
+          # This fetches deployments with their statuses in a single API call
+          LAST_DEPLOYED=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!) {
+              repository(owner: $owner, name: $repo) {
+                deployments(environments: ["prod_env"], first: 20, orderBy: {field: CREATED_AT, direction: DESC}) {
+                  nodes {
+                    commitOid
+                    statuses(first: 1) {
+                      nodes {
+                        state
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ' -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" \
+            --jq '.data.repository.deployments.nodes[] | select(.statuses.nodes[0].state == "SUCCESS") | .commitOid' \
+            2>/dev/null | head -n 1) || safe_default "Failed to fetch deployment history"
           
           echo "Last deployed commit: $LAST_DEPLOYED"
           echo "Current commit: ${{ github.sha }}"
