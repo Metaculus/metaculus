@@ -179,5 +179,7 @@ jobs:
   # Deploy storybook to Cloudflare Pages
   deploy-storybook:
     needs: [ build-push-deploy ]
+    permissions:
+      contents: read
     uses: ./.github/workflows/storybook.yml
     secrets: inherit
