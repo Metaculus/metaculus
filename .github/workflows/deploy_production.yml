@@ -55,8 +55,11 @@ jobs:
           git fetch --shallow-exclude="$LAST_DEPLOYED" origin ${{ github.ref_name }} 2>/dev/null || true
           git fetch --deepen=1 origin ${{ github.ref_name }} 2>/dev/null || true
           
-          # Check for migration file changes
-          MIGRATION_CHANGES=$(git diff "$LAST_DEPLOYED" "${{ github.sha }}" --name-only -- "*/migrations/*.py" 2>/dev/null) || safe_default "Failed to diff commits"
+          # Get all changed files
+          ALL_CHANGES=$(git diff "$LAST_DEPLOYED" "${{ github.sha }}" --name-only 2>/dev/null) || safe_default "Failed to diff commits"
+          
+          # Filter for migration files using grep (more reliable than pathspec globs)
+          MIGRATION_CHANGES=$(echo "$ALL_CHANGES" | grep -E '/migrations/.*\.py$' || true)
           
           if [ -n "$MIGRATION_CHANGES" ]; then
             echo "::warning::🗄️ Database migrations detected - disabling preboot"
