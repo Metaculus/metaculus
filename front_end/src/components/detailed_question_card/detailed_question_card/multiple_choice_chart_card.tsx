@@ -92,6 +92,25 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
 
+  const liveOptions = useMemo(() => {
+    if (!question.options_history?.length || cursorTimestamp === null) {
+      return question.options ?? [];
+    }
+
+    const sortedHistory = [...question.options_history].sort(
+      (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime()
+    );
+    let optionsAtTime = sortedHistory[0]?.[1] ?? question.options ?? [];
+    sortedHistory.forEach(([timestamp, options]) => {
+      if (new Date(timestamp).getTime() / 1000 <= cursorTimestamp) {
+        optionsAtTime = options;
+      }
+    });
+    return optionsAtTime;
+  }, [cursorTimestamp, question.options, question.options_history]);
+
+  const liveOptionNames = useMemo(() => new Set(liveOptions), [liveOptions]);
+
   const aggregationCursorIndex = useMemo(() => {
     return timestamps.indexOf(
       findPreviousTimestamp(timestamps, cursorTimestamp)
@@ -144,29 +163,31 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     ]
   );
 
-  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
-    () =>
-      choiceItems
-        .filter(({ active }) => active)
-        .map(({ choice, aggregationValues, color }) => {
-          const adjustedCursorIndex =
-            aggregationCursorIndex >= aggregationValues.length
-              ? aggregationValues.length - 1
-              : aggregationCursorIndex;
-          const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
-
-          return {
-            choiceLabel: choice,
-            color,
-            valueElement: getOptionTooltipValue(aggregatedValue),
-          };
-        }),
-    [choiceItems, aggregationCursorIndex, getOptionTooltipValue]
-  );
+  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
+    return choiceItems
+      .filter(({ active, choice }) => active && liveOptionNames.has(choice))
+      .map(({ choice, aggregationValues, color }) => {
+        const adjustedCursorIndex =
+          aggregationCursorIndex >= aggregationValues.length
+            ? aggregationValues.length - 1
+            : aggregationCursorIndex;
+        const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
+        return {
+          choiceLabel: choice,
+          color,
+          valueElement: getOptionTooltipValue(aggregatedValue),
+        };
+      });
+  }, [
+    choiceItems,
+    aggregationCursorIndex,
+    getOptionTooltipValue,
+    liveOptionNames,
+  ]);
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
-      .filter(({ active }) => active)
+      .filter(({ active, choice }) => active && liveOptionNames.has(choice))
       .map(({ choice, userValues, color }) => ({
         choiceLabel: choice,
         color,
@@ -182,6 +203,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     question.scaling,
     question.type,
     userCursorIndex,
+    liveOptionNames,
   ]);
 
   const embedChoiceItems = useMemo(() => {

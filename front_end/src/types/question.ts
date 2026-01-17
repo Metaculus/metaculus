@@ -280,7 +280,7 @@ export type Question = {
   type: QuestionType;
   // Multiple-choice only
   options?: string[];
-  options_history?: [number, string[]][];
+  options_history?: [string, string[]][];
   group_variable?: string;
   group_rank?: number;
   // Continuous only
