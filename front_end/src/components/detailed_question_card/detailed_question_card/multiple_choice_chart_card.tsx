@@ -109,8 +109,6 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     return optionsAtTime;
   }, [cursorTimestamp, question.options, question.options_history]);
 
-  const liveOptionNames = useMemo(() => new Set(liveOptions), [liveOptions]);
-
   const aggregationCursorIndex = useMemo(() => {
     return timestamps.indexOf(
       findPreviousTimestamp(timestamps, cursorTimestamp)
@@ -163,33 +161,31 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     ]
   );
 
-  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
-    return choiceItems
-      .filter(({ active, choice }) => active && liveOptionNames.has(choice))
-      .map(({ choice, aggregationValues, color }) => {
-        const adjustedCursorIndex =
-          aggregationCursorIndex >= aggregationValues.length
-            ? aggregationValues.length - 1
-            : aggregationCursorIndex;
-        const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
-        return {
-          choiceLabel: choice,
-          color,
-          valueElement: getOptionTooltipValue(aggregatedValue),
-        };
-      });
-  }, [
-    choiceItems,
-    aggregationCursorIndex,
-    getOptionTooltipValue,
-    liveOptionNames,
-  ]);
+  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
+    () =>
+      choiceItems
+        .filter(({ active, choice }) => active && liveOptions.includes(choice))
+        .map(({ label, choice, aggregationValues, color }) => {
+          const adjustedCursorIndex =
+            aggregationCursorIndex >= aggregationValues.length
+              ? aggregationValues.length - 1
+              : aggregationCursorIndex;
+          const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
+          return {
+            choiceLabel: label || choice,
+            color,
+            valueElement: getOptionTooltipValue(aggregatedValue),
+          };
+        }),
+
+    [choiceItems, aggregationCursorIndex, getOptionTooltipValue, liveOptions]
+  );
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
-      .filter(({ active, choice }) => active && liveOptionNames.has(choice))
-      .map(({ choice, userValues, color }) => ({
-        choiceLabel: choice,
+      .filter(({ active, choice }) => active && liveOptions.includes(choice))
+      .map(({ label, choice, userValues, color }) => ({
+        choiceLabel: label || choice,
         color,
         valueElement: getPredictionDisplayValue(userValues[userCursorIndex], {
           questionType: question.type,
@@ -203,7 +199,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     question.scaling,
     question.type,
     userCursorIndex,
-    liveOptionNames,
+    liveOptions,
   ]);
 
   const embedChoiceItems = useMemo(() => {
@@ -248,7 +244,6 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       tooltipChoices={tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
       choiceItems={choiceItems}
-      currentOptions={question.options}
       hideCP={hideCP}
       timestamps={timestamps}
       forecastersCount={forecastersCount}

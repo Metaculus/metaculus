@@ -14,7 +14,10 @@ import {
   formatResolution,
 } from "@/utils/formatters/resolution";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
-import { getAllOptionsHistory } from "@/utils/questions/helpers";
+import {
+  getAllOptionsHistory,
+  getUpcomingOptions,
+} from "@/utils/questions/helpers";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 export function generateChoiceItemsFromMultipleChoiceForecast(
@@ -34,6 +37,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     question.aggregations[question.default_aggregation_method].latest;
 
   const allOptions = getAllOptionsHistory(question);
+  const upcomingOptions = getUpcomingOptions(question);
   const choiceOrdering: number[] = allOptions?.map((_, i) => i) ?? [];
   if (!preserveOrder) {
     choiceOrdering.sort((a, b) => {
@@ -43,7 +47,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     });
   }
 
-  const labels = allOptions ? allOptions : [];
   const aggregationHistory =
     question.aggregations[question.default_aggregation_method].history;
   const userHistory = question.my_forecasts?.history;
@@ -67,7 +70,9 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   });
   const sortedUserTimestamps = uniq(userTimestamps).sort((a, b) => a - b);
 
-  const choiceItems: ChoiceItem[] = labels.map((choice, index) => {
+  const choiceItems: ChoiceItem[] = allOptions.map((choice, index) => {
+    const isDeleted = !question.options.includes(choice);
+    const isUpcoming = upcomingOptions.includes(choice);
     const userValues: (number | null)[] = [];
     const aggregationValues: (number | null)[] = [];
     const aggregationMinValues: (number | null)[] = [];
@@ -111,6 +116,11 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 
     return {
       choice: choice,
+      label: isDeleted
+        ? choice + " (deleted)"
+        : isUpcoming
+          ? choice + " (upcoming)"
+          : choice,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,

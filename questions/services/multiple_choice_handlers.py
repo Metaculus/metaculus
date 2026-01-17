@@ -234,7 +234,6 @@ def multiple_choice_delete_options(
     # update user forecasts
     user_forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=timestep),
-        start_time__lt=timestep,
     )
     forecasts_to_create: list[Forecast] = []
     for forecast in user_forecasts:
@@ -290,7 +289,7 @@ def multiple_choice_delete_options(
     # notify users that about the change
     from questions.tasks import multiple_choice_delete_option_notifications
 
-    multiple_choice_delete_option_notifications(
+    multiple_choice_delete_option_notifications.send(
         question_id=question.id,
         timestep=timestep,
         comment_author_id=comment_author.id,
@@ -365,7 +364,7 @@ def multiple_choice_add_options(
     # notify users that about the change
     from questions.tasks import multiple_choice_add_option_notifications
 
-    multiple_choice_add_option_notifications(
+    multiple_choice_add_option_notifications.send(
         question_id=question.id,
         grace_period_end=grace_period_end,
         timestep=timestep,

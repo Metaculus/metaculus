@@ -939,6 +939,7 @@
   "settingsChangeEmailAddress": "Změnit e-mailovou adresu",
   "settingsChangeEmailAddressSuccess": "Na váš nový e-mail byla zaslána potvrzovací zpráva. Prosím, následujte odkaz uvnitř pro aktivaci.",
   "choices": "Možnosti",
+  "choicesLockedHelp": "Možnosti lze po zahájení prognózování měnit pouze v administrátorském panelu.",
   "inCommunityReviewStatus1": "Tato otázka potřebuje schválení od kurátora komunity jako jste vy. Můžete také provádět úpravy, označit autora v komentáři níže, poslat otázku zpět k návrhu na revizi nebo otázku zamítnout. Několik návrhů na kvalitní otázky:",
   "inCommunityReviewStatus2": "<li>Definujte pojmy a buďte konkrétní. Odkazy jsou užitečné.</li> <li>Otázky by se měly dát jednoduše vyřešit a neměly by vyžadovat velké úsilí administrátora.</li> <li>Název a formulace otázky by měly být v souladu s kritérii pro vyřešení.</li> <li>Zkuste tento test: Lidé v budoucnosti se shodnou, jak byla tato otázka vyřešena. Pokud nemohou, je třeba ji objasnit</li>",
   "bulkEdit": "Hromadná úprava",

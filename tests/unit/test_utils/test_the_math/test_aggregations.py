@@ -346,6 +346,7 @@ class TestAggregations:
                     timesteps=[
                         datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
                         datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
                     ],
                 ),
                 True,

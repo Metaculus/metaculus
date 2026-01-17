@@ -1879,5 +1879,10 @@
   "tournamentsInfoScoringLink": "什麼是預測得分？",
   "tournamentsInfoPrizesLink": "獎品如何分配？",
   "allCategoriesTopQuestions": "每個類別中的熱門問題",
+  "periodDays": "{count, plural, one {# 天} other {# 天}}",
+  "periodHours": "{count, plural, one {# 小時} other {# 小時}}",
+  "periodMinutes": "{count, plural, one {# 分鐘} other {# 分鐘}}",
+  "periodSeconds": "{count, plural, one {# 秒} other {# 秒}}",
+  "choicesLockedHelp": "一旦預測開始後，選項只能透過管理平台進行更改。",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

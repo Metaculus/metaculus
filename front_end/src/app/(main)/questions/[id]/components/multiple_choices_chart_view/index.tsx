@@ -21,7 +21,6 @@ const MAX_VISIBLE_CHECKBOXES = 3;
 
 type Props = {
   choiceItems: ChoiceItem[];
-  currentOptions?: string[];
   tooltipTitle?: string;
   tooltipChoices: ChoiceTooltipItem[];
   tooltipUserChoices?: ChoiceTooltipItem[];
@@ -50,7 +49,6 @@ type Props = {
 
 const MultiChoicesChartView: FC<Props> = ({
   choiceItems,
-  currentOptions,
   tooltipTitle,
   tooltipChoices,
   tooltipUserChoices,
@@ -312,7 +310,6 @@ const MultiChoicesChartView: FC<Props> = ({
         <div className="-ml-1 mt-3" ref={legendContainerRef}>
           <ChoicesLegend
             choices={choiceItems}
-            currentOptions={currentOptions}
             onChoiceChange={handleChoiceChange}
             onChoiceHighlight={handleChoiceHighlight}
             onToggleAll={toggleSelectAll}

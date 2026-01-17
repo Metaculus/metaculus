@@ -1880,5 +1880,10 @@
   "futureEval": "FutureEval",
   "launchATournament": "Lançar um Torneio",
   "allCategoriesTopQuestions": "Principais perguntas em cada categoria",
+  "periodDays": "{count, plural, one {# dia} other {# dias}}",
+  "periodHours": "{count, plural, one {# hora} other {# horas}}",
+  "periodMinutes": "{count, plural, one {# minuto} other {# minutos}}",
+  "periodSeconds": "{count, plural, one {# segundo} other {# segundos}}",
+  "choicesLockedHelp": "As opções só podem ser alteradas através do painel de administração uma vez iniciado o processo de previsão.",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

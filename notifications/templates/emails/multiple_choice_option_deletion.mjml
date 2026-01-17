@@ -4,14 +4,6 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-section background-color="#ffffff" padding-bottom="16px">
-            <mj-column>
-                <mj-text font-size="16px" color="#161C22" padding-bottom="8px">
-                    Hello {{recipient.username}},
-                </mj-text>
-            </mj-column>
-        </mj-section>
-
         <mj-section background-color="#ffffff" padding="0px">
             <mj-column>
                 <mj-text padding="0px">
@@ -45,9 +37,9 @@
                     {% endif %}
 
                     <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #2F4155;">
-                        {% blocktrans with timestep=params.timestep %}
-                        This change took effect at <b>{{ timestep }}</b>. Any probability on removed options
-                        was moved to the catch-all option.
+                        {% blocktrans with timestep=params.timestep catch_all_option=params.catch_all_option %}
+                        This change took effect at <b>{{ timestep }}</b>. Any probabilities on removed options
+                        were moved to the option <b>{{ catch_all_option }}</b>.
                         {% endblocktrans %}
                     </div>
                 </mj-text>

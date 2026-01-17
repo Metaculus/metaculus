@@ -691,8 +691,9 @@ def serialize_question(
                     f for f in user_forecasts if f.start_time < timezone.now()
                 ]
                 if user_forecasts:
-                    last_forecast.start_time = user_forecasts[-1].start_time
-                    user_forecasts[-1] = last_forecast
+                    # last_forecast.start_time = user_forecasts[-1].start_time
+                    # user_forecasts[-1] = last_forecast
+                    user_forecasts[-1].end_time = last_forecast.end_time
                 else:
                     last_forecast.start_time = timezone.now()
                     user_forecasts = [last_forecast]

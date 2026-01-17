@@ -1884,5 +1884,10 @@
   "futureEval": "未来评估",
   "launchATournament": "发起比赛",
   "allCategoriesTopQuestions": "每个类别的热门问题",
+  "periodDays": "{count, plural, one {# 天} other {# 天}}",
+  "periodHours": "{count, plural, one {# 小时} other {# 小时}}",
+  "periodMinutes": "{count, plural, one {# 分钟} other {# 分钟}}",
+  "periodSeconds": "{count, plural, one {# 秒} other {# 秒}}",
+  "choicesLockedHelp": "选项一旦预测开始，只能通过管理面板进行更改。",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

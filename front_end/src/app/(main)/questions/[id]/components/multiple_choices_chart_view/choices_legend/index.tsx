@@ -13,7 +13,6 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   choices: ChoiceItem[];
-  currentOptions?: string[];
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
   onToggleAll: (checked: boolean) => void;
@@ -25,7 +24,6 @@ type Props = {
 
 const ChoicesLegend: FC<Props> = ({
   choices,
-  currentOptions,
   onChoiceChange,
   onChoiceHighlight,
   onToggleAll,
@@ -37,11 +35,6 @@ const ChoicesLegend: FC<Props> = ({
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
   const mcMode = typeof othersToggle === "boolean" && !!onOthersToggle;
-  const currentOptionNames = useMemo(
-    () => new Set(currentOptions ?? []),
-    [currentOptions]
-  );
-
   const { legendChoices, dropdownChoices } = useMemo(() => {
     const left = choices.slice(0, maxLegendChoices);
     const right = choices.slice(maxLegendChoices);
@@ -67,21 +60,16 @@ const ChoicesLegend: FC<Props> = ({
 
   return (
     <div className="relative flex flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
-      {legendChoices.map(({ choice, color, active }, idx) => {
-        const isDeleted = currentOptions && !currentOptionNames.has(choice);
-        const label = isDeleted ? `${choice} (deleted)` : choice;
-
-        return (
-          <ChoiceCheckbox
-            key={`multiple-choice-legend-${choice}-${idx}`}
-            label={label}
-            color={color.DEFAULT}
-            checked={active}
-            onChange={(checked) => onChoiceChange(choice, checked)}
-            onHighlight={(highlighted) => onChoiceHighlight(choice, highlighted)}
-          />
-        );
-      })}
+      {legendChoices.map(({ label, choice, color, active }, idx) => (
+        <ChoiceCheckbox
+          key={`multiple-choice-legend-${choice}-${idx}`}
+          label={label || choice}
+          color={color.DEFAULT}
+          checked={active}
+          onChange={(checked) => onChoiceChange(choice, checked)}
+          onHighlight={(highlighted) => onChoiceHighlight(choice, highlighted)}
+        />
+      ))}
       {!!dropdownChoices.length && (
         <div className="flex items-center gap-1 md:ml-auto">
           {mcMode && (
@@ -133,15 +121,11 @@ const ChoicesLegend: FC<Props> = ({
                     label={areAllSelected ? t("deselectAll") : t("selectAll")}
                     className="p-1.5 capitalize"
                   />
-                  {dropdownChoices.map(({ choice, color, active }, idx) => {
-                    const isDeleted =
-                      currentOptions && !currentOptionNames.has(choice);
-                    const label = isDeleted ? `${choice} (deleted)` : choice;
-
-                    return (
+                  {dropdownChoices.map(
+                    ({ label, choice, color, active }, idx) => (
                       <ChoiceCheckbox
                         key={`multiple-choice-dropdown-${choice}-${idx}`}
-                        label={label}
+                        label={label || choice}
                         color={getThemeColor(color)}
                         checked={active}
                         onChange={(checked) => onChoiceChange(choice, checked)}
@@ -150,8 +134,8 @@ const ChoicesLegend: FC<Props> = ({
                         }
                         className="p-1.5"
                       />
-                    );
-                  })}
+                    )
+                  )}
                 </PopoverPanel>
               </>
             )}

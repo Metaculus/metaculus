@@ -146,14 +146,14 @@ def test_multiple_choice_reorder_options(
                 Forecast(
                     start_time=dt(2025, 1, 1),
                     end_time=None,
-                    probability_yes_per_category=[0.2, 0.8],
+                    probability_yes_per_category=[0.2, 0.3, 0.5],
                 )
             ],
             [
                 Forecast(
                     start_time=dt(2025, 1, 1),
                     end_time=None,
-                    probability_yes_per_category=[0.2, 0.8],
+                    probability_yes_per_category=[0.2, None, 0.8],
                 ),
             ],
             True,

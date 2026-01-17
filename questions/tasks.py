@@ -268,7 +268,7 @@ def multiple_choice_delete_option_notifications(
     comment_text: str | None = None,
 ):
     question = Question.objects.get(id=question_id)
-    post = question.get_post()
+    post = question.post
     options_history = question.options_history
     previous_options = options_history[-2][1]
     current_options = options_history[-1][1]
@@ -320,24 +320,23 @@ def multiple_choice_delete_option_notifications(
         .order_by("id")
     )
     # send out an immediate email
-    for forecaster in forecasters:
-        send_email_with_template(
-            to=forecaster.email,
-            subject="Multiple choice option removed",
-            template_name="emails/multiple_choice_option_deletion.html",
-            context={
-                "recipient": forecaster,
-                "email_subject_display": "Multiple choice option removed",
-                "similar_posts": [],
-                "params": {
-                    "post": NotificationPostParams.from_post(post),
-                    "removed_options": removed_options,
-                    "timestep": timestep,
-                },
+    send_email_with_template(
+        to=[forecaster.email for forecaster in forecasters],
+        subject="Multiple choice option removed",
+        template_name="emails/multiple_choice_option_deletion.html",
+        context={
+            "email_subject_display": "Multiple choice option removed",
+            "similar_posts": [],
+            "params": {
+                "post": NotificationPostParams.from_post(post),
+                "removed_options": removed_options,
+                "timestep": timestep,
+                "catch_all_option": catch_all_option,
             },
-            use_async=False,
-            from_email=settings.EMAIL_NOTIFICATIONS_USER,
-        )
+        },
+        use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
 
 
 @dramatiq.actor
@@ -349,7 +348,7 @@ def multiple_choice_add_option_notifications(
     comment_text: str | None = None,
 ):
     question = Question.objects.get(id=question_id)
-    post = question.get_post()
+    post = question.post
     options_history = question.options_history
     previous_options = options_history[-2][1]
     current_options = options_history[-1][1]
@@ -413,25 +412,23 @@ def multiple_choice_add_option_notifications(
         .order_by("id")
     )
     # send out an immediate email
-    for forecaster in forecasters:
-        send_email_with_template(
-            to=forecaster.email,
-            subject="Multiple choice options added",
-            template_name="emails/multiple_choice_option_addition.html",
-            context={
-                "recipient": forecaster,
-                "email_subject_display": "Multiple choice options added",
-                "similar_posts": [],
-                "params": {
-                    "post": NotificationPostParams.from_post(post),
-                    "added_options": added_options,
-                    "grace_period_end": grace_period_end,
-                    "timestep": timestep,
-                },
+    send_email_with_template(
+        to=[forecaster.email for forecaster in forecasters],
+        subject="Multiple choice options added",
+        template_name="emails/multiple_choice_option_addition.html",
+        context={
+            "email_subject_display": "Multiple choice options added",
+            "similar_posts": [],
+            "params": {
+                "post": NotificationPostParams.from_post(post),
+                "added_options": added_options,
+                "grace_period_end": grace_period_end,
+                "timestep": timestep,
             },
-            use_async=False,
-            from_email=settings.EMAIL_NOTIFICATIONS_USER,
-        )
+        },
+        use_async=False,
+        from_email=settings.EMAIL_NOTIFICATIONS_USER,
+    )
 
     # schedule a followup email for 1 day before grace period
     #   (if grace period is more than 1 day away)

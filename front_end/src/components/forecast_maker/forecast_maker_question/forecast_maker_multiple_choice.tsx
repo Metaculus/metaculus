@@ -40,7 +40,10 @@ import {
   isForecastActive,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
-import { getAllOptionsHistory } from "@/utils/questions/helpers";
+import {
+  getAllOptionsHistory,
+  getUpcomingOptions,
+} from "@/utils/questions/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -63,6 +66,7 @@ import WithdrawButton from "../withdraw/withdraw_button";
 
 type ChoiceOption = {
   name: string;
+  label?: string;
   communityForecast: number | null;
   forecast: number | null;
   color: ThemeColor;
@@ -320,31 +324,14 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   // Calculate grace period end time
   const gracePeriodEnd = useMemo(() => {
-    try {
-      if (!question.options_history || question.options_history.length === 0) {
-        return null;
-      }
-      const history = question.options_history;
-      const lastEntry = history[history.length - 1];
-
-      if (!lastEntry || typeof lastEntry[0] === "undefined") {
-        return null;
-      }
-
-      // Following coworker's implementation: new Date(history[history.length - 1][0])
-      const gracePeriodEnd = new Date(lastEntry[0]);
-
-      // Validate the date is valid
-      if (isNaN(gracePeriodEnd.getTime())) {
-        console.warn("Invalid grace period date:", lastEntry[0]);
-        return null;
-      }
-
-      return gracePeriodEnd;
-    } catch (error) {
-      console.error("Error calculating grace period:", error);
+    if (!question.options_history || question.options_history.length === 0) {
       return null;
     }
+    const lastTimestep = new Date(question.options_history.at(-1)?.[0] || 0);
+    if (new Date().getTime() < lastTimestep.getTime()) {
+      return null;
+    }
+    return lastTimestep;
   }, [question.options_history]);
 
   const firstNewOptionRef = useRef<HTMLTableRowElement | null>(null);
@@ -590,7 +577,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                   id={choice.name}
                   forecastValue={choice.forecast}
                   defaultSliderValue={equalizedForecast}
-                  choiceName={choice.name}
+                  choiceName={choice.label ?? choice.name}
                   choiceColor={choice.color}
                   communityForecast={
                     !user || !hideCP ? choice.communityForecast : null
@@ -731,13 +718,21 @@ function generateChoiceOptions(
 ): ChoiceOption[] {
   const latest = aggregate.latest;
   const allOptions = getAllOptionsHistory(question);
+  const upcomingOptions = getUpcomingOptions(question);
 
   const choiceItems = allOptions.map((option, index) => {
+    const isDeleted = !question.options.includes(option);
+    const isUpcoming = upcomingOptions.includes(option);
     const communityForecastValue = latest?.forecast_values[index];
     const userForecastValue = userLastForecast?.forecast_values[index];
 
     return {
       name: option,
+      label: isDeleted
+        ? option + " (deleted)"
+        : isUpcoming
+          ? option + " (upcoming)"
+          : option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast:
         latest && !isNil(communityForecastValue)

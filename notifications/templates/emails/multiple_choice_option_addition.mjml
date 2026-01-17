@@ -4,14 +4,6 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-section background-color="#ffffff" padding-bottom="16px">
-            <mj-column>
-                <mj-text font-size="16px" color="#161C22" padding-bottom="8px">
-                    Hello {{recipient.username}},
-                </mj-text>
-            </mj-column>
-        </mj-section>
-
         <mj-section background-color="#ffffff" padding="0px">
             <mj-column>
                 <mj-text padding="0px">
