@@ -19,12 +19,12 @@ urlpatterns = [
         views.delete_link_api_view,
         name="delete-link",
     ),
-    # Question-level links
     path(
-        "coherence/question/<int:pk>/links/needs-update/",
+        "coherence/links/needs-update/",
         views.get_questions_requiring_update,
         name="needs-update",
     ),
+    # Question-level links
     path(
         "coherence/question/<int:pk>/links/",
         views.get_links_for_question_api_view,

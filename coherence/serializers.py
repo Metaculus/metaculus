@@ -22,19 +22,23 @@ from .utils import (
 
 
 class CoherenceLinkSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     question1_id = serializers.IntegerField(required=True)
     question2_id = serializers.IntegerField(required=True)
     direction = serializers.IntegerField(required=True)
     strength = serializers.IntegerField(required=True)
+    forecast_on_q2_is_stale = serializers.BooleanField(required=False)
 
     class Meta:
         model = CoherenceLink
         fields = [
+            "id",
             "question1_id",
             "question2_id",
             "direction",
             "strength",
             "type",
+            "forecast_on_q2_is_stale",
         ]
 
 
@@ -53,8 +57,11 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
 
 
 class NeedsUpdateQuerySerializer(serializers.Serializer):
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
     datetime = serializers.DateTimeField()
-    user_id_for_links = serializers.IntegerField(required=False, allow_null=True)
+    retrieve_all_data = serializers.BooleanField(required=False, default=False)
 
 
 def serialize_coherence_link(
