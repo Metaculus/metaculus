@@ -291,7 +291,7 @@ def multiple_choice_delete_options(
 
     multiple_choice_delete_option_notifications.send(
         question_id=question.id,
-        timestep=timestep,
+        timestamp=timestep.timestamp(),
         comment_author_id=comment_author.id,
         comment_text=comment_text,
     )
@@ -366,8 +366,8 @@ def multiple_choice_add_options(
 
     multiple_choice_add_option_notifications.send(
         question_id=question.id,
-        grace_period_end=grace_period_end,
-        timestep=timestep,
+        grace_period_end_timestamp=grace_period_end.timestamp(),
+        timestamp=timestep.timestamp(),
         comment_author_id=comment_author.id,
         comment_text=comment_text,
     )

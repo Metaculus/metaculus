@@ -542,12 +542,11 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             insert_after("options_history", "update_mc_options")
         return fields
 
-    def save_model(self, request, obj, form, change):
+    def save_model(self, request, obj: Question, form, change):
         super().save_model(request, obj, form, change)
-        post_id = obj.get_post_id()
 
-        if post_id:
-            run_post_generate_history_snapshot.send(post_id, request.user.id)
+        if obj.post_id:
+            run_post_generate_history_snapshot.send(obj.post_id, request.user.id)
 
     def get_actions(self, request):
         actions = super().get_actions(request)

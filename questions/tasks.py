@@ -263,10 +263,11 @@ def format_time_remaining(time_remaining: timedelta):
 @dramatiq.actor
 def multiple_choice_delete_option_notifications(
     question_id: int,
-    timestep: datetime,
+    timestamp: float,
     comment_author_id: int,
     comment_text: str | None = None,
 ):
+    timestep = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc)
     question = Question.objects.get(id=question_id)
     post = question.post
     options_history = question.options_history
@@ -342,11 +343,15 @@ def multiple_choice_delete_option_notifications(
 @dramatiq.actor
 def multiple_choice_add_option_notifications(
     question_id: int,
-    grace_period_end: datetime,
-    timestep: datetime,
+    grace_period_end_timestamp: float,
+    timestamp: float,
     comment_author_id: int,
     comment_text: str | None = None,
 ):
+    timestep = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc)
+    grace_period_end = datetime.fromtimestamp(
+        grace_period_end_timestamp, tz=dt_timezone.utc
+    )
     question = Question.objects.get(id=question_id)
     post = question.post
     options_history = question.options_history
