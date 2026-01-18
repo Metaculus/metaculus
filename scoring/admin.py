@@ -91,7 +91,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
         "make_primary_leaderboard",
         "update_leaderboards",
         "force_update_leaderboards",
-        "force_finalize_and_asign_medals_leaderboards",
+        "force_finalize_and_assign_medals_leaderboards",
     ]
 
     def make_primary_leaderboard(self, request, queryset):
@@ -129,7 +129,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
 
     force_update_leaderboards.short_description = "Force Update Leaderboards"
 
-    def force_finalize_and_asign_medals_leaderboards(self, request, queryset):
+    def force_finalize_and_assign_medals_leaderboards(self, request, queryset):
         leaderboard: Leaderboard
         for leaderboard in queryset:
             update_project_leaderboard(
@@ -139,7 +139,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
                 force_finalize=True,
             )
 
-    force_finalize_and_asign_medals_leaderboards.short_description = (
+    force_finalize_and_assign_medals_leaderboards.short_description = (
         "Force Update, Finalize, and Assign Medals/Prizes"
     )
 

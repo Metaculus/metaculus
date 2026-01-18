@@ -1,4 +1,4 @@
-name: Run Integration Tests (Playright)
+name: Run Integration Tests (Playwright)
 
 on:
   pull_request:

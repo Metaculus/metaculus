@@ -68,7 +68,7 @@ The last step in getting your database ready is adding the [pgvector](https://gi
 sudo apt install postgresql-16-pgvector
 ```
 
-If on a Mac and using a [supported postgres version](https://github.com/pgvector/pgvector#homebrew), you can use `brew install pgvector`. Oherwise:
+If on a Mac and using a [supported postgres version](https://github.com/pgvector/pgvector#homebrew), you can use `brew install pgvector`. Otherwise:
 
 >1. `git clone https://github.com/pgvector/pgvector.git`
 >2. `cd pgvector`

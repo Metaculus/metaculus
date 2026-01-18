@@ -196,10 +196,10 @@ describe("generateScale", () => {
       const scale = generateScale(params);
 
       // Then
-      const formatedLables = scale.ticks
+      const formattedLabels = scale.ticks
         .map((tick) => scale.tickFormat(tick))
         .filter((label) => label !== "");
-      expect(formatedLables.length).toBeGreaterThan(2);
+      expect(formattedLabels.length).toBeGreaterThan(2);
     });
   });
 
@@ -223,10 +223,10 @@ describe("generateScale", () => {
       const scale = generateScale(params);
 
       // Then
-      const formatedLables = scale.ticks
+      const formattedLabels = scale.ticks
         .map((tick) => scale.tickFormat(tick))
         .filter((label) => label !== "");
-      expect(formatedLables.length).toBeGreaterThan(2);
+      expect(formattedLabels.length).toBeGreaterThan(2);
     });
   });
 

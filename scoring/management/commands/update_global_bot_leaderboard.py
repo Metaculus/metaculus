@@ -51,7 +51,7 @@ def get_score_pair(
         for gm in geometric_means[::-1]:
             end = max(min(current_timestamp, actual_close_time), forecast_horizon_start)
             start = max(min(gm.timestamp, actual_close_time), forecast_horizon_start)
-            if gm.num_forecasters == 2:  # converage only when both have a forecast
+            if gm.num_forecasters == 2:  # coverage only when both have a forecast
                 coverage += max(0, (end - start)) / total_duration
                 cvs.append(max(0, (end - start)) / total_duration)
             current_timestamp = gm.timestamp
@@ -568,7 +568,7 @@ def bootstrap_skills(
         boot_question_ids: list[int] = []
         boot_scores: list[float] = []
         boot_weights: list[float] = []
-        # resample questions with repalcement
+        # resample questions with replacement
         for question_id in random.choices(question_ids_set, k=len(question_ids_set)):
             data = data_by_question[question_id]
             boot_user1_ids.extend(data[0])
@@ -853,7 +853,7 @@ class Command(BaseCommand):
         # TESTS
         skills_array = np.array(list(skills.values()))
 
-        # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
+        # 1. Correlation between skill and avg_score (DO NOT HAVE YET - need avg_score)
         x = []
         y = []
         for uid in user1_ids:

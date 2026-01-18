@@ -108,7 +108,7 @@ export async function questionsListFeedPage() {
       .locator("main > div > div.grow.overflow-x-hidden > div.flex.flex-col")
       .innerHTML();
 
-    const listOfQuestoinsTitles = parseHTML(listOfQuestionsHTML).find("a>h4");
+    const listOfQuestionsTitles = parseHTML(listOfQuestionsHTML).find("a>h4");
 
     check(sideBar, {
       "Sidebar includes 'Feed Home'": (sideBar) =>
@@ -119,9 +119,9 @@ export async function questionsListFeedPage() {
         sideBar.includes("categories"),
     });
 
-    check(listOfQuestoinsTitles, {
-      "Rendered 10 questions": (listOfQuestoinsTitles) =>
-        listOfQuestoinsTitles.size() >= 10,
+    check(listOfQuestionsTitles, {
+      "Rendered 10 questions": (listOfQuestionsTitles) =>
+        listOfQuestionsTitles.size() >= 10,
     });
   } finally {
     await page.close();

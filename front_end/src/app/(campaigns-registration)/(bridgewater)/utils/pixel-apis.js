@@ -163,7 +163,7 @@ export const redditPixelTrack = (eventName = "PageVisit") => {
 };
 
 export const bwInitAndTrackRegistrationIfConsent = () => {
-  // Save tot he local storage that the user has registed to this campaign
+  // Save to the local storage that the user has registered to this campaign
   window.localStorage.setItem("bw_registration_campaign", "true");
 
   const consent =

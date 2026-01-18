@@ -82,7 +82,7 @@ async def agoogle_translate_text(source_language, target_language, text):
     if source_language == target_language:
         return text
 
-    # Google Translates doesn't preserve new lines, as it translates text as if it was HMTL.
+    # Google Translates doesn't preserve new lines, as it translates text as if it was HTML.
     # so we use a hack by inserting a <br> element for each \n before translating,
     # and then we replace it back with the new line after translation.
     # In addition, it also html-escapes the input so we need to unescape it after the translation

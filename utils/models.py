@@ -191,7 +191,7 @@ class TranslatedModel(models.Model):
 
     def update_and_maybe_translate(self, should_translate_if_dirty=True):
         model = self.__class__
-        # This function is callned whenver the object is saved (either on creation or on edit).
+        # This function is called whenever the object is saved (either on creation or on edit).
         # The source of truth for the content is in the field name without the language suffix.
         # The function does the following:
         # 1. Copies the truth content from the field mentioned above to the field

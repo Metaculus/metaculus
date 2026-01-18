@@ -172,7 +172,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""For Continuous only. NOT for Discrete.
-        If logaritmically scaled, the value of the zero point.""",
+        If logarithmically scaled, the value of the zero point.""",
     )
     open_upper_bound = models.BooleanField(
         null=True,
@@ -548,7 +548,7 @@ class Forecast(models.Model):
 
     # times
     start_time = models.DateTimeField(
-        help_text="Begining time when this prediction is active",
+        help_text="Beginning time when this prediction is active",
         db_index=True,
     )
     end_time = models.DateTimeField(
