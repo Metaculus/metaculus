@@ -286,6 +286,9 @@ SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 # Extra redis config query
 REDIS_URL_CONFIG = os.environ.get("REDIS_URL_CONFIG", "")
+# Optional override URLs for cache and message queue (used directly without db number or config)
+REDIS_CACHE_URL = os.environ.get("REDIS_CACHE_URL")
+REDIS_MQ_URL = os.environ.get("REDIS_MQ_URL")
 
 SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
 
@@ -294,8 +297,8 @@ SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
 DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
-        # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
+        # Setting redis db to 1 for the MQ storage (unless REDIS_MQ_URL is defined)
+        "url": REDIS_MQ_URL or f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -320,7 +323,8 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/0?{REDIS_URL_CONFIG}",
+        # Using redis db 0 for cache (unless REDIS_CACHE_URL is defined)
+        "LOCATION": REDIS_CACHE_URL or f"{REDIS_URL}/0?{REDIS_URL_CONFIG}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -391,6 +395,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "host.docker.internal",
     "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
+    ".fly.dev", # allow all fly.dev domains for preview environments, remove after we have a wildcard DNS entry for preview environments
 ]
 
 CSRF_TRUSTED_ORIGINS = [PUBLIC_APP_URL]
