@@ -1,8 +1,8 @@
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -22,16 +22,13 @@ from coherence.serializers import (
 )
 from coherence.services import (
     create_coherence_link,
-    get_stale_linked_questions,
-    get_links_for_question,
     aggregate_coherence_link_vote,
 )
 from coherence.utils import get_aggregation_results, get_aggregations_links
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
-from questions.models import Question
+from questions.models import Question, Forecast
 from questions.serializers.common import serialize_question
-from users.models import User
 
 
 @api_view(["POST"])
@@ -44,14 +41,14 @@ def create_link_api_view(request):
     question1_id = data["question1_id"]
     question1 = Question.objects.get(id=question1_id)
     question1_permission = get_post_permission_for_user(
-        question1.get_post(), user=request.user
+        question1.post, user=request.user
     )
     ObjectPermission.can_view(question1_permission, raise_exception=True)
 
     question2_id = data["question2_id"]
     question2 = Question.objects.get(id=question2_id)
     question2_permission = get_post_permission_for_user(
-        question2.get_post(), user=request.user
+        question2.post, user=request.user
     )
     ObjectPermission.can_view(question2_permission, raise_exception=True)
     coherence_link = create_coherence_link(
@@ -137,32 +134,50 @@ def delete_link_api_view(request, pk):
 
 
 @api_view(["GET"])
-def get_questions_requiring_update(request, pk):
-    question = get_object_or_404(Question, pk=pk)
+def get_questions_requiring_update(request):
     user = request.user
+    if not user.is_authenticated:
+        raise PermissionDenied(
+            "Authentication is required to get questions requiring update."
+        )
 
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    question_ids = serializer.validated_data["question_ids"]
     datetime = serializer.validated_data["datetime"]
-    user_id_for_links = serializer.validated_data.get("user_id_for_links", None)
+    retrieve_all_data = serializer.validated_data.get("retrieve_all_data", False)
 
-    links_user = user
-    if user_id_for_links:
-        is_user_admin = user.is_staff or user.is_superuser
-        if not is_user_admin:
-            raise PermissionDenied(
-                "Non-admin user can't request to use the links of another user"
+    if retrieve_all_data:
+        if not (user.is_staff or user.is_superuser):
+            raise PermissionDenied("Non-admin user can't request to retrieve all data")
+        links_user = None
+    else:
+        links_user = user
+
+    links = (
+        CoherenceLink.objects.filter(
+            Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
+        )
+        .distinct("id")
+        .annotate(
+            forecast_on_q2_is_stale=~Exists(
+                Forecast.objects.filter(
+                    question_id=OuterRef("question2_id"),
+                    author_id=OuterRef("user_id"),
+                    start_time__gt=datetime,
+                )
             )
-        links_user = User.objects.filter(pk=user_id_for_links).first()
-        if links_user is None:
-            raise NotFound("Links user not found.")
-
-    links = get_links_for_question(question, links_user)
-    questions_to_update = get_stale_linked_questions(links, question, user, datetime)
-    serialized_questions = [serialize_question(q) for q in questions_to_update]
-    return Response(
-        {
-            "questions": serialized_questions,
-            "links": serialize_coherence_link_many(links, serialize_questions=False),
-        }
+        )
     )
+    if links_user is not None:
+        links = links.filter(user=links_user)
+
+    serialized_links = CoherenceLinkSerializer(links, many=True).data
+    question_ids_to_update = links.filter(forecast_on_q2_is_stale=True).values_list(
+        "question2_id", flat=True
+    )
+    questions = Question.objects.filter(
+        id__in=question_ids + question_ids_to_update
+    ).distinct("id")
+    serialized_questions = [serialize_question(q) for q in questions]
+    return Response({"links": serialized_links, "questions": serialized_questions})
