@@ -44,12 +44,12 @@ def weighted_percentile_2d(
             normalized_cumulative_weights >= (percentile / 100.0), axis=0
         )
         # return the median of these values
-        column_indicies = np.arange(values.shape[1])
+        column_indices = np.arange(values.shape[1])
         weighted_percentiles.append(
             0.5
             * (
-                sorted_values[left_indexes, column_indicies]
-                + sorted_values[right_indexes, column_indicies]
+                sorted_values[left_indexes, column_indices]
+                + sorted_values[right_indexes, column_indices]
             )
         )
     # replace -1.0 back to None
@@ -131,7 +131,7 @@ def prediction_difference_for_display(
     elif question.type == "multiple_choice":
         # list of (pred diff, ratio of odds)
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
-    # total earth mover's distance, assymmetric earth mover's distance
+    # total earth mover's distance, asymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question
     )
