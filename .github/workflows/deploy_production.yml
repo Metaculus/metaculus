@@ -46,17 +46,15 @@ jobs:
                 deployments(environments: ["prod_env"], first: 20, orderBy: {field: CREATED_AT, direction: DESC}) {
                   nodes {
                     commitOid
-                    statuses(first: 1) {
-                      nodes {
-                        state
-                      }
+                    latestStatus {
+                      state
                     }
                   }
                 }
               }
             }
           ' -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" \
-            --jq '.data.repository.deployments.nodes[] | select(.statuses.nodes[0].state == "SUCCESS") | .commitOid' \
+            --jq '.data.repository.deployments.nodes[] | select(.latestStatus.state == "SUCCESS") | .commitOid' \
             2>/dev/null | head -n 1) || safe_default "Failed to fetch deployment history"
           
           echo "Last deployed commit: $LAST_DEPLOYED"
