@@ -163,6 +163,7 @@ REST_FRAMEWORK = {
     "MAX_LIMIT": 100,
 }
 
+
 # Simple JWT
 # https://django-rest-framework-simplejwt.readthedocs.io/
 # Generate key with: openssl genrsa -out jwt_private.pem 2048
