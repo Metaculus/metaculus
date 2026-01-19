@@ -4,6 +4,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import React from "react";
+import { createPortal } from "react-dom";
 
 import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-black.png";
 import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-white.webp";
@@ -25,8 +26,11 @@ import { FE_COLORS, FE_RAW_COLORS } from "../../theme";
  * Hook to get the correct shadow color based on the actual DOM state.
  * This avoids hydration mismatches by checking the document's dark class
  * after mount, and also listens for changes.
+ *
+ * NOTE: This hook should be called once in the parent (Orbit) and the
+ * shadowColor passed down as a prop to avoid creating multiple MutationObservers.
  */
-function useThemeShadowColor() {
+export function useThemeShadowColor() {
   const [shadowColor, setShadowColor] = React.useState<string>(
     FE_RAW_COLORS.light.background
   );
@@ -85,6 +89,7 @@ type OrbitCircleProps = {
   shadowSpread?: number;
   mobileSpreadRatio?: number;
   expandedSpreadRatio?: number;
+  shadowColor: string;
   className?: string;
   // Mobile-specific props
   isMobile?: boolean;
@@ -167,6 +172,7 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
   shadowSpread = 24,
   mobileSpreadRatio = 0.5,
   expandedSpreadRatio = 0.5,
+  shadowColor,
   className,
   isMobile = false,
   isMobileExpanded = false,
@@ -175,9 +181,6 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
   containerRef,
 }) => {
   const circleRef = React.useRef<HTMLDivElement>(null);
-
-  // Get shadow color based on actual DOM state (avoids hydration mismatch)
-  const shadowColor = useThemeShadowColor();
 
   // Calculate shadow spread values using configurable ratios:
   // - Mobile default: uses mobileSpreadRatio of original spread
@@ -200,6 +203,32 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
 
   // Show expanded card for either desktop hover or mobile tap
   const showExpanded = isExpanded || isMobileExpanded;
+
+  // Desktop expanded card renders inline, mobile uses portal to escape rotation context
+  const desktopExpandedCard = isExpanded && !isMobileExpanded && (
+    <ExpandedCard
+      item={item}
+      onClick={onNavigate || onClick}
+      strokeWidth={strokeWidth}
+      shadowStyle={expandedShadowStyle}
+    />
+  );
+
+  // Mobile expanded card rendered via portal to container (outside rotating context)
+  const mobileExpandedCard =
+    isMobileExpanded &&
+    containerRef?.current &&
+    createPortal(
+      <MobileExpandedCard
+        item={item}
+        onClick={onNavigate || onClick}
+        strokeWidth={strokeWidth}
+        shadowStyle={expandedShadowStyle}
+        onClose={onMobileClose}
+        containerRef={containerRef}
+      />,
+      containerRef.current
+    );
 
   return (
     <div
@@ -233,25 +262,17 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
         </span>
       </button>
 
-      {/* Expanded state card */}
-      {showExpanded && (
-        <ExpandedCard
-          item={item}
-          onClick={onNavigate || onClick}
-          strokeWidth={strokeWidth}
-          shadowStyle={expandedShadowStyle}
-          isMobile={isMobileExpanded}
-          onClose={onMobileClose}
-          circleRef={circleRef}
-          containerRef={containerRef}
-        />
-      )}
+      {/* Desktop expanded card - rendered inline */}
+      {desktopExpandedCard}
+
+      {/* Mobile expanded card - rendered via portal outside rotating context */}
+      {mobileExpandedCard}
     </div>
   );
 };
 
 // ===========================================
-// EXPANDED CARD
+// EXPANDED CARD (Desktop - rendered inline)
 // ===========================================
 
 type ExpandedCardProps = {
@@ -259,10 +280,6 @@ type ExpandedCardProps = {
   onClick: () => void;
   strokeWidth: number;
   shadowStyle: React.CSSProperties;
-  isMobile?: boolean;
-  onClose?: () => void;
-  circleRef?: React.RefObject<HTMLDivElement | null>;
-  containerRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const ExpandedCard: React.FC<ExpandedCardProps> = ({
@@ -270,45 +287,140 @@ const ExpandedCard: React.FC<ExpandedCardProps> = ({
   onClick,
   strokeWidth,
   shadowStyle,
-  isMobile = false,
+}) => {
+  // Get carousel chips based on item type
+  const getCarouselChips = (): CarouselChip[] => {
+    if (item.id === "model-benchmark") {
+      return MODEL_BENCHMARK_CHIPS;
+    }
+    if (item.id === "bot-tournaments") {
+      return BOT_TOURNAMENTS_CHIPS;
+    }
+    return [];
+  };
+
+  const carouselChips = getCarouselChips();
+
+  // Get the link text and href based on item type
+  const getLinkInfo = (): { text: string; href: string } | null => {
+    switch (item.id) {
+      case "model-benchmark":
+        return { text: "View Leaderboard →", href: `#${item.action.target}` };
+      case "bot-tournaments":
+        return {
+          text: "View Tournaments →",
+          href: `${item.action.tabHref}#${item.action.target}`,
+        };
+      case "minibench":
+        return { text: "Visit MiniBench →", href: item.action.target };
+      default:
+        return null;
+    }
+  };
+
+  const linkInfo = getLinkInfo();
+
+  // Handle link click for scroll actions
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (item.action.type === "scroll") {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "absolute rounded-lg p-3",
+        FE_COLORS.orbitCircleBg,
+        "border-futureeval-primary-light dark:border-futureeval-primary-dark",
+        "z-50 cursor-default select-none text-center"
+      )}
+      style={{
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        minWidth: 200,
+        maxWidth: 240,
+        borderWidth: strokeWidth,
+        ...shadowStyle,
+      }}
+    >
+      {/* Title */}
+      <h4
+        className={cn(
+          "m-0 font-newsreader text-lg font-normal",
+          FE_COLORS.textPrimary
+        )}
+      >
+        {item.label.replace(/\n/g, " ")}
+      </h4>
+
+      {/* Description */}
+      <p
+        className={cn(
+          "m-0 mt-1.5 font-sans text-xs leading-snug",
+          FE_COLORS.textSecondary
+        )}
+      >
+        {item.description}
+      </p>
+
+      {/* Auto-scrolling carousel */}
+      {carouselChips.length > 0 && (
+        <div className="mt-2.5">
+          <OrbitAutoCarousel chips={carouselChips} speed={25} />
+        </div>
+      )}
+
+      {/* Action link */}
+      {linkInfo && (
+        <Link
+          href={linkInfo.href}
+          className={cn(
+            "mt-3 inline-block cursor-pointer font-sans text-xs",
+            FE_COLORS.textAccent,
+            "underline underline-offset-2 transition-opacity hover:opacity-80"
+          )}
+          onClick={handleLinkClick}
+        >
+          {linkInfo.text}
+        </Link>
+      )}
+    </div>
+  );
+};
+
+// ===========================================
+// MOBILE EXPANDED CARD (rendered via portal)
+// ===========================================
+
+type MobileExpandedCardProps = {
+  item: OrbitItem;
+  onClick: () => void;
+  strokeWidth: number;
+  shadowStyle: React.CSSProperties;
+  onClose?: () => void;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
+};
+
+const MobileExpandedCard: React.FC<MobileExpandedCardProps> = ({
+  item,
+  onClick,
+  strokeWidth,
+  shadowStyle,
   onClose,
-  circleRef,
   containerRef,
 }) => {
-  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [width, setWidth] = React.useState(240);
 
-  // Calculate position and size relative to the orbit container for mobile
-  const [mobileLayout, setMobileLayout] = React.useState<{
-    offsetX: number;
-    offsetY: number;
-    width: number;
-  }>({ offsetX: 0, offsetY: 0, width: 240 });
-
-  // For mobile: position card at center of container with 90% width
+  // Calculate 90% of container width
   React.useEffect(() => {
-    if (!isMobile || !circleRef?.current || !containerRef?.current) {
-      setMobileLayout({ offsetX: 0, offsetY: 0, width: 240 });
-      return;
-    }
-
-    const circleRect = circleRef.current.getBoundingClientRect();
+    if (!containerRef?.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
-
-    // Calculate offset from circle center to container center
-    const circleCenterX = circleRect.left + circleRect.width / 2;
-    const circleCenterY = circleRect.top + circleRect.height / 2;
-    const containerCenterX = containerRect.left + containerRect.width / 2;
-    const containerCenterY = containerRect.top + containerRect.height / 2;
-
-    // Calculate 90% of container width
-    const mobileWidth = containerRect.width * 0.9;
-
-    setMobileLayout({
-      offsetX: containerCenterX - circleCenterX,
-      offsetY: containerCenterY - circleCenterY,
-      width: mobileWidth,
-    });
-  }, [isMobile, circleRef, containerRef]);
+    setWidth(containerRect.width * 0.9);
+  }, [containerRef]);
 
   // Get carousel chips based on item type
   const getCarouselChips = (): CarouselChip[] => {
@@ -323,7 +435,7 @@ const ExpandedCard: React.FC<ExpandedCardProps> = ({
 
   const carouselChips = getCarouselChips();
 
-  // Handle close button click on mobile
+  // Handle close button click
   const handleCloseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -360,53 +472,46 @@ const ExpandedCard: React.FC<ExpandedCardProps> = ({
 
   return (
     <div
-      ref={cardRef}
       className={cn(
         "absolute rounded-lg p-3",
         FE_COLORS.orbitCircleBg,
         "border-futureeval-primary-light dark:border-futureeval-primary-dark",
-        "z-50 cursor-default select-none text-center" // Center all content, default cursor
+        "cursor-default select-none text-center"
       )}
       style={{
-        // Position card centered on the circle (desktop) or container center (mobile)
+        // Centered in the container (portaled directly to container)
         top: "50%",
         left: "50%",
-        transform: isMobile
-          ? `translate(calc(-50% + ${mobileLayout.offsetX}px), calc(-50% + ${mobileLayout.offsetY}px))`
-          : "translate(-50%, -50%)",
-        // Mobile: 90% of container width (calculated in px), Desktop: fixed width
-        width: isMobile ? mobileLayout.width : undefined,
-        minWidth: isMobile ? undefined : 200,
-        maxWidth: isMobile ? undefined : 240,
+        transform: "translate(-50%, -50%)",
+        width,
         borderWidth: strokeWidth,
+        // z-index must be above backdrop (z-45) and rotating group (z-46)
+        zIndex: 50,
         ...shadowStyle,
       }}
     >
-      {/* Close button (mobile only) */}
-      {isMobile && (
-        <div className="absolute right-2 top-2">
-          <button
-            type="button"
-            onClick={handleCloseClick}
-            className={cn(
-              "flex h-5 w-5 items-center justify-center rounded-full transition-colors",
-              "hover:bg-futureeval-bg-dark/10 dark:hover:bg-futureeval-bg-light/10"
-            )}
-            aria-label="Close"
-          >
-            <FontAwesomeIcon
-              icon={faXmark}
-              className={cn("text-sm", FE_COLORS.textMuted)}
-            />
-          </button>
-        </div>
-      )}
+      {/* Close button */}
+      <div className="absolute right-2 top-2">
+        <button
+          type="button"
+          onClick={handleCloseClick}
+          className={cn(
+            "flex h-5 w-5 items-center justify-center rounded-full transition-colors",
+            "hover:bg-futureeval-bg-dark/10 dark:hover:bg-futureeval-bg-light/10"
+          )}
+          aria-label="Close"
+        >
+          <FontAwesomeIcon
+            icon={faXmark}
+            className={cn("text-sm", FE_COLORS.textMuted)}
+          />
+        </button>
+      </div>
 
-      {/* Title - same color as non-expanded state label */}
+      {/* Title */}
       <h4
         className={cn(
-          "m-0 font-newsreader text-lg font-normal",
-          isMobile && "px-6", // Extra padding for close button on mobile
+          "m-0 px-6 font-newsreader text-lg font-normal",
           FE_COLORS.textPrimary
         )}
       >

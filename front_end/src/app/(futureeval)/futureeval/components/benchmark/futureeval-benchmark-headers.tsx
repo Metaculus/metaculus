@@ -23,7 +23,7 @@ const FutureEvalSubsectionHeader: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <div className="flex items-start justify-start gap-2">
+      {title != null && (
         <h3
           className={cn(
             "m-0 text-left",
@@ -33,17 +33,19 @@ const FutureEvalSubsectionHeader: React.FC<Props> = ({
         >
           {title}
         </h3>
-      </div>
+      )}
 
-      <p
-        className={cn(
-          "m-0 mt-3 text-left",
-          FE_TYPOGRAPHY.body,
-          FE_COLORS.textSubheading
-        )}
-      >
-        {subtitle}
-      </p>
+      {subtitle != null && (
+        <p
+          className={cn(
+            "m-0 mt-3 text-left",
+            FE_TYPOGRAPHY.body,
+            FE_COLORS.textSubheading
+          )}
+        >
+          {subtitle}
+        </p>
+      )}
       {children}
     </>
   );

@@ -2,7 +2,7 @@
 
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import PostsFeedScrollRestoration from "@/components/posts_feed/feed_scroll_restoration";
 import Button from "@/components/ui/button";
@@ -115,14 +115,6 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
     }
   };
 
-  const renderPost = (post: PostWithForecasts) => {
-    if (isNotebookPost(post)) {
-      return <FutureEvalNewsCard post={post as NotebookPost} />;
-    }
-    // Fallback for non-notebook posts (shouldn't happen in news feed)
-    return null;
-  };
-
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -137,9 +129,12 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
             {t("noResults") + "."}
           </span>
         )}
-        {paginatedPosts.map((p) => (
-          <Fragment key={p.id}>{renderPost(p)}</Fragment>
-        ))}
+        {paginatedPosts.map(
+          (p) =>
+            isNotebookPost(p) && (
+              <FutureEvalNewsCard key={p.id} post={p as NotebookPost} />
+            )
+        )}
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
           pageNumber={clientPageNumber}

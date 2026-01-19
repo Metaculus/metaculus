@@ -36,13 +36,10 @@ const FutureEvalModelBenchmark: React.FC = () => {
       return kind === "community";
     });
 
-    // Get bot entries that should be displayed
+    // Get bot entries that should be displayed, sorted by score (highest first)
     const bots = allEntries
       .filter((e) => !isAggregate(e) && shouldDisplayEntry(e, 300))
-      .sort((a, b) => {
-        if (a.rank != null && b.rank != null) return a.rank - b.rank;
-        return b.score - a.score;
-      })
+      .sort((a, b) => b.score - a.score)
       .slice(0, MAX_VISIBLE_BOTS);
 
     // Combine and sort by score (highest first)
