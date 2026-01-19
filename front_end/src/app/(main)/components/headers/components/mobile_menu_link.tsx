@@ -19,7 +19,7 @@ const MobileMenuLink: FC<
       {...(href ? { href } : {})}
       onClick={onClick}
       className={cn(
-        "flex w-full h-fit items-start text-sm justify-start px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark",
+        "flex h-fit w-full items-start justify-start px-4 py-1.5 text-sm capitalize no-underline hover:bg-blue-400-dark",
         className
       )}
     >

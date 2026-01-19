@@ -116,7 +116,7 @@ export const MobileMenu: FC = () => {
 
                 {/* Account links column (only when logged in) */}
                 {isLoggedIn && accountLinks.length > 0 && (
-                  <div className="flex flex-col space-y-0.5 h-fit bg-blue-900 px-1 py-2 rounded-tl-lg self-end">
+                  <div className="flex h-fit flex-col space-y-0.5 self-end rounded-tl-lg bg-blue-900 px-1 py-2">
                     {accountLinks.map((item, index) => {
                       if (item.isTitle) {
                         return (
