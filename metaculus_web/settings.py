@@ -298,7 +298,8 @@ DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage (unless REDIS_MQ_URL is defined)
-        "url": REDIS_MQ_URL or f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
+        "url": REDIS_MQ_URL
+        or f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
