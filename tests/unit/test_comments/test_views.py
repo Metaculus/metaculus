@@ -14,6 +14,7 @@ from comments.models import (
     KeyFactorNews,
 )
 from comments.services.feed import get_comments_feed
+from questions.models import Forecast
 from questions.services.forecasts import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_misc.factories import factory_itn_article
@@ -689,26 +690,23 @@ class TestCommentEdit:
         # 0. Forecast created and closed before comment creation
         t_forecast_expired_start = now - timedelta(hours=4)
         t_forecast_expired_end = now - timedelta(hours=3)
-
-        with freeze_time(t_forecast_expired_start):
-            forecast_expired = create_forecast(
-                question=question,
-                user=user1,
-                probability_yes=0.2,
-            )
-
-        forecast_expired.end_time = t_forecast_expired_end
-        forecast_expired.save()
+        Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.2,
+            start_time=t_forecast_expired_start,
+            end_time=t_forecast_expired_end,
+        )
 
         # 1. Forecast active at comment creation
         t_forecast_1 = now - timedelta(hours=2)
-
-        with freeze_time(t_forecast_1):
-            forecast_1 = create_forecast(
-                question=question,
-                user=user1,
-                probability_yes=0.5,
-            )
+        forecast_1 = Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.5,
+            start_time=t_forecast_1,
+            end_time=None,
+        )
 
         # 2. Comment created later.
         t_comment = now - timedelta(hours=1)
@@ -723,12 +721,15 @@ class TestCommentEdit:
 
         # 3. New forecast created after comment
         t_forecast_2 = now - timedelta(minutes=30)
-        with freeze_time(t_forecast_2):
-            create_forecast(
-                question=question,
-                user=user1,
-                probability_yes=0.8,
-            )
+        forecast_2 = Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.8,
+            start_time=t_forecast_2,
+            end_time=None,
+        )
+        forecast_1.end_time = forecast_2.start_time
+        forecast_1.save()
 
         # 4. Edit comment to include forecast
         url = reverse("comment-edit", kwargs={"pk": comment.pk})
@@ -743,12 +744,14 @@ class TestCommentEdit:
         assert comment.included_forecast == forecast_1
 
         # 5. Prevent overwrite if already set
-        with freeze_time(now):
-            create_forecast(
-                question=question,
-                user=user1,
-                probability_yes=0.9,
-            )
+        forecast_3 = Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.9,
+            start_time=now,
+        )
+        forecast_2.end_time = forecast_3.start_time
+        forecast_2.save()
 
         # Even if we pass include_forecast=True again, it shouldn't change
         response = user1_client.post(
@@ -779,16 +782,13 @@ class TestCommentEdit:
 
         # 8. Test attaching when multiple forecasts exist before creation
         t_forecast_0 = now - timedelta(hours=3)
-        with freeze_time(t_forecast_0):
-            forecast_0 = create_forecast(
-                question=question,
-                user=user1,
-                probability_yes=0.1,
-            )
-
-        # Close it before comment creation
-        forecast_0.end_time = t_forecast_1
-        forecast_0.save()
+        Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.1,
+            start_time=t_forecast_0,
+            end_time=forecast_1.start_time,
+        )
 
         # So at t_comment, forecast_0 is closed. Forecast_1 is open.
         response = user1_client.post(

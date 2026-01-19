@@ -489,6 +489,7 @@ class MedianAggregatorMixin:
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
             centers_array = np.array(centers)
+            centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
             normalized_centers = np.array(aggregation_forecast_values)
             normalized_lowers = np.array(lowers)
             normalized_lowers[non_nones] = (
@@ -498,7 +499,7 @@ class MedianAggregatorMixin:
             )
             normalized_uppers = np.array(uppers)
             normalized_uppers[non_nones] = (
-                normalized_lowers[non_nones]
+                normalized_uppers[non_nones]
                 * normalized_centers[non_nones]
                 / centers_array[non_nones]
             )
@@ -641,9 +642,18 @@ class Aggregation(AggregatorMixin):
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
-                aggregation.means = np.average(
-                    forecast_set.forecasts_values, weights=weights, axis=0
-                ).tolist()
+                forecasts_values = np.array(forecast_set.forecasts_values)
+                nones = (
+                    np.equal(forecasts_values[0], None)
+                    if forecasts_values.size
+                    else np.array([])
+                )
+                forecasts_values[:, nones] = np.nan
+                means = np.average(forecasts_values, weights=weights, axis=0).astype(
+                    object
+                )
+                means[np.isnan(means.astype(float))] = None
+                aggregation.means = means.tolist()
 
         if histogram and self.question.type in [
             Question.QuestionType.BINARY,

@@ -1,0 +1,66 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section background-color="#ffffff" padding="0px">
+            <mj-column>
+                <mj-text padding="0px">
+                    <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #2F4155;">
+                        {% blocktrans %}
+                        New options were added to this multiple choice question.
+                        {% endblocktrans %}
+                    </div>
+                    <div style="margin: 0px 24px 12px 24px;">
+                        <a href="{% post_url params.post.post_id params.post.post_title %}"
+                           style="display: block; text-decoration: none; color: inherit;">
+                            <div style="background-color: #EFF4F4; border: 1px solid #D7E4F2; border-radius: 8px; padding: 12px;">
+                                <div style="font-size: 16px; font-weight: 600; color: #161C22; line-height: 1.4;">
+                                    {{ params.post.post_title }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    {% if params.added_options %}
+                    <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #161C22;">
+                        {% blocktrans with count=params.added_options|length %}
+                        Added option{{ count|pluralize }}:
+                        {% endblocktrans %}
+                    </div>
+                    <ul style="margin: 0px 24px 16px 40px; padding: 0px; color: #2F4155; font-size: 14px;">
+                        {% for option in params.added_options %}
+                        <li style="margin-bottom: 6px;">{{ option }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #2F4155;">
+                        {% blocktrans with grace_period_end=params.grace_period_end %}
+                        Please update your forecast by <b>{{ grace_period_end }}</b>. If not,
+                        it will be automatically withdrawn at that time.
+                        {% endblocktrans %}
+                    </div>
+                    <div style="margin: 0px 24px 16px 24px; font-size: 13px; color: #6B7280;">
+                        {% blocktrans %}
+                        Learn more in our
+                        {% endblocktrans %}
+                        <a href="https://www.metaculus.com/faq/#auto-withdrawal">FAQ</a>.
+                    </div>
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-section background-color="#ffffff" padding="0px 0px 16px 0px">
+            <mj-column>
+                <mj-button mj-class="cta-button" href="{% post_url params.post.post_id params.post.post_title %}">
+                    Update your forecast
+                </mj-button>
+            </mj-column>
+        </mj-section>
+
+        <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
+    </mj-body>
+</mjml>

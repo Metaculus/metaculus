@@ -35,7 +35,6 @@ const ChoicesLegend: FC<Props> = ({
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
   const mcMode = typeof othersToggle === "boolean" && !!onOthersToggle;
-
   const { legendChoices, dropdownChoices } = useMemo(() => {
     const left = choices.slice(0, maxLegendChoices);
     const right = choices.slice(maxLegendChoices);
@@ -61,10 +60,10 @@ const ChoicesLegend: FC<Props> = ({
 
   return (
     <div className="relative flex flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
-      {legendChoices.map(({ choice, color, active }, idx) => (
+      {legendChoices.map(({ label, choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
-          label={choice}
+          label={label || choice}
           color={color.DEFAULT}
           checked={active}
           onChange={(checked) => onChoiceChange(choice, checked)}
@@ -122,19 +121,21 @@ const ChoicesLegend: FC<Props> = ({
                     label={areAllSelected ? t("deselectAll") : t("selectAll")}
                     className="p-1.5 capitalize"
                   />
-                  {dropdownChoices.map(({ choice, color, active }, idx) => (
-                    <ChoiceCheckbox
-                      key={`multiple-choice-dropdown-${choice}-${idx}`}
-                      label={choice}
-                      color={getThemeColor(color)}
-                      checked={active}
-                      onChange={(checked) => onChoiceChange(choice, checked)}
-                      onHighlight={(highlighted) =>
-                        onChoiceHighlight(choice, highlighted)
-                      }
-                      className="p-1.5"
-                    />
-                  ))}
+                  {dropdownChoices.map(
+                    ({ label, choice, color, active }, idx) => (
+                      <ChoiceCheckbox
+                        key={`multiple-choice-dropdown-${choice}-${idx}`}
+                        label={label || choice}
+                        color={getThemeColor(color)}
+                        checked={active}
+                        onChange={(checked) => onChoiceChange(choice, checked)}
+                        onHighlight={(highlighted) =>
+                          onChoiceHighlight(choice, highlighted)
+                        }
+                        className="p-1.5"
+                      />
+                    )
+                  )}
                 </PopoverPanel>
               </>
             )}
