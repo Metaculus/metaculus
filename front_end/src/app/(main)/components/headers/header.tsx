@@ -82,32 +82,35 @@ const Header: FC = () => {
           </div>
         </div>
 
-        {/* Global Search */}
-        <GlobalSearch className="ml-auto" />
+        {/* Right-side items wrapper */}
+        <div className="ml-auto flex items-stretch">
+          {/* Global Search */}
+          <GlobalSearch />
 
-        <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
-          {!!user && (
-            <li className="hidden h-full lg:block">
-              <NavLink
-                href={LINKS.createQuestion.href}
-                className="group relative flex h-full items-center p-3 no-underline hover:bg-blue-700"
-              >
-                {LINKS.createQuestion.label}
-              </NavLink>
+          <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
+            {!!user && (
+              <li className="hidden h-full lg:block">
+                <NavLink
+                  href={LINKS.createQuestion.href}
+                  className="group relative flex h-full items-center p-3 no-underline hover:bg-blue-700"
+                >
+                  {LINKS.createQuestion.label}
+                </NavLink>
+              </li>
+            )}
+            <li className="z-10 flex h-full items-center justify-center">
+              <NavUserButton />
             </li>
+          </ul>
+
+          {!user && (
+            <div className="text-sm md:hidden">
+              <NavUserButton />
+            </div>
           )}
-          <li className="z-10 flex h-full items-center justify-center">
-            <NavUserButton />
-          </li>
-        </ul>
 
-        {!user && (
-          <div className="text-sm md:hidden">
-            <NavUserButton />
-          </div>
-        )}
-
-        <MobileMenu />
+          <MobileMenu />
+        </div>
       </header>
       <ContentTranslatedBanner />
     </>
