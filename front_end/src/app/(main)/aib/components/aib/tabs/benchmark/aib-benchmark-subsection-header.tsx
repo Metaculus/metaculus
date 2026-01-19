@@ -18,8 +18,8 @@ const AIBBenchmarkSubsectionHeader: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <div className="flex items-start justify-center gap-2 lg:justify-start">
-        <h3 className="m-0 text-center text-[24px] font-bold leading-[116%] text-blue-800 dark:text-blue-800-dark sm:text-[32px] sm:leading-[40px] lg:text-left lg:text-4xl">
+      <div className="flex items-start justify-center gap-2">
+        <h3 className="m-0 text-center text-[24px] font-bold leading-[116%] text-blue-800 dark:text-blue-800-dark sm:text-[32px] sm:leading-[40px] lg:text-4xl">
           {title}
         </h3>
         {infoHref ? (
@@ -34,7 +34,7 @@ const AIBBenchmarkSubsectionHeader: React.FC<Props> = ({
         ) : null}
       </div>
 
-      <p className="m-0 mt-3 text-center text-[14px] font-normal leading-[20px] text-blue-700 dark:text-blue-700-dark sm:text-xl sm:font-medium sm:leading-normal lg:text-left">
+      <p className="m-0 mt-3 text-balance text-center font-geist-mono text-sm text-blue-700 dark:text-blue-700-dark sm:text-base">
         {subtitle}
       </p>
       {children}
@@ -51,9 +51,9 @@ export const AIBBenchmarkModelsSubsectionHeader: React.FC = () => {
       infoHref="/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard"
     >
       <p
-        className="m-0 mx-auto mt-2 max-w-[400px] text-center text-[12px] leading-[16px]
-            text-blue-800/60 dark:text-blue-800-dark/60
-            sm:text-base sm:leading-normal lg:max-w-none lg:text-left"
+        className="m-0 mx-auto mt-3 max-w-2xl text-center font-geist-mono text-sm
+            text-blue-700 dark:text-blue-700-dark
+            sm:text-base"
       >
         {t.rich("aibBenchModelsBlurb", {
           br: () => <br className="sm:hidden" />,
