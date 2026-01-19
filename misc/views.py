@@ -23,6 +23,7 @@ from .serializers import (
     SidebarItemSerializer,
 )
 from .services.itn import remove_article
+from .tasks import add_env_prefix_to_subject
 from .utils import get_whitelist_status
 
 
@@ -33,7 +34,7 @@ def contact_api_view(request: Request):
     serializer.is_valid(raise_exception=True)
 
     EmailMessage(
-        subject=serializer.data["subject"] or "Contact Form",
+        subject=add_env_prefix_to_subject(serializer.data["subject"] or "Contact Form"),
         body=serializer.data["message"],
         from_email=settings.EMAIL_SENDER_NO_REPLY,
         to=[settings.EMAIL_FEEDBACK],
@@ -50,7 +51,7 @@ def contact_service_api_view(request: Request):
     serializer.is_valid(raise_exception=True)
 
     EmailMessage(
-        subject="New form submission via Services page",
+        subject=add_env_prefix_to_subject("New form submission via Services page"),
         body=(
             f"Your name: {serializer.data.get('name')}\n"
             f"Email address: {serializer.data['email']}\n"
