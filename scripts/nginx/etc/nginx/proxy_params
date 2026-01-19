@@ -1,4 +1,14 @@
 proxy_set_header Host $http_host;
 proxy_set_header X-Real-IP $remote_addr;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto $scheme;
+
+# Use incoming X-Forwarded-Proto from upstream proxy (e.g., Fly.io), fallback to $scheme
+# This prevents "Contradictory scheme headers" error in gunicorn
+# $proxy_x_forwarded_proto is defined via map in app_nginx.template
+proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+
+# Clear other scheme-related headers that could cause conflicts
+proxy_set_header X-Forwarded-Ssl "";
+proxy_set_header X-Forwarded-Scheme "";
+proxy_set_header X-Url-Scheme "";
+proxy_set_header Forwarded "";
