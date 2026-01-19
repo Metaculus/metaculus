@@ -25,7 +25,7 @@ async function serverFetch<T>(
   const { PUBLIC_API_BASE_URL, PUBLIC_AUTHENTICATION_REQUIRED } =
     getPublicSettings();
   const shouldPassAuth =
-    config.passAuthHeader || PUBLIC_AUTHENTICATION_REQUIRED;
+    config.passAuthHeader ?? PUBLIC_AUTHENTICATION_REQUIRED;
 
   const authManager = await getAuthCookieManager();
   const token = shouldPassAuth ? authManager.getAccessToken() : null;
