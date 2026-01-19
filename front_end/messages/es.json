@@ -1827,7 +1827,7 @@
   "tournamentsTabSeries": "Series de Preguntas",
   "tournamentsTabIndexes": "Índices",
   "tournamentsTabArchived": "Archivado",
-  "tournamentTimelineClosed": "Esperando resoluciones",
+  "tournamentTimelineClosed": "Resoluciones pendientes",
   "questionsPreviouslyPredicted": "{count, plural, =1 {# pregunta} other {# preguntas}} previamente previstas",
   "includeMyForecastAtTheTime": "Incluir mi predicción en ese momento <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "Nosotros <predmarket>no somos un mercado de predicciones</predmarket>. Puedes participar gratis y ganar premios en efectivo por ser preciso.",
