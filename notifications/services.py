@@ -86,7 +86,7 @@ class NotificationQuestionParams:
             type=question.type,
             label=question.label,
             unit=question.unit,
-            post_id=question.get_post_id(),
+            post_id=question.post_id,
             post_title=question.get_post().title,
         )
 

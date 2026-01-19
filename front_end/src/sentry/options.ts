@@ -6,6 +6,7 @@ import type {
 
 import {
   beforeSentryAlertSend,
+  SENTRY_DENY_URLS,
   SENTRY_IGNORE_ERRORS,
 } from "@/utils/core/errors";
 
@@ -27,7 +28,8 @@ export function buildSentryOptions<
 
       return 0.1;
     },
-    ignoreErrors: SENTRY_IGNORE_ERRORS as (string | RegExp)[],
+    ignoreErrors: SENTRY_IGNORE_ERRORS,
+    denyUrls: SENTRY_DENY_URLS,
     beforeSend: beforeSentryAlertSend,
   } as T;
 }

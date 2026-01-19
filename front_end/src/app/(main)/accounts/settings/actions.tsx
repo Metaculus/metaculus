@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import {
   deleteImpersonatorSession,
@@ -104,6 +105,42 @@ export async function getBotTokenAction(botId: number) {
 
     return {
       token: data.token,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function getApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.getApiKey();
+
+    return {
+      key: data.key,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function rotateApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.rotateApiKey();
+
+    return {
+      key: data.key,
     };
   } catch (err) {
     if (!ApiError.isApiError(err)) {

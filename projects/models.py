@@ -12,6 +12,7 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
+from django.contrib.postgres.expressions import ArraySubquery
 
 from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
@@ -45,6 +46,34 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_communities(self):
         return self.filter(type=Project.ProjectTypes.COMMUNITY)
 
+    def annotate_categories_with_top_n_posts_ids(self, n: int = 3):
+        from posts.models import Post
+
+        now = django_timezone.now()
+        # We must query the M2M through table directly instead of Post.objects.filter(projects=OuterRef("pk"))
+        # When filtering Post with an M2M relation using OuterRef, Django generates a JOIN that
+        # includes extra columns in the SELECT. ArraySubquery wraps the query in PostgreSQL's ARRAY()
+        # which requires exactly one column. Querying the through table with a direct FK lookup
+        # generates a clean single-column SELECT.
+        ThroughModel = Post.projects.through
+        subquery = (
+            ThroughModel.objects.filter(
+                project_id=OuterRef("pk"),
+                post__curation_status=Post.CurationStatus.APPROVED,
+                post__open_time__lte=now,
+                post__notebook__isnull=True,
+                post__default_project__default_permission__isnull=False,
+                post__default_project__visibility=Project.Visibility.NORMAL,
+            )
+            .filter(
+                Q(post__actual_close_time__isnull=True)
+                | Q(post__actual_close_time__gt=now)
+            )
+            .order_by("-post__hotness")
+            .values("post_id")[:n]
+        )
+        return self.annotate(top_n_post_ids=ArraySubquery(subquery))
+
     def annotate_posts_count(self):
         from posts.models import Post
 
@@ -72,13 +101,13 @@ class ProjectsQuerySet(models.QuerySet):
 
         return self.annotate(
             posts_questions_count=Count(
-                "posts__related_questions__question_id",
+                "posts__questions__id",
                 filter=Q(
                     posts__curation_status=Post.CurationStatus.APPROVED,
-                    posts__related_questions__question__question_weight__gt=0,
+                    posts__questions__question_weight__gt=0,
                 )
                 & ~Q(
-                    posts__related_questions__question__resolution__in=[
+                    posts__questions__resolution__in=[
                         UnsuccessfulResolutionType.AMBIGUOUS,
                         UnsuccessfulResolutionType.ANNULLED,
                     ]
@@ -86,13 +115,13 @@ class ProjectsQuerySet(models.QuerySet):
                 distinct=True,
             ),
             default_posts_questions_count=Count(
-                "default_posts__related_questions__question_id",
+                "default_posts__questions__id",
                 filter=Q(
                     default_posts__curation_status=Post.CurationStatus.APPROVED,
-                    default_posts__related_questions__question__question_weight__gt=0,
+                    default_posts__questions__question_weight__gt=0,
                 )
                 & ~Q(
-                    default_posts__related_questions__question__resolution__in=[
+                    default_posts__questions__resolution__in=[
                         UnsuccessfulResolutionType.AMBIGUOUS,
                         UnsuccessfulResolutionType.ANNULLED,
                     ]

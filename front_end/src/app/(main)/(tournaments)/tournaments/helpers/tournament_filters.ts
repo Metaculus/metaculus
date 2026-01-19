@@ -27,7 +27,7 @@ export function filterTournamentsFromParams(
     ? null
     : (params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null) ??
       opts.defaultSort ??
-      TournamentsSortBy.StartDateDesc;
+      TournamentsSortBy.Featured;
 
   return filterTournaments(items, decodeURIComponent(searchString), sortBy);
 }
@@ -50,6 +50,8 @@ export function filterTournaments(
 
   if (!sortBy) return filtered;
 
+  const ts = Date.now();
+
   return [...filtered].sort((a, b) => {
     switch (sortBy) {
       case TournamentsSortBy.PrizePoolDesc:
@@ -62,10 +64,14 @@ export function filterTournaments(
         );
 
       case TournamentsSortBy.StartDateDesc:
-        const nowTs = Date.now();
+        return differenceInMilliseconds(
+          new Date(b.start_date),
+          new Date(a.start_date)
+        );
 
+      case TournamentsSortBy.Featured: {
         // 1) Open tournaments first
-        const statusDiff = statusRank(a, nowTs) - statusRank(b, nowTs);
+        const statusDiff = statusRank(a, ts) - statusRank(b, ts);
         if (statusDiff !== 0) return statusDiff;
 
         // 2) Admin order (undefined last)
@@ -73,14 +79,14 @@ export function filterTournaments(
         if (orderDiff !== 0) return orderDiff;
 
         // 3) Earlier-in-run first (smaller % passed ranks higher)
-        const pctDiff =
-          durationPctPassed(a, nowTs) - durationPctPassed(b, nowTs);
+        const pctDiff = durationPctPassed(a, ts) - durationPctPassed(b, ts);
         if (pctDiff !== 0) return pctDiff;
 
         return differenceInMilliseconds(
           new Date(b.start_date),
           new Date(a.start_date)
         );
+      }
 
       default:
         return 0;

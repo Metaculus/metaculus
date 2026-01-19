@@ -126,22 +126,6 @@ const NumericQuestionInput: React.FC<{
     question_weight: 1.0,
     default_score_type: "peer",
     default_aggregation_method: AggregationMethod.recency_weighted,
-    forecasts: {
-      timestamps: [],
-      nr_forecasters: [],
-      my_forecasts: {
-        timestamps: [],
-        medians: [],
-        distribution_input: null,
-      },
-      medians: [],
-      q3s: [],
-      q1s: [],
-      means: [],
-      latest_pmf: [],
-      latest_cdf: [],
-      histogram: [],
-    },
     type: questionType,
     scaling: {
       range_max: max as number,

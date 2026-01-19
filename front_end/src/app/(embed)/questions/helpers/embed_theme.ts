@@ -11,12 +11,14 @@ export function getEmbedTheme(
   const cssVariables = processCssVariables(cssVariablesParam);
   const theme = typeof themeParam === "string" ? EMBED_THEME[themeParam] : null;
 
-  const { card, predictionChip, chart, ...rest } = theme ?? {};
+  const { container, card, predictionChip, chart, ...rest } = theme ?? {};
+  const containerTheme = getEmbeddedContainerTheme(container, cssVariables);
   const chartTheme = getEmbeddedChartTheme(chart, cssVariables);
   const cardTheme = getEmbeddedCardTheme(card, cssVariables);
   const chipTheme = getEmbeddedChipTheme(predictionChip, cssVariables);
 
   return {
+    container: containerTheme,
     card: cardTheme,
     chart: chartTheme,
     predictionChip: chipTheme,
@@ -53,14 +55,29 @@ function processCssVariables(
   return {};
 }
 
+function getEmbeddedContainerTheme(
+  theme: CSSProperties | undefined,
+  cssVariables: Record<string, string>
+): CSSProperties {
+  if (theme) {
+    return theme;
+  }
+
+  const containerBackground = cssVariables["container_background"];
+  if (containerBackground) {
+    return {
+      backgroundColor: containerBackground,
+    };
+  }
+
+  return {};
+}
+
 function getEmbeddedChartTheme(
   theme: VictoryThemeDefinition | undefined,
   cssVariables: Record<string, string>
 ): VictoryThemeDefinition {
-  const baseTheme: VictoryThemeDefinition = {
-    axis: { style: { tickLabels: { fontSize: 16 } } },
-    line: { style: { data: { strokeWidth: 2 } } },
-  };
+  const baseTheme: VictoryThemeDefinition = {};
 
   if (theme) {
     return merge(baseTheme, theme);
@@ -112,3 +129,12 @@ function getEmbeddedChipTheme(
 
   return {};
 }
+
+export const getEmbedAccentColor = (theme?: EmbedTheme): string | undefined => {
+  const stroke = theme?.chart?.line?.style?.data?.stroke as unknown as
+    | string
+    | undefined;
+  return (
+    stroke ?? (theme?.predictionChip?.backgroundColor as string | undefined)
+  );
+};

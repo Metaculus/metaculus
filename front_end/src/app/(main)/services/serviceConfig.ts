@@ -50,7 +50,7 @@ const ServiceConfig = {
     // ukraine-conflict
     { id: 1426, order: 12 },
   ],
-  spotlightTournamentId: "bridgewater",
+  spotlightTournamentId: "bridgewater-2025",
   partnersLogos: [
     {
       light: "/partners/astera-logo.svg?url",
