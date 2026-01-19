@@ -50,7 +50,7 @@ const Header: FC = () => {
           />
 
           {/* The More menu */}
-          <div className="h-full justify-start text-sm font-medium">
+          <div className="hidden h-full justify-start text-sm font-medium md:block">
             <Menu>
               <MenuButton
                 className={cn(
