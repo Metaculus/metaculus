@@ -19,6 +19,8 @@ from pathlib import Path
 import dj_database_url
 import django.conf.locale
 import sentry_sdk
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from django.core.exceptions import DisallowedHost
 from dramatiq.errors import RateLimitExceeded
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -163,6 +165,31 @@ REST_FRAMEWORK = {
 
 # Simple JWT
 # https://django-rest-framework-simplejwt.readthedocs.io/
+# Generate key with: openssl genrsa -out jwt_private.pem 2048
+# Falls back to HS256 with SECRET_KEY if JWT_PRIVATE_KEY is not set
+def get_jwt_encryption_config():
+    private_key_pem = os.environ.get("JWT_PRIVATE_KEY", "").replace("\\n", "\n")
+
+    if not private_key_pem:
+        # Fallback to HS256 with SECRET_KEY
+        return {"ALGORITHM": "HS256", "SIGNING_KEY": SECRET_KEY, "VERIFYING_KEY": None}
+
+    private_key = load_pem_private_key(private_key_pem.encode(), password=None)
+    public_key_pem = (
+        private_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode()
+    )
+    return {
+        "ALGORITHM": "RS256",
+        "SIGNING_KEY": private_key_pem,
+        "VERIFYING_KEY": public_key_pem,
+    }
+
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
@@ -170,6 +197,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "CHECK_REVOKE_TOKEN": True,
     "REVOKE_TOKEN_CLAIM": "hash",
+    **get_jwt_encryption_config(),
 }
 
 # Password validation
