@@ -27,7 +27,7 @@ export type AuthResponse = {
 };
 
 export type SignUpResponse = {
-  tokens: AuthTokens;
+  tokens: AuthTokens | null;
   user: CurrentUser;
   is_active: boolean;
 };

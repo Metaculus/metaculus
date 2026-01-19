@@ -217,7 +217,7 @@ export async function simplifiedSignUpAction(
   try {
     const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
 
-    if (response) {
+    if (response && response.tokens) {
       const authManager = await getAuthCookieManager();
       authManager.setAuthTokens(response.tokens);
     }
