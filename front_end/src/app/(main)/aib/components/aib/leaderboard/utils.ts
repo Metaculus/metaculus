@@ -59,7 +59,7 @@ export function entryForecasts(entry: LeaderboardEntry) {
   return entry.coverage ?? entry.contribution_count ?? 0;
 }
 
-export const MIN_RESOLVED_FORECASTS = 300;
+export const MIN_RESOLVED_FORECASTS = 190;
 
 export function getResolvedCount(entry: Partial<LeaderboardEntry>): number {
   return entry?.contribution_count ?? 0;
