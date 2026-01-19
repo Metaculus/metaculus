@@ -170,8 +170,7 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   // Calculate circle position as percentage offsets from center (static positions)
   // The actual rotation animation is handled by CSS for maximum smoothness
   const getCirclePosition = useCallback((index: number) => {
-    const angle =
-      ORBIT_CONFIG.startAngle + index * ORBIT_CONFIG.angleIncrement;
+    const angle = ORBIT_CONFIG.startAngle + index * ORBIT_CONFIG.angleIncrement;
     const angleInRad = (angle * Math.PI) / 180;
     // Position is percentage of container, orbit radius is half of orbit diameter
     const radius = ORBIT_CONFIG.orbitDiameter / 2;
