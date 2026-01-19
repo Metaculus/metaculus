@@ -55,6 +55,24 @@ export async function middleware(request: NextRequest) {
   const requestAuth = new AuthCookieReader(request.cookies);
   let hasSession = requestAuth.hasAuthSession();
 
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-url", request.url);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const responseAuth = new AuthCookieManager(response.cookies);
+
+  // DEPRECATED: Legacy token migration - remove after 30-day grace period
+  // Must run before auth checks so users with legacy tokens aren't rejected
+  const wasMigrated = await handleLegacyTokenMigration(
+    request,
+    response,
+    requestAuth,
+    responseAuth
+  );
+  if (wasMigrated) {
+    hasSession = true;
+  }
+
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
 
   // If authentication is required, redirect unauthenticated users
@@ -64,7 +82,6 @@ export async function middleware(request: NextRequest) {
       !pathname.startsWith("/accounts/") &&
       !hasSession
     ) {
-      // return a not found page
       return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
   }
@@ -84,24 +101,6 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
       }
     }
-  }
-
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-url", request.url);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  const responseAuth = new AuthCookieManager(response.cookies);
-
-  // DEPRECATED: Legacy token migration - remove after 30-day grace period
-  const wasMigrated = await handleLegacyTokenMigration(
-    request,
-    response,
-    requestAuth,
-    responseAuth
-  );
-  if (wasMigrated) {
-    // Update hasSession since we now have valid tokens
-    hasSession = true;
   }
 
   // Proactive token refresh (MUST happen in middleware to persist cookies)
