@@ -61,7 +61,7 @@ permissions:
   deployments: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  # Note: IMAGE_NAME is computed in setup job to ensure lowercase (required by Docker)
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
 jobs:
@@ -125,6 +125,7 @@ jobs:
       redis_name: ${{ steps.names.outputs.redis_name }}
       image_tag: ${{ steps.names.outputs.image_tag }}
       image_tag_sha: ${{ steps.names.outputs.image_tag_sha }}
+      image_name: ${{ steps.names.outputs.image_name }}
     steps:
       - name: Slugify branch name
         id: slugify
@@ -141,6 +142,11 @@ jobs:
           PREVIEW_ID="pr-${{ github.event.number }}-${{ steps.slugify.outputs.slug-url }}"
           SHORT_SHA="${GITHUB_SHA::7}"
           
+          # Docker image name (must be lowercase for ghcr.io)
+          IMAGE_NAME="ghcr.io/${{ github.repository }}"
+          IMAGE_NAME_LOWER=$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')
+          echo "image_name=${IMAGE_NAME_LOWER}" >> $GITHUB_OUTPUT
+          
           # Resource names with service-specific prefixes
           echo "fly_app=metaculus-${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "neon_branch=preview/${PREVIEW_ID}" >> $GITHUB_OUTPUT
@@ -153,6 +159,7 @@ jobs:
           echo "image_tag_sha=${PREVIEW_ID}-${SHORT_SHA}" >> $GITHUB_OUTPUT
           
           echo "Preview ID: ${PREVIEW_ID}"
+          echo "Image Name: ${IMAGE_NAME_LOWER}"
 
   # ===========================================================================
   # Build Docker Image - Build and push to GitHub Container Registry
@@ -184,7 +191,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ needs.setup.outputs.image_name }}
           tags: |
             # Mutable tag - always points to latest build for this PR/branch
             type=raw,value=${{ needs.setup.outputs.image_tag }}
@@ -317,7 +324,7 @@ jobs:
           flyctl deploy \
             --app "${APP_NAME}" \
             --config fly.preview.toml \
-            --image ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.image_tag_sha }} \
+            --image ${{ needs.setup.outputs.image_name }}:${{ needs.setup.outputs.image_tag_sha }} \
             --ha=false \
             --now
 
@@ -359,7 +366,7 @@ jobs:
             | Resource | Details |
             |----------|---------|
             | 🌐 **Preview URL** | ${{ needs.deploy-preview.outputs.url }} |
-            | 📦 **Docker Image** | `${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.image_tag_sha }}` |
+            | 📦 **Docker Image** | `${{ needs.setup.outputs.image_name }}:${{ needs.setup.outputs.image_tag_sha }}` |
             | 🗄️ **PostgreSQL** | NeonDB branch `${{ needs.setup.outputs.neon_branch }}` |
             | ⚡ **Redis** | Fly Redis `${{ needs.setup.outputs.redis_name }}` |
 
