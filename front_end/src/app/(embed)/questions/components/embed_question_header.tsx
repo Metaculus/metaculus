@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CSSProperties, useEffect, useMemo, useRef } from "react";
 
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
@@ -5,6 +6,7 @@ import { ContinuousQuestionTypes } from "@/constants/questions";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { getPostLink } from "@/utils/navigation";
 import {
   isConditionalPost,
   isContinuousQuestion,
@@ -99,23 +101,31 @@ const EmbedQuestionHeader: React.FC<Props> = ({
   }, [post]);
 
   const predictionColor = getEmbedAccentColor(theme);
+  const questionUrl = useMemo(() => getPostLink(post), [post]);
 
   return (
     <div
       ref={containerRef}
       className={cn("flex items-center gap-3", isEmbed && "items-start")}
     >
-      <TruncatableQuestionTitle
-        className={cn(
-          "!text-[20px] !leading-[125%] [@container(max-width:375px)]:!text-[16px]",
-          titleMinHeightClass
-        )}
-        maxLines={effectiveMaxLines}
-        revealOnHoverOrTap={!isConditional}
-        style={titleStyle}
+      <Link
+        href={questionUrl}
+        className="block w-full no-underline"
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        {titleOverride ?? post.title}
-      </TruncatableQuestionTitle>
+        <TruncatableQuestionTitle
+          className={cn(
+            "!text-[20px] !leading-[125%] [@container(max-width:375px)]:!text-[16px]",
+            titleMinHeightClass
+          )}
+          maxLines={effectiveMaxLines}
+          revealOnHoverOrTap={!isConditional}
+          style={titleStyle}
+        >
+          {titleOverride ?? post.title}
+        </TruncatableQuestionTitle>
+      </Link>
       {isQuestionPost(post) && (
         <div className="[@container(max-width:375px)]:hidden">
           <QuestionHeaderCPStatus
