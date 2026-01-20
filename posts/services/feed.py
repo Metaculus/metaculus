@@ -347,7 +347,6 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
         | Q(question__cp_reveal_time__lt=now)
         | Exists(
             Question.objects.filter(
-                Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
                 Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
                 cp_reveal_time__lt=now,
                 group_id__isnull=False,
