@@ -583,8 +583,8 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
               labels={[rl.label]}
               labelComponent={
                 <VictoryLabel
-                  dx={-65}
-                  textAnchor="start"
+                  dx={4}
+                  textAnchor="end"
                   style={{
                     fontFamily:
                       'interVariable, "interVariable Fallback", inter',
