@@ -384,11 +384,11 @@ describe("processMarkdown", () => {
       const result = processMarkdown(input);
 
       // Then
-      expect(result).toContain('<iframe');
+      expect(result).toContain("<iframe");
       expect(result).toContain('src="https://example.com"');
       expect(result).toContain('width="560"');
       expect(result).toContain('height="315"');
-      expect(result).toContain('</iframe>');
+      expect(result).toContain("</iframe>");
     });
 
     it("should preserve allowed custom attributes on HTML elements", () => {
