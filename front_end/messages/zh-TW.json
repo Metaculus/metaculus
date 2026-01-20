@@ -1824,7 +1824,7 @@
   "tournamentsTabSeries": "問答系列",
   "tournamentsTabIndexes": "指數",
   "tournamentsTabArchived": "已存檔",
-  "tournamentTimelineClosed": "等待裁定",
+  "tournamentTimelineClosed": "待处理的决议",
   "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
   "includeMyForecastAtTheTime": "包括我當時的預測 <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "我們 <predmarket>不是預測市場</predmarket>。您可以免費參加並因精確的預測贏取現金獎勵。",
