@@ -12,7 +12,6 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
  * FutureEval-specific tournaments section with consistent theming.
  */
 const FutureEvalTournaments: React.FC = () => {
-
   const CARDS_DATA = [
     {
       title: "Fall 2025",
