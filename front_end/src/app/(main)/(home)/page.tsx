@@ -57,7 +57,7 @@ export default async function Home() {
         }
       />
       <div className={contentWidthClassNames}>
-        <WhyMetaculus className="mt-4 md:mt-8" />
+        <WhyMetaculus className="mt-2 md:mt-4" />
         <HomePageForecasts
           initialPopularPosts={initialPopularPosts.results}
           className="mt-16 md:mt-8 lg:mt-16"

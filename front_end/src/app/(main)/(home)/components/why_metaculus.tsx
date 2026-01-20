@@ -5,6 +5,7 @@ import React, { FC, useEffect, useState } from "react";
 
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import cn from "@/utils/core/cn";
+import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import {
   NasdaqLogo,
@@ -20,40 +21,40 @@ const FEATURED_IN = [
     href: "https://www.nasdaq.com/articles/how-crypto-can-help-secure-ai",
     label: "Nasdaq",
     component: (
-      <NasdaqLogo className="h-4 w-auto text-[#171717] dark:text-white" />
+      <NasdaqLogo className="h-5 w-auto text-gray-800 dark:text-gray-800-dark" />
     ),
   },
   {
     href: "https://www.forbes.com/sites/stevenwolfepereira/2025/12/08/building-a-one-person-unicorn-this-startup-just-raised-87m-to-help/",
     label: "Forbes",
     component: (
-      <ForbesLogo className="h-3 w-auto text-[#171717] dark:text-white" />
+      <ForbesLogo className="h-4 w-auto text-gray-800 dark:text-gray-800-dark" />
     ),
   },
   {
     href: "https://archive.is/0O588",
     label: "The Atlantic",
     component: (
-      <TheAtlanticLogo className="h-12 w-auto text-[#171717] dark:text-white " />
+      <TheAtlanticLogo className="h-10 w-auto text-gray-800 dark:text-gray-800-dark" />
     ),
   },
   {
     href: "https://www.aei.org/articles/the-great-ai-forecasting-divide/1",
     label: "AEI",
     component: (
-      <AeiLogo className="h-5 w-auto text-[#008CCC] dark:text-white" />
+      <AeiLogo className="h-5 w-auto text-[#008CCC] dark:text-gray-800-dark" />
     ),
   },
   {
     href: "https://www.economist.com/finance-and-economics/2023/05/23/what-would-humans-do-in-a-world-of-super-ai",
     label: "The Economist",
-    component: <TheEconomistLogo className="h-5 w-auto " />,
+    component: <TheEconomistLogo className="h-6 w-auto" />,
   },
   {
     href: "https://www.bloomberg.com/opinion/articles/2024-03-24/can-sam-altman-make-ai-smart-enough-to-answer-these-6-questions",
     label: "Bloomberg",
     component: (
-      <BloombergLogo className="h-4 w-auto text-[#171717] dark:text-white " />
+      <BloombergLogo className="h-4 w-auto text-gray-800 dark:text-gray-800-dark" />
     ),
   },
 ];
@@ -62,7 +63,7 @@ const fetchSiteStats = async () => {
   try {
     return await ClientMiscApi.getSiteStats();
   } catch {
-    // silenty fail
+    // silently fail
     return null;
   }
 };
@@ -92,66 +93,61 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
   return (
     <section
       className={cn(
-        "flex flex-col gap-3 rounded-lg bg-gray-200 px-6 py-5 dark:bg-gray-200-dark md:gap-4 xl:flex-row xl:items-center xl:gap-6",
+        "flex flex-col gap-4 rounded-lg bg-gray-200 px-5 py-4 dark:bg-gray-200-dark md:flex-row md:items-center md:justify-between md:gap-6 md:px-6 md:py-5",
         className
       )}
     >
-      <h2 className="m-0 shrink-0 text-base font-bold text-gray-700 dark:text-gray-700-dark">
-        {t("whatsMetaculus")}
-      </h2>
-
-      {/* Divider */}
-      <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark xl:h-16 xl:w-px xl:shrink-0" />
-
-      <div className="flex flex-1 flex-col gap-3 md:gap-4 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
-        {/* Description & Stats */}
-        <div className="flex flex-col gap-3 xl:flex-1">
-          <p className="m-0 text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
-            {t("metaculusDescription")}
-          </p>
-
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between xl:justify-start xl:gap-8">
-            <Stat
-              number={siteStats.questions.toLocaleString()}
-              label={t("openQuestions")}
-            />
-            <Stat
-              number={siteStats.predictions.toLocaleString()}
-              label={t("forecastsSubmitted")}
-            />
-            <Stat
-              number={siteStats.years_of_predictions.toLocaleString()}
-              label={t("yearsOfPrediction")}
-            />
-          </div>
-        </div>
-
-        {/* Divider 2 */}
-        <div className="h-px w-full bg-gray-300 dark:bg-gray-300-dark xl:h-16 xl:w-px xl:shrink-0" />
-
-        {/* Featured In */}
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-bold text-gray-700 dark:text-gray-700-dark">
-            {t("featuredIn")}
+      {/* Left Column: Description & Stats */}
+      <div className="flex min-w-0 flex-1 flex-col gap-3 md:max-w-[400px]">
+        <p className="m-0 text-balance text-sm leading-5 text-blue-600 dark:text-blue-600-dark  md:max-w-[400px]">
+          <span className="font-bold text-blue-800 dark:text-blue-800-dark">
+            Metaculus
+          </span>{" "}
+          is an{" "}
+          <span className="text-blue-800 dark:text-blue-800-dark">
+            online forecasting platform
+          </span>{" "}
+          focusing on{" "}
+          <span className="text-blue-800 dark:text-blue-800-dark">
+            topics of global importance
           </span>
-          <div className="flex flex-wrap items-center gap-x-12 gap-y-8 md:gap-x-6">
-            {[0, 3].map((startIdx) => (
-              <div key={startIdx} className="flex items-center gap-12 md:gap-6">
-                {FEATURED_IN.slice(startIdx, startIdx + 3).map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={item.label}
-                    className="block transition-opacity hover:opacity-80"
-                  >
-                    {item.component}
-                  </a>
-                ))}
-              </div>
-            ))}
-          </div>
+          .
+        </p>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <Stat
+            number={`${abbreviatedNumber(siteStats.questions)}+`}
+            label={t("openQuestions")}
+          />
+          <Stat
+            number={`${abbreviatedNumber(siteStats.predictions)}+`}
+            label={t("forecastsSubmitted")}
+          />
+          <Stat
+            number={String(siteStats.years_of_predictions)}
+            label={t("yearsOfPrediction")}
+          />
+        </div>
+      </div>
+
+      {/* Right Column: Featured In */}
+      <div className="flex shrink-0 flex-col gap-2 px-0 sm:px-8 md:max-w-[700px] md:px-16">
+        <span className="text-center text-sm text-blue-600 dark:text-blue-600-dark">
+          {t("featuredIn")}
+        </span>
+        <div className="grid grid-cols-3 items-center gap-x-8 gap-y-4 xl:flex xl:gap-6">
+          {FEATURED_IN.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={item.label}
+              className="flex items-center justify-center transition-opacity hover:opacity-80"
+            >
+              {item.component}
+            </a>
+          ))}
         </div>
       </div>
     </section>
@@ -159,8 +155,10 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
 };
 
 const Stat: FC<{ number: string; label: string }> = ({ number, label }) => (
-  <div className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-700-dark">
-    <span>{number}</span>
+  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-600-dark">
+    <span className="font-bold text-blue-800 dark:text-blue-800-dark">
+      {number}
+    </span>
     <span className="text-nowrap">{label}</span>
   </div>
 );
