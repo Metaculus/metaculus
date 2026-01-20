@@ -9,7 +9,6 @@ import cn from "@/utils/core/cn";
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 const FutureEvalLeaderboardHero: React.FC = () => {
-
   return (
     <div className="mb-6 flex flex-col antialiased sm:mb-10">
       {/* Back button - FutureEval branded */}

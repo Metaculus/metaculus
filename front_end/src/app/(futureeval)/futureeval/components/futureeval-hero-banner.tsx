@@ -51,10 +51,10 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
                   FE_COLORS.textSubheading
                 )}
               >
-                FutureEval measures AI&apos;s ability to predict future outcomes,
-                which is essential in many real-world tasks. Models that score
-                high in our benchmark will be better at planning, risk
-                assessment, and decision-making.
+                FutureEval measures AI&apos;s ability to predict future
+                outcomes, which is essential in many real-world tasks. Models
+                that score high in our benchmark will be better at planning,
+                risk assessment, and decision-making.
               </p>
               <Link
                 href="/futureeval/methodology"
