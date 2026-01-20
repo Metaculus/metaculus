@@ -343,14 +343,15 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
     # We should keep posts where at least one question has CP revealed.
     # For group questions, also check they're still open.
     qs = qs.filter(
-        pk__in=Question.objects.filter(
+        Q(notebook__isnull=False) |
+        Q(pk__in=Question.objects.filter(
             Q(group__isnull=True)
             | Q(
                 Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
                 Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
             ),
             cp_reveal_time__lt=now,
-        ).values("post_id")
+        ).values("post_id"))
     )
 
     # Exclude resolved questions
