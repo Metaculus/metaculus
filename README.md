@@ -272,3 +272,4 @@ Note: This bug bounty system begins September 10th, 2024. Before that point we w
 Note: The first reporter receives the bounty. If multiple reports occur within a few minutes of each other, the prize will be split.
 
 Note: Making the exploit public will annul the bounty.
+Test
