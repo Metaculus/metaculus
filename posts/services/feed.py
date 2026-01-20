@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Exists, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -345,12 +345,13 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
     qs = qs.filter(
         Q(notebook__isnull=False)
         | Q(question__cp_reveal_time__lt=now)
-        | Q(
-            questions__in=Question.objects.filter(
+        | Exists(
+            Question.objects.filter(
                 Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
                 Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
                 cp_reveal_time__lt=now,
                 group_id__isnull=False,
+                post_id=OuterRef("pk"),
             )
         )
     )
