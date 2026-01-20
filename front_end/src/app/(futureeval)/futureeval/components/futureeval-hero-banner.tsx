@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import React from "react";
 
 import cn from "@/utils/core/cn";
@@ -16,7 +15,6 @@ type Props = {
 };
 
 const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
-  const t = useTranslations();
   const showHero = activeTab === "benchmark";
 
   return (
@@ -44,7 +42,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
               <h1
                 className={cn("m-0", FE_TYPOGRAPHY.h1, FE_COLORS.textHeading)}
               >
-                {t("futureEvalHeroTitle")}
+                Measuring the forecasting accuracy of AI
               </h1>
               <p
                 className={cn(
@@ -53,7 +51,10 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
                   FE_COLORS.textSubheading
                 )}
               >
-                {t("futureEvalHeroSubtitle")}
+                FutureEval measures AI's ability to predict future outcomes,
+                which is essential in many real-world tasks. Models that score
+                high in our benchmark will be better at planning, risk
+                assessment, and decision-making.
               </p>
               <Link
                 href="/futureeval/methodology"
@@ -63,7 +64,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
                   FE_COLORS.textAccent
                 )}
               >
-                {t("futureEvalLearnMore")}
+                Learn more
               </Link>
             </div>
 

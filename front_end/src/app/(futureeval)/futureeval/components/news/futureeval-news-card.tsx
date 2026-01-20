@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import CircleDivider from "@/components/ui/circle_divider";
@@ -29,8 +29,15 @@ type Props = {
  */
 const FutureEvalNewsCard: FC<Props> = ({ post }) => {
   const locale = useLocale();
-  const t = useTranslations();
   const commentsCount = post.comment_count ?? 0;
+
+  // Pluralize comments count
+  const commentsText =
+    commentsCount === 0
+      ? "no comments"
+      : commentsCount === 1
+        ? "comment"
+        : "comments";
 
   return (
     <div
@@ -69,7 +76,9 @@ const FutureEvalNewsCard: FC<Props> = ({ post }) => {
           <CircleDivider className="mx-2 opacity-60" />
           <span>by {post.author_username}</span>
           <CircleDivider className="mx-2 opacity-60" />
-          <span>{t("commentsWithCount", { count: commentsCount })}</span>
+          <span>
+            {commentsCount > 0 && commentsCount} {commentsText}
+          </span>
         </div>
       </Link>
     </div>

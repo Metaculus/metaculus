@@ -1,4 +1,3 @@
-import { getTranslations } from "next-intl/server";
 import React from "react";
 
 import FutureEvalBenchmarkTab from "./benchmark/futureeval-benchmark-tab";
@@ -12,31 +11,29 @@ type Props = {
 };
 
 const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
-  const t = await getTranslations();
-
   const sections: Section[] = [
     {
       value: "benchmark",
       href: "/futureeval",
-      label: t("aibTabsBenchmark"),
+      label: "Benchmark",
       content: <FutureEvalBenchmarkTab />,
     },
     {
       value: "methodology",
       href: "/futureeval/methodology",
-      label: t("aibTabsMethodology"),
+      label: "Methodology",
       content: <FutureEvalMethodologyTab />,
     },
     {
       value: "news",
       href: "/futureeval/news",
-      label: t("aibTabsNews"),
+      label: "News",
       content: <FutureEvalNewsTab />,
     },
     {
       value: "participate",
       href: "/futureeval/participate",
-      label: t("aibTabsParticipate"),
+      label: "Participate",
       content: <FutureEvalParticipateTab />,
     },
   ];

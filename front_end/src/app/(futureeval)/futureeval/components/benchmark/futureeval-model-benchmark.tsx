@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
 import { useAIBLeaderboard } from "@/app/(main)/aib/components/aib/leaderboard/aib-leaderboard-provider";
@@ -18,12 +17,20 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
 import FutureEvalInfoPopover from "../futureeval-info-popover";
 import FutureEvalModelBar from "./futureeval-model-bar";
 
+// Mock translation function for entryLabel - returns hardcoded English values
+const mockTranslate = ((key: string) => {
+  const translations: Record<string, string> = {
+    communityPrediction: "Community Prediction",
+    aibLegendPros: "Pro Forecasters",
+  };
+  return translations[key] ?? key;
+}) as ReturnType<typeof import("next-intl").useTranslations>;
+
 const MAX_VISIBLE_BOTS = 18; // 18 bots + up to 2 aggregates = ~20 total
 const MIN_HEIGHT_PCT = 20;
 const MAX_HEIGHT_PCT = 100;
 
 const FutureEvalModelBenchmark: React.FC = () => {
-  const t = useTranslations();
   const { leaderboard } = useAIBLeaderboard();
 
   const entries = useMemo(() => {
@@ -67,7 +74,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
 
   const items = useMemo(() => {
     return entries.map((entry) => {
-      const name = entryLabel(entry, t);
+      const name = entryLabel(entry, mockTranslate);
       const { light, dark } = entryIconPair(entry);
       const aggregate = isAggregate(entry);
 
@@ -82,7 +89,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
         heightPct: scaleHeight(entry.score),
       };
     });
-  }, [entries, scaleHeight, t]);
+  }, [entries, scaleHeight]);
 
   if (items.length === 0) {
     return null;
@@ -96,7 +103,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
           {/* Title with info popover inline on desktop */}
           <div className="flex items-center gap-3">
             <h3 className={`m-0 ${FE_TYPOGRAPHY.h2} ${FE_COLORS.textHeading}`}>
-              {t("aibBenchModelsTitle")}
+              Model Leaderboard
             </h3>
             {/* Info popover - inline on desktop (sm+) */}
             <div className="hidden sm:block">
@@ -106,13 +113,14 @@ const FutureEvalModelBenchmark: React.FC = () => {
           <p
             className={`m-0 mt-3 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
           >
-            {t("aibBenchModelsBlurb")}
+            Updated every day based on our standardized forecasting performance
+            measurement methodology.
           </p>
           <Link
             href="/futureeval/leaderboard"
             className={`mt-2 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
           >
-            {t("aibViewFullLeaderboard")}
+            View full leaderboard
           </Link>
         </div>
         {/* Info popover - right aligned on mobile only */}

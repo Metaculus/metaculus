@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
@@ -55,12 +54,10 @@ const FutureEvalSubsectionHeader: React.FC<Props> = ({
  * Forecasting Performance Over Time header (left-aligned)
  */
 export const FutureEvalForecastingPerformanceHeader: React.FC = () => {
-  const t = useTranslations();
-
   return (
     <FutureEvalSubsectionHeader
-      title={t("aibPerfOverTimeTitle")}
-      subtitle={t.rich("aibPerfOverTimeSubtitle")}
+      title="Forecasting Performance Over Time"
+      subtitle="Model scores from the model leaderboard by release date."
     />
   );
 };
@@ -69,23 +66,21 @@ export const FutureEvalForecastingPerformanceHeader: React.FC = () => {
  * Pros vs Bots header with left alignment
  */
 export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
-  const t = useTranslations();
-
   return (
     <FutureEvalSubsectionHeader
-      title={t("aibProsVsBotsTitle")}
-      subtitle={t.rich("aibProsVsBotsSubtitle", {
-        link: (chunks) => (
+      title="How much Pros beat Bots"
+      subtitle={
+        <>
+          Metaculus Pro Forecasters have beaten Bots every quarter of our{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             href="/notebooks/38928/futureeval-resources-page/#what-is-the-pro-vs-bots-graph"
           >
-            {chunks}
-          </Link>
-        ),
-        brSm: () => <br className="hidden sm:block lg:hidden" />,
-        brXs: () => <br className="block sm:hidden" />,
-      })}
+            AI Benchmarking Tournaments
+          </Link>{" "}
+          so far.
+        </>
+      }
     />
   );
 };

@@ -10,7 +10,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 
 import videoThumbnail from "@/app/(main)/aib/assets/video-thumbnail.png";
 import { useAuth } from "@/contexts/auth_context";
@@ -36,42 +35,41 @@ const FutureEvalParticipateTab: React.FC = () => {
  * Submit steps section with video
  */
 const FutureEvalSubmitSteps: React.FC = () => {
-  const t = useTranslations();
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
   const router = useRouter();
 
   const submitSteps = [
-    t.rich("aibSubmitStep1", {
-      here: (chunks) => (
-        <button
-          type="button"
-          className="underline"
-          onClick={() => {
-            if (user) {
-              router.push("/accounts/settings/bots/#create");
-            } else {
-              setCurrentModal({ type: "signup" });
-            }
-          }}
-        >
-          {chunks}
-        </button>
-      ),
-    }),
-    t.rich("aibSubmitStep2", {
-      instructions: (chunks) => (
-        <Link
-          href="/notebooks/38928/futureeval-resources-page/#want-to-join-the-ai-forecasting-benchmark"
-          className="underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {chunks}
-        </Link>
-      ),
-    }),
-    t("aibSubmitStep3"),
+    <>
+      Create a new bot account{" "}
+      <button
+        type="button"
+        className="underline"
+        onClick={() => {
+          if (user) {
+            router.push("/accounts/settings/bots/#create");
+          } else {
+            setCurrentModal({ type: "signup" });
+          }
+        }}
+      >
+        here
+      </button>
+      .
+    </>,
+    <>
+      Build your bot using our premade template in the{" "}
+      <Link
+        href="/notebooks/38928/futureeval-resources-page/#want-to-join-the-ai-forecasting-benchmark"
+        className="underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        instructions
+      </Link>{" "}
+      provided.
+    </>,
+    "Watch your bot forecast and compete for prizes!",
   ] as const;
 
   return (
@@ -90,18 +88,18 @@ const FutureEvalSubmitSteps: React.FC = () => {
             FE_COLORS.textHeading
           )}
         >
-          {t("aibSubmitLearnLine")}
+          Learn how to submit your forecasting bot in 30 minutes
         </p>
 
         <Link
           href="https://www.loom.com/share/fc3c1a643b984a15b510647d8f760685"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={t("aibSubmitWatchAria")}
+          aria-label="Watch the submission walkthrough video"
         >
           <Image
             src={videoThumbnail}
-            alt={t("aibSubmitVideoAlt")}
+            alt="Submission walkthrough video thumbnail"
             width={468}
             height={263}
             unoptimized
@@ -118,7 +116,7 @@ const FutureEvalSubmitSteps: React.FC = () => {
             FE_COLORS.textHeading
           )}
         >
-          {t("aibSubmitHeading")}
+          Submit Your Bot in 3 Steps
         </h4>
         <div className="flex flex-col gap-6">
           {submitSteps.map((step, index) => (
@@ -159,25 +157,23 @@ const FutureEvalSubmitStep: React.FC<{
  * Resources section
  */
 const FutureEvalResources: React.FC = () => {
-  const t = useTranslations();
-
   const RESOURCES_DATA = [
     {
       icon: faBook,
-      title: t("aibResourcesFullInfoTitle"),
-      description: t("aibResourcesFullInfoDesc"),
+      title: "Full Benchmark Information",
+      description: "Benchmark deep dive, scoring, analysis, etc",
       href: "/notebooks/38928/futureeval-resources-page/",
     },
     {
       icon: faBookOpen,
-      title: t("aibResourcesHighlightsTitle"),
-      description: t("aibResourcesHighlightsDesc"),
+      title: "Research Highlights",
+      description: "Key findings and methodology papers from our research.",
       href: "/notebooks/38928/futureeval-resources-page/#research-reports-and-overview-of-the-field",
     },
     {
       icon: faTrophy,
-      title: t("aibResourcesLeaderboardsTitle"),
-      description: t("aibResourcesLeaderboardsDesc"),
+      title: "Full Leaderboards",
+      description: "Complete rankings across all questions and time periods.",
       href: "/futureeval/leaderboard",
     },
   ] as const;
@@ -191,7 +187,7 @@ const FutureEvalResources: React.FC = () => {
           FE_COLORS.textHeading
         )}
       >
-        {t("aibResourcesHeading")}
+        Resources
       </h4>
       <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         {RESOURCES_DATA.map((resource, index) => (

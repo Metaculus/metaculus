@@ -1,7 +1,6 @@
 "use client";
 
 import { isNil } from "lodash";
-import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
 import PostsFeedScrollRestoration from "@/components/posts_feed/feed_scroll_restoration";
@@ -34,7 +33,6 @@ type Props = {
  * Based on PaginatedPostsFeed but simplified for news-only display.
  */
 const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
-  const t = useTranslations();
   const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
@@ -126,7 +124,7 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
               FE_COLORS.textMuted
             )}
           >
-            {t("noResults") + "."}
+            No results found.
           </span>
         )}
         {paginatedPosts.map(
@@ -160,7 +158,7 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
                 )}
                 onClick={loadMorePosts}
               >
-                {t("loadMoreButton")}
+                Load More
               </Button>
             </div>
           )}

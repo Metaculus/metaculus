@@ -5,7 +5,6 @@ import { faCircleDot } from "@fortawesome/free-regular-svg-icons";
 import { faBrain, faBullseye } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { PropsWithChildren } from "react";
 
 import cn from "@/utils/core/cn";
@@ -17,39 +16,56 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
  * Uses monospace fonts and FutureEval theme colors.
  */
 const FutureEvalMethodologyContent: React.FC = () => {
-  const t = useTranslations();
-
   const CARDS = [
     {
       icon: faCircleDot,
-      title: t("aibIdeaCard1Title"),
+      title: "Model Leaderboard",
       linkHref:
         "/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard",
       content: (
         <>
-          <p>{t("aibIdeaCard1P1")}</p>
+          <p>
+            We run all major models with a simple prompt on most open Metaculus
+            forecasting questions, and collect their forecasts. As questions
+            resolve, we score the models' forecasts and continuously update our
+            leaderboard to rank them against each other. We also plot trends in
+            model release date and score over time.
+          </p>
         </>
       ),
     },
     {
       icon: faBullseye,
-      title: t("aibIdeaCard2Title"),
+      title: "Bots vs Humans",
       linkHref:
         "/notebooks/38928/futureeval-resources-page/#what-do-the-tournaments-look-like",
       content: (
         <>
-          <p>{t("aibIdeaCard2P1")}</p>
+          <p>
+            We also run seasonal and biweekly Benchmarking Tournaments with
+            $175k in combined prizes. They are open to all, and the best
+            scaffold builders compete to share the prize pool in proportion to
+            their bot's accuracy. Some of the forecasting questions are also
+            submitted to our top human forecasters, allowing a direct
+            comparison.
+          </p>
         </>
       ),
     },
     {
       icon: faBrain,
-      title: t("aibIdeaCard3Title"),
+      title: "Reasoning Beyond Memorization",
       linkHref:
         "/notebooks/38928/futureeval-resources-page/#what-is-unique-about-futureeval",
       content: (
         <>
-          <p>{t("aibIdeaCard3P1")}</p>
+          <p>
+            Our diverse question topics range from economics, politics, tech,
+            sports, war, elections, society, and more. It forces models to
+            generalize beyond memorization on actively evolving interdisciplinary
+            domains relevant to the world. This correlates with skill in
+            long-term planning and decision-making.
+          </p>
         </>
       ),
     },
@@ -74,7 +90,11 @@ const FutureEvalMethodologyContent: React.FC = () => {
             FE_COLORS.textSubheading
           )}
         >
-          {t("aibIdeaDesktopP1")}
+          FutureEval measures AI's ability to predict future outcomes, which is
+          essential in many real-world tasks. Models that score high in our
+          benchmark will be better at planning, risk assessment, and
+          decision-making. FutureEval is guaranteed leak-proof, since answers
+          are not known yet at test time.
         </p>
         <p
           className={cn(
@@ -83,7 +103,9 @@ const FutureEvalMethodologyContent: React.FC = () => {
             FE_COLORS.textSubheading
           )}
         >
-          {t("aibIdeaDesktopP2")}
+          FutureEval has two arms: a fixed-prompt benchmark to compare model
+          performance directly, and a bots vs. humans tournament to probe the
+          frontier of scaffolding.
         </p>
       </div>
 

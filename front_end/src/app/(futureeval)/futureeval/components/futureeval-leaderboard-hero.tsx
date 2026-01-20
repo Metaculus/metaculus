@@ -2,7 +2,6 @@
 
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useTranslations } from "next-intl";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
@@ -10,7 +9,6 @@ import cn from "@/utils/core/cn";
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 const FutureEvalLeaderboardHero: React.FC = () => {
-  const t = useTranslations();
 
   return (
     <div className="mb-6 flex flex-col antialiased sm:mb-10">
@@ -40,7 +38,7 @@ const FutureEvalLeaderboardHero: React.FC = () => {
           FE_COLORS.textHeading
         )}
       >
-        {t("aibLbTitle")}
+        Model Leaderboard
       </h1>
 
       {/* Subtitle - left aligned on desktop, centered on mobile */}
@@ -51,7 +49,8 @@ const FutureEvalLeaderboardHero: React.FC = () => {
           FE_COLORS.textSubheading
         )}
       >
-        {t("aibLbSubtitle")}
+        Updated every day based on our standardized forecasting performance
+        measurement methodology.
       </p>
     </div>
   );

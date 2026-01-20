@@ -5,7 +5,6 @@ import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
@@ -27,7 +26,6 @@ type Props = {
 };
 
 const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
-  const t = useTranslations();
   const router = useRouter();
   const score = Math.round(model.score * 100) / 100;
   const [isHovered, setIsHovered] = useState(false);
@@ -127,7 +125,7 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex justify-between gap-4">
                 <span className="text-[10px] text-gray-800 dark:text-gray-800-dark sm:text-xs">
-                  {t("aibScore")}:
+                  Score:
                 </span>
                 <span className="text-[10px] font-medium tabular-nums text-gray-800 dark:text-gray-800-dark sm:text-xs">
                   {score}
@@ -135,7 +133,7 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-[10px] text-gray-800 dark:text-gray-800-dark sm:text-xs">
-                  {t("aibLbThForecasts")}:
+                  Forecasts:
                 </span>
                 <span className="text-[10px] font-medium tabular-nums text-gray-800 dark:text-gray-800-dark sm:text-xs">
                   {model.contributionCount}

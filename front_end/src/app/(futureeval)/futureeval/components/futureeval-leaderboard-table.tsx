@@ -1,7 +1,6 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef } from "react";
 
 import {
@@ -13,10 +12,18 @@ import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
 import type { LeaderboardDetails } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 
+// Mock translation function for entryLabel - returns hardcoded English values
+const mockTranslate = ((key: string) => {
+  const translations: Record<string, string> = {
+    communityPrediction: "Community Prediction",
+    aibLegendPros: "Pro Forecasters",
+  };
+  return translations[key] ?? key;
+}) as ReturnType<typeof import("next-intl").useTranslations>;
+
 type Props = { details: LeaderboardDetails };
 
 const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
-  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
@@ -36,7 +43,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
     const entries = (details.entries ?? [])
       .filter((e) => shouldDisplayEntry(e))
       .map((entry, i) => {
-        const label = entryLabel(entry, t);
+        const label = entryLabel(entry, mockTranslate);
         const icons = entryIconPair(entry);
         const userId = entry.user?.id;
         const id = String(userId ?? label);
@@ -56,7 +63,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
       });
 
     return entries;
-  }, [details.entries, t]);
+  }, [details.entries]);
 
   const hasCI = rows.some((r) => r.ciLower != null || r.ciUpper != null);
 
@@ -78,18 +85,16 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
       <thead>
         <tr className="items-center border-b-[1px] border-blue-400 bg-futureeval-bg-light text-gray-500 dark:border-blue-400-dark dark:bg-futureeval-bg-dark dark:text-gray-500-dark">
           <Th />
-          <Th>{t("aibLbThModel")}</Th>
-          <Th className="hidden text-center sm:table-cell">
-            {t("aibLbThForecasts")}
-          </Th>
-          <Th className="w-[100px] text-center">{t("aibLbThAvgScore")}</Th>
+          <Th>Model</Th>
+          <Th className="hidden text-center sm:table-cell">Forecasts</Th>
+          <Th className="w-[100px] text-center">Avg Score</Th>
           {hasCI && (
             <>
               <Th className="hidden w-[120px] text-center md:table-cell">
-                {t("aibLbThCILower")}
+                95% CI lower
               </Th>
               <Th className="hidden w-[120px] text-center md:table-cell">
-                {t("aibLbThCIHigher")}
+                95% CI higher
               </Th>
             </>
           )}

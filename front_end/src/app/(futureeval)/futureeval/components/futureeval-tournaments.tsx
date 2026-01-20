@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
 import AIBInfoTournamentCard from "@/app/(main)/aib/components/aib/tabs/info/aib-info-tournament-card";
 import ReusableGradientCarousel from "@/components/gradient-carousel";
@@ -13,7 +12,6 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
  * FutureEval-specific tournaments section with consistent theming.
  */
 const FutureEvalTournaments: React.FC = () => {
-  const t = useTranslations();
 
   const CARDS_DATA = [
     {
@@ -58,7 +56,7 @@ const FutureEvalTournaments: React.FC = () => {
           FE_COLORS.textHeading
         )}
       >
-        {t("aibTournamentsHeading")}
+        Benchmarking Tournaments
       </h4>
 
       <ReusableGradientCarousel<(typeof CARDS_DATA)[number]>
@@ -76,16 +74,14 @@ const FutureEvalTournaments: React.FC = () => {
             FE_COLORS.textSubheading
           )}
         >
-          {t.rich("aibMiniBenchBanner", {
-            link: (chunks) => (
-              <Link
-                href="/aib/minibench/"
-                className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-              >
-                {chunks}
-              </Link>
-            ),
-          })}
+          Make sure to check out{" "}
+          <Link
+            href="/aib/minibench/"
+            className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+          >
+            MiniBench
+          </Link>
+          , our shorter-term experimental Bot Tournament!
         </p>
       </div>
     </div>
