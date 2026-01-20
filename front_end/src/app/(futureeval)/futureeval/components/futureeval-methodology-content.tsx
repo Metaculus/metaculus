@@ -27,7 +27,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
           <p>
             We run all major models with a simple prompt on most open Metaculus
             forecasting questions, and collect their forecasts. As questions
-            resolve, we score the models' forecasts and continuously update our
+            resolve, we score the models&apos; forecasts and continuously update our
             leaderboard to rank them against each other. We also plot trends in
             model release date and score over time.
           </p>
@@ -45,7 +45,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
             We also run seasonal and biweekly Benchmarking Tournaments with
             $175k in combined prizes. They are open to all, and the best
             scaffold builders compete to share the prize pool in proportion to
-            their bot's accuracy. Some of the forecasting questions are also
+            their bot&apos;s accuracy. Some of the forecasting questions are also
             submitted to our top human forecasters, allowing a direct
             comparison.
           </p>
@@ -90,7 +90,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
             FE_COLORS.textSubheading
           )}
         >
-          FutureEval measures AI's ability to predict future outcomes, which is
+          FutureEval measures AI&apos;s ability to predict future outcomes, which is
           essential in many real-world tasks. Models that score high in our
           benchmark will be better at planning, risk assessment, and
           decision-making. FutureEval is guaranteed leak-proof, since answers
