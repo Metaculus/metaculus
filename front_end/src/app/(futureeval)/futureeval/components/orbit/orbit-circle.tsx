@@ -6,77 +6,17 @@ import Link from "next/link";
 import React from "react";
 import { createPortal } from "react-dom";
 
-import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-black.png";
-import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-white.webp";
-import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg?url";
-import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
-import openaiDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
-import xLight from "@/app/(main)/aib/assets/ai-models/x.svg?url";
-import xDark from "@/app/(main)/aib/assets/ai-models/x_dark.svg?url";
+import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
-import OrbitAutoCarousel, { CarouselChip } from "./orbit-auto-carousel";
-import { FE_COLORS, FE_RAW_COLORS } from "../../theme";
+import OrbitAutoCarousel from "./orbit-auto-carousel";
+import { OrbitItem } from "./orbit-constants";
+import { getCarouselChips, getLinkInfo } from "./orbit-utils";
+import { FE_COLORS } from "../../theme";
 
 // ===========================================
-// THEME-AWARE SHADOW HOOK
+// TYPES
 // ===========================================
-
-/**
- * Hook to get the correct shadow color based on the actual DOM state.
- * This avoids hydration mismatches by checking the document's dark class
- * after mount, and also listens for changes.
- *
- * NOTE: This hook should be called once in the parent (Orbit) and the
- * shadowColor passed down as a prop to avoid creating multiple MutationObservers.
- */
-export function useThemeShadowColor() {
-  const [shadowColor, setShadowColor] = React.useState<string>(
-    FE_RAW_COLORS.light.background
-  );
-
-  React.useEffect(() => {
-    // Function to determine shadow color from document state
-    const updateShadowColor = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setShadowColor(
-        isDark ? FE_RAW_COLORS.dark.background : FE_RAW_COLORS.light.background
-      );
-    };
-
-    // Initial check
-    updateShadowColor();
-
-    // Watch for class changes on document element (theme toggle)
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === "class") {
-          updateShadowColor();
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  return shadowColor;
-}
-
-export type OrbitItem = {
-  id: string;
-  label: string;
-  description: string;
-  action: {
-    type: "scroll" | "navigate" | "tab-scroll";
-    target: string;
-    tabHref?: string;
-  };
-};
 
 type OrbitCircleProps = {
   item: OrbitItem;
@@ -89,7 +29,6 @@ type OrbitCircleProps = {
   shadowSpread?: number;
   mobileSpreadRatio?: number;
   expandedSpreadRatio?: number;
-  shadowColor: string;
   className?: string;
   // Mobile-specific props
   isMobile?: boolean;
@@ -100,66 +39,14 @@ type OrbitCircleProps = {
 };
 
 // ===========================================
-// CAROUSEL DATA
-// ===========================================
-
-/**
- * Top models to show in the Model Benchmark carousel
- * Hardcoded based on typical top performers
- */
-const MODEL_BENCHMARK_CHIPS: CarouselChip[] = [
-  {
-    id: "o3",
-    label: "o3",
-    iconLight: openaiLight as unknown as string,
-    iconDark: openaiDark as unknown as string,
-  },
-  {
-    id: "grok-3",
-    label: "Grok 3",
-    iconLight: xLight as unknown as string,
-    iconDark: xDark as unknown as string,
-  },
-  {
-    id: "gemini",
-    label: "Gemini",
-    iconLight: googleLight as unknown as string,
-  },
-  {
-    id: "claude",
-    label: "Claude",
-    iconLight: anthropicLight.src,
-    iconDark: anthropicDark.src,
-  },
-  {
-    id: "gpt-5",
-    label: "GPT-5",
-    iconLight: openaiLight as unknown as string,
-    iconDark: openaiDark as unknown as string,
-  },
-  {
-    id: "grok-4",
-    label: "Grok 4",
-    iconLight: xLight as unknown as string,
-    iconDark: xDark as unknown as string,
-  },
-];
-
-/**
- * Bot Tournaments carousel shows prize/credit info
- */
-const BOT_TOURNAMENTS_CHIPS: CarouselChip[] = [
-  { id: "prizes", label: "$240k paid in prizes" },
-  { id: "credits", label: "Complimentary AI credits provided" },
-];
-
-// ===========================================
 // MAIN COMPONENT
 // ===========================================
 
 /**
  * OrbitCircle - A circle that sits on the orbit and can expand to show details
  * Fills its container (sized by parent)
+ *
+ * Shadow color is controlled via CSS variable --orbit-shadow set on parent container
  */
 const OrbitCircle: React.FC<OrbitCircleProps> = ({
   item,
@@ -172,7 +59,6 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
   shadowSpread = 24,
   mobileSpreadRatio = 0.5,
   expandedSpreadRatio = 0.5,
-  shadowColor,
   className,
   isMobile = false,
   isMobileExpanded = false,
@@ -191,14 +77,13 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
     : shadowSpread;
   const expandedSpread = shadowSpread * expandedSpreadRatio;
 
-  // Default shadow for the circle
+  // Shadow styles using CSS variable for theme-aware color
   const defaultShadowStyle = {
-    boxShadow: `0 0 ${shadowBlur}px ${defaultSpread}px ${shadowColor}`,
+    boxShadow: `0 0 ${shadowBlur}px ${defaultSpread}px var(--orbit-shadow)`,
   };
 
-  // Expanded shadow (smaller spread) for the expanded card
   const expandedShadowStyle = {
-    boxShadow: `0 0 ${shadowBlur}px ${expandedSpread}px ${shadowColor}`,
+    boxShadow: `0 0 ${shadowBlur}px ${expandedSpread}px var(--orbit-shadow)`,
   };
 
   // Show expanded card for either desktop hover or mobile tap
@@ -288,37 +173,8 @@ const ExpandedCard: React.FC<ExpandedCardProps> = ({
   strokeWidth,
   shadowStyle,
 }) => {
-  // Get carousel chips based on item type
-  const getCarouselChips = (): CarouselChip[] => {
-    if (item.id === "model-benchmark") {
-      return MODEL_BENCHMARK_CHIPS;
-    }
-    if (item.id === "bot-tournaments") {
-      return BOT_TOURNAMENTS_CHIPS;
-    }
-    return [];
-  };
-
-  const carouselChips = getCarouselChips();
-
-  // Get the link text and href based on item type
-  const getLinkInfo = (): { text: string; href: string } | null => {
-    switch (item.id) {
-      case "model-benchmark":
-        return { text: "View Leaderboard →", href: `#${item.action.target}` };
-      case "bot-tournaments":
-        return {
-          text: "View Tournaments →",
-          href: `${item.action.tabHref}#${item.action.target}`,
-        };
-      case "minibench":
-        return { text: "Visit MiniBench →", href: item.action.target };
-      default:
-        return null;
-    }
-  };
-
-  const linkInfo = getLinkInfo();
+  const carouselChips = getCarouselChips(item.id);
+  const linkInfo = getLinkInfo(item);
 
   // Handle link click for scroll actions
   const handleLinkClick = (e: React.MouseEvent) => {
@@ -422,18 +278,8 @@ const MobileExpandedCard: React.FC<MobileExpandedCardProps> = ({
     setWidth(containerRect.width * 0.9);
   }, [containerRef]);
 
-  // Get carousel chips based on item type
-  const getCarouselChips = (): CarouselChip[] => {
-    if (item.id === "model-benchmark") {
-      return MODEL_BENCHMARK_CHIPS;
-    }
-    if (item.id === "bot-tournaments") {
-      return BOT_TOURNAMENTS_CHIPS;
-    }
-    return [];
-  };
-
-  const carouselChips = getCarouselChips();
+  const carouselChips = getCarouselChips(item.id);
+  const linkInfo = getLinkInfo(item);
 
   // Handle close button click
   const handleCloseClick = (e: React.MouseEvent) => {
@@ -441,25 +287,6 @@ const MobileExpandedCard: React.FC<MobileExpandedCardProps> = ({
     e.preventDefault();
     onClose?.();
   };
-
-  // Get the link text and href based on item type
-  const getLinkInfo = (): { text: string; href: string } | null => {
-    switch (item.id) {
-      case "model-benchmark":
-        return { text: "View Leaderboard →", href: `#${item.action.target}` };
-      case "bot-tournaments":
-        return {
-          text: "View Tournaments →",
-          href: `${item.action.tabHref}#${item.action.target}`,
-        };
-      case "minibench":
-        return { text: "Visit MiniBench →", href: item.action.target };
-      default:
-        return null;
-    }
-  };
-
-  const linkInfo = getLinkInfo();
 
   // Handle link click for scroll actions
   const handleLinkClick = (e: React.MouseEvent) => {
@@ -491,22 +318,19 @@ const MobileExpandedCard: React.FC<MobileExpandedCardProps> = ({
       }}
     >
       {/* Close button */}
-      <div className="absolute right-2 top-2">
-        <button
-          type="button"
-          onClick={handleCloseClick}
-          className={cn(
-            "flex h-5 w-5 items-center justify-center rounded-full transition-colors",
-            "hover:bg-futureeval-bg-dark/10 dark:hover:bg-futureeval-bg-light/10"
-          )}
-          aria-label="Close"
-        >
-          <FontAwesomeIcon
-            icon={faXmark}
-            className={cn("text-sm", FE_COLORS.textMuted)}
-          />
-        </button>
-      </div>
+      <Button
+        variant="text"
+        presentationType="icon"
+        onClick={handleCloseClick}
+        className={cn(
+          "absolute right-2 top-2 !h-5 !w-5",
+          "hover:bg-futureeval-bg-dark/10 dark:hover:bg-futureeval-bg-light/10",
+          FE_COLORS.textMuted
+        )}
+        aria-label="Close"
+      >
+        <FontAwesomeIcon icon={faXmark} className="text-sm" />
+      </Button>
 
       {/* Title */}
       <h4

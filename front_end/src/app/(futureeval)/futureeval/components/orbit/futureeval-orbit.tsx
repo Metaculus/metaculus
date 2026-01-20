@@ -6,89 +6,13 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import cn from "@/utils/core/cn";
 
 import MetaculusHub from "./metaculus-hub";
-import OrbitCircle, { OrbitItem, useThemeShadowColor } from "./orbit-circle";
-
-// ===========================================
-// CONFIGURATION
-// ===========================================
-
-/**
- * Rotation speed in degrees per second
- * Set to 0 to disable rotation
- */
-export const ORBIT_ROTATION_SPEED: number = 4; // degrees per second
-
-/**
- * Calculate the CSS animation duration for a full rotation
- * 360 degrees / speed = seconds for full rotation
- */
-const ORBIT_ANIMATION_DURATION =
-  ORBIT_ROTATION_SPEED > 0 ? 360 / ORBIT_ROTATION_SPEED : 0;
-
-/**
- * The orbit items data
- */
-const ORBIT_ITEMS: OrbitItem[] = [
-  {
-    id: "model-benchmark",
-    label: "Model\nBenchmark",
-    description:
-      "Latest models forecast Metaculus questions and scored against best human and AI forecasters",
-    action: {
-      type: "scroll",
-      target: "model-leaderboard",
-    },
-  },
-  {
-    id: "bot-tournaments",
-    label: "Bot\nTournaments",
-    description:
-      "Seasonal forecasting tournaments where the best bot makers compete",
-    action: {
-      type: "tab-scroll",
-      target: "tournaments",
-      tabHref: "/futureeval/methodology",
-    },
-  },
-  {
-    id: "minibench",
-    label: "MiniBench",
-    description:
-      "Automated question set, quick turnaround space for testing and rapid iteration for bot makers",
-    action: {
-      type: "navigate",
-      target: "/aib/minibench/",
-    },
-  },
-];
-
-// ===========================================
-// SIZING CONFIGURATION
-// ===========================================
-// All values are percentages relative to the container size
-// This ensures the orbit scales proportionally
-
-export const ORBIT_CONFIG = {
-  // Orbit ring diameter as % of container
-  orbitDiameter: 75,
-  // Circle size as % of container
-  circleSize: 30,
-  // Starting angle for first circle (Model Benchmark at upper-left)
-  // Using CSS coordinate system where 0° = right, positive = clockwise
-  startAngle: 135,
-  // Angle increment between circles (negative = counter-clockwise)
-  angleIncrement: -120,
-  // Stroke width for orbit ring and circle borders (in pixels)
-  strokeWidth: 2,
-  // Drop shadow for orbit circles
-  // Uses theme background color for a subtle glow effect
-  shadow: {
-    blur: 20, // px - how soft/spread the shadow edges are
-    spread: 24, // px - how far the shadow extends (desktop)
-    mobileSpreadRatio: 0.5, // Mobile uses this ratio of spread (50%)
-    expandedSpreadRatio: 0.5, // Expanded uses this ratio of spread (50%)
-  },
-};
+import OrbitCircle from "./orbit-circle";
+import {
+  ORBIT_ANIMATION_DURATION,
+  ORBIT_CONFIG,
+  ORBIT_ITEMS,
+  OrbitItem,
+} from "./orbit-constants";
 
 // ===========================================
 // COMPONENT
@@ -116,9 +40,6 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
 
   // Refs
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  // Get shadow color once at the parent level (avoids creating MutationObserver per OrbitCircle)
-  const shadowColor = useThemeShadowColor();
 
   // Detect hover capability using media query (more reliable than touch detection)
   useEffect(() => {
@@ -193,7 +114,12 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   return (
     <div
       ref={containerRef}
-      className={cn("relative aspect-square w-full", className)}
+      className={cn(
+        "relative aspect-square w-full",
+        // CSS variable for theme-aware shadow color (using Tailwind arbitrary properties)
+        "[--orbit-shadow:#FBFFFC] dark:[--orbit-shadow:#030C07]",
+        className
+      )}
       onClick={handleContainerClick}
     >
       {/* Mobile backdrop with 75% opacity overlay - closes expanded item when tapped */}
@@ -295,7 +221,6 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
                   shadowSpread={ORBIT_CONFIG.shadow.spread}
                   mobileSpreadRatio={ORBIT_CONFIG.shadow.mobileSpreadRatio}
                   expandedSpreadRatio={ORBIT_CONFIG.shadow.expandedSpreadRatio}
-                  shadowColor={shadowColor}
                   isMobile={!hasHover}
                   isMobileExpanded={!hasHover && mobileExpandedItem === item.id}
                   onMobileClose={handleMobileClose}
