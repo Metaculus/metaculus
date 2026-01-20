@@ -346,9 +346,7 @@ const MultiChoicesChartView: FC<Props> = ({
               }
               FooterRow={
                 forecastersCount !== null &&
-                forecastersCount !== undefined &&
-                !forecastAvailability?.cpRevealsOn &&
-                !forecastAvailability?.isEmpty ? (
+                forecastersCount !== undefined ? (
                   <tr className="border-t border-gray-300 dark:border-gray-300-dark">
                     <th
                       className="px-3 pb-1 pt-2 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark"
