@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q, Exists, OuterRef, QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -335,14 +335,9 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
 
     # Display only programs/research notebooks
     qs = qs.filter(
-        Q(notebook__isnull=True)
-        | Exists(
-            Post.projects.through.objects.filter(
-                post_id=OuterRef("pk"),
-                project__in=allowed_projects,
-            )
-        )
-        | Q(default_project__in=allowed_projects)
+        Q(default_project__in=allowed_projects)
+        | Q(notebook__isnull=True)
+        | Q(projects__in=allowed_projects)
     )
 
     # We should keep posts where at least one question has CP revealed.
