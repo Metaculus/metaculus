@@ -123,43 +123,23 @@ jobs:
       fly_app: ${{ steps.names.outputs.fly_app }}
       neon_branch: ${{ steps.names.outputs.neon_branch }}
       redis_name: ${{ steps.names.outputs.redis_name }}
-      image_tag: ${{ steps.names.outputs.image_tag }}
-      image_tag_sha: ${{ steps.names.outputs.image_tag_sha }}
-      image_name: ${{ steps.names.outputs.image_name }}
     steps:
-      - name: Slugify branch name
-        id: slugify
-        uses: rlespinasse/slugify-value@v1.4.0
-        with:
-          key: BRANCH
-          value: ${{ github.head_ref || github.ref_name }}
-          slug-maxlength: 30
-
       - name: Generate resource names
         id: names
         run: |
-          # Base preview identifier: pr-{number}-{branch_slug}
-          PREVIEW_ID="pr-${{ github.event.number }}-${{ steps.slugify.outputs.slug-url }}"
-          SHORT_SHA="${GITHUB_SHA::7}"
+          # Slugify branch name: lowercase, replace invalid chars, truncate
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          BRANCH_SLUG=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)
           
-          # Docker image name (must be lowercase for ghcr.io)
-          IMAGE_NAME="ghcr.io/${{ github.repository }}"
-          IMAGE_NAME_LOWER=$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')
-          echo "image_name=${IMAGE_NAME_LOWER}" >> $GITHUB_OUTPUT
+          # Base preview identifier: pr-{number}-{branch_slug}
+          PREVIEW_ID="pr-${{ github.event.number }}-${BRANCH_SLUG}"
           
           # Resource names with service-specific prefixes
           echo "fly_app=metaculus-${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "neon_branch=preview/${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "redis_name=mtc-redis-${PREVIEW_ID}" >> $GITHUB_OUTPUT
           
-          # Docker image tags
-          # - image_tag: mutable, always points to latest build for this PR/branch
-          # - image_tag_sha: immutable, unique per commit (for rollbacks/debugging)
-          echo "image_tag=${{ steps.slugify.outputs.slug-url }}" >> $GITHUB_OUTPUT
-          echo "image_tag_sha=${{ steps.slugify.outputs.slug-url }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
-          
           echo "Preview ID: ${PREVIEW_ID}"
-          echo "Image Name: ${IMAGE_NAME_LOWER}:${{ steps.slugify.outputs.slug-url }}-${SHORT_SHA}"
 
   # ===========================================================================
   # Build Docker Image - Build and push to GitHub Container Registry
@@ -170,45 +150,8 @@ jobs:
     if: |
       github.event.action != 'closed' &&
       needs.fork-check.outputs.is_fork != 'true'
-    runs-on: ubuntu-24.04
-    outputs:
-      image_url: ${{ steps.meta.outputs.tags }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ needs.setup.outputs.image_name }}
-          tags: |
-            # Mutable tag - always points to latest build for this PR/branch
-            type=raw,value=${{ needs.setup.outputs.image_tag }}
-            # Immutable tag - unique per commit (for rollbacks/debugging)
-            type=raw,value=${{ needs.setup.outputs.image_tag_sha }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          target: all_runners
-          platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: ./.github/workflows/docker_build.yml
+    secrets: inherit
 
   # ===========================================================================
   # Deploy to Fly.io - Deploy preview app with the built image
@@ -228,7 +171,7 @@ jobs:
       app_name: ${{ steps.deploy.outputs.app_name }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
@@ -324,7 +267,7 @@ jobs:
           flyctl deploy \
             --app "${APP_NAME}" \
             --config fly.preview.toml \
-            --image ${{ needs.setup.outputs.image_name }}:${{ needs.setup.outputs.image_tag_sha }} \
+            --image ${{ needs.build-image.outputs.image_url }} \
             --ha=false \
             --now
 
@@ -338,7 +281,7 @@ jobs:
   # ===========================================================================
   comment-on-pr:
     name: Comment on PR
-    needs: [fork-check, setup, deploy-preview]
+    needs: [fork-check, setup, build-image, deploy-preview]
     if: |
       github.event.action != 'closed' &&
       needs.fork-check.outputs.is_fork != 'true'
@@ -366,7 +309,7 @@ jobs:
             | Resource | Details |
             |----------|---------|
             | 🌐 **Preview URL** | ${{ needs.deploy-preview.outputs.url }} |
-            | 📦 **Docker Image** | `${{ needs.setup.outputs.image_name }}:${{ needs.setup.outputs.image_tag_sha }}` |
+            | 📦 **Docker Image** | `${{ needs.build-image.outputs.image_url }}` |
             | 🗄️ **PostgreSQL** | NeonDB branch `${{ needs.setup.outputs.neon_branch }}` |
             | ⚡ **Redis** | Fly Redis `${{ needs.setup.outputs.redis_name }}` |
 

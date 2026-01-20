@@ -1,0 +1,218 @@
+# =============================================================================
+# Reusable Docker Build Workflow
+# =============================================================================
+#
+# This workflow is called by other workflows to build and push Docker images.
+# It centralizes Docker build configuration for consistency and maintainability.
+#
+# Features:
+# - Uses docker/metadata-action for tag generation, slugification, and OCI labels
+# - Simple boolean inputs instead of metadata-action DSL
+# - Automatic OCI-compliant labels (source, revision, created, etc.)
+# - Registry-based caching (no GitHub Actions 10GB limit)
+# - Multi-source cache: reads from main + branch-specific caches
+#
+# Generated Tags:
+# - SHA tag: {branch}-sha-{sha} (immutable, for deployments/rollbacks)
+# - Mutable tag: {branch} (latest build for this branch)
+# - Latest tag: latest (optional, only for production)
+#
+# Cache Strategy:
+# - Reads from: main cache (stable baseline) + branch cache (incremental)
+# - Writes to: branch-specific cache (or main if on main/master branch)
+#
+# Usage Examples:
+#   # PR Preview (just defaults - SHA + mutable tags)
+#   build:
+#     uses: ./.github/workflows/docker_build.yml
+#     secrets: inherit
+#
+#   # Staging (defaults + Heroku deploy)
+#   build:
+#     uses: ./.github/workflows/docker_build.yml
+#     with:
+#       heroku_app: dev-metaculus-web
+#     secrets: inherit
+#
+#   # Production (add latest tag + Heroku deploy)
+#   build:
+#     uses: ./.github/workflows/docker_build.yml
+#     with:
+#       include_latest_tag: true
+#       heroku_app: metaculus-web
+#     secrets: inherit
+#
+# =============================================================================
+
+name: Docker Build (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      # Include latest tag (for production deployments)
+      include_latest_tag:
+        description: 'Include latest tag'
+        required: false
+        type: boolean
+        default: false
+
+      # Heroku app name - if provided, builds and pushes Heroku-specific targets
+      heroku_app:
+        description: 'Heroku app name (enables Heroku target builds if set)'
+        required: false
+        type: string
+        default: ''
+
+      # Heroku targets to build (space-separated)
+      heroku_targets:
+        description: 'Heroku targets to build (space-separated)'
+        required: false
+        type: string
+        default: 'release dramatiq_worker django_cron web'
+
+    outputs:
+      image_name:
+        description: 'Full image name (without tag)'
+        value: ${{ jobs.build.outputs.image_name }}
+      image_tags:
+        description: 'All image tags (newline-separated)'
+        value: ${{ jobs.build.outputs.image_tags }}
+      labels:
+        description: 'OCI image labels (newline-separated)'
+        value: ${{ jobs.build.outputs.labels }}
+      primary_tag:
+        description: 'Primary immutable tag (SHA-based)'
+        value: ${{ jobs.build.outputs.primary_tag }}
+      image_url:
+        description: 'Primary full image URL (image:tag)'
+        value: ${{ jobs.build.outputs.image_url }}
+      branch_slug:
+        description: 'Slugified branch name'
+        value: ${{ jobs.build.outputs.branch_slug }}
+      heroku_targets:
+        description: 'Heroku targets that were built (space-separated)'
+        value: ${{ jobs.build.outputs.heroku_targets }}
+
+# Permissions inherited from caller, but documented here for reference
+# Callers must have: contents: read, packages: write
+
+jobs:
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-24.04
+    outputs:
+      image_name: ${{ steps.vars.outputs.image_name }}
+      image_tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
+      primary_tag: ${{ steps.meta.outputs.version }}
+      image_url: ${{ steps.vars.outputs.image_name }}:${{ steps.meta.outputs.version }}
+      branch_slug: ${{ steps.vars.outputs.branch_slug }}
+      heroku_targets: ${{ inputs.heroku_targets }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Heroku Container Registry
+        if: inputs.heroku_app != ''
+        uses: docker/login-action@v3
+        with:
+          registry: registry.heroku.com
+          username: _
+          password: ${{ secrets.HEROKU_API_KEY }}
+
+      - name: Compute image name and branch prefix
+        id: vars
+        run: |
+          # Image name must be lowercase for ghcr.io
+          IMAGE_NAME="ghcr.io/${{ github.repository }}"
+          IMAGE_NAME_LOWER=$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')
+          echo "image_name=${IMAGE_NAME_LOWER}" >> $GITHUB_OUTPUT
+          
+          # Compute branch prefix for SHA tag
+          # - For PRs: use head_ref (source branch)
+          # - For pushes: use ref_name
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          # Slugify: lowercase, replace invalid chars with dash
+          BRANCH_SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+          echo "branch_slug=${BRANCH_SLUG}" >> $GITHUB_OUTPUT
+          echo "Branch slug: ${BRANCH_SLUG}"
+
+      # Use docker/metadata-action for tag generation and OCI labels
+      # See: https://github.com/docker/metadata-action
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.vars.outputs.image_name }}
+          # Control latest tag behavior explicitly via our input
+          flavor: |
+            latest=false
+          tags: |
+            # SHA tag: {branch}-sha-{sha} (immutable, used for deployments/rollbacks)
+            # Highest priority - used as primary tag via 'version' output
+            type=sha,prefix=${{ steps.vars.outputs.branch_slug }}-,priority=1000
+            # Mutable tag: {branch} (always points to latest build for this branch)
+            type=raw,value=${{ steps.vars.outputs.branch_slug }},priority=600
+            # Latest tag (only for production builds)
+            type=raw,value=latest,enable=${{ inputs.include_latest_tag }},priority=200
+
+      - name: Compute cache scope
+        id: cache
+        run: |
+          BRANCH_SLUG="${{ steps.vars.outputs.branch_slug }}"
+          
+          # Determine if this is the main branch (writes to main cache)
+          if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
+            echo "cache_write_tag=buildcache-main" >> $GITHUB_OUTPUT
+          else
+            echo "cache_write_tag=buildcache-${BRANCH_SLUG}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "cache_scope=${BRANCH_SLUG}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          target: all_runners
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Multi-source cache strategy:
+          # - Read from: main cache (stable baseline) + branch cache (incremental)
+          # - Write to: branch-specific cache (or main if on main branch)
+          cache-from: |
+            type=registry,ref=${{ steps.vars.outputs.image_name }}:buildcache-main
+            type=registry,ref=${{ steps.vars.outputs.image_name }}:buildcache-${{ steps.cache.outputs.cache_scope }}
+          cache-to: type=registry,ref=${{ steps.vars.outputs.image_name }}:${{ steps.cache.outputs.cache_write_tag }},mode=max
+
+      - name: Build and push Heroku targets
+        if: inputs.heroku_app != ''
+        run: |
+          set -e
+          IMAGE_NAME="${{ steps.vars.outputs.image_name }}"
+          CACHE_SCOPE="${{ steps.cache.outputs.cache_scope }}"
+          
+          for target in ${{ inputs.heroku_targets }}; do
+            echo "Building Heroku target: $target"
+            docker buildx build \
+              --platform linux/amd64 \
+              --target "$target" \
+              --tag "registry.heroku.com/${{ inputs.heroku_app }}/$target" \
+              --push \
+              --cache-from "type=registry,ref=${IMAGE_NAME}:buildcache-main" \
+              --cache-from "type=registry,ref=${IMAGE_NAME}:buildcache-${CACHE_SCOPE}" \
+              .
+          done

@@ -1,7 +1,7 @@
 # NEW WORKFLOW - Testing phase
 # This replaces deploy_dev.yml and deploy_play.yml with a unified staging workflow
 # - Single workflow for both dev and play environments
-# - Better caching
+# - Shared Docker build workflow for better caching and consistency
 #
 # TODO: Once validated, deprecate and delete deploy_dev.yml and deploy_play.yml
 
@@ -18,100 +18,41 @@ on:
           - dev
           - play
 
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
 jobs:
-  build-push-deploy:
+  # Build Docker image using shared workflow
+  build:
+    uses: ./.github/workflows/docker_build.yml
+    with:
+      heroku_app: ${{ inputs.environment }}-metaculus-web
+    secrets: inherit
+
+  # Deploy to Heroku
+  deploy:
+    needs: build
     runs-on: ubuntu-24.04
     environment: ${{ inputs.environment }}_env
-    permissions:
-      contents: read
-      packages: write
-      deployments: write
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       HEROKU_APP: ${{ inputs.environment }}-metaculus-web
-      GHCR_IMAGE: ghcr.io/${{ github.repository }}
-      HEROKU_TARGETS: release dramatiq_worker django_cron web
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to Heroku Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: registry.heroku.com
-          username: _
-          password: ${{ secrets.HEROKU_API_KEY }}
-
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Checkout scripts
+        uses: actions/checkout@v6
         with:
-          images: ${{ env.GHCR_IMAGE }}
-          tags: |
-            type=sha,prefix={{branch}}-
-
-      - name: Build All Runners and Push to GHCR
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64
-          target: all_runners
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and Push Heroku Targets
-        run: |
-          set -e
-          for target in ${{ env.HEROKU_TARGETS }}; do
-            docker buildx build \
-              --platform linux/amd64 \
-              --target "$target" \
-              --tag "registry.heroku.com/${{ env.HEROKU_APP }}/$target" \
-              --push \
-              --cache-from type=gha \
-              .
-          done
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
 
       - name: Deploy to Heroku
         run: |
-          heroku container:release ${{ env.HEROKU_TARGETS }} -a ${{ env.HEROKU_APP }}
+          heroku container:release ${{ needs.build.outputs.heroku_targets }} -a ${{ env.HEROKU_APP }}
 
       - name: Wait for release to complete
-        run: |
-          set -e
-          max_iters=60
-          for ((i = 1; i <= max_iters; i++)); do
-            json=$(heroku releases --json -a ${{ env.HEROKU_APP }})
-            status=$(echo "$json" | jq -r '.[0].status')
-            current=$(echo "$json" | jq -r '.[0].current')
-
-            if [ "$status" == "pending" ]; then
-              echo "Waiting for release to finish (attempt $i/$max_iters)..."
-              sleep 5
-              continue
-            fi
-
-            if [ "$status" == "succeeded" ] && [ "$current" == "true" ]; then
-              echo "Release succeeded!"
-              exit 0
-            fi
-
-            break
-          done
-
-          echo "Release failed with status: $status"
-          exit 1
+        run: ./scripts/wait_for_heroku_release.sh "${{ env.HEROKU_APP }}" 60
