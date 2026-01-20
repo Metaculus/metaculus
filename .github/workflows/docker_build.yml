@@ -93,6 +93,10 @@ on:
         description: 'Heroku targets that were built (space-separated)'
         value: ${{ jobs.build.outputs.heroku_targets }}
 
+permissions:
+  contents: read
+  packages: write
+
 # Permissions inherited from caller, but documented here for reference
 # Callers must have: contents: read, packages: write
 
