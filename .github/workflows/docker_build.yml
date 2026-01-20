@@ -137,18 +137,19 @@ jobs:
 
       - name: Compute image name and branch prefix
         id: vars
+        env:
+          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           # Image name must be lowercase for ghcr.io
           IMAGE_NAME="ghcr.io/${{ github.repository }}"
-          IMAGE_NAME_LOWER=$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME_LOWER="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
           echo "image_name=${IMAGE_NAME_LOWER}" >> $GITHUB_OUTPUT
           
           # Compute branch prefix for SHA tag
           # - For PRs: use head_ref (source branch)
           # - For pushes: use ref_name
-          BRANCH="${{ github.head_ref || github.ref_name }}"
           # Slugify: lowercase, replace invalid chars with dash
-          BRANCH_SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')"
           echo "branch_slug=${BRANCH_SLUG}" >> $GITHUB_OUTPUT
           echo "Branch slug: ${BRANCH_SLUG}"
 

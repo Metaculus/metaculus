@@ -126,13 +126,15 @@ jobs:
     steps:
       - name: Generate resource names
         id: names
+        env:
+          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
+          PR_NUMBER: ${{ github.event.number }}
         run: |
           # Slugify branch name: lowercase, replace invalid chars, truncate
-          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-          BRANCH_SLUG=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)
+          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)"
           
           # Base preview identifier: pr-{number}-{branch_slug}
-          PREVIEW_ID="pr-${{ github.event.number }}-${BRANCH_SLUG}"
+          PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"
           
           # Resource names with service-specific prefixes
           echo "fly_app=metaculus-${PREVIEW_ID}" >> $GITHUB_OUTPUT
