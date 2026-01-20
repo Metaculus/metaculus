@@ -146,7 +146,13 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
             <LoadingIndicator className="mx-auto h-8 w-24 text-futureeval-primary-light dark:text-futureeval-primary-dark" />
           ) : (
             <div className="mx-auto flex flex-col items-center">
-              <FormErrorMessage errors={error?.digest} />
+              <FormErrorMessage
+                errors={
+                  error
+                    ? error.message || "An unexpected error occurred"
+                    : undefined
+                }
+              />
               <Button
                 className={cn(
                   "mx-auto",

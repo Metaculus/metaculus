@@ -41,11 +41,22 @@ const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <>
       <div
-        className="flex h-full cursor-pointer flex-col items-center pb-28 pt-5 sm:pt-6"
+        className="flex h-full cursor-pointer flex-col items-center pb-28 pt-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-futureeval-primary-light dark:focus-visible:ring-futureeval-primary-dark sm:pt-6"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`View ${model.name} details, score: ${score}`}
       >
         {/* Bar area - flex-1 takes remaining height, aligns bar at bottom */}
         <div className="relative flex w-full flex-1 flex-col items-center justify-end">

@@ -29,16 +29,6 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
   const highlightId = searchParams.get("highlight");
   const highlightedRowRef = useRef<HTMLTableRowElement>(null);
 
-  // Scroll to and flash highlighted row
-  useEffect(() => {
-    if (highlightId && highlightedRowRef.current) {
-      highlightedRowRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  }, [highlightId]);
-
   const rows = useMemo(() => {
     const entries = (details.entries ?? [])
       .filter((e) => shouldDisplayEntry(e))
@@ -64,6 +54,16 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
 
     return entries;
   }, [details.entries]);
+
+  // Scroll to and flash highlighted row - depends on rows so it runs after entries are populated
+  useEffect(() => {
+    if (highlightId && highlightedRowRef.current) {
+      highlightedRowRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [highlightId, rows]);
 
   const hasCI = rows.some((r) => r.ciLower != null || r.ciUpper != null);
 
@@ -106,16 +106,30 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
           const isHighlighted = highlightId === r.id;
           const profileHref = r.profileHref;
           const isClickable = !r.isAggregate && profileHref;
+
+          const handleRowKeyDown = (e: React.KeyboardEvent) => {
+            if (
+              isClickable &&
+              (e.key === "Enter" || e.key === " " || e.key === "Spacebar")
+            ) {
+              e.preventDefault();
+              router.push(profileHref);
+            }
+          };
+
           return (
             <tr
               key={`${r.username}-${r.rank}`}
               ref={isHighlighted ? highlightedRowRef : null}
               onClick={isClickable ? () => router.push(profileHref) : undefined}
+              onKeyDown={handleRowKeyDown}
+              tabIndex={isClickable ? 0 : -1}
+              role={isClickable ? "button" : undefined}
               className={cn(
                 "h-[61px] border-b border-gray-300 last:border-0 dark:border-gray-300-dark",
                 isHighlighted && "animate-highlight-flash",
                 isClickable &&
-                  "cursor-pointer hover:bg-futureeval-primary-light/10 dark:hover:bg-futureeval-primary-dark/10"
+                  "cursor-pointer hover:bg-futureeval-primary-light/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-futureeval-primary-light dark:hover:bg-futureeval-primary-dark/10 dark:focus-visible:ring-futureeval-primary-dark"
               )}
             >
               <Td className="text-center tabular-nums">{i + 1}</Td>

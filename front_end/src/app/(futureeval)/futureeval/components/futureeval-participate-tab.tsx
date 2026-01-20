@@ -45,6 +45,7 @@ const FutureEvalSubmitSteps: React.FC = () => {
       <button
         type="button"
         className="underline"
+        aria-label="Create a new bot account"
         onClick={() => {
           if (user) {
             router.push("/accounts/settings/bots/#create");

@@ -13,7 +13,8 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 /**
  * FutureEval-specific methodology content without the main title.
- * Uses monospace fonts and FutureEval theme colors.
+ * Uses Newsreader serif fonts for headings and sans-serif for body text,
+ * with FutureEval theme colors (green accents, dark/light backgrounds).
  */
 const FutureEvalMethodologyContent: React.FC = () => {
   const CARDS = [
@@ -164,6 +165,7 @@ const FutureEvalIdeaCard: React.FC<IdeaCardProps> = ({
         <Link
           href={linkHref}
           className={cn("mt-3", FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+          aria-label={`Learn more about ${title}`}
         >
           Learn more
         </Link>

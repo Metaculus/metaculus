@@ -295,10 +295,16 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
     return point._isSota ? 1 : 0.35;
   };
 
-  // Calculate opacity for star markers based on hover state
+  // Calculate opacity for star markers based on hover/selection state
   const getStarOpacity = useCallback(
     (name: string) => {
       const company = normalizeToCompany(name);
+
+      // If a company is selected
+      if (selectedCompany) {
+        // Selected company's stars are 100%, other companies are 20%
+        return company === selectedCompany ? 1 : 0.2;
+      }
 
       // If a company is hovered in the legend
       if (hoveredCompany) {
@@ -307,7 +313,7 @@ const AIBBenchmarkPerformanceChart: FC<Props> = ({
 
       return 1;
     },
-    [hoveredCompany, normalizeToCompany]
+    [selectedCompany, hoveredCompany, normalizeToCompany]
   );
 
   // Count dots per company
