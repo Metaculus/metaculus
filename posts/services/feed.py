@@ -180,10 +180,6 @@ def get_posts_feed(
                 scheduled_resolve_time__lte=now,
             )
 
-    # Include only approved posts if no curation status specified
-    if not any(status in Post.CurationStatus for status in statuses):
-        post_status_q &= Q(curation_status=Post.CurationStatus.APPROVED)
-
     # Get post IDs matching any of these question-based statuses
     if question_status_q:
         post_status_q |= Q(
@@ -191,6 +187,10 @@ def get_posts_feed(
             curation_status=Post.CurationStatus.APPROVED,
             pk__in=Question.objects.filter(question_status_q).values("post_id"),
         )
+
+    # Include only approved posts if no curation status specified
+    if not any(status in Post.CurationStatus for status in statuses):
+        post_status_q &= Q(curation_status=Post.CurationStatus.APPROVED)
 
     qs = qs.filter(post_status_q)
 
