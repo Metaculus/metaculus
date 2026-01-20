@@ -155,11 +155,11 @@ jobs:
           # Docker image tags
           # - image_tag: mutable, always points to latest build for this PR/branch
           # - image_tag_sha: immutable, unique per commit (for rollbacks/debugging)
-          echo "image_tag=${PREVIEW_ID}" >> $GITHUB_OUTPUT
-          echo "image_tag_sha=${PREVIEW_ID}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "image_tag=${{ steps.slugify.outputs.slug-url }}" >> $GITHUB_OUTPUT
+          echo "image_tag_sha=${{ steps.slugify.outputs.slug-url }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
           
           echo "Preview ID: ${PREVIEW_ID}"
-          echo "Image Name: ${IMAGE_NAME_LOWER}"
+          echo "Image Name: ${IMAGE_NAME_LOWER}:${{ steps.slugify.outputs.slug-url }}-${SHORT_SHA}"
 
   # ===========================================================================
   # Build Docker Image - Build and push to GitHub Container Registry
