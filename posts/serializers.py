@@ -63,7 +63,7 @@ class NotebookSerializer(serializers.ModelSerializer):
             "image_url",
             "created_at",
             "edited_at",
-            "markdown_summary",
+            "feed_tile_summary",
         )
 
 
