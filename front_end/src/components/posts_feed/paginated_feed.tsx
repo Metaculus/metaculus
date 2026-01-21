@@ -139,7 +139,6 @@ const PaginatedPostsFeed: FC<Props> = ({
 
     return (
       <QuestionVariantComposer
-        postData={post}
         consumer={
           <ConsumerPostCard
             post={post}
