@@ -62,7 +62,7 @@ class PostVersionService:
                     post.conditional
                 )
             elif post.notebook_id:
-                snapshot["conditional"] = cls._get_notebook_snapshot(post.notebook)
+                snapshot["notebook"] = cls._get_notebook_snapshot(post.notebook)
 
             return snapshot
 
