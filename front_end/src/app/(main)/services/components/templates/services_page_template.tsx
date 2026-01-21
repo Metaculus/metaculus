@@ -11,9 +11,12 @@ import DevicesImage from "../../assets/devices.svg?url";
 import { sortServiceTournaments } from "../../helpers";
 import ServiceConfig from "../../serviceConfig";
 import Button from "../button";
+import CaseStudyCard from "../case_studies/case_study_card";
+import { TCaseStudyCard } from "../case_studies/types";
 import GetInTouchForm from "../get_in_touch_form";
 import HeadingBlock from "../heading_block";
 import PartnersCarousel from "../partners_carousel";
+import SectionHeading from "../section_heading";
 import TournamentBlock from "../tournament_block";
 
 type Props = {
@@ -28,6 +31,11 @@ type Props = {
     description: string;
     data?: TournamentPreview[];
   };
+  caseStudies?: {
+    title: string;
+    description?: string;
+    cards: TCaseStudyCard[];
+  };
   privateInstances: { title: string; description: string };
   proForecasters: { title: string; firstPart: string; secondPart: string };
   vertical?: "financial-services";
@@ -37,6 +45,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
   heading: { statsList, overview, purpose },
   solutions,
   tournaments,
+  caseStudies,
   privateInstances,
   proForecasters,
   vertical,
@@ -94,7 +103,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
+    <main className="mx-auto box-border flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock
         statsList={finalStatsList}
         overview={overview}
@@ -102,14 +111,10 @@ const ServicesPageTemplate: React.FC<Props> = async ({
       />
       <PartnersCarousel className="my-10 sm:my-12 lg:my-32" />
 
-      <div className="flex flex-col items-center gap-3 px-4 text-center">
-        <h3 className="m-0 text-3xl font-bold tracking-tight text-blue-700 dark:text-blue-700-dark">
-          {solutions.title}
-        </h3>
-        <p className="m-0 text-pretty text-xl font-medium text-blue-700 dark:text-blue-700-dark">
-          {solutions.description}
-        </p>
-      </div>
+      <SectionHeading
+        title={solutions.title}
+        subtitle={solutions.description}
+      />
 
       <TournamentBlock
         className="mt-12"
@@ -186,6 +191,21 @@ const ServicesPageTemplate: React.FC<Props> = async ({
           </Button>
         </div>
       </div>
+
+      {caseStudies && (
+        <div className="mt-12 lg:mt-32">
+          <SectionHeading
+            title={caseStudies.title}
+            subtitle={caseStudies.description}
+          />
+
+          <div className="mt-8 grid gap-6">
+            {caseStudies.cards.map((card) => (
+              <CaseStudyCard key={card.id} card={card} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <GetInTouchForm
         id="contact-us"

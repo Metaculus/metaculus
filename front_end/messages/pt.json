@@ -1920,5 +1920,13 @@
   "includeBotsInAggregatesLabel": "Incluir Bots nos Agregados",
   "includeBotsInAggregatesExplanation": "Quando ativado, previsões de bots serão incluídas nos cálculos agregados para esta pergunta e afetarão a pontuação. Caso contrário, elas não afetarão.",
   "hidden": "Oculto",
+  "caseStudiesTitle": "Estudos de caso",
+  "caseStudiesDescription": "Exemplos de como os parceiros usam o Metaculus para responder a perguntas difíceis.",
+  "aboutInitiative": "Sobre esta iniciativa",
+  "inPartnershipWith": "Em parceria com",
+  "readTheReport": "Leia o relatório",
+  "reportPreviewAlt": "Pré-visualização do relatório",
+  "pagesWithCount": "{count, plural, one {# página} other {# páginas}}",
+  "publishedWithLabel": "Publicado {label}",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

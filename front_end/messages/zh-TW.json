@@ -1919,5 +1919,13 @@
   "includeBotsInAggregatesLabel": "在總體中包括機器人",
   "includeBotsInAggregatesExplanation": "啟用後，機器人預測將包含在此問題的總體計算中，並影響評分。否則，則不會影響。",
   "hidden": "隱藏",
+  "caseStudiesTitle": "案例研究",
+  "caseStudiesDescription": "合作夥伴如何使用 Metaculus 來回答困難問題的範例。",
+  "aboutInitiative": "關於這項計畫",
+  "inPartnershipWith": "合作夥伴",
+  "readTheReport": "閱讀報告",
+  "reportPreviewAlt": "報告預覽",
+  "pagesWithCount": "{count, plural, one {# 頁} other {# 頁}}",
+  "publishedWithLabel": "發佈 {label}",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

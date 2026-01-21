@@ -1924,5 +1924,13 @@
   "includeBotsInAggregatesLabel": "在汇总中包含机器人",
   "includeBotsInAggregatesExplanation": "启用时，机器人预测将包含在此问题的汇总计算中，并将影响评分。否则，它们不会产生影响。",
   "hidden": "隐藏",
+  "caseStudiesTitle": "案例研究",
+  "caseStudiesDescription": "展示合作伙伴如何使用 Metaculus 回答难题的示例。",
+  "aboutInitiative": "关于此倡议",
+  "inPartnershipWith": "与...合作",
+  "readTheReport": "阅读报告",
+  "reportPreviewAlt": "报告预览",
+  "pagesWithCount": "{count, plural, one {# 页} other {# 页}}",
+  "publishedWithLabel": "已发布 {label}",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
