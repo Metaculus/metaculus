@@ -63,7 +63,7 @@ class NotebookSerializer(serializers.ModelSerializer):
             "image_url",
             "created_at",
             "edited_at",
-            "markdown_summary",
+            "feed_tile_summary",
         )
 
 
@@ -118,6 +118,7 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
+            "feed_tile_summary",
             "image_url",
         )
 

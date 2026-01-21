@@ -1824,12 +1824,9 @@
   "tournamentsTabSeries": "問答系列",
   "tournamentsTabIndexes": "指數",
   "tournamentsTabArchived": "已存檔",
-  "tournamentTimelineClosed": "等待裁定",
+  "tournamentTimelineClosed": "待处理的决议",
   "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
   "includeMyForecastAtTheTime": "包括我當時的預測 <strong>({forecast})</strong>",
-  "tournamentsInfoTitle": "我們 <predmarket>不是預測市場</predmarket>。您可以免費參加並因精確的預測贏取現金獎勵。",
-  "tournamentsInfoScoringLink": "什麼是預測得分？",
-  "tournamentsInfoPrizesLink": "獎品如何分配？",
   "featured": "精選",
   "staffPicks": "員工推薦",
   "withdrawAfterPercentSetting2": "問題總生命周期後撤回",
@@ -1875,5 +1872,7 @@
   "tournamentsInfoScoringLink": "什麼是預測得分？",
   "tournamentsInfoPrizesLink": "獎品如何分配？",
   "allCategoriesTopQuestions": "每個類別中的熱門問題",
+  "feedTileSummary": "Feed 磁貼摘要",
+  "feedTileSummaryPlaceholder": "選擇性：輸入自訂摘要文字以顯示在Feed磁貼上（如果未提供，將從筆記本內容自動生成摘要）",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

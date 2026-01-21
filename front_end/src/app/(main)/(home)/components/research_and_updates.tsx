@@ -83,7 +83,7 @@ const NotebookCard: FC<PostCardProps> = async ({ post, index, locale }) => {
 
   const readingTime = estimateReadingTime(notebook.markdown);
   const summary =
-    notebook.markdown_summary ||
+    notebook.feed_tile_summary ||
     getMarkdownSummary({
       markdown: notebook.markdown,
       width: 280,
