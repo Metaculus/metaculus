@@ -294,6 +294,9 @@ jobs:
           APP_DOMAIN="${APP_NAME}-preview.mtcl.cc"
           PUBLIC_APP_URL="https://${APP_DOMAIN}"
 
+          # Register custom domain with Fly.io (Cloudflare handles SSL)
+          flyctl certs add "${APP_DOMAIN}" --app "${APP_NAME}" || true
+
           # Set all secrets and environment variables for the app
           # Secrets are encrypted at rest in Fly.io
           flyctl secrets set \
