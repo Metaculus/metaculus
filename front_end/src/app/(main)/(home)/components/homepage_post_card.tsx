@@ -4,9 +4,9 @@ import Link from "next/link";
 import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import ConsumerQuestionTile from "@/components/consumer_post_card/consumer_question_tile";
 import GroupForecastCard from "@/components/consumer_post_card/group_forecast_card";
+import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostCardErrorBoundary from "@/components/post_card/error_boundary";
 import HideCPProvider from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
