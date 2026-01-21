@@ -84,31 +84,14 @@ jobs:
 
       - name: "Cloudflare: Purge cache"
         run: |
-          # Capture response and HTTP status
-          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+          RESPONSE=$(curl -s -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}')
           
-          # Split response body and status code
-          HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
-          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
-          
-          echo "HTTP Status: $HTTP_STATUS"
-          echo "Response: $HTTP_BODY"
-          
-          # Check HTTP status
-          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
-            echo "::warning::Cloudflare cache purge failed with HTTP status $HTTP_STATUS"
-            exit 0  # Don't fail the workflow
-          fi
-          
-          # Check JSON success field
-          SUCCESS=$(echo "$HTTP_BODY" | jq -r '.success // false')
-          if [ "$SUCCESS" != "true" ]; then
-            ERRORS=$(echo "$HTTP_BODY" | jq -r '.errors // []')
-            echo "::warning::Cloudflare cache purge returned success=false. Errors: $ERRORS"
+          if [ "$(echo "$RESPONSE" | jq -r '.success')" != "true" ]; then
+            echo "::warning::Cloudflare cache purge failed: $RESPONSE"
             exit 0  # Don't fail the workflow
           fi
           
@@ -116,7 +99,13 @@ jobs:
 
       - name: "Sentry: Upload sourcemaps"
         run: |
-          docker run -w /app/front_end -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} ${{ needs.build.outputs.image_url }} npx sentry-cli sourcemaps upload /app/front_end/.next/ --project metaculus-frontend --org metaculus
+          docker run \
+            -w /app/front_end \
+            -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
+            ${{ needs.build.outputs.image_url }} \
+            npx sentry-cli sourcemaps upload /app/front_end/.next/ \
+              --project metaculus-frontend \
+              --org metaculus
 
       - name: Disable preboot (reset to safe default)
         if: always()
