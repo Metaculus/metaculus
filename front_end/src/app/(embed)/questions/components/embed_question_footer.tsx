@@ -1,9 +1,11 @@
 import Image from "next/image";
-import React from "react";
+import Link from "next/link";
+import React, { useMemo } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import { PostWithForecasts } from "@/types/post";
+import { getPostLink } from "@/utils/navigation";
 
 import metaculusDarkLogo from "../assets/metaculus-dark.png";
 import metaculusLightLogo from "../assets/metaculus-light.png";
@@ -14,6 +16,8 @@ type Props = {
 };
 
 const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
+  const questionUrl = useMemo(() => getPostLink(post), [post]);
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-y-3">
       <div className="flex items-center gap-2">
@@ -30,22 +34,30 @@ const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
       </div>
 
       {ogReady && (
-        <div id="id-logo-used-by-screenshot-donot-change">
-          <Image
-            className="dark:hidden"
-            src={metaculusDarkLogo}
-            alt="Metaculus Logo"
-            width={74}
-            height={15}
-          />
-          <Image
-            className="hidden dark:block"
-            src={metaculusLightLogo}
-            alt="Metaculus Logo"
-            width={74}
-            height={15}
-          />
-        </div>
+        <Link
+          href={questionUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+          aria-label="Open on Metaculus"
+        >
+          <div id="id-logo-used-by-screenshot-donot-change">
+            <Image
+              className="dark:hidden"
+              src={metaculusDarkLogo}
+              alt="Metaculus Logo"
+              width={74}
+              height={15}
+            />
+            <Image
+              className="hidden dark:block"
+              src={metaculusLightLogo}
+              alt="Metaculus Logo"
+              width={74}
+              height={15}
+            />
+          </div>
+        </Link>
       )}
     </div>
   );
