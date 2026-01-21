@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { usePostHog } from "posthog-js/react";
 import { FC } from "react";
 
 import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
@@ -163,8 +164,20 @@ const LanguageSelector: FC = () => {
   const { user } = useAuth();
   const currentLocale = useLocale();
   const router = useRouter();
+  const posthog = usePostHog();
 
   const updateLanguage = (language: string) => {
+    // Track language change in PostHog
+    posthog.capture("language_changed", {
+      previous_language: selectedLanguage,
+      new_language: language,
+    });
+
+    // Update user property for language
+    if (user) {
+      posthog.setPersonProperties({ language });
+    }
+
     updateLanguagePreference(language, false)
       .then(() => router.refresh())
       .catch(logError);

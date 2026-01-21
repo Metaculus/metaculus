@@ -3,6 +3,7 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale, useTranslations } from "next-intl";
+import { usePostHog } from "posthog-js/react";
 import { FC } from "react";
 
 import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
@@ -20,10 +21,22 @@ type Props = {
 const LanguagePreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const currentLocale = useLocale();
+  const posthog = usePostHog();
 
   const [updateLanguage, isPendingUpdateLanguage] = useServerAction(
     async (language: string) => {
       if (!isPendingUpdateLanguage) {
+        const previousLanguage = user.language || currentLocale;
+
+        // Track language change in PostHog
+        posthog.capture("language_changed", {
+          previous_language: previousLanguage,
+          new_language: language,
+        });
+
+        // Update user property for language
+        posthog.setPersonProperties({ language });
+
         updateLanguagePreference(language).catch(logError);
       }
     }
