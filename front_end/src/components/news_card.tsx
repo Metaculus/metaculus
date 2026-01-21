@@ -55,7 +55,7 @@ const NewsCard: FC<Props> = ({ post }) => {
               <MarkdownEditor
                 mode="read"
                 markdown={
-                  post.notebook.markdown_summary ||
+                  post.notebook.feed_tile_summary ||
                   getMarkdownSummary({
                     markdown: post.notebook.markdown,
                     width,

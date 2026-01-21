@@ -584,7 +584,7 @@ export function generateScale({
     displayType === QuestionType.Discrete &&
     direction === "vertical"
   ) {
-    // expect to have a foreced tick count, and never include
+    // expect to have a forced tick count, and never include
     // out of bounds values
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
