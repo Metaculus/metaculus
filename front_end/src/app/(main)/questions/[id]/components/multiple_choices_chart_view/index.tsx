@@ -327,46 +327,50 @@ const MultiChoicesChartView: FC<Props> = ({
         </div>
       )}
 
-      {isTooltipActive && tooltipChoices.length > 0 && (
-        <FloatingPortal>
-          <div
-            className="pointer-events-none z-[100] rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
-            ref={refs.setFloating}
-            style={floatingStyles}
-            {...getFloatingProps()}
-          >
-            <MCPredictionsTooltip
-              title={tooltipTitle}
-              communityPredictions={tooltipChoices}
-              userPredictions={tooltipUserChoices}
-              showMeColumn={
-                !!tooltipUserChoices?.length ||
-                !!forecastAvailability?.cpRevealsOn ||
-                !!forecastAvailability?.isEmpty
-              }
-              FooterRow={
-                forecastersCount !== null &&
-                forecastersCount !== undefined ? (
-                  <tr className="border-t border-gray-300 dark:border-gray-300-dark">
-                    <th
-                      className="px-3 pb-1 pt-2 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark"
-                      colSpan={2}
-                    >
-                      {t("activeForecastersLabel")}
-                    </th>
-                    <td
-                      className="pr-5 pt-1 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
-                      colSpan={2}
-                    >
-                      {forecastersCount}
-                    </td>
-                  </tr>
-                ) : null
-              }
-            />
-          </div>
-        </FloatingPortal>
-      )}
+      {isTooltipActive &&
+        (tooltipChoices.length > 0 ||
+          !!tooltipUserChoices?.length ||
+          !!forecastAvailability?.cpRevealsOn ||
+          !!forecastAvailability?.isEmpty) && (
+          <FloatingPortal>
+            <div
+              className="pointer-events-none z-[100] rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
+              ref={refs.setFloating}
+              style={floatingStyles}
+              {...getFloatingProps()}
+            >
+              <MCPredictionsTooltip
+                title={tooltipTitle}
+                communityPredictions={tooltipChoices}
+                userPredictions={tooltipUserChoices}
+                showMeColumn={
+                  !!tooltipUserChoices?.length ||
+                  !!forecastAvailability?.cpRevealsOn ||
+                  !!forecastAvailability?.isEmpty
+                }
+                FooterRow={
+                  forecastersCount !== null &&
+                  forecastersCount !== undefined ? (
+                    <tr className="border-t border-gray-300 dark:border-gray-300-dark">
+                      <th
+                        className="px-3 pb-1 pt-2 text-left text-sm font-normal text-gray-800 dark:text-gray-800-dark"
+                        colSpan={2}
+                      >
+                        {t("activeForecastersLabel")}
+                      </th>
+                      <td
+                        className="pr-5 pt-1 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
+                        colSpan={2}
+                      >
+                        {forecastersCount}
+                      </td>
+                    </tr>
+                  ) : null
+                }
+              />
+            </div>
+          </FloatingPortal>
+        )}
     </div>
   );
 };
