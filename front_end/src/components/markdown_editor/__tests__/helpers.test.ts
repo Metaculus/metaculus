@@ -248,7 +248,7 @@ describe("processMarkdown", () => {
       expect(result).toContain("New line with another ampersane S&P");
     });
 
-    it("should correctly render ampersand when htlm tags are in the markdown", () => {
+    it("should correctly render ampersand when html tags are in the markdown", () => {
       // Given
       const input =
         "This is a & b\n New line with another ampersane S&P\n another line with <u>html</u> tags";
