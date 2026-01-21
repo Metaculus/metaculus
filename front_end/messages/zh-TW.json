@@ -1872,5 +1872,7 @@
   "tournamentsInfoScoringLink": "什麼是預測得分？",
   "tournamentsInfoPrizesLink": "獎品如何分配？",
   "allCategoriesTopQuestions": "每個類別中的熱門問題",
+  "feedTileSummary": "Feed 磁貼摘要",
+  "feedTileSummaryPlaceholder": "選擇性：輸入自訂摘要文字以顯示在Feed磁貼上（如果未提供，將從筆記本內容自動生成摘要）",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

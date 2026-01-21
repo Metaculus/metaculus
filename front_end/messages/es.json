@@ -1875,5 +1875,7 @@
   "tournamentsInfoScoringLink": "¿Qué son las puntuaciones de pronóstico?",
   "tournamentsInfoPrizesLink": "¿Cómo se distribuyen los premios?",
   "allCategoriesTopQuestions": "Principales preguntas en cada categoría",
+  "feedTileSummary": "Resumen del Mosaico de Noticias",
+  "feedTileSummaryPlaceholder": "Opcional: Ingrese un texto de resumen personalizado para mostrar en los mosaicos de noticias (si no se proporciona, se generará automáticamente un resumen a partir del contenido del cuaderno)",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

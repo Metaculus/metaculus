@@ -1875,5 +1875,7 @@
   "tournamentsInfoScoringLink": "Co jsou prognostické skóre?",
   "tournamentsInfoPrizesLink": "Jak jsou rozdělovány ceny?",
   "allCategoriesTopQuestions": "Nejlepší otázky v každé kategorii",
+  "feedTileSummary": "Souhrn na dlaždici kanálu",
+  "feedTileSummaryPlaceholder": "Volitelně: Zadejte vlastní text souhrnu, který se zobrazí na dlaždicích kanálu (pokud není poskytnut, souhrn bude automaticky vygenerován z obsahu notebooku)",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

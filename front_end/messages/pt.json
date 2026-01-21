@@ -1873,5 +1873,7 @@
   "tournamentsInfoScoringLink": "O que são pontuações de previsão?",
   "tournamentsInfoPrizesLink": "Como os prêmios são distribuídos?",
   "allCategoriesTopQuestions": "Principais perguntas em cada categoria",
+  "feedTileSummary": "Resumo do Bloco de Feed",
+  "feedTileSummaryPlaceholder": "Opcional: Insira um texto de resumo personalizado para exibir nos blocos de feed (se não for fornecido, um resumo será gerado automaticamente a partir do conteúdo do caderno)",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

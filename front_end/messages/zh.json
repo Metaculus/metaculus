@@ -1877,5 +1877,7 @@
   "tournamentsInfoScoringLink": "什么是预测得分？",
   "tournamentsInfoPrizesLink": "奖金如何分配？",
   "allCategoriesTopQuestions": "每个类别的热门问题",
+  "feedTileSummary": "动态提要摘要",
+  "feedTileSummaryPlaceholder": "可选：输入自定义摘要文本以显示在动态提要上（如果未提供，将根据笔记本内容自动生成摘要）",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
