@@ -4,6 +4,7 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
+import { CASE_STUDIES } from "./components/case_studies/constants";
 import ServicesPageTemplate from "./components/templates/services_page_template";
 import { sortServiceTournaments } from "./helpers";
 import ServiceConfig from "./serviceConfig";
@@ -62,6 +63,11 @@ export default async function ServicesPage() {
         title: t("launchTournament"),
         description: t("launchTournamentDescription"),
         data: sortedTournaments,
+      }}
+      caseStudies={{
+        title: t("caseStudiesTitle"),
+        description: t("caseStudiesDescription"),
+        cards: CASE_STUDIES,
       }}
       privateInstances={{
         title: t("privateInstances"),

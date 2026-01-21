@@ -1886,5 +1886,13 @@
   "choicesLockedHelp": "一旦預測開始後，選項只能透過管理平台進行更改。",
   "feedTileSummary": "Feed 磁貼摘要",
   "feedTileSummaryPlaceholder": "選擇性：輸入自訂摘要文字以顯示在Feed磁貼上（如果未提供，將從筆記本內容自動生成摘要）",
+  "caseStudiesTitle": "案例研究",
+  "caseStudiesDescription": "合作夥伴如何使用 Metaculus 來回答困難問題的範例。",
+  "aboutInitiative": "關於這項計畫",
+  "inPartnershipWith": "合作夥伴",
+  "readTheReport": "閱讀報告",
+  "reportPreviewAlt": "報告預覽",
+  "pagesWithCount": "{count, plural, one {# 頁} other {# 頁}}",
+  "publishedWithLabel": "發佈 {label}",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

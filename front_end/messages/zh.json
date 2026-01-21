@@ -1891,5 +1891,13 @@
   "choicesLockedHelp": "选项一旦预测开始，只能通过管理面板进行更改。",
   "feedTileSummary": "动态提要摘要",
   "feedTileSummaryPlaceholder": "可选：输入自定义摘要文本以显示在动态提要上（如果未提供，将根据笔记本内容自动生成摘要）",
+  "caseStudiesTitle": "案例研究",
+  "caseStudiesDescription": "展示合作伙伴如何使用 Metaculus 回答难题的示例。",
+  "aboutInitiative": "关于此倡议",
+  "inPartnershipWith": "与...合作",
+  "readTheReport": "阅读报告",
+  "reportPreviewAlt": "报告预览",
+  "pagesWithCount": "{count, plural, one {# 页} other {# 页}}",
+  "publishedWithLabel": "已发布 {label}",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
