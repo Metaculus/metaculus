@@ -9,113 +9,123 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary",
+            old_name="markdown_summary",
+            new_name="feed_tile_summary",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_cs",
+            old_name="markdown_summary_cs",
+            new_name="feed_tile_summary_cs",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_en",
+            old_name="markdown_summary_en",
+            new_name="feed_tile_summary_en",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_es",
+            old_name="markdown_summary_es",
+            new_name="feed_tile_summary_es",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_original",
+            old_name="markdown_summary_original",
+            new_name="feed_tile_summary_original",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_pt",
+            old_name="markdown_summary_pt",
+            new_name="feed_tile_summary_pt",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_zh",
+            old_name="markdown_summary_zh",
+            new_name="feed_tile_summary_zh",
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="notebook",
-            name="markdown_summary_zh_TW",
+            old_name="markdown_summary_zh_TW",
+            new_name="feed_tile_summary_zh_TW",
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary",
             field=models.TextField(
-                blank=True, default="", help_text="Summary text displayed on feed tiles"
+                blank=True,
+                default="",
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_cs",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_en",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_es",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_original",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_pt",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_zh",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="notebook",
             name="feed_tile_summary_zh_TW",
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Summary text displayed on feed tiles",
                 null=True,
+                help_text="Summary text displayed on feed tiles",
             ),
         ),
     ]
