@@ -36,7 +36,7 @@ const esModules = [
 const config = async () => ({
   /**
    * Using ...(await createJestConfig(customJestConfig)()) to override transformIgnorePatterns
-   * provided byt next/jest.
+   * provided by next/jest.
    *
    * @link https://github.com/vercel/next.js/issues/36077#issuecomment-1096635363
    */

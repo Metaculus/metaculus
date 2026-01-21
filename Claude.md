@@ -9,8 +9,8 @@
 # Code style
 - Check the existing code style and follow it
 - Destructure imports when possible (eg. import { foo } from 'bar')
-- Do not add excesive comments. Add comments only to document what would be surprising to a senior engineer.
-- For any frontend content visible to the user, use the translation mechanism used across the whole frontend.`const t = useTranslations()` and then `t("stringKey")` while addingt the "stringKey" to all the correspondong language files (en.json, es.json, etc).
+- Do not add excessive comments. Add comments only to document what would be surprising to a senior engineer.
+- For any frontend content visible to the user, use the translation mechanism used across the whole frontend. `const t = useTranslations()` and then `t("stringKey")` while adding the "stringKey" to all the corresponding language files (en.json, es.json, etc).
 
 # Workflow
 - Be sure to run the linter, type checker, formatter and try to build the code when you’re done making a series of code changes.

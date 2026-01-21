@@ -103,7 +103,7 @@ class TestVerifyEmail:
         assert response.data["token"]
 
     @pytest.mark.parametrize(
-        "params,expected_langauge",
+        "params,expected_language",
         [
             [{"language": "unknown"}, None],
             [{"language": None}, None],
@@ -111,7 +111,7 @@ class TestVerifyEmail:
         ],
     )
     def test_signup__language_variations(
-        self, anon_client, mocker, params, expected_langauge
+        self, anon_client, mocker, params, expected_language
     ):
         mocker.patch("authentication.views.common.send_activation_email")
 
@@ -128,4 +128,4 @@ class TestVerifyEmail:
         )
         assert response.status_code == 201
         user = User.objects.get(username="new_user")
-        assert user.language == expected_langauge
+        assert user.language == expected_language

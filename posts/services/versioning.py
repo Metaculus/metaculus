@@ -62,7 +62,7 @@ class PostVersionService:
                     post.conditional
                 )
             elif post.notebook_id:
-                snapshot["conditional"] = cls._get_notebook_snapshot(post.notebook)
+                snapshot["notebook"] = cls._get_notebook_snapshot(post.notebook)
 
             return snapshot
 
@@ -139,7 +139,7 @@ class PostVersionService:
 
     @classmethod
     def _get_notebook_snapshot(cls, notebook: Notebook) -> dict:
-        data = cls._extract_fields(notebook, ["id", "markdown", "markdown_summary"])
+        data = cls._extract_fields(notebook, ["id", "markdown", "feed_tile_summary"])
         data["image_url"] = str(notebook.image_url) if notebook.image_url else None
 
         return data
