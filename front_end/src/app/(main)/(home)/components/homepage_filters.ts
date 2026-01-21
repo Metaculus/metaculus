@@ -2,11 +2,11 @@ import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostForecastType } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
-export type TabId = "popular" | "news" | "new";
+export type TabId = "news" | "popular" | "new";
 
 export const TABS: { id: TabId; label: string }[] = [
-  { id: "popular", label: "Popular" },
   { id: "news", label: "In the news" },
+  { id: "popular", label: "Popular" },
   { id: "new", label: "New" },
 ];
 
