@@ -140,6 +140,7 @@ const MainFeedFilters: FC<Props> = ({
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+      { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       ...(!mainSortNewVisible
         ? [{ value: QuestionOrder.OpenTimeDesc, label: t("new") }]
         : []),
