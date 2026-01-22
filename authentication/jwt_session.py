@@ -10,7 +10,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-# Grace period for refresh token deduplication (seconds)
+# Grace period in seconds - old tokens still work during this window after refresh
 REFRESH_GRACE_PERIOD = 60
 
 # Redis key prefixes
@@ -18,28 +18,30 @@ GRACE_KEY_PREFIX = "jwt:grace:"
 REVOKED_KEY_PREFIX = "jwt:revoked:"
 
 
-def _get_grace_key(token_jti: str) -> str:
-    """Grace period key is based on old token's JTI for deduplication."""
-    return f"{GRACE_KEY_PREFIX}{token_jti}"
+def _get_grace_key(session_id: str) -> str:
+    """Grace period cache key - ensures one set of tokens per session."""
+    return f"{GRACE_KEY_PREFIX}{session_id}"
 
 
 def _get_revoked_key(session_id: str) -> str:
     return f"{REVOKED_KEY_PREFIX}{session_id}"
 
 
-def get_session_revoked_timestamp(session_id: str) -> int | None:
-    """Get the timestamp before which all tokens for this session are invalid."""
+def get_session_enforce_at(session_id: str) -> int | None:
+    """Get the enforcement timestamp for session revocation."""
     key = _get_revoked_key(session_id)
     value = cache.get(key)
     return int(value) if value else None
 
 
-def set_session_revoked_timestamp(session_id: str, timestamp: int) -> None:
-    """Set the timestamp before which all tokens for this session are invalid."""
+def set_session_enforce_at(session_id: str, enforce_at: int) -> None:
+    """
+    Set when to start enforcing revocation for a session.
+    Tokens with iat < (enforce_at - GRACE_PERIOD) will be revoked after enforce_at.
+    """
     key = _get_revoked_key(session_id)
-    # TTL should match refresh token lifetime
     ttl = int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
-    cache.set(key, timestamp, timeout=ttl)
+    cache.set(key, enforce_at, timeout=ttl)
 
 
 def is_token_revoked(token) -> bool:
@@ -51,14 +53,17 @@ def is_token_revoked(token) -> bool:
     if not session_id:
         return False
 
-    revoked_before = get_session_revoked_timestamp(session_id)
-    if revoked_before is None:
+    enforce_at = get_session_enforce_at(session_id)
+    if enforce_at is None:
+        return False
+
+    now = int(time.time())
+    if now < enforce_at:
         return False
 
     token_iat = token.get("iat", 0)
-    # Strictly less than - tokens issued at exactly revoked_before are valid
-    # This handles the case where new tokens are issued in the same second
-    return token_iat < revoked_before
+    revoked_at = enforce_at - REFRESH_GRACE_PERIOD
+    return token_iat < revoked_at
 
 
 class SessionAccessToken(AccessToken):
@@ -75,10 +80,10 @@ class SessionAccessToken(AccessToken):
 
 class SessionRefreshToken(RefreshToken):
     """
-    RefreshToken with session-based revocation instead of SimpleJWT's blacklist.
+    RefreshToken with session-based revocation.
 
     - Automatically adds session_id claim on creation
-    - Checks session revocation timestamp during verification
+    - Checks session revocation during verification
     - Uses SessionAccessToken for access token generation
     """
 
@@ -100,10 +105,6 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     """
     Refresh tokens with grace period deduplication and invalidation check.
 
-    Follows SimpleJWT's TokenRefreshSerializer logic with additions:
-    1. Grace period - deduplicate concurrent refresh requests
-    2. Session-based invalidation - reject tokens issued before revocation timestamp
-
     Returns:
         dict with 'access' and 'refresh' token strings
 
@@ -111,8 +112,6 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         InvalidToken if the token is revoked or invalid
         AuthenticationFailed if user is no longer active
     """
-    # Decode the refresh token without verification first
-    # We need to check grace period cache before rejecting revoked tokens
     try:
         refresh = SessionRefreshToken(refresh_token_str, verify=False)
     except Exception as e:
@@ -122,38 +121,28 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     if not session_id:
         raise InvalidToken("Token missing session_id claim")
 
-    token_jti = refresh.get("jti")
-    if not token_jti:
-        raise InvalidToken("Token missing jti claim")
+    grace_key = _get_grace_key(session_id)
 
-    old_iat = refresh.get("iat", 0)
-
-    # Grace key is based on old token's JTI - same old token = same cache
-    grace_key = _get_grace_key(token_jti)
-
-    # Try to get cached tokens from grace period FIRST
-    # This allows concurrent requests with the same old token to succeed
+    # Check grace period cache first
     cached = cache.get(grace_key)
     if cached:
         return json.loads(cached)
 
-    # Not in cache - now verify the token (includes signature, expiry, revocation)
+    # Verify token (includes signature, expiry, revocation check)
     try:
         refresh.verify()
     except TokenError as e:
         raise InvalidToken(str(e))
 
-    # No cached tokens - generate new ones
-    # Use lock to handle race conditions (blocking_timeout waits up to 1s)
+    # Generate new tokens with lock to handle race conditions
     lock_key = f"{grace_key}:lock"
 
     with cache.lock(lock_key, timeout=5, blocking_timeout=1):
-        # Double-check cache after acquiring lock
         cached = cache.get(grace_key)
         if cached:
             return json.loads(cached)
 
-        # Check user is still active (matches SimpleJWT behavior)
+        # Check user is still active
         user_id = refresh.get(api_settings.USER_ID_CLAIM)
         if user_id:
             User = get_user_model()
@@ -163,33 +152,26 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
                     "No active account found for the given token."
                 )
 
-        # Generate access token from current refresh token
         data = {"access": str(refresh.access_token)}
 
-        # Handle token rotation (matches SimpleJWT ROTATE_REFRESH_TOKENS behavior)
         if api_settings.ROTATE_REFRESH_TOKENS:
             refresh.set_jti()
             refresh.set_exp()
             refresh.set_iat()
-
-            # Preserve session_id across rotation
             refresh["session_id"] = session_id
-
             data["refresh"] = str(refresh)
 
-        # Cache the new tokens for grace period (keyed by old token's JTI)
         cache.set(grace_key, json.dumps(data), timeout=REFRESH_GRACE_PERIOD)
 
-        # Invalidate all tokens issued before this refresh (replaces blacklist)
-        set_session_revoked_timestamp(session_id, old_iat)
+        # Revoke tokens with iat <= now after grace period
+        set_session_enforce_at(session_id, int(time.time()) + REFRESH_GRACE_PERIOD)
 
         return data
 
 
 def revoke_session(session_id: str) -> None:
     """
-    Revoke all tokens for a session by setting revocation timestamp to now + 1.
-    The +1 ensures tokens issued in the same second are also revoked.
+    Immediately revoke all tokens for a session (no grace period).
     Call this on logout.
     """
-    set_session_revoked_timestamp(session_id, int(time.time()) + 1)
+    set_session_enforce_at(session_id, 0)
