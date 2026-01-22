@@ -11,10 +11,15 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from authentication.backends import AuthLoginBackend
-from authentication.jwt_session import refresh_tokens_with_grace_period
+from authentication.jwt_session import (
+    refresh_tokens_with_grace_period,
+    revoke_session,
+    SessionAccessToken,
+)
 from authentication.models import ApiKey
 from authentication.serializers import (
     SignupSerializer,
@@ -337,3 +342,25 @@ def token_refresh_api_view(request):
         raise InvalidToken(e.args[0]) from e
 
     return Response(tokens)
+
+
+@api_view(["POST"])
+def logout_api_view(request):
+    """
+    Logout endpoint that revokes the current session.
+    Accepts the access token in Authorization header to extract session_id.
+    """
+
+    jwt_auth = JWTAuthentication()
+    header = jwt_auth.get_header(request)
+
+    if header:
+        raw_token = jwt_auth.get_raw_token(header)
+
+        if raw_token:
+            token = SessionAccessToken(raw_token)
+            session_id = token.get("session_id")
+            if session_id:
+                revoke_session(session_id)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

@@ -49,9 +49,6 @@ def is_token_whitelisted(session_id: str, iat: int) -> bool:
 def get_session_enforce_at(session_id: str) -> int | None:
     """Get the enforcement timestamp for session revocation."""
     key = _get_revoked_key(session_id)
-
-    print("KEY", key)
-
     value = cache.get(key)
     return int(value) if value is not None else None
 
