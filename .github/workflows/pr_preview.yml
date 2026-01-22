@@ -289,13 +289,11 @@ jobs:
               --org ${{ vars.FLY_ORG || 'personal' }}
           fi
 
-          # Define app URLs (used for secrets and outputs)
-          # Custom domain via Cloudflare Worker: {fly_app}-preview.mtcl.cc
-          APP_DOMAIN="${APP_NAME}-preview.mtcl.cc"
-          PUBLIC_APP_URL="https://${APP_DOMAIN}"
-
-          # Register custom domain with Fly.io (Cloudflare handles SSL)
-          flyctl certs add "${APP_DOMAIN}" --app "${APP_NAME}" || true
+          # Define app URLs
+          # APP_DOMAIN: fly.dev hostname (used by nginx for host validation)
+          # PUBLIC_APP_URL: vanity URL via Cloudflare Worker (shown in PR comments)
+          APP_DOMAIN="${APP_NAME}.fly.dev"
+          PUBLIC_APP_URL="https://${APP_NAME}-preview.mtcl.cc"
 
           # Set all secrets and environment variables for the app
           # Secrets are encrypted at rest in Fly.io
