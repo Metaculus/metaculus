@@ -57,6 +57,7 @@ async function QuestionContent({
         subtitle={subtitle}
         variant={variant}
         className={className}
+        postId={postData.id}
       />
     );
   }
@@ -67,6 +68,7 @@ async function QuestionContent({
       subtitle={subtitle}
       variant={variant}
       className={className}
+      postId={postData.id}
     >
       <BasicQuestionContent
         postData={postData}

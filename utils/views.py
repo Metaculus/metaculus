@@ -124,7 +124,7 @@ def validate_data_request(request: Request, **kwargs):
     user: User = request.user
 
     question: Question | None = None
-    post: Post | None = None
+    posts: list[Post] = []
     project: Project | None = None
 
     if question_id := data.get("question_id"):
@@ -132,21 +132,36 @@ def validate_data_request(request: Request, **kwargs):
     elif sub_question := data.get("sub_question"):
         question = get_object_or_404(Question, id=sub_question)
 
+    # Handle multiple post_ids
+    # For GET requests, use getlist to handle repeated query params (post_ids=1&post_ids=2)
+    if request.method == "GET":
+        post_ids = request.GET.getlist("post_ids") or []
+    else:
+        post_ids = data.get("post_ids") or []
     if post_id := data.get("post_id"):
-        post = get_object_or_404(Post, id=post_id)
+        post_ids = [post_id] + [pid for pid in post_ids if str(pid) != str(post_id)]
+
+    if post_ids:
+        posts = list(Post.objects.filter(id__in=post_ids))
+        if len(posts) != len(post_ids):
+            found_ids = {p.id for p in posts}
+            missing_ids = [pid for pid in post_ids if int(pid) not in found_ids]
+            raise NotFound(f"Posts not found: {missing_ids}")
+        # Check permissions for all posts
+        for post in posts:
+            permission = get_post_permission_for_user(post, user=user)
+            ObjectPermission.can_view(permission, raise_exception=True)
     elif question:
         post = question.get_post()
-    else:
-        post = None
-    if post:
-        # Check permissions
-        permission = get_post_permission_for_user(post, user=user)
-        ObjectPermission.can_view(permission, raise_exception=True)
+        if post:
+            posts = [post]
+            permission = get_post_permission_for_user(post, user=user)
+            ObjectPermission.can_view(permission, raise_exception=True)
 
     if project_id := data.get("project_id"):
         project = get_object_or_404(Project, id=project_id)
-    elif post:
-        project = post.default_project
+    elif len(posts) == 1:
+        project = posts[0].default_project
     if project:
         # Check permissions
         permission = get_project_permission_for_user(project, user=user)
@@ -155,10 +170,10 @@ def validate_data_request(request: Request, **kwargs):
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
     project_ids = [project.id] if project else []
-    if post:
+    for post in posts:
         project_ids.extend(post.projects.values_list("id", flat=True))
     whitelistings = WhitelistUser.objects.filter(
-        (Q(post=post) if post else Q())
+        (Q(post__in=posts) if posts else Q())
         | (Q(project_id__in=project_ids) if project_ids else Q())
         | Q(project__isnull=True, post__isnull=True),
         user_id=user.id or 0,
@@ -198,8 +213,9 @@ def validate_data_request(request: Request, **kwargs):
     questions = []
     if question:
         questions = [question]
-    elif post:
-        questions = list(post.get_questions())
+    elif posts:
+        for post in posts:
+            questions.extend(post.get_questions())
     elif project:
         questions = list(
             Question.objects.filter(
@@ -209,9 +225,12 @@ def validate_data_request(request: Request, **kwargs):
     if not questions:
         raise NotFound("No questions found")
 
+    # Generate filename
     filename = "metaculus_data"
-    if post:
-        filename = post.short_title or post.title
+    if len(posts) == 1:
+        filename = posts[0].short_title or posts[0].title
+    elif len(posts) > 1:
+        filename = f"metaculus_data_{len(posts)}_posts"
     elif project:
         filename = project.slug or project.name
     filename = filename.replace("\n", "").replace("\r", "")

@@ -276,7 +276,8 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
       <DataRequestModal
         isOpen={isDownloadModalOpen}
         onClose={closeDownloadModal}
-        post={post}
+        postId={post.id}
+        title={post.short_title || post.title}
       />
       {isQuestionPost(post) && (
         <>
