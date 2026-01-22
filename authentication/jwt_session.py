@@ -16,6 +16,7 @@ REFRESH_GRACE_PERIOD = 60
 # Redis key prefixes
 GRACE_KEY_PREFIX = "jwt:grace:"
 REVOKED_KEY_PREFIX = "jwt:revoked:"
+WHITELIST_KEY_PREFIX = "jwt:whitelist:"
 
 
 def _get_grace_key(session_id: str) -> str:
@@ -27,17 +28,37 @@ def _get_revoked_key(session_id: str) -> str:
     return f"{REVOKED_KEY_PREFIX}{session_id}"
 
 
+def _get_whitelist_key(session_id: str, iat: int) -> str:
+    """Whitelist key for a specific token (by session + iat)."""
+    return f"{WHITELIST_KEY_PREFIX}{session_id}:{iat}"
+
+
+def whitelist_token(session_id: str, iat: int) -> None:
+    """Whitelist a token for the grace period."""
+    key = _get_whitelist_key(session_id, iat)
+    cache.set(key, 1, timeout=REFRESH_GRACE_PERIOD)
+
+
+def is_token_whitelisted(session_id: str, iat: int) -> bool:
+    """Check if a token is whitelisted."""
+    key = _get_whitelist_key(session_id, iat)
+    return cache.get(key) is not None
+
+
 def get_session_enforce_at(session_id: str) -> int | None:
     """Get the enforcement timestamp for session revocation."""
     key = _get_revoked_key(session_id)
+
+    print("KEY", key)
+
     value = cache.get(key)
     return int(value) if value is not None else None
 
 
 def set_session_enforce_at(session_id: str, enforce_at: int) -> None:
     """
-    Set when to start enforcing revocation for a session.
-    Tokens with iat < (enforce_at - GRACE_PERIOD) will be revoked after enforce_at.
+    Set the revocation timestamp for a session.
+    Tokens with iat < enforce_at will be revoked (unless whitelisted).
     """
     key = _get_revoked_key(session_id)
     ttl = int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
@@ -48,6 +69,10 @@ def is_token_revoked(token) -> bool:
     """
     Check if a token has been revoked based on session timestamp.
     Works with both RefreshToken and AccessToken.
+
+    A token is revoked if:
+    - enforce_at=0 (logout), OR
+    - token_iat < enforce_at AND token is not whitelisted
     """
     session_id = token.get("session_id")
     if not session_id:
@@ -61,13 +86,17 @@ def is_token_revoked(token) -> bool:
     if enforce_at == 0:
         return True
 
-    now = int(time.time())
-    if now < enforce_at:
+    token_iat = token.get("iat", 0)
+
+    # Token is new enough - not revoked
+    if token_iat >= enforce_at:
         return False
 
-    token_iat = token.get("iat", 0)
-    revoked_at = enforce_at - REFRESH_GRACE_PERIOD
-    return token_iat < revoked_at
+    # Token is old - check whitelist
+    if is_token_whitelisted(session_id, token_iat):
+        return False
+
+    return True
 
 
 class SessionAccessToken(AccessToken):
@@ -125,14 +154,19 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     if not session_id:
         raise InvalidToken("Token missing session_id claim")
 
+    old_token_iat = refresh.get("iat")
     grace_key = _get_grace_key(session_id)
 
-    # Check grace period cache first
+    # Check if token is revoked before anything else
+    if is_token_revoked(refresh):
+        raise InvalidToken("Token has been revoked")
+
+    # Check grace period cache - only reached if token is valid
     cached = cache.get(grace_key)
     if cached:
         return json.loads(cached)
 
-    # Verify token (includes signature, expiry, revocation check)
+    # Verify token (includes signature, expiry check - revocation already checked)
     try:
         refresh.verify()
     except TokenError as e:
@@ -142,6 +176,10 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     lock_key = f"{grace_key}:lock"
 
     with cache.lock(lock_key, timeout=5, blocking_timeout=1):
+        # Re-check revocation in case it changed while waiting for lock
+        if is_token_revoked(refresh):
+            raise InvalidToken("Token has been revoked")
+
         cached = cache.get(grace_key)
         if cached:
             return json.loads(cached)
@@ -167,8 +205,12 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
 
         cache.set(grace_key, json.dumps(data), timeout=REFRESH_GRACE_PERIOD)
 
-        # Revoke tokens with iat <= now after grace period
-        set_session_enforce_at(session_id, int(time.time()) + REFRESH_GRACE_PERIOD)
+        # Whitelist the old token for the grace period
+        if old_token_iat:
+            whitelist_token(session_id, old_token_iat)
+
+        # Set enforce_at to now - tokens with iat < now are revoked (unless whitelisted)
+        set_session_enforce_at(session_id, int(time.time()))
 
         return data
 
