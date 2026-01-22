@@ -46,7 +46,6 @@ const QuestionInfo: React.FC<Props> = ({
       )}
 
       <QuestionVariantComposer
-        postData={postData}
         forecaster={<PostScoreData post={postData} />}
         consumer={
           <div className="hidden sm:block">
@@ -65,7 +64,6 @@ const QuestionInfo: React.FC<Props> = ({
       <BackgroundInfo post={postData} />
 
       <QuestionVariantComposer
-        postData={postData}
         consumer={
           isGroupOfQuestionsPost(postData) &&
           postData.group_of_questions.graph_type ===
