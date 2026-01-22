@@ -146,11 +146,7 @@ const PostsFilters: FC<Props> = ({
 
     clearPopupFilters(withNavigation);
 
-    if (order === defaultOrder) {
-      deleteParam(POST_ORDER_BY_FILTER, withNavigation);
-    } else {
-      setParam(POST_ORDER_BY_FILTER, order, withNavigation);
-    }
+    setParam(POST_ORDER_BY_FILTER, order, withNavigation);
 
     if (onOrderChange) onOrderChange(order, setParam);
 
