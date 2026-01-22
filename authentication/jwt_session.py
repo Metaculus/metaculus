@@ -3,12 +3,13 @@ import time
 import uuid
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+
+from users.models import User
 
 # Grace period in seconds - old tokens still work during this window after refresh
 REFRESH_GRACE_PERIOD = 60
@@ -187,8 +188,7 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         # Check user is still active
         user_id = refresh.get(api_settings.USER_ID_CLAIM)
         if user_id:
-            User = get_user_model()
-            user = User.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+            user = User.objects.get(pk=user_id)
             if not api_settings.USER_AUTHENTICATION_RULE(user):
                 raise AuthenticationFailed(
                     "No active account found for the given token."
