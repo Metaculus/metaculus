@@ -145,8 +145,9 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     """
     try:
         refresh = SessionRefreshToken(refresh_token_str, verify=False)
-    except Exception as e:
-        raise InvalidToken(str(e))
+    except Exception:
+        # Do not expose internal exception details to the client
+        raise InvalidToken("Invalid token")
 
     session_id = refresh.get("session_id")
     if not session_id:
