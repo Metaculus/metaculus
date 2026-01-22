@@ -11,8 +11,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from authentication.backends import AuthLoginBackend
+from authentication.jwt_session import refresh_tokens_with_grace_period
 from authentication.models import ApiKey
 from authentication.serializers import (
     SignupSerializer,
@@ -314,3 +316,24 @@ def exchange_legacy_token_api_view(request):
     tokens = get_tokens_for_user(user)
 
     return Response({"tokens": tokens})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def token_refresh_api_view(request):
+    """
+    Custom token refresh endpoint with:
+    1. Grace period deduplication for concurrent requests
+    2. Timestamp-based token invalidation
+    """
+
+    refresh_token = request.data.get("refresh")
+    if not refresh_token:
+        raise ValidationError({"refresh": ["This field is required."]})
+
+    try:
+        tokens = refresh_tokens_with_grace_period(refresh_token)
+    except (InvalidToken, TokenError) as e:
+        raise ValidationError({"refresh": [str(e)]})
+
+    return Response(tokens)

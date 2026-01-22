@@ -197,6 +197,7 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "CHECK_REVOKE_TOKEN": True,
     "REVOKE_TOKEN_CLAIM": "hash",
+    "AUTH_TOKEN_CLASSES": ("authentication.jwt_session.SessionAccessToken",),
     **get_jwt_encryption_config(),
 }
 
