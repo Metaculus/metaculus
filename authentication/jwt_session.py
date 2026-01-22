@@ -31,7 +31,7 @@ def get_session_enforce_at(session_id: str) -> int | None:
     """Get the enforcement timestamp for session revocation."""
     key = _get_revoked_key(session_id)
     value = cache.get(key)
-    return int(value) if value else None
+    return int(value) if value is not None else None
 
 
 def set_session_enforce_at(session_id: str, enforce_at: int) -> None:
@@ -56,6 +56,10 @@ def is_token_revoked(token) -> bool:
     enforce_at = get_session_enforce_at(session_id)
     if enforce_at is None:
         return False
+
+    # Special case: enforce_at=0 means immediate revocation (logout)
+    if enforce_at == 0:
+        return True
 
     now = int(time.time())
     if now < enforce_at:
