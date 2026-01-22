@@ -1,0 +1,39 @@
+# Fly.io configuration for Metaculus preview deployments (app only)
+# This file is used for PR preview environments WITHOUT background workers
+# See: https://fly.io/docs/reference/configuration/
+
+app = "metaculus-preview"
+primary_region = "iad"
+
+[build]
+  # We use a pre-built Docker image from GitHub Container Registry
+  # The image is specified via --image flag during deploy
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+  GUNICORN_WORKERS = "2"
+  NODE_INSTANCES = "1"
+  NODE_HEAP_SIZE = "1024"
+  PUBLIC_DISALLOW_ALL_BOTS = "true"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[processes]
+  app = "scripts/prod/startapp.sh"
+
+# VM configuration for app process
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2
+  processes = ["app"]
+
+[deploy]
+  release_command = "scripts/prod/release.sh"

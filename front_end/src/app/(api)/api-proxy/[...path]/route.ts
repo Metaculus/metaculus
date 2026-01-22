@@ -57,6 +57,12 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     "x-forwarded-host",
     "x-forwarded-port",
     "x-forwarded-proto",
+    // Additional scheme headers that can cause "Contradictory scheme headers" warning on Fly.io
+    "x-forwarded-ssl",
+    "x-forwarded-scheme",
+    "x-scheme",
+    "x-url-scheme",
+    "forwarded",
 
     // custom headers used to apply the same logic as on server fetcher
     "x-empty-content",
