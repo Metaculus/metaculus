@@ -8,7 +8,7 @@ import LeaderboardTabs from "../../components/leaderboard-tabs";
 
 export default async function Page() {
   const allSheets = await getAllSheetsData(
-    process.env.BW_LEADERBOARDS_GOOGLE_SHEET_ID_2024 || "",
+    process.env.BW_LEADERBOARDS_GOOGLE_SHEET_ID_2025 || "",
     process.env.BW_LEADERBOARDS_GOOGLE_CREDENTIALS_B64 || ""
   );
   const currentUser = await ServerProfileApi.getMyProfile();
