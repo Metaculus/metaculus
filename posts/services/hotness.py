@@ -52,8 +52,16 @@ def _compute_question_hotness_movement(question: Question) -> float:
 
 def _compute_question_hotness_open_time(question: Question) -> float:
     return (
-        decay(20, question.open_time)
+        decay(10, question.open_time)
         if question.open_time and timezone.now() > question.open_time
+        else 0
+    )
+
+
+def _compute_question_hotness_cp_reveal_time(question: Question) -> float:
+    return (
+        decay(20, question.cp_reveal_time)
+        if question.cp_reveal_time and timezone.now() > question.cp_reveal_time
         else 0
     )
 
@@ -72,6 +80,7 @@ def _compute_question_hotness_resolution_time(question: Question) -> float:
 QUESTION_HOTNESS_COMPONENTS = [
     ("Movement Score", _compute_question_hotness_movement),
     ("Open Time Score", _compute_question_hotness_open_time),
+    ("CP Reveal Time Score", _compute_question_hotness_cp_reveal_time),
     ("Resolution Time Score", _compute_question_hotness_resolution_time),
 ]
 
