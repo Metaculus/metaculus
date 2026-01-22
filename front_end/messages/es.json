@@ -1930,5 +1930,7 @@
   "reportPreviewAlt": "Vista previa del informe",
   "pagesWithCount": "{count, plural, one {# página} other {# páginas}}",
   "publishedWithLabel": "Publicado {label}",
+  "hostWorkshop": "Organiza un taller",
+  "hostWorkshopDescription": "Reúne a expertos y partes interesadas para alinearse en problemas complejos en sesiones enfocadas y en tiempo real. Nuestro equipo gestiona el proceso de principio a fin, utilizando métodos de pronóstico probados para rápidamente descubrir incertidumbres críticas, ideas clave y áreas de desacuerdo.",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

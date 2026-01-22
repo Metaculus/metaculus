@@ -18,18 +18,22 @@ export const metadata = {
 export default async function ServicesPage() {
   const t = await getTranslations();
   const { mainPageTournamentsList } = ServiceConfig;
+
   const [tournaments, siteStats] = await Promise.all([
     ServerProjectsApi.getTournaments({
       show_on_services_page: true,
     }),
     serverMiscApi.getSiteStats(),
   ]);
+
   const mainPageTournaments = tournaments.filter((tournament) =>
     mainPageTournamentsList.find(
       ({ id }) => String(id) === tournament.slug || id === tournament.id
     )
   );
+
   const sortedTournaments = sortServiceTournaments(mainPageTournaments);
+
   const statsList = [
     {
       label: t("predictions"),
@@ -64,11 +68,6 @@ export default async function ServicesPage() {
         description: t("launchTournamentDescription"),
         data: sortedTournaments,
       }}
-      caseStudies={{
-        title: t("caseStudiesTitle"),
-        description: t("caseStudiesDescription"),
-        cards: CASE_STUDIES,
-      }}
       privateInstances={{
         title: t("privateInstances"),
         description: t("deployMetaculusPlatform"),
@@ -77,6 +76,16 @@ export default async function ServicesPage() {
         title: t("proForecasters"),
         firstPart: t("engageProForecasters"),
         secondPart: t("ourMostAccurateForecasters"),
+      }}
+      workshop={{
+        title: t("hostWorkshop"),
+        description: t("hostWorkshopDescription"),
+        href: "/services/workshops",
+      }}
+      caseStudies={{
+        title: t("caseStudiesTitle"),
+        description: t("caseStudiesDescription"),
+        cards: CASE_STUDIES,
       }}
     />
   );

@@ -1930,5 +1930,7 @@
   "reportPreviewAlt": "Náhled zprávy",
   "pagesWithCount": "{count, plural, one {# stránka} other {# stránek}}",
   "publishedWithLabel": "Publikováno {label}",
+  "hostWorkshop": "Pořádat workshop",
+  "hostWorkshopDescription": "Spojte odborníky a zainteresované strany, abyste se zaměřili na složité problémy v cílených, reálných časových blocích. Náš tým spravuje proces od začátku do konce, s použitím osvědčených metod prognózování k rychlému zveřejnění kritických nejistot, klíčových poznatků a oblastí neshod.",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

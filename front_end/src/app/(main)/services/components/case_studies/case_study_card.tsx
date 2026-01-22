@@ -30,12 +30,21 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
         </h6>
 
         <div className="mt-2 text-sm font-medium">
-          {!!card.body.intro && <p className="m-0">{card.body.intro}</p>}
-          <ul className="list-disc pl-5">
-            {card.body.bullets.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
+          <div
+            className={cn(
+              "overflow-hidden",
+              "[-webkit-box-orient:vertical] [display:-webkit-box]",
+              "[-webkit-line-clamp:5] sm:[-webkit-line-clamp:7]"
+            )}
+          >
+            {!!card.body.intro && <p className="m-0">{card.body.intro}</p>}
+
+            <ul className="m-0 list-disc pl-5">
+              {card.body.bullets.map((item, idx) => (
+                <li key={`${item}-${idx}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <hr className="my-3 h-[2px] bg-gray-200 opacity-20 dark:bg-gray-200-dark dark:opacity-20 sm:my-6" />
@@ -58,9 +67,9 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
             </p>
 
             <div className="mt-2 flex items-center gap-2 gap-x-6 gap-y-3">
-              {card.partners.logos.map((logo) => (
+              {card.partners.logos.map((logo, idx) => (
                 <Image
-                  key={logo.src}
+                  key={logo.src + idx}
                   src={logo.src}
                   alt={logo.alt}
                   height={14}

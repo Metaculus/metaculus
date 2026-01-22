@@ -7,7 +7,9 @@ import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
-import DevicesImage from "../../assets/devices.svg?url";
+import DesktopImage from "../../assets/desktop.webp";
+import PhoneImage from "../../assets/phone.webp";
+import WorkshopImage from "../../assets/workshop.svg?url";
 import { sortServiceTournaments } from "../../helpers";
 import ServiceConfig from "../../serviceConfig";
 import Button from "../button";
@@ -38,6 +40,11 @@ type Props = {
   };
   privateInstances: { title: string; description: string };
   proForecasters: { title: string; firstPart: string; secondPart: string };
+  workshop?: {
+    title: string;
+    description: string;
+    href?: string;
+  };
   vertical?: "financial-services";
 };
 
@@ -48,6 +55,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
   caseStudies,
   privateInstances,
   proForecasters,
+  workshop,
   vertical,
 }) => {
   const t = await getTranslations();
@@ -103,7 +111,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
   }
 
   return (
-    <main className="mx-auto box-border flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
+    <main className="mx-auto box-content flex min-h-screen max-w-[1044px] flex-grow flex-col px-4 pt-8 sm:px-8 sm:pt-[52px] lg:px-16 lg:pt-[72px] xl:px-0 xl:pt-[132px]">
       <HeadingBlock
         statsList={finalStatsList}
         overview={overview}
@@ -126,12 +134,20 @@ const ServicesPageTemplate: React.FC<Props> = async ({
 
       <div className="mt-4 flex flex-col gap-4 sm:mt-8 sm:gap-8 lg:flex-row">
         <div className="flex w-full flex-col items-center rounded-2xl bg-blue-800 p-8 sm:items-start sm:p-[64px]">
-          <Image
-            src={DevicesImage}
-            alt="Devices image"
-            unoptimized
-            className="h-auto w-full"
-          />
+          <div className="relative w-full max-w-[560px]">
+            <Image
+              src={DesktopImage}
+              alt="Metaculus on desktop"
+              unoptimized
+              className="h-auto w-full"
+            />
+            <Image
+              src={PhoneImage}
+              alt="Metaculus on mobile"
+              unoptimized
+              className="absolute bottom-0 right-0 h-auto w-[30%] translate-x-[10%] translate-y-[6%]"
+            />
+          </div>
           <h3 className="m-0 mt-[38px] text-2xl font-bold tracking-tight text-blue-200 sm:text-start sm:text-3xl">
             {privateInstances.title}
           </h3>
@@ -140,7 +156,7 @@ const ServicesPageTemplate: React.FC<Props> = async ({
           </p>
           <Button
             href={`${base}/private-instances`}
-            className="mt-[38px] uppercase lg:mt-auto"
+            className="mt-[38px] uppercase"
           >
             {t("learnMore")}
           </Button>
@@ -191,6 +207,49 @@ const ServicesPageTemplate: React.FC<Props> = async ({
           </Button>
         </div>
       </div>
+
+      {workshop && (
+        <div className="mt-4 sm:mt-8">
+          <div className="flex flex-col gap-8 rounded-2xl bg-blue-800 p-8 sm:p-[64px] lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col items-center sm:items-start">
+              <h3 className="m-0 text-2xl font-bold tracking-tight text-blue-200 sm:text-3xl">
+                {workshop.title}
+              </h3>
+
+              <p className="m-0 mt-5 max-w-[560px] text-center text-sm font-normal text-blue-500 sm:text-start sm:text-lg sm:font-medium">
+                {workshop.description}
+              </p>
+
+              <div className="mt-8 flex flex-col items-center gap-8 sm:items-start lg:mt-0">
+                <div className="order-1 flex w-full items-center justify-center lg:order-2 lg:hidden lg:w-auto lg:shrink-0">
+                  <Image
+                    src={WorkshopImage}
+                    alt="Workshop illustration"
+                    unoptimized
+                    className="h-auto w-full max-w-[420px]"
+                  />
+                </div>
+
+                <Button
+                  href={workshop.href ?? `${base}/workshops`}
+                  className="order-2 mt-0 w-fit uppercase lg:order-1 lg:mt-[38px]"
+                >
+                  {t("learnMore")}
+                </Button>
+              </div>
+            </div>
+
+            <div className="hidden lg:flex lg:w-auto lg:shrink-0 lg:items-center lg:justify-center">
+              <Image
+                src={WorkshopImage}
+                alt="Workshop illustration"
+                unoptimized
+                className="h-auto w-full max-w-[420px]"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {caseStudies && (
         <div className="mt-12 lg:mt-32">

@@ -1932,5 +1932,7 @@
   "reportPreviewAlt": "报告预览",
   "pagesWithCount": "{count, plural, one {# 页} other {# 页}}",
   "publishedWithLabel": "已发布 {label}",
+  "hostWorkshop": "举办工作坊",
+  "hostWorkshopDescription": "聚集专家和利益相关者，在专注且实时的会议中就复杂问题达成一致。我们的团队负责从头到尾地管理这个过程，利用经过验证的预测方法快速揭示关键的不确定性、重要见解以及存在分歧的领域。",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
