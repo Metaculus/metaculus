@@ -333,7 +333,7 @@ def token_refresh_api_view(request):
 
     try:
         tokens = refresh_tokens_with_grace_period(refresh_token)
-    except (InvalidToken, TokenError) as e:
-        raise ValidationError({"refresh": [str(e)]})
+    except TokenError as e:
+        raise InvalidToken(e.args[0]) from e
 
     return Response(tokens)
