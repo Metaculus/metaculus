@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -26,9 +26,13 @@ from coherence.services import (
 )
 from coherence.utils import get_aggregation_results, get_aggregations_links
 from posts.services.common import get_post_permission_for_user
+from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, Forecast
-from questions.serializers.common import serialize_question
+from questions.services.forecasts import create_forecast_bulk
+from questions.serializers.common import serialize_question, ForecastWriteSerializer
+from scoring.models import Leaderboard
+from users.models import User
 
 
 @api_view(["POST"])
@@ -134,7 +138,7 @@ def delete_link_api_view(request, pk):
 
 
 @api_view(["GET"])
-def get_questions_requiring_update(request):
+def get_links_for_questions(request):
     user = request.user
     if not user.is_authenticated:
         raise PermissionDenied(
@@ -144,7 +148,7 @@ def get_questions_requiring_update(request):
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     question_ids = serializer.validated_data["question_ids"]
-    datetime = serializer.validated_data["datetime"]
+    # datetime = serializer.validated_data["datetime"]
     retrieve_all_data = serializer.validated_data.get("retrieve_all_data", False)
 
     if retrieve_all_data:
@@ -154,30 +158,65 @@ def get_questions_requiring_update(request):
     else:
         links_user = user
 
-    links = (
-        CoherenceLink.objects.filter(
-            Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
-        )
-        .distinct("id")
-        .annotate(
-            forecast_on_q2_is_stale=~Exists(
-                Forecast.objects.filter(
-                    question_id=OuterRef("question2_id"),
-                    author_id=OuterRef("user_id"),
-                    start_time__gt=datetime,
-                )
-            )
-        )
-    )
+    links = CoherenceLink.objects.filter(
+        Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
+    ).distinct("id")
     if links_user is not None:
         links = links.filter(user=links_user)
 
     serialized_links = CoherenceLinkSerializer(links, many=True).data
-    question_ids_to_update = links.filter(forecast_on_q2_is_stale=True).values_list(
-        "question2_id", flat=True
-    )
-    questions = Question.objects.filter(
-        id__in=question_ids + question_ids_to_update
-    ).distinct("id")
-    serialized_questions = [serialize_question(q) for q in questions]
+    serialized_questions = [
+        serialize_question(q) for q in Question.objects.filter(id__in=question_ids)
+    ]
     return Response({"links": serialized_links, "questions": serialized_questions})
+
+
+class CoherenceBotForecastSerializer(ForecastWriteSerializer):
+    forecaster_id = serializers.IntegerField()
+
+    class Meta(ForecastWriteSerializer.Meta):
+        fields = ForecastWriteSerializer.Meta.fields + ("forecaster_id",)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def post_coherence_bot_forecast(request):
+    """
+    Posts a forecast as a Coherence Bot for a given user
+    """
+    serializer = CoherenceBotForecastSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    forecast = serializer.validated_data
+
+    forecaster_id = forecast.pop("forecaster_id")
+    question: Question = Question.objects.get(id=forecast["question"])
+    forecast["question"] = question  # used in create_foreacst_bulk
+
+    # get coherence bot for user
+    user = User.objects.get(id=forecaster_id)
+    coherence_bot = User.objects.filter(
+        metadata={"coherence_bot_for_user_id": user.id}
+    ).first()
+    bot_created = False
+    if not coherence_bot:
+        bot_created = True
+        coherence_bot = User.objects.create(
+            username=f"{user.username}-coherence-bot",
+            is_bot=True,
+            check_for_spam=False,
+            bot_owner=request.user,
+            metadata={"coherence_bot_for_user_id": user.id},
+        )
+
+    create_forecast_bulk(user=coherence_bot, forecasts=[forecast])
+
+    if bot_created:
+        # add coherence_bot to coherence Leaderboard
+        project: Project = question.post.default_project
+        coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            name="Coherence Leaderboard",
+            score_type="peer_tournament",
+            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+        )
+        coherence_leaderboard.user_list.add(coherence_bot)

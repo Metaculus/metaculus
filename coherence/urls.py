@@ -20,9 +20,14 @@ urlpatterns = [
         name="delete-link",
     ),
     path(
-        "coherence/links/needs-update/",
-        views.get_questions_requiring_update,
+        "coherence/links/",
+        views.get_links_for_questions,
         name="needs-update",
+    ),
+    path(
+        "coherence/bot-forecast/",
+        views.post_coherence_bot_forecast,
+        name="post-coherence-bot-forecast",
     ),
     # Question-level links
     path(
