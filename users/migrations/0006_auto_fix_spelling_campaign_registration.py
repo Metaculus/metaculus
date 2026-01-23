@@ -5,7 +5,7 @@ from django.db import migrations
 
 def fw_migration(apps, schema_editor):
     """
-    Fix the speling of 'undegrad' to 'undergrad' in the UserCampaignRegistration details JSON field
+    Fix the spelling of 'undegrad' to 'undergrad' in the UserCampaignRegistration details JSON field
     """
 
     UserCampaignRegistration = apps.get_model("users", "UserCampaignRegistration")
