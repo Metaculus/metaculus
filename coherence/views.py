@@ -174,8 +174,8 @@ def get_links_for_questions(request):
         serialize_question(q) for q in Question.objects.filter(id__in=question_ids)
     ]
     # annotate all coherence bots' 2 most recent forecasts
-    # coherence_bots = User.objects.filter(metadata__has_key="coherence_bot_for_user_id")
-    coherence_bots = User.objects.filter()
+    coherence_bots = User.objects.filter(metadata__has_key="coherence_bot_for_user_id")
+    # coherence_bots = User.objects.filter()
     coherence_bot_forecasts = Forecast.objects.filter(
         author__in=coherence_bots, question__in=questions
     ).order_by("-start_time")
@@ -258,3 +258,6 @@ def post_coherence_bot_forecast(request):
             bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
         )
         coherence_leaderboard.user_list.add(coherence_bot)
+        coherence_leaderboard.user_list.add(request.user)
+
+    return Response({"status": "success"}, status=200)
