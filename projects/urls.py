@@ -6,8 +6,10 @@ urlpatterns = [
     path("projects/topics/", views.topics_list_api_view),
     path("projects/news-categories/", views.news_categories_list_api_view),
     path("projects/categories/", views.categories_list_api_view),
+    path("projects/homepage_categories/", views.homepage_categories_list_api_view),
     path("projects/leaderboard-tags/", views.leaderboard_tags_list_api_view),
     path("projects/tournaments/", views.tournaments_list_api_view),
+    path("projects/minibenches/", views.minibench_tournaments_api_view),
     path("projects/site_main/", views.site_main_view),
     path("projects/tournaments/<str:slug>/", views.tournament_by_slug_api_view),
     path(

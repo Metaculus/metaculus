@@ -8,6 +8,8 @@ import { BotLeaderboardStatus, Tournament } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
 
+import GradientProgressLine from "./gradient_progress_line";
+
 type Props = {
   tournament: Tournament;
   latestScheduledCloseTimestamp: number;
@@ -39,9 +41,11 @@ const ActiveTournamentTimeline: FC<Props> = async ({
     tournament.start_date,
     totalTime
   );
+  const currentYear = getYear(new Date());
+  const startYear = getYear(new Date(tournament.start_date));
+  const closeYear = getYear(new Date(latestScheduledCloseTimestamp));
   const formatString =
-    getYear(new Date(latestScheduledCloseTimestamp)) ===
-    getYear(new Date(tournament.start_date))
+    startYear === currentYear && closeYear === currentYear
       ? "MMM dd"
       : "MMM dd yyyy";
   return (
@@ -66,15 +70,13 @@ const ActiveTournamentTimeline: FC<Props> = async ({
           {t("closes")}
         </p>
       </div>
-      <div className="relative my-2.5 flex h-1 w-full rounded bg-blue-400 dark:bg-blue-400-dark sm:my-3">
-        {!isUpcoming && (
-          <div
-            className="relative h-full rounded bg-blue-700 dark:bg-blue-700-dark"
-            style={{ width: `${progressPercentage}%` }}
-          >
-            <TimelineArrow progressPercentage={progressPercentage} />
-          </div>
+      <div className="relative my-2.5 w-full sm:my-3">
+        {!isUpcoming ? (
+          <GradientProgressLine pct={progressPercentage} />
+        ) : (
+          <div className="h-1 w-full rounded bg-blue-400 dark:bg-blue-400-dark" />
         )}
+
         {lastParticipationDayTimestamp && lastParticipationPosition && (
           <LastDayParticipationChip
             lastParticipationDayTimestamp={lastParticipationDayTimestamp}
@@ -144,28 +146,6 @@ const LastDayParticipationChip: FC<{
     </div>
   );
 };
-
-const TimelineArrow: FC<{
-  progressPercentage: number;
-}> = ({ progressPercentage }) => (
-  <div
-    className={cn(
-      "absolute left-full top-[50%] -translate-x-1/2 -translate-y-1/2",
-      progressPercentage < 3 && "hidden"
-    )}
-  >
-    <div
-      className={cn(
-        "h-3 w-[4px] origin-bottom-right -rotate-45 rounded-full bg-blue-700 dark:bg-blue-700-dark"
-      )}
-    />
-    <div
-      className={cn(
-        "h-3 w-[4px] origin-top-right rotate-45 rounded-full bg-blue-700 dark:bg-blue-700-dark"
-      )}
-    />
-  </div>
-);
 
 function calculateLastParticipationPosition(
   lastParticipationDayTimestamp: number | null,

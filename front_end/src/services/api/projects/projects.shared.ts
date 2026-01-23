@@ -1,6 +1,6 @@
 import { ApiService } from "@/services/api/api_service";
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
-import { ProjectPermissions } from "@/types/post";
+import { Post, ProjectPermissions } from "@/types/post";
 import {
   Category,
   Community,
@@ -38,6 +38,12 @@ class ProjectsApi extends ApiService {
     return await this.get<Category[]>("/projects/categories/");
   }
 
+  async getHomepageCategories(): Promise<(Category & { posts: Post[] })[]> {
+    return await this.get<(Category & { posts: Post[] })[]>(
+      `/projects/homepage_categories/`
+    );
+  }
+
   async getNewsCategories(): Promise<NewsCategory[]> {
     return await this.get<NewsCategory[]>("/projects/news-categories/");
   }
@@ -64,6 +70,10 @@ class ProjectsApi extends ApiService {
 
   async getTournament(slug: string | number): Promise<Tournament | null> {
     return await this.get<Tournament>(`/projects/tournaments/${slug}/`);
+  }
+
+  async getMinibenchTournaments(): Promise<TournamentPreview[]> {
+    return await this.get<TournamentPreview[]>("/projects/minibenches/");
   }
 
   async getMembers(projectId: number): Promise<TournamentMember[]> {

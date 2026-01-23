@@ -1,6 +1,6 @@
 "use client";
 import Slider from "rc-slider";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState, useMemo } from "react";
 
 import "./slider.css";
 
@@ -23,6 +23,8 @@ type Props = {
   disabled?: boolean;
 };
 
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+
 const MultiSlider: FC<Props> = ({
   value,
   step,
@@ -37,6 +39,9 @@ const MultiSlider: FC<Props> = ({
     value.right,
   ]);
   const [allowCross, setAllowCross] = useState(true);
+
+  const activeIndexRef = useRef<number | null>(null);
+
   // controls the slide change behaviour
   // undefined - block any changes (e.g. clicking the track)
   // null - regular slide change (a.k.a. dragging a single thumb)
@@ -45,6 +50,8 @@ const MultiSlider: FC<Props> = ({
     undefined
   );
   const handlePressIn = (index: number) => {
+    activeIndexRef.current = index;
+
     if (index === 1) {
       persistedPositionOrigin.current = controlledValue;
     } else {
@@ -67,13 +74,31 @@ const MultiSlider: FC<Props> = ({
           right,
         });
       }
+    } else {
+      setControlledValue([value.left, value.center, value.right]);
     }
   }, [value, shouldSyncWithDefault, onChange, clampStep]);
 
-  const handleValueChange = (value: ControlledValue) => {
+  const uiValue = useMemo<ControlledValue>(() => {
+    return [
+      clamp01(controlledValue[0]),
+      clamp01(controlledValue[1]),
+      clamp01(controlledValue[2]),
+    ];
+  }, [controlledValue]);
+
+  const handleValueChange = (nextUi: ControlledValue) => {
     if (persistedPositionOrigin.current === undefined) {
       return;
     }
+
+    const active = activeIndexRef.current;
+
+    const incoming: ControlledValue = [
+      active === 0 ? nextUi[0] : controlledValue[0],
+      active === 1 ? nextUi[1] : controlledValue[1],
+      active === 2 ? nextUi[2] : controlledValue[2],
+    ];
 
     let newValue: ControlledValue;
     if (persistedPositionOrigin.current !== null) {
@@ -83,27 +108,27 @@ const MultiSlider: FC<Props> = ({
           origin: persistedPositionOrigin.current[1],
           value: persistedPositionOrigin.current[0],
         },
-        { origin: value[1], value: value[0] }
+        { origin: incoming[1], value: incoming[0] }
       );
       const lastItemDelta = calculateCenterMovementDiff(
         {
           origin: persistedPositionOrigin.current[1],
           value: persistedPositionOrigin.current[2],
         },
-        { origin: value[1], value: value[2] }
+        { origin: incoming[1], value: incoming[2] }
       );
 
       newValue = [
-        value[0] + firstItemDelta,
-        value[1],
-        value[2] + lastItemDelta,
+        incoming[0] + firstItemDelta,
+        incoming[1],
+        incoming[2] + lastItemDelta,
       ];
     } else {
       setAllowCross(false);
       newValue = [
-        Math.min(value[0], value[1] - clampStep),
-        value[1],
-        Math.max(value[2], value[1] + clampStep),
+        Math.min(incoming[0], incoming[1] - clampStep),
+        incoming[1],
+        Math.max(incoming[2], incoming[1] + clampStep),
       ];
     }
 
@@ -120,12 +145,13 @@ const MultiSlider: FC<Props> = ({
       min={0}
       max={1}
       step={step}
-      value={controlledValue}
+      value={uiValue}
       range
       disabled={disabled}
-      onChange={(value) => handleValueChange(value as ControlledValue)}
+      onChange={(v) => handleValueChange(v as ControlledValue)}
       onChangeComplete={() => {
         persistedPositionOrigin.current = undefined;
+        activeIndexRef.current = null;
       }}
       pushable={true}
       allowCross={allowCross}
@@ -135,11 +161,7 @@ const MultiSlider: FC<Props> = ({
         return (
           <SliderThumb
             {...origin.props}
-            value={
-              // Pass the correct value
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              controlledValue[props.index]!
-            }
+            value={getThumbValue(uiValue, props.index)}
             active={props.index === 1}
             onClickIn={() => {
               handlePressIn(props.index);
@@ -164,5 +186,12 @@ function calculateCenterMovementDiff(
   const valueDiff = value.value - value.origin;
   return persistedValueDiff - valueDiff;
 }
+
+const getThumbValue = (values: ControlledValue, index: number): number => {
+  if (index === 0) return values[0];
+  if (index === 1) return values[1];
+  if (index === 2) return values[2];
+  return values[1];
+};
 
 export default MultiSlider;

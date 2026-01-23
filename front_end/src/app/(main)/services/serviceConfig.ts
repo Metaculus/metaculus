@@ -14,27 +14,43 @@ const ServiceConfig = {
     "placeholder-for-last-circle",
   ],
   mainPageTournamentsList: [
-    { id: "bridgewater" },
-    { id: "keep-virginia-safe-ii" },
-    { id: "fiscal" },
-    { id: "climate" },
+    // bridgewater
+    { id: 32567 },
+    // keep-virginia-safe-ii
+    { id: 2100 },
+    // fiscal
+    { id: 32725 },
+    // climate
+    { id: 1756 },
   ],
   // Use order to sort tournaments in the carousel/list
   tournamentsOrder: [
-    { id: "bridgewater", order: 1 },
-    { id: "keep-virginia-safe-ii", order: 2 },
-    { id: "respiratory-outlook-24-25", order: 3 },
-    { id: "fiscal", order: 4 },
-    { id: "climate", order: 5 },
-    { id: "biosecurity-tournament", order: 6 },
-    { id: "market-pulse", order: 7 },
-    { id: "flusight-challenge23-24", order: 8 },
-    { id: "global-pulse", order: 9 },
-    { id: "aibq2", order: 10 },
-    { id: "metaculus-cup", order: 11 },
-    { id: "ukraine-conflict", order: 12 },
+    // bridgewater
+    { id: 32567, order: 1 },
+    // keep-virginia-safe-ii
+    { id: 2100, order: 2 },
+    // respiratory-outlook-24-25
+    { id: 3411, order: 3 },
+    // fiscal
+    { id: 32725, order: 4 },
+    // climate
+    { id: 1756, order: 5 },
+    // biosecurity-tournament
+    { id: 1703, order: 6 },
+    // market-pulse
+    { id: 32917, order: 7 },
+    // flusight-challenge23-24
+    { id: 2569, order: 8 },
+    // global-pulse
+    { id: 2722, order: 9 },
+    // aibq2
+    { id: 32721, order: 10 },
+    // metaculus-cup
+    { id: 32828, order: 11 },
+    // ukraine-conflict
+    { id: 1426, order: 12 },
   ],
-  spotlightTournamentId: "bridgewater",
+  spotlightTournamentId: "bridgewater-2025",
   partnersLogos: [
     {
       light: "/partners/astera-logo.svg?url",

@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+from itertools import chain
 from typing import Iterable
 
 from django.db import IntegrityError
@@ -9,7 +10,9 @@ from django.utils.timezone import make_aware
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from questions.models import Question
 from users.models import User
+from utils.cache import cache_per_object
 from utils.dtypes import generate_map_from_list
 
 
@@ -152,7 +155,7 @@ def move_project_forecasting_end_date(project: Project, post: Post):
     project.save(update_fields=["forecasting_end_date"])
 
 
-def get_project_timeline_data(project: Project):
+def _calculate_timeline_data(project: Project, questions: Iterable[Question]) -> dict:
     all_questions_resolved = True
     all_questions_closed = True
 
@@ -160,44 +163,36 @@ def get_project_timeline_data(project: Project):
     actual_resolve_times = []
     scheduled_resolve_times = []
 
-    posts = (
-        Post.objects.filter_projects(project)
-        .filter_questions()
-        .prefetch_questions()
-        .filter(curation_status=Post.CurationStatus.APPROVED)
-    )
-
     project_close_date = project.close_date or make_aware(datetime.max)
     project_forecasting_end_date = project.forecasting_end_date or project_close_date
 
-    for post in posts:
-        for question in post.get_questions():
-            if all_questions_resolved:
-                all_questions_resolved = (
-                    question.actual_resolve_time
-                    # Or treat as resolved as scheduled resolution is in the future
-                    or question.scheduled_resolve_time > project_close_date
-                )
+    for question in questions:
+        if all_questions_resolved:
+            all_questions_resolved = (
+                question.actual_resolve_time
+                # Or treat as resolved as scheduled resolution is in the future
+                or question.scheduled_resolve_time > project_close_date
+            )
 
-            # Determine questions closure
-            if all_questions_closed:
-                close_time = question.actual_close_time or question.scheduled_close_time
-                all_questions_closed = (
-                    close_time <= timezone.now()
-                    or close_time > project_forecasting_end_date
-                )
+        # Determine questions closure
+        if all_questions_closed:
+            close_time = question.actual_close_time or question.scheduled_close_time
+            all_questions_closed = (
+                close_time <= timezone.now()
+                or close_time > project_forecasting_end_date
+            )
 
-            if question.cp_reveal_time:
-                cp_reveal_times.append(question.cp_reveal_time)
+        if question.cp_reveal_time:
+            cp_reveal_times.append(question.cp_reveal_time)
 
-            if question.actual_resolve_time:
-                actual_resolve_times.append(question.actual_resolve_time)
+        if question.actual_resolve_time:
+            actual_resolve_times.append(question.actual_resolve_time)
 
-            if question.scheduled_resolve_time:
-                scheduled_resolve_time = (
-                    question.actual_resolve_time or question.scheduled_resolve_time
-                )
-                scheduled_resolve_times.append(scheduled_resolve_time)
+        if question.scheduled_resolve_time:
+            scheduled_resolve_time = (
+                question.actual_resolve_time or question.scheduled_resolve_time
+            )
+            scheduled_resolve_times.append(scheduled_resolve_time)
 
     def get_max(data: list):
         return max([x for x in data if x <= project_close_date], default=None)
@@ -208,6 +203,70 @@ def get_project_timeline_data(project: Project):
         "latest_scheduled_resolve_time": get_max(scheduled_resolve_times),
         "all_questions_resolved": all_questions_resolved,
         "all_questions_closed": all_questions_closed,
+    }
+
+
+def get_project_timeline_data(project: Project):
+    questions = Question.objects.filter(
+        post_id__in=list(
+            Post.objects.filter_projects(project)
+            .filter(curation_status=Post.CurationStatus.APPROVED)
+            .values_list("id", flat=True)
+        )
+    )
+
+    return _calculate_timeline_data(project, questions)
+
+
+@cache_per_object(timeout=60 * 15)
+def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
+    projects = Project.objects.in_bulk(project_ids)
+
+    # 1. Map Project -> Post IDs
+    project_posts = defaultdict(set)
+
+    # Default projects
+    qs_default = Post.objects.filter(
+        default_project_id__in=project_ids,
+        curation_status=Post.CurationStatus.APPROVED,
+    ).values_list("id", "default_project_id")
+
+    # M2M projects
+    qs_m2m = Post.projects.through.objects.filter(
+        project_id__in=project_ids,
+        post__curation_status=Post.CurationStatus.APPROVED,
+    ).values_list("post_id", "project_id")
+
+    for post_id, project_id in chain(qs_default, qs_m2m):
+        project_posts[project_id].add(post_id)
+
+    # 2. Fetch Questions
+    all_post_ids = set().union(*project_posts.values())
+
+    questions = Question.objects.filter(post_id__in=all_post_ids).only(
+        "id",
+        "post_id",
+        "cp_reveal_time",
+        "actual_resolve_time",
+        "scheduled_resolve_time",
+        "actual_close_time",
+        "scheduled_close_time",
+    )
+
+    # Group by post
+    questions_by_post = defaultdict(list)
+    for q in questions:
+        questions_by_post[q.post_id].append(q)
+
+    # 3. Aggregate
+    return {
+        pid: _calculate_timeline_data(
+            project,
+            chain.from_iterable(
+                questions_by_post[post_id] for post_id in project_posts.get(pid, [])
+            ),
+        )
+        for pid, project in projects.items()
     }
 
 

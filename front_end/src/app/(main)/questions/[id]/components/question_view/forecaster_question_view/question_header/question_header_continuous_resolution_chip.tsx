@@ -1,17 +1,18 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 type Props = {
   formatedResolution: string;
   successfullyResolved: boolean;
   size?: "md" | "lg";
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
 };
 
 const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
@@ -25,6 +26,8 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
     question,
     isClosed: question.status === QuestionStatus.CLOSED,
   });
+
+  const isEmbed = useIsEmbedMode();
 
   return (
     <div
@@ -57,6 +60,7 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
           {
             "text-gray-700 dark:text-gray-700-dark": !successfullyResolved,
             "text-base": size === "lg",
+            "mb-0 truncate text-sm md:text-sm": isEmbed,
           }
         )}
       >

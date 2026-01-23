@@ -24,7 +24,7 @@ def _get_index_posts_with_weights(index: ProjectIndex) -> dict[Post, float]:
     posts = (
         Post.objects.filter(index_weights__index=index)
         .filter_published()
-        .prefetch_questions()
+        .prefetch_related("questions")
         .annotate(_weight=F("index_weights__weight"))
     )
 
@@ -314,7 +314,7 @@ def get_default_index_data(index: ProjectIndex) -> dict:
     # TODO: add caching
     post_weights = _get_index_posts_with_weights(index)
     question_weights = {
-        q: weight for post, weight in post_weights.items() for q in post.get_questions()
+        q: weight for post, weight in post_weights.items() for q in post.questions.all()
     }
 
     return {
@@ -335,7 +335,7 @@ def get_multi_year_index_data(index: ProjectIndex) -> dict:
     index_segments: dict[str, dict[Question, float]] = defaultdict(dict)
 
     for post, weight in post_weights.items():
-        for question in post.get_questions():
+        for question in post.questions.all():
             index_segments[question.label][question] = weight
 
     agg_map = _generate_questions_agg_map(flatten(index_segments.values()))

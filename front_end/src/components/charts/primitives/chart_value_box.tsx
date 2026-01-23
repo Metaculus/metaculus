@@ -1,25 +1,179 @@
-"use client";
 import { isNil } from "lodash";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { Resolution } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { resolveToCssColor } from "@/utils/resolve_color";
+
+const TEXT_PADDING = 6;
+const PLACEMENT_OFFSET_VERTICAL = 4;
+const PLACEMENT_OFFSET_HORIZONTAL = -12;
+const CHIP_HEIGHT = 16;
+const CHIP_FONT_SIZE = 12;
+
+type Placement = "in" | "below" | "above" | "left" | "right";
+
+function getTextAnchor(placement: Placement) {
+  switch (placement) {
+    case "left":
+      return "start";
+    case "right":
+      return "end";
+    default:
+      return "middle";
+  }
+}
+
+function getRectX(
+  placement: Placement,
+  adjustedX: number,
+  textWidth: number,
+  textAlignToSide?: boolean
+) {
+  switch (placement) {
+    case "left":
+      return (
+        adjustedX -
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) +
+        textWidth -
+        TEXT_PADDING / 2
+      );
+    case "right":
+      return (
+        adjustedX +
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) -
+        textWidth +
+        TEXT_PADDING / 2
+      );
+    default:
+      return adjustedX - textWidth / 2;
+  }
+}
+
+function getTextX(
+  placement: Placement,
+  adjustedX: number,
+  textAlignToSide?: boolean
+) {
+  switch (placement) {
+    case "left":
+      return (
+        adjustedX -
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL)
+      );
+    case "right":
+      return (
+        adjustedX +
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL)
+      );
+    default:
+      return adjustedX;
+  }
+}
+
+function getResolvedX(
+  placement: Placement,
+  adjustedX: number,
+  textAlignToSide?: boolean
+) {
+  switch (placement) {
+    case "left":
+      return (
+        adjustedX -
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) -
+        TEXT_PADDING / 2
+      );
+    case "right":
+      return (
+        adjustedX +
+        (textAlignToSide
+          ? PLACEMENT_OFFSET_HORIZONTAL
+          : PLACEMENT_OFFSET_VERTICAL) +
+        TEXT_PADDING / 2
+      );
+    default:
+      return adjustedX;
+  }
+}
+
+function getTextY(
+  placement: Placement,
+  y: number,
+  isDistributionChip?: boolean,
+  textAlignToSide?: boolean
+) {
+  const baseY =
+    y + CHIP_FONT_SIZE / 10 - (isDistributionChip ? CHIP_HEIGHT : 0);
+  switch (placement) {
+    case "left":
+    case "right":
+      return baseY + (textAlignToSide ? CHIP_HEIGHT : -2);
+    default:
+      return baseY;
+  }
+}
+
+function getResolvedY(
+  placement: Placement,
+  y: number,
+  isDistributionChip?: boolean,
+  textAlignToSide?: boolean
+) {
+  const baseY = y - CHIP_HEIGHT - 1 - (isDistributionChip ? CHIP_HEIGHT : 0);
+  switch (placement) {
+    case "left":
+    case "right":
+      return baseY + (textAlignToSide ? CHIP_HEIGHT + 2 : 0);
+    default:
+      return baseY;
+  }
+}
+
+function getRectY(
+  placement: Placement,
+  y: number,
+  isDistributionChip?: boolean,
+  textAlignToSide?: boolean
+) {
+  const baseY = y - CHIP_HEIGHT / 2 - (isDistributionChip ? CHIP_HEIGHT : 0);
+  switch (placement) {
+    case "left":
+    case "right":
+      return baseY + (textAlignToSide ? CHIP_HEIGHT : -2);
+    default:
+      return baseY;
+  }
+}
 
 const ChartValueBox: FC<{
   x?: number | null;
   y?: number | null;
-  datum?: { y: number };
+  datum?: {
+    y: number;
+    placement?: Placement;
+  };
   isCursorActive: boolean;
   chartWidth: number;
   rightPadding: number;
-  colorOverride?: ThemeColor;
+  colorOverride?: ThemeColor | string;
   getCursorValue?: (value: number) => string;
   resolution?: Resolution | null;
   isDistributionChip?: boolean;
   questionType?: QuestionType;
+  textAlignToSide?: boolean;
 }> = (props) => {
   const { getThemeColor } = useAppTheme();
   const {
@@ -34,43 +188,51 @@ const ChartValueBox: FC<{
     resolution,
     isDistributionChip,
     questionType,
+    textAlignToSide,
   } = props;
-  const TEXT_PADDING = 4;
   const CHIP_OFFSET = !isNil(resolution) ? 8 : 0;
+
+  const displayText = useMemo(() => {
+    if (!!resolution && !isCursorActive) return String(resolution);
+    const v = datum?.y;
+    if (typeof v !== "number") return "";
+    return getCursorValue ? getCursorValue(v) : v.toFixed(1);
+  }, [resolution, isCursorActive, datum?.y, getCursorValue]);
 
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
+  const placement = datum?.placement ?? "in";
   useEffect(() => {
     if (textRef.current) {
       setTextWidth(textRef.current.getBBox().width + TEXT_PADDING);
     }
-  }, [datum?.y]);
+  }, [displayText]);
 
-  if (isNil(x) || isNil(y)) {
-    return null;
-  }
+  if (isNil(x) || isNil(y)) return null;
 
   const adjustedX =
     isCursorActive || isDistributionChip
       ? x
       : chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET;
-  const chipHeight = 16;
-  const chipFontSize = 12;
   const hasResolution = !!resolution && !isCursorActive;
+
+  const chipFill =
+    resolveToCssColor(getThemeColor, colorOverride) ??
+    getThemeColor(METAC_COLORS.olive["600"]);
 
   return (
     <g>
-      {/* "RESOLVED" label above the chip for resolution values */}
       {hasResolution && questionType !== QuestionType.Binary && (
         <text
-          x={adjustedX}
-          y={y - chipHeight - 1 - (isDistributionChip ? chipHeight : 0)}
-          textAnchor="middle"
+          x={getResolvedX(placement, adjustedX, textAlignToSide)}
+          y={getResolvedY(placement, y, isDistributionChip, textAlignToSide)}
+          textAnchor={getTextAnchor(placement)}
           dominantBaseline="middle"
           fill={getThemeColor(METAC_COLORS.purple["800"])}
-          fontWeight="600"
+          fontWeight="650"
+          letterSpacing="0.02em"
           fontSize={11}
-          style={{ textTransform: "uppercase", letterSpacing: "0.5px" }}
+          style={{ textTransform: "uppercase" }}
         >
           RESOLVED
         </text>
@@ -78,15 +240,11 @@ const ChartValueBox: FC<{
 
       {/* Original chip background - unchanged */}
       <rect
-        x={adjustedX - textWidth / 2}
-        y={y - chipHeight / 2 - (isDistributionChip ? chipHeight : 0)}
+        x={getRectX(placement, adjustedX, textWidth, textAlignToSide)}
+        y={getRectY(placement, y, isDistributionChip, textAlignToSide)}
         width={textWidth}
-        height={chipHeight}
-        fill={
-          isNil(colorOverride)
-            ? getThemeColor(METAC_COLORS.olive["600"])
-            : getThemeColor(colorOverride)
-        }
+        height={CHIP_HEIGHT}
+        fill={chipFill}
         stroke="transparent"
         rx={2}
         ry={2}
@@ -95,19 +253,16 @@ const ChartValueBox: FC<{
       {/* Original value text - unchanged */}
       <text
         ref={textRef}
-        x={adjustedX}
-        y={y + chipFontSize / 10 - (isDistributionChip ? chipHeight : 0)}
-        textAnchor="middle"
+        x={getTextX(placement, adjustedX, textAlignToSide)}
+        y={getTextY(placement, y, isDistributionChip, textAlignToSide)}
+        textAnchor={getTextAnchor(placement)}
         dominantBaseline="middle"
         fill={getThemeColor(METAC_COLORS.gray["0"])}
-        fontWeight="bold"
-        fontSize={chipFontSize}
+        fontWeight="650"
+        letterSpacing="0.02em"
+        fontSize={CHIP_FONT_SIZE}
       >
-        {!!resolution && !isCursorActive
-          ? resolution
-          : getCursorValue
-            ? getCursorValue(datum?.y as number)
-            : datum?.y.toFixed(1)}
+        {displayText}
       </text>
     </g>
   );

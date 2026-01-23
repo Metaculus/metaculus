@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
@@ -9,8 +9,8 @@ import { z } from "zod";
 import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { LanguageService } from "@/services/language_service";
-import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
@@ -67,7 +67,8 @@ export default async function loginAction(
     };
   }
 
-  await setServerSession(response.token);
+  const authManager = await getAuthCookieManager();
+  authManager.setAuthTokens(response.tokens);
 
   // Set user's language preference as the active locale
   if (response.user.language) {
@@ -112,7 +113,6 @@ export async function signUpAction(
         email: validatedSignupData.email,
         username: validatedSignupData.username,
         password: validatedSignupData.password,
-        is_bot: validatedSignupData.isBot,
         add_to_project: validatedSignupData.addToProject,
         campaign_key: validatedSignupData.campaignKey,
         campaign_data: validatedSignupData.campaignData,
@@ -132,8 +132,9 @@ export async function signUpAction(
 
     const signUpActionState: SignUpActionState = { ...response };
 
-    if (response.is_active && response.token) {
-      await setServerSession(response.token);
+    if (response.is_active && response.tokens) {
+      const authManager = await getAuthCookieManager();
+      authManager.setAuthTokens(response.tokens);
 
       // Set user's language preference as the active locale
       if (response.user?.language) {
@@ -164,7 +165,11 @@ export async function signUpAction(
 }
 
 export async function LogOut() {
-  await deleteServerSession();
+  const authManager = await getAuthCookieManager();
+  authManager.clearAuthTokens();
+  authManager.clearImpersonatorRefreshToken();
+  // DEPRECATED: Remove after 30-day migration period
+  (await cookies()).delete("auth_token");
   return redirect("/");
 }
 
@@ -212,8 +217,9 @@ export async function simplifiedSignUpAction(
   try {
     const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
 
-    if (response?.token) {
-      await setServerSession(response.token);
+    if (response && response.tokens) {
+      const authManager = await getAuthCookieManager();
+      authManager.setAuthTokens(response.tokens);
     }
     return response;
   } catch (err: unknown) {

@@ -9,7 +9,7 @@ import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
@@ -27,7 +27,7 @@ import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvail
 import CPRevealTime from "../cp_reveal_time";
 
 type Props = {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   disabled: boolean;
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
